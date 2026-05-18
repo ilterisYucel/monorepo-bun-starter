@@ -1,0 +1,38 @@
+{
+  "name": "demo-backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/demo-backend/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun --watch src/index.ts",
+        "cwd": "apps/demo-backend"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run build",
+        "cwd": "apps/demo-backend"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun dist/index.js",
+        "cwd": "apps/demo-backend"
+      }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rm -rf dist",
+        "cwd": "apps/demo-backend"
+      }
+    }
+  },
+  "implicitDependencies": ["core", "shared-types", "simulators"]
+}

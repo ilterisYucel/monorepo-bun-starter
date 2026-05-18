@@ -1,0 +1,155 @@
+/* src/pages/DashboardPage/style.css */
+
+.dashboard-page {
+  padding: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Gauge'ler - Yatay */
+.gauges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.gauges-row > * {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Orta kısım: Animasyon (80%) + Control Panel (20%) */
+.dashboard-middle {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.powerflow-wrapper {
+  flex: 7.8;  /* 80% */
+  min-width: 0;
+  background: #1a1a2e;
+  border-radius: 16px;
+  border: 1px solid #2a2a3a;
+  overflow: hidden;
+}
+
+.control-wrapper {
+  flex: 2.2;
+  min-width: 0;
+  background: #1a1a2e;
+  border-radius: 16px;
+  border: 1px solid #2a2a3a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.control-wrapper > div {
+  height: 100%;  /* 🔥 İç div'in yüksekliği doldurmasını sağla */
+}
+
+/* TelemetryChart - 100% */
+.chart-wrapper-full {
+  width: 100%;
+  background: #1a1a2e;
+  border-radius: 16px;
+  border: 1px solid #2a2a3a;
+  overflow: hidden;
+}
+
+/* Loading */
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #9ca3af;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #2a2a3a;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-middle {
+    flex-direction: column;
+  }
+  
+  .powerflow-wrapper,
+  .control-wrapper {
+    flex: auto;
+  }
+  
+  .gauges-row {
+    gap: 12px;
+  }
+  
+  .gauges-row > * {
+    min-width: 120px;
+  }
+}
+
+/* src/pages/DashboardPage/style.css */
+
+/* src/pages/DashboardPage/style.css */
+
+/* TelemetryChart (70%) + LogTerminal (30%) - Aynı yükseklik */
+.dashboard-bottom {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+  align-items: stretch; /* 🔥 İkisini de aynı yükseklikte yapar */
+}
+
+.chart-wrapper-bottom {
+  flex: 7;  /* 70% */
+  min-width: 0;
+  background: #1a1a2e;
+  border-radius: 16px;
+  border: 1px solid #2a2a3a;
+  overflow: hidden;
+}
+
+.log-wrapper-bottom {
+  flex: 3;  /* 30% */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* LogTerminal iç container'ının yüksekliği doldurması için */
+.log-wrapper-bottom > * {
+  flex: 1;
+  height: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-bottom {
+    flex-direction: column;
+  }
+  
+  .chart-wrapper-bottom,
+  .log-wrapper-bottom {
+    flex: auto;
+  }
+}

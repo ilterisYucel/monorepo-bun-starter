@@ -1,0 +1,38 @@
+/* src/pages/ControlPage/styles.css */
+
+.control-page {
+  padding: 8px;
+}
+
+.control-page h2 {
+  margin-bottom: 24px;
+  color: #e5e7eb;
+}
+
+.control-page-content {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.control-panel-wrapper {
+  flex: 1;
+  min-width: 300px;
+}
+
+.scheduler-wrapper {
+  flex: 1;
+  min-width: 350px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .control-page-content {
+    flex-direction: column;
+  }
+  
+  .control-panel-wrapper,
+  .scheduler-wrapper {
+    flex: auto;
+  }
+}

@@ -1,0 +1,194 @@
+/* src/components/LogTerminal/LogTerminal.css */
+
+.log-terminal {
+  background: #0f0f1a;
+  border-radius: 16px;
+  border: 1px solid #2a2a3a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: monospace;
+  /* 🔥 height dışarıdan gelecek, burada min-height var */
+  min-height: 200px;
+}
+
+.log-terminal-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.log-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.clear-logs-btn {
+  background: #ef444420;
+  border: 1px solid #ef444640;
+  color: #ef4444;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.clear-logs-btn:hover {
+  background: #ef444430;
+  border-color: #ef444480;
+}
+
+.log-terminal-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* 🔥 Scroll için kritik */
+  padding: 8px;
+}
+
+.log-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 150px;
+  color: #6b7280;
+  gap: 8px;
+  padding: 32px;
+  text-align: center;
+}
+
+.log-empty span {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.log-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.log-empty small {
+  font-size: 11px;
+}
+
+.log-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #1a1a2e;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.log-entry:hover {
+  background: #1f1f2e;
+  transform: translateX(2px);
+}
+
+.log-time {
+  font-size: 10px;
+  color: #6b7280;
+  min-width: 65px;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.log-icon {
+  min-width: 45px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.log-message {
+  flex: 1;
+  color: #e5e7eb;
+  word-break: break-word;
+}
+
+.log-details {
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 4px;
+  padding-left: 8px;
+  border-left: 1px solid #2a2a3a;
+}
+
+/* Log tipleri */
+.log-success {
+  border-left-color: #10b981;
+}
+.log-success .log-icon {
+  color: #10b981;
+}
+
+.log-error {
+  border-left-color: #ef4444;
+}
+.log-error .log-icon {
+  color: #ef4444;
+}
+
+.log-warning {
+  border-left-color: #f59e0b;
+}
+.log-warning .log-icon {
+  color: #f59e0b;
+}
+
+.log-info {
+  border-left-color: #3b82f6;
+}
+.log-info .log-icon {
+  color: #3b82f6;
+}
+
+.log-terminal-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #1a1a2e;
+  border-top: 1px solid #2a2a3a;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.log-legend {
+  display: flex;
+  gap: 12px;
+}
+
+.legend-success { color: #10b981; }
+.legend-error { color: #ef4444; }
+.legend-warning { color: #f59e0b; }
+.legend-info { color: #3b82f6; }
+
+/* Scrollbar */
+.log-terminal-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.log-terminal-body::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+.log-terminal-body::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 4px;
+}

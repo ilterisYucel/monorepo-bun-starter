@@ -1,0 +1,21 @@
+{
+  "name": "@gd-monorepo/shared-utils",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "@gd-monorepo/shared-types": "*"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "clean": "rm -rf dist"
+  }
+}

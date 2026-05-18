@@ -1,0 +1,133 @@
+.powerflow-container {
+  background: #1f1f2e;
+  border-radius: 16px;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.powerflow-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.powerflow-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #e5e7eb;
+}
+
+.flow-status {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.flow-charge {
+  background: #10b98120;
+  color: #10b981;
+  border: 1px solid #10b981;
+  animation: pulse-charge 1.5s infinite;
+}
+
+.flow-discharge {
+  background: #f59e0b20;
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+  animation: pulse-discharge 1.5s infinite;
+}
+
+.flow-idle {
+  background: #6b728020;
+  color: #9ca3af;
+  border: 1px solid #6b7280;
+}
+
+@keyframes pulse-charge {
+  0%, 100% { box-shadow: 0 0 0 0 #10b98140; }
+  50% { box-shadow: 0 0 0 8px #10b98120; }
+}
+
+@keyframes pulse-discharge {
+  0%, 100% { box-shadow: 0 0 0 0 #f59e0b40; }
+  50% { box-shadow: 0 0 0 8px #f59e0b20; }
+}
+
+.powerflow-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #2a2a3a;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.legend-battery {
+  width: 20px;
+  height: 14px;
+  background: #1e1e2e;
+  border: 1px solid #3d3d5e;
+  border-radius: 2px;
+}
+
+.legend-pcs {
+  width: 24px;
+  height: 16px;
+  background: #2a2a3e;
+  border: 1px solid #7c3aed;
+  border-radius: 2px;
+}
+
+.legend-grid {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fbbf24;
+}
+
+.legend-flow-charge {
+  width: 24px;
+  height: 4px;
+  background: #10b981;
+  position: relative;
+}
+
+.legend-flow-charge::after {
+  content: '←';
+  position: absolute;
+  right: -8px;
+  top: -6px;
+  color: #10b981;
+  font-size: 12px;
+}
+
+.legend-flow-discharge {
+  width: 24px;
+  height: 4px;
+  background: #f59e0b;
+  position: relative;
+}
+
+.legend-flow-discharge::after {
+  content: '→';
+  position: absolute;
+  right: -8px;
+  top: -6px;
+  color: #f59e0b;
+  font-size: 12px;
+}

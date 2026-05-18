@@ -1,0 +1,27 @@
+{
+  "name": "gd-pms-monorepo",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nx run-many --target=dev --parallel=5",
+    "dev:web": "nx run web:dev",
+    "dev:desktop": "nx run desktop:dev",
+    "build": "nx run-many --target=build",
+    "build:web": "nx run web:build",
+    "build:desktop": "nx run desktop:build",
+    "graph": "nx graph",
+    "clean": "nx run-many --target=clean"
+  },
+  "devDependencies": {
+    "@nx/react": "^22.7.1",
+    "@nx/vite": "^22.7.1",
+    "@types/bun": "latest",
+    "nx": "^22.7.1",
+    "typescript": "^5.4.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

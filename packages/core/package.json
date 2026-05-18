@@ -1,0 +1,44 @@
+{
+  "name": "@gd-monorepo/core",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./modbus": {
+      "types": "./src/modbus/index.ts",
+      "default": "./src/modbus/index.ts"
+    },
+    "./timeseries": {
+      "types": "./src/timeseries/index.ts",
+      "default": "./src/timeseries/index.ts"
+    },
+    "./messaging": {
+      "types": "./src/messaging/index.ts",
+      "default": "./src/messaging/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bullmq": "^5.76.8",
+    "jsmodbus": "^4.0.10",
+    "p-limit": "^7.3.0",
+    "pg": "^8.11.3",
+    "redis": "^4.6.13"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "@gd-monorepo/shared-types": "*"
+  }
+}

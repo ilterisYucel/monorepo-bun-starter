@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: battery-timescaledb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+    networks:
+      - battery-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: battery-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - battery-network
+
+  demo-backend:
+    build:
+      context: ../                    
+      dockerfile: apps/demo-backend/deployment/Dockerfile
+    container_name: battery-demo-backend
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      MODBUS_HOST: host.docker.internal
+      MODBUS_PORT: 502
+    ports:
+      - "5000:5000"
+    depends_on:
+      - timescaledb
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - battery-network
+    restart: unless-stopped
+  web:
+    build:
+      context: ../
+      dockerfile: apps/web/deployment/Dockerfile
+    container_name: battery-web
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: http://localhost:5000
+    ports:
+      - "80:80"
+    depends_on:
+      - demo-backend
+    networks:
+      - battery-network
+    restart: unless-stopped
+
+volumes:
+  timescale-data:
+  redis-data:
+
+networks:
+  battery-network:
+    driver: bridge

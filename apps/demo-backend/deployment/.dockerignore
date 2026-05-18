@@ -1,0 +1,29 @@
+# IDE
+.vscode
+.idea
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies & Builds
+**/node_modules
+**/dist
+**/out
+**/.next
+
+# Git & CI
+.git
+.github
+.gitlab
+.nyc_output
+coverage
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

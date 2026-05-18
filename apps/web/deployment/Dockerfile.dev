@@ -1,0 +1,13 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Tüm projeyi kopyala
+COPY . .
+
+# Root'da install yap (tüm workspace'leri çözer)
+RUN bun install
+
+WORKDIR /app/apps/web
+
+CMD ["bun", "run", "dev"]

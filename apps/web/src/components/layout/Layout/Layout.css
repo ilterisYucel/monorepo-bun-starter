@@ -1,0 +1,29 @@
+/* src/components/layout/Layout.css */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #0f0f1a;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+}
+
+/* Sidebar collapsed olduğunda main-content margin'i azalt */
+.sidebar.collapsed ~ .main-content,
+.main-content:has(.sidebar.collapsed) {
+  margin-left: 70px;
+}
+
+.page-content {
+  padding: 0 24px 24px 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 70px;
+  }
+}

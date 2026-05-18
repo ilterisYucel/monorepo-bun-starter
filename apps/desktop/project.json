@@ -1,0 +1,53 @@
+{
+  "name": "desktop",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/desktop/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "electron-vite dev",
+        "cwd": "apps/desktop"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build",
+        "cwd": "apps/desktop"
+      },
+      "outputs": ["{projectRoot}/out", "{projectRoot}/release"]
+    },
+    "build:win": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build:win",
+        "cwd": "apps/desktop"
+      },
+      "outputs": ["{projectRoot}/release"]
+    },
+    "build:linux": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build:linux",
+        "cwd": "apps/desktop"
+      },
+      "outputs": ["{projectRoot}/release"]
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run lint",
+        "cwd": "apps/desktop"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run typecheck",
+        "cwd": "apps/desktop"
+      }
+    }
+  }
+}
