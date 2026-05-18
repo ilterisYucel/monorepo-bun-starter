@@ -3,30 +3,26 @@ FROM oven/bun:latest AS builder
 
 WORKDIR /app
 
-# Önce root package.json'ı kopyala
-COPY package.json ./
-COPY bun.lock* ./
+# Monorepo yapısını kopyala
+COPY package.json bun.lock ./
+COPY nx.json ./
+COPY tsconfig.base.json ./
 
-# Sadece root'da install yap (workspace'leri görmesi için)
-RUN bun install
-
-# Şimdi workspace'teki tüm paketlerin node_modules'ları root'da hoist edilecek
+# Workspace'lerin package.json'larını kopyala
 COPY apps/demo-backend/package.json apps/demo-backend/
 COPY packages/core/package.json packages/core/
 COPY packages/shared-types/package.json packages/shared-types/
+COPY packages/shared-utils/package.json packages/shared-utils/
 COPY packages/simulators/package.json packages/simulators/
 
-# Tekrar install et (bu sefer workspace'ler de tanınacak)
+# 🔥 Nx'i yükle
 RUN bun install
 
 # Kaynak kodları kopyala
-COPY tsconfig.base.json ./
 COPY apps/demo-backend/ apps/demo-backend/
-COPY packages/core/ packages/core/
-COPY packages/shared-types/ packages/shared-types/
-COPY packages/simulators/ packages/simulators/
+COPY packages/ packages/
 
-# Build al
+# 🔥 Nx ile build et (dependency sıralamasını Nx yönetecek)
 RUN bun run build
 
 # Stage 2: Production
@@ -34,17 +30,25 @@ FROM oven/bun:latest AS runner
 
 WORKDIR /app
 
-# Build çıktısını kopyala
-COPY --from=builder /app/apps/demo-backend/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
+# Build çıktılarını kopyala
+COPY --from=builder /app/apps/demo-backend/dist ./apps/demo-backend/dist
+COPY --from=builder /app/packages/core/dist ./packages/core/dist
+COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
+COPY --from=builder /app/packages/shared-utils/dist ./packages/shared-utils/dist
+COPY --from=builder /app/packages/simulators/dist ./packages/simulators/dist
 
-# 🔥 Monorepo'daki workspace bağlantılarını koru
-COPY --from=builder /app/packages ./packages
+# Runtime bağımlılıkları
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+# Workspace package.json'ları (runtime'da gerekebilir)
+COPY --from=builder /app/apps/demo-backend/package.json ./apps/demo-backend/package.json
+COPY --from=builder /app/packages/core/package.json ./packages/core/package.json
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=5000
 
-EXPOSE 3000
+EXPOSE 5000
 
-# 🔥 Bun ile çalıştır
+WORKDIR /app/apps/demo-backend
 CMD ["bun", "dist/index.js"]
