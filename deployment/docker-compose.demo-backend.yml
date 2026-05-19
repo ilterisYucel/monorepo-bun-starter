@@ -32,7 +32,7 @@ services:
     container_name: battery-demo-backend
     environment:
       NODE_ENV: production
-      PORT: 5000
+      PORT: 3000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       TIMESCALE_HOST: timescaledb
@@ -43,7 +43,7 @@ services:
       MODBUS_HOST: host.docker.internal
       MODBUS_PORT: 502
     ports:
-      - "5000:5000"
+      - "3000:3000"
     depends_on:
       - timescaledb
       - redis
@@ -59,7 +59,7 @@ services:
     container_name: battery-web
     environment:
       NODE_ENV: production
-      VITE_API_URL: http://localhost:5000
+      VITE_API_URL: http://localhost:3000
     ports:
       - "80:80"
     depends_on:
