@@ -10,13 +10,13 @@ import type {
 export const api = {
   // Rack'leri getir
   getRacks: async (): Promise<Rack[]> => {
-    const response = await apiClient.get('/api/racks/latest')
+    const response = await apiClient.get('/racks/latest')
     return response.data.racks || []
   },
 
   // Sistem tarihsel verisi (tek voltage, tek current)
   getSystemHistoricalData: async (limit: number = 200): Promise<SystemDataPoint[]> => {
-    const response = await apiClient.get(`/api/racks/history?limit=${limit}`)
+    const response = await apiClient.get(`/racks/history?limit=${limit}`)
     const history = response.data.history || []
 
     const systemData: SystemDataPoint[] = []
@@ -41,14 +41,14 @@ export const api = {
   setStatus: async (status: 'online' | 'offline', rackId?: number): Promise<void> => {
     const payload: SetStatusRequest = { status }
     if (rackId !== undefined) payload.rack_id = rackId
-    await apiClient.post('/api/commands/status', payload)
+    await apiClient.post('/commands/status', payload)
   },
 
   // SoC komutu
   setSoc: async (socPercent: number, rackId?: number): Promise<void> => {
     const payload: SetSOCRequest = { soc: socPercent }
     if (rackId !== undefined) payload.rack_id = rackId
-    await apiClient.post('/api/commands/soc', payload)
+    await apiClient.post('/commands/soc', payload)
   },
 
   // Power komutu (Charge/Discharge/Idle)
@@ -64,6 +64,6 @@ export const api = {
       duration_seconds: durationSeconds
     }
     if (rackId !== undefined) payload.rack_id = rackId
-    await apiClient.post('/api/commands/power', payload)
+    await apiClient.post('/commands/power', payload)
   }
 }

@@ -18,7 +18,7 @@ export const telemetryService = {
     if (limit) params.append("limit", limit.toString());
 
     const response = await apiClient.get<HistoryResponse>(
-      `/api/racks/history?${params.toString()}`,
+      `/racks/history?${params.toString()}`,
     );
     console.log(
       "[telemetryService] Fetched history:",
@@ -51,7 +51,7 @@ export const telemetryService = {
 
   getChargeStatus: async (): Promise<"Charge" | "Discharge" | "Idle"> => {
     const response = await apiClient.get<{ telemetries: TelemetryData[] }>(
-      "/api/racks/latest",
+      "/racks/latest",
     );
     const chargeStatusTelemetry = response.data.telemetries.find(
       (t) =>

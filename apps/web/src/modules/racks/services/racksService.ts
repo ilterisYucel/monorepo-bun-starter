@@ -7,8 +7,7 @@ interface TelemetryResponse {
 
 export const racksService = {
   getLatest: async (): Promise<TelemetryData[]> => {
-    const response =
-      await apiClient.get<TelemetryResponse>("/api/racks/latest");
+    const response = await apiClient.get<TelemetryResponse>("/racks/latest");
     return response.data.telemetries || [];
   },
 };

@@ -74,7 +74,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       }
 
       const response = await apiClient.get<DownsampledResponse>(
-        `/api/racks/history/downsampled?${params.toString()}`,
+        `/racks/history/downsampled?${params.toString()}`,
       );
       return response.data.telemetries || [];
     },

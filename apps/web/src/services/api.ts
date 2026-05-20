@@ -9,8 +9,7 @@ interface TelemetryResponse {
 
 export const api = {
   getLatestTelemetries: async (): Promise<TelemetryData[]> => {
-    const response =
-      await apiClient.get<TelemetryResponse>("/api/racks/latest");
+    const response = await apiClient.get<TelemetryResponse>("/racks/latest");
     return response.data.telemetries || [];
   },
 
@@ -28,7 +27,7 @@ export const api = {
     powerKw: number,
     durationSeconds: number,
   ): Promise<void> => {
-    await apiClient.post("/api/racks/commands/power", {
+    await apiClient.post("/racks/commands/power", {
       charge_status: chargeStatus,
       power_kw: powerKw,
       duration_seconds: durationSeconds,
