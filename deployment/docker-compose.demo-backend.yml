@@ -56,12 +56,9 @@ services:
     build:
       context: ../
       dockerfile: apps/web/deployment/Dockerfile
-      args:
-        VITE_API_URL: http://demo-backend:3000  
     container_name: battery-web
     environment:
       NODE_ENV: production
-      VITE_API_URL: http://demo-backend:3000 
     ports:
       - "80:80"
     depends_on:
