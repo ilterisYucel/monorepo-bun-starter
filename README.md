@@ -88,81 +88,97 @@ interface CommandDeviceJob {
 | HTTPServer | REST API + Websocket sunucusu | ✅ |
 
 ---
-## Batarya EMS Geliştirme Takip Tablosu
 
-| No | Bileşen | Açıklama | Simülatör | Gerçek | Durum |
-|:--:|:--------|:---------|:---------:|:------:|:-----:|
+## Geliştirme Durumu - Detaylı Tablo
+
+| No | Bileşen | Açıklama | Simülatör Testi | Gerçek Senaryo Testi | Durum |
+|:--:|:--------|:---------|:---------------:|:-------------------:|:-----:|
 | **1** | **Temel Veri Formatları** | | | | |
-| 1.1 | BaseTelemetryData | Tüm telemetry verilerinin temel interface'i | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.2 | ByteOrder tipi | BIG_ENDIAN, LITTLE_ENDIAN, *_SWAP | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.3 | ModbusTelemetryData | Modbus'a özel alanlar | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.4 | CanbusTelemetryData | CAN'a özel alanlar | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.5 | MqttTelemetryData | MQTT'ye özel alanlar | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.6 | TimescaleDbData | Veritabanı için tableName | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.7 | VoltageData | Voltaj ölçümü tipi | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.8 | CurrentData | Akım ölçümü tipi | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.9 | PowerData | Güç ölçümü tipi | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.10 | TemperatureData | Sıcaklık ölçümü tipi | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.11 | StateOfChargeData | Şarj durumu (SoC) | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.12 | StateOfHealthData | Sağlık durumu (SoH) | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.13 | ChargeStatusData | Şarj/Deşarj durumu | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 1.14 | InsulationResistanceData | Yalıtım direnci | - [x] ✅ | - [ ] ❌ | ⏳ |
+| 1.1 | BaseTelemetryData | Tüm telemetry verilerinin temel interface'i | ✅ | ❌ | ✅ |
+| 1.2 | ByteOrder tipi | BIG_ENDIAN, LITTLE_ENDIAN, *_SWAP | ✅ | ❌ | ✅ |
+| 1.3 | ModbusTelemetryData | Modbus'a özel registerAddress, slaveId, byteOrder | ✅ | ❌ | ✅ |
+| 1.4 | CanbusTelemetryData | CAN'a özel canId, startBit, length, isExtendedId | ✅ | ❌ | ✅ |
+| 1.5 | MqttTelemetryData | MQTT'ye özel topic, qos, retain, payloadType | ✅ | ❌ | ✅ |
+| 1.6 | TimescaleDbData | Veritabanı için tableName | ✅ | ❌ | ✅ |
+| 1.7 | VoltageData | Voltaj ölçümü tipi (V, mV, kV) | ✅ | ❌ | ✅ |
+| 1.8 | CurrentData | Akım ölçümü tipi (A, mA, kA) | ✅ | ❌ | ✅ |
+| 1.9 | PowerData | Güç ölçümü tipi (W, kW, MW) | ✅ | ❌ | ✅ |
+| 1.10 | TemperatureData | Sıcaklık ölçümü tipi (°C, °F, K) | ✅ | ❌ | ✅ |
+| 1.11 | StateOfChargeData | Şarj durumu (SoC) tipi (%) | ✅ | ❌ | ✅ |
+| 1.12 | StateOfHealthData | Sağlık durumu (SoH) tipi (%) | ✅ | ❌ | ✅ |
+| 1.13 | ChargeStatusData | Şarj/Deşarj durumu tipi | ✅ | ❌ | ✅ |
+| 1.14 | InsulationResistanceData | Yalıtım direnci ölçümü (kΩ, MΩ) | ✅ | ❌ | ✅ |
+| 1.15 | TelemetryData union | Generic + Domain tiplerini birleştiren union | ✅ | ❌ | ✅ |
+| 1.16 | TelemetryDataWithProtocol | Backend ↔ Driver katmanı arası union | ✅ | ❌ | ✅ |
+| 1.17 | Device tipi | Cihaz tanımı (id, name, manufacturer, model) | ✅ | ❌ | ✅ |
+| 1.18 | TelemetryMapping | Telemetry verisi ile protokol bilgisi eşleme | ✅ | ❌ | ✅ |
+| 1.19 | BatchTelemetryData | Toplu veri taşıma yapısı | ✅ | ❌ | ✅ |
+| 1.20 | CommandRequest | Komut gönderme formatı (WRITE/READ/EXECUTE) | ✅ | ❌ | ✅ |
+| 1.21 | CommandResponse | Komut cevap formatı (SUCCESS/FAILED/PENDING) | ✅ | ❌ | ✅ |
+| 1.22 | NormalizedTelemetry | Frontend için normalize edilmiş format | ✅ | ❌ | ✅ |
+| 1.23 | BaseJob | Temel job interface'i | ✅ | ❌ | ✅ |
+| 1.24 | ReadDeviceJob | Veri okuma job'u | ✅ | ❌ | ✅ |
+| 1.25 | WriteTelemetryJob | Telemetry yazma job'u | ✅ | ❌ | ✅ |
+| 1.26 | CommandDeviceJob | Komut gönderme job'u (atomic destekli) | ✅ | ❌ | ✅ |
 | **2** | **Device Sınıfları** | | | | |
-| 2.1 | ModbusDevice | Modbus TCP/RTU driver | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 2.2 | CANBusDevice | CANbus driver | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 2.3 | MQTTDevice | MQTT driver | - [ ] ❌ | - [ ] ❌ | ❌ |
+| 2.1 | ModbusDevice | Modbus TCP/RTU cihaz driver'ı | ✅ | ❌ | ✅ |
+| 2.2 | CANBusDevice | CANbus cihaz driver'ı | ❌ | ❌ | ❌ |
+| 2.3 | MQTTDevice | MQTT broker üzerinden cihaz driver'ı | ❌ | ❌ | ❌ |
 | **3** | **Veritabanı Adaptörleri** | | | | |
-| 3.1 | TimescaleDBAdapter | TimescaleDB yazma/okuma | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 3.2 | InfluxDBAdapter | InfluxDB yazma/okuma | - [x] ✅ | - [ ] ❌ | ⏳ |
+| 3.1 | TimescaleDBAdapter | TimescaleDB'ye yazma/okuma | ✅ | ❌ | ✅ |
+| 3.2 | InfluxDBAdapter | InfluxDB'ye yazma/okuma | ✅ | ❌ | ✅ |
 | **4** | **Servisler** | | | | |
-| 4.1 | Device Servisi | Veri okuma, job üretme | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 4.2 | Data Servisi | Job consumer, batch yazma | - [x] ✅ | - [ ] ❌ | ⏳ |
+| 4.1 | Device Servisi | Veri okuma, job üretme, komut işleme | ✅ | ❌ | ✅ |
+| 4.2 | Data Servisi | Job consumer, batch yazma, DB adaptör yönetimi | ✅ | ❌ | ✅ |
 | **5** | **Yan Servisler** | | | | |
-| 5.1 | PluginLoader | Plugin yükleme | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 5.2 | HTTPServer | REST + WS sunucu | - [x] ✅ | - [ ] ❌ | ⏳ |
+| 5.1 | PluginLoader | Arbitraj, analiz gibi plugin'leri yükleme | ✅ | ❌ | ✅ |
+| 5.2 | HTTPServer | REST API + Websocket sunucusu | ✅ | ❌ | ✅ |
 | **6** | **Simülatörler** | | | | |
-| 6.1 | BSC Simülatörü | Batarya Sistemi Kontrolörü | - [x] ✅ | N/A | ✅ |
-| 6.2 | IMD Simülatörü | Insulation Monitoring Device | - [ ] ❌ | N/A | ❌ |
-| 6.3 | TMS Simülatörü | Termal Yönetim Sistemi | - [ ] ❌ | N/A | ❌ |
+| 6.1 | BSC Simülatörü | Batarya Sistemi Kontrolörü simülasyonu | ✅ | N/A | ✅ |
+| 6.2 | IMD Simülatörü | Yalıtım İzleme Cihazı (Insulation Monitoring Device) simülasyonu | ❌ | N/A | ❌ |
+| 6.3 | TMS Simülatörü | Termal Yönetim Sistemi simülasyonu | ❌ | N/A | ❌ |
 | **7** | **BSC Komutları** | | | | |
-| 7.1 | Charge | Sürekli şarj | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 7.2 | Decharge | Sürekli deşarj | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 7.3 | Timer Charge | Süreli şarj | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 7.4 | Timer Decharge | Süreli deşarj | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 7.5 | Zaman bazlı Charge | Tarih/saatli şarj | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 7.6 | Zaman bazlı Decharge | Tarih/saatli deşarj | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 7.7 | Stop | Tüm işlemleri durdur | - [x] ✅ | - [ ] ❌ | ⏳ |
-| **8** | **IMD Komutları** | | | | |
-| 8.1 | Set threshold | Eşik değeri set et | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 8.2 | Get threshold | Eşik değeri oku | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 8.3 | Get resistance | Yalıtım direnci oku | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 8.4 | Start measurement | Ölçüm başlat | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 8.5 | Stop measurement | Ölçüm durdur | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 8.6 | Reset alarm | Alarm sıfırla | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 8.7 | Self test | Kendi kendine test | - [ ] ❌ | - [ ] ❌ | ❌ |
-| **9** | **TMS Geliştirmeleri** | | | | |
-| 9.1 | TMS Hardware | PLC/ kart üzerinde | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.2 | Modbus Server | Komut alma | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.3 | Analog Input | Sensör okuma | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.4 | Analog Output | Fan/pompa kontrol | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.5 | Digital Input | Buton/switch okuma | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.6 | Digital Output | Röle/alarm kontrol | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.7 | Set temperature | Hedef sıcaklık | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.8 | Get temperature | Anlık sıcaklık | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.9 | Set fan speed | Fan hızı ayarı | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.10 | Alarm yönetimi | Yangın/sıcaklık | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 9.11 | Emergency stop | Acil durdurma | - [ ] ❌ | - [ ] ❌ | ❌ |
+| 7.1 | Charge komutu | Komut çalıştığı sürece şarj eder | ✅ | ❌ | ✅ |
+| 7.2 | Decharge komutu | Komut çalıştığı sürece deşarj eder | ✅ | ❌ | ✅ |
+| 7.3 | Timer Charge komutu | Süre seçilir, o kadar saniye/dakika şarj eder | ✅ | ❌ | ✅ |
+| 7.4 | Timer Decharge komutu | Süre seçilir, o kadar saniye/dakika deşarj eder | ✅ | ❌ | ✅ |
+| 7.5 | Zaman bazlı Charge komutu | Tarih/saat seçilir, o zamanda şarj başlar | ❌ | ❌ | ❌ |
+| 7.6 | Zaman bazlı Decharge komutu | Tarih/saat seçilir, o zamanda deşarj başlar | ❌ | ❌ | ❌ |
+| 7.7 | Süreli Zaman bazlı Charge | Belirtilen süre kadar şarj, yoksa sürekli | ❌ | ❌ | ❌ |
+| 7.8 | Süreli Zaman bazlı Decharge | Belirtilen süre kadar deşarj, yoksa sürekli | ❌ | ❌ | ❌ |
+| 7.9 | Stop komutu | Tüm şarj/deşarj işlemlerini durdur | ✅ | ❌ | ✅ |
+| **8** | **IMD Komutları (Insulation Monitoring Device)** | | | | |
+| 8.1 | IMD Set threshold | Yalıtım direnci eşik değeri set etme | ❌ | ❌ | ❌ |
+| 8.2 | IMD Get threshold | Yalıtım direnci eşik değerini okuma | ❌ | ❌ | ❌ |
+| 8.3 | IMD Get resistance | Anlık yalıtım direnci değerini okuma | ❌ | ❌ | ❌ |
+| 8.4 | IMD Start measurement | Yalıtım ölçümünü başlatma | ❌ | ❌ | ❌ |
+| 8.5 | IMD Stop measurement | Yalıtım ölçümünü durdurma | ❌ | ❌ | ❌ |
+| 8.6 | IMD Reset alarm | Yalıtım alarmını sıfırlama | ❌ | ❌ | ❌ |
+| 8.7 | IMD Self test | Cihaz kendi kendine test | ❌ | ❌ | ❌ |
+| **9** | **TMS Geliştirmeleri (Termal Yönetim Sistemi)** | | | | |
+| 9.1 | TMS Hardware | PLC/geliştirme kartı üzerinde termal yönetim | ❌ | ❌ | ❌ |
+| 9.2 | TMS Modbus Server | Modbus server ile komut alma | ❌ | ❌ | ❌ |
+| 9.3 | TMS Analog Input | Yangın sensörü, sıcaklık sensörü analog okuma | ❌ | ❌ | ❌ |
+| 9.4 | TMS Analog Output | Fan, pompa, yangın söndürme kontrolü | ❌ | ❌ | ❌ |
+| 9.5 | TMS Digital Input | Acil durum butonu, limit switch okuma | ❌ | ❌ | ❌ |
+| 9.6 | TMS Digital Output | Röle, kontaktör, alarm kontrolü | ❌ | ❌ | ❌ |
+| 9.7 | TMS Set temperature | Hedef sıcaklık set değeri atama | ❌ | ❌ | ❌ |
+| 9.8 | TMS Get temperature | Anlık sıcaklık değerlerini okuma | ❌ | ❌ | ❌ |
+| 9.9 | TMS Set fan speed | Fan hızı set etme (0-100%) | ❌ | ❌ | ❌ |
+| 9.10 | TMS Alarm yönetimi | Yangın, aşırı sıcaklık alarmları | ❌ | ❌ | ❌ |
+| 9.11 | TMS Modbus telemetry | Modbus üzerinden TMS verilerini okuma | ❌ | ❌ | ❌ |
+| 9.12 | TMS Emergency stop | Acil durum butonu ile tüm sistem durdurma | ❌ | ❌ | ❌ |
 | **10** | **Ön Yüz Bileşenleri** | | | | |
-| 10.1 | TelemetryChart | Grafik bileşeni | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 10.2 | BSC Graphic | BSC görselleştirme | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 10.3 | IMD Graphic | IMD görselleştirme | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 10.4 | TMS Graphic | TMS görselleştirme | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 10.5 | Command Panel | Komut paneli | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 10.6 | Command History | Komut geçmişi | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 10.7 | Agenda Panel | Zamanlanmış komut | - [ ] ❌ | - [ ] ❌ | ⏳ |
-| 10.8 | BSC Command Panel | BSC özel komut | - [x] ✅ | - [ ] ❌ | ⏳ |
-| 10.9 | IMD Command Panel | IMD özel komut | - [ ] ❌ | - [ ] ❌ | ❌ |
-| 10.10 | TMS Command Panel | TMS özel komut | - [ ] ❌ | - [ ] ❌ | ❌ |
+| 10.1 | TelemetryChart | Gerçek zamanlı telemetry grafik bileşeni | ✅ | ❌ | ✅ |
+| 10.2 | BSC Graphic | BSC cihaz grafik görselleştirmesi | ✅ | ❌ | ✅ |
+| 10.3 | IMD Graphic | IMD cihaz grafik görselleştirmesi | ❌ | ❌ | ❌ |
+| 10.4 | TMS Graphic | TMS cihaz grafik görselleştirmesi | ❌ | ❌ | ❌ |
+| 10.5 | Command Panel | Komut gönderme paneli (temel) | ✅ | ❌ | ✅ |
+| 10.6 | Command History Terminal | Komut geçmişi terminal ekranı | ✅ | ❌ | ✅ |
+| 10.7 | Agenda Command Panel | Zamanlanmış komut paneli (tarih/saat seçimi) | ❌ | ❌ | ⏳ |
+| 10.8 | BSC Command Panel | BSC'ye özel komut paneli | ✅ | ❌ | ✅ |
+| 10.9 | IMD Command Panel | IMD'ye özel komut paneli | ❌ | ❌ | ❌ |
+| 10.10 | TMS Command Panel | TMS'ye özel komut paneli | ❌ | ❌ | ❌ |
 
 ---
 
