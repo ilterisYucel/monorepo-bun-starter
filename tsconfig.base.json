@@ -34,7 +34,8 @@
       "@gd-monorepo/web": ["./apps/web/src"],
       "@gd-monorepo/desktop": ["./apps/desktop/src"],
       "@gd-monorepo/backend": ["./apps/backend/src"],
-      "@gd-monorepo/simulators": ["./packages/simulators/src"]
+      "@gd-monorepo/simulators": ["./packages/simulators/src"],
+      "@gd-monorepo/ui": ["./packages/ui/src"]
     }
   },
   "exclude": ["node_modules", "dist", "out", "release", "**/dist", "**/out"]

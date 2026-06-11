@@ -1,0 +1,32 @@
+/* apps/web/src/features/racks/components/RackRow.css */
+.rack-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: #1a1a2e;
+  border-radius: 20px;
+  border: 1px solid #2a2a3a;
+}
+
+.rack-row-card {
+  flex: 3;
+  min-width: 280px;
+}
+
+.rack-row-chart {
+  flex: 7;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .rack-row {
+    flex-direction: column;
+  }
+  .rack-row-card {
+    flex: auto;
+  }
+  .rack-row-chart {
+    flex: auto;
+  }
+}

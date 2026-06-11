@@ -1,23 +1,11 @@
-// src/stores/LogStore.ts
+// apps/web/src/stores/LogStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { LogEntry, LogProvider } from "@gd-monorepo/ui";
 
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  type: "info" | "success" | "error" | "warning";
-  source: "system" | "command" | "rack" | "scheduler";
-  message: string;
-  details?: string;
-}
 
-interface LogState {
-  logs: LogEntry[];
-  addLog: (entry: Omit<LogEntry, "id" | "timestamp">) => void;
-  clearLogs: () => void;
-}
 
-export const useLogStore = create<LogState>()(
+export const useLogStore = create<LogProvider>()(
   persist(
     (set) => ({
       logs: [],
@@ -25,11 +13,11 @@ export const useLogStore = create<LogState>()(
       addLog: (entry) => {
         const newLog: LogEntry = {
           ...entry,
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 6),
+          id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
           timestamp: new Date().toISOString(),
         };
         set((state) => ({
-          logs: [newLog, ...state.logs].slice(0, 500), // Son 500 log tut
+          logs: [newLog, ...state.logs].slice(0, 500),
         }));
       },
 
@@ -37,6 +25,6 @@ export const useLogStore = create<LogState>()(
     }),
     {
       name: "log-storage",
-    },
-  ),
+    }
+  )
 );

@@ -43,10 +43,10 @@ services:
     ports:
       - "5000:5000"
     volumes:
-    - ../apps/demo-backend/src:/app/apps/demo-backend/src
-    - ../packages/core/src:/app/packages/core/src
-    - ../packages/shared-types/src:/app/packages/shared-types/src
-    - ../packages/simulators/src:/app/packages/simulators/src
+      - ../apps/demo-backend/src:/app/apps/demo-backend/src
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/simulators/src:/app/packages/simulators/src
     depends_on:
       - timescaledb
       - redis
@@ -62,7 +62,6 @@ services:
     container_name: battery-web-dev
     environment:
       NODE_ENV: development
-      VITE_API_URL: http://localhost:5000
     ports:
       - "5173:5173"
     volumes:
@@ -70,6 +69,7 @@ services:
       - ../apps/web/index.html:/app/apps/web/index.html
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../packages/ui/src:/app/packages/ui/src
       - ../tsconfig.base.json:/app/tsconfig.base.json
       - /app/apps/web/node_modules
       - /app/node_modules

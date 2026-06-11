@@ -1,0 +1,22 @@
+/* apps/web/src/features/control/ControlPage.css */
+.control-page {
+  padding: 8px;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.control-panel-card,
+.scheduler-card {
+  height: 100%;
+}
+
+@media (max-width: 1024px) {
+  .control-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

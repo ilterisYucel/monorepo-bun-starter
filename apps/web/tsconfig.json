@@ -16,6 +16,7 @@
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
   "references": [
     { "path": "../../packages/shared-types" },
-    { "path": "../../packages/shared-utils" }
+    { "path": "../../packages/shared-utils" },
+    { "path": "../../packages/ui" }
   ]
 }

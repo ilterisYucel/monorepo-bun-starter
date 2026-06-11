@@ -15,21 +15,33 @@ export default defineConfig({
         __dirname,
         "../../packages/shared-utils/src",
       ),
+      // 🔥 UI alias'ini src'ye yönlendir (hot-reload için)
+      "@gd-monorepo/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
   server: {
     port: 5173,
-    host: true, // 🔥 Container dışından erişim için
+    host: true,
     watch: {
-      usePolling: true, // 🔥 Docker'da hot-reload için
+      usePolling: true,
       interval: 100,
     },
     proxy: {
       "/api": {
-        target: process.env.VITE_API_URL || "http://localhost:5000",
+        target: process.env.VITE_API_URL || "http://demo-backend:5000",
         changeOrigin: true,
       },
     },
+  },
+  optimizeDeps: {
+    include: [
+      "@gd-monorepo/ui",
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@tanstack/react-query",
+    ],
+    force: true, // 🔥 Geliştirme sırasında zorla yeniden bundle
   },
   build: {
     outDir: "./dist",

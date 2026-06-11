@@ -1,0 +1,165 @@
+/* apps/web/src/features/control/components/ControlPanel.css */
+.control-panel {
+  background: #1a1a2e;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #2a2a3a;
+  height: 100%;
+}
+
+.panel-title {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+/* Mode Buttons */
+.mode-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.mode-btn {
+  flex: 1;
+  background: #0f0f1a;
+  border: 1px solid #2a2a3a;
+  color: #9ca3af;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #e5e7eb;
+}
+
+.mode-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Control Buttons */
+.control-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.control-buttons button {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.control-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-charge {
+  background: #10b981;
+  color: white;
+}
+
+.btn-charge:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-discharge {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-discharge:hover:not(:disabled) {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-stop {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-stop:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Timer Display */
+.timer-display {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #2a2a3a;
+  display: flex;
+  justify-content: center;
+}
+
+.timer-ring {
+  background: #0f0f1a;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #3b82f6;
+  animation: pulse 1s infinite;
+}
+
+.timer-time {
+  font-size: 24px;
+  font-weight: 700;
+  color: #3b82f6;
+  font-family: monospace;
+}
+
+.timer-label {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 #3b82f640;
+  }
+  50% {
+    box-shadow: 0 0 0 10px #3b82f620;
+  }
+}

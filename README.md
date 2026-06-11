@@ -209,7 +209,6 @@ interface CommandDeviceJob {
 | Ön Yüz Bileşenleri | 10 | 5 | 1 | 4 |
 | **TOPLAM** | **76** | **44** | **1** | **31** |
 
-
 ## Sistem Mimarisi
 
 ```mermaid
@@ -272,4 +271,3 @@ flowchart TB
     WRITER --> ADAPTER
     ADAPTER --> DB
 ```
-

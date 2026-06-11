@@ -1,0 +1,40 @@
+/* apps/web/src/features/events/EventsPage.css */
+.events-page {
+  padding: 8px;
+}
+
+.events-page h2 {
+  margin-bottom: 24px;
+  color: #e5e7eb;
+  font-size: 24px;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.events-card {
+  background: #1a1a2e;
+  border-radius: 20px;
+  border: 1px solid #2a2a3a;
+  overflow: hidden;
+}
+
+.events-card h3 {
+  padding: 16px 20px;
+  margin: 0;
+  background: #0f0f1a;
+  border-bottom: 1px solid #2a2a3a;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

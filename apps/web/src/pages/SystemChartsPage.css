@@ -1,0 +1,18 @@
+/* apps/web/src/features/system-charts/SystemChartsPage.css */
+.system-charts-page {
+  padding: 8px;
+}
+
+.system-charts-page h2 {
+  margin-bottom: 24px;
+  color: #e5e7eb;
+  font-size: 24px;
+}
+
+.system-chart-container {
+  background: #1a1a2e;
+  border-radius: 20px;
+  border: 1px solid #2a2a3a;
+  overflow: hidden;
+  padding: 20px;
+}
