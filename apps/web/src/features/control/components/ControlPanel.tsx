@@ -192,6 +192,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         max={500}
         step={10}
         size="small"
+        deviceId="x-rack-simulator"
         disabled={isLoading}
       />
 

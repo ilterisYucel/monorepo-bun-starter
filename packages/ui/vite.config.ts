@@ -1,9 +1,17 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react-swc";
 import { resolve } from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      plugins: [["@swc/plugin-emotion", { sourceMap: true }]],
+    }),
+  ],
+
+  optimizeDeps: {
+    include: ["pixi.js", "@pixi/react"],
+  },
   css: {
     modules: {
       localsConvention: "camelCase",

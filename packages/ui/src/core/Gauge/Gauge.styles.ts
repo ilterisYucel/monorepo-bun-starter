@@ -1,106 +1,84 @@
 // packages/ui/src/core/Gauge/Gauge.styles.ts
-import { styled } from "just-styled";
-import type { ReactNode } from "react";
+import styled from "@emotion/styled";
 
-// 🔥 Tip tanımına children ekle
-interface GaugeContainerProps {
+export const GaugeContainer = styled.div<{
   size?: "small" | "medium" | "large";
-  children?: ReactNode;
-}
+}>`
+  box-sizing: border-box;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  border: 1px solid #2a2a3a;
+  cursor: pointer;
+  text-align: center;
+  background: #1a1a2e;
 
-export const GaugeContainer = styled("div", {
-  borderRadius: "16px",
-  transition: "all 0.2s ease",
-  border: "1px solid #2a2a3a",
-  cursor: "pointer",
-  textAlign: "center",
-  variants: {
-    size: {
-      small: { padding: "10px 12px", minWidth: "100px" },
-      medium: { padding: "16px", minWidth: "140px" },
-      large: { padding: "20px", minWidth: "180px" },
-    },
-  },
-  ":hover": {
-    transform: "translateY(-2px)",
-    borderColor: "#3b82f6",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-  },
-}) as React.FC<GaugeContainerProps>;
+  padding: ${(props) =>
+    props.size === "small" ? "12px" : props.size === "large" ? "24px" : "16px"};
+  min-width: ${(props) =>
+    props.size === "small"
+      ? "100px"
+      : props.size === "large"
+        ? "180px"
+        : "140px"};
 
-// Label için de aynısını yap
-interface LabelProps {
-  size?: "small" | "medium" | "large";
-  children?: ReactNode;
-}
+  &:hover {
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+`;
 
-export const Label = styled("div", {
-  color: "#9ca3af",
-  textTransform: "uppercase",
-  letterSpacing: "0.5px",
-  marginBottom: "8px",
-  variants: {
-    size: {
-      small: { fontSize: "11px" },
-      medium: { fontSize: "13px" },
-      large: { fontSize: "15px" },
-    },
-  },
-}) as React.FC<LabelProps>;
+export const Icon = styled.div`
+  font-size: 28px;
+  margin-bottom: 12px;
+`;
 
-// ValueNumber için de aynısını yap
-interface ValueNumberProps {
-  size?: "small" | "medium" | "large";
-  children?: ReactNode;
-}
+export const Label = styled.div<{ size?: "small" | "medium" | "large" }>`
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-size: ${(props) =>
+    props.size === "small" ? "11px" : props.size === "large" ? "15px" : "13px"};
+`;
 
-export const ValueNumber = styled("span", {
-  variants: {
-    size: {
-      small: { fontSize: "20px" },
-      medium: { fontSize: "28px" },
-      large: { fontSize: "36px" },
-    },
-  },
-}) as React.FC<ValueNumberProps>;
+export const ValueContainer = styled.div`
+  font-weight: 700;
+  color: #e5e7eb;
+  line-height: 1.2;
+  margin-bottom: 12px;
+`;
 
-// Diğer stiller (çocuk almayanlar) aynı kalabilir
-export const Icon = styled("div", {
-  fontSize: "24px",
-  marginBottom: "8px",
-});
+export const ValueNumber = styled.span<{ size?: "small" | "medium" | "large" }>`
+  font-size: ${(props) =>
+    props.size === "small" ? "20px" : props.size === "large" ? "36px" : "28px"};
+`;
 
-export const ValueContainer = styled("div", {
-  fontWeight: 700,
-  color: "#e5e7eb",
-  lineHeight: 1.2,
-  marginBottom: "12px",
-});
+export const Unit = styled.span`
+  font-size: 0.5em;
+  margin-left: 2px;
+  color: #9ca3af;
+  font-weight: 400;
+`;
 
-export const Unit = styled("span", {
-  fontSize: "0.5em",
-  marginLeft: "2px",
-  color: "#9ca3af",
-  fontWeight: 400,
-});
+export const BarContainer = styled.div`
+  background: #2a2a3a;
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+`;
 
-export const BarContainer = styled("div", {
-  background: "#2a2a3a",
-  borderRadius: "10px",
-  height: "8px",
-  overflow: "hidden",
-  marginBottom: "8px",
-});
+export const BarFill = styled.div`
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+`;
 
-export const BarFill = styled("div", {
-  height: "100%",
-  borderRadius: "10px",
-  transition: "width 0.3s ease",
-});
-
-export const Limits = styled("div", {
-  display: "flex",
-  justifyContent: "space-between",
-  fontSize: "10px",
-  color: "#6b7280",
-});
+export const Limits = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 4px;
+`;

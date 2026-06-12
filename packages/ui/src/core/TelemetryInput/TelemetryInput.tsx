@@ -2,6 +2,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import type { TelemetryInputProps } from "./TelemetryInput.types";
 import * as S from "./TelemetryInput.styles";
+import { SlArrowDown, SlArrowUp } from "react-icons/sl";
 
 export const TelemetryInput: React.FC<TelemetryInputProps> = ({
   name,
@@ -130,22 +131,25 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
         {!disabled && (
           <S.Controls>
             <S.ControlBtn onClick={handleIncrease} disabled={value >= max}>
-              ▲
+              <SlArrowUp size={16} color="#9ca3af" />
             </S.ControlBtn>
             <S.ControlBtn onClick={handleDecrease} disabled={value <= min}>
-              ▼
+              <SlArrowDown size={16} color="#9ca3af" />
             </S.ControlBtn>
           </S.Controls>
         )}
       </S.InputGroup>
 
-      {description && <S.Description>{description}</S.Description>}
-      {min !== -Infinity && max !== Infinity && (
+      <S.Footer>
+        {description && <S.Description>{description}</S.Description>}
         <S.LimitIndicator>
-          <span>Min: {min}</span>
-          <span>Max: {max}</span>
+          <span>
+            {min}
+            {unit} / {max}
+            {unit}
+          </span>
         </S.LimitIndicator>
-      )}
+      </S.Footer>
     </S.Container>
   );
 };
