@@ -17,7 +17,6 @@ export const SystemChartsPage: React.FC = () => {
 
   return (
     <div className="system-charts-page">
-      <h2>📈 Sistem Grafikleri</h2>
       <div className="system-chart-container">
         <TelemetryChart
           provider={telemetryProvider}

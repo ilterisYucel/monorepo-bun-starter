@@ -21,7 +21,6 @@ export const RacksPage: React.FC = () => {
 
   return (
     <div className="racks-page">
-      <h2>🔋 Batarya Rack'leri</h2>
       <div className="racks-list">
         {racks.map((rack) => (
           <RackRow key={rack.id} rack={rack} chargeStatus={chargeStatus} />

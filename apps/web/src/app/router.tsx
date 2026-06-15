@@ -36,31 +36,12 @@ const LayoutWrapper: React.FC<{
     <MainLayout
       currentPage={pageType}
       onPageChange={() => {}}
-      pageTitle={getPageTitle(pageType)}
     >
       {children}
     </MainLayout>
   );
 };
 
-const getPageTitle = (pageType: PageType): string => {
-  switch (pageType) {
-    case "dashboard":
-      return "📊 Dashboard";
-    case "racks":
-      return "🔋 Rack Detayları";
-    case "control":
-      return "🎮 Kontrol Paneli";
-    case "events":
-      return "📋 Event & History";
-    case "system-charts":
-      return "📈 Sistem Grafikleri";
-    case "reports":
-      return "📄 Raporlar";
-    default:
-      return "EMS";
-  }
-};
 
 export const router = createBrowserRouter([
   {

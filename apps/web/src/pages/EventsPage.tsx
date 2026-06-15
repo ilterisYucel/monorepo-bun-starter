@@ -10,7 +10,6 @@ export const EventsPage: React.FC = () => {
 
   return (
     <div className="events-page">
-      <h2>📋 Event & History</h2>
       <div className="events-grid">
         <div className="events-card">
           <h3>⚠️ Sistem Event & Hataları</h3>

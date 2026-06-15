@@ -2,21 +2,18 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, type PageType } from "./Sidebar";
-import { Header } from "./Header";
 import "./MainLayout.css";
 
 interface MainLayoutProps {
   children: React.ReactNode;
   currentPage: PageType;
   onPageChange: (page: PageType) => void;
-  pageTitle: string;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
   children,
   currentPage,
   onPageChange,
-  pageTitle,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,7 +45,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     <div className="app-layout">
       <Sidebar currentPage={currentPage} onPageChange={handlePageChange} />
       <div className="main-content">
-        <Header pageTitle={pageTitle} />
         <div className="page-content">{children}</div>
       </div>
     </div>

@@ -7,7 +7,6 @@ export const ReportsPage: React.FC = () => {
     <div className="reports-page">
       <div className="reports-placeholder">
         <div className="placeholder-icon">📄</div>
-        <h2>Raporlar Sayfası</h2>
         <p>Bu sayfa şu anda geliştirme aşamasındadır.</p>
         <p>
           Yakında eklenecek: PDF raporları, Excel export, grafik raporları...

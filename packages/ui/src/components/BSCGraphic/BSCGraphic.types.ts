@@ -14,6 +14,11 @@ export interface BSCGraphicProps {
   };
   onRackClick?: (rackId: number) => void;
   onBreakerToggle?: (position: "open" | "close") => void;
+  onRefresh?: () => void;
+  showRefresh?: boolean;
+  showFlowDirection?: boolean;
+  bordered?: boolean;
+  refreshCounter?: number;
 }
 
 export interface StepConfig {
@@ -21,10 +26,41 @@ export interface StepConfig {
   rackWidth: number;
   rackHeight: number;
   rackGap: number;
-  breakerWidth: number;
-  breakerHeight: number;
-  outputWidth: number;
-  outputHeight: number;
+  outputRadius: number;
   startX: number;
   startY: number;
+}
+
+export interface RackPosition {
+  id: number;
+  x: number;
+  y: number;
+}
+
+export interface ConvergencePoint {
+  x: number;
+  topY: number;
+  bottomY: number;
+}
+
+export interface CircuitBreakerConfig {
+  startX: number;
+  endX: number;
+  y: number;
+  gapSize: number;
+}
+
+export interface OutputPosition {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+export interface BSCPositions {
+  racks: RackPosition[];
+  topBusY: number;
+  bottomBusY: number;
+  convergence: ConvergencePoint;
+  circuitBreaker: CircuitBreakerConfig;
+  output: OutputPosition;
 }

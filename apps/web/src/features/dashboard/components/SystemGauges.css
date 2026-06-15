@@ -4,7 +4,6 @@
   flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
-  margin-bottom: 24px;
 }
 
 .gauges-row > * {
