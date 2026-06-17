@@ -23,7 +23,7 @@ COPY apps/demo-backend/ apps/demo-backend/
 COPY packages/ packages/
 
 # 🔥 Nx ile build et (dependency sıralamasını Nx yönetecek)
-RUN npx nx build demo-backend
+RUN bunx nx build demo-backend
 
 # Stage 2: Production
 FROM oven/bun:latest AS runner
