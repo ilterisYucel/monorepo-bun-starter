@@ -1,15 +1,29 @@
-// apps/web/src/features/dashboard/DashboardPage.tsx
 import React, { useState } from "react";
-import { BSCStack, TMSGraphic } from "@gd-monorepo/ui";
-import type { RoomData } from "@gd-monorepo/ui";
+import {
+  BSCGraphic,
+  TMSGraphic,
+  DeviceGauges,
+  LogTerminal,
+  SCADA_ICONS,
+} from "@gd-monorepo/ui";
+import type { RoomData, BSCUnit } from "@gd-monorepo/ui";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
-import { SystemGaugesGroup } from "../features/dashboard/components/SystemGaugesGroup";
-import "./DashboardPage.css";
+import * as S from "./DashboardPage.styles";
+import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
+
+const BatteryIcon = SCADA_ICONS.batteryCharge;
+const ShieldIcon = SCADA_ICONS.health;
+const PlugIcon = SCADA_ICONS.powerPlug;
+const BoltIcon = SCADA_ICONS.batteryDischarge;
+const TempIcon = SCADA_ICONS.temperature;
+const WarningIcon = SCADA_ICONS.logWarning;
 
 export const DashboardPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
   const { racks, averages, isLoading } = useDashboardData(chargeStatus);
+
+  const systemLogProvider = useFilteredLogProvider("system");
 
   const [dcOutputs] = useState([
     { status: "online" as const, voltage: 398, current: 75 },
@@ -64,6 +78,27 @@ export const DashboardPage: React.FC = () => {
     status: "online",
   });
 
+  const gauges = [
+    { value: averages.avgSoC, label: "SoC", unit: "%", icon: <BatteryIcon size={18} /> },
+    { value: averages.avgSoH, label: "SoH", unit: "%", icon: <ShieldIcon size={18} /> },
+    { value: averages.avgPower, label: "Güç", unit: "kW", icon: <PlugIcon size={18} /> },
+    { value: averages.avgVoltage, label: "Voltaj", unit: "V", icon: <BatteryIcon size={18} /> },
+    { value: averages.avgCurrent, label: "Akım", unit: "A", icon: <BoltIcon size={18} /> },
+  ];
+
+  const tmsGauges = tmsData.rooms.map((room, i) => ({
+    value: room.temp,
+    label: `Oda ${i + 1}`,
+    unit: "°C",
+    icon: <TempIcon size={18} />,
+  }));
+  tmsGauges.push({
+    value: tmsData.panel_temp,
+    label: "Panel",
+    unit: "°C",
+    icon: <TempIcon size={18} />,
+  });
+
   const handleRackClick = (rackId: number) => {
     console.log("Rack clicked:", rackId);
   };
@@ -80,40 +115,67 @@ export const DashboardPage: React.FC = () => {
     });
   };
 
+  const bscUnits: BSCUnit[] = [
+    {
+      deviceId: "BSC-1",
+      racks: racks.slice(0, 8),
+      breakerStatus: breakerStatuses[0],
+      breakerPosition: breakerPositions[0],
+      dcOutput: dcOutputs[0],
+    },
+    {
+      deviceId: "BSC-2",
+      racks: racks.slice(8, 16),
+      breakerStatus: breakerStatuses[1],
+      breakerPosition: breakerPositions[1],
+      dcOutput: dcOutputs[1],
+    },
+  ];
+
   if (isLoading) {
     return (
-      <div className="dashboard-loading">
-        <div className="spinner"></div>
+      <S.LoadingContainer>
+        <S.Spinner />
         <p>Veriler yükleniyor...</p>
-      </div>
+      </S.LoadingContainer>
     );
   }
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-row">
-        <div className="bsc-column">
-          <SystemGaugesGroup bscData={[averages, averages]} />
-          <BSCStack
+    <S.DashboardPageContainer>
+      <S.DashboardRow>
+        <S.BscColumn>
+          <S.DeviceGaugesStack>
+            <DeviceGauges deviceId="BSC-1" gauges={gauges} variant="linear" />
+            <DeviceGauges deviceId="BSC-2" gauges={gauges} variant="linear" />
+          </S.DeviceGaugesStack>
+          <BSCGraphic
             deviceId="BSC"
-            bscCount={2}
-            racks={racks}
+            bscUnits={bscUnits}
             width="100%"
             flowDirection={chargeStatus}
-            breakerStatuses={breakerStatuses}
-            breakerPositions={breakerPositions}
-            dcOutputs={dcOutputs}
             onRackClick={handleRackClick}
             onBreakerToggle={handleBreakerToggle}
           />
-        </div>
-        <TMSGraphic
-          rooms={tmsData.rooms}
-          panel_temp={tmsData.panel_temp}
-          status={tmsData.status}
-          width="100%"
-        />
-      </div>
-    </div>
+        </S.BscColumn>
+        <S.TmsColumn>
+          <DeviceGauges deviceId="TMS" gauges={tmsGauges} variant="linear" />
+          <TMSGraphic
+            rooms={tmsData.rooms}
+            panel_temp={tmsData.panel_temp}
+            status={tmsData.status}
+            width="100%"
+          />
+          <S.TerminalCard>
+            <LogTerminal
+              provider={systemLogProvider}
+              maxHeight={435}
+              title="Sistem Event & Hataları"
+              titleIcon={<WarningIcon size={18} />}
+            />
+          </S.TerminalCard>
+        </S.TmsColumn>
+      </S.DashboardRow>
+    </S.DashboardPageContainer>
   );
 };

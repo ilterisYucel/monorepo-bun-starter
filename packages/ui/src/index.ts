@@ -9,3 +9,9 @@ export * from "./types"
 
 // Core
 export * from "./core"
+
+// Icons
+export * from "./icons"
+
+// Hooks
+export * from "./hooks"

@@ -1,15 +1,21 @@
-// apps/web/src/features/control/components/ControlPanel.tsx
 import React, { useState, useCallback, useEffect } from "react";
-import { TelemetryInput } from "@gd-monorepo/ui";
+import { TelemetryInput, SCADA_ICONS } from "@gd-monorepo/ui";
 import { controlApi } from "../services/controlApi";
 import { useLogProvider } from "../../../hooks/useLogProvider";
 import type { OperationMode } from "../types/control";
-import "./ControlPanel.css";
+import * as S from "./ControlPanel.styles";
 
 interface ControlPanelProps {
   currentChargeStatus: "Charge" | "Discharge" | "Idle";
   onCommandSent?: () => void;
 }
+
+const ControlIcon = SCADA_ICONS.control;
+const TimerIcon = SCADA_ICONS.timer;
+const RepeatIcon = SCADA_ICONS.continuous;
+const ChargeIcon = SCADA_ICONS.batteryCharge;
+const DischargeIcon = SCADA_ICONS.batteryDischarge;
+const StopIcon = SCADA_ICONS.stop;
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   currentChargeStatus,
@@ -142,100 +148,96 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   return (
-    <div className="control-panel">
-      <h3 className="panel-title">🎮 Kontrol Paneli</h3>
+    <S.ControlPanelContainer>
+      <S.PanelTitle>
+        <ControlIcon size={20} /> Kontrol Paneli
+      </S.PanelTitle>
 
-      {/* Çalışma Modu */}
-      <div className="form-group">
-        <label>🎯 Çalışma Modu</label>
-        <div className="mode-buttons">
-          <button
-            className={`mode-btn ${operationMode === "TIMER" ? "active" : ""}`}
+      <S.FormGroup>
+        <label>Çalışma Modu</label>
+        <S.ModeButtons>
+          <S.ModeBtn
+            active={operationMode === "TIMER"}
             onClick={() => !isLoading && setOperationMode("TIMER")}
             disabled={isLoading}
           >
-            ⏱️ Timer Modu
-          </button>
-          <button
-            className={`mode-btn ${operationMode === "CONTINUOUS" ? "active" : ""}`}
+            <TimerIcon size={14} /> Timer Modu
+          </S.ModeBtn>
+          <S.ModeBtn
+            active={operationMode === "CONTINUOUS"}
             onClick={() => !isLoading && setOperationMode("CONTINUOUS")}
             disabled={isLoading}
           >
-            🔄 Sürekli Mod
-          </button>
-        </div>
-      </div>
+            <RepeatIcon size={14} /> Sürekli Mod
+          </S.ModeBtn>
+        </S.ModeButtons>
+      </S.FormGroup>
 
-      {/* Timer Süresi (sadece Timer modunda) */}
-      {operationMode === "TIMER" && (
+      <S.InputsGroup>
+        {operationMode === "TIMER" && (
+          <TelemetryInput
+            name="Süre"
+            description="Süre dolduğunda otomatik Idle'a geçer."
+            value={durationSeconds}
+            onChange={setDurationSeconds}
+            unit="sn"
+            min={1}
+            max={28800}
+            step={30}
+            size="small"
+            disabled={isLoading}
+          />
+        )}
+
         <TelemetryInput
-          name="Süre"
-          description="Süre dolduğunda otomatik Idle'a geçer."
-          value={durationSeconds}
-          onChange={setDurationSeconds}
-          unit="sn"
-          min={1}
-          max={28800}
-          step={30}
+          name="Güç"
+          value={powerKw}
+          onChange={setPowerKw}
+          unit="kW"
+          min={0}
+          max={500}
+          step={10}
           size="small"
+          deviceId="x-rack-simulator"
           disabled={isLoading}
         />
-      )}
+      </S.InputsGroup>
 
-      {/* Güç Ayarı */}
-      <TelemetryInput
-        name="Güç"
-        value={powerKw}
-        onChange={setPowerKw}
-        unit="kW"
-        min={0}
-        max={500}
-        step={10}
-        size="small"
-        deviceId="x-rack-simulator"
-        disabled={isLoading}
-      />
-
-      {/* Kontrol Butonları */}
-      <div className="form-group">
-        <label>🔘 Kontrol</label>
-        <div className="control-buttons">
-          <button
-            className="btn-charge"
+      <S.FormGroup>
+        <label>Kontrol</label>
+        <S.ControlButtons>
+          <S.BtnCharge
             onClick={() => sendPowerCommand("Charge")}
             disabled={isChargeDisabled}
           >
-            🔋 ŞARJ
-          </button>
-          <button
-            className="btn-discharge"
+            <ChargeIcon size={14} /> ŞARJ
+          </S.BtnCharge>
+          <S.BtnDischarge
             onClick={() => sendPowerCommand("Discharge")}
             disabled={isDischargeDisabled}
           >
-            ⚡ DEŞARJ
-          </button>
-          <button
-            className="btn-stop"
+            <DischargeIcon size={14} /> DEŞARJ
+          </S.BtnDischarge>
+          <S.BtnStop
             onClick={sendIdleCommand}
             disabled={isIdleDisabled}
           >
-            🛑 DURDUR
-          </button>
-        </div>
-      </div>
+            <StopIcon size={14} /> DURDUR
+          </S.BtnStop>
+        </S.ControlButtons>
+      </S.FormGroup>
 
-      {/* Timer Display */}
       {activeCommand?.isActive &&
         activeCommand.remainingSeconds !== undefined && (
-          <div className="timer-display">
-            <div className="timer-ring">
-              <div className="timer-time">
+          <S.TimerDisplay>
+            <S.TimerRing>
+              <S.TimerTime>
                 {formatTime(activeCommand.remainingSeconds)}
-              </div>
-              <div className="timer-label">Kalan Süre</div>
-            </div>
-          </div>
+              </S.TimerTime>
+              <S.TimerLabel>Kalan Süre</S.TimerLabel>
+            </S.TimerRing>
+          </S.TimerDisplay>
         )}
-    </div>
+    </S.ControlPanelContainer>
   );
 };

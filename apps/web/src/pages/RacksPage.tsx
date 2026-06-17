@@ -1,31 +1,53 @@
-// apps/web/src/features/racks/RacksPage.tsx
 import React from "react";
-
-import "./RacksPage.css";
+import { RackCard, TelemetryChart } from "@gd-monorepo/ui";
+import * as S from "./RacksPage.styles";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useRacksData } from "../features/racks/hooks/useRacksData";
-import { RackRow } from "../features/racks/components/RackRow";
+import { useSystemTelemetry } from "../features/system-charts/hooks/useSystemTelemetry";
+
+const TELEMETRY_NAMES = [
+  "Voltage",
+  "Current",
+  "Power",
+  "SoC",
+  "Temperature",
+  "SoH",
+];
 
 export const RacksPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
   const { racks, isLoading } = useRacksData(chargeStatus);
+  const systemTelemetry = useSystemTelemetry();
 
   if (isLoading) {
     return (
-      <div className="racks-loading">
-        <div className="spinner"></div>
+      <S.LoadingContainer>
+        <S.Spinner />
         <p>Veriler yükleniyor...</p>
-      </div>
+      </S.LoadingContainer>
     );
   }
 
   return (
-    <div className="racks-page">
-      <div className="racks-list">
+    <S.RacksPageContainer>
+      <S.RackGrid>
         {racks.map((rack) => (
-          <RackRow key={rack.id} rack={rack} chargeStatus={chargeStatus} />
+          <RackCard
+            key={rack.id}
+            {...rack}
+            charge_status={chargeStatus}
+            onDetailClick={() => console.log("Detay:", rack.name, rack.id)}
+          />
         ))}
-      </div>
-    </div>
+      </S.RackGrid>
+      <TelemetryChart
+        provider={systemTelemetry}
+        telemetryNames={TELEMETRY_NAMES}
+        title="Tüm Rack'ler - Tarihsel Veriler"
+        yAxisLabel="Değer"
+        height={550}
+        tagFilters={[{ tagKey: "rack_id", label: "Rack Numarası" }]}
+      />
+    </S.RacksPageContainer>
   );
 };

@@ -1,10 +1,8 @@
 import type { Rack } from "../../types";
 
-export interface BSCGraphicProps {
+export interface BSCUnit {
   deviceId: string;
   racks: Rack[];
-  width?: number | string;
-  flowDirection: "Charge" | "Discharge" | "Idle";
   breakerStatus?: "online" | "offline";
   breakerPosition?: "open" | "close";
   dcOutput?: {
@@ -12,13 +10,17 @@ export interface BSCGraphicProps {
     voltage: number;
     current: number;
   };
+}
+
+export interface BSCGraphicProps {
+  deviceId: string;
+  bscUnits: BSCUnit[];
+  flowDirection: "Charge" | "Discharge" | "Idle";
+  width?: number | string;
   onRackClick?: (rackId: number) => void;
-  onBreakerToggle?: (position: "open" | "close") => void;
-  onRefresh?: () => void;
-  showRefresh?: boolean;
-  showFlowDirection?: boolean;
+  onBreakerToggle?: (bscIndex: number, position: "open" | "close") => void;
   bordered?: boolean;
-  refreshCounter?: number;
+  showRefresh?: boolean;
 }
 
 export interface StepConfig {

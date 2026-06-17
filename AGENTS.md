@@ -31,16 +31,16 @@ shared-types (leaf, no deps)
 ```
 
 ### Package ownership
-| Package | Purpose |
-|:--------|:--------|
-| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces) |
-| `shared-utils` | Empty placeholder — exports nothing |
-| `core` | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
-| `simulators` | BSC/X Rack device simulator |
-| `ui` | Shared React components (PixiJS graphics, Recharts, Emotion) |
-| `web` | React v19 frontend (Vite v8, TanStack Query, Zustand) |
-| `desktop` | Electron v39 + React v19 (electron-vite) |
-| `demo-backend` | Fastify v5 backend (REST + WebSocket) |
+| Package        | Purpose                                                              |
+| :---------------| :---------------------------------------------------------------------|
+| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces)        |
+| `shared-utils` | Empty placeholder — exports nothing                                  |
+| `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
+| `simulators`   | BSC/X Rack device simulator                                          |
+| `ui`           | Shared React components (PixiJS graphics, Recharts, Emotion)         |
+| `web`          | React v19 frontend (Vite v8, TanStack Query, Zustand)                |
+| `desktop`      | Electron v39 + React v19 (electron-vite)                             |
+| `demo-backend` | Fastify v5 backend (REST + WebSocket)                                |
 
 ## Dependency injection rules (MANDATORY)
 
@@ -145,3 +145,77 @@ apps/demo-backend/src/
 - `shared-utils` package is empty.
 - CANbus and MQTT are empty stubs in core.
 - `reports` feature in web is a placeholder.
+
+## Elegant Object Principles (MANDATORY for all new code & refactors)
+
+All code MUST adhere to the following object-oriented design principles derived from "Elegant Object" by Yegor Bugayenko. These rules override any other conventions in case of conflict.
+
+### 1. No static methods (ever)
+- **Static methods are procedural, not object-oriented.** They are banned.
+- Use real objects with constructors and instance methods instead.
+- **Exception:** Factory methods (e.g., `public static MyClass create(...)`) are allowed ONLY for simple object instantiation when the constructor signature is complex or overloaded. They must return a new instance.
+
+### 2. No NULLs (use Optional or Null Object Pattern)
+- **Returning `null` is forbidden.**
+- For optional values, use `T | undefined` or `null` only for performance-critical internal code with explicit `// @ts-ignore` comment explaining why.
+- For public APIs and interfaces, use `Optional<T>` (from `fp-ts` or similar) or a Null Object implementation (e.g., `class NullLogger implements ILogger { log() {} }`).
+- **Validation:** Always validate constructor arguments. Throw `IllegalArgumentException` (or `new Error()`) on invalid input—never accept `null` silently.
+
+### 3. Immutable objects (prefer `readonly`)
+- **Make objects immutable whenever possible.** Mark all fields as `readonly` or `private readonly`.
+- State changes should produce **new objects**, not mutate existing ones (e.g., `withState(newState): ThisClass` returns a new instance).
+- **Mutable objects are allowed only** if they are clearly state machines (e.g., `ModbusDevice` with `connect()`/`disconnect()` lifecycle) and explicitly documented as "mutable by design".
+
+### 4. Never use `instanceof` or type reflection
+- **Do not inspect an object's type at runtime.** Avoid `instanceof`, `typeof`, or checking for the existence of methods to decide behavior.
+- Instead, use **polymorphism**: call a method on the object and let the object decide what to do.
+- **Exception:** Adapter classes may use `instanceof` internally ONLY when interfacing with third-party libraries.
+
+### 5. No getters/setters (tell, don't ask)
+- **Avoid "getter" methods that expose internal state.** Do not ask an object for data and then perform logic on it outside the object.
+- **Instead, tell the object what to do:** The object should contain the behavior.
+- **Exception:** Data Transfer Objects (DTOs) for serialization (e.g., REST responses, database entities) MAY have public getters/setters but should be clearly separated from domain objects.
+
+### 6. Objects are not data structures
+- **Do not use objects as simple data bags.** A class must have behavior.
+- Anemic models (classes with only fields and getters/setters) are prohibited.
+- **Refactor rule:** If a class has no methods that operate on its own data, move the behavior into the class.
+
+### 7. Naming: "Manager", "Processor", "Utils" are forbidden
+- **Do not use generic suffixes like `*Manager`, `*Processor`, `*Handler`, `*Utils`, `*Helper`.** These are signs of procedural design.
+- **Instead, name the class for what it *is* (a noun) or what it *does* (a verb with -er/-or) in the domain:**
+  - ✅ `ModbusDevice`, `JobQueue`, `TimescaleWriter`
+  - ❌ `DeviceManager`, `QueueProcessor`, `DBHelper`
+- **For factories:** Use `*Factory` or `*Builder` (e.g., `ModbusDeviceFactory`).
+
+### 8. One primary constructor (no overloading)
+- **A class should have one primary constructor** that sets all its final fields.
+- Secondary constructors are banned. Use static factory methods with descriptive names (`MyClass.withConfig(Config c)`) instead.
+- All logic must be in the primary constructor—never in default values or chained calls.
+
+### 9. Never use `@Inject` or DI containers to inject behavior (only state)
+- **Dependency injection should inject state (configuration, connections), not behavior.**
+- Do not inject factories or service locators. Inject concrete instances that represent state.
+- In our codebase: DI container (awilix) is planned, but constructor injection is mandatory (see existing DI rules).
+
+### 10. Code must be testable (but not over-engineered)
+- **Write unit tests for all public methods.** (Existing `vitest` config is available.)
+- **But follow YAGNI:** Only write tests for behavior you need *now*, not for every possible edge case.
+
+### 11. Method naming: Command vs Query (Verb/Noun distinction)
+- **Methods must be either commands or queries, never both.**
+- **Command methods (verbs):** Perform an action, change state, or produce a side effect. They MUST return `void` (or `Promise<void>` for async).
+  - ✅ `save()`, `delete()`, `connect()`, `send(message)`, `write(data)`
+  - ❌ `saveAndReturnId()` (does both - violates CQS)
+- **Query methods (nouns):** Return data about the object's state. They MUST NOT modify state or produce side effects.
+  - ✅ `name()`, `total()`, `isConnected()`, `size()`, `get()` (only if returns a value, not a property)
+  - ❌ `getName()` (redundant prefix - just `name()`)
+  - ❌ `calculateTotal()` (if it's just returning a computed value, use `total()`)
+- **Rule of thumb:** If the method name is a verb, it returns `void`. If it returns something, its name must be a noun.
+- **Exception:** Factory methods (`create()`, `of()`, `with()`) and builder methods are exempt from this rule as they return new instances by design.
+- **For async operations:** The same rule applies with `Promise<void>` for commands and `Promise<T>` for queries.
+
+### Refactoring guidance for existing code
+- **When touching a class for any reason, refactor it to these rules.**
+- **Exceptions** to these rules must be documented with a `// ELEGANT-EXCEPTION: <reason>` comment.
+- **Priority:** If a rule contradicts the existing "Coding conventions (repo-wide)", the Elegant Object rule takes precedence.

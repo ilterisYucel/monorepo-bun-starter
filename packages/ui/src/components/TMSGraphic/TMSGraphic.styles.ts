@@ -79,3 +79,25 @@ export const RefreshButton = styled.button`
     color: #e5e7eb;
   }
 `;
+
+export const ZoomButton = styled.button<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid ${(p) => (p.$active ? "#3b82f6" : "#3d3d5e")};
+  border-radius: 5px;
+  background: ${(p) => (p.$active ? "#3b82f620" : "#1f1f2e")};
+  color: ${(p) => (p.$active ? "#3b82f6" : "#9ca3af")};
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: #2a2a3e;
+    color: ${(p) => (p.$active ? "#3b82f6" : "#e5e7eb")};
+  }
+`;

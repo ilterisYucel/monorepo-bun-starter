@@ -1,25 +1,35 @@
-// apps/web/src/features/events/EventsPage.tsx
 import React from "react";
-import { LogTerminal } from "@gd-monorepo/ui";
-import "./EventsPage.css";
+import { LogTerminal, SCADA_ICONS } from "@gd-monorepo/ui";
+import * as S from "./EventsPage.styles";
 import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
+
+const WarningIcon = SCADA_ICONS.logWarning;
+const UserIcon = SCADA_ICONS.user;
 
 export const EventsPage: React.FC = () => {
   const systemLogProvider = useFilteredLogProvider("system");
   const userActionLogProvider = useFilteredLogProvider("command");
 
   return (
-    <div className="events-page">
-      <div className="events-grid">
-        <div className="events-card">
-          <h3>⚠️ Sistem Event & Hataları</h3>
-          <LogTerminal provider={systemLogProvider} maxHeight={500} />
-        </div>
-        <div className="events-card">
-          <h3>👤 Kullanıcı Hareketleri</h3>
-          <LogTerminal provider={userActionLogProvider} maxHeight={500} />
-        </div>
-      </div>
-    </div>
+    <S.EventsPageContainer>
+      <S.EventsGrid>
+        <S.EventsCard>
+          <LogTerminal
+            provider={systemLogProvider}
+            maxHeight={800}
+            title="Sistem Event & Hataları"
+            titleIcon={<WarningIcon size={18} />}
+          />
+        </S.EventsCard>
+        <S.EventsCard>
+          <LogTerminal
+            provider={userActionLogProvider}
+            maxHeight={800}
+            title="Kullanıcı Hareketleri"
+            titleIcon={<UserIcon size={18} />}
+          />
+        </S.EventsCard>
+      </S.EventsGrid>
+    </S.EventsPageContainer>
   );
 };

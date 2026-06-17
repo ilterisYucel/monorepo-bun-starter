@@ -404,10 +404,11 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const query = `
     SELECT
       time_bucket('${bucketInterval}', timestamp) AS bucket,
+      tags,
       ${avgFields}
     FROM ${tableName}
     WHERE ${whereConditions.join(" AND ")}
-    GROUP BY bucket
+    GROUP BY bucket, tags
     ORDER BY bucket ASC
   `;
 
@@ -438,7 +439,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
             unit: unit,
             timestamp: bucketTimestamp,
             deviceId: deviceId,
-            tags: tags,
+            tags: row.tags ?? {},
           });
         }
       }

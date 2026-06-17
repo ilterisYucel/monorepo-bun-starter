@@ -18,7 +18,9 @@ export default defineConfig({
       alias: {
         '@renderer': resolve('src/renderer/src'),
         '@gd-monorepo/shared-types': resolve('../../packages/shared-types/src'),
-        '@gd-monorepo/shared-utils': resolve('../../packages/shared-utils/src')
+        '@gd-monorepo/shared-utils': resolve('../../packages/shared-utils/src'),
+        '@gd-monorepo/ui': resolve('../../packages/ui/src'),
+        '@gd-monorepo/web': resolve('../../apps/web/src')
       }
     },
     plugins: [react()],

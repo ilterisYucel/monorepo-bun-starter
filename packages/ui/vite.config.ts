@@ -12,12 +12,6 @@ export default defineConfig({
   optimizeDeps: {
     include: ["pixi.js", "@pixi/react"],
   },
-  css: {
-    modules: {
-      localsConvention: "camelCase",
-      generateScopedName: "[name]__[local]___[hash:base64:5]",
-    },
-  },
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),

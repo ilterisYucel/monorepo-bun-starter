@@ -1,26 +1,68 @@
 import styled from "@emotion/styled";
 
 export const Container = styled.div`
-  position: relative;
-  background: #1f1f2e;
+  background: #1a1a2e;
   border-radius: 16px;
   border: 1px solid #2a2a3a;
   overflow: hidden;
 `;
 
-export const Loading = styled.div`
+export const Header = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: #9ca3af;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #1f1f2e;
+  border-bottom: 1px solid #2a2a3a;
 `;
 
-export const RefreshButton = styled.button`
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
+export const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+export const DeviceLabel = styled.span`
+  font-size: 14px;
+  font-weight: 700;
+  color: #e5e7eb;
+  font-family: monospace;
+`;
+
+export const FlowBadge = styled.span<{ $status: string }>`
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: ${(p) =>
+    p.$status === "Charge"
+      ? "#10b981"
+      : p.$status === "Discharge"
+        ? "#f59e0b"
+        : "#6b7280"};
+  background: ${(p) =>
+    p.$status === "Charge"
+      ? "#10b98120"
+      : p.$status === "Discharge"
+        ? "#f59e0b20"
+        : "#6b728020"};
+`;
+
+export const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const BSCLabel = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  font-family: monospace;
+`;
+
+export const IconBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,4 +81,43 @@ export const RefreshButton = styled.button`
     background: #2a2a3e;
     color: #e5e7eb;
   }
+`;
+
+export const ZoomButton = styled.button<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid ${(p) => (p.$active ? "#3b82f6" : "#3d3d5e")};
+  border-radius: 6px;
+  background: ${(p) => (p.$active ? "#3b82f620" : "#1a1a2e")};
+  color: ${(p) => (p.$active ? "#3b82f6" : "#9ca3af")};
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: #2a2a3e;
+    color: ${(p) => (p.$active ? "#3b82f6" : "#e5e7eb")};
+  }
+`;
+
+export const CanvasWrap = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  canvas {
+    display: block;
+  }
+`;
+
+export const Loading = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #9ca3af;
 `;

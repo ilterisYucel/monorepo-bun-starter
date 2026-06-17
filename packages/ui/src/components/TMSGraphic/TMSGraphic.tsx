@@ -23,6 +23,8 @@ import {
   drawPanel,
 } from "./TMSGraphic.drawers";
 import { buildLabels } from "./TMSGraphic.labels";
+import { usePixiZoom } from "../../hooks/usePixiZoom";
+import { SCADA_ICONS } from "../../icons";
 import * as S from "./TMSGraphic.styles";
 
 extend({ Container, Graphics, Text });
@@ -43,8 +45,9 @@ export const TMSGraphic: React.FC<TMSGraphicProps> = React.memo(
     const [config, setConfig] = useState<StepConfig | null>(null);
     const [layout, setLayout] = useState<TMSLayout | null>(null);
     const [redrawKey, setRedrawKey] = useState(0);
+    const [zoomEnabled, setZoomEnabled] = useState(false);
 
-    const dimensions = usePixiResize(containerRef, width);
+    const { dimensions, resizeKey } = usePixiResize(containerRef, width);
     const { timestampRef, frameCount, onInit } = usePixiTicker();
     const webglOverride = useWebGLDetect();
 
@@ -64,10 +67,6 @@ export const TMSGraphic: React.FC<TMSGraphicProps> = React.memo(
 
       setConfig(newConfig);
       setLayout(newLayout);
-
-      if (appRef.current?.renderer) {
-        appRef.current.renderer.resize(dimensions.width, dimensions.height);
-      }
     }, [dimensions, rooms.length]);
 
     useEffect(() => {
@@ -86,6 +85,23 @@ export const TMSGraphic: React.FC<TMSGraphicProps> = React.memo(
     const handleRefresh = useCallback(() => {
       setRedrawKey((prev) => prev + 1);
     }, []);
+
+    const toggleZoom = useCallback(() => {
+      setZoomEnabled((v) => !v);
+    }, []);
+
+    const RefreshIcon = SCADA_ICONS.refresh;
+    const ZoomIcon = SCADA_ICONS.zoomIn;
+
+    const zoom = usePixiZoom({ enabled: zoomEnabled });
+
+    const combinedOnInit = useCallback(
+      (app: any) => {
+        onInit(app);
+        zoom.onAppInit(app);
+      },
+      [onInit, zoom.onAppInit],
+    );
 
     const drawAllRooms = useCallback(
       (g: GraphicsType) => {
@@ -179,7 +195,11 @@ export const TMSGraphic: React.FC<TMSGraphicProps> = React.memo(
           height: dimensions.height,
           borderRadius: bordered ? "16px" : "0",
           border: bordered ? "1px solid #2a2a3a" : "none",
+          cursor: zoomEnabled ? "zoom-in" : "default",
         }}
+        onMouseEnter={zoom.onMouseEnter}
+        onMouseMove={zoom.onMouseMove}
+        onMouseLeave={zoom.onMouseLeave}
       >
         <S.Header>
           <S.HeaderLeft>
@@ -189,18 +209,21 @@ export const TMSGraphic: React.FC<TMSGraphicProps> = React.memo(
             </S.StatusBadge>
           </S.HeaderLeft>
           <S.HeaderRight>
+            <S.ZoomButton onClick={toggleZoom} $active={zoomEnabled} title="Yakınlaştır">
+              <ZoomIcon size={18} />
+            </S.ZoomButton>
             {showRefresh && (
               <S.RefreshButton onClick={handleRefresh} title="Yeniden çiz">
-                ↻
+                <RefreshIcon size={18} />
               </S.RefreshButton>
             )}
           </S.HeaderRight>
         </S.Header>
         <Application
-          key={redrawKey}
+          key={redrawKey + resizeKey}
           ref={appRef}
           {...webglOverride}
-          onInit={onInit}
+          onInit={combinedOnInit}
           width={dimensions.width}
           height={dimensions.height - estimatedHeaderHeight}
           background={0x1f1f2e}

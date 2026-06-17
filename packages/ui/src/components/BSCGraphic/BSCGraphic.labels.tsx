@@ -50,21 +50,21 @@ export function buildLabels(inputs: LabelInputs): JSX.Element[] {
   const tinyFontSize = Math.max(7, step * 0.2);
 
   // Header - Device ID
-  // components.push(
-  //   <pixiText
-  //     key="device-id"
-  //     text={deviceId}
-  //     x={step * 0.8}
-  //     y={step * 0.4}
-  //     anchor={0.5}
-  //     style={{
-  //       fontSize: headerFontSize,
-  //       fill: 0xe5e7eb,
-  //       fontFamily: "monospace",
-  //       fontWeight: "bold",
-  //     }}
-  //   />,
-  // );
+  components.push(
+    <pixiText
+      key="device-id"
+      text={deviceId}
+      x={step * 0.8}
+      y={step * 0.4}
+      anchor={0.5}
+      style={{
+        fontSize: headerFontSize,
+        fill: 0xe5e7eb,
+        fontFamily: "monospace",
+        fontWeight: "bold",
+      }}
+    />,
+  );
 
   // Header - Flow Direction
   if (showFlowDirection) {

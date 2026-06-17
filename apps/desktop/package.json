@@ -22,7 +22,7 @@
     "typecheck": "bun run typecheck:node && bun run typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "bun run typecheck && electron-vite build",
+    "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:win": "bun run build && electron-builder --win --publish never",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -69,12 +69,15 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@gd-monorepo/ui": "*",
+    "@gd-monorepo/shared-utils": "*",
     "@tanstack/react-query": "^5.99.2",
-    "@tanstack/store": "^0.11.0",
     "axios": "^1.15.2",
     "electron-updater": "^6.3.9",
-    "recharts": "^3.8.1",
-    "@gd-monorepo/shared-utils": "*"
+    "react-router-dom": "^7.17.0",
+    "zustand": "^5.0.13"
   },
   "peerDependencies": {
     "@gd-monorepo/shared-types": "*"

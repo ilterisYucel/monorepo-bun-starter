@@ -19,12 +19,15 @@ export function usePixiResize(
   width: number | string,
 ) {
   const [dimensions, setDimensions] = useState({ width: 680, height: 340 });
+  const [resizeKey, setResizeKey] = useState(0);
   const isMountedRef = useRef(true);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
 
@@ -40,6 +43,14 @@ export function usePixiResize(
 
       const newHeight = newWidth * 0.5;
       setDimensions({ width: newWidth, height: newHeight });
+
+      // Debounce: sadece CSS transition'ı bittiğinde key'i artır
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setResizeKey((prev) => prev + 1);
+        }
+      }, 350);
     };
 
     const resizeObserver = new ResizeObserver(() => {
@@ -51,10 +62,11 @@ export function usePixiResize(
 
     return () => {
       resizeObserver.disconnect();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [width, containerRef]);
 
-  return dimensions;
+  return { dimensions, resizeKey };
 }
 
 export function usePixiTicker() {

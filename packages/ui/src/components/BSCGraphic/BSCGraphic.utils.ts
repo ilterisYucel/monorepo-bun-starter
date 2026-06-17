@@ -12,7 +12,7 @@ export const calculateStepConfig = (width: number): StepConfig => {
     rackGap: 0.12 * step,
     outputRadius: 0.78 * step,
     startX: 1.0 * step,
-    startY: 0.8 * step,
+    startY: 1.3 * step,
   };
 };
 

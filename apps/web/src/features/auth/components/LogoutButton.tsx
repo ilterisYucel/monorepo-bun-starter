@@ -1,21 +1,24 @@
-// apps/web/src/features/auth/components/LogoutButton.tsx
 import React from "react";
+import { SCADA_ICONS } from "@gd-monorepo/ui";
 import { useAuth } from "../hooks/useAuth";
+import * as S from "./LogoutButton.styles";
 
-export const LogoutButton: React.FC = () => {
-  const { user, isAdmin, logout } = useAuth();
+interface LogoutButtonProps {
+  collapsed: boolean;
+}
+
+export const LogoutButton: React.FC<LogoutButtonProps> = ({ collapsed }) => {
+  const { logout } = useAuth();
+  const LogoutIcon = SCADA_ICONS.logout;
 
   return (
-    <div className="logout-button-container">
-      <div className="user-info">
-        <span>👤 {user?.name}</span>
-        <span className={`role-badge ${isAdmin ? "admin" : "teknik"}`}>
-          {isAdmin ? "Admin" : "Teknik"}
-        </span>
-      </div>
-      <button onClick={logout} className="logout-btn">
-        🚪 Çıkış
-      </button>
-    </div>
+    <S.LogoutBtn
+      collapsed={collapsed}
+      onClick={logout}
+      title={collapsed ? "Çıkış" : undefined}
+    >
+      <LogoutIcon size={collapsed ? 18 : 16} />
+      {!collapsed && <S.LogoutText>Çıkış</S.LogoutText>}
+    </S.LogoutBtn>
   );
 };
