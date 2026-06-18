@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import {
-  BSCGraphic,
-  TMSGraphic,
   DeviceGauges,
+  BSCGraphicV2,
+  TMSGraphicV2,
   LogTerminal,
   SCADA_ICONS,
 } from "@gd-monorepo/ui";
@@ -79,23 +79,62 @@ export const DashboardPage: React.FC = () => {
   });
 
   const gauges = [
-    { value: averages.avgSoC, label: "SoC", unit: "%", icon: <BatteryIcon size={18} /> },
-    { value: averages.avgSoH, label: "SoH", unit: "%", icon: <ShieldIcon size={18} /> },
-    { value: averages.avgPower, label: "Güç", unit: "kW", icon: <PlugIcon size={18} /> },
-    { value: averages.avgVoltage, label: "Voltaj", unit: "V", icon: <BatteryIcon size={18} /> },
-    { value: averages.avgCurrent, label: "Akım", unit: "A", icon: <BoltIcon size={18} /> },
+    {
+      value: averages.avgSoC,
+      label: "SoC",
+      unit: "%",
+      min: 0,
+      max: 100,
+      icon: <BatteryIcon size={18} />,
+    },
+    {
+      value: averages.avgSoH,
+      label: "SoH",
+      unit: "%",
+      min: 0,
+      max: 100,
+      icon: <ShieldIcon size={18} />,
+    },
+    {
+      value: averages.avgPower,
+      label: "Güç",
+      unit: "kW",
+      min: 0,
+      max: 500,
+      icon: <PlugIcon size={18} />,
+    },
+    {
+      value: averages.avgVoltage,
+      label: "Voltaj",
+      unit: "V",
+      min: 0,
+      max: 5000,
+      icon: <BatteryIcon size={18} />,
+    },
+    {
+      value: averages.avgCurrent,
+      label: "Akım",
+      unit: "A",
+      min: 0,
+      max: 200,
+      icon: <BoltIcon size={18} />,
+    },
   ];
 
   const tmsGauges = tmsData.rooms.map((room, i) => ({
     value: room.temp,
     label: `Oda ${i + 1}`,
     unit: "°C",
+    min: 0,
+    max: 50,
     icon: <TempIcon size={18} />,
   }));
   tmsGauges.push({
     value: tmsData.panel_temp,
     label: "Panel",
     unit: "°C",
+    min: 0,
+    max: 50,
     icon: <TempIcon size={18} />,
   });
 
@@ -146,10 +185,10 @@ export const DashboardPage: React.FC = () => {
       <S.DashboardRow>
         <S.BscColumn>
           <S.DeviceGaugesStack>
-            <DeviceGauges deviceId="BSC-1" gauges={gauges} variant="linear" />
-            <DeviceGauges deviceId="BSC-2" gauges={gauges} variant="linear" />
+            <DeviceGauges deviceId="BSC-1" gauges={gauges} variant="circular" />
+            <DeviceGauges deviceId="BSC-2" gauges={gauges} variant="circular" />
           </S.DeviceGaugesStack>
-          <BSCGraphic
+          <BSCGraphicV2
             deviceId="BSC"
             bscUnits={bscUnits}
             width="100%"
@@ -159,8 +198,8 @@ export const DashboardPage: React.FC = () => {
           />
         </S.BscColumn>
         <S.TmsColumn>
-          <DeviceGauges deviceId="TMS" gauges={tmsGauges} variant="linear" />
-          <TMSGraphic
+          <DeviceGauges deviceId="TMS" gauges={tmsGauges} variant="circular" />
+          <TMSGraphicV2
             rooms={tmsData.rooms}
             panel_temp={tmsData.panel_temp}
             status={tmsData.status}

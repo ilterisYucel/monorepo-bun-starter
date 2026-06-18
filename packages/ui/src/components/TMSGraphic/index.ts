@@ -7,3 +7,4 @@ export type {
   RectPosition,
   RoomPosition,
 } from "./TMSGraphic.types";
+export type { StepConfig } from "./TMSGraphic.types";

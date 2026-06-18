@@ -8,3 +8,4 @@ export type {
   CircuitBreakerConfig,
   OutputPosition,
 } from "./BSCGraphic.types";
+export type { StepConfig } from "./BSCGraphic.types";

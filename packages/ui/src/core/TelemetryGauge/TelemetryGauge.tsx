@@ -3,6 +3,37 @@ import React from "react";
 import type { TelemetryGaugeProps } from "./TelemetryGauge.types";
 import * as S from "./TelemetryGauge.styles";
 
+// ---------- Speedometer arc helpers (angles from top, clockwise) ----------
+
+const ARC_START = 240;
+const ARC_SWEEP = 240;
+const ARC_RADIUS = 48;
+const ARC_WIDTH = 6;
+
+function gaugeArc(
+  cx: number,
+  cy: number,
+  r: number,
+  startAngle: number,
+  endAngle: number,
+): string {
+  const rad = (deg: number) => ((deg - 90) * Math.PI) / 180;
+  const sx = cx + r * Math.cos(rad(startAngle));
+  const sy = cy + r * Math.sin(rad(startAngle));
+  const ex = cx + r * Math.cos(rad(endAngle));
+  const ey = cy + r * Math.sin(rad(endAngle));
+  const large = endAngle - startAngle > 180 ? 1 : 0;
+  return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
+}
+
+function gaugeColor(pct: number): string {
+  if (pct >= 80) return "#1d4ed8";
+  if (pct >= 50) return "#3b82f6";
+  return "#60a5fa";
+}
+
+// ---------- Component ----------
+
 export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
   value,
   min,
@@ -31,8 +62,35 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
 
   // ---------- Circular ----------
   if (variant === "circular") {
+    const fillAngle = ARC_START + (percentage / 100) * ARC_SWEEP;
+
     return (
       <S.GaugeContainer size={size} $variant="circular" $bordered>
+        {hasLimits && (
+          <svg
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: 0.4,
+            }}
+            viewBox="0 0 100 100"
+          >
+            <path
+              d={gaugeArc(50, 50, ARC_RADIUS, ARC_START, ARC_START + ARC_SWEEP)}
+              fill="none"
+              stroke="rgba(255,255,255,0.12)"
+              strokeWidth={ARC_WIDTH}
+              strokeLinecap="round"
+            />
+            <path
+              d={gaugeArc(50, 50, ARC_RADIUS, ARC_START, fillAngle)}
+              fill="none"
+              stroke={gaugeColor(percentage)}
+              strokeWidth={ARC_WIDTH}
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
         {icon && <S.CircularIcon size={size}>{icon}</S.CircularIcon>}
         <S.CircularLabel size={size}>{label}</S.CircularLabel>
         <S.CircularValueRow>
@@ -40,9 +98,10 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
           <S.CircularUnit>{unitText}</S.CircularUnit>
         </S.CircularValueRow>
         {hasLimits && (
-          <S.CircularLimits>
-            {effectiveMin} / {effectiveMax}
-          </S.CircularLimits>
+          <>
+            <S.CircularMin>{effectiveMin}</S.CircularMin>
+            <S.CircularMax>{effectiveMax}</S.CircularMax>
+          </>
         )}
       </S.GaugeContainer>
     );

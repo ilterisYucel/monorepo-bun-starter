@@ -4,4 +4,6 @@ export * from "./LogTerminal";
 export * from "./PowerFlowAnimation";
 export * from "./RackCard";
 export * from "./BSCGraphic";
+export * from "./BSCGraphicV2";
 export * from "./TMSGraphic";
+export * from "./TMSGraphicV2";

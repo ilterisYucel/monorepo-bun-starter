@@ -161,6 +161,8 @@ export const CircularIcon = styled.div<{ size?: "small" | "medium" | "large" }>`
 export const CircularLabel = styled.div<{
   size?: "small" | "medium" | "large";
 }>`
+  position: relative;
+  z-index: 1;
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -170,6 +172,8 @@ export const CircularLabel = styled.div<{
 `;
 
 export const CircularValueRow = styled.div`
+  position: relative;
+  z-index: 1;
   font-weight: 700;
   color: #e5e7eb;
   line-height: 1.2;
@@ -190,12 +194,25 @@ export const CircularUnit = styled.span`
   font-weight: 400;
 `;
 
-export const CircularLimits = styled.div`
+export const CircularMin = styled.div`
   position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
+  z-index: 1;
+  left: 18%;
+  top: 73.5%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: #6b7280;
+  font-family: monospace;
+  line-height: 1;
+`;
+
+export const CircularMax = styled.div`
+  position: absolute;
+  z-index: 1;
+  left: 82%;
+  top: 73.5%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
   color: #6b7280;
   font-family: monospace;
   line-height: 1;
