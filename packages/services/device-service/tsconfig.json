@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "noEmit": false,
+    "emitDeclarationOnly": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "run.ts", "config"],
+  "references": [
+    { "path": "../../shared-types" },
+    { "path": "../../core" },
+    { "path": "../../simulators" }
+  ]
+}

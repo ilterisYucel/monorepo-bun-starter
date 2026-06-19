@@ -5,6 +5,8 @@ import type {
   ModbusTelemetryData,
   IModbusSimulatorAdapter,
   ByteOrder,
+  BitfieldConfig,
+  IDevice,
 } from "@gd-monorepo/shared-types";
 import { ModbusTcpClient } from "./client";
 import { BinaryPayloadDecoder } from "./decoder";
@@ -21,12 +23,15 @@ export interface ModbusDeviceConfig {
     timeout?: number;
   };
   telemetryList: ModbusTelemetryData[];
+  bitfieldConfigs?: BitfieldConfig[];
   parallelRead?: boolean;
   parallelWrite?: boolean;
 }
 
-export class ModbusDevice {
+export class ModbusDevice implements IDevice {
   private config: ModbusDeviceConfig;
+
+  get id(): string { return this.config.id; }
   private client: ModbusTcpClient | null = null;
   private adapter!: IModbusSimulatorAdapter | undefined;
   private isSimulator: boolean;
@@ -109,6 +114,62 @@ export class ModbusDevice {
     return results;
   }
 
+  async readBitfields(): Promise<TelemetryData[]> {
+    const configs = this.config.bitfieldConfigs;
+    if (!configs || configs.length === 0) return [];
+
+    const byAddress = new Map<string, BitfieldConfig[]>();
+    for (const cfg of configs) {
+      const key = `${cfg.registerType}:${cfg.registerAddress}`;
+      if (!byAddress.has(key)) byAddress.set(key, []);
+      byAddress.get(key)!.push(cfg);
+    }
+
+    const results: TelemetryData[] = [];
+    const now = new Date().toISOString();
+
+    for (const [, group] of byAddress) {
+      const first = group[0]!;
+      const maxEndBit = Math.max(...group.flatMap(c => c.fields.map((f: { bitEnd: number }) => f.bitEnd)));
+      const registerCount = maxEndBit >= 16 ? 2 : 1;
+
+      let rawValues: number[];
+      if (this.isSimulator) {
+        rawValues = first.registerType === "HOLDING_REGISTER"
+          ? await this.adapter!.readHoldingRegisters(first.registerAddress, registerCount)
+          : await this.adapter!.readInputRegisters(first.registerAddress, registerCount);
+      } else {
+        rawValues = first.registerType === "HOLDING_REGISTER"
+          ? await this.client!.readHoldingRegisters(first.registerAddress, registerCount)
+          : await this.client!.readInputRegisters(first.registerAddress, registerCount);
+      }
+
+      const combined = (rawValues[0] ?? 0) | ((rawValues[1] ?? 0) << 16);
+
+      for (const cfg of group) {
+        for (const field of cfg.fields) {
+          const mask = ((1 << (field.bitEnd - field.bitStart + 1)) - 1) << field.bitStart;
+          const raw = (combined & mask) >>> field.bitStart;
+          const scale = field.scale ?? 1;
+          const offset = field.offset ?? 0;
+          const value = raw * scale + offset;
+
+          results.push({
+            name: field.name,
+            description: field.description,
+            value,
+            unit: field.unit,
+            timestamp: now,
+            deviceId: this.config.id,
+            tags: { dataTag: field.dataTag },
+          });
+        }
+      }
+    }
+
+    return results;
+  }
+
   async write(telemetries: TelemetryData[]): Promise<void> {
     if (telemetries.length === 0) return;
 
@@ -126,7 +187,15 @@ export class ModbusDevice {
       await this._writeBatchByType(holdingList);
     }
     if (coilList.length > 0) {
-      await this._writeCoilBatch(coilList);
+      for (const telemetry of coilList) {
+        const rawValue = ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
+        const boolValue = rawValue !== 0;
+        if (this.isSimulator) {
+          await this.adapter!.writeCoil(telemetry.registerAddress, boolValue);
+        } else {
+          await this.client!.writeSingleCoil(telemetry.registerAddress, boolValue);
+        }
+      }
     }
   }
 

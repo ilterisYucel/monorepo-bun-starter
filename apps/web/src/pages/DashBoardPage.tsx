@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import {
   DeviceGauges,
-  BSCGraphicV2,
-  TMSGraphicV2,
+  BSC,
+  TMS,
   LogTerminal,
   SCADA_ICONS,
 } from "@gd-monorepo/ui";
@@ -188,7 +188,7 @@ export const DashboardPage: React.FC = () => {
             <DeviceGauges deviceId="BSC-1" gauges={gauges} variant="circular" />
             <DeviceGauges deviceId="BSC-2" gauges={gauges} variant="circular" />
           </S.DeviceGaugesStack>
-          <BSCGraphicV2
+          <BSC
             deviceId="BSC"
             bscUnits={bscUnits}
             width="100%"
@@ -199,7 +199,7 @@ export const DashboardPage: React.FC = () => {
         </S.BscColumn>
         <S.TmsColumn>
           <DeviceGauges deviceId="TMS" gauges={tmsGauges} variant="circular" />
-          <TMSGraphicV2
+          <TMS
             rooms={tmsData.rooms}
             panel_temp={tmsData.panel_temp}
             status={tmsData.status}

@@ -25,4 +25,6 @@ export interface TelemetryGaugeProps {
   icon?: React.ReactNode;
   /** Görünüm varyantı */
   variant?: "linear" | "circular";
+  /** Piksel cinsinden genişlik — circular varyantta kare (circle) için kullanılır */
+  width?: number;
 }

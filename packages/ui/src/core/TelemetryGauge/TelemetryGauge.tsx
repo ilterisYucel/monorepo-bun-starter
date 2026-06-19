@@ -45,6 +45,7 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
   size = "medium",
   icon,
   variant = "linear",
+  width,
 }) => {
   const hasLimits = min !== undefined || max !== undefined;
   const effectiveMin = min ?? 0;
@@ -63,9 +64,12 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
   // ---------- Circular ----------
   if (variant === "circular") {
     const fillAngle = ARC_START + (percentage / 100) * ARC_SWEEP;
+    const containerStyle: React.CSSProperties | undefined = width
+      ? { width, height: width, minWidth: "unset", padding: 0, borderRadius: "50%", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }
+      : undefined;
 
     return (
-      <S.GaugeContainer size={size} $variant="circular" $bordered>
+      <S.GaugeContainer size={size} $variant="circular" $bordered style={containerStyle}>
         {hasLimits && (
           <svg
             style={{

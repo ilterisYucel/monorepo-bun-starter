@@ -1,9 +1,10 @@
 export * from "./MultiLineChart";
 export * from "./TelemetryChart";
 export * from "./LogTerminal";
-export * from "./PowerFlowAnimation";
 export * from "./RackCard";
-export * from "./BSCGraphic";
-export * from "./BSCGraphicV2";
-export * from "./TMSGraphic";
-export * from "./TMSGraphicV2";
+
+export * from "../graphics/deprecated/BSCGraphic";
+export * from "../graphics/deprecated/TMSGraphic";
+export * from "../graphics/deprecated/PowerFlowAnimation";
+
+export { BSC, TMS } from "../graphics/system";

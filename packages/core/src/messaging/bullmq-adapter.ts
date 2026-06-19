@@ -101,6 +101,20 @@ export class BullMQAdapter implements IMessageQueue {
     });
   }
 
+  async addRepeatableJobEvery(
+    name: string,
+    job: DeviceJob,
+    everyMs: number,
+  ): Promise<void> {
+    const queue = await this.getQueue(job.type);
+    const repeatOptions: RepeatOptions = { every: everyMs };
+
+    await queue.add(name, job, {
+      repeat: repeatOptions,
+      jobId: `${job.type}-${job.deviceId}-${name}`,
+    });
+  }
+
   async registerWorker(
     processor: (job: DeviceJob) => Promise<void>,
     options?: WorkerOptions,

@@ -63,6 +63,7 @@ export const DeviceGauges: React.FC<DeviceGaugesProps> = ({
               color={color}
               size={effectiveSize}
               variant={variant}
+              width={variant === "circular" ? perGauge : undefined}
             />
           </S.Cell>
         ))}

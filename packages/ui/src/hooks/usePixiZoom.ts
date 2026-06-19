@@ -1,5 +1,5 @@
 // packages/ui/src/hooks/usePixiZoom.ts
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useEffect } from "react";
 
 interface UsePixiZoomOptions {
   enabled: boolean;
@@ -15,11 +15,9 @@ interface UsePixiZoomOptions {
 export function usePixiZoom(options: UsePixiZoomOptions) {
   const { enabled, scale = 2 } = options;
   const appRef = useRef<any>(null);
-  const [ready, setReady] = useState(false);
 
   const onAppInit = useCallback((app: any) => {
     appRef.current = app;
-    setReady(true);
   }, []);
 
   const resetStage = useCallback(() => {
@@ -31,43 +29,43 @@ export function usePixiZoom(options: UsePixiZoomOptions) {
 
   const onMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!enabled || !ready) return;
+      if (!enabled) return;
+      const app = appRef.current;
+      if (!app?.stage) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const app = appRef.current;
-      if (!app?.stage) return;
       app.stage.scale.set(scale);
       app.stage.position.set((1 - scale) * x, (1 - scale) * y);
     },
-    [enabled, ready, scale],
+    [enabled, scale],
   );
 
   const onMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!enabled || !ready) return;
+      if (!enabled) return;
+      const app = appRef.current;
+      if (!app?.stage) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const app = appRef.current;
-      if (!app?.stage) return;
       app.stage.position.set((1 - scale) * x, (1 - scale) * y);
     },
-    [enabled, ready, scale],
+    [enabled, scale],
   );
 
   const onMouseLeave = useCallback(() => {
-    if (!enabled || !ready) return;
+    if (!enabled) return;
     resetStage();
-  }, [enabled, ready, resetStage]);
+  }, [enabled, resetStage]);
 
   useEffect(() => {
-    if (!enabled && ready) {
+    if (!enabled) {
       resetStage();
     }
-  }, [enabled, ready, resetStage]);
+  }, [enabled, resetStage]);
 
   return { onMouseEnter, onMouseMove, onMouseLeave, onAppInit };
 }
