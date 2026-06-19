@@ -1,10 +1,12 @@
 import { readFileSync, existsSync } from "fs";
-import { ModbusDevice } from "@gd-monorepo/core";
+import { ModbusDevice, CANBusDevice, MQTTDevice } from "@gd-monorepo/core";
 import { BullMQAdapter, RedisConnection } from "@gd-monorepo/core";
 import type {
-  IModbusSimulatorAdapter,
   ModbusTelemetryData,
   BitfieldConfig,
+  Device,
+  BaseTelemetryData,
+  IDevice,
 } from "@gd-monorepo/shared-types";
 import {
   BSCSimulator,
@@ -15,20 +17,9 @@ import { TMSSimulator, TMSSimulatorAdapter } from "@gd-monorepo/simulators";
 import { DeviceService } from "./src/device-service";
 import type { DeviceServiceDevice } from "./src/types";
 
-interface DeviceConfig {
-  id: string;
-  name: string;
-  manufacturer: string;
-  model: string;
-  connection: {
-    host: string;
-    port: number;
-    slaveId?: number;
-    timeout?: number;
-  };
-  telemetryList: ModbusTelemetryData[];
-  bitfieldConfigs?: BitfieldConfig[];
+interface RuntimeDeviceConfig extends Device {
   pollIntervalMs: number;
+  bitfieldConfigs?: BitfieldConfig[];
 }
 
 interface SimulatorConfig {
@@ -41,53 +32,87 @@ interface SimulatorConfig {
 interface ServiceConfig {
   redis: { host: string; port: number; password?: string; db?: number };
   simulators: SimulatorConfig[];
-  devices: DeviceConfig[];
+  devices: RuntimeDeviceConfig[];
 }
+
+type DriverFactory = (raw: RuntimeDeviceConfig, adapter?: unknown) => Promise<IDevice>;
+
+const driverRegistry = new Map<string, DriverFactory>([
+  [
+    "MODBUS",
+    async (raw, adapter) => {
+      const telemetryList: ModbusTelemetryData[] = raw.telemetryMap.map(
+        (m) => {
+          const base: Required<Pick<BaseTelemetryData, "name" | "description" | "value" | "unit" | "timestamp" | "deviceId">> = {
+            name: m.telemetryName,
+            description: m.telemetryName,
+            value: 0,
+            unit: "",
+            timestamp: new Date().toISOString(),
+            deviceId: raw.id,
+          };
+          return {
+            ...base,
+            ...m.protocolSpecific,
+          } as ModbusTelemetryData;
+        },
+      );
+
+      return new ModbusDevice(
+        {
+          id: raw.id,
+          name: raw.name,
+          manufacturer: raw.manufacturer,
+          model: raw.model,
+          connection: raw.connectionParams as {
+            host: string;
+            port: number;
+            slaveId?: number;
+            timeout?: number;
+          },
+          telemetryList,
+          bitfieldConfigs: raw.bitfieldConfigs,
+        },
+        adapter as any,
+      );
+    },
+  ],
+  ["CANBUS", async (raw) => new CANBusDevice(raw.id)],
+  ["MQTT", async (raw) => new MQTTDevice(raw.id)],
+]);
 
 function parseArgs(): string {
   const arg = process.argv[2];
   if (!arg) {
-    const fallback = "./config/devices.json";
-    console.log(`[run] No config path provided, trying: ${fallback}`);
-    return fallback;
+    console.log("[run] No config path provided, using: ./config/devices.json");
+    return "./config/devices.json";
   }
   return arg;
 }
 
 function loadConfig(path: string): ServiceConfig {
-  if (!existsSync(path)) {
-    throw new Error(`Config file not found: ${path}`);
-  }
+  if (!existsSync(path)) throw new Error(`Config file not found: ${path}`);
   return JSON.parse(readFileSync(path, "utf-8")) as ServiceConfig;
 }
 
 async function createSimulators(
   config: ServiceConfig,
-): Promise<Map<string, IModbusSimulatorAdapter>> {
-  const map = new Map<string, IModbusSimulatorAdapter>();
+): Promise<Map<string, unknown>> {
+  const map = new Map<string, unknown>();
 
   for (const sim of config.simulators) {
     if (sim.type === "bsc") {
       const rackCount = sim.rackCount ?? 8;
-      const registerMapPath = sim.registerMap;
-
-      if (registerMapPath) {
-        const raw = JSON.parse(readFileSync(registerMapPath, "utf-8")) as any[];
+      if (sim.registerMap) {
+        const raw = JSON.parse(readFileSync(sim.registerMap, "utf-8")) as any[];
         const parsed = parseBSCMap(raw);
-        const bsc = new BSCSimulator({
-          rackCount,
-          registers: parsed.registers,
-        });
+        const bsc = new BSCSimulator({ rackCount, registers: parsed.registers });
         map.set(sim.id, new BSCSimulatorAdapter(bsc));
-        console.log(
-          `[run] BSC simulator: ${sim.id} (${rackCount} racks, ${raw.length} reg entries)`,
-        );
+        console.log(`[run] BSC simulator: ${sim.id} (${rackCount} racks)`);
       } else {
-        console.warn(
-          `[run] BSC simulator ${sim.id}: no registerMap, using default`,
-        );
         const bsc = new BSCSimulator({ rackCount, registers: [] });
         map.set(sim.id, new BSCSimulatorAdapter(bsc));
+        console.log(`[run] BSC simulator: ${sim.id} (${rackCount} racks, default)`);
       }
     } else if (sim.type === "tms") {
       const tms = new TMSSimulator();
@@ -109,25 +134,18 @@ async function main() {
   const redis = new RedisConnection(config.redis);
   const mq = new BullMQAdapter(redis);
 
-  const devices: DeviceServiceDevice[] = config.devices.map((d) => {
-    const adapter = simulators.get(d.id);
-    const device = new ModbusDevice(
-      {
-        id: d.id,
-        name: d.name,
-        manufacturer: d.manufacturer,
-        model: d.model,
-        connection: d.connection,
-        telemetryList: d.telemetryList,
-        bitfieldConfigs: d.bitfieldConfigs,
-      },
-      adapter,
-    );
-    console.log(
-      `[run] Device: ${d.id} (${adapter ? "simulated" : "real"}, ${d.pollIntervalMs}ms)`,
-    );
-    return { device, pollIntervalMs: d.pollIntervalMs };
-  });
+  const devices: DeviceServiceDevice[] = await Promise.all(
+    config.devices.map(async (d) => {
+      const factory = driverRegistry.get(d.protocol);
+      if (!factory) throw new Error(`[run] Unknown protocol: ${d.protocol}`);
+
+      const adapter = simulators.get(d.id);
+      const device = await factory(d, adapter);
+
+      console.log(`[run] Device: ${d.id} (${d.protocol}, ${adapter ? "sim" : "real"}, ${d.pollIntervalMs}ms)`);
+      return { device, pollIntervalMs: d.pollIntervalMs };
+    }),
+  );
 
   const service = new DeviceService(devices, mq);
 

@@ -2,16 +2,8 @@
   "redis": { "host": "127.0.0.1", "port": 6379 },
 
   "simulators": [
-    {
-      "id": "BSC-1",
-      "type": "bsc",
-      "rackCount": 8,
-      "registerMap": "./maps/bsc-map.json"
-    },
-    {
-      "id": "TMS-1",
-      "type": "tms"
-    }
+    { "id": "BSC-1", "type": "bsc", "rackCount": 8, "registerMap": "./maps/bsc-map.json" },
+    { "id": "TMS-1", "type": "tms" }
   ],
 
   "devices": [
@@ -20,47 +12,79 @@
       "name": "BSC Main",
       "manufacturer": "BSC",
       "model": "BSC-2000",
-      "connection": { "host": "127.0.0.1", "port": 502, "slaveId": 1 },
-      "pollIntervalMs": 1000,
-      "telemetryList": [
-        { "name": "Voltage", "description": "BSC DC Voltage", "value": 0, "unit": "V",
-          "timestamp": "", "deviceId": "BSC-1", "protocol": "MODBUS",
-          "registerAddress": 30059, "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT32", "scale": 0.01, "offset": 0,
-          "priority": 0, "byteOrder": "BIG_ENDIAN" },
-        { "name": "Current", "description": "BSC DC Current", "value": 0, "unit": "A",
-          "timestamp": "", "deviceId": "BSC-1", "protocol": "MODBUS",
-          "registerAddress": 30061, "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "SINT32", "scale": 0.01, "offset": 0,
-          "priority": 0, "byteOrder": "BIG_ENDIAN" },
-        { "name": "SoC", "description": "System SOC", "value": 0, "unit": "%",
-          "timestamp": "", "deviceId": "BSC-1", "protocol": "MODBUS",
-          "registerAddress": 30055, "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16", "scale": 0.01, "offset": 0,
-          "priority": 0, "byteOrder": "BIG_ENDIAN" }
+      "protocol": "MODBUS",
+      "connectionParams": { "host": "127.0.0.1", "port": 502, "slaveId": 1 },
+      "telemetryMap": [
+        {
+          "telemetryName": "Voltage",
+          "protocolSpecific": {
+            "protocol": "MODBUS",
+            "registerAddress": 30059,
+            "registerTableType": "INPUT_REGISTER",
+            "registerDataType": "UINT32",
+            "scale": 0.01, "offset": 0, "priority": 0,
+            "byteOrder": "BIG_ENDIAN"
+          }
+        },
+        {
+          "telemetryName": "Current",
+          "protocolSpecific": {
+            "protocol": "MODBUS",
+            "registerAddress": 30061,
+            "registerTableType": "INPUT_REGISTER",
+            "registerDataType": "SINT32",
+            "scale": 0.01, "offset": 0, "priority": 0,
+            "byteOrder": "BIG_ENDIAN"
+          }
+        },
+        {
+          "telemetryName": "SoC",
+          "protocolSpecific": {
+            "protocol": "MODBUS",
+            "registerAddress": 30055,
+            "registerTableType": "INPUT_REGISTER",
+            "registerDataType": "UINT16",
+            "scale": 0.01, "offset": 0, "priority": 0,
+            "byteOrder": "BIG_ENDIAN"
+          }
+        }
       ],
-      "bitfieldConfigs": []
+      "bitfieldConfigs": [],
+      "pollIntervalMs": 1000
     },
     {
       "id": "TMS-1",
       "name": "TMS Main",
       "manufacturer": "TMS",
       "model": "MC90HDNC1R-L",
-      "connection": { "host": "127.0.0.1", "port": 503, "slaveId": 1 },
-      "pollIntervalMs": 2000,
-      "telemetryList": [
-        { "name": "Temperature", "description": "Return air temp", "value": 0, "unit": "°C",
-          "timestamp": "", "deviceId": "TMS-1", "protocol": "MODBUS",
-          "registerAddress": 4104, "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "INT16", "scale": 0.1, "offset": 0,
-          "priority": 0, "byteOrder": "BIG_ENDIAN" },
-        { "name": "Humidity", "description": "Return air humidity", "value": 0, "unit": "%",
-          "timestamp": "", "deviceId": "TMS-1", "protocol": "MODBUS",
-          "registerAddress": 4101, "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "INT16", "scale": 0.1, "offset": 0,
-          "priority": 0, "byteOrder": "BIG_ENDIAN" }
+      "protocol": "MODBUS",
+      "connectionParams": { "host": "127.0.0.1", "port": 503, "slaveId": 1 },
+      "telemetryMap": [
+        {
+          "telemetryName": "Temperature",
+          "protocolSpecific": {
+            "protocol": "MODBUS",
+            "registerAddress": 4104,
+            "registerTableType": "INPUT_REGISTER",
+            "registerDataType": "INT16",
+            "scale": 0.1, "offset": 0, "priority": 0,
+            "byteOrder": "BIG_ENDIAN"
+          }
+        },
+        {
+          "telemetryName": "Humidity",
+          "protocolSpecific": {
+            "protocol": "MODBUS",
+            "registerAddress": 4101,
+            "registerTableType": "INPUT_REGISTER",
+            "registerDataType": "INT16",
+            "scale": 0.1, "offset": 0, "priority": 0,
+            "byteOrder": "BIG_ENDIAN"
+          }
+        }
       ],
-      "bitfieldConfigs": []
+      "bitfieldConfigs": [],
+      "pollIntervalMs": 2000
     }
   ]
 }
