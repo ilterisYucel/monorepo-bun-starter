@@ -26,6 +26,7 @@ export interface TimescaleDBConfig {
 export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private pool: Pool;
   private tableCache: Set<string> = new Set();
+  private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
   constructor(config: TimescaleDBConfig) {
     this.pool = new Pool({
@@ -371,9 +372,11 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       `[TimescaleDB] Downsampling: total=${totalSeconds}s, target=${points}pts, bucket=${bucketInterval}`,
     );
 
+    const { names: availableNames, unitMap } = await this.getOrFetchNamesAndUnits(deviceId, from, to);
+
     let selectedNames = names;
     if (!selectedNames || selectedNames.length === 0) {
-      selectedNames = await this.getAvailableNames(deviceId, from, to);
+      selectedNames = availableNames;
     }
 
     if (selectedNames.length === 0) {
@@ -404,10 +407,11 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const query = `
     SELECT
       time_bucket('${bucketInterval}', timestamp) AS bucket,
+      tags,
       ${avgFields}
     FROM ${tableName}
     WHERE ${whereConditions.join(" AND ")}
-    GROUP BY bucket
+    GROUP BY bucket, tags
     ORDER BY bucket ASC
   `;
 
@@ -429,7 +433,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
         const avgValue = row[name];
 
         if (avgValue !== null && avgValue !== undefined) {
-          const unit = await this.getUnitForName(deviceId, name);
+          const unit = unitMap.get(name) ?? "";
 
           telemetries.push({
             name: name,
@@ -438,7 +442,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
             unit: unit,
             timestamp: bucketTimestamp,
             deviceId: deviceId,
-            tags: tags,
+            tags: row.tags ?? {},
           });
         }
       }
@@ -470,71 +474,35 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     return `${Math.floor(seconds / 86400)} days`;
   }
 
-  /**
-   * Belirtilen zaman aralığındaki mevcut telemetry isimlerini getirir
-   *
-   * @param deviceId - Cihaz ID'si (tablo adı)
-   * @param from - Başlangıç zamanı
-   * @param to - Bitiş zamanı
-   * @returns Promise<string[]> - Benzersiz telemetry isimleri listesi
-   *
-   * @example
-   * const names = await adapter.getAvailableNames(
-   *   'xrack-simulator',
-   *   new Date(Date.now() - 3600000),
-   *   new Date()
-   * );
-   * // returns: ['Voltage', 'Current', 'Power', 'Temperature', 'SoC', 'SoH']
-   */
-  private async getAvailableNames(
+  private async getOrFetchNamesAndUnits(
     deviceId: string,
     from: Date,
     to: Date,
-  ): Promise<string[]> {
+  ): Promise<{ names: string[]; unitMap: Map<string, string> }> {
+    const cached = this.nameUnitCache.get(deviceId);
+    if (cached) return cached;
+
     const tableName = this.getTableName(deviceId);
 
     const query = `
-    SELECT DISTINCT name 
+    SELECT DISTINCT name, unit
     FROM ${tableName}
-    WHERE timestamp >= '${from.toISOString()}' 
+    WHERE timestamp >= '${from.toISOString()}'
       AND timestamp <= '${to.toISOString()}'
     ORDER BY name
   `;
 
     const result = await this.pool.query(query);
-    return result.rows.map((row: any) => row.name);
-  }
+    const names: string[] = [];
+    const unitMap = new Map<string, string>();
 
-  /**
-   * Bir telemetry isminin unit'ini veritabanından getirir
-   * Her name için unit aynı olduğu için ilk bulduğunu döndürür
-   *
-   * @param deviceId - Cihaz ID'si (tablo adı)
-   * @param name - Telemetry adı (örn: "Voltage", "Current")
-   * @returns Promise<string> - Ölçüm birimi (V, A, kW, °C, %)
-   *
-   * @example
-   * const unit = await adapter.getUnitForName('xrack-simulator', 'Voltage');
-   * // returns: "V"
-   *
-   * @example
-   * const unit = await adapter.getUnitForName('xrack-simulator', 'SoC');
-   * // returns: "%"
-   */
-  private async getUnitForName(
-    deviceId: string,
-    name: string,
-  ): Promise<string> {
-    const tableName = this.getTableName(deviceId);
+    for (const row of result.rows) {
+      names.push(row.name);
+      unitMap.set(row.name, row.unit ?? "");
+    }
 
-    const query = `
-    SELECT unit
-    FROM ${tableName}
-    WHERE name = '${name}'
-    LIMIT 1
-  `;
-
-    const result = await this.pool.query(query);
-    return result.rows[0]?.unit || "";
+    const entry = { names, unitMap };
+    this.nameUnitCache.set(deviceId, entry);
+    return entry;
   }
 }

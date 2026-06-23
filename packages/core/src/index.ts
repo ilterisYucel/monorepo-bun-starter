@@ -3,3 +3,4 @@ export * from "./canbus";
 export * from "./mqtt";
 export * from "./timeseries";
 export * from "./messaging";
+export * from "./sql";

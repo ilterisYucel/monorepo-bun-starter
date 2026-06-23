@@ -12,7 +12,6 @@ COPY tsconfig.base.json ./
 COPY apps/demo-backend/package.json apps/demo-backend/
 COPY packages/core/package.json packages/core/
 COPY packages/shared-types/package.json packages/shared-types/
-COPY packages/shared-utils/package.json packages/shared-utils/
 COPY packages/simulators/package.json packages/simulators/
 
 # 🔥 Nx'i yükle
@@ -23,7 +22,7 @@ COPY apps/demo-backend/ apps/demo-backend/
 COPY packages/ packages/
 
 # 🔥 Nx ile build et (dependency sıralamasını Nx yönetecek)
-RUN bun run build
+RUN bunx nx build demo-backend
 
 # Stage 2: Production
 FROM oven/bun:latest AS runner
@@ -34,7 +33,6 @@ WORKDIR /app
 COPY --from=builder /app/apps/demo-backend/dist ./apps/demo-backend/dist
 COPY --from=builder /app/packages/core/dist ./packages/core/dist
 COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
-COPY --from=builder /app/packages/shared-utils/dist ./packages/shared-utils/dist
 COPY --from=builder /app/packages/simulators/dist ./packages/simulators/dist
 
 # Runtime bağımlılıkları

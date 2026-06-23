@@ -208,6 +208,54 @@ export interface ChargeStatusData extends BaseTelemetryData {
 }
 
 // ============================================
+// BİT-BAZLI REGISTER KONFİGÜRASYONU
+// ============================================
+
+/**
+ * Alarm ve durum register'ları için bit-alan tanımı.
+ * BSC BMS gibi cihazlarda, tek bir register içindeki her bit
+ * farklı bir alarm/uyarı/durum sinyalidir.
+ */
+export interface BitfieldField {
+  /** Bit başlangıcı (0-15) */
+  bitStart: number;
+  /** Bit bitişi (bitStart ile aynı olabilir - tek bit) */
+  bitEnd: number;
+  /** Telemetry veri adı (örn: "bsc1_alarm") */
+  name: string;
+  /** Veri etiketi (örn: "bsc1_alarm_flag") */
+  dataTag: string;
+  /** İnsan tarafından okunabilir açıklama */
+  description: string;
+  /** Değer 0 olduğunda gösterilecek etiket (opsiyonel) */
+  label0?: string;
+  /** Değer 1 olduğunda gösterilecek etiket (opsiyonel) */
+  label1?: string;
+  /** Ölçüm birimi */
+  unit: string;
+  /** Ham değer çarpan (varsayılan: 1) */
+  scale?: number;
+  /** Ham değer kayma (varsayılan: 0) */
+  offset?: number;
+  /** Alarm seviyesi (opsiyonel) */
+  alarmLimit?: string;
+}
+
+/**
+ * Bit-alan register konfigürasyonu.
+ * Bir register adresine karşılık gelen tüm bit alanlarını tanımlar.
+ * Tek bir register okumasıyla N adet TelemetryData üretilir.
+ */
+export interface BitfieldConfig {
+  /** Modbus register adresi */
+  registerAddress: number;
+  /** Register tablo tipi */
+  registerType: "INPUT_REGISTER" | "HOLDING_REGISTER";
+  /** Bu register içindeki bit alanları */
+  fields: BitfieldField[];
+}
+
+// ============================================
 // BİRLEŞTİRİCİ TİPLER
 // ============================================
 
@@ -353,4 +401,64 @@ export interface NormalizedTelemetry {
   unit: string;
   /** Ölçüm zamanı */
   timestamp: string;
+}
+
+// ============================================
+// CİHAZ KONFİG DOSYA TİPLERİ
+// ============================================
+
+/**
+ * Konfigürasyon dosyasındaki telemetry girdisi.
+ * Protocol tipinden sadece çalışma zamanı alanları çıkarılmış halidir.
+ * Yeni bir interface değil, mevcut tiplerden türetilmiş type alias.
+ */
+export type TelemetryConfigEntry = Omit<
+  ModbusTelemetryData | CanbusTelemetryData | MqttTelemetryData,
+  "value" | "timestamp" | "deviceId"
+>;
+
+/** Simülatör konfigürasyonu (cihaz konfig dosyası içinde) */
+export interface SimulatorConfig {
+  type: "bsc" | "tms" | "xrack";
+  rackCount?: number;
+  registerMap?: string;
+}
+
+/**
+ * Bir cihaza ait konfigürasyon dosyasının yapısı.
+ * Her cihaz için bir dosya, konfigürasyon dizininde yer alır.
+ */
+export interface DeviceConfigFile {
+  deviceId: string;
+  name: string;
+  manufacturer: string;
+  model: string;
+  protocol: "MODBUS" | "CANBUS" | "MQTT";
+  connection: Record<string, unknown>;
+  telemetry: TelemetryConfigEntry[];
+  bitfieldConfigs?: BitfieldConfig[];
+  pollIntervalMs?: number;
+  simulator?: SimulatorConfig;
+}
+
+export interface PostgresConfig {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  ssl?: boolean;
+  maxConnections?: number;
+}
+
+/**
+ * Servis seviyesinde global konfigürasyon dosyasının yapısı.
+ * Konfigürasyon dizininde service.{json,toml,yaml} ismiyle bulunur.
+ */
+export interface ServiceConfigFile {
+  redis: { host: string; port: number; password?: string; db?: number };
+  postgresql?: PostgresConfig;
+  servicePollIntervalMs?: number;
+  workerConcurrency?: number;
+  managementIntervalMs?: number;
 }

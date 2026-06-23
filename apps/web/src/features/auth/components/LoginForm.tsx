@@ -1,8 +1,10 @@
-// apps/web/src/features/auth/components/LoginForm.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SCADA_ICONS } from "@gd-monorepo/ui";
 import { useAuth } from "../hooks/useAuth";
-import "./LoginForm.css";
+import * as S from "./LoginForm.styles";
+
+const LogoIcon = SCADA_ICONS.logo;
 
 export const LoginForm: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -27,14 +29,14 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>🔋 EMS</h1>
+    <S.LoginContainer>
+      <S.LoginCard>
+        <S.LoginHeader>
+          <h1><LogoIcon size={28} /> EMS</h1>
           <p>Enerji Yönetim Sistemi</p>
-        </div>
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
+        </S.LoginHeader>
+        <S.LoginFormElement onSubmit={handleSubmit}>
+          <S.FormGroup>
             <label>Kullanıcı Adı</label>
             <input
               type="text"
@@ -43,8 +45,8 @@ export const LoginForm: React.FC = () => {
               placeholder="teknik / admin"
               required
             />
-          </div>
-          <div className="form-group">
+          </S.FormGroup>
+          <S.FormGroup>
             <label>Şifre</label>
             <input
               type="password"
@@ -53,20 +55,20 @@ export const LoginForm: React.FC = () => {
               placeholder="teknik123 / admin123"
               required
             />
-          </div>
-          {error && <div className="error-message">{error}</div>}
-          <button type="submit" className="login-btn" disabled={isLoading}>
+          </S.FormGroup>
+          {error && <S.ErrorMessage>{error}</S.ErrorMessage>}
+          <S.LoginBtn type="submit" disabled={isLoading}>
             {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
-          </button>
-        </form>
-        <div className="login-info">
+          </S.LoginBtn>
+        </S.LoginFormElement>
+        <S.LoginInfo>
           <p>Demo Kullanıcılar:</p>
-          <div className="demo-users">
+          <S.DemoUsers>
             <span>teknik / teknik123</span>
             <span>admin / admin123</span>
-          </div>
-        </div>
-      </div>
-    </div>
+          </S.DemoUsers>
+        </S.LoginInfo>
+      </S.LoginCard>
+    </S.LoginContainer>
   );
 };

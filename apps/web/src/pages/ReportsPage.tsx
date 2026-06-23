@@ -1,18 +1,16 @@
-// apps/web/src/features/reports/ReportsPage.tsx
 import React from "react";
-import "./ReportsPage.css";
+import * as S from "./ReportsPage.styles";
 
 export const ReportsPage: React.FC = () => {
   return (
-    <div className="reports-page">
-      <div className="reports-placeholder">
-        <div className="placeholder-icon">📄</div>
-        <h2>Raporlar Sayfası</h2>
+    <S.ReportsPageContainer>
+      <S.ReportsPlaceholder>
+        <S.PlaceholderIcon>📄</S.PlaceholderIcon>
         <p>Bu sayfa şu anda geliştirme aşamasındadır.</p>
         <p>
           Yakında eklenecek: PDF raporları, Excel export, grafik raporları...
         </p>
-      </div>
-    </div>
+      </S.ReportsPlaceholder>
+    </S.ReportsPageContainer>
   );
 };

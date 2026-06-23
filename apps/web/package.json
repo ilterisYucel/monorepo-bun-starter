@@ -12,6 +12,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@gd-monorepo/shared-types": "*",
     "@gd-monorepo/shared-utils": "*",
     "@gd-monorepo/ui": "*",

@@ -1,105 +1,220 @@
-// apps/web/src/features/dashboard/DashboardPage.tsx
-import React, { useState, useEffect } from "react";
-import { BSCGraphic } from "@gd-monorepo/ui";
+import React, { useState } from "react";
+import {
+  DeviceGauges,
+  BSC,
+  TMS,
+  LogTerminal,
+  SCADA_ICONS,
+} from "@gd-monorepo/ui";
+import type { RoomData, BSCUnit } from "@gd-monorepo/ui";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
-import { SystemGauges } from "../features/dashboard/components/SystemGauges";
-import "./DashboardPage.css";
+import * as S from "./DashboardPage.styles";
+import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
+
+const BatteryIcon = SCADA_ICONS.batteryCharge;
+const ShieldIcon = SCADA_ICONS.health;
+const PlugIcon = SCADA_ICONS.powerPlug;
+const BoltIcon = SCADA_ICONS.batteryDischarge;
+const TempIcon = SCADA_ICONS.temperature;
+const WarningIcon = SCADA_ICONS.logWarning;
 
 export const DashboardPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
   const { racks, averages, isLoading } = useDashboardData(chargeStatus);
 
-  // İlk 8 rack BSC-01, sonraki 8 rack BSC-02
-  const bsc01Racks = racks.slice(0, 8);
-  const bsc02Racks = racks.slice(8, 16);
+  const systemLogProvider = useFilteredLogProvider("system");
 
-  // DC Output state'leri (gerçek verilerden hesaplanabilir)
-  const [bsc01Output, setBsc01Output] = useState({
-    status: "online" as const,
-    voltage: 398,
-    current: 75,
-  });
-  const [bsc02Output, setBsc02Output] = useState({
-    status: "online" as const,
-    voltage: 396,
-    current: 72,
-  });
+  const [dcOutputs] = useState([
+    { status: "online" as const, voltage: 398, current: 75 },
+    { status: "online" as const, voltage: 396, current: 72 },
+  ]);
 
-  // Circuit Breaker state'leri
-  const [breaker01Status, setBreaker01Status] = useState<"online" | "offline">(
+  const [breakerStatuses] = useState<Array<"online" | "offline">>([
     "online",
-  );
-  const [breaker01Position, setBreaker01Position] = useState<"open" | "close">(
-    "close",
-  );
-  const [breaker02Status, setBreaker02Status] = useState<"online" | "offline">(
     "online",
-  );
-  const [breaker02Position, setBreaker02Position] = useState<"open" | "close">(
-    "close",
-  );
+  ]);
 
-  // Rack tıklama handler'ı
+  const [breakerPositions, setBreakerPositions] = useState<
+    Array<"open" | "close">
+  >(["open", "close"]);
+
+  const [tmsData] = useState<{
+    rooms: RoomData[];
+    panel_temp: number;
+    status: string;
+  }>({
+    rooms: [
+      {
+        temp: 22.5,
+        hvacs: [
+          { status: "online", mode: "cooling" },
+          { status: "online", mode: "cooling" },
+        ],
+      },
+      {
+        temp: 28.1,
+        hvacs: [
+          { status: "online", mode: "warming" },
+          { status: "online", mode: "warming" },
+        ],
+      },
+      {
+        temp: 19.0,
+        hvacs: [
+          { status: "offline", mode: "idle" },
+          { status: "online", mode: "cooling" },
+        ],
+      },
+      {
+        temp: 24.3,
+        hvacs: [
+          { status: "online", mode: "cooling" },
+          { status: "online", mode: "warming" },
+        ],
+      },
+    ],
+    panel_temp: 21.0,
+    status: "online",
+  });
+
+  const gauges = [
+    {
+      value: averages.avgSoC,
+      label: "SoC",
+      unit: "%",
+      min: 0,
+      max: 100,
+      icon: <BatteryIcon size={18} />,
+    },
+    {
+      value: averages.avgSoH,
+      label: "SoH",
+      unit: "%",
+      min: 0,
+      max: 100,
+      icon: <ShieldIcon size={18} />,
+    },
+    {
+      value: averages.avgPower,
+      label: "Güç",
+      unit: "kW",
+      min: 0,
+      max: 500,
+      icon: <PlugIcon size={18} />,
+    },
+    {
+      value: averages.avgVoltage,
+      label: "Voltaj",
+      unit: "V",
+      min: 0,
+      max: 5000,
+      icon: <BatteryIcon size={18} />,
+    },
+    {
+      value: averages.avgCurrent,
+      label: "Akım",
+      unit: "A",
+      min: 0,
+      max: 200,
+      icon: <BoltIcon size={18} />,
+    },
+  ];
+
+  const tmsGauges = tmsData.rooms.map((room, i) => ({
+    value: room.temp,
+    label: `Oda ${i + 1}`,
+    unit: "°C",
+    min: 0,
+    max: 50,
+    icon: <TempIcon size={18} />,
+  }));
+  tmsGauges.push({
+    value: tmsData.panel_temp,
+    label: "Panel",
+    unit: "°C",
+    min: 0,
+    max: 50,
+    icon: <TempIcon size={18} />,
+  });
+
   const handleRackClick = (rackId: number) => {
     console.log("Rack clicked:", rackId);
-    // TODO: Popover veya modal aç
   };
 
-  // Breaker toggle handler'ları
-  const handleBreaker01Toggle = (position: "open" | "close") => {
-    console.log("Breaker BSC-01 toggled:", position);
-    setBreaker01Position(position);
+  const handleBreakerToggle = (
+    bscIndex: number,
+    position: "open" | "close",
+  ) => {
+    console.log(`Breaker BSC-${bscIndex + 1} toggled:`, position);
+    setBreakerPositions((prev) => {
+      const next = [...prev];
+      next[bscIndex] = position;
+      return next;
+    });
   };
 
-  const handleBreaker02Toggle = (position: "open" | "close") => {
-    console.log("Breaker BSC-02 toggled:", position);
-    setBreaker02Position(position);
-  };
+  const bscUnits: BSCUnit[] = [
+    {
+      deviceId: "BSC-1",
+      racks: racks.slice(0, 8),
+      breakerStatus: breakerStatuses[0],
+      breakerPosition: breakerPositions[0],
+      dcOutput: dcOutputs[0],
+    },
+    {
+      deviceId: "BSC-2",
+      racks: racks.slice(8, 16),
+      breakerStatus: breakerStatuses[1],
+      breakerPosition: breakerPositions[1],
+      dcOutput: dcOutputs[1],
+    },
+  ];
 
   if (isLoading) {
     return (
-      <div className="dashboard-loading">
-        <div className="spinner"></div>
+      <S.LoadingContainer>
+        <S.Spinner />
         <p>Veriler yükleniyor...</p>
-      </div>
+      </S.LoadingContainer>
     );
   }
 
   return (
-    <div className="dashboard-page">
-      {/* Gauge'ler - Yatay */}
-      <SystemGauges averages={averages} />
-
-      {/* BSC Graphics - 2'li grid */}
-      <div className="bsc-grid">
-        <div className="bsc-card">
-          <BSCGraphic
-            deviceId="BSC-01"
-            racks={bsc01Racks}
+    <S.DashboardPageContainer>
+      <S.DashboardRow>
+        <S.BscColumn>
+          <S.DeviceGaugesStack>
+            <DeviceGauges deviceId="BSC-1" gauges={gauges} variant="circular" />
+            <DeviceGauges deviceId="BSC-2" gauges={gauges} variant="circular" />
+          </S.DeviceGaugesStack>
+          <BSC
+            deviceId="BSC"
+            bscUnits={bscUnits}
             width="100%"
             flowDirection={chargeStatus}
-            breakerStatus={breaker01Status}
-            breakerPosition={breaker01Position}
-            dcOutput={bsc01Output}
             onRackClick={handleRackClick}
-            onBreakerToggle={handleBreaker01Toggle}
+            onBreakerToggle={handleBreakerToggle}
           />
-        </div>
-        <div className="bsc-card">
-          <BSCGraphic
-            deviceId="BSC-02"
-            racks={bsc02Racks}
+        </S.BscColumn>
+        <S.TmsColumn>
+          <DeviceGauges deviceId="TMS" gauges={tmsGauges} variant="circular" />
+          <TMS
+            rooms={tmsData.rooms}
+            panel_temp={tmsData.panel_temp}
+            status={tmsData.status}
             width="100%"
-            flowDirection={chargeStatus}
-            breakerStatus={breaker02Status}
-            breakerPosition={breaker02Position}
-            dcOutput={bsc02Output}
-            onRackClick={handleRackClick}
-            onBreakerToggle={handleBreaker02Toggle}
           />
-        </div>
-      </div>
-    </div>
+          <S.TerminalCard>
+            <LogTerminal
+              provider={systemLogProvider}
+              maxHeight={435}
+              title="Sistem Event & Hataları"
+              titleIcon={<WarningIcon size={18} />}
+            />
+          </S.TerminalCard>
+        </S.TmsColumn>
+      </S.DashboardRow>
+    </S.DashboardPageContainer>
   );
 };

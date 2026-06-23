@@ -115,9 +115,9 @@ export async function racksRoutes(
 
   fastify.get("/history/downsampled", async (request, reply) => {
     const {
-      range, // "1m", "1h", "1d" veya "custom"
-      from, // custom için
-      to, // custom için
+      range,
+      from,
+      to,
       points,
       rack_id,
       telemetry,
@@ -133,7 +133,6 @@ export async function racksRoutes(
     let fromDate: Date;
     let toDate: Date = new Date();
 
-    // Zaman aralığını belirle
     switch (range) {
       case "1m":
         fromDate = new Date(Date.now() - 60 * 1000);
@@ -143,6 +142,21 @@ export async function racksRoutes(
         break;
       case "1d":
         fromDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        break;
+      case "1w":
+        fromDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "1M":
+        fromDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "3M":
+        fromDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case "6M":
+        fromDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+        break;
+      case "1y":
+        fromDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
         break;
       case "custom":
         if (!from || !to) {
@@ -154,7 +168,7 @@ export async function racksRoutes(
         toDate = new Date(to);
         break;
       default:
-        fromDate = new Date(Date.now() - 60 * 60 * 1000); // default 1 saat
+        fromDate = new Date(Date.now() - 60 * 60 * 1000);
     }
 
     const targetPoints = points ? parseInt(points) : 120;

@@ -1,7 +1,8 @@
-// apps/web/src/layouts/Sidebar.tsx
 import React, { useState } from "react";
+import { SCADA_ICONS } from "@gd-monorepo/ui";
 import { LogoutButton } from "../features/auth";
-import "./Sidebar.css";
+import { useAuth } from "../features/auth/hooks/useAuth";
+import * as S from "./Sidebar.styles";
 
 export type PageType =
   | "dashboard"
@@ -14,66 +15,132 @@ export type PageType =
 interface SidebarProps {
   currentPage: PageType;
   onPageChange: (page: PageType) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 const menuItems = [
-  { id: "dashboard" as const, label: "Dashboard", icon: "📊" },
-  { id: "racks" as const, label: "Rack Detayları", icon: "🔋" },
-  { id: "control" as const, label: "Kontrol", icon: "🎮" },
-  { id: "events" as const, label: "Event & History", icon: "📋" },
-  { id: "system-charts" as const, label: "Sistem Grafikleri", icon: "📈" },
-  { id: "reports" as const, label: "Raporlar", icon: "📄" },
+  { id: "dashboard" as const, label: "Panel", icon: SCADA_ICONS.dashboard },
+  { id: "racks" as const, label: "Rack Detayları", icon: SCADA_ICONS.battery },
+  { id: "control" as const, label: "Kontrol", icon: SCADA_ICONS.control },
+  {
+    id: "system-charts" as const,
+    label: "Analitik",
+    icon: SCADA_ICONS.charts,
+  },
+  { id: "reports" as const, label: "Raporlar", icon: SCADA_ICONS.reports },
+  { id: "events" as const, label: "Olay & Geçmiş", icon: SCADA_ICONS.events },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentPage,
   onPageChange,
+  collapsed,
+  onToggleCollapse,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user, isAdmin } = useAuth();
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   const handleEmergencyStop = () => {
     if (
       confirm("ACİL DURDURMA: Tüm sistem duracak. Devam etmek istiyor musunuz?")
     ) {
-      // TODO: Acil durdurma API çağrısı
       console.log("Emergency stop triggered");
     }
   };
 
+  const LogoIcon = SCADA_ICONS.logo;
+  const CollapseIcon = SCADA_ICONS.collapse;
+  const EmergencyIcon = SCADA_ICONS.emergency;
+  const UserIcon = SCADA_ICONS.user;
+
   return (
-    <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
-      <button
-        className="sidebar-toggle"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        {isCollapsed ? "→" : "←"}
-      </button>
+    <S.SidebarContainer collapsed={collapsed}>
+      <S.SidebarLogo collapsed={collapsed}>
+        <S.LogoIcon>
+          <LogoIcon size={28} />
+        </S.LogoIcon>
+        {!collapsed && <S.LogoText>CCC</S.LogoText>}
+      </S.SidebarLogo>
 
-      <div className="sidebar-logo">
-        <div className="logo-icon">🔋</div>
-        {!isCollapsed && <span className="logo-text">EMS</span>}
-      </div>
+      <S.SidebarNav>
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <S.NavItem
+              key={item.id}
+              active={currentPage === item.id}
+              collapsed={collapsed}
+              onClick={() => onPageChange(item.id)}
+              title={collapsed ? item.label : undefined}
+            >
+              <S.NavIcon>
+                <Icon size={20} />
+              </S.NavIcon>
+              {!collapsed && <S.NavLabel>{item.label}</S.NavLabel>}
+            </S.NavItem>
+          );
+        })}
+      </S.SidebarNav>
 
-      <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            className={`nav-item ${currentPage === item.id ? "active" : ""}`}
-            onClick={() => onPageChange(item.id)}
-            title={isCollapsed ? item.label : undefined}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            {!isCollapsed && <span className="nav-label">{item.label}</span>}
-          </button>
-        ))}
-      </nav>
+      <S.ToggleSeparator />
+      <S.ToggleContainer collapsed={collapsed}>
+        <S.SidebarToggle
+          collapsed={collapsed}
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
+        >
+          <CollapseIcon size={14} />
+          {!collapsed && <S.ToggleLabel>Daralt</S.ToggleLabel>}
+        </S.SidebarToggle>
+      </S.ToggleContainer>
 
-      <div className="sidebar-footer">
-        <button className="emergency-stop-btn" onClick={handleEmergencyStop}>
-          🛑 ACİL DURDUR
-        </button>
-        <LogoutButton />
-      </div>
-    </div>
+      <S.SidebarFooter>
+        <S.UserProfileContainer
+          collapsed={collapsed}
+          onMouseEnter={() => setShowProfilePopup(true)}
+          onMouseLeave={() => setShowProfilePopup(false)}
+        >
+          {collapsed ? (
+            <>
+              <S.UserProfileAvatar>
+                <UserIcon size={20} />
+              </S.UserProfileAvatar>
+              {showProfilePopup && (
+                <S.UserProfilePopup>
+                  <S.UserProfileName>
+                    {user?.name ?? "Kullanıcı"}
+                  </S.UserProfileName>
+                  <S.UserRoleBadge role={isAdmin ? "admin" : "teknik"}>
+                    {isAdmin ? "Admin" : "Teknik"}
+                  </S.UserRoleBadge>
+                </S.UserProfilePopup>
+              )}
+            </>
+          ) : (
+            <S.UserProfileDetails>
+              <S.UserProfileAvatar>
+                <UserIcon size={20} />
+              </S.UserProfileAvatar>
+              <S.UserProfileName>{user?.name}</S.UserProfileName>
+              <S.UserRoleBadge role={isAdmin ? "admin" : "teknik"}>
+                {isAdmin ? "Admin" : "Teknik"}
+              </S.UserRoleBadge>
+            </S.UserProfileDetails>
+          )}
+        </S.UserProfileContainer>
+
+        <S.EmergencyStopBtn
+          collapsed={collapsed}
+          onClick={handleEmergencyStop}
+          title={collapsed ? "ACİL DURDUR" : undefined}
+        >
+          <EmergencyIcon size={collapsed ? 18 : 16} />
+          {!collapsed && " ACİL DURDUR"}
+        </S.EmergencyStopBtn>
+
+        <LogoutButton collapsed={collapsed} />
+      </S.SidebarFooter>
+    </S.SidebarContainer>
   );
 };

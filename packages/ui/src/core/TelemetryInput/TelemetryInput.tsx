@@ -1,8 +1,10 @@
 // packages/ui/src/core/TelemetryInput/TelemetryInput.tsx
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import type { TelemetryInputProps } from "./TelemetryInput.types";
 import * as S from "./TelemetryInput.styles";
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
+
+type StatusKey = "nominal" | "warning" | "alarm";
 
 export const TelemetryInput: React.FC<TelemetryInputProps> = ({
   name,
@@ -21,12 +23,31 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
   size = "medium",
   width,
   className = "",
+  status,
+  warningThreshold,
+  alarmThreshold,
+  showRangeBar = true,
 }) => {
   const [inputValue, setInputValue] = useState(value.toFixed(decimals));
 
   useEffect(() => {
     setInputValue(value.toFixed(decimals));
   }, [value, decimals]);
+
+  const effectiveStatus = useMemo<StatusKey | undefined>(() => {
+    if (status) return status;
+    if (alarmThreshold !== undefined && value >= alarmThreshold) return "alarm";
+    if (warningThreshold !== undefined && value >= warningThreshold) return "warning";
+    return undefined;
+  }, [status, alarmThreshold, warningThreshold, value]);
+
+  const finiteMin = Number.isFinite(min);
+  const finiteMax = Number.isFinite(max);
+  const hasRange = showRangeBar && finiteMin && finiteMax;
+  const rangePercentage = useMemo(() => {
+    if (!hasRange) return 0;
+    return Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+  }, [hasRange, value, min, max]);
 
   const handleIncrease = useCallback(() => {
     if (disabled) return;
@@ -93,6 +114,7 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
       className={className}
       disabled={disabled}
       size={size}
+      $status={effectiveStatus}
       style={{
         width: width
           ? typeof width === "number"
@@ -103,13 +125,15 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
     >
       <S.Header>
         <S.LabelSection>
+          {effectiveStatus && <S.StatusDot $status={effectiveStatus} />}
           <S.Name>{name}</S.Name>
           {deviceId && <S.DeviceId>{deviceId}</S.DeviceId>}
           {hasTags && (
             <S.TagsContainer>
               {Object.entries(tags!).map(([key, val]) => (
                 <S.Tag key={key}>
-                  {key}: {val}
+                  <S.TagKey>{key}</S.TagKey>
+                  <S.TagValue>: {val}</S.TagValue>
                 </S.Tag>
               ))}
             </S.TagsContainer>
@@ -117,9 +141,10 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
         </S.LabelSection>
       </S.Header>
 
-      <S.InputGroup>
+      <S.InputGroup $status={effectiveStatus}>
         <S.ValueInput
           type="text"
+          $status={effectiveStatus}
           value={inputValue}
           onChange={handleInputChange}
           onBlur={handleBlur}
@@ -140,15 +165,38 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
         )}
       </S.InputGroup>
 
+      {hasRange && (
+        <S.RangeContainer>
+          <S.RangeBar>
+            <S.RangeBarFill
+              $percentage={rangePercentage}
+              $status={effectiveStatus}
+            />
+          </S.RangeBar>
+          <S.RangeLabels>
+            <span>
+              {min}
+              {unit}
+            </span>
+            <span>
+              {max}
+              {unit}
+            </span>
+          </S.RangeLabels>
+        </S.RangeContainer>
+      )}
+
       <S.Footer>
         {description && <S.Description>{description}</S.Description>}
-        <S.LimitIndicator>
-          <span>
-            {min}
-            {unit} / {max}
-            {unit}
-          </span>
-        </S.LimitIndicator>
+        {!hasRange && (
+          <S.LimitIndicator>
+            <span>
+              {min}
+              {unit} / {max}
+              {unit}
+            </span>
+          </S.LimitIndicator>
+        )}
       </S.Footer>
     </S.Container>
   );

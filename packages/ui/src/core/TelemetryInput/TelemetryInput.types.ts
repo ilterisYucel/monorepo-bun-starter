@@ -33,4 +33,12 @@ export interface TelemetryInputProps {
   width?: string | number;
   /** Ek CSS class'ı */
   className?: string;
+  /** Alarm durumu - verilirse otomatik hesaplamayı ezer */
+  status?: "nominal" | "warning" | "alarm";
+  /** Uyarı eşik değeri - değer >= bu değer ise warning (otomatik) */
+  warningThreshold?: number;
+  /** Alarm eşik değeri - değer >= bu değer ise alarm (otomatik) */
+  alarmThreshold?: number;
+  /** Değer aralığı gösterge barı (varsayılan: true) */
+  showRangeBar?: boolean;
 }

@@ -35,13 +35,13 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      "@gd-monorepo/ui",
       "react",
       "react-dom",
       "react-router-dom",
       "@tanstack/react-query",
     ],
-    force: true, // 🔥 Geliştirme sırasında zorla yeniden bundle
+    exclude: ["@gd-monorepo/ui"],
+    force: true,
   },
   build: {
     outDir: "./dist",

@@ -1,0 +1,59 @@
+{
+  "deviceId": "BSC-1",
+  "name": "BSC Main",
+  "manufacturer": "BSC",
+  "model": "BSC-2000",
+  "protocol": "MODBUS",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 502,
+    "slaveId": 1
+  },
+  "pollIntervalMs": 1000,
+  "telemetry": [
+    {
+      "name": "Voltage",
+      "description": "System DC voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 30059,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Current",
+      "description": "System DC current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 30061,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "SINT32",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "SoC",
+      "description": "System state of charge",
+      "unit": "%",
+      "tags": { "rack_id": "system" },
+      "protocol": "MODBUS",
+      "registerAddress": 30055,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "simulator": {
+    "type": "bsc",
+    "rackCount": 8
+  }
+}

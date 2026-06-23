@@ -17,6 +17,7 @@ const QUEUE_NAMES: Record<JobType, string> = {
   READ_DEVICE: "queue_read_device",
   WRITE_TELEMETRY: "queue_write_telemetry",
   COMMAND_DEVICE: "queue_command_device",
+  MANAGEMENT: "queue_management",
 };
 
 export class BullMQAdapter implements IMessageQueue {
@@ -101,6 +102,20 @@ export class BullMQAdapter implements IMessageQueue {
     });
   }
 
+  async addRepeatableJobEvery(
+    name: string,
+    job: DeviceJob,
+    everyMs: number,
+  ): Promise<void> {
+    const queue = await this.getQueue(job.type);
+    const repeatOptions: RepeatOptions = { every: everyMs };
+
+    await queue.add(name, job, {
+      repeat: repeatOptions,
+      jobId: `${job.type}-${job.deviceId}-${name}`,
+    });
+  }
+
   async registerWorker(
     processor: (job: DeviceJob) => Promise<void>,
     options?: WorkerOptions,
@@ -109,6 +124,7 @@ export class BullMQAdapter implements IMessageQueue {
       "READ_DEVICE",
       "WRITE_TELEMETRY",
       "COMMAND_DEVICE",
+      "MANAGEMENT",
     ];
 
     for (const type of jobTypes) {

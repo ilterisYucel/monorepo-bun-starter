@@ -1,6 +1,13 @@
 // packages/ui/src/components/TelemetryChart/types.ts
 import type { TelemetryProvider } from "../../interfaces/telemetry-provider";
 
+export interface TagFilterConfig {
+  /** Verinin tags objesindeki anahtar (örn: "rackId", "deviceId") */
+  tagKey: string;
+  /** Kullanıcıya gösterilecek etiket (örn: "Raf Numarası", "Cihaz") */
+  label: string;
+}
+
 export interface TelemetryChartProps {
   /** Telemetry verisi ve state'leri sağlayan provider (IoC) */
   provider: TelemetryProvider;
@@ -22,4 +29,7 @@ export interface TelemetryChartProps {
   
   /** Legend gösterilsin mi? */
   showLegend?: boolean;
+
+  /** Tag bazlı filtreleme seçenekleri (client-side). Her config bir dropdown oluşturur */
+  tagFilters?: TagFilterConfig[];
 }

@@ -1,14 +1,25 @@
-// apps/web/src/features/control/components/Scheduler.tsx
 import React, { useState } from "react";
+import { SCADA_ICONS } from "@gd-monorepo/ui";
 import { useLogProvider } from "../../../hooks/useLogProvider";
-import "./Scheduler.css";
+import type { OperationMode } from "../types/control";
+import * as S from "./Scheduler.styles";
 
 interface ScheduledCommand {
   id: string;
   datetime: string;
   type: "Charge" | "Discharge";
   powerKw: number;
+  operationMode: OperationMode;
+  durationSeconds: number;
 }
+
+const TimerIcon = SCADA_ICONS.timer;
+const ChargeIcon = SCADA_ICONS.batteryCharge;
+const DischargeIcon = SCADA_ICONS.batteryDischarge;
+const RepeatIcon = SCADA_ICONS.continuous;
+const AddIcon = SCADA_ICONS.add;
+const TrashIcon = SCADA_ICONS.trash;
+const InfoIcon = SCADA_ICONS.logInfo;
 
 export const Scheduler: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -17,7 +28,10 @@ export const Scheduler: React.FC = () => {
   const [selectedType, setSelectedType] = useState<"Charge" | "Discharge">(
     "Charge",
   );
+  const [operationMode, setOperationMode] =
+    useState<OperationMode>("CONTINUOUS");
   const [powerKw, setPowerKw] = useState<number>(50);
+  const [durationSeconds, setDurationSeconds] = useState<number>(30);
   const [scheduledList, setScheduledList] = useState<ScheduledCommand[]>([]);
   const { addLog } = useLogProvider();
 
@@ -32,6 +46,14 @@ export const Scheduler: React.FC = () => {
     });
   };
 
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins === 0) return `${secs}sn`;
+    if (secs === 0) return `${mins}dk`;
+    return `${mins}dk ${secs}sn`;
+  };
+
   const handleAddCommand = () => {
     if (!selectedDate) return;
     const newCommand: ScheduledCommand = {
@@ -39,12 +61,14 @@ export const Scheduler: React.FC = () => {
       datetime: new Date(selectedDate).toISOString(),
       type: selectedType,
       powerKw: powerKw,
+      operationMode,
+      durationSeconds,
     };
     setScheduledList([...scheduledList, newCommand]);
     addLog({
       type: "success",
       source: "scheduler",
-      message: `Zamanlanmış komut eklendi: ${selectedType === "Charge" ? "Şarj" : "Deşarj"} ${powerKw} kW, Tarih: ${formatDateTime(newCommand.datetime)}`,
+      message: `Zamanlanmış komut eklendi: ${selectedType === "Charge" ? "Şarj" : "Deşarj"} ${powerKw} kW, Tarih: ${formatDateTime(newCommand.datetime)}${operationMode === "TIMER" ? `, Süre: ${formatDuration(durationSeconds)}` : " (Sürekli)"}`,
     });
   };
 
@@ -58,30 +82,29 @@ export const Scheduler: React.FC = () => {
   };
 
   return (
-    <div className="scheduler-container">
-      <h4>⏰ Komut Zamanlayıcı</h4>
+    <S.SchedulerContainer>
+      <h4><TimerIcon size={18} /> Komut Zamanlayıcı</h4>
 
-      <div className="scheduler-form">
-        <div className="form-row">
+      <S.SchedulerForm>
+        <S.FormRow>
           <label>Tarih & Saat:</label>
-          <input
+          <S.DateTimeInput
             type="datetime-local"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="datetime-input"
           />
-        </div>
-        <div className="form-row">
+        </S.FormRow>
+        <S.FormRow>
           <label>Komut:</label>
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value as any)}
           >
-            <option value="Charge">🔋 Şarj Et</option>
-            <option value="Discharge">⚡ Deşarj Et</option>
+            <option value="Charge">Şarj Et</option>
+            <option value="Discharge">Deşarj Et</option>
           </select>
-        </div>
-        <div className="form-row">
+        </S.FormRow>
+        <S.FormRow>
           <label>Güç (kW):</label>
           <input
             type="number"
@@ -90,38 +113,71 @@ export const Scheduler: React.FC = () => {
             min={0}
             max={500}
           />
-        </div>
-        <button onClick={handleAddCommand} className="add-btn">
-          ➕ Zamanla
-        </button>
-      </div>
+        </S.FormRow>
 
-      <div className="scheduled-list">
-        <h5>📋 Planlanmış Komutlar</h5>
+        <S.FormGroup>
+          <label>Çalışma Modu</label>
+          <S.ModeButtons>
+            <S.ModeBtn
+              active={operationMode === "TIMER"}
+              onClick={() => setOperationMode("TIMER")}
+            >
+              <TimerIcon size={14} /> Timer Modu
+            </S.ModeBtn>
+            <S.ModeBtn
+              active={operationMode === "CONTINUOUS"}
+              onClick={() => setOperationMode("CONTINUOUS")}
+            >
+              <RepeatIcon size={14} /> Sürekli Mod
+            </S.ModeBtn>
+          </S.ModeButtons>
+        </S.FormGroup>
+
+        {operationMode === "TIMER" && (
+          <S.FormRow>
+            <label>Süre (sn):</label>
+            <input
+              type="number"
+              value={durationSeconds}
+              onChange={(e) => setDurationSeconds(Number(e.target.value))}
+              min={1}
+              max={28800}
+              step={30}
+            />
+          </S.FormRow>
+        )}
+
+        <S.AddBtn onClick={handleAddCommand}>
+          <AddIcon size={14} /> Zamanla
+        </S.AddBtn>
+      </S.SchedulerForm>
+
+      <S.ScheduledList>
+        <h5><InfoIcon size={16} /> Planlanmış Komutlar</h5>
         {scheduledList.length === 0 ? (
-          <p className="empty-text">Henüz planlanmış bir komut yok.</p>
+          <S.EmptyText>Henüz planlanmış bir komut yok.</S.EmptyText>
         ) : (
           <ul>
             {scheduledList.map((cmd) => (
               <li key={cmd.id}>
-                <span className="cmd-date">{formatDateTime(cmd.datetime)}</span>
-                <span
-                  className={`cmd-type ${cmd.type === "Charge" ? "charge" : "discharge"}`}
+                <S.CmdDate>{formatDateTime(cmd.datetime)}</S.CmdDate>
+                <S.CmdType
+                  variant={cmd.type === "Charge" ? "charge" : "discharge"}
                 >
-                  {cmd.type === "Charge" ? "🔋 ŞARJ" : "⚡ DEŞARJ"}
-                </span>
-                <span className="cmd-power">{cmd.powerKw} kW</span>
-                <button
-                  onClick={() => handleDeleteCommand(cmd.id)}
-                  className="delete-btn"
-                >
-                  🗑️
-                </button>
+                  {cmd.type === "Charge" ? <><ChargeIcon size={12} /> ŞARJ</> : <><DischargeIcon size={12} /> DEŞARJ</>}
+                </S.CmdType>
+                <S.CmdPower>{cmd.powerKw} kW</S.CmdPower>
+                {cmd.operationMode === "TIMER" && (
+                  <S.CmdTimer>{formatDuration(cmd.durationSeconds)}</S.CmdTimer>
+                )}
+                <S.DeleteBtn onClick={() => handleDeleteCommand(cmd.id)}>
+                  <TrashIcon size={14} />
+                </S.DeleteBtn>
               </li>
             ))}
           </ul>
         )}
-      </div>
-    </div>
+      </S.ScheduledList>
+    </S.SchedulerContainer>
   );
 };

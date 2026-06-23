@@ -1,27 +1,26 @@
-// apps/web/src/layouts/MainLayout.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, type PageType } from "./Sidebar";
-import { Header } from "./Header";
-import "./MainLayout.css";
+import { SystemHeader } from "./SystemHeader";
+import { useChargeStatus } from "../hooks/useChargeStatus";
+import * as S from "./MainLayout.styles";
 
 interface MainLayoutProps {
   children: React.ReactNode;
   currentPage: PageType;
   onPageChange: (page: PageType) => void;
-  pageTitle: string;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
   children,
   currentPage,
   onPageChange,
-  pageTitle,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { chargeStatus } = useChargeStatus();
 
-  // Route değiştiğinde sidebar'daki aktif sayfayı güncelle
   useEffect(() => {
     const path = location.pathname.substring(1);
     if (path === "" || path === "dashboard") {
@@ -45,12 +44,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   };
 
   return (
-    <div className="app-layout">
-      <Sidebar currentPage={currentPage} onPageChange={handlePageChange} />
-      <div className="main-content">
-        <Header pageTitle={pageTitle} />
-        <div className="page-content">{children}</div>
-      </div>
-    </div>
+    <S.AppLayout>
+      <Sidebar
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+      />
+      <S.MainContent sidebarCollapsed={sidebarCollapsed}>
+        <SystemHeader flowDirection={chargeStatus} />
+        <S.PageContent>{children}</S.PageContent>
+      </S.MainContent>
+    </S.AppLayout>
   );
 };

@@ -20,6 +20,10 @@
     "./messaging": {
       "types": "./src/messaging/index.ts",
       "default": "./src/messaging/index.ts"
+    },
+    "./sql": {
+      "types": "./src/sql/index.ts",
+      "default": "./src/sql/index.ts"
     }
   },
   "scripts": {

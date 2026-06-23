@@ -114,6 +114,21 @@ export interface IMessageQueue {
   ): Promise<void>;
 
   /**
+   * Milisaniye bazlı tekrarlayan job ekler.
+   * Cron pattern yerine doğrudan milisaniye aralığı kullanır.
+   *
+   * @param name - Job'un benzersiz adı
+   * @param job - Eklenecek job
+   * @param everyMs - Her kaç milisaniyede bir çalışacağı (min: 100ms)
+   * @returns Promise
+   */
+  addRepeatableJobEvery(
+    name: string,
+    job: DeviceJob,
+    everyMs: number,
+  ): Promise<void>;
+
+  /**
    * Queue'yu dinleyen worker'ı kaydeder
    *
    * Worker, queue'ya gelen job'lari alır ve işler.

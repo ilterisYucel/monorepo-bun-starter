@@ -6,4 +6,6 @@ export interface LogTerminalProps {
   provider: LogProvider;
   /** Maksimum yükseklik (px) */
   maxHeight?: number;
+  title?: string;
+  titleIcon?: React.ReactNode;
 }

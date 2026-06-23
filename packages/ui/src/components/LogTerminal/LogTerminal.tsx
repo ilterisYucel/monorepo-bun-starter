@@ -1,32 +1,31 @@
 // packages/ui/src/components/LogTerminal/LogTerminal.tsx
 import React, { useRef, useEffect } from "react";
+import { SCADA_ICONS } from "../../icons";
 import type { LogTerminalProps } from "./LogTerminal.types";
 import * as S from "./LogTerminal.styles";
 
-const getTypeIcon = (type: string): string => {
-  switch (type) {
-    case "success":
-      return "✅";
-    case "error":
-      return "❌";
-    case "warning":
-      return "⚠️";
-    default:
-      return "📌";
-  }
+const SuccessIcon = SCADA_ICONS.logSuccess;
+const ErrorIcon = SCADA_ICONS.logError;
+const WarningIcon = SCADA_ICONS.logWarning;
+const InfoIcon = SCADA_ICONS.logInfo;
+const CommandIcon = SCADA_ICONS.sourceCommand;
+const BatteryIcon = SCADA_ICONS.battery;
+const SchedulerIcon = SCADA_ICONS.sourceScheduler;
+const SystemIcon = SCADA_ICONS.sourceSystem;
+const TrashIcon = SCADA_ICONS.trash;
+
+const typeIconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+  success: SuccessIcon,
+  error: ErrorIcon,
+  warning: WarningIcon,
+  info: InfoIcon,
 };
 
-const getSourceIcon = (source: string): string => {
-  switch (source) {
-    case "command":
-      return "🎮";
-    case "rack":
-      return "🔋";
-    case "scheduler":
-      return "⏰";
-    default:
-      return "⚙️";
-  }
+const sourceIconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+  command: CommandIcon,
+  rack: BatteryIcon,
+  scheduler: SchedulerIcon,
+  system: SystemIcon,
 };
 
 const formatTime = (isoString: string): string => {
@@ -54,6 +53,8 @@ const getEntryComponent = (type: string) => {
 export const LogTerminal: React.FC<LogTerminalProps> = ({
   provider,
   maxHeight = 350,
+  title = "Komut Terminali & Event Log",
+  titleIcon = <InfoIcon size={18} />,
 }) => {
   const { logs, clearLogs } = provider;
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -65,21 +66,23 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
   }, [logs]);
 
   return (
-    <div
-      style={{ height: maxHeight, display: "flex", flexDirection: "column" }}
-    >
+    <S.ScrollContainer style={{ height: maxHeight }}>
       <S.Header>
         <S.Title>
-          <span>📋</span>
-          <span>Komut Terminali & Event Log</span>
+          <span>{titleIcon}</span>
+          <span>{title}</span>
         </S.Title>
-        <S.ClearBtn onClick={clearLogs}>🗑️ Temizle</S.ClearBtn>
+        <S.ClearBtn onClick={clearLogs}>
+          <TrashIcon size={14} /> Temizle
+        </S.ClearBtn>
       </S.Header>
 
       <S.Body ref={bodyRef}>
         {logs.length === 0 ? (
           <S.Empty>
-            <S.EmptyIcon>📭</S.EmptyIcon>
+            <S.EmptyIcon>
+              <InfoIcon size={32} />
+            </S.EmptyIcon>
             <S.EmptyText>Henüz log kaydı yok.</S.EmptyText>
             <S.EmptySmall>
               Komut gönderdiğinizde burada görünecektir.
@@ -88,25 +91,13 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
         ) : (
           logs.map((log) => {
             const EntryComponent = getEntryComponent(log.type);
+            const TypeIcon = typeIconMap[log.type] || InfoIcon;
+            const SrcIcon = sourceIconMap[log.source] || SystemIcon;
             return (
-              <EntryComponent
-                key={log.id}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "12px",
-                  padding: "8px 12px",
-                  marginBottom: "6px",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                  background: "#1a1a2e",
-                  borderLeft: "3px solid transparent",
-                  transition: "all 0.2s",
-                }}
-              >
+              <EntryComponent key={log.id}>
                 <S.Time>{formatTime(log.timestamp)}</S.Time>
                 <S.Icon className="log-icon">
-                  {getTypeIcon(log.type)} {getSourceIcon(log.source)}
+                  <TypeIcon size={14} /> <SrcIcon size={14} />
                 </S.Icon>
                 <S.Message>{log.message}</S.Message>
                 {log.details && <S.Details>{log.details}</S.Details>}
@@ -117,14 +108,14 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
       </S.Body>
 
       <S.Footer>
-        <span>📊 Toplam {logs.length} kayıt</span>
+        <span>Toplam {logs.length} kayıt</span>
         <S.Legend>
-          <S.LegendSuccess>✅ Başarılı</S.LegendSuccess>
-          <S.LegendError>❌ Hata</S.LegendError>
-          <S.LegendWarning>⚠️ Uyarı</S.LegendWarning>
-          <S.LegendInfo>📌 Bilgi</S.LegendInfo>
+          <S.LegendSuccess><SuccessIcon size={12} /> Başarılı</S.LegendSuccess>
+          <S.LegendError><ErrorIcon size={12} /> Hata</S.LegendError>
+          <S.LegendWarning><WarningIcon size={12} /> Uyarı</S.LegendWarning>
+          <S.LegendInfo><InfoIcon size={12} /> Bilgi</S.LegendInfo>
         </S.Legend>
       </S.Footer>
-    </div>
+    </S.ScrollContainer>
   );
 };

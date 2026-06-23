@@ -1,2 +1,3 @@
-export * from "./Gauge"
-export * from "./TelemetryInput"
+export * from "./DeviceGauges";
+export * from "./TelemetryGauge";
+export * from "./TelemetryInput";
