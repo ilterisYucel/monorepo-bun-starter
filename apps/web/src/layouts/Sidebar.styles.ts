@@ -191,14 +191,15 @@ export const UserProfileName = styled.span`
   font-weight: 500;
 `;
 
-export const UserRoleBadge = styled.span<{ role: "admin" | "teknik" }>`
+export const UserRoleBadge = styled.span<{ role: "admin" | "teknik" | "guest" }>`
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 10px;
   font-weight: 600;
   background: ${({ role }) =>
-    role === "admin" ? "#3b82f620" : "#10b98120"};
-  color: ${({ role }) => (role === "admin" ? "#3b82f6" : "#10b981")};
+    role === "admin" ? "#3b82f620" : role === "teknik" ? "#10b98120" : "#6b728020"};
+  color: ${({ role }) =>
+    role === "admin" ? "#3b82f6" : role === "teknik" ? "#10b981" : "#9ca3af"};
 `;
 
 export const UserProfilePopup = styled.div`
@@ -218,4 +219,25 @@ export const UserProfilePopup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+`;
+
+export const LoginButton = styled.button<{ collapsed: boolean }>`
+  background: #3b82f6;
+  border: none;
+  color: white;
+  padding: ${({ collapsed }) => (collapsed ? "10px" : "10px 16px")};
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+
+  &:hover {
+    background: #2563eb;
+  }
 `;

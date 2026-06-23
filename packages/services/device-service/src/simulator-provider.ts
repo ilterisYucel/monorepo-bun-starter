@@ -3,8 +3,8 @@ import {
   BSCSimulator,
   BSCSimulatorAdapter,
   parseBSCMap,
-  TMSSimulator,
-  TMSSimulatorAdapter,
+  HvacSimulator,
+  HvacSimulatorAdapter,
   XRackSimulator,
   XRackSimulatorAdapter,
 } from "@gd-monorepo/simulators";
@@ -78,9 +78,9 @@ export class SimulatorProvider {
       return { adapter: new BSCSimulatorAdapter(bsc), tick: () => bsc.tick(elapsed) };
     }
 
-    if (sim.type === "tms") {
-      const tms = new TMSSimulator();
-      return { adapter: new TMSSimulatorAdapter(tms), tick: () => tms.tick(elapsed) };
+    if (sim.type === "hvac") {
+      const hvac = new HvacSimulator();
+      return { adapter: new HvacSimulatorAdapter(hvac), tick: () => hvac.tick(elapsed) };
     }
 
     const rackCount = sim.rackCount ?? 16;

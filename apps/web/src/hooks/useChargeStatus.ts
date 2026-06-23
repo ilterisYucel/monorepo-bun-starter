@@ -13,7 +13,7 @@ export const useChargeStatus = () => {
   const { data: chargeStatus = "Idle", isLoading } = useQuery({
     queryKey: CHARGE_STATUS_QUERY_KEY,
     queryFn: async () => {
-      const response = await apiClient.get<LatestResponse>("/racks/latest");
+      const response = await apiClient.get<LatestResponse>("/unified/racks/latest");
       const chargeStatusTelemetry = response.data.telemetries.find(
         (t) => t.name === "ChargeStatus" && (!t.tags || Object.keys(t.tags).length === 0)
       );

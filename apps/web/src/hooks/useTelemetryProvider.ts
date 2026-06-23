@@ -37,7 +37,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
       }
 
       const response = await apiClient.get<DownsampledResponse>(
-        `/racks/history/downsampled?${params.toString()}`
+        `/unified/racks/downsampled?${params.toString()}`
       );
 
       return response.data.telemetries || [];

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, type PageType } from "./Sidebar";
 import { SystemHeader } from "./SystemHeader";
 import { useChargeStatus } from "../hooks/useChargeStatus";
+import { useHvacData } from "../features/hvac";
 import * as S from "./MainLayout.styles";
 
 interface MainLayoutProps {
@@ -20,6 +21,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { chargeStatus } = useChargeStatus();
+  const { averages: hvacAvg } = useHvacData();
 
   useEffect(() => {
     const path = location.pathname.substring(1);
@@ -35,6 +37,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       onPageChange("system-charts");
     } else if (path === "reports") {
       onPageChange("reports");
+    } else if (path === "devices") {
+      onPageChange("devices");
     }
   }, [location, onPageChange]);
 
@@ -52,7 +56,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
       />
       <S.MainContent sidebarCollapsed={sidebarCollapsed}>
-        <SystemHeader flowDirection={chargeStatus} />
+        <SystemHeader
+          flowDirection={chargeStatus}
+          ambientTemp={hvacAvg.avgCurrentTemp || undefined}
+          ambientHumidity={hvacAvg.avgReturnHumidity || undefined}
+        />
         <S.PageContent>{children}</S.PageContent>
       </S.MainContent>
     </S.AppLayout>

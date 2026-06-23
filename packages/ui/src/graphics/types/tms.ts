@@ -3,6 +3,11 @@ export interface HvacData {
   mode: "cooling" | "warming" | "idle";
 }
 
+export interface RoomData {
+  temp: number;
+  hvacs: [HvacData, HvacData];
+}
+
 export interface RoomTemperature {
   temp: number;
 }

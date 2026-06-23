@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: battery-timescaledb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+    networks:
+      - battery-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: battery-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - battery-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  device-service:
+    build:
+      context: ../
+      dockerfile: packages/services/device-service/deployment/Dockerfile
+    container_name: battery-device-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - battery-network
+    restart: unless-stopped
+
+  data-service:
+    build:
+      context: ../
+      dockerfile: packages/services/data-service/deployment/Dockerfile
+    container_name: battery-data-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - battery-network
+    restart: unless-stopped
+
+  web-service:
+    build:
+      context: ../
+      dockerfile: packages/services/web-service/deployment/Dockerfile
+    container_name: battery-web-service
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: dev-secret-change-in-production
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    ports:
+      - "5001:5001"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - battery-network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/web/deployment/Dockerfile
+    container_name: battery-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "80:80"
+    depends_on:
+      - web-service
+    networks:
+      - battery-network
+    restart: unless-stopped
+
+volumes:
+  timescale-data:
+  redis-data:
+
+networks:
+  battery-network:
+    driver: bridge

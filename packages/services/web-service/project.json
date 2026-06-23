@@ -1,0 +1,38 @@
+{
+  "name": "web-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/services/web-service/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun --watch run.ts",
+        "cwd": "packages/services/web-service"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun build src/index.ts --outdir dist --target bun",
+        "cwd": "packages/services/web-service"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run run.ts",
+        "cwd": "packages/services/web-service"
+      }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rm -rf dist",
+        "cwd": "packages/services/web-service"
+      }
+    }
+  },
+  "implicitDependencies": ["core", "shared-types"]
+}

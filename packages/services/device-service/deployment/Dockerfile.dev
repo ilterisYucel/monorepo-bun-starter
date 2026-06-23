@@ -1,0 +1,11 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+COPY . .
+
+RUN bun install
+
+WORKDIR /app/packages/services/device-service
+
+CMD ["bun", "--watch", "run.ts"]

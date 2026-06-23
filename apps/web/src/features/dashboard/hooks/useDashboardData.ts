@@ -1,6 +1,8 @@
 // apps/web/src/features/dashboard/hooks/useDashboardData.ts
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../../../lib/api-client";
+import { useDevicesStore } from "../../../stores/devicesStore";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 
 interface LatestResponse {
@@ -30,11 +32,12 @@ export interface Averages {
 
 const telemetriesToRacks = (
   telemetries: TelemetryData[],
-  globalChargeStatus: "Charge" | "Discharge" | "Idle"
+  globalChargeStatus: "Charge" | "Discharge" | "Idle",
+  rackCount: number = 16,
 ): Rack[] => {
   const rackMap = new Map<number, Rack>();
 
-  for (let i = 1; i <= 16; i++) {
+  for (let i = 1; i <= rackCount; i++) {
     rackMap.set(i, {
       id: i,
       name: `Battery Rack ${i}`,
@@ -56,7 +59,9 @@ const telemetriesToRacks = (
     const rack = rackMap.get(parseInt(rackId));
     if (!rack) continue;
 
-    switch (telemetry.name) {
+    const name = telemetry.name.replace(/\s+R\d+$/, "");
+
+    switch (name) {
       case "Status":
         rack.status = telemetry.value === 1 ? "online" : "offline";
         break;
@@ -80,7 +85,26 @@ const telemetriesToRacks = (
         break;
       case "ChargeStatus":
         rack.charge_status =
-          telemetry.value === 1 ? "Charge" : telemetry.value === 2 ? "Discharge" : "Idle";
+          telemetry.value === 1
+            ? "Charge"
+            : telemetry.value === 2
+              ? "Discharge"
+              : "Idle";
+        break;
+      case "Rack SOC":
+        rack.soc = telemetry.value as number;
+        break;
+      case "Rack SOH":
+        rack.soh = telemetry.value as number;
+        break;
+      case "Rack Cell Sum Voltage":
+        rack.voltage = telemetry.value as number;
+        break;
+      case "Rack Current":
+        rack.current = telemetry.value as number;
+        break;
+      case "Rack Max Pack Temp":
+        rack.temperature = telemetry.value as number;
         break;
     }
   }
@@ -95,27 +119,49 @@ const calculateAverages = (racks: Rack[]): Averages => {
   }
 
   return {
-    avgSoC: validRacks.reduce((sum, r) => sum + (r.soc || 0), 0) / validRacks.length,
-    avgSoH: validRacks.reduce((sum, r) => sum + (r.soh || 0), 0) / validRacks.length,
-    avgVoltage: validRacks.reduce((sum, r) => sum + (r.voltage || 0), 0) / validRacks.length,
-    avgCurrent: validRacks.reduce((sum, r) => sum + (r.current || 0), 0) / validRacks.length,
-    avgPower: validRacks.reduce((sum, r) => sum + (r.power_kw || 0), 0) / validRacks.length,
+    avgSoC:
+      validRacks.reduce((sum, r) => sum + (r.soc || 0), 0) / validRacks.length,
+    avgSoH:
+      validRacks.reduce((sum, r) => sum + (r.soh || 0), 0) / validRacks.length,
+    avgVoltage:
+      validRacks.reduce((sum, r) => sum + (r.voltage || 0), 0) /
+      validRacks.length,
+    avgCurrent:
+      validRacks.reduce((sum, r) => sum + (r.current || 0), 0) /
+      validRacks.length,
+    avgPower:
+      validRacks.reduce((sum, r) => sum + (r.power_kw || 0), 0) /
+      validRacks.length,
   };
 };
 
 export const DASHBOARD_QUERY_KEY = ["dashboard"];
 
-export const useDashboardData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
-  const { data: telemetries = [], isLoading, refetch } = useQuery({
+export const useDashboardData = (
+  chargeStatus: "Charge" | "Discharge" | "Idle",
+) => {
+  const devices = useDevicesStore((s) => s.devices);
+  const totalRacks = useMemo(() => {
+    const bsc = devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-"));
+    return bsc.reduce((s, d) => s + (d.rack_count ?? 8), 0);
+  }, [devices]);
+
+  const {
+    data: telemetries = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: DASHBOARD_QUERY_KEY,
     queryFn: async () => {
-      const response = await apiClient.get<LatestResponse>("/racks/latest");
+      const response = await apiClient.get<LatestResponse>(
+        "/unified/racks/latest",
+      );
       return response.data.telemetries || [];
     },
     refetchInterval: 5000,
   });
 
-  const racks = telemetriesToRacks(telemetries, chargeStatus);
+  const racks = telemetriesToRacks(telemetries, chargeStatus, totalRacks || 16);
   const averages = calculateAverages(racks);
 
   return { racks, averages, isLoading, refetch };

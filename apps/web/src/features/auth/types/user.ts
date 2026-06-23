@@ -1,8 +1,7 @@
 // apps/web/src/features/auth/types/user.ts
 export interface User {
-  id: number;
+  id: string;
   username: string;
-  password?: string;
-  role: "admin" | "teknik";
+  role: "admin" | "teknik" | "guest";
   name: string;
 }

@@ -419,7 +419,7 @@ export type TelemetryConfigEntry = Omit<
 
 /** Simülatör konfigürasyonu (cihaz konfig dosyası içinde) */
 export interface SimulatorConfig {
-  type: "bsc" | "tms" | "xrack";
+  type: "bsc" | "hvac" | "xrack";
   rackCount?: number;
   registerMap?: string;
 }

@@ -14,11 +14,11 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ collapsed }) => {
   return (
     <S.LogoutBtn
       collapsed={collapsed}
-      onClick={logout}
-      title={collapsed ? "Çıkış" : undefined}
+      onClick={() => void logout()}
+      title={collapsed ? "Cikis" : undefined}
     >
       <LogoutIcon size={collapsed ? 18 : 16} />
-      {!collapsed && <S.LogoutText>Çıkış</S.LogoutText>}
+      {!collapsed && <S.LogoutText>Cikis</S.LogoutText>}
     </S.LogoutBtn>
   );
 };

@@ -19,21 +19,21 @@ RUN echo 'server { \
   index index.html; \
   \
   location / { \
-  try_files $uri $uri/ /index.html; \
+    try_files $uri $uri/ /index.html; \
   } \
   \
   location /api { \
-  proxy_pass http://demo-backend:3000; \
-  proxy_http_version 1.1; \
-  proxy_set_header Upgrade $http_upgrade; \
-  proxy_set_header Connection "upgrade"; \
-  proxy_set_header Host $host; \
-  proxy_set_header X-Real-IP $remote_addr; \
-  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-  proxy_set_header X-Forwarded-Proto $scheme; \
-  proxy_read_timeout 300s; \
-  proxy_connect_timeout 30s; \
-  proxy_send_timeout 300s; \
+    proxy_pass http://web-service:5001; \
+    proxy_http_version 1.1; \
+    proxy_set_header Upgrade $http_upgrade; \
+    proxy_set_header Connection "upgrade"; \
+    proxy_set_header Host $host; \
+    proxy_set_header X-Real-IP $remote_addr; \
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+    proxy_set_header X-Forwarded-Proto $scheme; \
+    proxy_read_timeout 300s; \
+    proxy_connect_timeout 30s; \
+    proxy_send_timeout 300s; \
   } \
   }' > /etc/nginx/conf.d/default.conf
 

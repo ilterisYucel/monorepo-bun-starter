@@ -1,8 +1,8 @@
 import type { IModbusSimulatorAdapter } from "@gd-monorepo/shared-types";
-import { TMSSimulator } from "./tms-simulator";
+import { HvacSimulator } from "./hvac-simulator";
 
-export class TMSSimulatorAdapter implements IModbusSimulatorAdapter {
-  constructor(private simulator: TMSSimulator) {}
+export class HvacSimulatorAdapter implements IModbusSimulatorAdapter {
+  constructor(private simulator: HvacSimulator) {}
 
   async readHoldingRegister(address: number): Promise<number> {
     return this.simulator.readHoldingRegister(address);

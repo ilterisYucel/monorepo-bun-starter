@@ -120,3 +120,44 @@ export const DemoUsers = styled.div`
   font-size: 11px;
   color: #6b7280;
 `;
+
+export const GuestDivider = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #2a2a3a;
+  }
+
+  span {
+    color: #6b7280;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+`;
+
+export const GuestBtn = styled.button`
+  width: 100%;
+  background: transparent;
+  border: 1px solid #2a2a3a;
+  border-radius: 10px;
+  padding: 10px;
+  color: #9ca3af;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #2a2a3a;
+    color: #e5e7eb;
+    border-color: #3b82f6;
+  }
+`;

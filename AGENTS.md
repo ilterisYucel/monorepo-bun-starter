@@ -6,7 +6,10 @@ bun install                     # Install deps (Bun only, no npm/pnpm/yarn)
 bun run dev                     # All apps in parallel (max 5)
 bun run dev:web                 # Web only (Vite, port 5173)
 bun run dev:desktop             # Electron only
-nx run demo-backend:dev         # Backend only (Fastify, port 5000)
+nx run demo-backend:dev         # Demo Backend (Fastify, port 5000)
+nx run web-service:dev          # Web Service (Fastify, port 5001)
+nx run device-service:dev       # Device Service (Modbus poller)
+nx run data-service:dev         # Data Service (BullMQ consumer)
 bun run build                   # Build all (Nx orders by ^build deps)
 nx run web:test                 # Vitest (no test files written yet)
 nx run <proj>:<target>          # Run any Nx target
@@ -16,7 +19,7 @@ No root `test`, `lint`, or `format` scripts exist. Linting is per-project.
 Only `web` has a `test` Nx target (vitest); no test files exist anywhere.
 
 ## Monorepo structure
-- **Bun** is the package manager. Workspaces: `apps/*` + `packages/*`.
+- **Bun** is the package manager. Workspaces: `apps/*` + `packages/**`.
 - **Nx** v22 orchestrates build order via `"dependsOn": ["^build"]` in `nx.json`.
 - Cached Nx targets: `build`, `test`, `lint`.
 
@@ -26,6 +29,9 @@ shared-types (leaf, no deps)
   → shared-utils, core, simulators
     → ui
       → demo-backend (depends on core, shared-types, simulators)
+      → web-service (depends on core, shared-types)
+      → data-service (depends on core, shared-types)
+      → device-service (depends on core, shared-types, simulators)
       → web (depends on shared-types, shared-utils, ui)
       → desktop (depends on shared-types, shared-utils)
 ```
@@ -33,25 +39,28 @@ shared-types (leaf, no deps)
 ### Package ownership
 | Package        | Purpose                                                              |
 | :---------------| :---------------------------------------------------------------------|
-| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces)        |
+| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth)  |
 | `shared-utils` | Empty placeholder — exports nothing                                  |
 | `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
-| `simulators`   | BSC/X Rack device simulator                                          |
+| `simulators`   | BSC/HVAC/XRack device simulators — register-accurate                 |
 | `ui`           | Shared React components (PixiJS graphics, Recharts, Emotion)         |
 | `web`          | React v19 frontend (Vite v8, TanStack Query, Zustand)                |
 | `desktop`      | Electron v39 + React v19 (electron-vite)                             |
-| `demo-backend` | Fastify v5 backend (REST + WebSocket)                                |
+| `demo-backend` | Fastify v5 backend (REST + WebSocket) — legacy                       |
+| `web-service`  | Hexagonal Fastify 5 API — Auth/JWT, TimescaleDB queries, awilix, zod |
+| `data-service` | BullMQ consumer — writes telemetry to TimescaleDB                    |
+| `device-service`| Modbus poller — reads device configs, produces BullMQ jobs           |
 
 ## Dependency injection rules (MANDATORY)
 
-**Every new class MUST follow these rules.** awilix is planned for later; currently there is no DI container.
+**Every new class MUST follow these rules.** awilix is used in `web-service`; other packages use manual constructor injection.
 
 1. **Plain constructor injection only.** All dependencies are passed via `constructor(private dep: Type)`. No `@Injectable()`, no decorators, no service locator globals.
 2. **No default exports.** Every file uses named exports exclusively.
 3. **Config objects, not primitives.** When a class needs >2 primitive config values, define a `*Config` interface (e.g. `TimescaleDBConfig`, `ModbusClientConfig`) and pass that single object.
-4. **Interfaces for swappable backends.** Use `I`-prefixed interface contracts in `shared-types` (e.g. `IMessageQueue`, `ITimeseriesDatabase`, `IModbusSimulatorAdapter`). Concrete adapters implement them.
+4. **Interfaces for swappable backends.** Use `I`-prefixed interface contracts (e.g. `IMessageQueue`, `ITimeseriesDatabase`, `IModbusSimulatorAdapter`, `IUserRepository`). Concrete adapters implement them. Interfaces live in `domain/` (services) or `shared-types` (cross-package).
 5. **Inject constructed instances, not raw configs, when the resource may be shared.** Example: `BullMQAdapter` receives a `RedisConnection` instance (not `RedisConfig`) — so one Redis connection can be reused across queues.
-6. **Wiring happens in `main()`.** In `apps/demo-backend/src/index.ts`, all `new X(...)` calls happen in a single bootstrap function. Keep it that way.
+6. **Wiring happens in `main()` or DI container.** In `web-service`, awilix `asFunction` registers all dependencies (see `src/config/container.ts`). In other packages, all `new X(...)` calls happen in a single bootstrap function.
 7. **Lifecycle methods.** Classes that manage external resources must expose `connect()`/`disconnect()` or `close()` + `health()` patterns. All startup/shutdown sequences go in `main()`.
 
 ### Existing DI contracts (interfaces)
@@ -60,6 +69,9 @@ shared-types (leaf, no deps)
 | `IMessageQueue` | `packages/core/src/messaging/interface.ts` | Job queue abstraction |
 | `ITimeseriesDatabase` | `packages/core/src/timeseries/interface.ts` | Time-series DB abstraction |
 | `IModbusSimulatorAdapter` | `packages/shared-types/src/modbus-adapter.ts` | Modbus simulator contract |
+| `IUserRepository` | `web-service/src/domain/repositories/IUserRepository.ts` | User persistence contract |
+| `ITokenService` | `web-service/src/domain/services/ITokenService.ts` | JWT token sign/verify |
+| `IPasswordHasher` | `web-service/src/domain/services/IPasswordHasher.ts` | Password hashing contract |
 
 ### Concrete DI examples
 ```ts
@@ -132,6 +144,7 @@ apps/demo-backend/src/
 - **Desktop:** Electron v39, electron-vite v5, electron-builder
 - **UI lib:** PixiJS v8, Emotion CSS-in-JS
 - **DB/MQ:** TimescaleDB (pg npm), Redis + BullMQ
+- **Auth/DI/Validation:** jose v5 (JWT), awilix v11 (DI container), zod v3 (validation)
 
 ## Package manager lock-in
 - **Bun only.** `bun install`, `bun run`, `bun build`, `bun --watch`.

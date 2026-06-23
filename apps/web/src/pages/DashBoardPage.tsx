@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   DeviceGauges,
   BSC,
@@ -9,6 +9,9 @@ import {
 import type { RoomData, BSCUnit } from "@gd-monorepo/ui";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
+import { useHvacData } from "../features/hvac";
+import { hvacUnitsToTmsProps } from "../features/hvac";
+import { useDevicesStore } from "../stores/devicesStore";
 import * as S from "./DashboardPage.styles";
 import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
 
@@ -22,6 +25,12 @@ const WarningIcon = SCADA_ICONS.logWarning;
 export const DashboardPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
   const { racks, averages, isLoading } = useDashboardData(chargeStatus);
+  const { units: hvacUnits, averages: hvacAvg } = useHvacData();
+  const devices = useDevicesStore((s) => s.devices);
+  const bscDevices = useMemo(
+    () => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")),
+    [devices],
+  );
 
   const systemLogProvider = useFilteredLogProvider("system");
 
@@ -39,44 +48,10 @@ export const DashboardPage: React.FC = () => {
     Array<"open" | "close">
   >(["open", "close"]);
 
-  const [tmsData] = useState<{
-    rooms: RoomData[];
-    panel_temp: number;
-    status: string;
-  }>({
-    rooms: [
-      {
-        temp: 22.5,
-        hvacs: [
-          { status: "online", mode: "cooling" },
-          { status: "online", mode: "cooling" },
-        ],
-      },
-      {
-        temp: 28.1,
-        hvacs: [
-          { status: "online", mode: "warming" },
-          { status: "online", mode: "warming" },
-        ],
-      },
-      {
-        temp: 19.0,
-        hvacs: [
-          { status: "offline", mode: "idle" },
-          { status: "online", mode: "cooling" },
-        ],
-      },
-      {
-        temp: 24.3,
-        hvacs: [
-          { status: "online", mode: "cooling" },
-          { status: "online", mode: "warming" },
-        ],
-      },
-    ],
-    panel_temp: 21.0,
-    status: "online",
-  });
+  const tmsProps = useMemo(
+    () => (hvacUnits.length > 0 ? hvacUnitsToTmsProps(hvacUnits) : null),
+    [hvacUnits],
+  );
 
   const gauges = [
     {
@@ -97,7 +72,7 @@ export const DashboardPage: React.FC = () => {
     },
     {
       value: averages.avgPower,
-      label: "Güç",
+      label: "Guc",
       unit: "kW",
       min: 0,
       max: 500,
@@ -113,7 +88,7 @@ export const DashboardPage: React.FC = () => {
     },
     {
       value: averages.avgCurrent,
-      label: "Akım",
+      label: "Akim",
       unit: "A",
       min: 0,
       max: 200,
@@ -121,22 +96,24 @@ export const DashboardPage: React.FC = () => {
     },
   ];
 
-  const tmsGauges = tmsData.rooms.map((room, i) => ({
-    value: room.temp,
-    label: `Oda ${i + 1}`,
+  const tmsGauges = hvacUnits.map((unit, i) => ({
+    value: unit.currentTemp ?? 0,
+    label: `HVAC ${unit.id}`,
     unit: "°C",
     min: 0,
     max: 50,
     icon: <TempIcon size={18} />,
   }));
-  tmsGauges.push({
-    value: tmsData.panel_temp,
-    label: "Panel",
-    unit: "°C",
-    min: 0,
-    max: 50,
-    icon: <TempIcon size={18} />,
-  });
+  if (tmsProps) {
+    tmsGauges.push({
+      value: tmsProps.panel_temp,
+      label: "Panel",
+      unit: "°C",
+      min: 0,
+      max: 50,
+      icon: <TempIcon size={18} />,
+    });
+  }
 
   const handleRackClick = (rackId: number) => {
     console.log("Rack clicked:", rackId);
@@ -154,28 +131,35 @@ export const DashboardPage: React.FC = () => {
     });
   };
 
-  const bscUnits: BSCUnit[] = [
-    {
-      deviceId: "BSC-1",
-      racks: racks.slice(0, 8),
-      breakerStatus: breakerStatuses[0],
-      breakerPosition: breakerPositions[0],
-      dcOutput: dcOutputs[0],
-    },
-    {
-      deviceId: "BSC-2",
-      racks: racks.slice(8, 16),
-      breakerStatus: breakerStatuses[1],
-      breakerPosition: breakerPositions[1],
-      dcOutput: dcOutputs[1],
-    },
-  ];
+  const bscUnits: BSCUnit[] = useMemo(() => {
+    const offsets = bscDevices.reduce<number[]>((acc, d, i) => {
+      acc.push(
+        i === 0 ? 0 : acc[i - 1]! + (bscDevices[i - 1]!.rack_count ?? 8),
+      );
+      return acc;
+    }, []);
+
+    return bscDevices.map((device, idx) => {
+      const rackCount = device.rack_count ?? 8;
+      return {
+        deviceId: device.id,
+        racks: racks.slice(offsets[idx]!, offsets[idx]! + rackCount),
+        breakerStatus: breakerStatuses[idx] ?? "online",
+        breakerPosition: breakerPositions[idx] ?? "close",
+        dcOutput: dcOutputs[idx] ?? {
+          status: "online" as const,
+          voltage: 398,
+          current: 75,
+        },
+      };
+    });
+  }, [bscDevices, racks, breakerStatuses, breakerPositions, dcOutputs]);
 
   if (isLoading) {
     return (
       <S.LoadingContainer>
         <S.Spinner />
-        <p>Veriler yükleniyor...</p>
+        <p>Veriler yukleniyor...</p>
       </S.LoadingContainer>
     );
   }
@@ -185,8 +169,14 @@ export const DashboardPage: React.FC = () => {
       <S.DashboardRow>
         <S.BscColumn>
           <S.DeviceGaugesStack>
-            <DeviceGauges deviceId="BSC-1" gauges={gauges} variant="circular" />
-            <DeviceGauges deviceId="BSC-2" gauges={gauges} variant="circular" />
+            {bscUnits.map((unit) => (
+              <DeviceGauges
+                key={unit.deviceId}
+                deviceId={unit.deviceId}
+                gauges={gauges}
+                variant="circular"
+              />
+            ))}
           </S.DeviceGaugesStack>
           <BSC
             deviceId="BSC"
@@ -198,18 +188,20 @@ export const DashboardPage: React.FC = () => {
           />
         </S.BscColumn>
         <S.TmsColumn>
-          <DeviceGauges deviceId="TMS" gauges={tmsGauges} variant="circular" />
-          <TMS
-            rooms={tmsData.rooms}
-            panel_temp={tmsData.panel_temp}
-            status={tmsData.status}
-            width="100%"
-          />
+          <DeviceGauges deviceId="HVAC" gauges={tmsGauges} variant="circular" />
+          {tmsProps && (
+            <TMS
+              rooms={tmsProps.rooms}
+              panel_temp={tmsProps.panel_temp}
+              status={tmsProps.status}
+              width="100%"
+            />
+          )}
           <S.TerminalCard>
             <LogTerminal
               provider={systemLogProvider}
               maxHeight={435}
-              title="Sistem Event & Hataları"
+              title="Sistem Event & Hatalari"
               titleIcon={<WarningIcon size={18} />}
             />
           </S.TerminalCard>

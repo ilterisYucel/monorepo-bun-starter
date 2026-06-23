@@ -8,22 +8,29 @@ import { ControlPage } from "../pages/ControlPage";
 import { EventsPage } from "../pages/EventsPage";
 import { SystemChartsPage } from "../pages/SystemChartsPage";
 import { ReportsPage } from "../pages/ReportsPage";
+import { DevicesPage } from "../pages/DevicesPage";
+import { useAuthStore } from "../features/auth/stores/AuthStore";
 import type { PageType } from "../layouts/Sidebar";
+import type { Role } from "@gd-monorepo/shared-types";
 
-export const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const token = localStorage.getItem("auth-storage");
-  const isAuthenticated = token ? true : false;
+const PrivateRoute: React.FC<{
+  children: React.ReactNode;
+  roles?: Role[];
+}> = ({ children, roles }) => {
+  const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
+  if (roles && user && !roles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 };
 
-export const LayoutWrapper: React.FC<{
+const LayoutWrapper: React.FC<{
   children: React.ReactNode;
   pageType: PageType;
 }> = ({ children, pageType }) => {
@@ -42,27 +49,23 @@ export const routes: RouteObject[] = [
   {
     path: "/",
     element: (
-      <PrivateRoute>
-        <LayoutWrapper pageType="dashboard">
-          <DashboardPage />
-        </LayoutWrapper>
-      </PrivateRoute>
+      <LayoutWrapper pageType="dashboard">
+        <DashboardPage />
+      </LayoutWrapper>
     ),
   },
   {
     path: "/dashboard",
     element: (
-      <PrivateRoute>
-        <LayoutWrapper pageType="dashboard">
-          <DashboardPage />
-        </LayoutWrapper>
-      </PrivateRoute>
+      <LayoutWrapper pageType="dashboard">
+        <DashboardPage />
+      </LayoutWrapper>
     ),
   },
   {
     path: "/racks",
     element: (
-      <PrivateRoute>
+      <PrivateRoute roles={["admin", "teknik"]}>
         <LayoutWrapper pageType="racks">
           <RacksPage />
         </LayoutWrapper>
@@ -72,7 +75,7 @@ export const routes: RouteObject[] = [
   {
     path: "/control",
     element: (
-      <PrivateRoute>
+      <PrivateRoute roles={["admin", "teknik"]}>
         <LayoutWrapper pageType="control">
           <ControlPage />
         </LayoutWrapper>
@@ -82,7 +85,7 @@ export const routes: RouteObject[] = [
   {
     path: "/system-charts",
     element: (
-      <PrivateRoute>
+      <PrivateRoute roles={["admin", "teknik"]}>
         <LayoutWrapper pageType="system-charts">
           <SystemChartsPage />
         </LayoutWrapper>
@@ -90,9 +93,19 @@ export const routes: RouteObject[] = [
     ),
   },
   {
+    path: "/events",
+    element: (
+      <PrivateRoute roles={["admin", "teknik"]}>
+        <LayoutWrapper pageType="events">
+          <EventsPage />
+        </LayoutWrapper>
+      </PrivateRoute>
+    ),
+  },
+  {
     path: "/reports",
     element: (
-      <PrivateRoute>
+      <PrivateRoute roles={["admin", "teknik"]}>
         <LayoutWrapper pageType="reports">
           <ReportsPage />
         </LayoutWrapper>
@@ -100,11 +113,11 @@ export const routes: RouteObject[] = [
     ),
   },
   {
-    path: "/events",
+    path: "/devices",
     element: (
-      <PrivateRoute>
-        <LayoutWrapper pageType="events">
-          <EventsPage />
+      <PrivateRoute roles={["admin", "teknik"]}>
+        <LayoutWrapper pageType="devices">
+          <DevicesPage />
         </LayoutWrapper>
       </PrivateRoute>
     ),

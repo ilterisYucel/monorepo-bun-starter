@@ -19,11 +19,14 @@ export const LoginForm: React.FC = () => {
     setError("");
     setIsLoading(true);
 
-    const success = await login(username, password);
-    if (success) {
+    try {
+      await login(username, password);
       navigate("/dashboard");
-    } else {
-      setError("Kullanıcı adı veya şifre hatalı!");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error || "Giris basarisiz";
+      setError(message);
     }
     setIsLoading(false);
   };
@@ -32,39 +35,46 @@ export const LoginForm: React.FC = () => {
     <S.LoginContainer>
       <S.LoginCard>
         <S.LoginHeader>
-          <h1><LogoIcon size={28} /> EMS</h1>
-          <p>Enerji Yönetim Sistemi</p>
+          <h1>
+            <LogoIcon size={28} /> EMS
+          </h1>
+          <p>Enerji Yonetim Sistemi</p>
         </S.LoginHeader>
         <S.LoginFormElement onSubmit={handleSubmit}>
           <S.FormGroup>
-            <label>Kullanıcı Adı</label>
+            <label>Kullanici Adi</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="teknik / admin"
+              placeholder="admin"
               required
             />
           </S.FormGroup>
           <S.FormGroup>
-            <label>Şifre</label>
+            <label>Sifre</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="teknik123 / admin123"
+              placeholder="admin123"
               required
             />
           </S.FormGroup>
           {error && <S.ErrorMessage>{error}</S.ErrorMessage>}
           <S.LoginBtn type="submit" disabled={isLoading}>
-            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
+            {isLoading ? "Giris yapiliyor..." : "Giris Yap"}
           </S.LoginBtn>
+          <S.GuestDivider>
+            <span>veya</span>
+          </S.GuestDivider>
+          <S.GuestBtn type="button" onClick={() => navigate("/dashboard")}>
+            Misafir Olarak Devam Et
+          </S.GuestBtn>
         </S.LoginFormElement>
         <S.LoginInfo>
-          <p>Demo Kullanıcılar:</p>
+          <p>Demo Kullanici:</p>
           <S.DemoUsers>
-            <span>teknik / teknik123</span>
             <span>admin / admin123</span>
           </S.DemoUsers>
         </S.LoginInfo>

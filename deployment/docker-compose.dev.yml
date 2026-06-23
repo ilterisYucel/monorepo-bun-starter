@@ -1,0 +1,151 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: battery-timescaledb-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale-data-dev:/var/lib/postgresql/data
+    networks:
+      - battery-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: battery-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data-dev:/data
+    networks:
+      - battery-network-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  device-service:
+    build:
+      context: ../
+      dockerfile: packages/services/device-service/deployment/Dockerfile.dev
+    container_name: battery-device-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+    volumes:
+      - ../packages/services/device-service/src:/app/packages/services/device-service/src
+      - ../packages/services/device-service/run.ts:/app/packages/services/device-service/run.ts
+      - ../packages/services/device-service/deployment/config-docker:/app/config-docker:ro
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/simulators/src:/app/packages/simulators/src
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - battery-network-dev
+
+  data-service:
+    build:
+      context: ../
+      dockerfile: packages/services/data-service/deployment/Dockerfile.dev
+    container_name: battery-data-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    volumes:
+      - ../packages/services/data-service/src:/app/packages/services/data-service/src
+      - ../packages/services/data-service/run.ts:/app/packages/services/data-service/run.ts
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - battery-network-dev
+
+  web-service:
+    build:
+      context: ../
+      dockerfile: packages/services/web-service/deployment/Dockerfile.dev
+    container_name: battery-web-service-dev
+    environment:
+      NODE_ENV: development
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: dev-secret-change-in-production
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../packages/services/web-service/src:/app/packages/services/web-service/src
+      - ../packages/services/web-service/run.ts:/app/packages/services/web-service/run.ts
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - battery-network-dev
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/web/deployment/Dockerfile.dev
+    container_name: battery-web-dev
+    environment:
+      NODE_ENV: development
+      VITE_WEB_SERVICE_URL: http://web-service:5001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../apps/web/src:/app/apps/web/src
+      - ../apps/web/index.html:/app/apps/web/index.html
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../packages/ui/src:/app/packages/ui/src
+      - ../tsconfig.base.json:/app/tsconfig.base.json
+      - /app/apps/web/node_modules
+      - /app/node_modules
+    depends_on:
+      web-service:
+        condition: service_healthy
+    networks:
+      - battery-network-dev
+
+volumes:
+  timescale-data-dev:
+  redis-data-dev:
+
+networks:
+  battery-network-dev:
+    driver: bridge

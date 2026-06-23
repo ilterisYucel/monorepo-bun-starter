@@ -7,6 +7,8 @@ interface SystemHeaderProps {
   flowDirection?: "Charge" | "Discharge" | "Idle";
   ppcConnected?: boolean;
   powerConsumption?: number;
+  ambientTemp?: number;
+  ambientHumidity?: number;
 }
 
 const ChargeIcon = SCADA_ICONS.batteryCharge;
@@ -17,6 +19,7 @@ const OnlineIcon = SCADA_ICONS.statusOnline;
 const OfflineIcon = SCADA_ICONS.statusOffline;
 const ClockIcon = SCADA_ICONS.timer;
 const PowerIcon = SCADA_ICONS.batteryDischarge;
+const TempIcon = SCADA_ICONS.temperature;
 const MenuIcon = SCADA_ICONS.menu;
 
 const powerColor = (kw: number): string => {
@@ -41,7 +44,9 @@ const Boxes: React.FC<{
   ppcConnected: boolean;
   powerConsumption: number;
   now: Date;
-}> = ({ containerId, flowDirection, ppcConnected, powerConsumption, now }) => {
+  ambientTemp?: number;
+  ambientHumidity?: number;
+}> = ({ containerId, flowDirection, ppcConnected, powerConsumption, now, ambientTemp, ambientHumidity }) => {
   const chargeLabel =
     flowDirection === "Charge" ? "Şarj Oluyor"
     : flowDirection === "Discharge" ? "Deşarj Oluyor"
@@ -83,8 +88,20 @@ const Boxes: React.FC<{
       </S.Box>
       <S.Box>
         <PowerIcon size={16} color={kwColor} />
-        <S.Label style={{ color: kwColor }}>Güç Tüketimi: {powerConsumption} kW</S.Label>
+        <S.Label style={{ color: kwColor }}>Guc Tuketimi: {powerConsumption} kW</S.Label>
       </S.Box>
+      {ambientTemp !== undefined && (
+        <S.Box>
+          <TempIcon size={16} />
+          <S.Label>Ortam: {ambientTemp.toFixed(1)}°C</S.Label>
+        </S.Box>
+      )}
+      {ambientHumidity !== undefined && (
+        <S.Box>
+          <TempIcon size={16} />
+          <S.Label>Nem: {ambientHumidity.toFixed(0)}%</S.Label>
+        </S.Box>
+      )}
     </>
   );
 };
@@ -94,6 +111,8 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
   flowDirection = "Idle",
   ppcConnected = false,
   powerConsumption = 0,
+  ambientTemp,
+  ambientHumidity,
 }) => {
   const [now, setNow] = useState(new Date());
   const [menuOpen, setMenuOpen] = useState(false);
@@ -123,6 +142,8 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
           ppcConnected={ppcConnected}
           powerConsumption={powerConsumption}
           now={now}
+          ambientTemp={ambientTemp}
+          ambientHumidity={ambientHumidity}
         />
       </S.Grid>
       <S.Hamburger ref={menuRef}>
@@ -137,6 +158,8 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
               ppcConnected={ppcConnected}
               powerConsumption={powerConsumption}
               now={now}
+              ambientTemp={ambientTemp}
+              ambientHumidity={ambientHumidity}
             />
           </S.Popup>
         )}

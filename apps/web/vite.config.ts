@@ -27,8 +27,16 @@ export default defineConfig({
       interval: 100,
     },
     proxy: {
+      "/api/auth": {
+        target: process.env.VITE_WEB_SERVICE_URL || "http://localhost:5001",
+        changeOrigin: true,
+      },
+      "/api/data": {
+        target: process.env.VITE_WEB_SERVICE_URL || "http://localhost:5001",
+        changeOrigin: true,
+      },
       "/api": {
-        target: process.env.VITE_API_URL || "http://demo-backend:5000",
+        target: process.env.VITE_WEB_SERVICE_URL || "http://localhost:5001",
         changeOrigin: true,
       },
     },

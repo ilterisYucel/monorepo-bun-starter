@@ -1,273 +1,267 @@
-# Batarya EMS Yazılım Tasarım Dökümanı
+# Batarya EMS (Energy Management System)
 
-## Genel Bakış
-
-Yazılım 3 ana alt servisten oluşur:
-
-| Servis | Görevi |
-|:-------|:-------|
-| **Device Servisi** | Modbus, CANbus, MQTT ve diğer protokollerden veri sağlayan cihazların konfigürasyonlarını okur, belirlenen zaman aralığında verileri çeker ve zaman damgalı veritabanına yazacak işlevi oluşturur. |
-| **Data Servisi** | Cihazlardan alınan verileri, device servisinin yarattığı işlev üzerinden alır ve zaman damgalı veritabanına kaydeder. |
-| **Yönetim ve Web Servisi** | Arbitraj benzeri yan servisleri plugin olarak yükler, zaman damgalı veritabanındaki verileri REST ve Websocket ile istemcilere iletir. |
+Bun monorepo — 11 packages (3 apps, 3 microservices, 5 libraries). Nx build orchestration. TimescaleDB + Redis + BullMQ data pipeline. React frontend + Electron desktop.
 
 ---
 
-## Veri Formatları
-
-Servisler ve katmanlar arasında kullanılan temel veri formatı:
-
-```typescript
-interface BaseTelemetryData {
-  name: string;           // "Voltage", "Current", "Power", "Temperature"
-  description: string;    // İnsan tarafından okunabilir açıklama
-  value: number | boolean | string;
-  unit: string;           // "V", "A", "kW", "°C", "Hz", "%"
-  timestamp: string;      // ISO 8601 formatında
-  deviceId: string;       // Cihazın benzersiz kimliği
-  tags?: Record<string, string>;  // rack_id, sensor_id, vs.
-}
-```
-
----
-
-## Job Formatları
-
-### ReadDeviceJob (Device Servisi → Data Servisi)
-
-```typescript
-interface ReadDeviceJob {
-  jobId: string;
-  type: "READ_DEVICE";
-  deviceId: string;
-  timestamp: string;
-  priority?: number;
-  retryCount?: number;
-  telemetryNames?: string[];  // Yoksa tümü
-}
-```
-
-### CommandDeviceJob (Panel → Cihazlar)
-
-```typescript
-interface CommandDeviceJob {
-  jobId: string;
-  type: "COMMAND_DEVICE";
-  telemetries: TelemetryData[];  // Her biri kendi priority'sine sahip
-  deviceId: string;
-  timestamp: string;
-  priority?: number;
-  retryCount?: number;
-  atomic?: boolean;  // true: hepsi başarılı olmazsa hiçbiri yazılmasın
-}
-```
-
----
-
-## Sınıf Yapısı
-
-### Device Sınıfları (Protokol Bazlı)
-
-| Sınıf | Protokol | Durum |
-|:------|:---------|:-----:|
-| ModbusDevice | Modbus TCP/RTU | ✅ |
-| CANBusDevice | CANbus | ❌ |
-| MQTTDevice | MQTT | ❌ |
-
-### Veritabanı Adaptörleri
-
-| Sınıf | Veritabanı | Durum |
-|:------|:-----------|:-----:|
-| TimescaleDBAdapter | TimescaleDB | ✅ |
-| InfluxDBAdapter | InfluxDB | ✅ |
-
-### Yan Servisler
-
-| Sınıf | Görevi | Durum |
-|:------|:-------|:-----:|
-| PluginLoader | Arbitraj, analiz gibi plugin'leri yükleme | ✅ |
-| HTTPServer | REST API + Websocket sunucusu | ✅ |
-
----
-
-## Geliştirme Durumu - Detaylı Tablo
-
-| No | Bileşen | Açıklama | Simülatör Testi | Gerçek Senaryo Testi | Durum |
-|:--:|:--------|:---------|:---------------:|:-------------------:|:-----:|
-| **1** | **Temel Veri Formatları** | | | | |
-| 1.1 | BaseTelemetryData | Tüm telemetry verilerinin temel interface'i | ✅ | ❌ | ✅ |
-| 1.2 | ByteOrder tipi | BIG_ENDIAN, LITTLE_ENDIAN, *_SWAP | ✅ | ❌ | ✅ |
-| 1.3 | ModbusTelemetryData | Modbus'a özel registerAddress, slaveId, byteOrder | ✅ | ❌ | ✅ |
-| 1.4 | CanbusTelemetryData | CAN'a özel canId, startBit, length, isExtendedId | ✅ | ❌ | ✅ |
-| 1.5 | MqttTelemetryData | MQTT'ye özel topic, qos, retain, payloadType | ✅ | ❌ | ✅ |
-| 1.6 | TimescaleDbData | Veritabanı için tableName | ✅ | ❌ | ✅ |
-| 1.7 | VoltageData | Voltaj ölçümü tipi (V, mV, kV) | ✅ | ❌ | ✅ |
-| 1.8 | CurrentData | Akım ölçümü tipi (A, mA, kA) | ✅ | ❌ | ✅ |
-| 1.9 | PowerData | Güç ölçümü tipi (W, kW, MW) | ✅ | ❌ | ✅ |
-| 1.10 | TemperatureData | Sıcaklık ölçümü tipi (°C, °F, K) | ✅ | ❌ | ✅ |
-| 1.11 | StateOfChargeData | Şarj durumu (SoC) tipi (%) | ✅ | ❌ | ✅ |
-| 1.12 | StateOfHealthData | Sağlık durumu (SoH) tipi (%) | ✅ | ❌ | ✅ |
-| 1.13 | ChargeStatusData | Şarj/Deşarj durumu tipi | ✅ | ❌ | ✅ |
-| 1.14 | InsulationResistanceData | Yalıtım direnci ölçümü (kΩ, MΩ) | ✅ | ❌ | ✅ |
-| 1.15 | TelemetryData union | Generic + Domain tiplerini birleştiren union | ✅ | ❌ | ✅ |
-| 1.16 | TelemetryDataWithProtocol | Backend ↔ Driver katmanı arası union | ✅ | ❌ | ✅ |
-| 1.17 | Device tipi | Cihaz tanımı (id, name, manufacturer, model) | ✅ | ❌ | ✅ |
-| 1.18 | TelemetryMapping | Telemetry verisi ile protokol bilgisi eşleme | ✅ | ❌ | ✅ |
-| 1.19 | BatchTelemetryData | Toplu veri taşıma yapısı | ✅ | ❌ | ✅ |
-| 1.20 | CommandRequest | Komut gönderme formatı (WRITE/READ/EXECUTE) | ✅ | ❌ | ✅ |
-| 1.21 | CommandResponse | Komut cevap formatı (SUCCESS/FAILED/PENDING) | ✅ | ❌ | ✅ |
-| 1.22 | NormalizedTelemetry | Frontend için normalize edilmiş format | ✅ | ❌ | ✅ |
-| 1.23 | BaseJob | Temel job interface'i | ✅ | ❌ | ✅ |
-| 1.24 | ReadDeviceJob | Veri okuma job'u | ✅ | ❌ | ✅ |
-| 1.25 | WriteTelemetryJob | Telemetry yazma job'u | ✅ | ❌ | ✅ |
-| 1.26 | CommandDeviceJob | Komut gönderme job'u (atomic destekli) | ✅ | ❌ | ✅ |
-| **2** | **Device Sınıfları** | | | | |
-| 2.1 | ModbusDevice | Modbus TCP/RTU cihaz driver'ı | ✅ | ❌ | ✅ |
-| 2.2 | CANBusDevice | CANbus cihaz driver'ı | ❌ | ❌ | ❌ |
-| 2.3 | MQTTDevice | MQTT broker üzerinden cihaz driver'ı | ❌ | ❌ | ❌ |
-| **3** | **Veritabanı Adaptörleri** | | | | |
-| 3.1 | TimescaleDBAdapter | TimescaleDB'ye yazma/okuma | ✅ | ❌ | ✅ |
-| 3.2 | InfluxDBAdapter | InfluxDB'ye yazma/okuma | ✅ | ❌ | ✅ |
-| **4** | **Servisler** | | | | |
-| 4.1 | Device Servisi | Veri okuma, job üretme, komut işleme | ✅ | ❌ | ✅ |
-| 4.2 | Data Servisi | Job consumer, batch yazma, DB adaptör yönetimi | ✅ | ❌ | ✅ |
-| **5** | **Yan Servisler** | | | | |
-| 5.1 | PluginLoader | Arbitraj, analiz gibi plugin'leri yükleme | ✅ | ❌ | ✅ |
-| 5.2 | HTTPServer | REST API + Websocket sunucusu | ✅ | ❌ | ✅ |
-| **6** | **Simülatörler** | | | | |
-| 6.1 | BSC Simülatörü | Batarya Sistemi Kontrolörü simülasyonu | ✅ | N/A | ✅ |
-| 6.2 | IMD Simülatörü | Yalıtım İzleme Cihazı (Insulation Monitoring Device) simülasyonu | ❌ | N/A | ❌ |
-| 6.3 | TMS Simülatörü | Termal Yönetim Sistemi simülasyonu | ❌ | N/A | ❌ |
-| **7** | **BSC Komutları** | | | | |
-| 7.1 | Charge komutu | Komut çalıştığı sürece şarj eder | ✅ | ❌ | ✅ |
-| 7.2 | Decharge komutu | Komut çalıştığı sürece deşarj eder | ✅ | ❌ | ✅ |
-| 7.3 | Timer Charge komutu | Süre seçilir, o kadar saniye/dakika şarj eder | ✅ | ❌ | ✅ |
-| 7.4 | Timer Decharge komutu | Süre seçilir, o kadar saniye/dakika deşarj eder | ✅ | ❌ | ✅ |
-| 7.5 | Zaman bazlı Charge komutu | Tarih/saat seçilir, o zamanda şarj başlar | ❌ | ❌ | ❌ |
-| 7.6 | Zaman bazlı Decharge komutu | Tarih/saat seçilir, o zamanda deşarj başlar | ❌ | ❌ | ❌ |
-| 7.7 | Süreli Zaman bazlı Charge | Belirtilen süre kadar şarj, yoksa sürekli | ❌ | ❌ | ❌ |
-| 7.8 | Süreli Zaman bazlı Decharge | Belirtilen süre kadar deşarj, yoksa sürekli | ❌ | ❌ | ❌ |
-| 7.9 | Stop komutu | Tüm şarj/deşarj işlemlerini durdur | ✅ | ❌ | ✅ |
-| **8** | **IMD Komutları (Insulation Monitoring Device)** | | | | |
-| 8.1 | IMD Set threshold | Yalıtım direnci eşik değeri set etme | ❌ | ❌ | ❌ |
-| 8.2 | IMD Get threshold | Yalıtım direnci eşik değerini okuma | ❌ | ❌ | ❌ |
-| 8.3 | IMD Get resistance | Anlık yalıtım direnci değerini okuma | ❌ | ❌ | ❌ |
-| 8.4 | IMD Start measurement | Yalıtım ölçümünü başlatma | ❌ | ❌ | ❌ |
-| 8.5 | IMD Stop measurement | Yalıtım ölçümünü durdurma | ❌ | ❌ | ❌ |
-| 8.6 | IMD Reset alarm | Yalıtım alarmını sıfırlama | ❌ | ❌ | ❌ |
-| 8.7 | IMD Self test | Cihaz kendi kendine test | ❌ | ❌ | ❌ |
-| **9** | **TMS Geliştirmeleri (Termal Yönetim Sistemi)** | | | | |
-| 9.1 | TMS Hardware | PLC/geliştirme kartı üzerinde termal yönetim | ❌ | ❌ | ❌ |
-| 9.2 | TMS Modbus Server | Modbus server ile komut alma | ❌ | ❌ | ❌ |
-| 9.3 | TMS Analog Input | Yangın sensörü, sıcaklık sensörü analog okuma | ❌ | ❌ | ❌ |
-| 9.4 | TMS Analog Output | Fan, pompa, yangın söndürme kontrolü | ❌ | ❌ | ❌ |
-| 9.5 | TMS Digital Input | Acil durum butonu, limit switch okuma | ❌ | ❌ | ❌ |
-| 9.6 | TMS Digital Output | Röle, kontaktör, alarm kontrolü | ❌ | ❌ | ❌ |
-| 9.7 | TMS Set temperature | Hedef sıcaklık set değeri atama | ❌ | ❌ | ❌ |
-| 9.8 | TMS Get temperature | Anlık sıcaklık değerlerini okuma | ❌ | ❌ | ❌ |
-| 9.9 | TMS Set fan speed | Fan hızı set etme (0-100%) | ❌ | ❌ | ❌ |
-| 9.10 | TMS Alarm yönetimi | Yangın, aşırı sıcaklık alarmları | ❌ | ❌ | ❌ |
-| 9.11 | TMS Modbus telemetry | Modbus üzerinden TMS verilerini okuma | ❌ | ❌ | ❌ |
-| 9.12 | TMS Emergency stop | Acil durum butonu ile tüm sistem durdurma | ❌ | ❌ | ❌ |
-| **10** | **Ön Yüz Bileşenleri** | | | | |
-| 10.1 | TelemetryChart | Gerçek zamanlı telemetry grafik bileşeni | ✅ | ❌ | ✅ |
-| 10.2 | BSC Graphic | BSC cihaz grafik görselleştirmesi | ✅ | ❌ | ✅ |
-| 10.3 | IMD Graphic | IMD cihaz grafik görselleştirmesi | ❌ | ❌ | ❌ |
-| 10.4 | TMS Graphic | TMS cihaz grafik görselleştirmesi | ❌ | ❌ | ❌ |
-| 10.5 | Command Panel | Komut gönderme paneli (temel) | ✅ | ❌ | ✅ |
-| 10.6 | Command History Terminal | Komut geçmişi terminal ekranı | ✅ | ❌ | ✅ |
-| 10.7 | Agenda Command Panel | Zamanlanmış komut paneli (tarih/saat seçimi) | ❌ | ❌ | ⏳ |
-| 10.8 | BSC Command Panel | BSC'ye özel komut paneli | ✅ | ❌ | ✅ |
-| 10.9 | IMD Command Panel | IMD'ye özel komut paneli | ❌ | ❌ | ❌ |
-| 10.10 | TMS Command Panel | TMS'ye özel komut paneli | ❌ | ❌ | ❌ |
-
----
-
-## Durum Legend
-
-| Sembol | Anlam |
-|:------:|:------|
-| ✅ | Tamamlandı / Çalışıyor |
-| ⏳ | Kısmen tamam / Geliştirme aşamasında |
-| ❌ | Yapılmadı / Başlanmadı |
-| N/A | Uygulanabilir değil |
-
----
-
-## Özet İstatistik
-
-| Kategori | Toplam | ✅ | ⏳ | ❌ |
-|:---------|:------:|:--:|:--:|:--:|
-| Temel Veri Formatları | 26 | 26 | 0 | 0 |
-| Device Sınıfları | 3 | 1 | 0 | 2 |
-| Veritabanı Adaptörleri | 2 | 2 | 0 | 0 |
-| Servisler | 2 | 2 | 0 | 0 |
-| Yan Servisler | 2 | 2 | 0 | 0 |
-| Simülatörler | 3 | 1 | 0 | 2 |
-| BSC Komutları | 9 | 5 | 0 | 4 |
-| IMD Komutları | 7 | 0 | 0 | 7 |
-| TMS Geliştirmeleri | 12 | 0 | 0 | 12 |
-| Ön Yüz Bileşenleri | 10 | 5 | 1 | 4 |
-| **TOPLAM** | **76** | **44** | **1** | **31** |
-
-## Sistem Mimarisi
+## System Architecture
 
 ```mermaid
 flowchart TB
-
-    subgraph EXT["Dış Sistemler"]
-        FE["Web / Mobil Frontend"]
-        PL["Plugin Servisler<br/>Arbitraj / Analiz"]
+    subgraph FRONTEND["Frontend"]
+        WEB["Web App (React 19)"]
+        DESKTOP["Desktop (Electron)"]
     end
 
-    subgraph EMS["EMS Yazılımı"]
-
-        subgraph WEB["Yönetim ve Web Servisi"]
-            API["REST API"]
-            WS["WebSocket"]
-            LOADER["Plugin Loader"]
-        end
-
-        subgraph MQ["Message Queue (Redis)"]
-            READQ["ReadJob Queue"]
-            CMDQ["Command Queue"]
-        end
-
-        subgraph DEV["Device Servisi"]
-            MODBUS["ModbusDevice"]
-            CAN["CANBusDevice"]
-            MQTT["MQTTDevice"]
-        end
-
-        subgraph DATA["Data Servisi"]
-            CONSUMER["JobConsumer"]
-            WRITER["Batch Writer"]
-            ADAPTER["Adapter"]
-        end
-
-        DB["TimescaleDB / InfluxDB"]
+    subgraph BACKEND["Backend Services"]
+        WS["Web-Service (Fastify 5)\nAuth + TimescaleDB API\nPort 5001"]
+        DEV["Device-Service\nModbus polling\nBullMQ producer"]
+        DATA["Data-Service\nBullMQ consumer\nTimescaleDB writer"]
     end
 
-    FE --> API
-    FE --> WS
+    subgraph INFRA["Infrastructure"]
+        TSDB["TimescaleDB\n(per-device hypertables)"]
+        REDIS["Redis\n(BullMQ queues)"]
+    end
 
-    PL --> LOADER
+    subgraph DEVICES["Devices"]
+        BSC["BSC x2\n(LG Battery Controller)\n8 racks each"]
+        HVAC["HVAC x8\n(Cooling units)"]
+    end
 
-    API --> READQ
-    WS --> CMDQ
-
-    READQ --> MODBUS
-    READQ --> CAN
-    READQ --> MQTT
-
-    CMDQ --> MODBUS
-    CMDQ --> CAN
-    CMDQ --> MQTT
-
-    MODBUS --> CONSUMER
-    CAN --> CONSUMER
-    MQTT --> CONSUMER
-
-    CONSUMER --> WRITER
-    WRITER --> ADAPTER
-    ADAPTER --> DB
+    WEB --> WS
+    DESKTOP --> WS
+    DEV -->|READ_DEVICE jobs| REDIS
+    REDIS -->|WRITE_TELEMETRY jobs| DATA
+    DATA -->|INSERT| TSDB
+    WS -->|query| TSDB
+    WS -->|query devices table| TSDB
+    DEV -->|Modbus TCP| BSC
+    DEV -->|Modbus TCP| HVAC
+    DEV -->|upsert| TSDB
 ```
+
+---
+
+## Monorepo Structure
+
+```
+.
+├── apps/
+│   ├── web/              # React 19 SPA (Vite 8, TanStack Query, Zustand)
+│   ├── desktop/          # Electron 39 + React 19 (electron-vite)
+│   └── demo-backend/     # Legacy Fastify backend (XRack demo)
+├── packages/
+│   ├── shared-types/     # Pure TS types (telemetry, jobs, auth)
+│   ├── shared-utils/     # Empty placeholder
+│   ├── core/             # Backend logic (Modbus, BullMQ, TimescaleDB, SQL)
+│   ├── simulators/       # Device simulators (BSC, HVAC, XRack)
+│   ├── ui/               # Shared React components (PixiJS, Recharts, Emotion)
+│   └── services/
+│       ├── device-service/   # Modbus device poller + BullMQ producer
+│       ├── data-service/     # BullMQ consumer + TimescaleDB writer
+│       └── web-service/      # Auth/JWT + REST API (hexagonal architecture)
+├── configs/              # Device configuration files (source of truth)
+├── deployment/           # Docker Compose files (production + dev)
+├── nx.json               # Nx build orchestrator
+├── tsconfig.base.json    # Shared TS config + path aliases
+└── package.json          # Bun workspaces
+```
+
+## Dependency Graph
+
+```mermaid
+graph TD
+    ST["shared-types<br/>(leaf)"]
+    SU["shared-utils<br/>(empty)"]
+    CORE["core<br/>Modbus, TimescaleDB, BullMQ"]
+    SIM["simulators<br/>BSC, HVAC, XRack"]
+    UI["ui<br/>PixiJS, Recharts"]
+    DS["data-service<br/>BullMQ consumer"]
+    DVS["device-service<br/>Modbus poller"]
+    WS["web-service<br/>Auth + API"]
+    DB["demo-backend<br/>(legacy)"]
+    WEB["web<br/>React frontend"]
+    DT["desktop<br/>Electron"]
+
+    ST --> SU
+    ST --> CORE
+    ST --> SIM
+    ST --> UI
+    CORE --> DS
+    CORE --> DVS
+    CORE --> WS
+    CORE --> DB
+    SIM --> DVS
+    SIM --> DB
+    UI --> WEB
+    SU --> WEB
+    ST --> WEB
+    UI --> DT
+    SU --> DT
+    ST --> DT
+```
+
+### Build Order (Nx `^build`)
+
+```
+Level 0:  shared-types                          (leaf — no deps)
+Level 1:  shared-utils, core, simulators         (depend on shared-types)
+Level 2:  ui                                     (depends on shared-types)
+Level 3:  data-service, device-service,
+          web-service, demo-backend              (depend on core + shared-types)
+Level 4:  web, desktop                           (depend on shared-types, ui)
+```
+
+## Package Inventory
+
+| Package | Type | Stack | Key Dependencies |
+|---------|------|-------|-----------------|
+| `shared-types` | Library | Pure TS | — |
+| `shared-utils` | Library | Placeholder | — |
+| `core` | Library | Modbus, DB, MQ | `bullmq`, `pg`, `redis`, `jsmodbus` |
+| `simulators` | Library | Device sims | BSC, HVAC, XRack models |
+| `ui` | Library | React components | `pixi.js`, `recharts`, `@emotion/*` |
+| `data-service` | Service | BullMQ consumer | `bullmq`, `pg` |
+| `device-service` | Service | Modbus poller | `jsmodbus`, `pg` |
+| **`web-service`** | **Service** | **Hexagonal Fastify** | **`fastify`, `jose`, `awilix`, `zod`** |
+| `demo-backend` | App | Fastify dashboard | `fastify` |
+| `web` | App | React SPA | `react-query`, `zustand`, `axios` |
+| `desktop` | App | Electron | `electron-vite`, `electron-updater` |
+
+## Web-Service Architecture (Hexagonal / Ports & Adapters)
+
+```
+src/
+├── domain/                     Pure business — zero framework imports
+│   ├── repositories/           IUserRepository (port)
+│   ├── services/               ITokenService, IPasswordHasher (ports)
+│   └── validation/             Zod schemas + inferred types
+├── application/                Use-case orchestrators
+│   ├── use-cases/              7 use cases (Login, Refresh, CRUD)
+│   └── telemetry/              Pure data transformation functions
+├── infrastructure/             Adapters implementing domain ports
+│   ├── persistence/            PostgreSQL (UserRepository, DeviceRegistry)
+│   └── auth/                   JWT (jose), password hashing (Bun.password)
+├── presentation/               HTTP / Fastify layer
+│   ├── routes/                 auth-routes, data-routes, unified-routes
+│   └── middleware/             RBAC (JWT-based), global error handler
+├── core/                       Shared kernel (Result<T> pattern)
+├── config/                     Env-based configs + awilix DI container
+└── index.ts                    15-line bootstrap
+```
+
+**Dependency rule**: `presentation → application → domain` only. Never reverse.
+
+## Device Configurations
+
+`configs/` is the master device config repository. Per-project copies go to `device-service/config/`.
+
+```
+configs/
+├── bsc-1.json       # BSC #1 — 8 racks, 399 telemetry entries, 25 bitfield configs
+├── bsc-2.json       # BSC #2 — 8 racks
+├── hvac-1..8.json   # HVAC #1–8 — 56 telemetry entries each
+└── service.json     # Redis + TimescaleDB connection, poll intervals
+```
+
+## Deployment
+
+### Full Stack (docker compose)
+
+```bash
+# Production
+docker compose -f deployment/docker-compose.yml up -d
+
+# Development (hot-reload)
+docker compose -f deployment/docker-compose.dev.yml up
+```
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| `timescaledb` | 5432 | Time-series database + user/devices tables |
+| `redis` | 6379 | BullMQ message queue |
+| `device-service` | — | Modbus polling, job production |
+| `data-service` | — | Job consumption, telemetry persistence |
+| `web-service` | 5001 | Auth API + TimescaleDB data API |
+| `web` | 80 | React SPA served via nginx |
+
+### Legacy Demo Stack
+
+```bash
+docker compose -f deployment/docker-compose.demo-backend.yml up -d
+```
+
+| Service | Port |
+|---------|------|
+| `demo-backend` | 5000 |
+| `web` | 80 |
+
+## Quick Commands
+
+```bash
+bun install                         # Install deps (Bun only)
+bun run dev                         # All apps in parallel (max 5)
+bun run dev:web                     # Web only (Vite, port 5173)
+nx run web-service:dev              # Web Service (Fastify, port 5001)
+nx run device-service:dev           # Device Service
+nx run data-service:dev             # Data Service
+nx run demo-backend:dev             # Demo Backend (port 5000)
+bun run build                       # Build all (Nx orders by ^build)
+nx graph                            # Dependency graph visualizer
+nx run <proj>:<target>              # Run any Nx target
+```
+
+### Per-project typecheck
+
+```bash
+cd packages/services/web-service && bun --bun tsc --noEmit
+nx run web-service:typecheck
+```
+
+## Data Flow
+
+```
+[Device Config] → Device-Service reads config → connects ModbusDevice
+    │
+    ├── (simulator mode) → BSCSimulator / HvacSimulator ticks every 1s
+    └── (real mode)      → Modbus TCP to physical hardware
+    │
+    ▼
+Device-Service publishes READ_DEVICE job → Redis (BullMQ)
+    │
+    ▼
+Data-Service worker picks up WRITE_TELEMETRY job → writes to TimescaleDB
+    │
+    │  Per-device hypertable: device_BSC_1, device_BSC_2, device_HVAC_1..8
+    │  Telemetry columns: name, value, unit, tags (rack_id, zone), timestamp
+    │
+    ▼
+Web-Service unified endpoints:
+  GET /unified/racks/latest        → multi-BSC aggregation + rack offsets
+  GET /unified/racks/downsampled   → time-bucketed data across devices
+  GET /unified/hvac/latest         → all HVAC unit readings
+  POST /auth/login, /auth/refresh  → JWT auth
+  GET/POST/PUT/DELETE /auth/users  → admin user CRUD
+    │
+    ▼
+Web App (React) → React Query (5s polling) → TelemetryChart, RackCards, Dashboard
+```
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Bun (latest) |
+| Monorepo | Nx v22 (build orchestrator) |
+| Language | TypeScript 5.x |
+| Backend | Fastify 5 |
+| Frontend | React 19, Vite 8, TanStack Query 5, Zustand 5, React Router 7 |
+| Desktop | Electron 39, electron-vite 5 |
+| Database | TimescaleDB (PostgreSQL) |
+| Message Queue | BullMQ + Redis |
+| Auth | JWT (jose), Bun.password, zod validation |
+| DI Container | awilix |
+| UI Components | PixiJS 8, Recharts 3, Emotion CSS-in-JS |
+| Deployment | Docker Compose (6 services) |
+| Simulators | BSC (LG Battery Controller), HVAC (Cooling Units), XRack (legacy) |
