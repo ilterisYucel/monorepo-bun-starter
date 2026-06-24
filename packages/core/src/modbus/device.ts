@@ -187,13 +187,17 @@ export class ModbusDevice implements IDevice {
       await this._writeBatchByType(holdingList);
     }
     if (coilList.length > 0) {
-      for (const telemetry of coilList) {
-        const rawValue = ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
-        const boolValue = rawValue !== 0;
-        if (this.isSimulator) {
-          await this.adapter!.writeCoil(telemetry.registerAddress, boolValue);
-        } else {
-          await this.client!.writeSingleCoil(telemetry.registerAddress, boolValue);
+      if (this.isSimulator) {
+        await Promise.all(
+          coilList.map(async (telemetry) => {
+            const rawValue = ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
+            await this.adapter!.writeCoil(telemetry.registerAddress, rawValue !== 0);
+          }),
+        );
+      } else {
+        for (const telemetry of coilList) {
+          const rawValue = ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
+          await this.client!.writeSingleCoil(telemetry.registerAddress, rawValue !== 0);
         }
       }
     }
@@ -272,13 +276,12 @@ export class ModbusDevice implements IDevice {
       for (const telemetry of coilList) {
         const rawValue =
           ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
-        const boolValue = rawValue !== 0;
         if (this.isSimulator) {
-          await this.adapter!.writeCoil(telemetry.registerAddress, boolValue);
+          await this.adapter!.writeCoil(telemetry.registerAddress, rawValue !== 0);
         } else {
           await this.client!.writeSingleCoil(
             telemetry.registerAddress,
-            boolValue,
+            rawValue !== 0,
           );
         }
         writtenAddresses.push(telemetry.registerAddress);
@@ -305,20 +308,20 @@ export class ModbusDevice implements IDevice {
         error,
       );
 
+      // Build address-to-telemetry map for O(1) rollback lookup
+      const writableByAddress = new Map<number, ModbusTelemetryData>();
+      for (const t of writableList) {
+        const count = BinaryPayloadDecoder.getRegisterCount(t.registerDataType);
+        for (let offset = 0; offset < count; offset++) {
+          writableByAddress.set(t.registerAddress + offset, t);
+        }
+      }
+
       for (const address of writtenAddresses) {
         const oldValue = backups.get(address);
         if (oldValue !== undefined) {
           try {
-            const originalTelemetry = writableList.find(
-              (t) =>
-                t.registerAddress === address ||
-                (t.registerAddress <= address &&
-                  address <
-                    t.registerAddress +
-                      BinaryPayloadDecoder.getRegisterCount(
-                        t.registerDataType,
-                      )),
-            );
+            const originalTelemetry = writableByAddress.get(address);
             if (originalTelemetry) {
               const rawValue =
                 (oldValue - originalTelemetry.offset) / originalTelemetry.scale;
@@ -602,12 +605,11 @@ export class ModbusDevice implements IDevice {
     const startAddress = telemetries[0]!.registerAddress;
 
     if (this.isSimulator) {
-      for (let i = 0; i < registerValues.length; i++) {
-        await this.adapter!.writeHoldingRegister(
-          startAddress + i,
-          registerValues[i]!,
-        );
-      }
+      await Promise.all(
+        registerValues.map((val, i) =>
+          this.adapter!.writeHoldingRegister(startAddress + i, val),
+        ),
+      );
     } else {
       if (registerValues.length === 1) {
         await this.client!.writeSingleRegister(

@@ -1,4 +1,5 @@
 import type { ChartDataPoint } from "../../types";
+import type { EventAnnotation } from "../../interfaces/event-annotations";
 
 export interface MultiLineChartProps {
   data: ChartDataPoint[];
@@ -9,4 +10,5 @@ export interface MultiLineChartProps {
   colors?: string[];
   showLegend?: boolean;
   isLoading?: boolean;
+  annotations?: EventAnnotation[];
 }

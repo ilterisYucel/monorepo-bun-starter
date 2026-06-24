@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { TelemetryInput, SCADA_ICONS } from "@gd-monorepo/ui";
 import { controlApi } from "../services/controlApi";
 import { useLogProvider } from "../../../hooks/useLogProvider";
@@ -30,7 +30,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     isActive: boolean;
     remainingSeconds?: number;
   } | null>(null);
-  const [timerInterval, setTimerInterval] = useState<number | null>(null);
+  const timerIntervalRef = useRef<number | null>(null);
   const { addLog } = useLogProvider();
 
   const isCharging = currentChargeStatus === "Charge";
@@ -43,17 +43,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   useEffect(() => {
     return () => {
-      if (timerInterval) clearInterval(timerInterval);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [timerInterval]);
+  }, []);
 
   const clearTimer = useCallback(() => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerInterval(null);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
     }
     setActiveCommand(null);
-  }, [timerInterval]);
+  }, []);
 
   const sendIdleCommand = useCallback(async () => {
     setIsLoading(true);
@@ -94,7 +94,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           return { ...prev, remainingSeconds: newRemaining };
         });
       }, 1000);
-      setTimerInterval(interval);
+      timerIntervalRef.current = interval;
     },
     [clearTimer, sendIdleCommand],
   );

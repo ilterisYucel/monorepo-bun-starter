@@ -23,6 +23,46 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// --- Plain axios instance for guest login (no interceptors, avoids loops) ---
+const plainAxios = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+
+async function reLoginAsGuest(): Promise<string | null> {
+  try {
+    const res = await plainAxios.post("/auth/login", {
+      username: "guest",
+      password: "guest123",
+    });
+    const { accessToken, refreshToken, user } = res.data;
+
+    localStorage.setItem("auth-token", accessToken);
+    localStorage.setItem("auth-refresh-token", refreshToken);
+
+    const raw = localStorage.getItem("auth-storage");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.state) {
+          parsed.state.user = user;
+          parsed.state.isAuthenticated = true;
+          parsed.state.isAdmin = user.role === "admin";
+          parsed.state.isTeknik = user.role === "teknik";
+          parsed.state.isGuest = user.role === "guest";
+          localStorage.setItem("auth-storage", JSON.stringify(parsed));
+        }
+      } catch {
+        localStorage.removeItem("auth-storage");
+      }
+    }
+
+    return accessToken;
+  } catch {
+    return null;
+  }
+}
+
 // --- Refresh token queue ---
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -73,13 +113,18 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Don't try to refresh login or refresh calls themselves
-    if (
-      originalRequest?.url?.includes("/auth/refresh") ||
-      originalRequest?.url?.includes("/auth/login")
-    ) {
+    // Manual login failure — don't interfere, just reject
+    if (originalRequest?.url?.includes("/auth/login")) {
+      return Promise.reject(error);
+    }
+
+    // Refresh token itself expired — re-login as guest silently
+    if (originalRequest?.url?.includes("/auth/refresh")) {
       clearAuthState();
-      window.location.href = "/login";
+      const guestToken = await reLoginAsGuest();
+      if (!guestToken) {
+        window.location.href = "/login";
+      }
       return Promise.reject(error);
     }
 
@@ -106,8 +151,15 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
         clearAuthState();
+        const guestToken = await reLoginAsGuest();
+        if (guestToken) {
+          processQueue(null, guestToken);
+          originalRequest._retry = true;
+          originalRequest.headers.Authorization = `Bearer ${guestToken}`;
+          return apiClient(originalRequest);
+        }
+        processQueue(refreshError, null);
         window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {

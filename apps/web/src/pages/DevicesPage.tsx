@@ -6,7 +6,7 @@ const statusColor = (status: string): string =>
   status === "online" ? "#10b981" : "#ef4444";
 
 const typeLabel = (device: DeviceInfo): string =>
-  device.type ?? (device.id?.startsWith("BSC-") ? "bsc" : device.id?.startsWith("HVAC-") ? "hvac" : "-");
+  device.type || "-";
 
 const styles: Record<string, React.CSSProperties> = {
   container: {

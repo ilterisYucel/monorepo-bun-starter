@@ -22,7 +22,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Electric Heating On",
@@ -36,7 +38,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Indoor Fan Status",
@@ -50,7 +54,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Supply Temp",
@@ -66,7 +72,8 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "zone": "server_room",
-        "unit": "7"
+        "unit": "7",
+        "room": "room4"
       }
     },
     {
@@ -81,7 +88,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Return Humidity",
@@ -97,7 +106,8 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "zone": "return_air",
-        "unit": "7"
+        "unit": "7",
+        "room": "room4"
       }
     },
     {
@@ -112,7 +122,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Current Temp",
@@ -128,7 +140,8 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "zone": "server_room",
-        "unit": "7"
+        "unit": "7",
+        "room": "room4"
       }
     },
     {
@@ -143,7 +156,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Condenser Temp",
@@ -157,7 +172,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Evaporator Temp",
@@ -171,7 +188,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Internal Fan Speed",
@@ -185,7 +204,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "External Fan Speed",
@@ -199,7 +220,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "AC Input Voltage",
@@ -213,7 +236,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Equipment Runtime",
@@ -227,7 +252,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Compressor Runtime",
@@ -241,7 +268,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Internal Fan Runtime",
@@ -255,7 +284,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm",
@@ -269,7 +300,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm 2",
@@ -283,7 +316,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm 3",
@@ -297,7 +332,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm 4",
@@ -311,7 +348,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm 5",
@@ -325,7 +364,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm 6",
@@ -339,7 +380,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Low Temp Alarm",
@@ -353,7 +396,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Low Temp Alarm 2",
@@ -367,7 +412,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Low Temp Alarm 3",
@@ -381,7 +428,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Over Voltage Alarm",
@@ -395,7 +444,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Under Voltage Alarm",
@@ -409,7 +460,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Over Voltage Alarm 2",
@@ -423,7 +476,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Under Voltage Alarm 2",
@@ -437,7 +492,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Compressor Fault",
@@ -451,7 +508,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Fan Fault",
@@ -465,7 +524,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Heater Fault",
@@ -479,7 +540,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Sensor Fault",
@@ -493,7 +556,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Pressure Alarm",
@@ -507,7 +572,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Low Pressure Alarm",
@@ -521,7 +588,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Condenser Fault",
@@ -535,7 +604,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Evaporator Fault",
@@ -549,7 +620,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Slave Address",
@@ -563,7 +636,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Baud Rate",
@@ -577,7 +652,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Monitor Temp Mode",
@@ -591,7 +668,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Cooling Setpoint",
@@ -605,7 +684,9 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Cooling Hysteresis",
@@ -619,7 +700,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Compressor Start Delay",
@@ -633,7 +716,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Restart Delay",
@@ -647,7 +732,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Alarm Set",
@@ -661,7 +748,9 @@
       "offset": 0,
       "priority": 2,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "High Temp Hysteresis",
@@ -675,7 +764,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Low Temp Alarm Set",
@@ -689,7 +780,9 @@
       "offset": 0,
       "priority": 2,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Low Temp Hysteresis",
@@ -703,7 +796,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Heating Setpoint",
@@ -717,7 +812,9 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Heating Hysteresis",
@@ -731,7 +828,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Remote On/Off",
@@ -745,7 +844,9 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Reset Command",
@@ -759,7 +860,9 @@
       "offset": 0,
       "priority": 2,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Server Temp Max",
@@ -773,7 +876,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Server Temp Min",
@@ -787,7 +892,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     },
     {
       "name": "Server Temp Avg",
@@ -801,7 +908,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {}
+      "tags": {
+        "room": "room4"
+      }
     }
   ],
   "pollIntervalMs": 2000,

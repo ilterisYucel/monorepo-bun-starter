@@ -152,3 +152,14 @@ export const TooltipValue = styled.span`
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 `;
+
+export const TooltipEvent = styled.div<{ color: string }>`
+  color: ${(p) => p.color};
+  font-size: 11px;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  cursor: default;
+`;

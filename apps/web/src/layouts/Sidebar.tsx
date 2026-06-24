@@ -42,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed,
   onToggleCollapse,
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isGuest } = useAuth();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const { fetch: fetchDevices } = useDevicesStore();
@@ -114,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </S.ToggleContainer>
 
       <S.SidebarFooter>
-        {isAuthenticated ? (
+        {isAuthenticated && !isGuest ? (
           <>
             <S.UserProfileContainer
               collapsed={collapsed}

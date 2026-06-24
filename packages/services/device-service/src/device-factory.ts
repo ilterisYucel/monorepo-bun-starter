@@ -58,7 +58,7 @@ export class DeviceFactory {
   ): ModbusTelemetryData {
     const modbus = entry as Omit<
       ModbusTelemetryData,
-      "value" | "timestamp" | "deviceId" | "tags"
+      "value" | "timestamp" | "deviceId"
     >;
 
     return {

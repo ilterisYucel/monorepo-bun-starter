@@ -7,8 +7,10 @@ interface LatestResponse {
 }
 
 export const hvacApi = {
-  getLatestAll: async (): Promise<TelemetryData[]> => {
-    const response = await apiClient.get<LatestResponse>("/unified/hvac/latest");
+  getLatest: async (deviceIds: string[]): Promise<TelemetryData[]> => {
+    const response = await apiClient.get<LatestResponse>(
+      `/unified/telemetry/latest?deviceIds=${deviceIds.join(",")}`,
+    );
     return response.data.telemetries || [];
   },
 

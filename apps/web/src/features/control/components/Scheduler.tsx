@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { SCADA_ICONS } from "@gd-monorepo/ui";
 import { useLogProvider } from "../../../hooks/useLogProvider";
 import type { OperationMode } from "../types/control";
@@ -54,7 +54,7 @@ export const Scheduler: React.FC = () => {
     return `${mins}dk ${secs}sn`;
   };
 
-  const handleAddCommand = () => {
+  const handleAddCommand = useCallback(() => {
     if (!selectedDate) return;
     const newCommand: ScheduledCommand = {
       id: Date.now().toString(),
@@ -70,16 +70,16 @@ export const Scheduler: React.FC = () => {
       source: "scheduler",
       message: `Zamanlanmış komut eklendi: ${selectedType === "Charge" ? "Şarj" : "Deşarj"} ${powerKw} kW, Tarih: ${formatDateTime(newCommand.datetime)}${operationMode === "TIMER" ? `, Süre: ${formatDuration(durationSeconds)}` : " (Sürekli)"}`,
     });
-  };
+  }, [selectedDate, selectedType, powerKw, operationMode, durationSeconds, scheduledList, addLog]);
 
-  const handleDeleteCommand = (id: string) => {
+  const handleDeleteCommand = useCallback((id: string) => {
     setScheduledList(scheduledList.filter((cmd) => cmd.id !== id));
     addLog({
       type: "info",
       source: "scheduler",
       message: `Zamanlanmış komut silindi`,
     });
-  };
+  }, [scheduledList, addLog]);
 
   return (
     <S.SchedulerContainer>

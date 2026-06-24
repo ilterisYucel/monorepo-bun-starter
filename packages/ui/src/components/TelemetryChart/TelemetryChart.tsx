@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MultiLineChart } from "../MultiLineChart";
 import type { TelemetryChartProps } from "./TelemetryChart.types";
+import type { EventAnnotation } from "../../interfaces/event-annotations";
 import * as S from "./TelemetryChart.styles";
 import type { ChartDataPoint } from "../../types";
 
@@ -82,6 +83,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   colors,
   showLegend = true,
   tagFilters,
+  eventAnnotations,
 }) => {
   const {
     data: telemetries,
@@ -98,6 +100,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(telemetryNames);
   const [metricsOpen, setMetricsOpen] = useState(false);
   const metricsRef = useRef<HTMLDivElement>(null);
+  const [showSystemEvents, setShowSystemEvents] = useState(false);
+  const [showUserEvents, setShowUserEvents] = useState(false);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -141,6 +145,17 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
     return options;
   }, [tagFilters, telemetries]);
 
+  useEffect(() => {
+    if (!tagFilters || Object.keys(tagOptions).length === 0) return;
+    if (Object.keys(selectedTags).length > 0) return;
+    const initial: Record<string, string> = {};
+    for (const filter of tagFilters) {
+      const first = tagOptions[filter.tagKey]?.[0];
+      if (first) initial[filter.tagKey] = first;
+    }
+    if (Object.keys(initial).length > 0) setSelectedTags(initial);
+  }, [tagFilters, tagOptions, selectedTags]);
+
   const chartData = useMemo(() => {
     if (telemetries.length === 0) return [];
     const timeMap = new Map<string, ChartDataPoint>();
@@ -154,7 +169,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         let skip = false;
         for (const filter of tagFilters) {
           const selected = selectedTags[filter.tagKey];
-          if (selected && selected !== "all" && telemetry.tags?.[filter.tagKey] !== selected) {
+          if (selected && telemetry.tags?.[filter.tagKey] !== selected) {
             skip = true;
             break;
           }
@@ -171,6 +186,29 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
   }, [telemetries, selectedMetrics, tagFilters, selectedTags]);
+
+  const filteredAnnotations = useMemo(() => {
+    if (!eventAnnotations?.annotations) return [];
+    return eventAnnotations.annotations.filter((a) => {
+      if (a.category === "system" && showSystemEvents) return true;
+      if (a.category === "user" && showUserEvents) return true;
+      return false;
+    });
+  }, [eventAnnotations, showSystemEvents, showUserEvents]);
+
+  const chartDataWithAnnotations = useMemo(() => {
+    if (filteredAnnotations.length === 0) return chartData;
+    const extraTimestamps = new Set(filteredAnnotations.map((a) => a.timestamp));
+    const merged = [...chartData];
+    for (const ts of extraTimestamps) {
+      if (!chartData.some((d) => d.timestamp === ts)) {
+        merged.push({ timestamp: ts, _annotations: 1 } as ChartDataPoint);
+      }
+    }
+    return merged.sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
+  }, [chartData, filteredAnnotations]);
 
   const subtitle = useMemo(
     () => buildSubtitle(chartData, range, points),
@@ -269,11 +307,32 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </S.DropdownWrapper>
           </S.ControlGroup>
 
+          {eventAnnotations && (
+            <>
+              <S.ControlGroup>
+                <S.ControlLabel>Sistem Olayları</S.ControlLabel>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showSystemEvents}
+                  onChange={() => setShowSystemEvents((v) => !v)}
+                />
+              </S.ControlGroup>
+              <S.ControlGroup>
+                <S.ControlLabel>Kullanıcı Hareketleri</S.ControlLabel>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showUserEvents}
+                  onChange={() => setShowUserEvents((v) => !v)}
+                />
+              </S.ControlGroup>
+            </>
+          )}
+
           {tagFilters?.map((filter) => (
             <S.ControlGroup key={filter.tagKey}>
               <S.ControlLabel>{filter.label}</S.ControlLabel>
               <S.ControlSelect
-                value={selectedTags[filter.tagKey] || "all"}
+                value={selectedTags[filter.tagKey] || (tagOptions[filter.tagKey]?.[0] ?? "")}
                 onChange={(e) =>
                   setSelectedTags((prev) => ({
                     ...prev,
@@ -281,7 +340,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   }))
                 }
               >
-                <option value="all">Tümü</option>
                 {(tagOptions[filter.tagKey] || []).map((v) => (
                   <option key={v} value={v}>
                     {v}
@@ -294,11 +352,12 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       </S.Header>
 
       <MultiLineChart
-        data={chartData}
+        data={chartDataWithAnnotations}
         yAxisLabel={yAxisLabel}
         height={height}
         colors={colors}
         showLegend={showLegend}
+        annotations={filteredAnnotations}
       />
     </S.Container>
   );

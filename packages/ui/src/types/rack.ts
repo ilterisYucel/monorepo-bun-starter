@@ -4,6 +4,7 @@
  */
 export interface Rack {
   id: number;
+  deviceId: string;
   name: string;
   status: "online" | "offline";
   charge_status: "Charge" | "Discharge" | "Idle";

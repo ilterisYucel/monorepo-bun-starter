@@ -152,6 +152,12 @@ export interface TelemetryProviderOptions {
    * Örneğin: { rack_id: "1" } veya { device_id: "sensor-1" }
    */
   filters?: Record<string, string>;
+
+  /**
+   * Sorgulanacak cihaz ID'leri.
+   * Belirtilmezse tüm cihazlar sorgulanir.
+   */
+  deviceIds?: string[];
 }
 
 

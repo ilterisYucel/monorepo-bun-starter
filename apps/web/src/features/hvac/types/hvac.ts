@@ -19,6 +19,7 @@ export interface HvacUnit {
   id: number;
   deviceId: string;
   name: string;
+  room: string;
   status: "standby" | "running" | "fault";
   currentTemp: number | null;
   supplyTemp: number | null;

@@ -19,6 +19,8 @@ interface DeviceEntry {
   manufacturer: string | undefined;
   model: string | undefined;
   protocol: string;
+  type: string;
+  rackCount: number;
   configConnection: Record<string, unknown>;
 }
 
@@ -29,6 +31,8 @@ const CREATE_DEVICES_TABLE = `
     manufacturer      VARCHAR(255),
     model             VARCHAR(255),
     protocol          VARCHAR(50) NOT NULL,
+    type              VARCHAR(50) DEFAULT 'unknown',
+    rack_count        INTEGER DEFAULT 0,
     status            VARCHAR(50) DEFAULT 'offline',
     poll_interval_ms  INTEGER,
     connection        JSONB DEFAULT '{}',
@@ -39,13 +43,15 @@ const CREATE_DEVICES_TABLE = `
 `;
 
 const UPSERT_DEVICE = `
-  INSERT INTO devices (id, name, manufacturer, model, protocol, status, poll_interval_ms, connection, last_seen, updated_at)
-  VALUES ($1, $2, $3, $4, $5, 'online', $6, $7::jsonb, NOW(), NOW())
+  INSERT INTO devices (id, name, manufacturer, model, protocol, type, rack_count, status, poll_interval_ms, connection, last_seen, updated_at)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, 'online', $8, $9::jsonb, NOW(), NOW())
   ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     manufacturer = EXCLUDED.manufacturer,
     model = EXCLUDED.model,
     protocol = EXCLUDED.protocol,
+    type = EXCLUDED.type,
+    rack_count = EXCLUDED.rack_count,
     status = 'online',
     poll_interval_ms = EXCLUDED.poll_interval_ms,
     connection = EXCLUDED.connection,
@@ -71,6 +77,8 @@ export class DeviceService {
       manufacturer: string | undefined;
       model: string | undefined;
       protocol: string;
+      type: string;
+      rackCount: number;
       configConnection: Record<string, unknown>;
     }[],
     mq: IMessageQueue,
@@ -110,6 +118,8 @@ export class DeviceService {
     const deviceEntries = configs.map((c) => {
       const device = factory.create(c);
       const pollIntervalMs = c.pollIntervalMs ?? defaultInterval;
+      const type = c.simulator?.type ?? "unknown";
+      const rackCount = c.simulator?.rackCount ?? 0;
       return {
         device,
         pollIntervalMs,
@@ -117,6 +127,8 @@ export class DeviceService {
         manufacturer: c.manufacturer,
         model: c.model,
         protocol: c.protocol,
+        type,
+        rackCount,
         configConnection: c.connection,
       };
     });
@@ -132,6 +144,7 @@ export class DeviceService {
     const sql = new PostgresAdapter(service.postgresql);
     await sql.connect();
     await sql.execute(CREATE_DEVICES_TABLE);
+    await sql.execute("CREATE INDEX IF NOT EXISTS idx_devices_status ON devices (status)");
     console.log("[DeviceService] Cihaz tablosu hazir");
     return sql;
   }
@@ -141,9 +154,11 @@ export class DeviceService {
 
     this.simulators.start();
 
-    for (const [, entry] of this.devices) {
-      await entry.device.connect();
-      console.log(`[DeviceService] Baglandi: ${entry.device.id}`);
+    const entries = Array.from(this.devices.values());
+    await Promise.all(entries.map((e) => e.device.connect()));
+    console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
+
+    for (const entry of entries) {
       await this.scheduler.scheduleRead(entry.device.id, entry.pollIntervalMs);
 
       if (this.sql) {
@@ -153,6 +168,8 @@ export class DeviceService {
           entry.manufacturer ?? null,
           entry.model ?? null,
           entry.protocol,
+          entry.type,
+          entry.rackCount,
           entry.pollIntervalMs,
           JSON.stringify(entry.configConnection),
         ]);
@@ -179,7 +196,7 @@ export class DeviceService {
 
     this.simulators.stop();
 
-    for (const [, entry] of this.devices) {
+    const disconnectPromises = Array.from(this.devices.values()).map(async (entry) => {
       if (this.sql) {
         try {
           await this.sql.execute(SET_DEVICE_OFFLINE, [entry.device.id]);
@@ -187,14 +204,13 @@ export class DeviceService {
           /* status guncelleme hatasi yoksay */
         }
       }
-
       try {
         await entry.device.disconnect();
       } catch {
         /* baglanti kesme hatasi yoksay */
       }
-      console.log(`[DeviceService] Baglanti kesildi: ${entry.device.id}`);
-    }
+    });
+    await Promise.all(disconnectPromises);
 
     await this.scheduler.close();
 
@@ -221,9 +237,50 @@ export class DeviceService {
 
     const data: TelemetryData[] = await entry.device.read();
     const bitfields = (await entry.device.readBitfields?.()) ?? [];
-    const allData = [...data, ...bitfields];
+    const synthesized = this.synthesizeTelemetry(entry, data);
+    const allData = [...data, ...synthesized, ...bitfields];
 
     await this.scheduler.publishTelemetry(job.deviceId, allData);
+  }
+
+  private synthesizeTelemetry(
+    entry: DeviceEntry,
+    data: TelemetryData[],
+  ): TelemetryData[] {
+    if (entry.protocol !== "MODBUS") return [];
+
+    const results: TelemetryData[] = [];
+
+    for (const t of data) {
+      if (t.name !== "State") continue;
+
+      const rackId = t.tags?.rack_id;
+      if (rackId === "system" && typeof t.value === "number") {
+        const bits = (t.value >> 4) & 0b11;
+        const chargeValue = bits === 0b01 ? 1 : bits === 0b10 ? 2 : 0;
+        results.push({
+          name: "ChargeStatus",
+          description: "Global charge/discharge/idle status",
+          value: chargeValue,
+          unit: "",
+          timestamp: t.timestamp,
+          deviceId: t.deviceId,
+          tags: { rack_id: "system" },
+        } as TelemetryData);
+      } else if (rackId && rackId !== "system") {
+        results.push({
+          name: "Status",
+          description: "Rack online/offline status",
+          value: t.value === 0x09 ? 1 : 0,
+          unit: "",
+          timestamp: t.timestamp,
+          deviceId: t.deviceId,
+          tags: { rack_id: rackId },
+        } as TelemetryData);
+      }
+    }
+
+    return results;
   }
 
   private async executeCommand(job: CommandDeviceJob): Promise<void> {

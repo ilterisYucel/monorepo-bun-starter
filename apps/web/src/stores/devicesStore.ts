@@ -31,12 +31,12 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
     }
   },
 
-  bscDevices: () => get().devices.filter(d => d.type === "bsc" || d.id?.startsWith("BSC-")),
+  bscDevices: () => get().devices.filter(d => d.type === "bsc" || d.type === "xrack"),
 
-  hvacDevices: () => get().devices.filter(d => d.type === "hvac" || d.id?.startsWith("HVAC-")),
+  hvacDevices: () => get().devices.filter(d => d.type === "hvac"),
 
   totalRacks: () =>
     get()
       .bscDevices()
-      .reduce((s, d) => s + (d.rack_count ?? 8), 0),
+      .reduce((s, d) => s + (d.rack_count ?? 0), 0),
 }));

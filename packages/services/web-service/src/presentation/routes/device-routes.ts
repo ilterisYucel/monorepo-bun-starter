@@ -10,7 +10,7 @@ export async function deviceRoutes(
   fastify.get("/devices", async (_request, reply) => {
     try {
       const rows = await postgres.query<Record<string, unknown>>(
-        "SELECT id, name, protocol, status, manufacturer, model, poll_interval_ms, connection, last_seen, created_at FROM devices ORDER BY created_at",
+        "SELECT id, name, protocol, status, type, rack_count, manufacturer, model, poll_interval_ms, connection, last_seen, created_at FROM devices ORDER BY created_at",
       );
       return reply.send({ devices: rows });
     } catch (error) {

@@ -4,20 +4,22 @@ import * as S from "./RacksPage.styles";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useRacksData } from "../features/racks/hooks/useRacksData";
 import { useSystemTelemetry } from "../features/system-charts/hooks/useSystemTelemetry";
+import { useEventAnnotations } from "../hooks/useEventAnnotations";
 
 const TELEMETRY_NAMES = [
+  "SOC",
+  "SOH",
   "Voltage",
   "Current",
-  "Power",
-  "SoC",
+  "ChargePower",
   "Temperature",
-  "SoH",
 ];
 
 export const RacksPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
   const { racks, isLoading } = useRacksData(chargeStatus);
   const systemTelemetry = useSystemTelemetry();
+  const eventAnnotations = useEventAnnotations(systemTelemetry.range);
 
   if (isLoading) {
     return (
@@ -33,7 +35,7 @@ export const RacksPage: React.FC = () => {
       <S.RackGrid>
         {racks.map((rack) => (
           <RackCard
-            key={rack.id}
+            key={`${rack.deviceId}-${rack.id}`}
             {...rack}
             charge_status={chargeStatus}
             onDetailClick={() => console.log("Detay:", rack.name, rack.id)}
@@ -46,7 +48,11 @@ export const RacksPage: React.FC = () => {
         title="Tüm Rack'ler - Tarihsel Veriler"
         yAxisLabel="Değer"
         height={550}
-        tagFilters={[{ tagKey: "rack_id", label: "Rack Numarası" }]}
+        tagFilters={[
+          { tagKey: "deviceId", label: "Cihaz" },
+          { tagKey: "rack_id", label: "Rack Numarası" },
+        ]}
+        eventAnnotations={eventAnnotations}
       />
     </S.RacksPageContainer>
   );

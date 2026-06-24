@@ -44,18 +44,20 @@ export class UserRepository implements IUserRepository {
       )
     `);
 
-    const count = await this.db.queryOne<{ count: string }>(
-      "SELECT COUNT(*) as count FROM users",
+    await this.db.execute(
+      "CREATE INDEX IF NOT EXISTS idx_users_refresh_token ON users (refresh_token)",
     );
-    if (seeds && parseInt(count?.count ?? "0") === 0) {
+
+    if (seeds) {
       for (const seed of seeds) {
         const hash = await Bun.password.hash(seed.password);
         await this.db.execute(
-          "INSERT INTO users (username, password_hash, role, name) VALUES ($1, $2, $3, $4)",
+          `INSERT INTO users (username, password_hash, role, name)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (username) DO NOTHING`,
           [seed.username, hash, seed.role, seed.name],
         );
       }
-      console.log(`[UserRepository] ${seeds.length} varsayilan kullanici olusturuldu`);
     }
   }
 

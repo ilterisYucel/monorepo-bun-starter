@@ -6,10 +6,19 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
 import type { MultiLineChartProps } from "./MultiLineChart.types";
+import type { EventAnnotation } from "../../interfaces/event-annotations";
 import * as S from "./MultiLineChart.styles";
+
+const ANNOTATION_COLORS: Record<EventAnnotation["type"], string> = {
+  error: "#ef4444",
+  warning: "#f59e0b",
+  success: "#10b981",
+  info: "#3b82f6",
+};
 
 const formatTooltipTime = (timestamp: string): string => {
   const d = new Date(timestamp);
@@ -58,6 +67,7 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
   colors = S.DEFAULT_COLORS,
   showLegend = true,
   isLoading = false,
+  annotations,
 }) => {
   const sortedData = useMemo(() => {
     return [...data].sort((a, b) => {
@@ -68,7 +78,7 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
   const lines = useMemo(() => {
     if (data.length === 0) return [];
     const firstItem = data[0];
-    return Object.keys(firstItem as any).filter((key) => key !== "timestamp");
+    return Object.keys(firstItem as any).filter((key) => key !== "timestamp" && !key.startsWith("_"));
   }, [data]);
 
   const legendPayload = useMemo(
@@ -162,18 +172,34 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
   }, [sortedData]);
 
   const tooltipContent: React.FC<any> = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
+    if (!active) return null;
+    const matchingEvents = annotations?.filter((a) => a.timestamp === label) ?? [];
+    if (!payload?.length && matchingEvents.length === 0) return null;
     return (
       <S.TooltipWrapper>
         <S.TooltipTimestamp>{formatTooltipTime(label)}</S.TooltipTimestamp>
-        <S.TooltipDivider />
-        {payload.map((entry: any) => (
-          <S.TooltipRow key={entry.dataKey}>
-            <S.TooltipColorDot style={{ background: entry.color }} />
-            <S.TooltipName>{entry.name}</S.TooltipName>
-            <S.TooltipValue>{formatTooltipVal(entry.value)}</S.TooltipValue>
-          </S.TooltipRow>
-        ))}
+        {payload?.length > 0 && (
+          <>
+            <S.TooltipDivider />
+            {payload.map((entry: any) => (
+              <S.TooltipRow key={entry.dataKey}>
+                <S.TooltipColorDot style={{ background: entry.color }} />
+                <S.TooltipName>{entry.name}</S.TooltipName>
+                <S.TooltipValue>{formatTooltipVal(entry.value)}</S.TooltipValue>
+              </S.TooltipRow>
+            ))}
+          </>
+        )}
+        {matchingEvents.length > 0 && (
+          <>
+            <S.TooltipDivider />
+            {matchingEvents.map((e) => (
+              <S.TooltipEvent key={e.message} color={ANNOTATION_COLORS[e.type]}>
+                {e.type.toUpperCase()}: {e.message}
+              </S.TooltipEvent>
+            ))}
+          </>
+        )}
       </S.TooltipWrapper>
     );
   };
@@ -226,6 +252,15 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
             }
           />
           <Tooltip content={tooltipContent} />
+          {annotations?.map((a) => (
+            <ReferenceLine
+              key={`${a.timestamp}-${a.message}`}
+              x={a.timestamp}
+              stroke={ANNOTATION_COLORS[a.type]}
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+            />
+          ))}
           {lines.map((line, index) => (
             <Line
               key={line}
@@ -239,6 +274,17 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
               name={line}
             />
           ))}
+          {annotations && annotations.length > 0 && (
+            <Line
+              dataKey="_annotations"
+              stroke="transparent"
+              strokeWidth={0}
+              dot={{ r: 3, fill: "#9ca3af", stroke: "#1a1a2e", strokeWidth: 1 }}
+              activeDot={{ r: 5, fill: "#f3f4f6", stroke: "#1a1a2e", strokeWidth: 1.5 }}
+              isAnimationActive={false}
+              name=""
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
       {showLegend && legendPayload.length > 0 && (

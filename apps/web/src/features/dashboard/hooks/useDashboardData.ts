@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../../../lib/api-client";
 import { useDevicesStore } from "../../../stores/devicesStore";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
+import type { DeviceInfo } from "../../../features/devices/types/device";
 
 interface LatestResponse {
   telemetries: TelemetryData[];
@@ -11,6 +12,7 @@ interface LatestResponse {
 
 export interface Rack {
   id: number;
+  deviceId: string;
   name: string;
   status: "online" | "offline";
   charge_status: "Charge" | "Discharge" | "Idle";
@@ -33,42 +35,47 @@ export interface Averages {
 const telemetriesToRacks = (
   telemetries: TelemetryData[],
   globalChargeStatus: "Charge" | "Discharge" | "Idle",
-  rackCount: number = 16,
+  bscDevices: DeviceInfo[],
 ): Rack[] => {
-  const rackMap = new Map<number, Rack>();
+  const rackMap = new Map<string, Rack>();
 
-  for (let i = 1; i <= rackCount; i++) {
-    rackMap.set(i, {
-      id: i,
-      name: `Battery Rack ${i}`,
-      status: "offline",
-      charge_status: globalChargeStatus,
-      soc: null,
-      soh: null,
-      voltage: null,
-      current: null,
-      power_kw: null,
-      temperature: null,
-    });
+  for (const device of bscDevices) {
+    for (let i = 1; i <= (device.rack_count ?? 0); i++) {
+      const key = `${device.id}-${i}`;
+      rackMap.set(key, {
+        id: i,
+        deviceId: device.id,
+        name: `${device.id} Rack ${i}`,
+        status: "offline",
+        charge_status: globalChargeStatus,
+        soc: null,
+        soh: null,
+        voltage: null,
+        current: null,
+        power_kw: null,
+        temperature: null,
+      });
+    }
   }
 
   for (const telemetry of telemetries) {
-    const rackId = telemetry.tags?.rack_id;
-    if (!rackId) continue;
+    const raw = telemetry.tags?.rack_id;
+    if (!raw || raw === "system") continue;
+    const rackId = parseInt(raw, 10);
+    if (isNaN(rackId)) continue;
 
-    const rack = rackMap.get(parseInt(rackId));
+    const key = `${telemetry.deviceId}-${rackId}`;
+    const rack = rackMap.get(key);
     if (!rack) continue;
 
-    const name = telemetry.name.replace(/\s+R\d+$/, "");
-
-    switch (name) {
+    switch (telemetry.name) {
       case "Status":
         rack.status = telemetry.value === 1 ? "online" : "offline";
         break;
-      case "SoC":
+      case "SOC":
         rack.soc = telemetry.value as number;
         break;
-      case "SoH":
+      case "SOH":
         rack.soh = telemetry.value as number;
         break;
       case "Voltage":
@@ -77,62 +84,50 @@ const telemetriesToRacks = (
       case "Current":
         rack.current = telemetry.value as number;
         break;
-      case "Power":
+      case "ChargePower":
         rack.power_kw = telemetry.value as number;
         break;
-      case "Temperature":
-        rack.temperature = telemetry.value as number;
+      case "Temperature": {
+        const agg = telemetry.tags?.aggregation;
+        if (!agg || agg === "avg") {
+          rack.temperature = telemetry.value as number;
+        }
         break;
-      case "ChargeStatus":
-        rack.charge_status =
-          telemetry.value === 1
-            ? "Charge"
-            : telemetry.value === 2
-              ? "Discharge"
-              : "Idle";
-        break;
-      case "Rack SOC":
-        rack.soc = telemetry.value as number;
-        break;
-      case "Rack SOH":
-        rack.soh = telemetry.value as number;
-        break;
-      case "Rack Cell Sum Voltage":
-        rack.voltage = telemetry.value as number;
-        break;
-      case "Rack Current":
-        rack.current = telemetry.value as number;
-        break;
-      case "Rack Max Pack Temp":
-        rack.temperature = telemetry.value as number;
-        break;
+      }
     }
   }
 
   return Array.from(rackMap.values());
 };
 
-const calculateAverages = (racks: Rack[]): Averages => {
-  const validRacks = racks.filter((r) => r.status === "online");
-  if (validRacks.length === 0) {
-    return { avgSoC: 0, avgSoH: 0, avgVoltage: 0, avgCurrent: 0, avgPower: 0 };
+const extractSystemLevel = (
+  telemetries: TelemetryData[],
+): Averages => {
+  const result: Averages = { avgSoC: 0, avgSoH: 0, avgVoltage: 0, avgCurrent: 0, avgPower: 0 };
+
+  for (const t of telemetries) {
+    if (t.tags?.rack_id !== "system") continue;
+
+    switch (t.name) {
+      case "SOC":
+        if (!t.tags?.aggregation) result.avgSoC = t.value as number;
+        break;
+      case "SOH":
+        if (!t.tags?.aggregation) result.avgSoH = t.value as number;
+        break;
+      case "Voltage":
+        if (!t.tags?.aggregation) result.avgVoltage = t.value as number;
+        break;
+      case "Current":
+        if (!t.tags?.aggregation) result.avgCurrent = t.value as number;
+        break;
+      case "ChargePower":
+        result.avgPower = t.value as number;
+        break;
+    }
   }
 
-  return {
-    avgSoC:
-      validRacks.reduce((sum, r) => sum + (r.soc || 0), 0) / validRacks.length,
-    avgSoH:
-      validRacks.reduce((sum, r) => sum + (r.soh || 0), 0) / validRacks.length,
-    avgVoltage:
-      validRacks.reduce((sum, r) => sum + (r.voltage || 0), 0) /
-      validRacks.length,
-    avgCurrent:
-      validRacks.reduce((sum, r) => sum + (r.current || 0), 0) /
-      validRacks.length,
-    avgPower:
-      validRacks.reduce((sum, r) => sum + (r.power_kw || 0), 0) /
-      validRacks.length,
-  };
+  return result;
 };
 
 export const DASHBOARD_QUERY_KEY = ["dashboard"];
@@ -141,28 +136,28 @@ export const useDashboardData = (
   chargeStatus: "Charge" | "Discharge" | "Idle",
 ) => {
   const devices = useDevicesStore((s) => s.devices);
-  const totalRacks = useMemo(() => {
-    const bsc = devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-"));
-    return bsc.reduce((s, d) => s + (d.rack_count ?? 8), 0);
-  }, [devices]);
+  const bscDevices = useMemo(
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack"),
+    [devices],
+  );
 
   const {
     data: telemetries = [],
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: DASHBOARD_QUERY_KEY,
+    queryKey: [...DASHBOARD_QUERY_KEY, bscDevices.map(d => d.id)],
     queryFn: async () => {
       const response = await apiClient.get<LatestResponse>(
-        "/unified/racks/latest",
+        `/unified/telemetry/latest?deviceIds=${bscDevices.map(d => d.id).join(",")}`,
       );
       return response.data.telemetries || [];
     },
     refetchInterval: 5000,
   });
 
-  const racks = telemetriesToRacks(telemetries, chargeStatus, totalRacks || 16);
-  const averages = calculateAverages(racks);
+  const racks = telemetriesToRacks(telemetries, chargeStatus, bscDevices);
+  const averages = extractSystemLevel(telemetries);
 
   return { racks, averages, isLoading, refetch };
 };

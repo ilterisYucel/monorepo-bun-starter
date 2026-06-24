@@ -1,5 +1,6 @@
 // packages/ui/src/components/TelemetryChart/types.ts
 import type { TelemetryProvider } from "../../interfaces/telemetry-provider";
+import type { EventAnnotationsProvider } from "../../interfaces/event-annotations";
 
 export interface TagFilterConfig {
   /** Verinin tags objesindeki anahtar (örn: "rackId", "deviceId") */
@@ -32,4 +33,7 @@ export interface TelemetryChartProps {
 
   /** Tag bazlı filtreleme seçenekleri (client-side). Her config bir dropdown oluşturur */
   tagFilters?: TagFilterConfig[];
+
+  /** Olay/arıza anotasyonları (opsiyonel). Verilmezse checkbox'lar gösterilmez */
+  eventAnnotations?: EventAnnotationsProvider;
 }

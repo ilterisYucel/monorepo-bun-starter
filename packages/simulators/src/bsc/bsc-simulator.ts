@@ -151,8 +151,8 @@ export class BSCSimulator {
     writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE_ANTICIPATED, 0);
     writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE, 0);
     writeSint32(this.inputRegisters, SYSTEM_SUMMARY.DC_CURRENT, 0);
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 50000);
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 50000);
+    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
+    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
 
     // Summary stats defaults
     for (const [k, addr] of Object.entries(SUMMARY_STATS)) {
@@ -346,9 +346,15 @@ export class BSCSimulator {
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE_ANTICIPATED, 0);
     }
 
-    // Power limits
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 50000);
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 50000);
+    // Power limits — 0 when idle, non-zero only when charging
+    const sysCmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+    if (sysCmd === COMMAND.START) {
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 50000);
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
+    } else {
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
+    }
 
     // Summary stats
     this.inputRegisters.set(SUMMARY_STATS.MAX_SOC, avgSocPct);
@@ -450,9 +456,15 @@ export class BSCSimulator {
       this.inputRegisters.set(sBase + RS.SOC, Math.round(soc * 100));
       this.inputRegisters.set(sBase + RS.SOH, Math.round(99 * 100));
 
-      // Power limits
-      writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 72641);
-      writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 72641);
+      // Power limits — 0 when idle, non-zero only when charging
+      const rackCmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+      if (rackCmd === COMMAND.START) {
+        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 72641);
+        writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 0);
+      } else {
+        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 0);
+        writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 0);
+      }
 
       // Cell sum voltage (V * 10000)
       writeUint32(this.inputRegisters, sBase + RS.CELL_SUM_VOLTAGE, Math.round(voltage * 10000));

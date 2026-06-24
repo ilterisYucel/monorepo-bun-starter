@@ -1,7 +1,9 @@
 // apps/web/src/features/hvac/hooks/useHvacData.ts
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { hvacApi } from "../services/hvacApi";
 import { telemetriesToHvacUnits } from "../utils/hvacHelpers";
+import { useDevicesStore } from "../../../stores/devicesStore";
 import type { HvacAverages } from "../types/hvac";
 
 export const HVAC_QUERY_KEY = ["hvac"];
@@ -27,9 +29,15 @@ function calculateAverages(
 }
 
 export const useHvacData = () => {
+  const devices = useDevicesStore((s) => s.devices);
+  const hvacIds = useMemo(
+    () => devices.filter((d) => d.type === "hvac").map((d) => d.id),
+    [devices],
+  );
+
   const { data: telemetries = [], isLoading, refetch } = useQuery({
-    queryKey: HVAC_QUERY_KEY,
-    queryFn: hvacApi.getLatestAll,
+    queryKey: [...HVAC_QUERY_KEY, hvacIds],
+    queryFn: () => hvacApi.getLatest(hvacIds),
     refetchInterval: 5000,
   });
 

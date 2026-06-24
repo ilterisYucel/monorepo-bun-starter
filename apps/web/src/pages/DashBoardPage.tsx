@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   DeviceGauges,
   BSC,
@@ -9,8 +9,8 @@ import {
 import type { RoomData, BSCUnit } from "@gd-monorepo/ui";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
-import { useHvacData } from "../features/hvac";
-import { hvacUnitsToTmsProps } from "../features/hvac";
+import { useHvacData, hvacUnitsToTmsProps } from "../features/hvac";
+import type { HvacUnit } from "../features/hvac";
 import { useDevicesStore } from "../stores/devicesStore";
 import * as S from "./DashboardPage.styles";
 import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
@@ -28,7 +28,7 @@ export const DashboardPage: React.FC = () => {
   const { units: hvacUnits, averages: hvacAvg } = useHvacData();
   const devices = useDevicesStore((s) => s.devices);
   const bscDevices = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")),
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack"),
     [devices],
   );
 
@@ -53,7 +53,7 @@ export const DashboardPage: React.FC = () => {
     [hvacUnits],
   );
 
-  const gauges = [
+  const gauges = useMemo(() => [
     {
       value: averages.avgSoC,
       label: "SoC",
@@ -94,32 +94,52 @@ export const DashboardPage: React.FC = () => {
       max: 200,
       icon: <BoltIcon size={18} />,
     },
-  ];
+  ], [averages]);
 
-  const tmsGauges = hvacUnits.map((unit, i) => ({
-    value: unit.currentTemp ?? 0,
-    label: `HVAC ${unit.id}`,
-    unit: "°C",
-    min: 0,
-    max: 50,
-    icon: <TempIcon size={18} />,
-  }));
-  if (tmsProps) {
-    tmsGauges.push({
-      value: tmsProps.panel_temp,
-      label: "Panel",
-      unit: "°C",
-      min: 0,
-      max: 50,
-      icon: <TempIcon size={18} />,
-    });
-  }
+  const tmsGauges = useMemo(() => {
+    const roomMap = new Map<string, HvacUnit[]>();
+    for (const u of hvacUnits) {
+      const list = roomMap.get(u.room) ?? [];
+      list.push(u);
+      roomMap.set(u.room, list);
+    }
+    const gauges = Array.from(roomMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([room, units]) => {
+        const temps = units
+          .filter((u) => u.currentTemp !== null)
+          .map((u) => u.currentTemp as number);
+        const avg =
+          temps.length > 0
+            ? Math.round((temps.reduce((s, t) => s + t, 0) / temps.length) * 10) / 10
+            : 0;
+        return {
+          value: avg,
+          label: room,
+          unit: "°C",
+          min: 0,
+          max: 50,
+          icon: <TempIcon size={18} />,
+        };
+      });
+    if (tmsProps) {
+      gauges.push({
+        value: tmsProps.panel_temp,
+        label: "Panel",
+        unit: "°C",
+        min: 0,
+        max: 50,
+        icon: <TempIcon size={18} />,
+      });
+    }
+    return gauges;
+  }, [hvacUnits, tmsProps]);
 
-  const handleRackClick = (rackId: number) => {
+  const handleRackClick = useCallback((rackId: number) => {
     console.log("Rack clicked:", rackId);
-  };
+  }, []);
 
-  const handleBreakerToggle = (
+  const handleBreakerToggle = useCallback((
     bscIndex: number,
     position: "open" | "close",
   ) => {
@@ -129,30 +149,20 @@ export const DashboardPage: React.FC = () => {
       next[bscIndex] = position;
       return next;
     });
-  };
+  }, []);
 
   const bscUnits: BSCUnit[] = useMemo(() => {
-    const offsets = bscDevices.reduce<number[]>((acc, d, i) => {
-      acc.push(
-        i === 0 ? 0 : acc[i - 1]! + (bscDevices[i - 1]!.rack_count ?? 8),
-      );
-      return acc;
-    }, []);
-
-    return bscDevices.map((device, idx) => {
-      const rackCount = device.rack_count ?? 8;
-      return {
-        deviceId: device.id,
-        racks: racks.slice(offsets[idx]!, offsets[idx]! + rackCount),
-        breakerStatus: breakerStatuses[idx] ?? "online",
-        breakerPosition: breakerPositions[idx] ?? "close",
-        dcOutput: dcOutputs[idx] ?? {
-          status: "online" as const,
-          voltage: 398,
-          current: 75,
-        },
-      };
-    });
+    return bscDevices.map((device, idx) => ({
+      deviceId: device.id,
+      racks: racks.filter((r) => r.deviceId === device.id),
+      breakerStatus: breakerStatuses[idx] ?? "online",
+      breakerPosition: breakerPositions[idx] ?? "close",
+      dcOutput: dcOutputs[idx] ?? {
+        status: "online" as const,
+        voltage: 398,
+        current: 75,
+      },
+    }));
   }, [bscDevices, racks, breakerStatuses, breakerPositions, dcOutputs]);
 
   if (isLoading) {

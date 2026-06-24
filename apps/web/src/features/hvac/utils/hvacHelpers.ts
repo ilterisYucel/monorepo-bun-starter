@@ -17,10 +17,11 @@ const defaultAlarms = (): HvacAlarms => ({
   evaporatorFault: false,
 });
 
-function defaultUnit(id: number, deviceId: string): HvacUnit {
+function defaultUnit(id: number, deviceId: string, room: string): HvacUnit {
   return {
     id,
     deviceId,
+    room,
     name: `HVAC Unit ${id}`,
     status: "standby",
     currentTemp: null,
@@ -65,7 +66,8 @@ export function telemetriesToHvacUnits(
     if (!unitId || isNaN(unitId)) continue;
 
     if (!unitMap.has(unitId)) {
-      unitMap.set(unitId, defaultUnit(unitId, t.deviceId));
+      const room = (t.tags?.room as string) ?? "unknown";
+      unitMap.set(unitId, defaultUnit(unitId, t.deviceId, room));
     }
     const unit = unitMap.get(unitId)!;
 

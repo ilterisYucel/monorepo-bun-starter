@@ -21,23 +21,43 @@ function deriveHvacMode(unit: HvacUnit): HvacData["mode"] {
   return "idle";
 }
 
-const emptyHvac: HvacData = { status: "offline", mode: "idle" };
+function unitToHvacData(unit: HvacUnit): HvacData {
+  return {
+    status: unit.status === "running" ? "online" : "offline",
+    mode: deriveHvacMode(unit),
+  };
+}
 
 export function hvacUnitsToTmsProps(units: HvacUnit[]): {
   rooms: RoomData[];
   panel_temp: number;
   status: "online" | "offline";
 } {
-  const rooms: RoomData[] = units.map((unit) => ({
-    temp: unit.currentTemp ?? 22,
-    hvacs: [
-      {
-        status: unit.status === "running" ? "online" : "offline",
-        mode: deriveHvacMode(unit),
-      },
-      emptyHvac,
-    ],
-  }));
+  const roomMap = new Map<string, HvacUnit[]>();
+  for (const u of units) {
+    const list = roomMap.get(u.room) ?? [];
+    list.push(u);
+    roomMap.set(u.room, list);
+  }
+
+  const rooms: RoomData[] = [];
+  for (const [, roomUnits] of roomMap) {
+    const sorted = roomUnits.sort((a, b) => a.id - b.id);
+    const hvacs = sorted.slice(0, 2).map(unitToHvacData);
+    while (hvacs.length < 2) {
+      hvacs.push({ status: "offline", mode: "idle" });
+    }
+    const avgTemp =
+      sorted
+        .filter((u) => u.currentTemp !== null)
+        .reduce((s, u) => s + (u.currentTemp as number), 0) /
+        sorted.length || 22;
+
+    rooms.push({
+      temp: Math.round(avgTemp * 10) / 10,
+      hvacs: hvacs as [HvacData, HvacData],
+    });
+  }
 
   const running = units.filter((u) => u.status === "running");
   const panelTemp =

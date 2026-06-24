@@ -9,18 +9,18 @@ export const RACKS_QUERY_KEY = ["racks"];
 
 export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
   const devices = useDevicesStore((s) => s.devices);
-  const totalRacks = useMemo(() => {
-    const bsc = devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-"));
-    return bsc.reduce((s, d) => s + (d.rack_count ?? 8), 0);
-  }, [devices]);
+  const bscDevices = useMemo(
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack"),
+    [devices],
+  );
 
   const { data: telemetries = [], isLoading, refetch } = useQuery({
-    queryKey: RACKS_QUERY_KEY,
-    queryFn: racksApi.getLatest,
+    queryKey: [...RACKS_QUERY_KEY, bscDevices.map(d => d.id)],
+    queryFn: () => racksApi.getLatest(bscDevices.map(d => d.id)),
     refetchInterval: 5000,
   });
 
-  const racks = telemetriesToRacks(telemetries, chargeStatus, totalRacks || 16);
+  const racks = telemetriesToRacks(telemetries, chargeStatus, bscDevices);
 
   return { racks, isLoading, refetch };
 };

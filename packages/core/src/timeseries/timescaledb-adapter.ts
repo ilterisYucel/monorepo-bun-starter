@@ -64,6 +64,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       SELECT create_hypertable('${tableName}', 'timestamp', if_not_exists => TRUE);
       CREATE INDEX IF NOT EXISTS idx_${tableName}_name ON ${tableName} (name, timestamp DESC);
       CREATE INDEX IF NOT EXISTS idx_${tableName}_timestamp ON ${tableName} (timestamp DESC);
+      CREATE INDEX IF NOT EXISTS idx_${tableName}_tags ON ${tableName} USING GIN (tags jsonb_path_ops);
     `;
 
     await this.pool.query(query);
@@ -298,6 +299,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const tableName = this.getTableName(deviceId);
     await this.pool.query(`DROP TABLE IF EXISTS ${tableName}`);
     this.tableCache.delete(tableName);
+    this.nameUnitCache.delete(deviceId);
   }
 
   async close(): Promise<void> {
@@ -364,6 +366,8 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
   ): Promise<TelemetryData[]> {
     const { from, to, points = 120, deviceId, names, tags } = options;
 
+    await this.ensureTableExists(deviceId);
+
     const totalSeconds = (to.getTime() - from.getTime()) / 1000;
     const bucketSeconds = Math.max(1, Math.floor(totalSeconds / points));
     const bucketInterval = this.getBucketInterval(bucketSeconds);
@@ -395,10 +399,14 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       `timestamp >= '${from.toISOString()}'`,
       `timestamp <= '${to.toISOString()}'`,
     ];
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (tags) {
       for (const [key, value] of Object.entries(tags)) {
-        whereConditions.push(`tags->>'${key}' = '${value}'`);
+        whereConditions.push(`tags->>'${key}' = $${paramIndex}`);
+        params.push(value);
+        paramIndex++;
       }
     }
 
@@ -417,7 +425,9 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     console.log(`[TimescaleDB] Query: ${query.substring(0, 500)}...`);
 
-    const result = await this.pool.query(query);
+    const result = params.length > 0
+      ? await this.pool.query(query, params)
+      : await this.pool.query(query);
 
     if (result.rows.length === 0) {
       console.log("[TimescaleDB] No data found in time range");
