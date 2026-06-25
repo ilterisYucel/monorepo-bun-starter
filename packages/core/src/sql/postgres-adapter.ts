@@ -3,16 +3,9 @@
 import { Pool } from "pg";
 import type { PoolClient } from "pg";
 import type { ISqlDatabase } from "./interface";
+import type { PostgresConfig } from "@gd-monorepo/shared-types";
 
-export interface PostgresConfig {
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-  database: string;
-  ssl?: boolean;
-  maxConnections?: number;
-}
+export type { PostgresConfig };
 
 export class PostgresAdapter implements ISqlDatabase {
   private pool: Pool | undefined;

@@ -7077,7 +7077,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 1,
@@ -7088,7 +7089,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7099,12 +7101,13 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         },
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "Charge Status",
+          "name": "ChargeStatus",
           "dataTag": "charge_status",
           "description": "Charge Status",
           "unit": "-",
@@ -7171,7 +7174,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 1,
@@ -7182,7 +7186,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7193,7 +7198,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         }
       ]
     },
@@ -7210,7 +7216,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 13,
@@ -7221,7 +7228,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 14,
@@ -7232,7 +7240,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         },
         {
           "bitStart": 0,
@@ -7243,7 +7252,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 1,
@@ -7254,7 +7264,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7265,7 +7276,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         }
       ]
     },
@@ -7282,7 +7294,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 7,
@@ -7293,7 +7306,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 8,
@@ -7304,7 +7318,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -7315,7 +7330,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 4,
@@ -7326,7 +7342,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "error"
         },
         {
           "bitStart": 5,
@@ -7337,7 +7354,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         },
         {
           "bitStart": 9,
@@ -7348,7 +7366,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 10,
@@ -7359,7 +7378,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 11,
@@ -7370,7 +7390,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         }
       ]
     },
@@ -7421,7 +7442,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm"
+          "alarmLimit": "Alarm",
+          "logType": "error"
         },
         {
           "bitStart": 1,
@@ -7432,7 +7454,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning"
+          "alarmLimit": "Warning",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7443,7 +7466,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault"
+          "alarmLimit": "Fault",
+          "logType": "error"
         }
       ]
     },
@@ -7505,7 +7529,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7516,7 +7541,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -7584,7 +7610,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30222,
@@ -7667,7 +7696,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30421,
@@ -7693,7 +7725,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7704,7 +7737,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -7772,7 +7806,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30422,
@@ -7855,7 +7892,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30621,
@@ -7881,7 +7921,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -7892,7 +7933,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -7960,7 +8002,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30622,
@@ -8043,7 +8088,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30821,
@@ -8069,7 +8117,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -8080,7 +8129,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -8148,7 +8198,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30822,
@@ -8231,7 +8284,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 31021,
@@ -8257,7 +8313,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -8268,7 +8325,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -8336,7 +8394,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 31022,
@@ -8419,7 +8480,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 31221,
@@ -8445,7 +8509,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -8456,7 +8521,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -8524,7 +8590,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 31222,
@@ -8607,7 +8676,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 31421,
@@ -8633,7 +8705,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -8644,7 +8717,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -8712,7 +8786,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31422,
@@ -8795,7 +8872,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31621,
@@ -8821,7 +8901,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "warning"
         },
         {
           "bitStart": 2,
@@ -8832,7 +8913,8 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "",
+          "logType": "error"
         },
         {
           "bitStart": 3,
@@ -8900,7 +8982,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31622,
@@ -8983,7 +9068,10 @@
           "offset": 0,
           "alarmLimit": ""
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     }
   ],
   "pollIntervalMs": 1000,

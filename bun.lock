@@ -175,6 +175,9 @@
     "packages/shared-types": {
       "name": "@gd-monorepo/shared-types",
       "version": "1.0.0",
+      "dependencies": {
+        "zod": "^3.25.0",
+      },
     },
     "packages/shared-utils": {
       "name": "@gd-monorepo/shared-utils",
@@ -204,6 +207,7 @@
         "pixi.js": "^8.19.0",
         "react-icons": "^5.6.0",
         "recharts": "^3.8.1",
+        "uplot": "^1.6.32",
       },
       "devDependencies": {
         "@emotion/babel-plugin": "^11.13.5",
@@ -2644,6 +2648,8 @@
     "upath": ["upath@2.0.1", "", {}, "sha512-1uEe95xksV1O0CYKXo8vQvN1JEbtJp7lb7C5U9HMsIp6IVwntkH/oNUzyVNQSd4S1sYk2FpSSW44FqMc8qee5w=="],
 
     "update-browserslist-db": ["update-browserslist-db@1.2.3", "", { "dependencies": { "escalade": "^3.2.0", "picocolors": "^1.1.1" }, "peerDependencies": { "browserslist": ">= 4.21.0" }, "bin": { "update-browserslist-db": "cli.js" } }, "sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w=="],
+
+    "uplot": ["uplot@1.6.32", "", {}, "sha512-KIMVnG68zvu5XXUbC4LQEPnhwOxBuLyW1AHtpm6IKTXImkbLgkMy+jabjLgSLMasNuGGzQm/ep3tOkyTxpiQIw=="],
 
     "uri-js": ["uri-js@4.4.1", "", { "dependencies": { "punycode": "^2.1.0" } }, "sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg=="],
 

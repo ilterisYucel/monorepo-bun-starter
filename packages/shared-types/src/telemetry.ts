@@ -30,6 +30,8 @@ export interface BaseTelemetryData {
   deviceId: string;
   // rack_id, sensor_id, vs.
   tags?: Record<string, string>;
+  /** Bu telemetry değeri sistem log kaydı olarak da yazılsın mı? (bitfield alarm/warning/error için) */
+  logType?: "error" | "warning" | "info";
 }
 
 // ============================================
@@ -239,6 +241,10 @@ export interface BitfieldField {
   offset?: number;
   /** Alarm seviyesi (opsiyonel) */
   alarmLimit?: string;
+  /** Bu bitfield değeri sistem log kaydı olarak da yazılsın mı? */
+  logType?: "error" | "warning" | "info";
+  /** TelemetryData.tags'a eklenecek etiketler (örn: { rack_id: "3" }) */
+  tags?: Record<string, string>;
 }
 
 /**
@@ -253,6 +259,8 @@ export interface BitfieldConfig {
   registerType: "INPUT_REGISTER" | "HOLDING_REGISTER";
   /** Bu register içindeki bit alanları */
   fields: BitfieldField[];
+  /** Bu register'daki tüm field'lara eklenecek etiketler (örn: { rack_id: "3" }) */
+  tags?: Record<string, string>;
 }
 
 // ============================================

@@ -61,7 +61,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       await controlApi.setPower("Idle", 0, 0);
       addLog({
         type: "success",
-        source: "command",
+        source: "user",
         message: "DURDUR komutu gönderildi. Tüm rack'ler durduruldu.",
       });
       setActiveCommand(null);
@@ -69,7 +69,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     } catch (error) {
       addLog({
         type: "error",
-        source: "command",
+        source: "user",
         message: "DURDUR komutu gönderilemedi!",
       });
     } finally {
@@ -110,7 +110,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         addLog({
           type: "success",
-          source: "command",
+          source: "user",
           message: `${chargeStatus === "Charge" ? "ŞARJ" : "DEŞARJ"} komutu gönderildi. Güç: ${powerKw} kW${operationMode === "TIMER" ? `, Süre: ${durationSeconds} sn` : " (Sürekli mod)"}`,
         });
 
@@ -124,7 +124,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       } catch (error) {
         addLog({
           type: "error",
-          source: "command",
+          source: "user",
           message: `${chargeStatus === "Charge" ? "ŞARJ" : "DEŞARJ"} komutu gönderilemedi! Güç: ${powerKw} kW`,
         });
       } finally {

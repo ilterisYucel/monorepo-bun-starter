@@ -13,5 +13,8 @@
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
     "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^3.25.0"
   }
 }

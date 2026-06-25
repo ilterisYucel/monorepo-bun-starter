@@ -25,7 +25,7 @@ export const useChargeStatus = () => {
         `/unified/telemetry/latest?deviceIds=${bscIds.join(",")}`,
       );
       const chargeStatusTelemetry = response.data.telemetries.find(
-        (t) => t.name === "ChargeStatus" && t.tags?.rack_id === "system",
+        (t) => t.name === "ChargeStatus",
       );
       const value = chargeStatusTelemetry?.value;
       if (value === 1) return "Charge";

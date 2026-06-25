@@ -84,7 +84,7 @@ graph TD
     WEB["web<br/>React frontend"]
     DT["desktop<br/>Electron"]
 
-    ST --> SU
+    SU --> ST
     ST --> CORE
     ST --> SIM
     ST --> UI
@@ -105,12 +105,13 @@ graph TD
 ### Build Order (Nx `^build`)
 
 ```
-Level 0:  shared-types                          (leaf — no deps)
-Level 1:  shared-utils, core, simulators         (depend on shared-types)
-Level 2:  ui                                     (depends on shared-types)
+Level 0:  shared-types                                    (leaf — no deps)
+Level 1:  shared-utils, core, simulators                   (depend on shared-types)
+Level 2:  ui                                               (depends on shared-types)
 Level 3:  data-service, device-service,
-          web-service, demo-backend              (depend on core + shared-types)
-Level 4:  web, desktop                           (depend on shared-types, ui)
+          web-service, demo-backend                        (depend on core + shared-types;
+                                                           device-service also on simulators)
+Level 4:  web, desktop                                     (depend on shared-types, shared-utils, ui)
 ```
 
 ## Package Inventory
@@ -119,7 +120,7 @@ Level 4:  web, desktop                           (depend on shared-types, ui)
 |---------|------|-------|-----------------|
 | `shared-types` | Library | Pure TS | — |
 | `shared-utils` | Library | Placeholder | — |
-| `core` | Library | Modbus, DB, MQ | `bullmq`, `pg`, `redis`, `jsmodbus` |
+| `core` | Library | Modbus, DB, MQ | `bullmq`, `pg`, `redis`, `jsmodbus` (CANbus/MQTT are stubs) |
 | `simulators` | Library | Device sims | BSC, HVAC, XRack models |
 | `ui` | Library | React components | `pixi.js`, `recharts`, `@emotion/*` |
 | `data-service` | Service | BullMQ consumer | `bullmq`, `pg` |
@@ -155,14 +156,12 @@ src/
 
 ## Device Configurations
 
-`configs/` is the master device config repository. Per-project copies go to `device-service/config/`.
+`configs/` is the device simulator config repository.
 
 ```
 configs/
-├── bsc-1.json       # BSC #1 — 8 racks, 399 telemetry entries, 25 bitfield configs
-├── bsc-2.json       # BSC #2 — 8 racks
-├── hvac-1..8.json   # HVAC #1–8 — 56 telemetry entries each
-└── service.json     # Redis + TimescaleDB connection, poll intervals
+├── bsc-simulator.json     # BSC simulator config — 8 racks, telemetry entries, bitfield configs
+└── hvac-simulator.json    # HVAC simulator config — telemetry entries
 ```
 
 ## Deployment
@@ -194,7 +193,7 @@ docker compose -f deployment/docker-compose.demo-backend.yml up -d
 
 | Service | Port |
 |---------|------|
-| `demo-backend` | 5000 |
+| `demo-backend` | 3000 (prod) / 5000 (dev) |
 | `web` | 80 |
 
 ## Quick Commands
@@ -203,12 +202,16 @@ docker compose -f deployment/docker-compose.demo-backend.yml up -d
 bun install                         # Install deps (Bun only)
 bun run dev                         # All apps in parallel (max 5)
 bun run dev:web                     # Web only (Vite, port 5173)
+bun run dev:desktop                 # Desktop only (Electron)
 nx run web-service:dev              # Web Service (Fastify, port 5001)
 nx run device-service:dev           # Device Service
 nx run data-service:dev             # Data Service
 nx run demo-backend:dev             # Demo Backend (port 5000)
 bun run build                       # Build all (Nx orders by ^build)
-nx graph                            # Dependency graph visualizer
+bun run build:web                   # Build Web only
+bun run build:desktop               # Build Desktop only
+bun run clean                       # Clean all build outputs
+bun run graph                       # Dependency graph visualizer
 nx run <proj>:<target>              # Run any Nx target
 ```
 

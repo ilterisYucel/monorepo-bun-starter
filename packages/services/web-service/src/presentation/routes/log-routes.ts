@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import type { LogSource, LogType } from "@gd-monorepo/shared-types";
 import { LogRepository } from "../../infrastructure/persistence/log-repository";
 
 export async function logRoutes(
@@ -19,8 +20,8 @@ export async function logRoutes(
       };
 
       const logs = await logRepo.query({
-        sources: source ? source.split(",").map((s) => s.trim()) : undefined,
-        types: type ? type.split(",").map((s) => s.trim()) : undefined,
+        sources: source ? source.split(",").map((s: string) => s.trim()) as LogSource[] : undefined,
+        types: type ? type.split(",").map((s: string) => s.trim()) as LogType[] : undefined,
         from,
         to,
         limit: limit ? parseInt(limit) : undefined,

@@ -2,31 +2,31 @@ import {
   RedisConnection,
   BullMQAdapter,
   TimescaleDBAdapter,
+  PostgresAdapter,
 } from "@gd-monorepo/core";
+import { validateOrThrow, redisConfigSchema, postgresConfigSchema } from "@gd-monorepo/shared-types";
+import type { PostgresConfig } from "@gd-monorepo/shared-types";
+import type { RedisConfig } from "@gd-monorepo/core";
 import { DataService } from "./src/data-service";
 
-function redisConfig() {
-  return {
+function redisConfig(): RedisConfig {
+  return validateOrThrow<RedisConfig>(redisConfigSchema, {
     host: process.env.REDIS_HOST ?? "127.0.0.1",
     port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
     password: process.env.REDIS_PASSWORD,
     db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : undefined,
-  };
+  }, "redisConfig");
 }
 
-function timescaleConfig() {
-  return {
+function postgresConfig(): PostgresConfig {
+  return validateOrThrow<PostgresConfig>(postgresConfigSchema, {
     host: process.env.TIMESCALE_HOST ?? "127.0.0.1",
     port: parseInt(process.env.TIMESCALE_PORT ?? "5432", 10),
     user: process.env.TIMESCALE_USER ?? "postgres",
     password: process.env.TIMESCALE_PASSWORD ?? "password",
     database: process.env.TIMESCALE_DATABASE ?? "battery",
     maxConnections: parseInt(process.env.TIMESCALE_POOL_SIZE ?? "20", 10),
-  };
-}
-
-function workerConcurrency(): number {
-  return parseInt(process.env.WORKER_CONCURRENCY ?? "5", 10);
+  }, "postgresConfig");
 }
 
 async function main() {
@@ -35,9 +35,24 @@ async function main() {
   const redis = new RedisConnection(redisConfig());
   const mq = new BullMQAdapter(redis);
 
-  const timescale = new TimescaleDBAdapter(timescaleConfig());
+  const pgConfig = postgresConfig();
+  const timescale = new TimescaleDBAdapter(pgConfig);
 
-  const service = new DataService(mq, timescale);
+  const postgres = new PostgresAdapter(pgConfig);
+  await postgres.connect();
+
+  await postgres.execute(`
+    CREATE TABLE IF NOT EXISTS system_logs (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      timestamp   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      type        VARCHAR(20) NOT NULL CHECK (type IN ('info', 'success', 'error', 'warning')),
+      source      VARCHAR(20) NOT NULL CHECK (source IN ('system', 'user')),
+      message     TEXT NOT NULL,
+      details     TEXT
+    )
+  `);
+
+  const service = new DataService(mq, timescale, postgres);
 
   let stopping = false;
   const shutdown = async (signal: string) => {

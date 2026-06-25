@@ -1,5 +1,5 @@
 import type { ChartDataPoint } from "../../types";
-import type { EventAnnotation } from "../../interfaces/event-annotations";
+import type { LogEntry } from "@gd-monorepo/shared-types";
 
 export interface MultiLineChartProps {
   data: ChartDataPoint[];
@@ -10,5 +10,5 @@ export interface MultiLineChartProps {
   colors?: string[];
   showLegend?: boolean;
   isLoading?: boolean;
-  annotations?: EventAnnotation[];
+  annotations?: LogEntry[];
 }

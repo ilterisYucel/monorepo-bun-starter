@@ -3,6 +3,7 @@ import { join, extname } from "path";
 import { parse as parseToml } from "smol-toml";
 import { parse as parseYaml } from "yaml";
 import type { DeviceConfigFile, ServiceConfigFile } from "@gd-monorepo/shared-types";
+import { validateOrThrow, deviceConfigFileSchema, serviceConfigFileSchema } from "@gd-monorepo/shared-types";
 
 interface LoadedConfig {
   service: ServiceConfigFile;
@@ -38,10 +39,10 @@ export class DeviceConfigLoader {
       const parsed = this.parseFile(content, ext);
 
       if (entry.startsWith("service.")) {
-        service = parsed as ServiceConfigFile;
+        service = validateOrThrow<ServiceConfigFile>(serviceConfigFileSchema, parsed, `Dosya: ${entry}`);
         console.log(`[DeviceConfigLoader] Global servis konfigurasyonu: ${entry}`);
       } else {
-        const deviceConfig = parsed as DeviceConfigFile;
+        const deviceConfig = validateOrThrow<DeviceConfigFile>(deviceConfigFileSchema, parsed, `Dosya: ${entry}`);
         devices.push(deviceConfig);
         console.log(`[DeviceConfigLoader] Cihaz konfigurasyonu: ${entry} -> ${deviceConfig.deviceId}`);
       }

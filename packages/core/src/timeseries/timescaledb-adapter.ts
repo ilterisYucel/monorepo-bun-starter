@@ -1,7 +1,7 @@
 // packages/core/src/timeseries/TimescaleDBAdapter.ts
 
 import { Pool } from "pg";
-import type { TelemetryData } from "@gd-monorepo/shared-types";
+import type { TelemetryData, PostgresConfig } from "@gd-monorepo/shared-types";
 import type {
   ITimeseriesDatabase,
   TimeSeriesQuery,
@@ -13,22 +13,14 @@ import type { PoolClient } from "pg";
 // import pLimit from "p-limit";
 // const limit = pLimit(50);
 
-export interface TimescaleDBConfig {
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-  database: string;
-  ssl?: boolean;
-  maxConnections?: number;
-}
+export type TimescaleDBConfig = PostgresConfig;
 
 export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private pool: Pool;
   private tableCache: Set<string> = new Set();
   private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
-  constructor(config: TimescaleDBConfig) {
+  constructor(config: PostgresConfig) {
     this.pool = new Pool({
       host: config.host,
       port: config.port,

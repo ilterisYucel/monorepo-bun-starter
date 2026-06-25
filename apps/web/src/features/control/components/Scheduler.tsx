@@ -67,7 +67,7 @@ export const Scheduler: React.FC = () => {
     setScheduledList([...scheduledList, newCommand]);
     addLog({
       type: "success",
-      source: "scheduler",
+      source: "user",
       message: `Zamanlanmış komut eklendi: ${selectedType === "Charge" ? "Şarj" : "Deşarj"} ${powerKw} kW, Tarih: ${formatDateTime(newCommand.datetime)}${operationMode === "TIMER" ? `, Süre: ${formatDuration(durationSeconds)}` : " (Sürekli)"}`,
     });
   }, [selectedDate, selectedType, powerKw, operationMode, durationSeconds, scheduledList, addLog]);
@@ -76,7 +76,7 @@ export const Scheduler: React.FC = () => {
     setScheduledList(scheduledList.filter((cmd) => cmd.id !== id));
     addLog({
       type: "info",
-      source: "scheduler",
+      source: "user",
       message: `Zamanlanmış komut silindi`,
     });
   }, [scheduledList, addLog]);

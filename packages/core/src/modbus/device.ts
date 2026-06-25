@@ -154,6 +154,8 @@ export class ModbusDevice implements IDevice {
           const offset = field.offset ?? 0;
           const value = raw * scale + offset;
 
+          const configTags: Record<string, string> = { dataTag: field.dataTag, ...(cfg.tags ?? {}), ...(field.tags ?? {}) };
+
           results.push({
             name: field.name,
             description: field.description,
@@ -161,7 +163,8 @@ export class ModbusDevice implements IDevice {
             unit: field.unit,
             timestamp: now,
             deviceId: this.config.id,
-            tags: { dataTag: field.dataTag },
+            tags: configTags,
+            ...(field.logType ? { logType: field.logType } : {}),
           });
         }
       }

@@ -36,6 +36,26 @@ export const HeaderTitleGroup = styled.div`
   min-width: 0;
 `;
 
+export const HeaderAnnotations = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+`;
+
+export const HeaderAnnotationGroup = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+`;
+
 export const HeaderTitle = styled.h3`
   margin: 0;
   color: #e5e7eb;

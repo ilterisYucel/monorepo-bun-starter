@@ -237,50 +237,9 @@ export class DeviceService {
 
     const data: TelemetryData[] = await entry.device.read();
     const bitfields = (await entry.device.readBitfields?.()) ?? [];
-    const synthesized = this.synthesizeTelemetry(entry, data);
-    const allData = [...data, ...synthesized, ...bitfields];
+    const allData = [...data, ...bitfields];
 
     await this.scheduler.publishTelemetry(job.deviceId, allData);
-  }
-
-  private synthesizeTelemetry(
-    entry: DeviceEntry,
-    data: TelemetryData[],
-  ): TelemetryData[] {
-    if (entry.protocol !== "MODBUS") return [];
-
-    const results: TelemetryData[] = [];
-
-    for (const t of data) {
-      if (t.name !== "State") continue;
-
-      const rackId = t.tags?.rack_id;
-      if (rackId === "system" && typeof t.value === "number") {
-        const bits = (t.value >> 4) & 0b11;
-        const chargeValue = bits === 0b01 ? 1 : bits === 0b10 ? 2 : 0;
-        results.push({
-          name: "ChargeStatus",
-          description: "Global charge/discharge/idle status",
-          value: chargeValue,
-          unit: "",
-          timestamp: t.timestamp,
-          deviceId: t.deviceId,
-          tags: { rack_id: "system" },
-        } as TelemetryData);
-      } else if (rackId && rackId !== "system") {
-        results.push({
-          name: "Status",
-          description: "Rack online/offline status",
-          value: t.value === 0x09 ? 1 : 0,
-          unit: "",
-          timestamp: t.timestamp,
-          deviceId: t.deviceId,
-          tags: { rack_id: rackId },
-        } as TelemetryData);
-      }
-    }
-
-    return results;
   }
 
   private async executeCommand(job: CommandDeviceJob): Promise<void> {

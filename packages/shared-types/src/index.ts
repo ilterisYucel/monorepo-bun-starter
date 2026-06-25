@@ -4,3 +4,5 @@ export * from "./job";
 export * from "./device-interface";
 export * from "./auth";
 export * from "./result";
+export * from "./log";
+export * from "./schemas";

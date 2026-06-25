@@ -10,10 +10,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { MultiLineChartProps } from "./MultiLineChart.types";
-import type { EventAnnotation } from "../../interfaces/event-annotations";
+import type { LogEntry } from "@gd-monorepo/shared-types";
 import * as S from "./MultiLineChart.styles";
 
-const ANNOTATION_COLORS: Record<EventAnnotation["type"], string> = {
+const ANNOTATION_COLORS: Record<LogEntry["type"], string> = {
   error: "#ef4444",
   warning: "#f59e0b",
   success: "#10b981",
@@ -181,13 +181,15 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
         {payload?.length > 0 && (
           <>
             <S.TooltipDivider />
-            {payload.map((entry: any) => (
-              <S.TooltipRow key={entry.dataKey}>
-                <S.TooltipColorDot style={{ background: entry.color }} />
-                <S.TooltipName>{entry.name}</S.TooltipName>
-                <S.TooltipValue>{formatTooltipVal(entry.value)}</S.TooltipValue>
-              </S.TooltipRow>
-            ))}
+            {payload
+              .filter((entry: any) => entry.dataKey !== "_annotations")
+              .map((entry: any) => (
+                <S.TooltipRow key={entry.dataKey}>
+                  <S.TooltipColorDot style={{ background: entry.color }} />
+                  <S.TooltipName>{entry.name}</S.TooltipName>
+                  <S.TooltipValue>{formatTooltipVal(entry.value)}</S.TooltipValue>
+                </S.TooltipRow>
+              ))}
           </>
         )}
         {matchingEvents.length > 0 && (

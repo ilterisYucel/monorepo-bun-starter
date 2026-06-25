@@ -3,7 +3,9 @@ import { useMemo } from "react";
 import { useLogStore } from "../stores/LogStore";
 import type { LogProvider } from "@gd-monorepo/ui";
 
-export const useFilteredLogProvider = (source: "system" | "command" | "rack" | "scheduler"): LogProvider => {
+import type { LogSource } from "@gd-monorepo/shared-types";
+
+export const useFilteredLogProvider = (source: LogSource): LogProvider => {
   const logs = useLogStore((s) => s.logs);
   const addLog = useLogStore((s) => s.addLog);
   const clearLogs = useLogStore((s) => s.clearLogs);

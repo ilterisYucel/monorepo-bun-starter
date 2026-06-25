@@ -1,6 +1,7 @@
 // packages/ui/src/components/TelemetryChart/types.ts
 import type { TelemetryProvider } from "../../interfaces/telemetry-provider";
 import type { EventAnnotationsProvider } from "../../interfaces/event-annotations";
+export type { EventAnnotationsProvider } from "../../interfaces/event-annotations";
 
 export interface TagFilterConfig {
   /** Verinin tags objesindeki anahtar (örn: "rackId", "deviceId") */

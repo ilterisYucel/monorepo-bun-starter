@@ -48,7 +48,7 @@ export const useLogStore = create<StoreState>()(
             from,
             to: now,
             limit: 200,
-            source: "system,command",
+            source: "system,user",
           });
           if (backendLogs.length === 0) return;
 

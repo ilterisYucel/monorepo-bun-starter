@@ -1,6 +1,6 @@
 // packages/ui/src/interfaces/log-provider.ts
 
-import type { LogEntry } from "../types";
+import type { LogEntry } from "@gd-monorepo/shared-types";
 
 
 

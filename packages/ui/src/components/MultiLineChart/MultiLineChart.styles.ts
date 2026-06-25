@@ -157,9 +157,8 @@ export const TooltipEvent = styled.div<{ color: string }>`
   color: ${(p) => p.color};
   font-size: 11px;
   padding: 2px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   max-width: 220px;
+  word-wrap: break-word;
+  white-space: normal;
   cursor: default;
 `;

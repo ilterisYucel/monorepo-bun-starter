@@ -1,4 +1,5 @@
 export * from "./MultiLineChart";
+export * from "./MultiLineChartV2";
 export * from "./TelemetryChart";
 export * from "./LogTerminal";
 export * from "./RackCard";

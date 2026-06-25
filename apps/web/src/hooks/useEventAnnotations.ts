@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { logsApi } from "../features/logs/services/logsApi";
-import type { TimeRange, EventAnnotation, EventAnnotationsProvider } from "@gd-monorepo/ui";
+import type { TimeRange, EventAnnotationsProvider } from "@gd-monorepo/ui";
+import type { LogEntry } from "@gd-monorepo/shared-types";
 
 function rangeToDates(range: TimeRange): { from: string; to: string } {
   const now = Date.now();
@@ -42,14 +43,8 @@ export function useEventAnnotations(range: TimeRange): EventAnnotationsProvider 
     refetchInterval: 60000,
   });
 
-  const annotations = useMemo<EventAnnotation[]>(
-    () =>
-      logs.map((log) => ({
-        timestamp: log.timestamp,
-        message: log.message,
-        type: log.type,
-        category: log.source === "scheduler" || log.source === "command" ? "user" : "system",
-      })),
+  const annotations = useMemo<LogEntry[]>(
+    () => logs as LogEntry[],
     [logs],
   );
 

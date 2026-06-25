@@ -8,7 +8,7 @@ const UserIcon = SCADA_ICONS.user;
 
 export const EventsPage: React.FC = () => {
   const systemLogProvider = useFilteredLogProvider("system");
-  const userActionLogProvider = useFilteredLogProvider("command");
+  const userActionLogProvider = useFilteredLogProvider("user");
 
   return (
     <S.EventsPageContainer>

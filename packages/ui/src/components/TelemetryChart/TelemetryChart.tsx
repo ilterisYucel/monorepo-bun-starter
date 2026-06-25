@@ -1,8 +1,7 @@
 // packages/ui/src/components/TelemetryChart/TelemetryChart.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { MultiLineChart } from "../MultiLineChart";
+import { MultiLineChartV2 } from "../MultiLineChartV2";
 import type { TelemetryChartProps } from "./TelemetryChart.types";
-import type { EventAnnotation } from "../../interfaces/event-annotations";
 import * as S from "./TelemetryChart.styles";
 import type { ChartDataPoint } from "../../types";
 
@@ -102,6 +101,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   const metricsRef = useRef<HTMLDivElement>(null);
   const [showSystemEvents, setShowSystemEvents] = useState(false);
   const [showUserEvents, setShowUserEvents] = useState(false);
+  const [showFixed, setShowFixed] = useState(false);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -190,25 +190,12 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   const filteredAnnotations = useMemo(() => {
     if (!eventAnnotations?.annotations) return [];
     return eventAnnotations.annotations.filter((a) => {
-      if (a.category === "system" && showSystemEvents) return true;
-      if (a.category === "user" && showUserEvents) return true;
+      if (a.fixed && !showFixed) return false;
+      if (a.source === "system" && showSystemEvents) return true;
+      if (a.source === "user" && showUserEvents) return true;
       return false;
     });
-  }, [eventAnnotations, showSystemEvents, showUserEvents]);
-
-  const chartDataWithAnnotations = useMemo(() => {
-    if (filteredAnnotations.length === 0) return chartData;
-    const extraTimestamps = new Set(filteredAnnotations.map((a) => a.timestamp));
-    const merged = [...chartData];
-    for (const ts of extraTimestamps) {
-      if (!chartData.some((d) => d.timestamp === ts)) {
-        merged.push({ timestamp: ts, _annotations: 1 } as ChartDataPoint);
-      }
-    }
-    return merged.sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-    );
-  }, [chartData, filteredAnnotations]);
+  }, [eventAnnotations, showSystemEvents, showUserEvents, showFixed]);
 
   const subtitle = useMemo(
     () => buildSubtitle(chartData, range, points),
@@ -242,6 +229,34 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             <S.HeaderTitle>{title}</S.HeaderTitle>
             {subtitle && <S.HeaderSubtitle>{subtitle}</S.HeaderSubtitle>}
           </S.HeaderTitleGroup>
+          {eventAnnotations && (
+            <S.HeaderAnnotations>
+              <S.HeaderAnnotationGroup>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showSystemEvents}
+                  onChange={() => setShowSystemEvents((v) => !v)}
+                />
+                Sistem Olayları
+              </S.HeaderAnnotationGroup>
+              <S.HeaderAnnotationGroup>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showUserEvents}
+                  onChange={() => setShowUserEvents((v) => !v)}
+                />
+                Kullanıcı Hareketleri
+              </S.HeaderAnnotationGroup>
+              <S.HeaderAnnotationGroup>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showFixed}
+                  onChange={() => setShowFixed((v) => !v)}
+                />
+                Düzeltilmiş Olaylar
+              </S.HeaderAnnotationGroup>
+            </S.HeaderAnnotations>
+          )}
         </S.HeaderRow>
 
         <S.Controls>
@@ -307,27 +322,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </S.DropdownWrapper>
           </S.ControlGroup>
 
-          {eventAnnotations && (
-            <>
-              <S.ControlGroup>
-                <S.ControlLabel>Sistem Olayları</S.ControlLabel>
-                <S.Checkbox
-                  type="checkbox"
-                  checked={showSystemEvents}
-                  onChange={() => setShowSystemEvents((v) => !v)}
-                />
-              </S.ControlGroup>
-              <S.ControlGroup>
-                <S.ControlLabel>Kullanıcı Hareketleri</S.ControlLabel>
-                <S.Checkbox
-                  type="checkbox"
-                  checked={showUserEvents}
-                  onChange={() => setShowUserEvents((v) => !v)}
-                />
-              </S.ControlGroup>
-            </>
-          )}
-
           {tagFilters?.map((filter) => (
             <S.ControlGroup key={filter.tagKey}>
               <S.ControlLabel>{filter.label}</S.ControlLabel>
@@ -351,8 +345,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         </S.Controls>
       </S.Header>
 
-      <MultiLineChart
-        data={chartDataWithAnnotations}
+      <MultiLineChartV2
+        data={chartData}
         yAxisLabel={yAxisLabel}
         height={height}
         colors={colors}

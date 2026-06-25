@@ -42,7 +42,7 @@ export const telemetriesToRacks = (
     const name = telemetry.name.replace(/\s+R\d+$/, "");
 
     switch (name) {
-      case "Status":
+      case "Battery Ready":
         rack.status = telemetry.value === 1 ? "online" : "offline";
         break;
       case "SOC":

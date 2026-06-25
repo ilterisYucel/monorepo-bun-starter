@@ -1,29 +1,12 @@
 import type { ISqlDatabase } from "@gd-monorepo/core";
-
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  type: "info" | "success" | "error" | "warning";
-  source: "system" | "command" | "rack" | "scheduler";
-  message: string;
-  details?: string;
-}
-
-export interface LogQueryParams {
-  sources?: string[];
-  types?: string[];
-  from?: string;
-  to?: string;
-  limit?: number;
-  offset?: number;
-}
+import type { LogEntry, LogQueryParams } from "@gd-monorepo/shared-types";
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS system_logs (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     timestamp   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     type        VARCHAR(20) NOT NULL CHECK (type IN ('info', 'success', 'error', 'warning')),
-    source      VARCHAR(20) NOT NULL CHECK (source IN ('system', 'command', 'rack', 'scheduler')),
+    source      VARCHAR(20) NOT NULL CHECK (source IN ('system', 'user')),
     message     TEXT NOT NULL,
     details     TEXT
   );
