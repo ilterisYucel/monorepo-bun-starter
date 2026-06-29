@@ -54,6 +54,7 @@ export function createMockChartData(count: number, keys: string[]): ChartDataPoi
     const timestamp = new Date(now - (count - 1 - i) * 5 * 60_000).toISOString();
     const point: ChartDataPoint = { timestamp };
     for (const key of keys) {
+      // sonar-ignore: PRNG used for visual noise in static mock data, no security context
       point[key] = Math.round((Math.sin(i * 0.3) * 10 + 50 + key.length * 5 + Math.random() * 5) * 100) / 100;
     }
     return point;
