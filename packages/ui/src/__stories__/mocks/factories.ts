@@ -1,6 +1,11 @@
 import type { Rack } from "../../types/rack";
 import type { RackCellConfig } from "../../graphics/elements/RackCell/RackCell.types";
-import type { HvacData, RectPosition, OutputPosition, RoomTemperature } from "../../graphics/types";
+import type {
+  HvacData,
+  RectPosition,
+  OutputPosition,
+  RoomTemperature,
+} from "../../graphics/types";
 import type { LogEntry } from "@gd-monorepo/shared-types";
 import type { LogProvider } from "../../interfaces/log-provider";
 import type { ChartDataPoint } from "../../types/chart";
@@ -27,7 +32,9 @@ export function createMockRack(
   };
 }
 
-export function createMockLogEntry(overrides: Partial<LogEntry> = {}): LogEntry {
+export function createMockLogEntry(
+  overrides: Partial<LogEntry> = {},
+): LogEntry {
   _logIdCounter++;
   return {
     id: overrides.id ?? `log-${_logIdCounter}`,
@@ -48,21 +55,29 @@ export function createMockLogProvider(logs?: LogEntry[]): LogProvider {
   };
 }
 
-export function createMockChartData(count: number, keys: string[]): ChartDataPoint[] {
+export function createMockChartData(
+  count: number,
+  keys: string[],
+): ChartDataPoint[] {
   const now = Date.now();
   return Array.from({ length: count }, (_, i) => {
-    const timestamp = new Date(now - (count - 1 - i) * 5 * 60_000).toISOString();
+    const timestamp = new Date(
+      now - (count - 1 - i) * 5 * 60_000,
+    ).toISOString();
     const point: ChartDataPoint = { timestamp };
     for (const key of keys) {
       // sonar-ignore: PRNG used for visual noise in static mock data, no security context
-      point[key] = Math.round((Math.sin(i * 0.3) * 10 + 50 + key.length * 5 + Math.random() * 5) * 100) / 100;
+      point[key] =
+        Math.round(
+          (Math.sin(i * 0.3) * 10 + 50 + key.length * 5 + Math.random() * 5) *
+            100,
+        ) / 100;
     }
     return point;
   });
 }
 
-export function createMockRackCellConfig(step?: number): RackCellConfig {
-  const s = step ?? 100;
+export function createMockRackCellConfig(s = 100): RackCellConfig {
   return { step: s, rackWidth: 120, rackHeight: 380 };
 }
 
@@ -74,13 +89,18 @@ export function createMockHvacData(
 }
 
 export function createMockRectPosition(
-  x: number, y: number, width: number, height: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
 ): RectPosition {
   return { x, y, width, height };
 }
 
 export function createMockOutputPosition(
-  x: number, y: number, radius: number,
+  x: number,
+  y: number,
+  radius: number,
 ): OutputPosition {
   return { x, y, radius };
 }
@@ -103,7 +123,9 @@ export function createMockBSCUnit(overrides?: Partial<BSCUnit>): BSCUnit {
   };
 }
 
-export function createMockTMSSystemRoom(overrides?: Partial<RoomData>): RoomData {
+export function createMockTMSSystemRoom(
+  overrides?: Partial<RoomData>,
+): RoomData {
   return {
     temp: 22,
     hvacs: [
