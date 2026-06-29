@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SCADA_ICONS } from "@gd-monorepo/ui";
+import { COLORS } from "@gd-monorepo/ui";
 import * as S from "./SystemHeader.styles";
 
 interface SystemHeaderProps {
@@ -23,9 +24,9 @@ const TempIcon = SCADA_ICONS.temperature;
 const MenuIcon = SCADA_ICONS.menu;
 
 const powerColor = (kw: number): string => {
-  if (kw > 300) return "#ef4444";
-  if (kw > 100) return "#f59e0b";
-  return "#10b981";
+  if (kw > 300) return COLORS.error;
+  if (kw > 100) return COLORS.warning;
+  return COLORS.success;
 };
 
 const formatClock = (d: Date): string =>
@@ -58,12 +59,12 @@ const Boxes: React.FC<{
     : IdleIcon;
 
   const chargeColor =
-    flowDirection === "Charge" ? "#10b981"
-    : flowDirection === "Discharge" ? "#f59e0b"
-    : "#6b7280";
+    flowDirection === "Charge" ? COLORS.success
+    : flowDirection === "Discharge" ? COLORS.warning
+    : COLORS.idle;
 
   const PPCIcon = ppcConnected ? OnlineIcon : OfflineIcon;
-  const ppcColor = ppcConnected ? "#10b981" : "#ef4444";
+  const ppcColor = ppcConnected ? COLORS.success : COLORS.error;
   const ppcLabel = ppcConnected ? "PPC: Bağlı" : "PPC: Bağlantı Yok";
 
   const kwColor = powerColor(powerConsumption);

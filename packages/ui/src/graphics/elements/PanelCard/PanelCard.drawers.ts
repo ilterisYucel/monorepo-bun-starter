@@ -1,18 +1,16 @@
 import { Graphics, FillGradient } from "pixi.js";
 import type { RectPosition } from "../../types";
+import { COLOR } from "../../../colors";
 
 function tempColor(temp: number): number {
-  if (temp < 0) return 0x1e40af;
-  if (temp < 10) return 0x3b82f6;
-  if (temp < 20) return 0x06b6d4;
-  if (temp < 25) return 0x10b981;
-  if (temp < 30) return 0xf59e0b;
-  if (temp < 35) return 0xef4444;
-  return 0xdc2626;
+  if (temp < 0) return COLOR.tempCold;
+  if (temp < 10) return COLOR.info;
+  if (temp < 20) return COLOR.tempChilly;
+  if (temp < 25) return COLOR.success;
+  if (temp < 30) return COLOR.warning;
+  if (temp < 35) return COLOR.error;
+  return COLOR.tempHot;
 }
-
-const PANEL_BG = 0x16162a;
-const PANEL_BORDER = 0x3d3d5e;
 
 export function drawPanelBody(
   g: Graphics,
@@ -24,22 +22,22 @@ export function drawPanelBody(
   const r = step * 0.3;
 
   g.roundRect(x + step * 0.06, y + step * 0.1, w, h, r);
-  g.fill({ color: 0x000000, alpha: 0.2 });
+  g.fill({ color: COLOR.shadow, alpha: 0.2 });
 
   const bg = new FillGradient({
     type: "linear",
     start: { x: 0, y: 0 },
     end: { x: 0, y: 1 },
     colorStops: [
-      { offset: 0, color: 0x1a1a32 },
-      { offset: 1, color: PANEL_BG },
+      { offset: 0, color: COLOR.gradPanelTop },
+      { offset: 1, color: COLOR.bgPanel },
     ],
     textureSpace: "local",
   });
 
   g.roundRect(x, y, w, h, r);
   g.fill(bg);
-  g.stroke({ width: Math.max(1, step * 0.04), color: PANEL_BORDER });
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 }
 
 export function drawPanelTemp(
@@ -66,7 +64,7 @@ export function drawPanelTemp(
     end: { x: 0, y: 1 },
     colorStops: [
       { offset: 0, color: color },
-      { offset: 1, color: 0x1e40af },
+      { offset: 1, color: COLOR.tempCold },
     ],
     textureSpace: "local",
   });

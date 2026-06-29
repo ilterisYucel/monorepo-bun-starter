@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { COLOR } from "../../../colors";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { HvacUnitProps } from "./HvacUnit.types";
 import { drawHvacBody, drawHvacAnim } from "./HvacUnit.drawers";
@@ -24,7 +25,7 @@ export const HvacUnit: React.FC<HvacUnitProps> = ({ hvac, pos, config }) => {
       <pixiText
         text={hvac.mode === "cooling" ? "COOL" : hvac.mode === "warming" ? "WARM" : "IDLE"}
         x={pos.x + pos.width / 2} y={pos.y + pos.height / 2} anchor={0.5}
-        style={{ fontSize: fs, fill: 0x9ca3af, fontFamily: "monospace", fontWeight: "bold" }} />
+        style={{ fontSize: fs, fill: COLOR.textMuted, fontFamily: "monospace", fontWeight: "bold" }} />
     </pixiContainer>
   );
 };

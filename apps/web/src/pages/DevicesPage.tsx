@@ -1,9 +1,10 @@
 import React from "react";
 import { useDevicesStore } from "../stores/devicesStore";
 import type { DeviceInfo } from "../features/devices/types/device";
+import { COLORS } from "@gd-monorepo/ui";
 
 const statusColor = (status: string): string =>
-  status === "online" ? "#10b981" : "#ef4444";
+  status === "online" ? COLORS.success : COLORS.error;
 
 const typeLabel = (device: DeviceInfo): string =>
   device.type || "-";
@@ -11,28 +12,28 @@ const typeLabel = (device: DeviceInfo): string =>
 const styles: Record<string, React.CSSProperties> = {
   container: {
     padding: "24px",
-    color: "#e5e7eb",
+    color: COLORS.textPrimary,
     fontFamily: "monospace",
   },
   title: {
     fontSize: "20px",
     fontWeight: 600,
     marginBottom: "20px",
-    color: "#f9fafb",
+    color: COLORS.bgCodeLight,
   },
   table: {
     width: "100%",
     borderCollapse: "collapse",
     fontSize: "13px",
-    background: "#1a1a2e",
+    background: COLORS.bgCard,
     borderRadius: "12px",
     overflow: "hidden",
   },
   th: {
     textAlign: "left",
     padding: "12px 16px",
-    borderBottom: "1px solid #2a2a3a",
-    color: "#9ca3af",
+    borderBottom: `1px solid ${COLORS.borderDefault}`,
+    color: COLORS.textMuted,
     fontWeight: 600,
     fontSize: "11px",
     textTransform: "uppercase",
@@ -40,8 +41,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   td: {
     padding: "10px 16px",
-    borderBottom: "1px solid #1f1f2e",
-    color: "#d1d5db",
+    borderBottom: `1px solid ${COLORS.bgPopup}`,
+    color: COLORS.textLight,
   },
   badge: {
     display: "inline-block",
@@ -54,7 +55,7 @@ const styles: Record<string, React.CSSProperties> = {
   loading: {
     textAlign: "center",
     padding: "40px",
-    color: "#6b7280",
+    color: COLORS.textDisabled,
   },
 };
 
@@ -88,7 +89,7 @@ export const DevicesPage: React.FC = () => {
               <td style={styles.td}><code>{device.id}</code></td>
               <td style={styles.td}>{device.name}</td>
               <td style={styles.td}>
-                <span style={{ ...styles.badge, background: "#3b82f620", color: "#3b82f6" }}>
+                <span style={{ ...styles.badge, background: COLORS.infoAlpha12, color: COLORS.info }}>
                   {typeLabel(device)}
                 </span>
               </td>
@@ -96,7 +97,7 @@ export const DevicesPage: React.FC = () => {
               <td style={styles.td}>{device.rack_count ?? "-"}</td>
               <td style={styles.td}>{device.model ?? "-"}</td>
               <td style={styles.td}>
-                <span style={{ ...styles.badge, background: device.status === "online" ? "#10b98120" : "#ef444420", color: statusColor(device.status) }}>
+                <span style={{ ...styles.badge, background: device.status === "online" ? COLORS.successAlpha12 : COLORS.errorAlpha12, color: statusColor(device.status) }}>
                   {device.status}
                 </span>
               </td>

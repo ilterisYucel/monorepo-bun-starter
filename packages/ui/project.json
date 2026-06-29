@@ -30,7 +30,7 @@
     "clean": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "rm -rf dist",
+        "command": "rm -rf dist storybook-static",
         "cwd": "packages/ui"
       }
     },
@@ -39,6 +39,21 @@
       "options": {
         "lintFilePatterns": ["packages/ui/**/*.{ts,tsx}"]
       }
+    },
+    "storybook": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "storybook dev -p 6006 --no-open",
+        "cwd": "packages/ui"
+      }
+    },
+    "build-storybook": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "storybook build -o storybook-static",
+        "cwd": "packages/ui"
+      },
+      "outputs": ["{projectRoot}/storybook-static"]
     }
   },
   "implicitDependencies": ["shared-types"]

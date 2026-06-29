@@ -108,6 +108,103 @@ apps/demo-backend/src/
 | Facade | `ModbusDevice` | High-level `read()`/`write()` API hides register tables, batching, byte order |
 | Transactional | `ModbusDevice.writeAtomic()` | Manual read-backup + rollback on failure |
 
+## Icon system (`packages/ui/src/icons/`)
+
+All icons live in `packages/ui/src/icons/`. Consumer packages import from `@gd-monorepo/ui` — never import `react-icons/tb` directly.
+
+### File structure
+| File | Purpose |
+|------|---------|
+| `types.ts` | `ScadaIconName` union type — canonical list of 35 allowed icon names |
+| `nav-icons.tsx` | `SCADA_ICONS: Record<ScadaIconName, IconType>` — maps names to Tabler Icons components |
+| `index.ts` | Barrel — `export { SCADA_ICONS }` + `export type { ScadaIconName }` |
+
+Root barrel (`packages/ui/src/index.ts`) re-exports via `export * from "./icons"`.
+
+### Usage
+```tsx
+import { SCADA_ICONS } from "@gd-monorepo/ui";
+const Icon = SCADA_ICONS.dashboard;
+<Icon size={18} />
+```
+
+### Adding a new icon
+1. Add the name string literal to the `ScadaIconName` union in `types.ts`
+2. Import the corresponding `Tb*` component in `nav-icons.tsx` and add the mapping entry to `SCADA_ICONS`
+3. That's it — barrel exports expose it automatically
+
+---
+
+## Color token system (`packages/ui/src/colors/`)
+
+All colors are centralized in `packages/ui/src/colors/`. **NEVER hardcode hex values** (`#1a1a2e`, `0x10b981`) in any file. Use the token system.
+
+### File structure
+| File | Purpose |
+|------|---------|
+| `tokens.ts` | 104 color tokens defined as hex strings (`tokens` object). Exports `COLORS` (string), `COLOR` (pre-computed 0x numbers), `hexToNumber()`, `ColorToken` type |
+| `index.ts` | Barrel — `export { COLORS, COLOR, hexToNumber }` + `export type { ColorToken }` |
+
+Root barrel re-exports via `export * from "./colors"`.
+
+### Dual-format exports
+
+| Export | Type | Example | Use case |
+|--------|------|---------|----------|
+| `COLORS` | Record of hex strings | `COLORS.success` → `"#10b981"` | Emotion styled, inline CSS, string props |
+| `COLOR` | Record of 0x numbers | `COLOR.success` → `0x10b981` | PixiJS fills, strokes, text styles |
+| `hexToNumber()` | `(hex: string) => number` | `hexToNumber(COLORS.error)` → `0xef4444` | Dynamic PixiJS color from hex string |
+
+### Usage patterns
+```tsx
+import { COLORS, COLOR, hexToNumber } from "@gd-monorepo/ui";
+
+// Emotion / CSS-in-JS
+const Card = styled.div`
+  background: ${COLORS.bgCard};
+  border: 1px solid ${COLORS.borderDefault};
+  color: ${COLORS.textPrimary};
+`;
+
+// PixiJS graphics (number format)
+g.fill({ color: COLOR.success });
+g.stroke({ width: 2, color: COLOR.borderStroke });
+
+// Dynamic PixiJS conversion
+const c = hexToNumber(someHexString);
+g.fill({ color: c });
+
+// Inline styles (plain string value, no template literal needed)
+const style = { color: COLORS.textMuted };
+```
+
+### Token groups (104 tokens)
+| Group | Count | Examples |
+|-------|-------|----------|
+| **Status** | 14 | `success`, `successGlow`, `successHover`, `warning`, `warningGlow`, `warningHover`, `error`, `errorHover`, `errorStroke`, `info`, `infoDark`, `infoLight`, `infoHover`, `idle` |
+| **Surface** | 14 | `bgApp`, `bgCard`, `bgPopup`, `bgHeader`, `bgInput`, `bgPanel`, `bgRoom`, `bgSkeleton`, `bgHover`, `bgTag`, `bgVerbose`, `bgSystemBar`, `bgCodeDark`, `bgCodeLight` |
+| **Border** | 5 | `borderDefault`, `borderStroke`, `borderLight`, `borderHover`, `borderDivider` |
+| **Text** | 10 | `textPrimary`, `textWhite`, `textMuted`, `textDisabled`, `textLight`, `textVoltage`, `textPurple`, `textTagGray`, `textNearWhite`, `textNearBlack` |
+| **Gradient** | 9 | `gradBodyTop`, `gradBodyBot`, `gradMid`, `gradMid2`, `gradLow`, `gradScreen`, `gradPanelTop`, `gradDeviceIdStart`, `gradDeviceIdEnd` |
+| **Temperature** | 3 | `tempCold`, `tempChilly`, `tempHot` |
+| **Special** | 7 | `cable`, `terminal`, `shadow`, `dcActiveCenter`, `dcActiveEdge`, `dcIdleCenter`, `dcIdleEdge` |
+| **Alpha** | 12 | `infoAlpha8`, `infoAlpha12`, `infoAlpha25`, `successAlpha12`, `successAlpha25`, `errorAlpha12`, `errorAlpha19`, `errorAlpha25`, `errorAlpha50`, `warningAlpha12`, `warningAlpha25`, `idleAlpha12` |
+| **Chart** | 16 | `chart1`..`chart16` |
+| **Accent** | 2 | `accentLight`, `accentDark` |
+
+### Adding a color token
+1. Add the entry to the `tokens` object in `tokens.ts` (hex string format only — e.g. `myColor: "#ff9900"`)
+2. `COLOR` (0x numbers) and `ColorToken` union type are **auto-derived** from `tokens` keys — no manual sync needed
+3. Use semantic names: group prefix (`bg*`, `text*`, `border*`, `grad*`) for surfaces; adjectives for status (`success`, `warning`, `error`, `info`, `idle`); `*Hover`/`*Glow` for variants; `*AlphaXX` for opacity variants
+
+### Migration rule
+When touching any file with hardcoded hex colors:
+1. Replace `#hex` with `COLORS.*` (CSS/Emotion) or `0xhex` with `COLOR.*` (PixiJS)
+2. If no matching token exists, add it to `tokens.ts` **first**, then use the token
+3. Never leave a one-off hex value behind
+
+---
+
 ## Coding conventions (repo-wide)
 - **File names:** kebab-case in backend (`device-job-handler.ts`), PascalCase in web components (`ControlPanel.tsx`)
 - **Exports:** Named exports only. No default exports anywhere.

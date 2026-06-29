@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const EventsPageContainer = styled.div`
   padding: 8px;
@@ -17,17 +18,17 @@ export const EventsGrid = styled.div`
 `;
 
 export const EventsCard = styled.div`
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
   border-radius: 20px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
   overflow: hidden;
 
   h3 {
     padding: 16px 20px;
     margin: 0;
-    background: #0f0f1a;
-    border-bottom: 1px solid #2a2a3a;
-    color: #e5e7eb;
+    background: ${COLORS.bgInput};
+    border-bottom: 1px solid ${COLORS.borderDefault};
+    color: ${COLORS.textPrimary};
     font-size: 14px;
     font-weight: 600;
   }

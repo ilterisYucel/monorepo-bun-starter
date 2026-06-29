@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { COLORS } from "../../colors";
 
 const pulse = keyframes`
   0%, 100% { opacity: 0.25; }
@@ -7,19 +8,19 @@ const pulse = keyframes`
 `;
 
 export const Container = styled.div`
-  background: #1f1f2e;
+  background: ${COLORS.bgPopup};
   padding: 16px;
 `;
 
 export const Skeleton = styled.div`
   animation: ${pulse} 1.8s ease-in-out infinite;
-  background: #252535;
+  background: ${COLORS.bgSkeleton};
   border-radius: 12px;
 `;
 
 export const Title = styled.h4`
   margin: 0 0 4px 0;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -27,7 +28,7 @@ export const Title = styled.h4`
 
 export const Subtitle = styled.p`
   margin: 0 0 12px 0;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-size: 12px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -37,19 +38,19 @@ export const Empty = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1f1f2e;
+  background: ${COLORS.bgPopup};
   border-radius: 12px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
 `;
 
-export const cartesianGrid = { stroke: "#252535", strokeDasharray: "4 4" };
-export const xAxis = { stroke: "#4b5563", fontSize: 11, fill: "#9ca3af" };
-export const yAxis = { stroke: "#4b5563", fontSize: 11, fill: "#9ca3af" };
+export const cartesianGrid = { stroke: COLORS.bgSkeleton, strokeDasharray: "4 4" };
+export const xAxis = { stroke: COLORS.dcIdleEdge, fontSize: 11, fill: COLORS.textMuted };
+export const yAxis = { stroke: COLORS.dcIdleEdge, fontSize: 11, fill: COLORS.textMuted };
 
 export const DEFAULT_COLORS = [
-  "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899",
-  "#06b6d4", "#84cc16", "#f97316", "#6366f1", "#14b8a6", "#d946ef",
-  "#0ea5e9", "#eab308", "#a855f7", "#22c55e",
+  COLORS.info, COLORS.error, COLORS.success, COLORS.warning, COLORS.chart5, COLORS.chart6,
+  COLORS.chart7, COLORS.chart8, COLORS.chart9, COLORS.chart10, COLORS.chart11, COLORS.chart12,
+  COLORS.chart13, COLORS.chart14, COLORS.chart15, COLORS.chart16,
 ];
 
 // Legend table
@@ -57,15 +58,15 @@ export const LegendTable = styled.div`
   width: 100%;
   margin-top: 8px;
   font-size: 11px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
 `;
 
 export const LegendHeader = styled.div`
   display: flex;
-  border-bottom: 1px solid #2a2a3a;
+  border-bottom: 1px solid ${COLORS.borderDefault};
   padding-bottom: 5px;
   margin-bottom: 4px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -104,8 +105,8 @@ export const LegendColor = styled.span`
 
 // Tooltip
 export const TooltipWrapper = styled.div`
-  background: #1a1a2e;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgCard};
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 10px;
   padding: 10px 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -113,7 +114,7 @@ export const TooltipWrapper = styled.div`
 `;
 
 export const TooltipTimestamp = styled.div`
-  color: #f3f4f6;
+  color: ${COLORS.textNearWhite};
   font-size: 12px;
   font-weight: 600;
   margin-bottom: 6px;
@@ -121,7 +122,7 @@ export const TooltipTimestamp = styled.div`
 
 export const TooltipDivider = styled.div`
   height: 1px;
-  background: #2a2a3a;
+  background: ${COLORS.borderDefault};
   margin: 0 0 6px 0;
 `;
 
@@ -141,13 +142,13 @@ export const TooltipColorDot = styled.span`
 `;
 
 export const TooltipName = styled.span`
-  color: #d1d5db;
+  color: ${COLORS.textLight};
   font-size: 12px;
   flex: 1;
 `;
 
 export const TooltipValue = styled.span`
-  color: #f3f4f6;
+  color: ${COLORS.textNearWhite};
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;

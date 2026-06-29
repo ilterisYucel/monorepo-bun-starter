@@ -1,9 +1,6 @@
 import { Graphics } from "pixi.js";
 import type { FlowDirection, Point2D } from "../../types";
-
-const DEFAULT_COLOR = 0x5a5a7a;
-const ARROW_COLOR_CHARGE = 0x10b981;
-const ARROW_COLOR_DISCHARGE = 0xf59e0b;
+import { COLOR } from "../../../colors";
 
 export function drawCableBody(
   g: Graphics,
@@ -57,7 +54,7 @@ export function drawCableArrows(
   if (totalLen < 1) return;
 
   const isCharge = flowDirection === "charge";
-  const arrowColor = isCharge ? ARROW_COLOR_CHARGE : ARROW_COLOR_DISCHARGE;
+  const arrowColor = isCharge ? COLOR.success : COLOR.warning;
   const speed = arrowSize * 8;
   const spacing = arrowSize * 4;
   const fadeDist = arrowSize * 3;
@@ -125,5 +122,5 @@ function drawOneArrow(
 }
 
 export function getCableColor(): number {
-  return DEFAULT_COLOR;
+  return COLOR.cable;
 }

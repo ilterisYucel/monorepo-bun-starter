@@ -1,40 +1,60 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
 import type { MultiLineChartProps } from "./MultiLineChartV2.types";
 import type { LogEntry } from "@gd-monorepo/shared-types";
 import * as S from "./MultiLineChartV2.styles";
+import { COLORS } from "../../colors";
 
 const ANNOTATION_COLORS: Record<LogEntry["type"], string> = {
-  error: "#ef4444",
-  warning: "#f59e0b",
-  success: "#10b981",
-  info: "#3b82f6",
+  error: COLORS.error,
+  warning: COLORS.warning,
+  success: COLORS.success,
+  info: COLORS.info,
 };
 
 const formatTooltipTime = (timestamp: string): string => {
   const d = new Date(timestamp);
-  if (isNaN(d.getTime())) return timestamp;
+  if (Number.isNaN(d.getTime())) return timestamp;
   return d.toLocaleString("tr-TR", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 };
 
 const formatStat = (v: number | string): string => {
   if (typeof v === "string") return v;
-  return v.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return v.toLocaleString("tr-TR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 };
 
 const formatTooltipVal = (v: number | string): string => {
   if (typeof v === "number") {
-    return v.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    return v.toLocaleString("tr-TR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
   }
   return String(v);
 };
 
 interface SeriesStats {
-  last: number; min: number; max: number; avg: number;
+  last: number;
+  min: number;
+  max: number;
+  avg: number;
 }
 
 interface TooltipState {
@@ -63,8 +83,9 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const sortedData = useMemo(() => {
-    return [...data].sort((a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    return [...data].sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
   }, [data]);
 
@@ -86,7 +107,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
       if (values.length === 0) continue;
       const sum = values.reduce((a, b) => a + b, 0);
       result[key] = {
-        last: values[values.length - 1]!,
+        last: values.at(-1)!,
         min: Math.min(...values),
         max: Math.max(...values),
         avg: sum / values.length,
@@ -97,7 +118,9 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
 
   const uplotData = useMemo((): uPlot.AlignedData | null => {
     if (sortedData.length === 0 || lines.length === 0) return null;
-    const timestamps = sortedData.map((d) => new Date(d.timestamp).getTime() / 1000);
+    const timestamps = sortedData.map(
+      (d) => new Date(d.timestamp).getTime() / 1000,
+    );
     const series: (number | null)[][] = lines.map((key) =>
       sortedData.map((d) => {
         const v = (d as any)[key];
@@ -125,7 +148,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
       {},
       ...lines.map((key) => ({
         label: key,
-        stroke: colors[(lines.indexOf(key)) % colors.length],
+        stroke: colors[lines.indexOf(key) % colors.length],
         width: 2.5,
         spanGaps: true,
       })),
@@ -146,14 +169,14 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
       },
       axes: [
         {
-          stroke: "#9ca3af",
-          grid: { show: true, stroke: "#252535", width: 1 },
+          stroke: COLORS.textMuted,
+          grid: { show: true, stroke: COLORS.bgSkeleton, width: 1 },
           ticks: { show: false },
           font: "11px monospace",
         },
         {
-          stroke: "#9ca3af",
-          grid: { show: true, stroke: "#252535", width: 1 },
+          stroke: COLORS.textMuted,
+          grid: { show: true, stroke: COLORS.bgSkeleton, width: 1 },
           ticks: { show: false },
           font: "11px monospace",
           label: yAxisLabel,
@@ -194,8 +217,8 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
               ctx.beginPath();
               ctx.setLineDash([]);
               ctx.arc(x, bbox.top + bbox.height / 2, 3, 0, Math.PI * 2);
-              ctx.fillStyle = "#9ca3af";
-              ctx.strokeStyle = "#1a1a2e";
+              ctx.fillStyle = COLORS.textMuted;
+              ctx.strokeStyle = COLORS.bgCard;
               ctx.lineWidth = 1;
               ctx.fill();
               ctx.stroke();
@@ -224,7 +247,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
               const cursorMs = cursorTs * 1000;
               const dataRange =
                 sortedData.length > 1
-                  ? new Date(sortedData[sortedData.length - 1]!.timestamp).getTime() -
+                  ? new Date(sortedData.at(-1)!.timestamp).getTime() -
                     new Date(sortedData[0]!.timestamp).getTime()
                   : 60000;
               const threshold = Math.max(2000, dataRange * 0.03);
@@ -233,10 +256,16 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
               let closestDist = Infinity;
               for (const a of annots) {
                 const d = Math.abs(new Date(a.timestamp).getTime() - cursorMs);
-                if (d < closestDist) { closest = a; closestDist = d; }
+                if (d < closestDist) {
+                  closest = a;
+                  closestDist = d;
+                }
               }
               if (closest && closestDist <= threshold) {
-                annotLeft = u.valToPos(new Date(closest.timestamp).getTime() / 1000, "x");
+                annotLeft = u.valToPos(
+                  new Date(closest.timestamp).getTime() / 1000,
+                  "x",
+                );
               }
             }
 
@@ -309,7 +338,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
 
     const dataRange =
       sortedData.length > 1
-        ? new Date(sortedData[sortedData.length - 1]!.timestamp).getTime() -
+        ? new Date(sortedData.at(-1)!.timestamp).getTime() -
           new Date(sortedData[0]!.timestamp).getTime()
         : 60000;
     const threshold = Math.max(2000, dataRange * 0.03);
@@ -319,7 +348,10 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
     if (annotations) {
       for (const a of annotations) {
         const d = Math.abs(new Date(a.timestamp).getTime() - cursorMs);
-        if (d < annotDist) { closestAnn = a; annotDist = d; }
+        if (d < annotDist) {
+          closestAnn = a;
+          annotDist = d;
+        }
       }
     }
     const showAnnotation = closestAnn && annotDist <= threshold;
@@ -351,29 +383,58 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
             ...S.tooltipStyle,
             left:
               (tooltipContent.showAnnotation &&
-                !tooltipContent.showTelemetry &&
-                tooltip.annotLeft != null
+              !tooltipContent.showTelemetry &&
+              tooltip.annotLeft != null
                 ? tooltip.annotLeft
                 : tooltip.left) + 10,
             top: tooltip.top - 10,
           }}
         >
-          <div style={{ color: "#f3f4f6", fontWeight: 600, marginBottom: 6, fontSize: 12 }}>
-            {formatTooltipTime(
-              new Date(tooltip.cursorTs * 1000).toISOString(),
-            )}
+          <div
+            style={{
+              color: COLORS.textNearWhite,
+              fontWeight: 600,
+              marginBottom: 6,
+              fontSize: 12,
+            }}
+          >
+            {formatTooltipTime(new Date(tooltip.cursorTs * 1000).toISOString())}
           </div>
           {tooltipContent.showTelemetry && tooltipContent.dataPoint && (
             <>
-              <div style={{ height: 1, background: "#2a2a3a", margin: "0 0 6px 0" }} />
+              <div
+                style={{
+                  height: 1,
+                  background: COLORS.borderDefault,
+                  margin: "0 0 6px 0",
+                }}
+              />
               {lines.map((key) => (
-                <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 0" }}>
-                  <span style={{
-                    display: "inline-block", width: 8, height: 8, borderRadius: "50%",
-                    background: colors[lines.indexOf(key) % colors.length], flexShrink: 0,
-                  }} />
-                  <span style={{ color: "#d1d5db", fontSize: 12, flex: 1 }}>{key}</span>
-                  <span style={{ color: "#f3f4f6", fontSize: 12, fontWeight: 600 }}>
+                <div
+                  key={key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "2px 0",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: colors[lines.indexOf(key) % colors.length],
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span style={{ color: COLORS.textLight, fontSize: 12, flex: 1 }}>
+                    {key}
+                  </span>
+                  <span
+                    style={{ color: COLORS.textNearWhite, fontSize: 12, fontWeight: 600 }}
+                  >
                     {formatTooltipVal((tooltipContent.dataPoint as any)[key])}
                   </span>
                 </div>
@@ -382,9 +443,21 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
           )}
           {tooltipContent.showAnnotation && tooltipContent.closestAnn && (
             <>
-              <div style={{ height: 1, background: "#2a2a3a", margin: "6px 0" }} />
-              <div style={{ color: ANNOTATION_COLORS[tooltipContent.closestAnn.type], fontSize: 11, padding: "2px 0", wordWrap: "break-word", whiteSpace: "normal", maxWidth: 220 }}>
-                {tooltipContent.closestAnn.type.toUpperCase()}: {tooltipContent.closestAnn.message}
+              <div
+                style={{ height: 1, background: COLORS.borderDefault, margin: "6px 0" }}
+              />
+              <div
+                style={{
+                  color: ANNOTATION_COLORS[tooltipContent.closestAnn.type],
+                  fontSize: 11,
+                  padding: "2px 0",
+                  wordWrap: "break-word",
+                  whiteSpace: "normal",
+                  maxWidth: 220,
+                }}
+              >
+                {tooltipContent.closestAnn.type.toUpperCase()}:{" "}
+                {tooltipContent.closestAnn.message}
               </div>
             </>
           )}
@@ -394,23 +467,43 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
         <S.LegendTable>
           <S.LegendHeader>
             <S.LegendCell flex={3}>Seri</S.LegendCell>
-            <S.LegendCell flex={1} align="right">Son</S.LegendCell>
-            <S.LegendCell flex={1} align="right">Min</S.LegendCell>
-            <S.LegendCell flex={1} align="right">Max</S.LegendCell>
-            <S.LegendCell flex={1} align="right">Ort</S.LegendCell>
+            <S.LegendCell flex={1} align="right">
+              Son
+            </S.LegendCell>
+            <S.LegendCell flex={1} align="right">
+              Min
+            </S.LegendCell>
+            <S.LegendCell flex={1} align="right">
+              Max
+            </S.LegendCell>
+            <S.LegendCell flex={1} align="right">
+              Ort
+            </S.LegendCell>
           </S.LegendHeader>
           {lines.map((key) => {
             const stats = legendStats[key];
             return (
               <S.LegendRow key={key}>
                 <S.LegendCell flex={3}>
-                  <S.LegendColor style={{ background: colors[lines.indexOf(key) % colors.length] }} />
+                  <S.LegendColor
+                    style={{
+                      background: colors[lines.indexOf(key) % colors.length],
+                    }}
+                  />
                   {key}
                 </S.LegendCell>
-                <S.LegendCell flex={1} align="right">{stats ? formatStat(stats.last) : "-"}</S.LegendCell>
-                <S.LegendCell flex={1} align="right">{stats ? formatStat(stats.min) : "-"}</S.LegendCell>
-                <S.LegendCell flex={1} align="right">{stats ? formatStat(stats.max) : "-"}</S.LegendCell>
-                <S.LegendCell flex={1} align="right">{stats ? formatStat(stats.avg) : "-"}</S.LegendCell>
+                <S.LegendCell flex={1} align="right">
+                  {stats ? formatStat(stats.last) : "-"}
+                </S.LegendCell>
+                <S.LegendCell flex={1} align="right">
+                  {stats ? formatStat(stats.min) : "-"}
+                </S.LegendCell>
+                <S.LegendCell flex={1} align="right">
+                  {stats ? formatStat(stats.max) : "-"}
+                </S.LegendCell>
+                <S.LegendCell flex={1} align="right">
+                  {stats ? formatStat(stats.avg) : "-"}
+                </S.LegendCell>
               </S.LegendRow>
             );
           })}

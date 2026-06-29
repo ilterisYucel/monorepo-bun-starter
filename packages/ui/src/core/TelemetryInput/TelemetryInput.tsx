@@ -3,6 +3,7 @@ import React, { useCallback, useState, useEffect, useMemo } from "react";
 import type { TelemetryInputProps } from "./TelemetryInput.types";
 import * as S from "./TelemetryInput.styles";
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
+import { COLORS } from "../../colors";
 
 type StatusKey = "nominal" | "warning" | "alarm";
 
@@ -156,10 +157,10 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
         {!disabled && (
           <S.Controls>
             <S.ControlBtn onClick={handleIncrease} disabled={value >= max}>
-              <SlArrowUp size={16} color="#9ca3af" />
+              <SlArrowUp size={16} color={COLORS.textMuted} />
             </S.ControlBtn>
             <S.ControlBtn onClick={handleDecrease} disabled={value <= min}>
-              <SlArrowDown size={16} color="#9ca3af" />
+              <SlArrowDown size={16} color={COLORS.textMuted} />
             </S.ControlBtn>
           </S.Controls>
         )}

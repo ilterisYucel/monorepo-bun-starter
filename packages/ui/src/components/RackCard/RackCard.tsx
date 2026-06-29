@@ -4,6 +4,7 @@ import { SCADA_ICONS } from "../../icons";
 import type { RackCardProps } from "./RackCard.types";
 import { formatTelemetryValue, formatValue } from "./RackCard.utils";
 import * as S from "./RackCard.styles";
+import { COLORS } from "../../colors";
 
 const StatusOnlineIcon = SCADA_ICONS.statusOnline;
 const StatusOfflineIcon = SCADA_ICONS.statusOffline;
@@ -32,7 +33,7 @@ const getChargeStatusBadge = (chargeStatus: string) => {
 
 const StatusText: React.FC<{ status: string }> = ({ status }) => {
   const Icon = status === "online" ? StatusOnlineIcon : StatusOfflineIcon;
-  return <><Icon size={14} color={status === "online" ? "#10b981" : "#ef4444"} /> {status === "online" ? "Çevrimiçi" : "Çevrimdışı"}</>;
+  return <><Icon size={14} color={status === "online" ? COLORS.success : COLORS.error} /> {status === "online" ? "Çevrimiçi" : "Çevrimdışı"}</>;
 };
 
 const ChargeStatusText: React.FC<{ chargeStatus: string }> = ({ chargeStatus }) => {

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import type { DeviceGaugesProps } from "./DeviceGauges.types";
 import { TelemetryGauge } from "../TelemetryGauge";
 import * as S from "./DeviceGauges.styles";
+import { COLORS } from "../../colors";
 
 type AutoSize = "small" | "medium" | "large";
 
@@ -16,7 +17,7 @@ function computeAutoSize(perGauge: number): AutoSize {
 export const DeviceGauges: React.FC<DeviceGaugesProps> = ({
   deviceId,
   gauges,
-  color = "#3b82f6",
+  color = COLORS.info,
   size,
   variant = "circular",
   width = "100%",

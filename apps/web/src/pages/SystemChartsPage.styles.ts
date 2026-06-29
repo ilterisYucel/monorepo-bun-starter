@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const SystemChartsPageContainer = styled.div`
   padding: 8px;
@@ -6,9 +7,9 @@ export const SystemChartsPageContainer = styled.div`
 `;
 
 export const SystemChartContainer = styled.div`
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
   border-radius: 20px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
   overflow: hidden;
   padding: 20px;
 `;

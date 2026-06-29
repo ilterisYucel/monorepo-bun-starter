@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { COLORS } from "../../../colors";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(4px); }
@@ -13,8 +14,8 @@ export const Popover = styled.div`
 `;
 
 export const PopoverContent = styled.div`
-  background: #1f1f2e;
-  border: 1px solid #3b82f6;
+  background: ${COLORS.bgPopup};
+  border: 1px solid ${COLORS.info};
   border-radius: 16px;
   padding: 14px 18px;
   min-width: 240px;
@@ -27,11 +28,11 @@ export const PopoverHeader = styled.div`
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #2a2a3a;
+  border-bottom: 1px solid ${COLORS.borderDefault};
 `;
 
 export const PopoverHeaderStrong = styled.strong`
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-size: 15px;
   display: flex;
   align-items: center;
@@ -51,15 +52,15 @@ const StatusBadge = styled.span`
 `;
 
 export const StatusBadgeOnline = styled(StatusBadge)`
-  background: #10b98120;
-  color: #10b981;
-  border: 1px solid #10b98140;
+  background: ${COLORS.successAlpha12};
+  color: ${COLORS.success};
+  border: 1px solid ${COLORS.successAlpha25};
 `;
 
 export const StatusBadgeOffline = styled(StatusBadge)`
-  background: #ef444420;
-  color: #ef4444;
-  border: 1px solid #ef444440;
+  background: ${COLORS.errorAlpha12};
+  color: ${COLORS.error};
+  border: 1px solid ${COLORS.errorAlpha25};
 `;
 
 export const PopoverBody = styled.div`
@@ -73,26 +74,26 @@ export const PopoverRow = styled.div`
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   padding: 2px 0;
 `;
 
 export const PopoverRowStrong = styled.strong`
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-weight: 600;
 `;
 
 export const ChargeStatusCharge = styled.span`
-  color: #10b981;
+  color: ${COLORS.success};
   font-weight: 600;
 `;
 
 export const ChargeStatusDischarge = styled.span`
-  color: #f59e0b;
+  color: ${COLORS.warning};
   font-weight: 600;
 `;
 
 export const ChargeStatusIdle = styled.span`
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-weight: 600;
 `;

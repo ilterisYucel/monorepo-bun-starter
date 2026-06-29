@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const SidebarContainer = styled.div<{ collapsed: boolean }>`
   position: fixed;
@@ -6,8 +7,8 @@ export const SidebarContainer = styled.div<{ collapsed: boolean }>`
   top: 0;
   bottom: 0;
   width: ${({ collapsed }) => (collapsed ? "70px" : "260px")};
-  background: linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
-  border-right: 1px solid #2a2a3a;
+  background: linear-gradient(180deg, ${COLORS.bgApp} 0%, ${COLORS.bgCard} 100%);
+  border-right: 1px solid ${COLORS.borderDefault};
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
@@ -20,7 +21,7 @@ export const SidebarLogo = styled.div<{ collapsed: boolean }>`
   align-items: center;
   gap: 12px;
   padding: 24px 16px;
-  border-bottom: 1px solid #2a2a3a;
+  border-bottom: 1px solid ${COLORS.borderDefault};
   margin-top: 8px;
   ${({ collapsed }) =>
     collapsed &&
@@ -34,13 +35,13 @@ export const LogoIcon = styled.div`
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  color: #3b82f6;
+  color: ${COLORS.info};
 `;
 
 export const LogoText = styled.span`
   font-size: 18px;
   font-weight: 600;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   white-space: nowrap;
 `;
 
@@ -57,10 +58,10 @@ export const NavItem = styled.button<{ active: boolean; collapsed: boolean }>`
   align-items: center;
   gap: 12px;
   padding: ${({ collapsed }) => (collapsed ? "12px" : "12px 16px")};
-  background: ${({ active }) => (active ? "#3b82f6" : "transparent")};
+  background: ${({ active }) => (active ? COLORS.info : "transparent")};
   border: none;
   border-radius: 10px;
-  color: ${({ active }) => (active ? "white" : "#9ca3af")};
+  color: ${({ active }) => (active ? "white" : COLORS.textMuted)};
   font-size: 15px;
   cursor: pointer;
   transition: all 0.2s;
@@ -70,8 +71,8 @@ export const NavItem = styled.button<{ active: boolean; collapsed: boolean }>`
     collapsed ? "center" : "flex-start"};
 
   &:hover {
-    background: ${({ active }) => (active ? "#3b82f6" : "#2a2a3a")};
-    color: #e5e7eb;
+    background: ${({ active }) => (active ? COLORS.info : COLORS.borderDefault)};
+    color: ${COLORS.textPrimary};
   }
 `;
 
@@ -89,7 +90,7 @@ export const NavLabel = styled.span`
 
 export const ToggleSeparator = styled.div`
   height: 1px;
-  background: #2a2a3a;
+  background: ${COLORS.borderDefault};
   margin: 0 16px;
 `;
 
@@ -105,8 +106,8 @@ export const SidebarToggle = styled.button<{ collapsed: boolean }>`
   justify-content: center;
   gap: 8px;
   background: transparent;
-  border: 1px solid #2a2a3a;
-  color: #9ca3af;
+  border: 1px solid ${COLORS.borderDefault};
+  color: ${COLORS.textMuted};
   cursor: pointer;
   border-radius: 8px;
   padding: 6px 12px;
@@ -114,9 +115,9 @@ export const SidebarToggle = styled.button<{ collapsed: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background: #2a2a3a;
-    color: #e5e7eb;
-    border-color: #3b82f6;
+    background: ${COLORS.borderDefault};
+    color: ${COLORS.textPrimary};
+    border-color: ${COLORS.info};
   }
 
   svg {
@@ -134,14 +135,14 @@ export const ToggleLabel = styled.span`
 
 export const SidebarFooter = styled.div`
   padding: 16px;
-  border-top: 1px solid #2a2a3a;
+  border-top: 1px solid ${COLORS.borderDefault};
   display: flex;
   flex-direction: column;
   gap: 12px;
 `;
 
 export const EmergencyStopBtn = styled.button<{ collapsed: boolean }>`
-  background: #ef4444;
+  background: ${COLORS.error};
   border: none;
   color: white;
   padding: ${({ collapsed }) => (collapsed ? "10px" : "10px")};
@@ -155,7 +156,7 @@ export const EmergencyStopBtn = styled.button<{ collapsed: boolean }>`
   justify-content: center;
 
   &:hover {
-    background: #dc2626;
+    background: ${COLORS.errorHover};
     transform: scale(1.02);
   }
 `;
@@ -174,7 +175,7 @@ export const UserProfileAvatar = styled.div`
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
 `;
 
 export const UserProfileDetails = styled.div`
@@ -182,11 +183,11 @@ export const UserProfileDetails = styled.div`
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
 `;
 
 export const UserProfileName = styled.span`
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-size: 13px;
   font-weight: 500;
 `;
@@ -197,9 +198,9 @@ export const UserRoleBadge = styled.span<{ role: "admin" | "teknik" | "guest" }>
   font-size: 10px;
   font-weight: 600;
   background: ${({ role }) =>
-    role === "admin" ? "#3b82f620" : role === "teknik" ? "#10b98120" : "#6b728020"};
+    role === "admin" ? COLORS.infoAlpha12 : role === "teknik" ? COLORS.successAlpha12 : COLORS.idleAlpha12};
   color: ${({ role }) =>
-    role === "admin" ? "#3b82f6" : role === "teknik" ? "#10b981" : "#9ca3af"};
+    role === "admin" ? COLORS.info : role === "teknik" ? COLORS.success : COLORS.textMuted};
 `;
 
 export const UserProfilePopup = styled.div`
@@ -207,8 +208,8 @@ export const UserProfilePopup = styled.div`
   left: calc(100% + 12px);
   top: 50%;
   transform: translateY(-50%);
-  background: #1f1f2e;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgPopup};
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 10px;
   padding: 12px 16px;
   white-space: nowrap;
@@ -222,7 +223,7 @@ export const UserProfilePopup = styled.div`
 `;
 
 export const LoginButton = styled.button<{ collapsed: boolean }>`
-  background: #3b82f6;
+  background: ${COLORS.info};
   border: none;
   color: white;
   padding: ${({ collapsed }) => (collapsed ? "10px" : "10px 16px")};
@@ -238,6 +239,6 @@ export const LoginButton = styled.button<{ collapsed: boolean }>`
   width: 100%;
 
   &:hover {
-    background: #2563eb;
+    background: ${COLORS.infoHover};
   }
 `;

@@ -1,26 +1,27 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { COLORS } from "@gd-monorepo/ui";
 
 const pulse = keyframes`
   0%, 100% {
-    box-shadow: 0 0 0 0 #3b82f640;
+    box-shadow: 0 0 0 0 ${COLORS.infoAlpha25};
   }
   50% {
-    box-shadow: 0 0 0 10px #3b82f620;
+    box-shadow: 0 0 0 10px ${COLORS.infoAlpha12};
   }
 `;
 
 export const ControlPanelContainer = styled.div`
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
   border-radius: 20px;
   padding: 24px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
 `;
 
 export const PanelTitle = styled.h3`
   margin: 0 0 20px 0;
   font-size: 18px;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-weight: 600;
 `;
 
@@ -30,7 +31,7 @@ export const FormGroup = styled.div`
   label {
     display: block;
     margin-bottom: 8px;
-    color: #9ca3af;
+    color: ${COLORS.textMuted};
     font-size: 13px;
     font-weight: 500;
   }
@@ -46,7 +47,7 @@ export const InputsGroup = styled.div`
 export const FormHint = styled.span`
   display: block;
   margin-top: 6px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-size: 11px;
 `;
 
@@ -57,9 +58,9 @@ export const ModeButtons = styled.div`
 
 export const ModeBtn = styled.button<{ active: boolean }>`
   flex: 1;
-  background: ${({ active }) => (active ? "#3b82f6" : "#0f0f1a")};
-  border: 1px solid ${({ active }) => (active ? "#3b82f6" : "#2a2a3a")};
-  color: ${({ active }) => (active ? "white" : "#9ca3af")};
+  background: ${({ active }) => (active ? COLORS.info : COLORS.bgInput)};
+  border: 1px solid ${({ active }) => (active ? COLORS.info : COLORS.borderDefault)};
+  color: ${({ active }) => (active ? "white" : COLORS.textMuted)};
   padding: 10px 16px;
   border-radius: 10px;
   font-size: 13px;
@@ -68,8 +69,8 @@ export const ModeBtn = styled.button<{ active: boolean }>`
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    border-color: #3b82f6;
-    color: ${({ active }) => (active ? "white" : "#e5e7eb")};
+    border-color: ${COLORS.info};
+    color: ${({ active }) => (active ? "white" : COLORS.textPrimary)};
   }
 
   &:disabled {
@@ -100,31 +101,31 @@ export const ControlButtons = styled.div`
 `;
 
 export const BtnCharge = styled.button`
-  background: #10b981;
+  background: ${COLORS.success};
   color: white;
 
   &:hover:not(:disabled) {
-    background: #059669;
+    background: ${COLORS.successHover};
     transform: translateY(-1px);
   }
 `;
 
 export const BtnDischarge = styled.button`
-  background: #f59e0b;
+  background: ${COLORS.warning};
   color: white;
 
   &:hover:not(:disabled) {
-    background: #d97706;
+    background: ${COLORS.warningHover};
     transform: translateY(-1px);
   }
 `;
 
 export const BtnStop = styled.button`
-  background: #ef4444;
+  background: ${COLORS.error};
   color: white;
 
   &:hover:not(:disabled) {
-    background: #dc2626;
+    background: ${COLORS.errorHover};
     transform: translateY(-1px);
   }
 `;
@@ -132,13 +133,13 @@ export const BtnStop = styled.button`
 export const TimerDisplay = styled.div`
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #2a2a3a;
+  border-top: 1px solid ${COLORS.borderDefault};
   display: flex;
   justify-content: center;
 `;
 
 export const TimerRing = styled.div`
-  background: #0f0f1a;
+  background: ${COLORS.bgInput};
   border-radius: 50%;
   width: 100px;
   height: 100px;
@@ -146,19 +147,19 @@ export const TimerRing = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px solid #3b82f6;
+  border: 2px solid ${COLORS.info};
   animation: ${pulse} 1s infinite;
 `;
 
 export const TimerTime = styled.div`
   font-size: 24px;
   font-weight: 700;
-  color: #3b82f6;
+  color: ${COLORS.info};
   font-family: monospace;
 `;
 
 export const TimerLabel = styled.div`
   font-size: 10px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   margin-top: 4px;
 `;

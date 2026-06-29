@@ -1,4 +1,5 @@
 import { Graphics, FillGradient } from "pixi.js";
+import { COLOR } from "../../../colors";
 import type { RectPosition, HvacData } from "../../types";
 
 export function drawHvacBody(
@@ -12,13 +13,13 @@ export function drawHvacBody(
   const r = step * 0.15;
 
   const isOnline = hvac.status === "online";
-  const borderColor = isOnline ? 0x10b981 : 0xef4444;
+  const borderColor = isOnline ? COLOR.success : COLOR.error;
 
   let fillColor: number;
   if (isOnline) {
-    fillColor = hvac.mode === "cooling" ? 0x3b82f6 : hvac.mode === "warming" ? 0xf59e0b : 0x6b7280;
+    fillColor = hvac.mode === "cooling" ? COLOR.info : hvac.mode === "warming" ? COLOR.warning : COLOR.idle;
   } else {
-    fillColor = 0x6b7280;
+    fillColor = COLOR.idle;
   }
 
   const bg = new FillGradient({
@@ -26,8 +27,8 @@ export function drawHvacBody(
     start: { x: 0, y: 0 },
     end: { x: 0, y: 1 },
     colorStops: [
-      { offset: 0, color: 0x252545 },
-      { offset: 1, color: 0x16162e },
+      { offset: 0, color: COLOR.gradMid },
+      { offset: 1, color: COLOR.gradBodyBot },
     ],
     textureSpace: "local",
   });
@@ -41,7 +42,7 @@ export function drawHvacBody(
 
   const dotR = Math.max(2, step * 0.06);
   g.circle(x + w - dotR * 2, y + dotR * 2, dotR);
-  g.fill(isOnline ? 0x10b981 : 0xef4444);
+  g.fill(isOnline ? COLOR.success : COLOR.error);
 }
 
 export function drawHvacAnim(
@@ -56,7 +57,7 @@ export function drawHvacAnim(
   const { step } = cfg;
   const { x, y, width: w, height: h } = pos;
   const isCooling = hvac.mode === "cooling";
-  const color = isCooling ? 0x3b82f6 : 0xf59e0b;
+  const color = isCooling ? COLOR.info : COLOR.warning;
 
   const glowAlpha = 0.1 + Math.sin(time * 4.0) * 0.08;
   const glowW = step * 0.05 * (1 + Math.sin(time * 4.0) * 0.4);

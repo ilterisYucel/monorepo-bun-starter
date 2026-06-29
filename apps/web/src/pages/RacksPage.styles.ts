@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { COLORS } from "@gd-monorepo/ui";
 
 const spin = keyframes`
   to {
@@ -29,9 +30,9 @@ export const RackGrid = styled.div`
 `;
 
 export const ChartContainer = styled.div`
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
   border-radius: 20px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
   overflow: hidden;
   padding: 20px;
 `;
@@ -42,14 +43,14 @@ export const LoadingContainer = styled.div`
   align-items: center;
   justify-content: center;
   height: 400px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
 `;
 
 export const Spinner = styled.div`
   width: 40px;
   height: 40px;
-  border: 3px solid #2a2a3a;
-  border-top-color: #3b82f6;
+  border: 3px solid ${COLORS.borderDefault};
+  border-top-color: ${COLORS.info};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
   margin-bottom: 12px;

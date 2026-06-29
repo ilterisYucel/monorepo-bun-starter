@@ -12,6 +12,7 @@ import { calculateStepConfig, getTMSLayout } from "../../deprecated/TMSGraphic/T
 import { useWebGLDetect, usePixiResize } from "../../deprecated/TMSGraphic/TMSGraphic.hooks";
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { SCADA_ICONS } from "../../../icons";
+import { COLOR, COLORS } from "../../../colors";
 import { RoomCard, HvacUnit, PanelCard } from "../../elements";
 
 import * as S from "./TMS.styles";
@@ -120,7 +121,7 @@ export const TMS: React.FC<TMSGraphicProps> = React.memo(
           width: typeof width === "number" ? `${width}px` : width,
           height: dimensions.height,
           borderRadius: bordered ? "16px" : "0",
-          border: bordered ? "1px solid #2a2a3a" : "none",
+          border: bordered ? `1px solid ${COLORS.borderDefault}` : "none",
           cursor: zoomEnabled ? "zoom-in" : "default",
         }}
         onMouseEnter={zoom.onMouseEnter}
@@ -152,7 +153,7 @@ export const TMS: React.FC<TMSGraphicProps> = React.memo(
           onInit={combinedOnInit}
           width={dimensions.width}
           height={dimensions.height - estimatedHeaderHeight}
-          background={0x1a1a2e}
+          background={COLOR.bgCard}
           antialias
           resolution={window.devicePixelRatio || 1}
         >

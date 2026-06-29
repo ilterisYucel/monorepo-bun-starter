@@ -13,5 +13,9 @@ export * from "./core"
 // Icons
 export * from "./icons"
 
+// Colors
+export * from "./colors"
+
 // Hooks
 export * from "./hooks"
+export * from "./graphics"

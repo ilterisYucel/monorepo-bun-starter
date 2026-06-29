@@ -1,5 +1,6 @@
 import { Graphics, FillGradient } from "pixi.js";
 import type { BreakerBusLayout } from "../../types";
+import { COLOR } from "../../../colors";
 
 function statusColor(
   breakerStatus: "online" | "offline",
@@ -7,10 +8,10 @@ function statusColor(
 ): { fill: number; stroke: number } {
   if (breakerStatus === "online") {
     return breakerPosition === "close"
-      ? { fill: 0x10b981, stroke: 0x34d399 }
-      : { fill: 0xf59e0b, stroke: 0xfbbf24 };
+      ? { fill: COLOR.success, stroke: COLOR.successGlow }
+      : { fill: COLOR.warning, stroke: COLOR.warningGlow };
   }
-  return { fill: 0xef4444, stroke: 0xf87171 };
+  return { fill: COLOR.error, stroke: COLOR.errorStroke };
 }
 
 export function drawBreakerBody(
@@ -41,15 +42,15 @@ export function drawBreakerBody(
     start: { x: 0, y: 0 },
     end: { x: 0, y: 1 },
     colorStops: [
-      { offset: 0, color: 0x252545 },
-      { offset: 1, color: 0x16162e },
+      { offset: 0, color: COLOR.gradMid },
+      { offset: 1, color: COLOR.gradBodyBot },
     ],
     textureSpace: "local",
   });
 
   g.roundRect(bx - step * 0.1, by, bw + step * 0.2, bh, br);
   g.fill(bg);
-  g.stroke({ width: Math.max(1, step * 0.03), color: 0x3d3d5e });
+  g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke });
 
   g.setStrokeStyle({ width: strokeW, color: sc });
 

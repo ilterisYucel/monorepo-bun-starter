@@ -3,6 +3,7 @@ import type { Graphics as GraphicsType } from "pixi.js";
 import type { CircuitBreakerProps } from "./CircuitBreaker.types";
 import { drawBreakerBody, drawBreakerPulse } from "./CircuitBreaker.drawers";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
+import { COLOR } from "../../../colors";
 
 export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
   config,
@@ -43,7 +44,7 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
         draw={(g: GraphicsType) => {
           g.clear();
           g.rect(lineStartX - config.step * 0.1, by, cb.endX - lineStartX + config.step * 0.3, bh);
-          g.fill({ color: 0xffffff, alpha: 0.001 });
+          g.fill({ color: COLOR.textWhite, alpha: 0.001 });
         }}
       />
     </pixiContainer>

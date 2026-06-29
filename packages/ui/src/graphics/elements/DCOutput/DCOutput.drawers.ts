@@ -1,9 +1,6 @@
 import { Graphics, FillGradient } from "pixi.js";
 import type { OutputPosition } from "../../types";
-
-const COLOR_OUTPUT = 0x3b82f6;
-const COLOR_IDLE = 0x6b7280;
-const COLOR_BORDER = 0x3d3d5e;
+import { COLOR } from "../../../colors";
 
 export function drawOutputBody(
   g: Graphics,
@@ -12,7 +9,7 @@ export function drawOutputBody(
   isActive: boolean,
 ): void {
   const { step } = cfg;
-  const color = isActive ? COLOR_OUTPUT : COLOR_IDLE;
+  const color = isActive ? COLOR.info : COLOR.idle;
 
   const bg = new FillGradient({
     type: "radial",
@@ -21,8 +18,8 @@ export function drawOutputBody(
     outerCenter: { x: 0.5, y: 0.5 },
     outerRadius: 0.5,
     colorStops: [
-      { offset: 0, color: isActive ? 0x4a8af7 : 0x7a8696 },
-      { offset: 1, color: isActive ? 0x1d4ed8 : 0x4b5563 },
+      { offset: 0, color: isActive ? COLOR.dcActiveCenter : COLOR.dcIdleCenter },
+      { offset: 1, color: isActive ? COLOR.dcActiveEdge : COLOR.dcIdleEdge },
     ],
     textureSpace: "local",
   });
@@ -30,7 +27,7 @@ export function drawOutputBody(
   const or = output.radius;
   g.circle(output.x, output.y, or);
   g.fill(bg);
-  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR_BORDER });
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 
   g.circle(output.x, output.y, or * 0.7);
   g.fill({ color, alpha: 0.3 });
@@ -42,11 +39,11 @@ export function drawOutputBody(
   g.lineTo(output.x + bs * 0.2, output.y - bs * 0.5);
   g.lineTo(output.x + bs * 0.5, output.y + bs * 0.3);
   g.lineTo(output.x + bs, output.y - bs * 0.6);
-  g.stroke({ width: Math.max(2, step * 0.06), color: 0xffffff });
+  g.stroke({ width: Math.max(2, step * 0.06), color: COLOR.textWhite });
 
   const dotR = Math.max(1.5, step * 0.05);
   g.circle(output.x, output.y - or + dotR * 2, dotR);
-  g.fill(isActive ? COLOR_OUTPUT : COLOR_IDLE);
+  g.fill(isActive ? COLOR.info : COLOR.idle);
 }
 
 export function drawOutputGlow(
@@ -63,8 +60,8 @@ export function drawOutputGlow(
   const or = output.radius;
 
   g.circle(output.x, output.y, or + step * 0.12 * pulse);
-  g.fill({ color: COLOR_OUTPUT, alpha: 0.12 });
+  g.fill({ color: COLOR.info, alpha: 0.12 });
 
   g.circle(output.x, output.y, or + step * 0.06 * pulse);
-  g.stroke({ width: step * 0.04 * pulse, color: COLOR_OUTPUT, alpha: 0.2 });
+  g.stroke({ width: step * 0.04 * pulse, color: COLOR.info, alpha: 0.2 });
 }

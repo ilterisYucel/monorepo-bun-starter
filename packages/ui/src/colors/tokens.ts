@@ -1,0 +1,123 @@
+const tokens = {
+  // ---- Status ----
+  success:       "#10b981",
+  successGlow:   "#34d399",
+  successHover:  "#059669",
+  warning:       "#f59e0b",
+  warningGlow:   "#fbbf24",
+  warningHover:  "#d97706",
+  error:         "#ef4444",
+  errorHover:    "#dc2626",
+  errorStroke:   "#f87171",
+  info:          "#3b82f6",
+  infoDark:      "#1d4ed8",
+  infoLight:     "#60a5fa",
+  infoHover:     "#2563eb",
+  idle:          "#6b7280",
+
+  // ---- Surface ----
+  bgApp:          "#0f0f1a",
+  bgCard:         "#1a1a2e",
+  bgPopup:        "#1f1f2e",
+  bgHeader:       "#16162e",
+  bgInput:        "#0f0f1a",
+  bgPanel:        "#16162a",
+  bgRoom:         "#14142a",
+  bgSkeleton:     "#252535",
+  bgHover:        "#2a2a3e",
+  bgTag:          "#141420",
+  bgVerbose:      "#1e1e2e",
+  bgSystemBar:    "#111122",
+  bgCodeDark:     "#1f2028",
+  bgCodeLight:    "#f4f3ec",
+
+  // ---- Border ----
+  borderDefault:  "#2a2a3a",
+  borderStroke:   "#3d3d5e",
+  borderLight:    "#3a3a4a",
+  borderHover:    "#6b7280",
+  borderDivider:  "#2e303a",
+
+  // ---- Text ----
+  textPrimary:    "#e5e7eb",
+  textWhite:      "#ffffff",
+  textMuted:      "#9ca3af",
+  textDisabled:   "#6b7280",
+  textLight:      "#d1d5db",
+  textVoltage:    "#93c5fd",
+  textPurple:     "#a78bfa",
+  textTagGray:    "#94a3b8",
+  textNearWhite:  "#f3f4f6",
+  textNearBlack:  "#08060d",
+
+  // ---- Gradient ----
+  gradBodyTop:        "#2a2a4e",
+  gradBodyBot:        "#16162e",
+  gradMid:            "#252545",
+  gradMid2:           "#1a1a3a",
+  gradLow:            "#10102a",
+  gradScreen:         "#0a0a1a",
+  gradPanelTop:       "#1a1a32",
+  gradDeviceIdStart:  "#1e3a5f",
+  gradDeviceIdEnd:    "#1a2744",
+
+  // ---- Temperature ----
+  tempCold:   "#1e40af",
+  tempChilly: "#06b6d4",
+  tempHot:    "#dc2626",
+
+  // ---- Special ----
+  cable:          "#5a5a7a",
+  terminal:       "#4a4a6a",
+  shadow:         "#000000",
+  dcActiveCenter: "#4a8af7",
+  dcActiveEdge:   "#1d4ed8",
+  dcIdleCenter:   "#7a8696",
+  dcIdleEdge:     "#4b5563",
+
+  // ---- Accent (web light/dark theme) ----
+  accentLight: "#aa3bff",
+  accentDark:  "#c084fc",
+
+  // ---- Alpha variants ----
+  infoAlpha8:     "#3b82f618",
+  infoAlpha12:    "#3b82f620",
+  infoAlpha25:    "#3b82f640",
+  successAlpha12: "#10b98120",
+  successAlpha25: "#10b98140",
+  errorAlpha12:   "#ef444420",
+  errorAlpha19:   "#ef444430",
+  errorAlpha25:   "#ef444440",
+  errorAlpha50:   "#ef444480",
+  warningAlpha12: "#f59e0b20",
+  warningAlpha25: "#f59e0b40",
+  idleAlpha12:    "#6b728020",
+
+  // ---- Chart series ----
+  chart1:  "#3b82f6",
+  chart2:  "#ef4444",
+  chart3:  "#10b981",
+  chart4:  "#f59e0b",
+  chart5:  "#8b5cf6",
+  chart6:  "#ec4899",
+  chart7:  "#06b6d4",
+  chart8:  "#84cc16",
+  chart9:  "#f97316",
+  chart10: "#6366f1",
+  chart11: "#14b8a6",
+  chart12: "#d946ef",
+  chart13: "#0ea5e9",
+  chart14: "#eab308",
+  chart15: "#a855f7",
+  chart16: "#22c55e",
+} as const;
+
+export const COLORS = tokens;
+
+export type ColorToken = keyof typeof tokens;
+
+export const hexToNumber = (hex: string): number => parseInt(hex.slice(1), 16);
+
+export const COLOR: Record<ColorToken, number> = Object.fromEntries(
+  Object.entries(tokens).map(([k, v]) => [k, hexToNumber(v)])
+) as Record<ColorToken, number>;

@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const ReportsPageContainer = styled.div`
   padding: 8px;
@@ -11,13 +12,13 @@ export const ReportsPageContainer = styled.div`
 export const ReportsPlaceholder = styled.div`
   text-align: center;
   padding: 60px;
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
   border-radius: 24px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
   max-width: 500px;
 
   p {
-    color: #9ca3af;
+    color: ${COLORS.textMuted};
     margin: 8px 0;
   }
 `;

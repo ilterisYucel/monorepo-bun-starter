@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { COLORS } from "../../colors";
 
 export const Wrapper = styled.div`
   background: transparent;
@@ -6,7 +7,7 @@ export const Wrapper = styled.div`
 
 export const Header = styled.div`
   text-align: left;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   font-family: monospace;
   font-size: 13px;
   font-weight: 700;

@@ -1,11 +1,12 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const Bar = styled.div`
   display: flex;
   align-items: center;
   padding: 4px 14px;
-  background: #111122;
-  border-bottom: 1px solid #2a2a3a;
+  background: ${COLORS.bgSystemBar};
+  border-bottom: 1px solid ${COLORS.borderDefault};
   flex-shrink: 0;
   min-height: 40px;
 `;
@@ -28,8 +29,8 @@ export const Box = styled.div`
   gap: 6px;
   padding: 4px 8px;
   border-radius: 6px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgCard};
+  border: 1px solid ${COLORS.borderDefault};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -38,13 +39,13 @@ export const Box = styled.div`
 export const Label = styled.span`
   font-size: 12px;
   font-weight: 500;
-  color: #d1d5db;
+  color: ${COLORS.textLight};
 `;
 
 export const Mono = styled.span`
   font-size: 12px;
   font-weight: 500;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-variant-numeric: tabular-nums;
   font-family: "SF Mono", "Fira Code", "Consolas", monospace;
 `;
@@ -65,16 +66,16 @@ export const HamburgerBtn = styled.button`
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 6px;
-  background: #1a1a2e;
-  color: #9ca3af;
+  background: ${COLORS.bgCard};
+  color: ${COLORS.textMuted};
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
   &:hover {
-    background: #2a2a3e;
-    color: #e5e7eb;
+    background: ${COLORS.bgHover};
+    color: ${COLORS.textPrimary};
   }
 `;
 
@@ -86,8 +87,8 @@ export const Popup = styled.div`
   flex-direction: column;
   gap: 4px;
   padding: 6px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgCard};
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   z-index: 100;

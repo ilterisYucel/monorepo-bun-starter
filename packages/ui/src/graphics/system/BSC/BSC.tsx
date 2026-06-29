@@ -13,6 +13,7 @@ import { calculateStepConfig, getRackPositions } from "../../deprecated/BSCGraph
 import { useWebGLDetect, usePixiResize } from "../../deprecated/BSCGraphic/BSCGraphic.hooks";
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { SCADA_ICONS } from "../../../icons";
+import { COLOR, COLORS } from "../../../colors";
 import type { Rack } from "../../../types";
 import type { RackCellConfig } from "../../elements/RackCell/RackCell.types";
 import {
@@ -145,9 +146,9 @@ const BSCV2Canvas: React.FC<{
       <>
         {/* Bus bar labels */}
         <pixiText key="bus-plus" text="+" x={rackPositions[0]!.x - step * 0.3} y={topBusY} anchor={0.5}
-          style={{ fontSize: Math.max(15, step * 0.4), fill: 0x10b981, fontFamily: "monospace", fontWeight: "bold" }} />
+          style={{ fontSize: Math.max(15, step * 0.4), fill: COLOR.success, fontFamily: "monospace", fontWeight: "bold" }} />
         <pixiText key="bus-minus" text="-" x={rackPositions[0]!.x - step * 0.3} y={bottomBusY} anchor={0.5}
-          style={{ fontSize: Math.max(15, step * 0.4), fill: 0xf59e0b, fontFamily: "monospace", fontWeight: "bold" }} />
+          style={{ fontSize: Math.max(15, step * 0.4), fill: COLOR.warning, fontFamily: "monospace", fontWeight: "bold" }} />
 
         {/* Breaker labels */}
         {(() => {
@@ -159,8 +160,8 @@ const BSCV2Canvas: React.FC<{
           const ly = cbCenterY + step * 0.7;
           const boxY = ly - step * 0.3;
           const boxX = cbCenterX - boxW / 2;
-          const cbStatusColor = breakerStatus === "online" ? 0x10b981 : 0xef4444;
-          const cbPosColor = breakerPosition === "close" ? 0x10b981 : 0xf59e0b;
+          const cbStatusColor = breakerStatus === "online" ? COLOR.success : COLOR.error;
+          const cbPosColor = breakerPosition === "close" ? COLOR.success : COLOR.warning;
 
           return (
             <>
@@ -169,12 +170,12 @@ const BSCV2Canvas: React.FC<{
                 draw={(g) => {
                   g.clear();
                   g.roundRect(boxX, boxY, boxW, boxH, boxR);
-                  g.fill({ color: 0x0a0a1a, alpha: 0.85 });
-                  g.stroke({ width: Math.max(0.4, step * 0.015), color: 0x3d3d5e, alpha: 0.6 });
+                  g.fill({ color: COLOR.gradScreen, alpha: 0.85 });
+                  g.stroke({ width: Math.max(0.4, step * 0.015), color: COLOR.borderStroke, alpha: 0.6 });
                 }}
               />
               <pixiText key="cb-label" text="CB" x={cbCenterX} y={ly} anchor={0.5}
-                style={{ fontSize: smallFs + 4, fill: 0x9ca3af, fontFamily: "monospace", fontWeight: "bold" }} />
+                style={{ fontSize: smallFs + 4, fill: COLOR.textMuted, fontFamily: "monospace", fontWeight: "bold" }} />
               <pixiText key="cb-status" text={breakerStatus === "online" ? "Online" : "Offline"} x={cbCenterX} y={ly + step * 0.48} anchor={0.5}
                 style={{ fontSize: smallFs + 1, fill: cbStatusColor, fontFamily: "monospace", fontWeight: "bold" }} />
               <pixiText key="cb-pos" text={breakerPosition === "close" ? "Closed" : "Open"} x={cbCenterX} y={ly + step * 0.88} anchor={0.5}
@@ -189,7 +190,7 @@ const BSCV2Canvas: React.FC<{
           return (
             <>
               <pixiText key="out-label" text="DC" x={dcX} y={output.y - output.radius - step * 0.25} anchor={0.5}
-                style={{ fontSize: fs, fill: 0xffffff, fontFamily: "monospace", fontWeight: "bold" }} />
+                style={{ fontSize: fs, fill: COLOR.textWhite, fontFamily: "monospace", fontWeight: "bold" }} />
               {unit.dcOutput && (
                 <>
                   <pixiGraphics
@@ -199,14 +200,14 @@ const BSCV2Canvas: React.FC<{
                       const by = output.y + output.radius + step * 0.15;
                       g.clear();
                       g.roundRect(bx, by, step * 1.4, step * 0.85, step * 0.08);
-                      g.fill({ color: 0x0a0a1a, alpha: 0.85 });
-                      g.stroke({ width: Math.max(0.4, step * 0.015), color: 0x3d3d5e, alpha: 0.6 });
+                      g.fill({ color: COLOR.gradScreen, alpha: 0.85 });
+                      g.stroke({ width: Math.max(0.4, step * 0.015), color: COLOR.borderStroke, alpha: 0.6 });
                     }}
                   />
                   <pixiText key="out-v" text={`${unit.dcOutput.voltage}V`} x={dcX} y={output.y + output.radius + step * 0.4} anchor={0.5}
-                    style={{ fontSize: smallFs + 3, fill: 0x9ca3af, fontFamily: "monospace" }} />
+                    style={{ fontSize: smallFs + 3, fill: COLOR.textMuted, fontFamily: "monospace" }} />
                   <pixiText key="out-a" text={`${unit.dcOutput.current}A`} x={dcX} y={output.y + output.radius + step * 0.8} anchor={0.5}
-                    style={{ fontSize: smallFs + 3, fill: 0xf59e0b, fontFamily: "monospace", fontWeight: "bold" }} />
+                    style={{ fontSize: smallFs + 3, fill: COLOR.warning, fontFamily: "monospace", fontWeight: "bold" }} />
                 </>
               )}
             </>
@@ -265,7 +266,7 @@ const BSCV2Canvas: React.FC<{
         onInit={combinedOnInit}
         width={dimensions.width}
         height={dimensions.height}
-        background={0x1a1a2e}
+        background={COLOR.bgCard}
         antialias
         resolution={window.devicePixelRatio || 1}
       >
@@ -276,7 +277,7 @@ const BSCV2Canvas: React.FC<{
           x={config.step * 0.8}
           y={config.step * 0.4}
           anchor={0.5}
-          style={{ fontSize: headerFontSize, fill: 0xe5e7eb, fontFamily: "monospace", fontWeight: "bold" }}
+          style={{ fontSize: headerFontSize, fill: COLOR.textPrimary, fontFamily: "monospace", fontWeight: "bold" }}
         />
 
         {/* Cables */}
@@ -374,7 +375,7 @@ export const BSC: React.FC<BSCGraphicProps> = ({
       style={{
         width: typeof width === "number" ? `${width}px` : width,
         borderRadius: bordered ? "16px" : "0",
-        border: bordered ? "1px solid #2a2a3a" : "none",
+        border: bordered ? `1px solid ${COLORS.borderDefault}` : "none",
       }}
     >
       <S.Header>

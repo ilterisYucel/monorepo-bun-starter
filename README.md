@@ -130,6 +130,26 @@ Level 4:  web, desktop                                     (depend on shared-typ
 | `web` | App | React SPA | `react-query`, `zustand`, `axios` |
 | `desktop` | App | Electron | `electron-vite`, `electron-updater` |
 
+## UI Design Tokens
+
+The `ui` package provides centralized design tokens consumed by all frontend packages (`web`, `desktop`, and `ui` itself).
+
+### Icons
+- `import { SCADA_ICONS, type ScadaIconName } from "@gd-monorepo/ui"`
+- 35 named SCADA icons (dashboard, battery, control, charts...) mapped to Tabler Icons (`react-icons/tb`)
+- Use `<SCADA_ICONS.dashboard size={18} />` — never import `react-icons` directly
+- Adding an icon: update `types.ts` union + `nav-icons.tsx` mapping
+
+### Colors
+- `import { COLORS, COLOR, hexToNumber } from "@gd-monorepo/ui"`
+- 104 semantic color tokens (status, surface, border, text, gradient, chart, alpha variants)
+- Dual-format: `COLORS.success` → `"#10b981"` (CSS/Emotion) and `COLOR.success` → `0x10b981` (PixiJS)
+- `hexToNumber()` for dynamic PixiJS color conversion
+- **No hardcoded hex values anywhere** — all colors reference tokens
+- Adding a token: add entry to `tokens` object in `tokens.ts`; `COLOR` and types auto-derive
+
+Full details: see [AGENTS.md](./AGENTS.md).
+
 ## Web-Service Architecture (Hexagonal / Ports & Adapters)
 
 ```

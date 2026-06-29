@@ -1,3 +1,5 @@
+import { COLORS } from "../../colors";
+
 export {
   DEFAULT_COLORS,
   Container,
@@ -19,8 +21,8 @@ export const uPlotContainerStyle: React.CSSProperties = {
 
 export const tooltipStyle: React.CSSProperties = {
   position: "absolute",
-  background: "#1a1a2e",
-  border: "1px solid #2a2a3a",
+  background: COLORS.bgCard,
+  border: `1px solid ${COLORS.borderDefault}`,
   borderRadius: "10px",
   padding: "10px 14px",
   boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",

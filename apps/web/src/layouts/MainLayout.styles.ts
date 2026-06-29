@@ -1,9 +1,10 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const AppLayout = styled.div`
   display: flex;
   min-height: 100vh;
-  background: #0f0f1a;
+  background: ${COLORS.bgApp};
   overflow-x: hidden;
 `;
 

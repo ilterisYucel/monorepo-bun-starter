@@ -1,21 +1,22 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { COLORS } from "@gd-monorepo/ui";
 
 const pulse = keyframes`
   0%, 100% {
-    box-shadow: 0 0 0 0 #3b82f640;
+    box-shadow: 0 0 0 0 ${COLORS.infoAlpha25};
   }
   50% {
-    box-shadow: 0 0 0 10px #3b82f620;
+    box-shadow: 0 0 0 10px ${COLORS.infoAlpha12};
   }
 `;
 
 export const SchedulerContainer = styled.div`
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
   border-radius: 20px;
-  border: 1px solid #2a2a3a;
+  border: 1px solid ${COLORS.borderDefault};
   padding: 24px;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
 
   h4 {
     margin: 0 0 16px 0;
@@ -30,14 +31,14 @@ export const SchedulerForm = styled.div`
   gap: 12px;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #2a2a3a;
+  border-bottom: 1px solid ${COLORS.borderDefault};
 `;
 
 export const FormGroup = styled.div`
   label {
     display: block;
     margin-bottom: 8px;
-    color: #9ca3af;
+    color: ${COLORS.textMuted};
     font-size: 13px;
     font-weight: 500;
   }
@@ -51,7 +52,7 @@ export const FormRow = styled.div`
 
   label {
     font-size: 13px;
-    color: #9ca3af;
+    color: ${COLORS.textMuted};
     font-weight: 500;
     width: 100px;
   }
@@ -59,16 +60,16 @@ export const FormRow = styled.div`
   select,
   input {
     flex: 1;
-    background: #0f0f1a;
-    border: 1px solid #2a2a3a;
-    color: #e5e7eb;
+    background: ${COLORS.bgInput};
+    border: 1px solid ${COLORS.borderDefault};
+    color: ${COLORS.textPrimary};
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
 
     &:hover {
-      border-color: #3b82f6;
+      border-color: ${COLORS.info};
     }
   }
 `;
@@ -80,9 +81,9 @@ export const ModeButtons = styled.div`
 
 export const ModeBtn = styled.button<{ active: boolean }>`
   flex: 1;
-  background: ${({ active }) => (active ? "#3b82f6" : "#0f0f1a")};
-  border: 1px solid ${({ active }) => (active ? "#3b82f6" : "#2a2a3a")};
-  color: ${({ active }) => (active ? "white" : "#9ca3af")};
+  background: ${({ active }) => (active ? COLORS.info : COLORS.bgInput)};
+  border: 1px solid ${({ active }) => (active ? COLORS.info : COLORS.borderDefault)};
+  color: ${({ active }) => (active ? "white" : COLORS.textMuted)};
   padding: 10px 16px;
   border-radius: 10px;
   font-size: 13px;
@@ -91,8 +92,8 @@ export const ModeBtn = styled.button<{ active: boolean }>`
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    border-color: #3b82f6;
-    color: ${({ active }) => (active ? "white" : "#e5e7eb")};
+    border-color: ${COLORS.info};
+    color: ${({ active }) => (active ? "white" : COLORS.textPrimary)};
   }
 
   &:disabled {
@@ -103,16 +104,16 @@ export const ModeBtn = styled.button<{ active: boolean }>`
 
 export const DateTimeInput = styled.input`
   flex: 1;
-  background: #0f0f1a;
-  border: 1px solid #2a2a3a;
-  color: #e5e7eb;
+  background: ${COLORS.bgInput};
+  border: 1px solid ${COLORS.borderDefault};
+  color: ${COLORS.textPrimary};
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
 
   &:hover {
-    border-color: #3b82f6;
+    border-color: ${COLORS.info};
   }
 
   &::-webkit-calendar-picker-indicator {
@@ -122,7 +123,7 @@ export const DateTimeInput = styled.input`
 `;
 
 export const AddBtn = styled.button`
-  background: #3b82f6;
+  background: ${COLORS.info};
   border: none;
   color: white;
   padding: 10px;
@@ -133,7 +134,7 @@ export const AddBtn = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background: #2563eb;
+    background: ${COLORS.infoHover};
     transform: translateY(-1px);
   }
 `;
@@ -142,7 +143,7 @@ export const ScheduledList = styled.div`
   h5 {
     margin: 0 0 12px 0;
     font-size: 13px;
-    color: #9ca3af;
+    color: ${COLORS.textMuted};
   }
 
   ul {
@@ -158,7 +159,7 @@ export const ScheduledList = styled.div`
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #0f0f1a;
+      background: ${COLORS.bgInput};
       padding: 10px 12px;
       border-radius: 12px;
       font-size: 12px;
@@ -169,7 +170,7 @@ export const ScheduledList = styled.div`
 
 export const CmdDate = styled.span`
   flex: 2;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   font-size: 11px;
 `;
 
@@ -178,18 +179,18 @@ export const CmdType = styled.span<{ variant: "charge" | "discharge" }>`
   font-weight: bold;
   text-align: center;
   color: ${({ variant }) =>
-    variant === "charge" ? "#10b981" : "#f59e0b"};
+    variant === "charge" ? COLORS.success : COLORS.warning};
 `;
 
 export const CmdPower = styled.span`
   flex: 1;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   text-align: right;
 `;
 
 export const CmdTimer = styled.span`
   flex: 1;
-  color: #3b82f6;
+  color: ${COLORS.info};
   font-size: 11px;
   text-align: center;
 `;
@@ -210,6 +211,6 @@ export const DeleteBtn = styled.button`
 export const EmptyText = styled.p`
   text-align: center;
   font-size: 12px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   padding: 20px;
 `;

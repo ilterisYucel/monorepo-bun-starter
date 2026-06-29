@@ -1,9 +1,10 @@
 // packages/ui/src/components/RackCard/RackCard.styles.ts
 import styled from "@emotion/styled";
+import { COLORS } from "../../colors";
 
 export const Card = styled.div`
-  background: #1a1a2e;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgCard};
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 20px;
   padding: 20px;
   transition: all 0.2s ease;
@@ -17,7 +18,7 @@ export const Card = styled.div`
 
   &:hover {
     transform: translateY(-2px);
-    border-color: #3b82f6;
+    border-color: ${COLORS.info};
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   }
 `;
@@ -37,7 +38,7 @@ export const Header = styled.div`
 
 export const Name = styled.span`
   font-weight: 700;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   font-size: 18px;
   letter-spacing: 0.5px;
 `;
@@ -59,9 +60,9 @@ export const BadgeOnline = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #10b98120;
-  color: #10b981;
-  border: 1px solid #10b981;
+  background: ${COLORS.successAlpha12};
+  color: ${COLORS.success};
+  border: 1px solid ${COLORS.success};
 `;
 
 export const BadgeOffline = styled.span`
@@ -72,9 +73,9 @@ export const BadgeOffline = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #ef444420;
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  background: ${COLORS.errorAlpha12};
+  color: ${COLORS.error};
+  border: 1px solid ${COLORS.error};
 `;
 
 export const BadgeCharge = styled.span`
@@ -85,9 +86,9 @@ export const BadgeCharge = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #10b98120;
-  color: #10b981;
-  border: 1px solid #10b981;
+  background: ${COLORS.successAlpha12};
+  color: ${COLORS.success};
+  border: 1px solid ${COLORS.success};
 `;
 
 export const BadgeDischarge = styled.span`
@@ -98,9 +99,9 @@ export const BadgeDischarge = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #f59e0b20;
-  color: #f59e0b;
-  border: 1px solid #f59e0b;
+  background: ${COLORS.warningAlpha12};
+  color: ${COLORS.warning};
+  border: 1px solid ${COLORS.warning};
 `;
 
 export const BadgeIdle = styled.span`
@@ -111,23 +112,23 @@ export const BadgeIdle = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #6b728020;
-  color: #9ca3af;
-  border: 1px solid #6b7280;
+  background: ${COLORS.idleAlpha12};
+  color: ${COLORS.textMuted};
+  border: 1px solid ${COLORS.textDisabled};
 `;
 
 export const SocContainer = styled.div`
   text-align: center;
   margin-bottom: 24px;
   padding: 16px;
-  background: #0f0f1a;
+  background: ${COLORS.bgInput};
   border-radius: 16px;
 `;
 
 export const SocValue = styled.div`
   font-size: 48px;
   font-weight: 800;
-  color: #3b82f6;
+  color: ${COLORS.info};
   line-height: 1;
   margin-bottom: 8px;
 
@@ -138,20 +139,20 @@ export const SocValue = styled.div`
 
 export const SocLabel = styled.div`
   font-size: 12px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   margin-bottom: 12px;
 `;
 
 export const SocBar = styled.div`
   height: 8px;
-  background: #2a2a3a;
+  background: ${COLORS.borderDefault};
   border-radius: 4px;
   overflow: hidden;
 `;
 
 export const SocBarFill = styled.div`
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #10b981);
+  background: linear-gradient(90deg, ${COLORS.info}, ${COLORS.success});
   border-radius: 4px;
   transition: width 0.3s ease;
 `;
@@ -171,13 +172,13 @@ export const DetailItem = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #0f0f1a;
+  background: ${COLORS.bgInput};
   padding: 10px 12px;
   border-radius: 12px;
   transition: all 0.2s;
 
   &:hover {
-    background: #1f1f2e;
+    background: ${COLORS.bgPopup};
     transform: translateX(2px);
   }
 `;
@@ -189,32 +190,32 @@ export const DetailIcon = styled.span`
 
 export const DetailLabel = styled.span`
   font-size: 11px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   flex: 1;
 `;
 
 export const DetailValue = styled.span`
   font-size: 13px;
   font-weight: 600;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
 `;
 
 export const DetailButton = styled.button`
   margin-top: 12px;
   width: 100%;
   padding: 10px 0;
-  background: #1f1f2e;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgPopup};
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 10px;
-  color: #d1d5db;
+  color: ${COLORS.textLight};
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #252535;
-    border-color: #3b82f6;
-    color: #3b82f6;
+    background: ${COLORS.bgSkeleton};
+    border-color: ${COLORS.info};
+    color: ${COLORS.info};
   }
 `;

@@ -1,6 +1,7 @@
 // packages/ui/src/core/TelemetryGauge/TelemetryGauge.styles.ts
 import styled from "@emotion/styled";
 import type { GaugeSizes } from "./TelemetryGauge.types";
+import { COLORS } from "../../colors";
 
 // ---------- Sizes ----------
 
@@ -31,7 +32,7 @@ export const GaugeContainer = styled.div<{
   transition: all 0.2s ease;
   cursor: pointer;
   text-align: center;
-  background: #1a1a2e;
+  background: ${COLORS.bgCard};
 
   ${({ $variant, size }) => {
     if ($variant === "circular") {
@@ -53,18 +54,18 @@ export const GaugeContainer = styled.div<{
     }
     return `
       border-radius: 16px;
-      border: 1px solid #2a2a3a;
+      border: 1px solid ${COLORS.borderDefault};
       padding: ${size === "small" ? "12px" : size === "large" ? "24px" : "16px"};
       min-width: ${size === "small" ? "100px" : size === "large" ? "180px" : "140px"};
     `;
   }}
 
   ${({ $bordered }) =>
-    $bordered ? `border: 1px solid #2a2a3a;` : `border: none;`}
+    $bordered ? `border: 1px solid ${COLORS.borderDefault};` : `border: none;`}
 
   &:hover {
     transform: translateY(-2px);
-    border-color: #3b82f6;
+    border-color: ${COLORS.info};
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 `;
@@ -96,7 +97,7 @@ export const Icon = styled.div`
 `;
 
 export const Label = styled.div<{ size?: "small" | "medium" | "large" }>`
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -106,7 +107,7 @@ export const Label = styled.div<{ size?: "small" | "medium" | "large" }>`
 
 export const ValueContainer = styled.div`
   font-weight: 700;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   line-height: 1.2;
   margin-bottom: 12px;
 `;
@@ -119,12 +120,12 @@ export const ValueNumber = styled.span<{ size?: "small" | "medium" | "large" }>`
 export const Unit = styled.span`
   font-size: 0.5em;
   margin-left: 2px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   font-weight: 400;
 `;
 
 export const BarContainer = styled.div`
-  background: #2a2a3a;
+  background: ${COLORS.borderDefault};
   border-radius: 10px;
   height: 8px;
   overflow: hidden;
@@ -141,7 +142,7 @@ export const Limits = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   margin-top: 4px;
 `;
 
@@ -163,7 +164,7 @@ export const CircularLabel = styled.div<{
 }>`
   position: relative;
   z-index: 1;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: ${({ size }) =>
@@ -175,7 +176,7 @@ export const CircularValueRow = styled.div`
   position: relative;
   z-index: 1;
   font-weight: 700;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   line-height: 1.2;
 `;
 
@@ -190,7 +191,7 @@ export const CircularValueNum = styled.span<{
 export const CircularUnit = styled.span`
   font-size: 0.5em;
   margin-left: 2px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   font-weight: 400;
 `;
 
@@ -201,7 +202,7 @@ export const CircularMin = styled.div`
   top: 73.5%;
   transform: translate(-50%, -50%);
   font-size: 9px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-family: monospace;
   line-height: 1;
 `;
@@ -213,7 +214,7 @@ export const CircularMax = styled.div`
   top: 73.5%;
   transform: translate(-50%, -50%);
   font-size: 9px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-family: monospace;
   line-height: 1;
 `;

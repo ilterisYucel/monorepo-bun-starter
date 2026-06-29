@@ -2,6 +2,7 @@
 import React from "react";
 import type { TelemetryGaugeProps } from "./TelemetryGauge.types";
 import * as S from "./TelemetryGauge.styles";
+import { COLORS } from "../../colors";
 
 // ---------- Speedometer arc helpers (angles from top, clockwise) ----------
 
@@ -27,9 +28,9 @@ function gaugeArc(
 }
 
 function gaugeColor(pct: number): string {
-  if (pct >= 80) return "#1d4ed8";
-  if (pct >= 50) return "#3b82f6";
-  return "#60a5fa";
+  if (pct >= 80) return COLORS.infoDark;
+  if (pct >= 50) return COLORS.info;
+  return COLORS.infoLight;
 }
 
 // ---------- Component ----------
@@ -41,7 +42,7 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
   label,
   unit: unitText,
   decimals = 1,
-  color = "#3b82f6",
+  color = COLORS.info,
   size = "medium",
   icon,
   variant = "linear",

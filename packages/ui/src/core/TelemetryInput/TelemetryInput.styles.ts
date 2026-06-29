@@ -1,10 +1,11 @@
 // packages/ui/src/core/TelemetryInput/TelemetryInput.styles.ts
 import styled from "@emotion/styled";
+import { COLORS } from "../../colors";
 
 const statusColors = {
-  nominal: "#10b981",
-  warning: "#f59e0b",
-  alarm: "#ef4444",
+  nominal: COLORS.success,
+  warning: COLORS.warning,
+  alarm: COLORS.error,
 } as const;
 
 type StatusKey = keyof typeof statusColors;
@@ -14,8 +15,8 @@ export const Container = styled.div<{
   size?: "small" | "medium" | "large";
   $status?: StatusKey;
 }>`
-  background: #1a1a2e;
-  border: 1px solid ${(props) => (props.disabled ? "#2a2a3a" : "#3a3a4a")};
+  background: ${COLORS.bgCard};
+  border: 1px solid ${(props) => (props.disabled ? COLORS.borderDefault : COLORS.borderLight)};
   border-radius: 12px;
   transition: all 0.2s ease;
   width: 100%;
@@ -34,8 +35,8 @@ export const Container = styled.div<{
     !props.disabled && !props.$status
       ? `
     &:hover {
-      border-color: #3b82f6;
-      background: #1f1f2e;
+      border-color: ${COLORS.info};
+      background: ${COLORS.bgPopup};
     }
   ` : ""}
 `;
@@ -60,20 +61,20 @@ export const LabelSection = styled.div`
 export const Name = styled.span`
   font-size: 14px;
   font-weight: 600;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
 `;
 
 export const DeviceId = styled.span`
   font-size: 12px;
-  color: #93c5fd;
-  background: linear-gradient(135deg, #1e3a5f 0%, #1a2744 100%);
+  color: ${COLORS.textVoltage};
+  background: linear-gradient(135deg, ${COLORS.gradDeviceIdStart} 0%, ${COLORS.gradDeviceIdEnd} 100%);
   padding: 3px 12px;
   border-radius: 20px;
   font-family: monospace;
   font-weight: 600;
   letter-spacing: 0.3px;
-  border: 1px solid #3b82f640;
-  box-shadow: 0 0 8px #3b82f618;
+  border: 1px solid ${COLORS.infoAlpha25};
+  box-shadow: 0 0 8px ${COLORS.infoAlpha8};
 `;
 
 export const TagsContainer = styled.div`
@@ -85,26 +86,26 @@ export const TagsContainer = styled.div`
 
 export const Tag = styled.span`
   font-size: 11px;
-  background: #141420;
+  background: ${COLORS.bgTag};
   padding: 3px 10px;
   border-radius: 20px;
-  border: 1px solid #3a3a4a;
+  border: 1px solid ${COLORS.borderLight};
   font-family: monospace;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #6b7280;
-    background: #1a1a2e;
+    border-color: ${COLORS.textDisabled};
+    background: ${COLORS.bgCard};
   }
 `;
 
 export const TagKey = styled.span`
-  color: #a78bfa;
+  color: ${COLORS.textPurple};
   font-weight: 600;
 `;
 
 export const TagValue = styled.span`
-  color: #94a3b8;
+  color: ${COLORS.textTagGray};
 `;
 
 // ---------- Status göstergesi ----------
@@ -124,19 +125,19 @@ export const InputGroup = styled.div<{ $status?: StatusKey }>`
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #0f0f1a;
-  border: 1px solid #2a2a3a;
+  background: ${COLORS.bgInput};
+  border: 1px solid ${COLORS.borderDefault};
   border-radius: 0;
   padding: 8px 16px;
   transition: all 0.2s;
 
   &:focus-within {
     border-color: ${({ $status }) =>
-      $status ? statusColors[$status] : "#3b82f6"};
+      $status ? statusColors[$status] : COLORS.info};
     box-shadow: ${({ $status }) =>
       $status
         ? `0 0 0 2px ${statusColors[$status]}20`
-        : "0 0 0 2px #3b82f620"};
+        : `0 0 0 2px ${COLORS.infoAlpha12}`};
   }
 `;
 
@@ -153,7 +154,7 @@ export const ValueInput = styled.input<{ $status?: StatusKey }>`
   background: transparent;
   border: none;
   color: ${({ $status }) =>
-    $status ? statusColors[$status] : "#e5e7eb"};
+    $status ? statusColors[$status] : COLORS.textPrimary};
   font-family: monospace;
   font-size: 20px;
   font-weight: 500;
@@ -167,7 +168,7 @@ export const ValueInput = styled.input<{ $status?: StatusKey }>`
 
 export const Unit = styled.span`
   background: transparent;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   font-size: 14px;
   font-weight: 500;
   min-width: 40px;
@@ -186,7 +187,7 @@ export const ControlBtn = styled.button`
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -214,7 +215,7 @@ export const RangeContainer = styled.div`
 
 export const RangeBar = styled.div`
   height: 4px;
-  background: #2a2a3a;
+  background: ${COLORS.borderDefault};
   border-radius: 2px;
   overflow: hidden;
 `;
@@ -227,7 +228,7 @@ export const RangeBarFill = styled.div<{
   width: ${({ $percentage }) => $percentage}%;
   border-radius: 2px;
   background: ${({ $status }) =>
-    $status ? statusColors[$status] : "#3b82f6"};
+    $status ? statusColors[$status] : COLORS.info};
   transition: width 0.3s ease, background 0.2s ease;
 `;
 
@@ -235,7 +236,7 @@ export const RangeLabels = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: #6b7280;
+  color: ${COLORS.textDisabled};
   font-family: monospace;
   margin-top: 4px;
 `;
@@ -250,7 +251,7 @@ export const Footer = styled.div`
 
 export const Description = styled.div`
   font-size: 11px;
-  color: #e5e7eb;
+  color: ${COLORS.textPrimary};
   line-height: 1.4;
   text-align: left;
 `;
@@ -259,7 +260,7 @@ export const LimitIndicator = styled.div`
   display: flex;
   gap: 12px;
   font-size: 10px;
-  color: #9ca3af;
+  color: ${COLORS.textMuted};
   font-family: monospace;
   margin-left: auto; // 🔥 her zaman sağda
 `;

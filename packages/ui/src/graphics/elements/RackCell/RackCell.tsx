@@ -8,6 +8,7 @@ import {
   drawRackTerminals,
 } from "./RackCell.drawers";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
+import { COLOR } from "../../../colors";
 
 export const RackCell: React.FC<RackCellProps> = ({
   rack, x, y, config, flowDirection, onClick,
@@ -44,13 +45,13 @@ export const RackCell: React.FC<RackCellProps> = ({
   const boxCY = (row: number) => startY + row * (boxH + gap) + boxH / 2;
 
   const statusOnline = rack.status === "online";
-  const statusColor = statusOnline ? 0x10b981 : 0xef4444;
+  const statusColor = statusOnline ? COLOR.success : COLOR.error;
 
   let chargeColor: number;
   let chargeLabel: string;
-  if (rack.charge_status === "Charge") { chargeColor = 0x10b981; chargeLabel = "CHARGE"; }
-  else if (rack.charge_status === "Discharge") { chargeColor = 0xf59e0b; chargeLabel = "DISCHARGE"; }
-  else { chargeColor = 0x6b7280; chargeLabel = "IDLE"; }
+  if (rack.charge_status === "Charge") { chargeColor = COLOR.success; chargeLabel = "CHARGE"; }
+  else if (rack.charge_status === "Discharge") { chargeColor = COLOR.warning; chargeLabel = "DISCHARGE"; }
+  else { chargeColor = COLOR.idle; chargeLabel = "IDLE"; }
 
   const textFs = Math.max(7, step * 0.19);
 
@@ -62,17 +63,17 @@ export const RackCell: React.FC<RackCellProps> = ({
       <pixiGraphics draw={drawTerminals} />
 
       <pixiText text={`R${String(rack?.id ?? 0).padStart(2, "0")}`} x={boxCX} y={boxCY(0)} anchor={0.5}
-        style={{ fontSize: textFs, fill: 0x9ca3af, fontFamily: "monospace" }} />
+        style={{ fontSize: textFs, fill: COLOR.textMuted, fontFamily: "monospace" }} />
       <pixiText text={statusOnline ? "ONLINE" : "OFFLINE"} x={boxCX} y={boxCY(1)} anchor={0.5}
         style={{ fontSize: textFs, fill: statusColor, fontFamily: "monospace", fontWeight: "bold" }} />
       <pixiText text={chargeLabel} x={boxCX} y={boxCY(2)} anchor={0.5}
         style={{ fontSize: textFs, fill: chargeColor, fontFamily: "monospace", fontWeight: "bold" }} />
       <pixiText text={`${(rack?.soc ?? 0).toFixed(1)}%`} x={boxCX} y={boxCY(3)} anchor={0.5}
-        style={{ fontSize: textFs, fill: 0xffffff, fontFamily: "monospace", fontWeight: "bold" }} />
+        style={{ fontSize: textFs, fill: COLOR.textWhite, fontFamily: "monospace", fontWeight: "bold" }} />
       <pixiText text={`${rack.voltage?.toFixed(1) ?? "0.0"}V`} x={boxCX} y={boxCY(4)} anchor={0.5}
-        style={{ fontSize: textFs, fill: 0x93c5fd, fontFamily: "monospace" }} />
+        style={{ fontSize: textFs, fill: COLOR.textVoltage, fontFamily: "monospace" }} />
       <pixiText text={`${rack.current?.toFixed(1) ?? "0.0"}A`} x={boxCX} y={boxCY(5)} anchor={0.5}
-        style={{ fontSize: textFs, fill: 0xfbbf24, fontFamily: "monospace" }} />
+        style={{ fontSize: textFs, fill: COLOR.warningGlow, fontFamily: "monospace" }} />
     </pixiContainer>
   );
 };

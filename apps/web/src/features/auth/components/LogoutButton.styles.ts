@@ -1,13 +1,14 @@
 import styled from "@emotion/styled";
+import { COLORS } from "@gd-monorepo/ui";
 
 export const LogoutBtn = styled.button<{ collapsed: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #ef444420;
-  border: 1px solid #ef444640;
-  color: #ef4444;
+  background: ${COLORS.errorAlpha12};
+  border: 1px solid ${COLORS.errorAlpha25};
+  color: ${COLORS.error};
   padding: ${({ collapsed }) => (collapsed ? "9px 0" : "8px")};
   border-radius: 8px;
   font-size: 13px;
@@ -15,8 +16,8 @@ export const LogoutBtn = styled.button<{ collapsed: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background: #ef444430;
-    border-color: #ef444480;
+    background: ${COLORS.errorAlpha19};
+    border-color: ${COLORS.errorAlpha50};
   }
 `;
 

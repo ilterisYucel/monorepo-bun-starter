@@ -12,12 +12,13 @@ import {
 import type { MultiLineChartProps } from "./MultiLineChart.types";
 import type { LogEntry } from "@gd-monorepo/shared-types";
 import * as S from "./MultiLineChart.styles";
+import { COLORS } from "../../colors";
 
 const ANNOTATION_COLORS: Record<LogEntry["type"], string> = {
-  error: "#ef4444",
-  warning: "#f59e0b",
-  success: "#10b981",
-  info: "#3b82f6",
+  error: COLORS.error,
+  warning: COLORS.warning,
+  success: COLORS.success,
+  info: COLORS.info,
 };
 
 const formatTooltipTime = (timestamp: string): string => {
@@ -271,7 +272,7 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
               stroke={colors[index % colors.length]}
               strokeWidth={2.5}
               dot={false}
-              activeDot={{ r: 5, stroke: "#fff", strokeWidth: 1.5 }}
+              activeDot={{ r: 5, stroke: COLORS.textWhite, strokeWidth: 1.5 }}
               connectNulls={true}
               name={line}
             />
@@ -281,8 +282,8 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
               dataKey="_annotations"
               stroke="transparent"
               strokeWidth={0}
-              dot={{ r: 3, fill: "#9ca3af", stroke: "#1a1a2e", strokeWidth: 1 }}
-              activeDot={{ r: 5, fill: "#f3f4f6", stroke: "#1a1a2e", strokeWidth: 1.5 }}
+              dot={{ r: 3, fill: COLORS.textMuted, stroke: COLORS.bgCard, strokeWidth: 1 }}
+              activeDot={{ r: 5, fill: COLORS.textNearWhite, stroke: COLORS.bgCard, strokeWidth: 1.5 }}
               isAnimationActive={false}
               name=""
             />
