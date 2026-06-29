@@ -66,11 +66,10 @@ export function createMockChartData(
     ).toISOString();
     const point: ChartDataPoint = { timestamp };
     for (const key of keys) {
-      // sonar-ignore: PRNG used for visual noise in static mock data, no security context
+      const noise = ((i * key.length * 7 + key.length * 13) % 50) / 10;
       point[key] =
         Math.round(
-          (Math.sin(i * 0.3) * 10 + 50 + key.length * 5 + Math.random() * 5) *
-            100,
+          (Math.sin(i * 0.3) * 10 + 50 + key.length * 5 + noise) * 100,
         ) / 100;
     }
     return point;
