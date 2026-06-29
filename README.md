@@ -147,6 +147,7 @@ The `ui` package provides centralized design tokens consumed by all frontend pac
 - `hexToNumber()` for dynamic PixiJS color conversion
 - **No hardcoded hex values anywhere** — all colors reference tokens
 - Adding a token: add entry to `tokens` object in `tokens.ts`; `COLOR` and types auto-derive
+- **[Storybook](https://ilterisyucel.github.io/monorepo-bun-starter/)** — visual gallery of all tokens and components
 
 Full details: see [AGENTS.md](./AGENTS.md).
 
@@ -223,6 +224,7 @@ bun install                         # Install deps (Bun only)
 bun run dev                         # All apps in parallel (max 5)
 bun run dev:web                     # Web only (Vite, port 5173)
 bun run dev:desktop                 # Desktop only (Electron)
+nx run ui:storybook                 # Storybook dev (port 6006)
 nx run web-service:dev              # Web Service (Fastify, port 5001)
 nx run device-service:dev           # Device Service
 nx run data-service:dev             # Data Service
