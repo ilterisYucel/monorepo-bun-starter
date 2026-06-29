@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   DeviceGauges,
   BSC,
@@ -9,8 +9,8 @@ import {
 import type { RoomData, BSCUnit } from "@gd-monorepo/ui";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
-import { useHvacData, hvacUnitsToTmsProps } from "../features/hvac";
-import type { HvacUnit } from "../features/hvac";
+import { useHvacData, type HvacUnit } from "../features/hvac";
+import { hvacUnitsToTmsProps } from "../features/hvac";
 import { useDevicesStore } from "../stores/devicesStore";
 import * as S from "./DashboardPage.styles";
 import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
@@ -28,7 +28,7 @@ export const DashboardPage: React.FC = () => {
   const { units: hvacUnits, averages: hvacAvg } = useHvacData();
   const devices = useDevicesStore((s) => s.devices);
   const bscDevices = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack"),
+    () => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")),
     [devices],
   );
 
@@ -53,7 +53,7 @@ export const DashboardPage: React.FC = () => {
     [hvacUnits],
   );
 
-  const gauges = useMemo(() => [
+  const gauges = [
     {
       value: averages.avgSoC,
       label: "SoC",
@@ -94,7 +94,7 @@ export const DashboardPage: React.FC = () => {
       max: 200,
       icon: <BoltIcon size={18} />,
     },
-  ], [averages]);
+  ];
 
   const tmsGauges = useMemo(() => {
     const roomMap = new Map<string, HvacUnit[]>();
@@ -111,7 +111,9 @@ export const DashboardPage: React.FC = () => {
           .map((u) => u.currentTemp as number);
         const avg =
           temps.length > 0
-            ? Math.round((temps.reduce((s, t) => s + t, 0) / temps.length) * 10) / 10
+            ? Math.round(
+                (temps.reduce((s, t) => s + t, 0) / temps.length) * 10,
+              ) / 10
             : 0;
         return {
           value: avg,
@@ -135,11 +137,11 @@ export const DashboardPage: React.FC = () => {
     return gauges;
   }, [hvacUnits, tmsProps]);
 
-  const handleRackClick = useCallback((rackId: number) => {
+  const handleRackClick = (rackId: number) => {
     console.log("Rack clicked:", rackId);
-  }, []);
+  };
 
-  const handleBreakerToggle = useCallback((
+  const handleBreakerToggle = (
     bscIndex: number,
     position: "open" | "close",
   ) => {
@@ -149,20 +151,30 @@ export const DashboardPage: React.FC = () => {
       next[bscIndex] = position;
       return next;
     });
-  }, []);
+  };
 
   const bscUnits: BSCUnit[] = useMemo(() => {
-    return bscDevices.map((device, idx) => ({
-      deviceId: device.id,
-      racks: racks.filter((r) => r.deviceId === device.id),
-      breakerStatus: breakerStatuses[idx] ?? "online",
-      breakerPosition: breakerPositions[idx] ?? "close",
-      dcOutput: dcOutputs[idx] ?? {
-        status: "online" as const,
-        voltage: 398,
-        current: 75,
-      },
-    }));
+    const offsets = bscDevices.reduce<number[]>((acc, d, i) => {
+      acc.push(
+        i === 0 ? 0 : acc[i - 1]! + (bscDevices[i - 1]!.rack_count ?? 8),
+      );
+      return acc;
+    }, []);
+
+    return bscDevices.map((device, idx) => {
+      const rackCount = device.rack_count ?? 8;
+      return {
+        deviceId: device.id,
+        racks: racks.slice(offsets[idx]!, offsets[idx]! + rackCount),
+        breakerStatus: breakerStatuses[idx] ?? "online",
+        breakerPosition: breakerPositions[idx] ?? "close",
+        dcOutput: dcOutputs[idx] ?? {
+          status: "online" as const,
+          voltage: 398,
+          current: 75,
+        },
+      };
+    });
   }, [bscDevices, racks, breakerStatuses, breakerPositions, dcOutputs]);
 
   if (isLoading) {

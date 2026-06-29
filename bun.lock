@@ -127,6 +127,16 @@
         "@gd-monorepo/shared-types": "*",
       },
     },
+    "packages/eslint-plugin-energy": {
+      "name": "@gd-monorepo/eslint-plugin-energy",
+      "version": "1.0.0",
+      "devDependencies": {
+        "@typescript-eslint/utils": "^8.0.0",
+      },
+      "peerDependencies": {
+        "eslint": ">=9.0.0",
+      },
+    },
     "packages/services/data-service": {
       "name": "@gd-monorepo/data-service",
       "version": "1.0.0",
@@ -616,6 +626,8 @@
     "@gd-monorepo/desktop": ["@gd-monorepo/desktop@workspace:apps/desktop"],
 
     "@gd-monorepo/device-service": ["@gd-monorepo/device-service@workspace:packages/services/device-service"],
+
+    "@gd-monorepo/eslint-plugin-energy": ["@gd-monorepo/eslint-plugin-energy@workspace:packages/eslint-plugin-energy"],
 
     "@gd-monorepo/shared-types": ["@gd-monorepo/shared-types@workspace:packages/shared-types"],
 
