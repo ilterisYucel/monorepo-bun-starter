@@ -35,4 +35,5 @@ export type ScadaIconName =
   | "sourceSystem"
   | "zoomIn"
   | "container"
-  | "menu";
+  | "menu"
+  | "close";

@@ -34,6 +34,7 @@ import {
   TbSettings,
   TbZoomScan,
   TbBox,
+  TbX,
 } from "react-icons/tb";
 import type { ScadaIconName } from "./types";
 
@@ -73,4 +74,5 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   zoomIn:            TbZoomScan,
   container:         TbBox,
   menu:              TbInfoCircle,
+  close:             TbX,
 };

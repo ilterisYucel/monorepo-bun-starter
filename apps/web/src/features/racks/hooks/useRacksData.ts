@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { racksApi } from "../services/racksApi";
-import { telemetriesToRacks } from "../utils/rackHelpers";
+import { telemetriesToRacks, telemetriesToRackDetailMap } from "../utils/rackHelpers";
 import { useDevicesStore } from "../../../stores/devicesStore";
 
 export const RACKS_QUERY_KEY = ["racks"];
@@ -21,6 +21,7 @@ export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
   });
 
   const racks = telemetriesToRacks(telemetries, chargeStatus, bscDevices);
+  const rackDetails = telemetriesToRackDetailMap(telemetries, chargeStatus, bscDevices);
 
-  return { racks, isLoading, refetch };
+  return { racks, rackDetails, isLoading, refetch };
 };
