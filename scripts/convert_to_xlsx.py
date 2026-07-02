@@ -31,7 +31,7 @@ except ImportError:
     print("Falling back to CSV output...")
     with open(input_path, encoding='utf-8') as f:
         rows = json.load(f)
-    csv_path = os.path.join(ROOT, 'docs', 'mappings', 'register-ui-mapping.csv')
+    csv_path = safe_resolve(None, 'docs/mappings/register-ui-mapping.csv')
     import csv
     if rows:
         with open(csv_path, 'w', newline='', encoding='utf-8-sig') as f:
