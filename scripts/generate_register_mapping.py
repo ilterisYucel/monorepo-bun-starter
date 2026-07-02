@@ -5,7 +5,6 @@ Output: register-ui-mapping.json
 """
 
 import json
-import re
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,16 +16,10 @@ def load_json(path):
         return json.load(f)
 
 def safe_int(v):
-    try: return int(v)
-    except: return None
-
-def read_pdf_text(path):
-    import subprocess
     try:
-        result = subprocess.run(['pdftotext', '-layout', path, '-'], capture_output=True, text=True, timeout=10)
-        return result.stdout if result.returncode == 0 else ""
-    except:
-        return ""
+        return int(v)
+    except (ValueError, TypeError):
+        return None
 
 def load_abs(path):
     with open(path) as f:
@@ -34,10 +27,10 @@ def load_abs(path):
 
 # ─── LOAD DATA ───────────────────────────────────────────────────────────────
 
-MAP_JSON_PATH = os.path.expanduser('/home/gd-software/Downloads/map.json')
-map_data = load_abs(MAP_JSON_PATH)
-bsc_config = load_json('packages/services/device-service/config/bsc-1.json')
-hvac_config = load_json('packages/services/device-service/config/hvac-1.json')
+MAP_JSON_PATH = os.path.join(ROOT, 'configs', 'map.json')
+map_data = load_abs(MAP_JSON_PATH) if os.path.exists(MAP_JSON_PATH) else []
+bsc_config = load_json('configs/bsc-simulator.json')
+hvac_config = load_json('configs/hvac-simulator.json')
 
 # ─── UI FIELD MAPPING TABLES ─────────────────────────────────────────────────
 # telemetryName → (uiComponent, uiTab, uiField, uiFieldLabel)
@@ -172,8 +165,8 @@ def get_bsc_map_meta(addr):
 
     return None
 
-def get_hvac_map_meta(addr):
-    """Get map metadata for an HVAC register. Uses PDF text for descriptions."""
+def get_hvac_map_meta(_addr):
+    """Get map metadata for an HVAC register."""
     # HVAC doesn't have a map.json — return empty metadata
     return {
         'variableName': '',
@@ -234,7 +227,7 @@ for t in bsc_config['telemetry']:
     tags_str = ", ".join(f"{k}: {v}" for k, v in tags.items())
 
     row = {
-        "device": bsc_config.get('name', ''),
+        "deviceName": bsc_config.get('name', ''),
         "deviceId": bsc_config.get('deviceId', ''),
         "deviceType": "BSC",
         "registerAddress": addr,
@@ -242,20 +235,20 @@ for t in bsc_config['telemetry']:
         "variableName": meta.get('variableName', ''),
         "dataTag": meta.get('dataTag', ''),
         "mapName": meta.get('name', ''),
-        "source": meta.get('source', ''),
-        "mapType": meta.get('type', ''),
-        "mapUnit": meta.get('unit', ''),
-        "mapDescription": meta.get('description', ''),
+        "sourceGroup": meta.get('source', ''),
+        "dataType": meta.get('type', ''),
+        "unit": meta.get('unit', ''),
+        "description": meta.get('description', ''),
         "telemetryName": telemetry_name,
         "tags": tags_str,
         "aggregation": aggregation,
         "scope": scope,
         "rackLabel": rack_label,
-        "whereTo": meta.get('whereTo', ''),
-        "uiComponent": ui_component,
-        "uiTab": ui_tab,
-        "uiField": ui_field,
-        "uiFieldLabel": ui_label,
+        "page": meta.get('whereTo', ''),
+        "component": ui_component,
+        "tab": ui_tab,
+        "field": ui_field,
+        "label": ui_label,
     }
     rows.append(row)
 
@@ -264,7 +257,7 @@ for field_key, label_key in [('DEVICE:manufacturer', 'manufacturer'), ('DEVICE:m
     ui = BSC_UI_MAP.get(field_key)
     if ui:
         rows.append({
-            "device": bsc_config.get('name', ''),
+            "deviceName": bsc_config.get('name', ''),
             "deviceId": bsc_config.get('deviceId', ''),
             "deviceType": "BSC",
             "registerAddress": 0,
@@ -272,20 +265,20 @@ for field_key, label_key in [('DEVICE:manufacturer', 'manufacturer'), ('DEVICE:m
             "variableName": "",
             "dataTag": "",
             "mapName": label_key.title(),
-            "source": "DeviceConfig",
-            "mapType": "string",
-            "mapUnit": "",
-            "mapDescription": f"Cihaz {label_key} bilgisi — telemetry değil, cihaz kaydından gelir",
+            "sourceGroup": "DeviceConfig",
+            "dataType": "string",
+            "unit": "",
+            "description": f"Cihaz {label_key} bilgisi — telemetry değil, cihaz kaydından gelir",
             "telemetryName": "",
             "tags": "source: devices table",
             "aggregation": "",
             "scope": "system",
             "rackLabel": "",
-            "whereTo": "",
-            "uiComponent": ui[0],
-            "uiTab": ui[1],
-            "uiField": ui[2],
-            "uiFieldLabel": ui[3],
+            "page": "",
+            "component": ui[0],
+            "tab": ui[1],
+            "field": ui[2],
+            "label": ui[3],
         })
 
 # ─── BUILD BSC BITFIELD (TEŞHIS) MAPPING ────────────────────────────────────
@@ -308,7 +301,7 @@ for bf in bsc_config.get('bitfieldConfigs', []):
         tags_str = ", ".join(f"{k}: {v}" for k, v in {**bf_tags, **field.get('tags', {})}.items())
 
         rows.append({
-            "device": bsc_config.get('name', ''),
+            "deviceName": bsc_config.get('name', ''),
             "deviceId": bsc_config.get('deviceId', ''),
             "deviceType": "BSC",
             "registerAddress": bf['registerAddress'],
@@ -316,20 +309,20 @@ for bf in bsc_config.get('bitfieldConfigs', []):
             "variableName": "",
             "dataTag": field.get('dataTag', ''),
             "mapName": name,
-            "source": f"bitfieldConfigs (reg {bf['registerAddress']})",
-            "mapType": "bitfield",
-            "mapUnit": field.get('unit', '-'),
-            "mapDescription": field.get('description', ''),
+            "sourceGroup": f"bitfieldConfigs (reg {bf['registerAddress']})",
+            "dataType": "bitfield",
+            "unit": field.get('unit', '-'),
+            "description": field.get('description', ''),
             "telemetryName": name,
             "tags": tags_str,
             "aggregation": "",
             "scope": bf_scope,
             "rackLabel": bf_rack_label,
-            "whereTo": "",
-            "uiComponent": "RackDetailModal\n('Detay Göster' butonu → Teşhis sekmesi)" if ui_group else "",
-            "uiTab": "Teşhis" if ui_group else "",
-            "uiField": ui_group,
-            "uiFieldLabel": name,
+            "page": "",
+            "component": "RackDetailModal\n('Detay Göster' butonu → Teşhis sekmesi)" if ui_group else "",
+            "tab": "Teşhis" if ui_group else "",
+            "field": ui_group,
+            "label": name,
         })
 # ─── BUILD HVAC MAPPING ─────────────────────────────────────────────────────
 
@@ -349,7 +342,7 @@ for t in hvac_config['telemetry']:
     tags_str = ", ".join(f"{k}: {v}" for k, v in tags.items())
 
     row = {
-        "device": hvac_config.get('name', ''),
+        "deviceName": hvac_config.get('name', ''),
         "deviceId": hvac_config.get('deviceId', ''),
         "deviceType": "HVAC",
         "registerAddress": addr,
@@ -357,20 +350,20 @@ for t in hvac_config['telemetry']:
         "variableName": "",
         "dataTag": "",
         "mapName": telemetry_name,
-        "source": "HVAC PDF §7.1 Bilgi Toplama",
-        "mapType": "",
-        "mapUnit": t.get('unit', ''),
-        "mapDescription": "",
+        "sourceGroup": "HVAC PDF §7.1 Bilgi Toplama",
+        "dataType": "",
+        "unit": t.get('unit', ''),
+        "description": "",
         "telemetryName": telemetry_name,
         "tags": tags_str,
         "aggregation": "",
         "scope": scope,
         "rackLabel": unit_label,
-        "whereTo": "",
-        "uiComponent": ui[0],
-        "uiTab": ui[1],
-        "uiField": ui[2],
-        "uiFieldLabel": ui[3],
+        "page": "",
+        "component": ui[0],
+        "tab": ui[1],
+        "field": ui[2],
+        "label": ui[3],
     }
     rows.append(row)
 
@@ -384,10 +377,10 @@ output_path = os.path.join(ROOT, 'docs', 'mappings', 'register-ui-mapping.json')
 with open(output_path, 'w', encoding='utf-8') as f:
     json.dump(rows, f, indent=2, ensure_ascii=False)
 
-print(f"Generated {len(rows)} rows → {output_path}")
-# Stats
-bsc_rows = [r for r in rows if r['deviceType'] == 'BSC']
-hvac_rows = [r for r in rows if r['deviceType'] == 'HVAC']
-mapped = [r for r in rows if r['uiField']]
-print(f"  BSC: {len(bsc_rows)} rows ({sum(1 for r in bsc_rows if r['uiField'])} mapped to UI)")
-print(f"  HVAC: {len(hvac_rows)} rows ({sum(1 for r in hvac_rows if r['uiField'])} mapped to UI)")
+if __name__ == "__main__":
+    print(f"Generated {len(rows)} rows → {output_path}")
+    bsc_rows = [r for r in rows if r['deviceType'] == 'BSC']
+    hvac_rows = [r for r in rows if r['deviceType'] == 'HVAC']
+    mapped = [r for r in rows if r['field']]
+    print(f"  BSC: {len(bsc_rows)} rows ({sum(1 for r in bsc_rows if r['field'])} mapped to UI)")
+    print(f"  HVAC: {len(hvac_rows)} rows ({sum(1 for r in hvac_rows if r['field'])} mapped to UI)")
