@@ -1,6 +1,7 @@
 node_modules
 dist
 out
+__pycache__/
 .DS_Store
 .eslintcache
 *.log*

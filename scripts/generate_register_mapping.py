@@ -6,13 +6,25 @@ Output: register-ui-mapping.json
 
 import json
 import os
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 
+def safe_resolve(user_path, default_rel_path):
+    """Resolve path and ensure it stays within ROOT. Exit on traversal attempt."""
+    target = os.path.join(ROOT, default_rel_path) if user_path is None else user_path
+    real = os.path.realpath(target)
+    real_root = os.path.realpath(ROOT)
+    if os.path.commonpath([real, real_root]) != real_root:
+        print(f"Path traversal blocked: {target}", file=sys.stderr)
+        sys.exit(1)
+    return real
+
 def load_json(path):
-    with open(os.path.join(ROOT, path)) as f:
+    resolved = safe_resolve(None, path)
+    with open(resolved) as f:
         return json.load(f)
 
 def safe_int(v):
@@ -21,14 +33,10 @@ def safe_int(v):
     except (ValueError, TypeError):
         return None
 
-def load_abs(path):
-    with open(path) as f:
-        return json.load(f)
-
 # ─── LOAD DATA ───────────────────────────────────────────────────────────────
 
-MAP_JSON_PATH = os.path.join(ROOT, 'configs', 'map.json')
-map_data = load_abs(MAP_JSON_PATH) if os.path.exists(MAP_JSON_PATH) else []
+MAP_JSON_PATH = safe_resolve(None, 'configs/map.json')
+map_data = load_json('configs/map.json') if os.path.exists(MAP_JSON_PATH) else []
 bsc_config = load_json('configs/bsc-simulator.json')
 hvac_config = load_json('configs/hvac-simulator.json')
 
@@ -373,7 +381,7 @@ rows.sort(key=lambda r: (r['deviceType'], r['registerAddress']))
 
 # ─── WRITE JSON ──────────────────────────────────────────────────────────────
 
-output_path = os.path.join(ROOT, 'docs', 'mappings', 'register-ui-mapping.json')
+output_path = safe_resolve(None, 'docs/mappings/register-ui-mapping.json')
 with open(output_path, 'w', encoding='utf-8') as f:
     json.dump(rows, f, indent=2, ensure_ascii=False)
 

@@ -9,8 +9,18 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-input_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs', 'mappings', 'register-ui-mapping.json')
-output_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, 'docs', 'mappings', 'register-ui-mapping.xlsx')
+def safe_resolve(user_path, default_rel_path):
+    """Resolve path and ensure it stays within ROOT. Exit on traversal attempt."""
+    target = os.path.join(ROOT, default_rel_path) if user_path is None else user_path
+    real = os.path.realpath(target)
+    real_root = os.path.realpath(ROOT)
+    if os.path.commonpath([real, real_root]) != real_root:
+        print(f"Path traversal blocked: {target}", file=sys.stderr)
+        sys.exit(1)
+    return real
+
+input_path = safe_resolve(sys.argv[1] if len(sys.argv) > 1 else None, 'docs/mappings/register-ui-mapping.json')
+output_path = safe_resolve(sys.argv[2] if len(sys.argv) > 2 else None, 'docs/mappings/register-ui-mapping.xlsx')
 
 try:
     from openpyxl import Workbook
