@@ -20,7 +20,7 @@ interface DeviceEntry {
   model: string | undefined;
   protocol: string;
   type: string;
-  rackCount: number;
+  rackCount?: number;
   configConnection: Record<string, unknown>;
 }
 
@@ -78,7 +78,7 @@ export class DeviceService {
       model: string | undefined;
       protocol: string;
       type: string;
-      rackCount: number;
+      rackCount?: number;
       configConnection: Record<string, unknown>;
     }[],
     mq: IMessageQueue,
@@ -119,7 +119,7 @@ export class DeviceService {
       const device = factory.create(c);
       const pollIntervalMs = c.pollIntervalMs ?? defaultInterval;
       const type = c.simulator?.type ?? "unknown";
-      const rackCount = c.simulator?.rackCount ?? 0;
+      const rackCount = c.simulator?.rackCount;
       return {
         device,
         pollIntervalMs,
@@ -169,7 +169,7 @@ export class DeviceService {
           entry.model ?? null,
           entry.protocol,
           entry.type,
-          entry.rackCount,
+          entry.rackCount ?? null,
           entry.pollIntervalMs,
           JSON.stringify(entry.configConnection),
         ]);

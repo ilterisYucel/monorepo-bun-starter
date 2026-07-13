@@ -16,5 +16,6 @@ export const useSystemTelemetry = () => {
     defaultRange: "1h",
     defaultPoints: 200,
     deviceIds: bscIds,
+    filters: { rack_id: "system" },
   });
 };

@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { RackCard, TelemetryChart } from "@gd-monorepo/ui";
 import { RackDetailModal } from "../features/racks/components/RackDetailModal";
 import type { RackDetailData } from "../features/racks/components/RackDetailModal";
 import * as S from "./RacksPage.styles";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useRacksData } from "../features/racks/hooks/useRacksData";
-import { useSystemTelemetry } from "../features/system-charts/hooks/useSystemTelemetry";
+import { useTelemetryProvider } from "../hooks/useTelemetryProvider";
 import { useEventAnnotations } from "../hooks/useEventAnnotations";
+import { useDevicesStore } from "../stores/devicesStore";
 
 const TELEMETRY_NAMES = [
   "SOC",
@@ -20,8 +21,18 @@ const TELEMETRY_NAMES = [
 export const RacksPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
   const { racks, rackDetails, isLoading } = useRacksData(chargeStatus);
-  const systemTelemetry = useSystemTelemetry();
-  const eventAnnotations = useEventAnnotations(systemTelemetry.range);
+  const devices = useDevicesStore((s) => s.devices);
+  const bscIds = useMemo(
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack").map((d) => d.id),
+    [devices],
+  );
+  const rackTelemetryProvider = useTelemetryProvider({
+    telemetryNames: TELEMETRY_NAMES,
+    defaultRange: "1h",
+    defaultPoints: 200,
+    deviceIds: bscIds,
+  });
+  const eventAnnotations = useEventAnnotations(rackTelemetryProvider.range);
   const [detailData, setDetailData] = useState<RackDetailData | null>(null);
 
   return (
@@ -47,7 +58,7 @@ export const RacksPage: React.FC = () => {
             ))}
           </S.RackGrid>
           <TelemetryChart
-            provider={systemTelemetry}
+            provider={rackTelemetryProvider}
             telemetryNames={TELEMETRY_NAMES}
             title="Tüm Rack'ler - Tarihsel Veriler"
             yAxisLabel="Değer"

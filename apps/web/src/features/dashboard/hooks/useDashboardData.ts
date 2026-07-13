@@ -3,8 +3,11 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../../../lib/api-client";
 import { useDevicesStore } from "../../../stores/devicesStore";
+import { useRealtimeTelemetry, useTelemetry } from "@gd-monorepo/ui";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { DeviceInfo } from "../../../features/devices/types/device";
+
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
 
 interface LatestResponse {
   telemetries: TelemetryData[];
@@ -156,8 +159,20 @@ export const useDashboardData = (
     refetchInterval: 5000,
   });
 
-  const racks = telemetriesToRacks(telemetries, chargeStatus, bscDevices);
-  const averages = extractSystemLevel(telemetries);
+  const firstBscId = bscDevices[0]?.id ?? "";
+  const { data: realtimeDashData } = useRealtimeTelemetry({
+    wsUrl: WS_URL,
+    deviceId: firstBscId,
+    enabled: firstBscId !== "",
+  });
+
+  const { data: mergedTelemetries } = useTelemetry({
+    historicalData: telemetries,
+    realtimeData: realtimeDashData,
+  });
+
+  const racks = telemetriesToRacks(mergedTelemetries, chargeStatus, bscDevices);
+  const averages = extractSystemLevel(mergedTelemetries);
 
   return { racks, averages, isLoading, refetch };
 };

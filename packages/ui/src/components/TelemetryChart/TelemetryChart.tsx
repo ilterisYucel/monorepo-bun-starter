@@ -160,6 +160,10 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
     if (telemetries.length === 0) return [];
     const timeMap = new Map<string, ChartDataPoint>();
     for (const telemetry of telemetries) {
+      if (telemetry.tags?.variant !== undefined) continue;
+      const aggTag = telemetry.tags?.aggregation;
+      if (aggTag !== undefined && aggTag !== "avg") continue;
+
       const timestamp = telemetry.timestamp;
       const name = telemetry.name;
       const value = telemetry.value as number;

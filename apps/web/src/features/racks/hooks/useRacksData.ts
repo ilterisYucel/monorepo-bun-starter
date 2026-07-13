@@ -1,11 +1,13 @@
-// apps/web/src/features/racks/hooks/useRacksData.ts
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRealtimeTelemetry, useTelemetry } from "@gd-monorepo/ui";
 import { racksApi } from "../services/racksApi";
 import { telemetriesToRacks, telemetriesToRackDetailMap } from "../utils/rackHelpers";
 import { useDevicesStore } from "../../../stores/devicesStore";
 
 export const RACKS_QUERY_KEY = ["racks"];
+
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
 
 export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
   const devices = useDevicesStore((s) => s.devices);
@@ -20,8 +22,20 @@ export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
     refetchInterval: 5000,
   });
 
-  const racks = telemetriesToRacks(telemetries, chargeStatus, bscDevices);
-  const rackDetails = telemetriesToRackDetailMap(telemetries, chargeStatus, bscDevices);
+  const firstBscId = bscDevices[0]?.id ?? "";
+  const { data: realtimeData } = useRealtimeTelemetry({
+    wsUrl: WS_URL,
+    deviceId: firstBscId,
+    enabled: firstBscId !== "",
+  });
+
+  const { data: mergedTelemetries } = useTelemetry({
+    historicalData: telemetries,
+    realtimeData,
+  });
+
+  const racks = telemetriesToRacks(mergedTelemetries, chargeStatus, bscDevices);
+  const rackDetails = telemetriesToRackDetailMap(mergedTelemetries, chargeStatus, bscDevices);
 
   return { racks, rackDetails, isLoading, refetch };
 };

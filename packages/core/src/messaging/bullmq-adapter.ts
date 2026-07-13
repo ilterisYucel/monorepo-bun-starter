@@ -13,11 +13,12 @@ const DEFAULT_JOB_OPTIONS: JobsOptions = {
   removeOnFail: 50,
 };
 
-const QUEUE_NAMES: Record<JobType, string> = {
+export const QUEUE_NAMES: Record<JobType, string> = {
   READ_DEVICE: "queue_read_device",
   WRITE_TELEMETRY: "queue_write_telemetry",
   COMMAND_DEVICE: "queue_command_device",
   MANAGEMENT: "queue_management",
+  WS_BROADCAST: "queue_ws_broadcast",
 };
 
 export class BullMQAdapter implements IMessageQueue {
@@ -125,6 +126,7 @@ export class BullMQAdapter implements IMessageQueue {
       "WRITE_TELEMETRY",
       "COMMAND_DEVICE",
       "MANAGEMENT",
+      "WS_BROADCAST",
     ];
 
     for (const type of jobTypes) {

@@ -294,6 +294,11 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     this.nameUnitCache.delete(deviceId);
   }
 
+  async executeRaw(sql: string, params?: unknown[]): Promise<unknown> {
+    const result = await this.pool.query(sql, params);
+    return result;
+  }
+
   async close(): Promise<void> {
     await this.pool.end();
   }

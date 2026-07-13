@@ -64,6 +64,11 @@ export interface ITimeseriesDatabase {
   ): Promise<TelemetryData[]>;
 
   /**
+   * Ham SQL çalıştır (DDL, maintenance işlemleri için)
+   */
+  executeRaw(sql: string, params?: unknown[]): Promise<unknown>;
+
+  /**
    * Bağlantıyı kapat
    */
   close(): Promise<void>;

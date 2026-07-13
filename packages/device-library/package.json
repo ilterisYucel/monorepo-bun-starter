@@ -1,0 +1,26 @@
+{
+  "name": "@gd-monorepo/device-library",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gd-monorepo/shared-types": "*",
+    "@gd-monorepo/ui": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

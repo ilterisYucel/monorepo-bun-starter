@@ -13,6 +13,10 @@ export async function main() {
   const server = c.server as any;
   const seed = c.seed as any;
   const serverCfg = c.serverCfg as any;
+  const realtime = c.realtime as any;
+  const redis = c.redis as any;
+  const mvManager = c.mvManager as any;
+  const mq = c.mq as any;
 
   const deps: ServerDependencies = {
     serverConfig: serverCfg,
@@ -27,10 +31,22 @@ export async function main() {
     updateUserUseCase: c.updateUserUseCase as any,
     deleteUserUseCase: c.deleteUserUseCase as any,
     listUsersUseCase: c.listUsersUseCase as any,
+    realtime,
+    mvManager,
   };
 
   await postgres.connect();
+  await redis.connect();
   await userRepo.initialize(seed);
+
+  await mq.registerWorker(async (job: any) => {
+    if (job.type === "WS_BROADCAST") {
+      for (const t of job.telemetries) {
+        realtime.broadcast(t.deviceId, t);
+        await realtime.writeToRingBuffer(t.deviceId, t);
+      }
+    }
+  });
 
   let stopping = false;
   const shutdown = async (signal: string) => {
@@ -38,8 +54,10 @@ export async function main() {
     stopping = true;
     console.log(`[run] ${signal} alindi, kapatiliyor...`);
     await server.stop();
+    await mq.close();
     await timescale.close();
     await postgres.disconnect();
+    await redis.disconnect();
     process.exit(0);
   };
 

@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { apiClient } from "../lib/api-client";
 import { useDevicesStore } from "../stores/devicesStore";
+import { useRealtimeTelemetry } from "@gd-monorepo/ui";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 
 interface LatestResponse {
   telemetries: TelemetryData[];
 }
+
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
 
 export const CHARGE_STATUS_QUERY_KEY = ["chargeStatus"];
 
@@ -32,7 +35,14 @@ export const useChargeStatus = () => {
       if (value === 2) return "Discharge";
       return "Idle";
     },
-    refetchInterval: 2000,
+    refetchInterval: 5000,
+  });
+
+  const firstBscId = bscIds[0] ?? "";
+  useRealtimeTelemetry({
+    wsUrl: WS_URL,
+    deviceId: firstBscId,
+    enabled: firstBscId !== "",
   });
 
   return { chargeStatus, isLoading };

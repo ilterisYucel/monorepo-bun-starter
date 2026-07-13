@@ -6,7 +6,8 @@
         "cacheableOperations": [
           "build",
           "test",
-          "lint"
+          "lint",
+          "typecheck"
         ]
       }
     }
@@ -25,6 +26,11 @@
       ]
     },
     "dev": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "typecheck": {
       "dependsOn": [
         "^build"
       ]

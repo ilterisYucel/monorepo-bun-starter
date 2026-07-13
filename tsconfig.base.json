@@ -33,9 +33,11 @@
       "@gd-monorepo/core": ["./packages/core/src"],
       "@gd-monorepo/web": ["./apps/web/src"],
       "@gd-monorepo/desktop": ["./apps/desktop/src"],
+      "@gd-monorepo/editor": ["./apps/editor/src"],
       "@gd-monorepo/backend": ["./apps/backend/src"],
       "@gd-monorepo/simulators": ["./packages/simulators/src"],
-      "@gd-monorepo/ui": ["./packages/ui/src"]
+      "@gd-monorepo/ui": ["./packages/ui/src"],
+      "@gd-monorepo/device-library": ["./packages/device-library/src"]
     }
   },
   "exclude": ["node_modules", "dist", "out", "release", "**/dist", "**/out"]

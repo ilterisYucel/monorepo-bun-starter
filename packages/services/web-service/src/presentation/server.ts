@@ -7,6 +7,7 @@ import cors from "@fastify/cors";
 import compress from "@fastify/compress";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import websocket from "@fastify/websocket";
 import type { ServerConfig } from "../config/default";
 import type { LoginUseCase } from "../application/use-cases/login-use-case";
 import type { RefreshTokenUseCase } from "../application/use-cases/refresh-token-use-case";
@@ -27,6 +28,9 @@ import { deviceRoutes } from "./routes/device-routes";
 import { logRoutes } from "./routes/log-routes";
 import { LogRepository } from "../infrastructure/persistence/log-repository";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
+import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
+import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
+import type { MaterializedViewManager } from "@gd-monorepo/core";
 
 export interface ServerDependencies {
   serverConfig: ServerConfig;
@@ -41,6 +45,8 @@ export interface ServerDependencies {
   updateUserUseCase: UpdateUserUseCase;
   deleteUserUseCase: DeleteUserUseCase;
   listUsersUseCase: ListUsersUseCase;
+  realtime: RealtimeManager;
+  mvManager: MaterializedViewManager;
 }
 
 export class WebServiceServer {
@@ -109,6 +115,7 @@ export class WebServiceServer {
       },
     });
     await this.app.register(swaggerUi, { routePrefix: "/docs" });
+    await this.app.register(websocket);
 
     this.app.addHook("onRequest", createRbacHook(deps.tokens));
   }
@@ -135,13 +142,19 @@ export class WebServiceServer {
       },
       { prefix: "/api/data" },
     );
+
     const registry = new DeviceRegistry(deps.postgres);
     const logRepo = new LogRepository(deps.postgres);
     await logRepo.initialize();
 
     await this.app.register(
       async (fastify) => {
-        await unifiedRoutes(fastify, { registry, timescale: deps.timescale });
+        await unifiedRoutes(fastify, {
+          registry,
+          timescale: deps.timescale,
+          mvManager: deps.mvManager,
+          postgres: deps.postgres,
+        });
         await deviceRoutes(fastify, { postgres: deps.postgres });
       },
       { prefix: "/api/unified" },
@@ -152,6 +165,12 @@ export class WebServiceServer {
         await logRoutes(fastify, { logRepo });
       },
       { prefix: "/api/logs" },
+    );
+
+    await this.app.register(
+      async (fastify) => {
+        await telemetryWsRoutes(fastify, { realtime: deps.realtime });
+      },
     );
   }
 }

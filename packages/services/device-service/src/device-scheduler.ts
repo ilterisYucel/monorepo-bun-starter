@@ -67,6 +67,13 @@ export class DeviceScheduler {
         timestamp,
         telemetries: data,
       }),
+      this.mq.addJob({
+        jobId: `${base}-ws`,
+        type: "WS_BROADCAST",
+        deviceId,
+        timestamp,
+        telemetries: data,
+      }),
     ]);
   }
 

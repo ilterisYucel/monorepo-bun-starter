@@ -17,12 +17,54 @@ interface SimulatorEntry {
   tick: () => void;
 }
 
+export interface SimulatorFactory {
+  build(deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry;
+}
+
 export class SimulatorProvider {
   private readonly entries: Map<string, SimulatorEntry>;
+  private readonly registry: Map<string, SimulatorFactory>;
   private tickTimer: ReturnType<typeof setInterval> | undefined;
 
   constructor() {
     this.entries = new Map();
+    this.registry = new Map();
+    this.registerDefaults();
+  }
+
+  private registerDefaults(): void {
+    this.registry.set("bsc", {
+      build: (_deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const rackCount = sim.rackCount ?? 8;
+        if (sim.registerMap) {
+          const raw = JSON.parse(readFileSync(sim.registerMap, "utf-8")) as Record<string, unknown>[];
+          const parsed = parseBSCMap(raw);
+          const bsc = new BSCSimulator({ rackCount, registers: parsed.registers });
+          return { adapter: new BSCSimulatorAdapter(bsc), tick: () => bsc.tick(elapsed) };
+        }
+        const bsc = new BSCSimulator({ rackCount, registers: [] });
+        return { adapter: new BSCSimulatorAdapter(bsc), tick: () => bsc.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("hvac", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const hvac = new HvacSimulator();
+        return { adapter: new HvacSimulatorAdapter(hvac), tick: () => hvac.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("xrack", {
+      build: (_deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const rackCount = sim.rackCount ?? 16;
+        const xrack = new XRackSimulator(rackCount);
+        return { adapter: new XRackSimulatorAdapter(xrack), tick: () => xrack.tick(elapsed) };
+      },
+    });
+  }
+
+  register(type: string, factory: SimulatorFactory): void {
+    this.registry.set(type, factory);
   }
 
   createFromConfigs(configs: DeviceConfigFile[]): void {
@@ -65,26 +107,12 @@ export class SimulatorProvider {
 
   private buildEntry(deviceId: string, sim: SimulatorConfig): SimulatorEntry {
     const elapsed = TICK_INTERVAL_MS / 1000;
+    const factory = this.registry.get(sim.type);
 
-    if (sim.type === "bsc") {
-      const rackCount = sim.rackCount ?? 8;
-      if (sim.registerMap) {
-        const raw = JSON.parse(readFileSync(sim.registerMap, "utf-8")) as Record<string, unknown>[];
-        const parsed = parseBSCMap(raw);
-        const bsc = new BSCSimulator({ rackCount, registers: parsed.registers });
-        return { adapter: new BSCSimulatorAdapter(bsc), tick: () => bsc.tick(elapsed) };
-      }
-      const bsc = new BSCSimulator({ rackCount, registers: [] });
-      return { adapter: new BSCSimulatorAdapter(bsc), tick: () => bsc.tick(elapsed) };
+    if (!factory) {
+      throw new Error(`Bilinmeyen simulator tipi: ${sim.type}. SimulatorProvider.register() ile kaydedilmesi gerekiyor.`);
     }
 
-    if (sim.type === "hvac") {
-      const hvac = new HvacSimulator();
-      return { adapter: new HvacSimulatorAdapter(hvac), tick: () => hvac.tick(elapsed) };
-    }
-
-    const rackCount = sim.rackCount ?? 16;
-    const xrack = new XRackSimulator(rackCount);
-    return { adapter: new XRackSimulatorAdapter(xrack), tick: () => xrack.tick(elapsed) };
+    return factory.build(deviceId, sim, elapsed);
   }
 }

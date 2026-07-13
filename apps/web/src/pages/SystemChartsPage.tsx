@@ -1,7 +1,7 @@
 import React from "react";
 import { TelemetryChart } from "@gd-monorepo/ui";
 import * as S from "./SystemChartsPage.styles";
-import { useTelemetryProvider } from "../hooks/useTelemetryProvider";
+import { useSystemTelemetry } from "../features/system-charts/hooks/useSystemTelemetry";
 import { useEventAnnotations } from "../hooks/useEventAnnotations";
 
 export const SystemChartsPage: React.FC = () => {
@@ -13,12 +13,7 @@ export const SystemChartsPage: React.FC = () => {
     "ChargePower",
     "Temperature",
   ];
-  const telemetryProvider = useTelemetryProvider({
-    telemetryNames,
-    defaultRange: "1h",
-    defaultPoints: 200,
-    filters: { rack_id: "system" },
-  });
+  const telemetryProvider = useSystemTelemetry();
   const eventAnnotations = useEventAnnotations(telemetryProvider.range);
 
   return (
@@ -26,8 +21,8 @@ export const SystemChartsPage: React.FC = () => {
       <TelemetryChart
         provider={telemetryProvider}
         telemetryNames={telemetryNames}
-        title="Sistem Ölçümleri"
-        yAxisLabel="Değer"
+        title="Sistem Olcumleri"
+        yAxisLabel="Deger"
         height={500}
         eventAnnotations={eventAnnotations}
       />

@@ -2,7 +2,7 @@
 
 import type { TelemetryData } from "./telemetry";
 
-export type JobType = "READ_DEVICE" | "WRITE_TELEMETRY" | "COMMAND_DEVICE" | "MANAGEMENT";
+export type JobType = "READ_DEVICE" | "WRITE_TELEMETRY" | "COMMAND_DEVICE" | "MANAGEMENT" | "WS_BROADCAST";
 
 export interface BaseJob {
   jobId: string;
@@ -42,4 +42,9 @@ export interface ManagementJob extends BaseJob {
   telemetries: TelemetryData[];
 }
 
-export type DeviceJob = ReadDeviceJob | WriteTelemetryJob | CommandDeviceJob | ManagementJob;
+export interface WsBroadcastJob extends BaseJob {
+  type: "WS_BROADCAST";
+  telemetries: TelemetryData[];
+}
+
+export type DeviceJob = ReadDeviceJob | WriteTelemetryJob | CommandDeviceJob | ManagementJob | WsBroadcastJob;

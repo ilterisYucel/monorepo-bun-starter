@@ -7,6 +7,7 @@
     "dev": "nx run-many --target=dev --parallel=5",
     "dev:web": "nx run web:dev",
     "dev:desktop": "nx run desktop:dev",
+    "dev:editor": "nx run editor:dev",
     "build": "nx run-many --target=build",
     "build:web": "nx run web:build",
     "build:desktop": "nx run desktop:build",

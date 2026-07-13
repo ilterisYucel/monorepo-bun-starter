@@ -11,11 +11,15 @@
     "@fastify/cors": "^10.0.0",
     "@fastify/swagger": "^9.0.0",
     "@fastify/swagger-ui": "^5.0.0",
+    "@fastify/websocket": "^11.0.0",
     "@gd-monorepo/core": "*",
     "@gd-monorepo/shared-types": "*",
     "awilix": "^11.0.0",
+    "bullmq": "^5.0.0",
     "fastify": "^5.0.0",
     "jose": "^5.0.0",
+    "redis": "^4.0.0",
+    "ws": "^8.0.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {

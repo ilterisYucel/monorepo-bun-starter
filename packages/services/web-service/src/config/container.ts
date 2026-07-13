@@ -1,5 +1,12 @@
 import { createContainer, asFunction, asValue } from "awilix";
-import { PostgresAdapter, TimescaleDBAdapter } from "@gd-monorepo/core";
+import {
+  PostgresAdapter,
+  TimescaleDBAdapter,
+  RedisConnection,
+  BullMQAdapter,
+  MaterializedViewManager,
+} from "@gd-monorepo/core";
+import type { RedisConfig } from "@gd-monorepo/core";
 import {
   authConfig,
   serverConfig,
@@ -16,7 +23,17 @@ import { ListUsersUseCase } from "../application/use-cases/list-users-use-case";
 import { TokenAdapter } from "../infrastructure/auth/token-adapter";
 import { UserRepository } from "../infrastructure/persistence/user-repository";
 import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
+import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import { WebServiceServer } from "../presentation/server";
+
+function redisConfig(): RedisConfig {
+  return {
+    host: process.env.REDIS_HOST ?? "127.0.0.1",
+    port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
+    password: process.env.REDIS_PASSWORD,
+    db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : undefined,
+  };
+}
 
 export function buildContainer() {
   const container = createContainer();
@@ -25,11 +42,28 @@ export function buildContainer() {
     authCfg: asValue(authConfig()),
     serverCfg: asValue(serverConfig()),
     pgCfg: asValue(postgresConfig()),
+    redisCfg: asValue(redisConfig()),
     seed: asValue(seedUsers()),
 
     postgres: asFunction(({ pgCfg }) => new PostgresAdapter(pgCfg)).singleton(),
     timescale: asFunction(
       ({ pgCfg }) => new TimescaleDBAdapter(pgCfg),
+    ).singleton(),
+
+    redis: asFunction(
+      ({ redisCfg }) => new RedisConnection(redisCfg),
+    ).singleton(),
+
+    mq: asFunction(
+      ({ redis }) => new BullMQAdapter(redis),
+    ).singleton(),
+
+    mvManager: asFunction(
+      ({ timescale }) => new MaterializedViewManager(timescale),
+    ).singleton(),
+
+    realtime: asFunction(
+      ({ redis }) => new RealtimeManager(redis),
     ).singleton(),
 
     userRepo: asFunction(
