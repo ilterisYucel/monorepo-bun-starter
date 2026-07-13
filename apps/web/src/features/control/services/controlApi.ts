@@ -1,9 +1,10 @@
 // apps/web/src/features/control/services/controlApi.ts
 import { apiClient } from "../../../lib/api-client";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
 export const controlApi = {
   setPower: async (
-    chargeStatus: "Charge" | "Discharge" | "Idle",
+    chargeStatus: ChargeStatus,
     powerKw: number,
     durationSeconds: number
   ): Promise<void> => {

@@ -31,13 +31,13 @@ export function useEventAnnotations(range: TimeRange): EventAnnotationsProvider 
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: [...ANNOTATIONS_QUERY_KEY, range],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       return logsApi.list({
         type: "error,warning,success,info",
         from: fromTo.from,
         to: fromTo.to,
         limit: 200,
-      });
+      }, signal);
     },
     staleTime: 30000,
     refetchInterval: 60000,

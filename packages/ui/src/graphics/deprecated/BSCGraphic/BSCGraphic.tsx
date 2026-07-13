@@ -9,6 +9,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text } from "pixi.js";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { BSCGraphicProps, BSCUnit, BSCPositions, StepConfig } from "./BSCGraphic.types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import { calculateStepConfig, getRackPositions } from "./BSCGraphic.utils";
 import {
   useWebGLDetect,
@@ -34,7 +35,7 @@ extend({ Container, Graphics, Text });
 
 const BSCCanvas: React.FC<{
   unit: BSCUnit;
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   onRackClick?: (rackId: number) => void;
   onBreakerToggle?: (position: "open" | "close") => void;
   refreshCounter?: number;

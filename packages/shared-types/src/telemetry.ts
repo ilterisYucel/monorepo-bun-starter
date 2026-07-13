@@ -11,6 +11,9 @@ export type ByteOrder =
   | "BIG_ENDIAN_SWAP"
   | "LITTLE_ENDIAN_SWAP";
 
+/** Batarya şarj/deşarj/boşta durumu */
+export type ChargeStatus = "Charge" | "Discharge" | "Idle";
+
 /**
  * Tüm telemetry verilerinin temel interface'i
  * Her telemetry verisi bu alanları içermek zorundadır

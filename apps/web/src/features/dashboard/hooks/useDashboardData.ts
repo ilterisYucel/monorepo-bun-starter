@@ -18,7 +18,7 @@ export interface Rack {
   deviceId: string;
   name: string;
   status: "online" | "offline";
-  charge_status: "Charge" | "Discharge" | "Idle";
+  charge_status: ChargeStatus;
   soc: number | null;
   soh: number | null;
   voltage: number | null;
@@ -37,7 +37,7 @@ export interface Averages {
 
 const telemetriesToRacks = (
   telemetries: TelemetryData[],
-  globalChargeStatus: "Charge" | "Discharge" | "Idle",
+  globalChargeStatus: ChargeStatus,
   bscDevices: DeviceInfo[],
 ): Rack[] => {
   const rackMap = new Map<string, Rack>();
@@ -136,7 +136,7 @@ const extractSystemLevel = (
 export const DASHBOARD_QUERY_KEY = ["dashboard"];
 
 export const useDashboardData = (
-  chargeStatus: "Charge" | "Discharge" | "Idle",
+  chargeStatus: ChargeStatus,
 ) => {
   const devices = useDevicesStore((s) => s.devices);
   const bscDevices = useMemo(
@@ -150,9 +150,10 @@ export const useDashboardData = (
     refetch,
   } = useQuery({
     queryKey: [...DASHBOARD_QUERY_KEY, bscDevices.map(d => d.id)],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await apiClient.get<LatestResponse>(
         `/unified/telemetry/latest?deviceIds=${bscDevices.map(d => d.id).join(",")}`,
+        { signal },
       );
       return response.data.telemetries || [];
     },

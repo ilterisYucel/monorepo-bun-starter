@@ -1,13 +1,14 @@
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
+
 /**
  * Rack (Batarya Rafı) tipi
- * shared-types'tan bağımsız, UI içinde yeniden tanımlandı
  */
 export interface Rack {
   id: number;
   deviceId: string;
   name: string;
   status: "online" | "offline";
-  charge_status: "Charge" | "Discharge" | "Idle";
+  charge_status: ChargeStatus;
   soc: number | null;
   soh?: number | null;
   voltage: number | null;

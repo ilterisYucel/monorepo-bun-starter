@@ -7,16 +7,18 @@ interface LatestResponse {
 }
 
 export const hvacApi = {
-  getLatest: async (deviceIds: string[]): Promise<TelemetryData[]> => {
+  getLatest: async (deviceIds: string[], signal?: AbortSignal): Promise<TelemetryData[]> => {
     const response = await apiClient.get<LatestResponse>(
       `/unified/telemetry/latest?deviceIds=${deviceIds.join(",")}`,
+      { signal },
     );
     return response.data.telemetries || [];
   },
 
-  getLatestDevice: async (deviceId: string): Promise<TelemetryData[]> => {
+  getLatestDevice: async (deviceId: string, signal?: AbortSignal): Promise<TelemetryData[]> => {
     const response = await apiClient.get<LatestResponse>(
       `/data/${deviceId}/latest?limit=100`,
+      { signal },
     );
     return response.data.telemetries || [];
   },

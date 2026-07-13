@@ -7,8 +7,8 @@ interface DevicesResponse {
 }
 
 export const devicesApi = {
-  list: async (): Promise<DeviceInfo[]> => {
-    const response = await apiClient.get<DevicesResponse>("/unified/devices");
+  list: async (signal?: AbortSignal): Promise<DeviceInfo[]> => {
+    const response = await apiClient.get<DevicesResponse>("/unified/devices", { signal });
     return response.data.devices || [];
   },
 };

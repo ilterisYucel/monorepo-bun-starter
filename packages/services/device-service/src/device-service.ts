@@ -155,8 +155,14 @@ export class DeviceService {
     this.simulators.start();
 
     const entries = Array.from(this.devices.values());
-    await Promise.all(entries.map((e) => e.device.connect()));
-    console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
+    const results = await Promise.allSettled(entries.map((e) => e.device.connect()));
+    const connected = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      console.warn(`[DeviceService] ${failed}/${entries.length} cihaza baglanilamadi, ${connected} baglandi`);
+    } else {
+      console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
+    }
 
     for (const entry of entries) {
       await this.scheduler.scheduleRead(entry.device.id, entry.pollIntervalMs);

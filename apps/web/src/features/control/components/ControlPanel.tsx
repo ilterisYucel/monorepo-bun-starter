@@ -3,10 +3,11 @@ import { TelemetryInput, SCADA_ICONS } from "@gd-monorepo/ui";
 import { controlApi } from "../services/controlApi";
 import { useLogProvider } from "../../../hooks/useLogProvider";
 import type { OperationMode } from "../types/control";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import * as S from "./ControlPanel.styles";
 
 interface ControlPanelProps {
-  currentChargeStatus: "Charge" | "Discharge" | "Idle";
+  currentChargeStatus: ChargeStatus;
   onCommandSent?: () => void;
 }
 
@@ -30,7 +31,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     isActive: boolean;
     remainingSeconds?: number;
   } | null>(null);
-  const timerIntervalRef = useRef<number | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { addLog } = useLogProvider();
 
   const isCharging = currentChargeStatus === "Charge";

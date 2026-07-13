@@ -11,21 +11,25 @@ export interface ModbusClientConfig {
 }
 
 export class ModbusTcpClient {
-  private socket: net.Socket;
-  private client: JSModbusClient;
+  private socket: net.Socket | null = null;
+  private client: JSModbusClient | null = null;
   private config: ModbusClientConfig;
   private connected: boolean = false;
+  private reconnectAttempts: number = 0;
+  private readonly maxReconnectAttempts: number = 5;
+  private readonly reconnectBaseDelayMs: number = 1000;
 
   constructor(config: ModbusClientConfig) {
     this.config = config;
-    this.socket = new net.Socket();
-    this.client = new JSModbusClient(this.socket);
   }
 
   async connect(): Promise<void> {
+    this.socket = new net.Socket();
+    this.client = new JSModbusClient(this.socket);
+
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.socket.destroy();
+      const connectTimeout = setTimeout(() => {
+        this.socket!.destroy();
         reject(
           new Error(
             `Modbus connection timeout: ${this.config.timeout ?? 3000}ms`,
@@ -33,26 +37,62 @@ export class ModbusTcpClient {
         );
       }, this.config.timeout ?? 3000);
 
-      this.socket.on("connect", () => {
-        clearTimeout(timeout);
+      this.socket!.once("connect", () => {
+        clearTimeout(connectTimeout);
         this.connected = true;
+        this.reconnectAttempts = 0;
+        this.installLifecycleListeners();
         resolve();
       });
 
-      this.socket.on("error", (err) => {
-        clearTimeout(timeout);
+      this.socket!.once("error", (err) => {
+        clearTimeout(connectTimeout);
         reject(new Error(`Modbus connection failed: ${err.message}`));
       });
 
-      this.socket.connect(this.config.port, this.config.host);
+      this.socket!.connect(this.config.port, this.config.host);
     });
   }
 
-  async disconnect(): Promise<void> {
-    if (this.connected) {
-      this.socket.end();
+  private installLifecycleListeners(): void {
+    if (!this.socket) return;
+    this.socket.removeAllListeners("close");
+    this.socket.removeAllListeners("error");
+    this.socket.on("close", () => {
       this.connected = false;
+    });
+    this.socket.on("error", () => {
+      this.connected = false;
+    });
+  }
+
+  async reconnect(): Promise<void> {
+    await this.cleanupSocket();
+    const delay = Math.min(
+      this.reconnectBaseDelayMs * Math.pow(2, this.reconnectAttempts),
+      30000
+    );
+    this.reconnectAttempts++;
+    const jitter = Math.random() * delay * 0.3;
+    await new Promise((r) => setTimeout(r, delay + jitter));
+    await this.connect();
+  }
+
+  private async cleanupSocket(): Promise<void> {
+    if (this.socket) {
+      try {
+        this.socket.removeAllListeners();
+        this.socket.destroy();
+      } catch { /* yoksay */ }
+      this.socket = null;
+      this.client = null;
     }
+    this.connected = false;
+  }
+
+  async disconnect(): Promise<void> {
+    this.reconnectAttempts = 0;
+    await this.cleanupSocket();
   }
 
   // ============================================
@@ -65,7 +105,7 @@ export class ModbusTcpClient {
   ): Promise<number[]> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      const result = await this.client.readHoldingRegisters(address, count);
+      const result = await this.client!.readHoldingRegisters(address, count);
       const data = result.response.body.valuesAsArray;
       return data as number[];
     } catch (error) {
@@ -76,7 +116,7 @@ export class ModbusTcpClient {
   async writeSingleRegister(address: number, value: number): Promise<void> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      await this.client.writeSingleRegister(address, value);
+      await this.client!.writeSingleRegister(address, value);
     } catch (error) {
       throw new Error(`Write single register failed: ${error}`);
     }
@@ -88,7 +128,7 @@ export class ModbusTcpClient {
   ): Promise<void> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      await this.client.writeMultipleRegisters(address, values);
+      await this.client!.writeMultipleRegisters(address, values);
     } catch (error) {
       throw new Error(`Write multiple registers failed: ${error}`);
     }
@@ -101,7 +141,7 @@ export class ModbusTcpClient {
   async readInputRegisters(address: number, count: number): Promise<number[]> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      const result = await this.client.readInputRegisters(address, count);
+      const result = await this.client!.readInputRegisters(address, count);
       const data = result.response.body.valuesAsArray;
       return data as number[];
     } catch (error) {
@@ -116,7 +156,7 @@ export class ModbusTcpClient {
   async readCoils(address: number, count: number): Promise<boolean[]> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      const result = await this.client.readCoils(address, count);
+      const result = await this.client!.readCoils(address, count);
       const data = result.response.body.valuesAsArray;
       return data as boolean[];
     } catch (error) {
@@ -127,7 +167,7 @@ export class ModbusTcpClient {
   async writeSingleCoil(address: number, value: boolean): Promise<void> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      await this.client.writeSingleCoil(address, value);
+      await this.client!.writeSingleCoil(address, value);
     } catch (error) {
       throw new Error(`Write single coil failed: ${error}`);
     }
@@ -136,7 +176,7 @@ export class ModbusTcpClient {
   async writeMultipleCoils(address: number, values: boolean[]): Promise<void> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      await this.client.writeMultipleCoils(address, values);
+      await this.client!.writeMultipleCoils(address, values);
     } catch (error) {
       throw new Error(`Write multiple coils failed: ${error}`);
     }
@@ -149,7 +189,7 @@ export class ModbusTcpClient {
   async readDiscreteInputs(address: number, count: number): Promise<boolean[]> {
     if (!this.connected) throw new Error("Not connected");
     try {
-      const result = await this.client.readDiscreteInputs(address, count);
+      const result = await this.client!.readDiscreteInputs(address, count);
       const data = result.response.body.valuesAsArray;
       return data as boolean[];
     } catch (error) {

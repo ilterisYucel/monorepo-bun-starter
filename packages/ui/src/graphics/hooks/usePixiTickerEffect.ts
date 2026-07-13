@@ -15,13 +15,18 @@ export function usePixiTickerEffect(
   }, []);
 
   useEffect(() => {
-    const fn = (ticker: Ticker) => {
-      if (!mountedRef.current || !gRef.current) return;
-      gRef.current.clear();
-      draw(gRef.current, ticker.lastTime * 0.001);
+    const fn = (_ticker: Ticker) => {
+      if (!mountedRef.current) return;
+      const g = gRef.current;
+      if (!g || g.destroyed) return;
+      g.clear();
+      draw(g, _ticker.lastTime * 0.001);
     };
     Ticker.shared.add(fn);
-    return () => { void Ticker.shared.remove(fn); };
+    return () => {
+      Ticker.shared.remove(fn);
+      gRef.current = null;
+    };
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 
   return gRef;

@@ -1,5 +1,6 @@
 import { Graphics } from "pixi.js";
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import type {
   StepConfig,
   BSCPositions,
@@ -308,7 +309,7 @@ export function drawFlowArrows(
   g: Graphics,
   config: StepConfig,
   positions: BSCPositions,
-  flowDirection: "Charge" | "Discharge" | "Idle",
+  flowDirection: ChargeStatus,
   breakerStatus: "online" | "offline",
   breakerPosition: "open" | "close",
   dcOutput: { status: "online" | "offline" } | undefined,

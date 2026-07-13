@@ -14,18 +14,19 @@ const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry"
 
 export const CHARGE_STATUS_QUERY_KEY = ["chargeStatus"];
 
-export const useChargeStatus = () => {
+export const useChargeStatus = (): { chargeStatus: ChargeStatus; isLoading: boolean } => {
   const devices = useDevicesStore((s) => s.devices);
   const bscIds = useMemo(
     () => devices.filter((d) => d.type === "bsc" || d.type === "xrack").map((d) => d.id),
     [devices],
   );
 
-  const { data: chargeStatus = "Idle", isLoading } = useQuery({
+  const { data: chargeStatus = "Idle" as ChargeStatus, isLoading } = useQuery<ChargeStatus>({
     queryKey: [...CHARGE_STATUS_QUERY_KEY, bscIds],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await apiClient.get<LatestResponse>(
         `/unified/telemetry/latest?deviceIds=${bscIds.join(",")}`,
+        { signal },
       );
       const chargeStatusTelemetry = response.data.telemetries.find(
         (t) => t.name === "ChargeStatus",

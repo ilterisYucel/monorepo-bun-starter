@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { SCADA_ICONS } from "@gd-monorepo/ui";
-import { COLORS } from "@gd-monorepo/ui";
+import { SCADA_ICONS, COLORS } from "@gd-monorepo/ui";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import * as S from "./SystemHeader.styles";
 
 interface SystemHeaderProps {
   containerId?: string;
-  flowDirection?: "Charge" | "Discharge" | "Idle";
+  flowDirection?: ChargeStatus;
   ppcConnected?: boolean;
   powerConsumption?: number;
   ambientTemp?: number;
@@ -41,7 +41,7 @@ const formatClock = (d: Date): string =>
 
 const Boxes: React.FC<{
   containerId: string;
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   ppcConnected: boolean;
   powerConsumption: number;
   now: Date;

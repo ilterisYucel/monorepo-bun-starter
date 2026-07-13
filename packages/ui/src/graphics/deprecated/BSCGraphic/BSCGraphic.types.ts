@@ -1,4 +1,5 @@
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
 export interface BSCUnit {
   deviceId: string;
@@ -15,7 +16,7 @@ export interface BSCUnit {
 export interface BSCGraphicProps {
   deviceId: string;
   bscUnits: BSCUnit[];
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   width?: number | string;
   onRackClick?: (rackId: number) => void;
   onBreakerToggle?: (bscIndex: number, position: "open" | "close") => void;

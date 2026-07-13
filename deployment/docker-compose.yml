@@ -4,6 +4,12 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg14
     container_name: battery-timescaledb
+    command:
+      - -cshared_buffers=32MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=96MB
+      - -cmaintenance_work_mem=16MB
+      - -cmax_connections=50
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -20,10 +26,17 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    mem_limit: 512m
 
   redis:
     image: redis:7-alpine
     container_name: battery-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
     ports:
       - "6379:6379"
     volumes:
@@ -36,6 +49,7 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
+    mem_limit: 128m
 
   device-service:
     build:
@@ -53,6 +67,7 @@ services:
     networks:
       - battery-network
     restart: unless-stopped
+    mem_limit: 256m
 
   data-service:
     build:
@@ -76,6 +91,7 @@ services:
     networks:
       - battery-network
     restart: unless-stopped
+    mem_limit: 256m
 
   web-service:
     build:
@@ -104,6 +120,7 @@ services:
     networks:
       - battery-network
     restart: unless-stopped
+    mem_limit: 256m
 
   web:
     build:
@@ -119,6 +136,7 @@ services:
     networks:
       - battery-network
     restart: unless-stopped
+    mem_limit: 128m
 
 volumes:
   timescale-data:

@@ -73,7 +73,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
 
       if (options.filters) {
         for (const [key, value] of Object.entries(options.filters)) {
-          params.append(key, value);
+          params.append(key, String(value));
         }
       }
 
@@ -82,7 +82,8 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
       }
 
       const response = await apiClient.get<DownsampledResponse>(
-        `/unified/telemetry/downsampled?${params.toString()}`
+        `/unified/telemetry/downsampled?${params.toString()}`,
+        { signal },
       );
 
       return response.data.telemetries || [];
