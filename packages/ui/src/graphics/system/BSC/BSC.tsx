@@ -15,6 +15,7 @@ import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { SCADA_ICONS } from "../../../icons";
 import { COLOR, COLORS } from "../../../colors";
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import type { RackCellConfig } from "../../elements/RackCell/RackCell.types";
 import {
   RackCell,
@@ -34,7 +35,7 @@ extend({ Container, Graphics, Text, Sprite });
 
 const BSCV2Canvas: React.FC<{
   unit: BSCUnit;
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   onRackClick?: (rackId: number) => void;
   onBreakerToggle?: (position: "open" | "close") => void;
   refreshCounter?: number;

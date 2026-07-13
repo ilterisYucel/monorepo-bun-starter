@@ -2,6 +2,12 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg14
     container_name: battery-timescaledb-dev
+    command:
+      - -cshared_buffers=32MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=96MB
+      - -cmaintenance_work_mem=16MB
+      - -cmax_connections=50
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -21,6 +27,12 @@ services:
   redis:
     image: redis:7-alpine
     container_name: battery-redis-dev
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
     ports:
       - "6379:6379"
     volumes:

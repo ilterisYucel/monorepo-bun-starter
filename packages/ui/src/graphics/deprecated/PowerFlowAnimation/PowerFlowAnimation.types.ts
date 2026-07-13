@@ -1,10 +1,11 @@
 // packages/ui/src/components/PowerFlowAnimation/types.ts
 
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
 export interface PowerFlowAnimationProps {
   /** Akış yönü: Charge (Şarj), Discharge (Deşarj), Idle (Bekleme) */
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   /** Rack listesi (16 adet) */
   racks: Rack[];
   /** Yükseklik (px) */

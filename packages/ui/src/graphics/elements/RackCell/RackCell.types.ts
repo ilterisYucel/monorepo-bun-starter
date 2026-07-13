@@ -1,4 +1,5 @@
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
 export interface RackCellConfig {
   step: number;
@@ -11,6 +12,6 @@ export interface RackCellProps {
   x: number;
   y: number;
   config: RackCellConfig;
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   onClick?: (rack: Rack, position: { x: number; y: number }) => void;
 }

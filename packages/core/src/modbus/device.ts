@@ -36,6 +36,8 @@ export class ModbusDevice implements IDevice {
   private adapter!: IModbusSimulatorAdapter | undefined;
   private isSimulator: boolean;
   private readonly MAX_REGISTERS_PER_REQUEST = 125;
+  private lastReconnectAttempt: number = 0;
+  private readonly reconnectCooldownMs: number = 10000;
 
   constructor(config: ModbusDeviceConfig, adapter?: IModbusSimulatorAdapter) {
     this.config = config;
@@ -45,6 +47,18 @@ export class ModbusDevice implements IDevice {
     } else {
       this.client = new ModbusTcpClient(config.connection);
     }
+  }
+
+  private async ensureConnected(): Promise<void> {
+    if (!this.client) return;
+    if (this.client.isConnected()) return;
+    const now = Date.now();
+    if (now - this.lastReconnectAttempt < this.reconnectCooldownMs) {
+      throw new Error(`Modbus device ${this.config.id} disconnected, reconnect cooldown active`);
+    }
+    this.lastReconnectAttempt = now;
+    console.log(`[ModbusDevice] ${this.config.id} baglanti koptu, yeniden baglaniliyor...`);
+    await this.client.reconnect();
   }
 
   async connect(): Promise<void> {
@@ -60,6 +74,7 @@ export class ModbusDevice implements IDevice {
   // ============================================
 
   async read(telemetries?: TelemetryData[]): Promise<TelemetryData[]> {
+    if (!this.isSimulator) await this.ensureConnected();
     let itemsToRead = telemetries;
     if (!itemsToRead || itemsToRead.length === 0) {
       itemsToRead = this.config.telemetryList.map((t) => ({

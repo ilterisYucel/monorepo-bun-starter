@@ -52,22 +52,28 @@ export class DeviceScheduler {
     const timestamp = new Date().toISOString();
     const base = `${deviceId}-${Date.now()}`;
 
-    await Promise.all([
-      this.mq.addJob({
-        jobId: `${base}-write`,
-        type: "WRITE_TELEMETRY",
-        deviceId,
-        timestamp,
-        telemetries: data,
-      }),
-      this.mq.addJob({
-        jobId: `${base}-mgmt`,
-        type: "MANAGEMENT",
-        deviceId,
-        timestamp,
-        telemetries: data,
-      }),
-    ]);
+    try {
+      await Promise.all([
+        this.mq.addJob({
+          jobId: `${base}-write`,
+          type: "WRITE_TELEMETRY",
+          deviceId,
+          timestamp,
+          telemetries: data,
+        }),
+        // ponytail: MANAGEMENT jobs exist but have no consumer yet
+        // Publishing to avoid breaking the job flow when consumer is added
+        this.mq.addJob({
+          jobId: `${base}-mgmt`,
+          type: "MANAGEMENT",
+          deviceId,
+          timestamp,
+          telemetries: data,
+        }),
+      ]);
+    } catch (err) {
+      console.warn(`[DeviceScheduler] Redis yazma hatasi, telemetry atlandi (${deviceId}): ${err}`);
+    }
   }
 
   close(): Promise<void> {

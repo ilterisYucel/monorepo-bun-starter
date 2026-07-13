@@ -6,8 +6,10 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 5000,
       refetchInterval: 5000,
-      retry: 1,
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
+      gcTime: 5 * 60 * 1000,
     },
     mutations: {
       retry: 1,

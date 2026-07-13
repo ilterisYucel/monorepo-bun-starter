@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import type { StepConfig, BSCPositions } from "./BSCGraphic.types";
 
 interface LabelInputs {
@@ -7,7 +8,7 @@ interface LabelInputs {
   positions: BSCPositions;
   racks: Rack[];
   deviceId: string;
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   showFlowDirection?: boolean;
   breakerStatus: "online" | "offline";
   breakerPosition: "open" | "close";

@@ -13,6 +13,10 @@ export class PostgresAdapter implements ISqlDatabase {
   constructor(private readonly config: PostgresConfig) {}
 
   async connect(): Promise<void> {
+    const poolMax = this.config.maxConnections ?? (Number(process.env.POSTGRES_POOL_SIZE) || 3);
+    const statementTimeout = Number(process.env.POSTGRES_STATEMENT_TIMEOUT_MS) || 15000;
+    const idleTimeout = Number(process.env.POSTGRES_IDLE_TIMEOUT_MS) || 30000;
+    const connTimeout = Number(process.env.POSTGRES_CONNECTION_TIMEOUT_MS) || 5000;
     this.pool = new Pool({
       host: this.config.host,
       port: this.config.port,
@@ -20,7 +24,10 @@ export class PostgresAdapter implements ISqlDatabase {
       password: this.config.password,
       database: this.config.database,
       ssl: this.config.ssl,
-      max: this.config.maxConnections ?? 10,
+      max: poolMax,
+      statement_timeout: statementTimeout,
+      idleTimeoutMillis: idleTimeout,
+      connectionTimeoutMillis: connTimeout,
     });
 
     const client = await this.pool.connect();

@@ -1,12 +1,12 @@
 // apps/web/src/features/racks/utils/rackHelpers.ts
-import type { TelemetryData } from "@gd-monorepo/shared-types";
-import type { Rack } from "../types/rack";
+import type { TelemetryData, ChargeStatus } from "@gd-monorepo/shared-types";
+import type { Rack } from "@gd-monorepo/ui";
 import type { DeviceInfo } from "../../devices/types/device";
 import type { RackDetailData, RackExtendedTelemetry, RackNameplate, RackDiagnosticGroup } from "../components/RackDetailModal/RackDetailModal.types";
 
 export const telemetriesToRacks = (
   telemetries: TelemetryData[],
-  globalChargeStatus: "Charge" | "Discharge" | "Idle",
+  globalChargeStatus: ChargeStatus,
   bscDevices: DeviceInfo[],
 ): Rack[] => {
   const rackMap = new Map<string, Rack>();
@@ -150,7 +150,7 @@ const extractDiagnostics = (
 
 export const telemetriesToRackDetailMap = (
   telemetries: TelemetryData[],
-  globalChargeStatus: "Charge" | "Discharge" | "Idle",
+  globalChargeStatus: ChargeStatus,
   bscDevices: DeviceInfo[],
 ): Map<string, RackDetailData> => {
   const racks = telemetriesToRacks(telemetries, globalChargeStatus, bscDevices);

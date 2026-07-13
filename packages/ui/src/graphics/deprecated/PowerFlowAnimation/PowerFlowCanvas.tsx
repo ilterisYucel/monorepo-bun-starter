@@ -2,9 +2,10 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { RackPopover } from "./RackPopover";
 import type { Rack } from "../../../types";
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
 interface PowerFlowCanvasProps {
-  flowDirection: "Charge" | "Discharge" | "Idle";
+  flowDirection: ChargeStatus;
   racks: Rack[];
   width?: number;
   height?: number;

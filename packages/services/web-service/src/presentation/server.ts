@@ -53,6 +53,8 @@ export class WebServiceServer {
       logger: false,
       bodyLimit: 1048576,
       trustProxy: true,
+      requestTimeout: 30000,
+      keepAliveTimeout: 65000,
     };
     this.app = Fastify(options);
 

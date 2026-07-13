@@ -1,4 +1,5 @@
 
+import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
 export interface Rack {
   id: number;
@@ -6,7 +7,7 @@ export interface Rack {
   status: "online" | "offline";
   soc: number | null;
   soh: number | null;
-  charge_status: "Charge" | "Discharge" | "Idle" | null;
+  charge_status: ChargeStatus | null;
   voltage: number | null;
   current: number | null;
   temperature: number | null;
@@ -47,7 +48,7 @@ export interface SystemDataPoint {
 }
 
 export interface SetPowerRequest {
-  charge_status: "Charge" | "Discharge" | "Idle";
+  charge_status: ChargeStatus;
   power_kw: number;
   duration_seconds: number;
   rack_id?: number;

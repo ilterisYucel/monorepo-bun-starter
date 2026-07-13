@@ -21,6 +21,10 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
   constructor(config: PostgresConfig) {
+    const poolMax = config.maxConnections ?? (Number(process.env.TIMESCALE_POOL_SIZE) || 5);
+    const statementTimeout = Number(process.env.TIMESCALE_STATEMENT_TIMEOUT_MS) || 30000;
+    const idleTimeout = Number(process.env.TIMESCALE_IDLE_TIMEOUT_MS) || 30000;
+    const connTimeout = Number(process.env.TIMESCALE_CONNECTION_TIMEOUT_MS) || 5000;
     this.pool = new Pool({
       host: config.host,
       port: config.port,
@@ -28,7 +32,10 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       password: config.password,
       database: config.database,
       ssl: config.ssl,
-      max: config.maxConnections ?? 20,
+      max: poolMax,
+      statement_timeout: statementTimeout,
+      idleTimeoutMillis: idleTimeout,
+      connectionTimeoutMillis: connTimeout,
     });
   }
 
@@ -43,6 +50,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     if (this.tableCache.has(tableName)) return;
 
+    const chunkInterval = process.env.TIMESCALE_CHUNK_INTERVAL || "1 day";
     const query = `
       CREATE TABLE IF NOT EXISTS ${tableName} (
         name VARCHAR(100) NOT NULL,
@@ -53,14 +61,46 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
         tags JSONB,
         timestamp TIMESTAMPTZ NOT NULL
       );
-      SELECT create_hypertable('${tableName}', 'timestamp', if_not_exists => TRUE);
+      SELECT create_hypertable('${tableName}', 'timestamp', if_not_exists => TRUE, chunk_time_interval => INTERVAL '${chunkInterval}');
       CREATE INDEX IF NOT EXISTS idx_${tableName}_name ON ${tableName} (name, timestamp DESC);
       CREATE INDEX IF NOT EXISTS idx_${tableName}_timestamp ON ${tableName} (timestamp DESC);
       CREATE INDEX IF NOT EXISTS idx_${tableName}_tags ON ${tableName} USING GIN (tags jsonb_path_ops);
     `;
 
     await this.pool.query(query);
+    await this.setupCompression(tableName);
     this.tableCache.add(tableName);
+  }
+
+  private async setupCompression(tableName: string): Promise<void> {
+    try {
+      await this.pool.query(`
+        ALTER TABLE ${tableName} SET (
+          timescaledb.compress,
+          timescaledb.compress_segmentby = 'name'
+        );
+      `);
+      const compressAfter = process.env.TIMESCALE_COMPRESS_AFTER || "7 days";
+      await this.pool.query(`
+        SELECT add_compression_policy('${tableName}', INTERVAL '${compressAfter}', if_not_exists => true);
+      `);
+    } catch {
+      console.warn(`[TimescaleDB] Sikistirma politikasi kurulamadi: ${tableName}`);
+    }
+  }
+
+  async runRetention(deviceId: string, retainAfter?: string): Promise<void> {
+    const tableName = this.getTableName(deviceId);
+    const after = retainAfter || process.env.TIMESCALE_RETENTION_AFTER;
+    if (!after) return;
+    try {
+      await this.pool.query(`
+        SELECT add_retention_policy('${tableName}', INTERVAL '${after}', if_not_exists => true);
+      `);
+      console.log(`[TimescaleDB] Retention: ${tableName} --> ${after}`);
+    } catch {
+      console.warn(`[TimescaleDB] Retention politikasi kurulamadi: ${tableName}`);
+    }
   }
 
   async write(telemetries: TelemetryData | TelemetryData[]): Promise<void> {

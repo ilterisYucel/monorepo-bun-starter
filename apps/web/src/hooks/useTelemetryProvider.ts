@@ -42,7 +42,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
 
   const { data = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ["telemetry", "downsampled", range, points, selectedName, options.filters],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const params = new URLSearchParams();
       params.append("from", fromTo.from);
       params.append("to", fromTo.to);
@@ -56,7 +56,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
 
       if (options.filters) {
         for (const [key, value] of Object.entries(options.filters)) {
-          params.append(key, value);
+          params.append(key, String(value));
         }
       }
 
@@ -65,7 +65,8 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
       }
 
       const response = await apiClient.get<DownsampledResponse>(
-        `/unified/telemetry/downsampled?${params.toString()}`
+        `/unified/telemetry/downsampled?${params.toString()}`,
+        { signal },
       );
 
       return response.data.telemetries || [];
