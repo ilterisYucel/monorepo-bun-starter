@@ -107,3 +107,5 @@ __pycache__/
 *.log
 *.tgz
 *.gz
+.claude/worktrees
+.claude/settings.local.json
