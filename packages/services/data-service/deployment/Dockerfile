@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json bun.lock nx.json tsconfig.base.json ./
 COPY apps/*/package.json apps/
 COPY packages/*/package.json packages/
+COPY packages/services/*/package.json packages/services/
 RUN bun install
 
 COPY . .
