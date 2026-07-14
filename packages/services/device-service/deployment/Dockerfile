@@ -3,9 +3,8 @@ FROM oven/bun:latest
 WORKDIR /app
 
 COPY package.json bun.lock nx.json tsconfig.base.json ./
-COPY apps/*/package.json apps/
-COPY packages/*/package.json packages/
-COPY packages/services/*/package.json packages/services/
+COPY apps apps/
+COPY packages packages/
 RUN bun install
 
 COPY . .
