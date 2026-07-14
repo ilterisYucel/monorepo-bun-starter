@@ -64,7 +64,10 @@ export const Scheduler: React.FC = () => {
       operationMode,
       durationSeconds,
     };
-    setScheduledList([...scheduledList, newCommand]);
+    setScheduledList((prev) => {
+      const updated = [...prev, newCommand];
+      return updated.slice(-200);
+    });
     addLog({
       type: "success",
       source: "user",

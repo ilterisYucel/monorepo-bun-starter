@@ -21,6 +21,7 @@ interface UseRealtimeTelemetryOptions {
   deviceId: string;
   bufferSize?: number;
   enabled?: boolean;
+  getToken?: () => string | null;
 }
 
 export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
@@ -29,6 +30,7 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
     deviceId,
     bufferSize = 100,
     enabled = true,
+    getToken,
   } = options;
 
   const [realtimeData, setRealtimeData] = useState<TelemetryEntry[]>([]);
@@ -36,15 +38,24 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const wasEverOpened = useRef(false);
+  const wsReconnectAttempts = useRef(0);
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
   const connect = useCallback(() => {
     if (!enabled || wsRef.current?.readyState === WebSocket.OPEN) return;
 
+    const currentToken = getTokenRef.current?.();
+    const resolvedWsUrl = currentToken ? `${wsUrl}?token=${encodeURIComponent(currentToken)}` : wsUrl;
+
     try {
-      const ws = new WebSocket(wsUrl);
+      const ws = new WebSocket(resolvedWsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
+        wasEverOpened.current = true;
+        wsReconnectAttempts.current = 0;
         setIsConnected(true);
         setError(null);
 
@@ -84,14 +95,21 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
         setIsConnected(false);
         wsRef.current = null;
 
+        if (!wasEverOpened.current) {
+          setError("WebSocket connection rejected — credentials may be invalid");
+          return;
+        }
+
+        wsReconnectAttempts.current += 1;
+        const delay = Math.min(3000 * Math.pow(2, wsReconnectAttempts.current - 1), 30000);
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
-        }, 3000);
+        }, delay);
       };
 
       ws.onerror = () => {
-        setError("WebSocket connection error");
-        ws.close();
+        setError("WebSocket connection error — server may be unavailable or credentials invalid");
+        wsRef.current = null;
       };
     } catch {
       setError("Failed to create WebSocket connection");
@@ -115,7 +133,9 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
             }),
           );
         }
-        wsRef.current.close();
+        if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+          wsRef.current.close();
+        }
         wsRef.current = null;
       }
     };
@@ -125,5 +145,6 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
     data: realtimeData,
     isConnected,
     error,
+    reconnect: connect,
   };
 }

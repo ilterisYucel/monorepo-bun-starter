@@ -44,6 +44,7 @@ export const useChargeStatus = (): { chargeStatus: ChargeStatus; isLoading: bool
     wsUrl: WS_URL,
     deviceId: firstBscId,
     enabled: firstBscId !== "",
+    getToken: () => localStorage.getItem("auth-token"),
   });
 
   return { chargeStatus, isLoading };

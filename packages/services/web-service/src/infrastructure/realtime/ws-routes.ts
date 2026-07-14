@@ -1,17 +1,32 @@
 import type { FastifyInstance } from "fastify";
 import type { RealtimeManager } from "./realtime-manager";
+import type { ITokenService } from "../../domain/services/ITokenService";
 
 export async function telemetryWsRoutes(
   fastify: FastifyInstance,
   options: {
     realtime: RealtimeManager;
+    tokens: ITokenService;
   },
 ): Promise<void> {
-  const { realtime } = options;
+  const { realtime, tokens } = options;
 
   fastify.get(
     "/ws/telemetry",
-    { websocket: true },
+    {
+      websocket: true,
+      onRequest: async (request, reply) => {
+        const queryToken = (request.query as Record<string, string>).token;
+        if (!queryToken) {
+          return reply.status(401).send({ error: "Yetkilendirme gerekli" });
+        }
+        try {
+          await tokens.verifyAccess(queryToken);
+        } catch {
+          return reply.status(401).send({ error: "Gecersiz veya suresi dolmus token" });
+        }
+      },
+    },
     (socket, _request) => {
       console.log("[WS] Yeni WebSocket baglantisi");
 

@@ -2,6 +2,39 @@ import { Graphics, FillGradient } from "pixi.js";
 import type { RoomCardPosition } from "../../types";
 import { COLOR } from "../../../colors";
 
+let _roomBodyGrad: FillGradient | null = null;
+const _roomTempGrads = new Map<number, FillGradient>();
+
+function roomBodyGrad(): FillGradient {
+  _roomBodyGrad ??= new FillGradient({
+    type: "linear",
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 1 },
+    colorStops: [
+      { offset: 0, color: COLOR.gradMid2 },
+      { offset: 1, color: COLOR.gradLow },
+    ],
+    textureSpace: "local",
+  });
+  return _roomBodyGrad;
+}
+
+function roomTempGrad(color: number): FillGradient {
+  if (!_roomTempGrads.has(color)) {
+    _roomTempGrads.set(color, new FillGradient({
+      type: "linear",
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
+      colorStops: [
+        { offset: 0, color },
+        { offset: 1, color: COLOR.tempCold },
+      ],
+      textureSpace: "local",
+    }));
+  }
+  return _roomTempGrads.get(color)!;
+}
+
 function tempColor(temp: number): number {
   if (temp < 0) return COLOR.tempCold;
   if (temp < 10) return COLOR.info;
@@ -24,19 +57,8 @@ export function drawRoomBody(
   g.roundRect(x + step * 0.06, y + step * 0.1, w, h, r);
   g.fill({ color: COLOR.shadow, alpha: 0.2 });
 
-  const bg = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradMid2 },
-      { offset: 1, color: COLOR.gradLow },
-    ],
-    textureSpace: "local",
-  });
-
   g.roundRect(x, y, w, h, r);
-  g.fill(bg);
+  g.fill(roomBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.info });
 
   const slotPad = step * 0.2;
@@ -62,19 +84,8 @@ export function drawRoomTemp(
   const barH = (h - step * 2.9) * tNorm;
   const barY = y + h - step * 2.8 - barH;
 
-  const grad = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: color },
-      { offset: 1, color: COLOR.tempCold },
-    ],
-    textureSpace: "local",
-  });
-
   g.roundRect(x + step * 0.08, barY, barW, Math.max(barH, step * 0.3), step * 0.1);
-  g.fill(grad);
+  g.fill(roomTempGrad(color));
 }
 
 export function drawRoomTempBorder(

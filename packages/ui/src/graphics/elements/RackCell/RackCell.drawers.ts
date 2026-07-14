@@ -3,15 +3,11 @@ import type { Rack } from "../../../types";
 import type { RackCellConfig } from "./RackCell.types";
 import { COLOR } from "../../../colors";
 
-export function drawRackBody(g: Graphics, cfg: RackCellConfig): void {
-  const { rackWidth: w, rackHeight: h, step } = cfg;
-  const r = w * 0.42;
+let _rackBodyGrad: FillGradient | null = null;
+const _rackFillGrads = new Map<string, FillGradient>();
 
-  const so = step * 0.08;
-  g.roundRect(so, so, w, h, r);
-  g.fill({ color: COLOR.shadow, alpha: 0.25 });
-
-  const grad = new FillGradient({
+function rackBodyGrad(): FillGradient {
+  _rackBodyGrad ??= new FillGradient({
     type: "linear",
     start: { x: 0, y: 0 },
     end: { x: 0, y: 1 },
@@ -22,9 +18,36 @@ export function drawRackBody(g: Graphics, cfg: RackCellConfig): void {
     ],
     textureSpace: "local",
   });
+  return _rackBodyGrad;
+}
+
+function rackFillGrad(glow: number, base: number): FillGradient {
+  const key = `${glow}_${base}`;
+  if (!_rackFillGrads.has(key)) {
+    _rackFillGrads.set(key, new FillGradient({
+      type: "linear",
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
+      colorStops: [
+        { offset: 0, color: glow },
+        { offset: 1, color: base },
+      ],
+      textureSpace: "local",
+    }));
+  }
+  return _rackFillGrads.get(key)!;
+}
+
+export function drawRackBody(g: Graphics, cfg: RackCellConfig): void {
+  const { rackWidth: w, rackHeight: h, step } = cfg;
+  const r = w * 0.42;
+
+  const so = step * 0.08;
+  g.roundRect(so, so, w, h, r);
+  g.fill({ color: COLOR.shadow, alpha: 0.25 });
 
   g.roundRect(0, 0, w, h, r);
-  g.fill(grad);
+  g.fill(rackBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 
   const nubW = w * 0.25;
@@ -64,19 +87,10 @@ export function drawRackFill(
 
   if (fillPct <= 0) return;
 
-  const grad = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: glow },
-      { offset: 1, color: base },
-    ],
-    textureSpace: "local",
-  });
+  const fillGrad = rackFillGrad(glow, base);
 
   g.roundRect(pad, fy, iw, fh, Math.min(ir, fh * 0.5));
-  g.fill(grad);
+  g.fill(fillGrad);
 
   g.roundRect(pad + step * 0.04, fy, iw - step * 0.08, step * 0.06, step * 0.03);
   g.fill({ color: COLOR.textWhite, alpha: 0.15 });

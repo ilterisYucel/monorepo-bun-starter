@@ -2,6 +2,22 @@ import { Graphics, FillGradient } from "pixi.js";
 import type { BreakerBusLayout } from "../../types";
 import { COLOR } from "../../../colors";
 
+let _breakerBodyGrad: FillGradient | null = null;
+
+function breakerBodyGrad(): FillGradient {
+  _breakerBodyGrad ??= new FillGradient({
+    type: "linear",
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 1 },
+    colorStops: [
+      { offset: 0, color: COLOR.gradMid },
+      { offset: 1, color: COLOR.gradBodyBot },
+    ],
+    textureSpace: "local",
+  });
+  return _breakerBodyGrad;
+}
+
 function statusColor(
   breakerStatus: "online" | "offline",
   breakerPosition: "open" | "close",
@@ -37,19 +53,8 @@ export function drawBreakerBody(
   const bh = step * 0.7;
   const br = step * 0.08;
 
-  const bg = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradMid },
-      { offset: 1, color: COLOR.gradBodyBot },
-    ],
-    textureSpace: "local",
-  });
-
   g.roundRect(bx - step * 0.1, by, bw + step * 0.2, bh, br);
-  g.fill(bg);
+  g.fill(breakerBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke });
 
   g.setStrokeStyle({ width: strokeW, color: sc });

@@ -2,6 +2,22 @@ import { Graphics, FillGradient } from "pixi.js";
 import { COLOR } from "../../../colors";
 import type { RectPosition, HvacData } from "../../types";
 
+let _hvacBodyGrad: FillGradient | null = null;
+
+function hvacBodyGrad(): FillGradient {
+  _hvacBodyGrad ??= new FillGradient({
+    type: "linear",
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 1 },
+    colorStops: [
+      { offset: 0, color: COLOR.gradMid },
+      { offset: 1, color: COLOR.gradBodyBot },
+    ],
+    textureSpace: "local",
+  });
+  return _hvacBodyGrad;
+}
+
 export function drawHvacBody(
   g: Graphics,
   pos: RectPosition,
@@ -22,19 +38,8 @@ export function drawHvacBody(
     fillColor = COLOR.idle;
   }
 
-  const bg = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradMid },
-      { offset: 1, color: COLOR.gradBodyBot },
-    ],
-    textureSpace: "local",
-  });
-
   g.roundRect(x, y, w, h, r);
-  g.fill(bg);
+  g.fill(hvacBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: borderColor });
 
   g.roundRect(x + step * 0.08, y + step * 0.08, w - step * 0.16, h - step * 0.16, r * 0.5);

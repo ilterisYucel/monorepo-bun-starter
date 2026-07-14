@@ -12,6 +12,7 @@ const PUBLIC_PREFIXES = [
   "/docs",
   "/api/auth/login",
   "/api/auth/refresh",
+  "/ws/telemetry",
 ];
 
 export function createRbacHook(tokens: ITokenService) {

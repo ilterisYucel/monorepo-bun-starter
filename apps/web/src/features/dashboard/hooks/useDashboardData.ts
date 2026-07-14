@@ -165,6 +165,7 @@ export const useDashboardData = (
     wsUrl: WS_URL,
     deviceId: firstBscId,
     enabled: firstBscId !== "",
+    getToken: () => localStorage.getItem("auth-token"),
   });
 
   const { data: mergedTelemetries } = useTelemetry({

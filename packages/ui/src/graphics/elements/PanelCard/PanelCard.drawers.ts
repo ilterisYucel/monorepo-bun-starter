@@ -2,6 +2,39 @@ import { Graphics, FillGradient } from "pixi.js";
 import type { RectPosition } from "../../types";
 import { COLOR } from "../../../colors";
 
+let _panelBodyGrad: FillGradient | null = null;
+const _panelTempGrads = new Map<number, FillGradient>();
+
+function panelBodyGrad(): FillGradient {
+  _panelBodyGrad ??= new FillGradient({
+    type: "linear",
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 1 },
+    colorStops: [
+      { offset: 0, color: COLOR.gradPanelTop },
+      { offset: 1, color: COLOR.bgPanel },
+    ],
+    textureSpace: "local",
+  });
+  return _panelBodyGrad;
+}
+
+function panelTempGrad(color: number): FillGradient {
+  if (!_panelTempGrads.has(color)) {
+    _panelTempGrads.set(color, new FillGradient({
+      type: "linear",
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
+      colorStops: [
+        { offset: 0, color },
+        { offset: 1, color: COLOR.tempCold },
+      ],
+      textureSpace: "local",
+    }));
+  }
+  return _panelTempGrads.get(color)!;
+}
+
 function tempColor(temp: number): number {
   if (temp < 0) return COLOR.tempCold;
   if (temp < 10) return COLOR.info;
@@ -24,19 +57,8 @@ export function drawPanelBody(
   g.roundRect(x + step * 0.06, y + step * 0.1, w, h, r);
   g.fill({ color: COLOR.shadow, alpha: 0.2 });
 
-  const bg = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradPanelTop },
-      { offset: 1, color: COLOR.bgPanel },
-    ],
-    textureSpace: "local",
-  });
-
   g.roundRect(x, y, w, h, r);
-  g.fill(bg);
+  g.fill(panelBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 }
 
@@ -58,18 +80,7 @@ export function drawPanelTemp(
   const fillH = innerH * tempNorm;
   const fillY = innerY + (innerH - fillH);
 
-  const grad = new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: color },
-      { offset: 1, color: COLOR.tempCold },
-    ],
-    textureSpace: "local",
-  });
-
   g.roundRect(x + innerPad, fillY, w - innerPad * 2, Math.max(fillH, step * 0.3), step * 0.15);
-  g.fill(grad);
+  g.fill(panelTempGrad(color));
   g.stroke({ width: Math.max(0.5, step * 0.02), color, alpha: 0.4 });
 }

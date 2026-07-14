@@ -1,7 +1,7 @@
 // apps/web/src/hooks/useTelemetryProvider.ts
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "../lib/api-client";
+import { apiClient, API_BASE_URL } from "../lib/api-client";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type {
   TelemetryProviderOptions,
@@ -58,7 +58,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
 
   const { data: httpData = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ["telemetry", "downsampled", range, points, selectedName, options.filters],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { from, to } = fromToRef.current;
       const params = new URLSearchParams();
       params.append("from", from);
@@ -93,11 +93,37 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
   });
 
   const firstDeviceId = options.deviceIds?.[0] ?? "";
-  const { data: wsData } = useRealtimeTelemetry({
+  const { data: wsData, error: wsError, reconnect } = useRealtimeTelemetry({
     wsUrl: WS_URL,
     deviceId: firstDeviceId,
     enabled: firstDeviceId !== "",
+    getToken: () => localStorage.getItem("auth-token"),
   });
+
+  useEffect(() => {
+    if (!wsError || !wsError.includes("credentials")) return;
+
+    const refreshToken = localStorage.getItem("auth-refresh-token");
+    if (!refreshToken) return;
+
+    let cancelled = false;
+    fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data: { accessToken: string }) => {
+        if (cancelled) return;
+        localStorage.setItem("auth-token", data.accessToken);
+        reconnect();
+      })
+      .catch(() => {
+        /* refresh failed — user must re-login */
+      });
+
+    return () => { cancelled = true; };
+  }, [wsError, reconnect]);
 
   const { data: mergedData } = useTelemetry({
     historicalData: httpData,

@@ -2,6 +2,27 @@ import { Graphics, FillGradient } from "pixi.js";
 import type { OutputPosition } from "../../types";
 import { COLOR } from "../../../colors";
 
+const _outputGrads = new Map<string, FillGradient>();
+
+function outputBodyGrad(isActive: boolean): FillGradient {
+  const key = isActive ? "active" : "idle";
+  if (!_outputGrads.has(key)) {
+    _outputGrads.set(key, new FillGradient({
+      type: "radial",
+      center: { x: 0.5, y: 0.5 },
+      innerRadius: 0,
+      outerCenter: { x: 0.5, y: 0.5 },
+      outerRadius: 0.5,
+      colorStops: [
+        { offset: 0, color: isActive ? COLOR.dcActiveCenter : COLOR.dcIdleCenter },
+        { offset: 1, color: isActive ? COLOR.dcActiveEdge : COLOR.dcIdleEdge },
+      ],
+      textureSpace: "local",
+    }));
+  }
+  return _outputGrads.get(key)!;
+}
+
 export function drawOutputBody(
   g: Graphics,
   cfg: { step: number },
@@ -11,22 +32,9 @@ export function drawOutputBody(
   const { step } = cfg;
   const color = isActive ? COLOR.info : COLOR.idle;
 
-  const bg = new FillGradient({
-    type: "radial",
-    center: { x: 0.5, y: 0.5 },
-    innerRadius: 0,
-    outerCenter: { x: 0.5, y: 0.5 },
-    outerRadius: 0.5,
-    colorStops: [
-      { offset: 0, color: isActive ? COLOR.dcActiveCenter : COLOR.dcIdleCenter },
-      { offset: 1, color: isActive ? COLOR.dcActiveEdge : COLOR.dcIdleEdge },
-    ],
-    textureSpace: "local",
-  });
-
   const or = output.radius;
   g.circle(output.x, output.y, or);
-  g.fill(bg);
+  g.fill(outputBodyGrad(isActive));
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 
   g.circle(output.x, output.y, or * 0.7);

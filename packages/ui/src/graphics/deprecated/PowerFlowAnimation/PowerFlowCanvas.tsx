@@ -38,6 +38,7 @@ export const PowerFlowCanvas: React.FC<PowerFlowCanvasProps> = ({
   const [selectedRack, setSelectedRack] = useState<Rack | null>(null);
   const [popoverPos, setPopoverPos] = useState({ x: 0, y: 0 });
   const [popoverVisible, setPopoverVisible] = useState(false);
+  const popoverTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const getRackAtPosition = useCallback(
     (mouseX: number, mouseY: number): Rack | null => {
@@ -84,7 +85,8 @@ export const PowerFlowCanvas: React.FC<PowerFlowCanvasProps> = ({
         setSelectedRack(rack);
         setPopoverPos({ x: e.clientX, y: e.clientY });
         setPopoverVisible(true);
-        setTimeout(() => setPopoverVisible(false), 3000);
+        clearTimeout(popoverTimeoutRef.current);
+        popoverTimeoutRef.current = setTimeout(() => setPopoverVisible(false), 3000);
       }
     },
     [getRackAtPosition, width, height],
@@ -273,6 +275,12 @@ export const PowerFlowCanvas: React.FC<PowerFlowCanvasProps> = ({
     },
     [width, height, flowDirection, racks],
   );
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(popoverTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;

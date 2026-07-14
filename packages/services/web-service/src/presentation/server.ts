@@ -171,7 +171,7 @@ export class WebServiceServer {
 
     await this.app.register(
       async (fastify) => {
-        await telemetryWsRoutes(fastify, { realtime: deps.realtime });
+        await telemetryWsRoutes(fastify, { realtime: deps.realtime, tokens: deps.tokens });
       },
     );
   }

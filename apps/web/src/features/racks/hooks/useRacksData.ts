@@ -28,6 +28,7 @@ export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
     wsUrl: WS_URL,
     deviceId: firstBscId,
     enabled: firstBscId !== "",
+    getToken: () => localStorage.getItem("auth-token"),
   });
 
   const { data: mergedTelemetries } = useTelemetry({
