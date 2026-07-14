@@ -64,6 +64,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    volumes:
+      - ../packages/services/device-service/deployment/config-docker:/app/config-docker:ro
     networks:
       - battery-network
     restart: unless-stopped
