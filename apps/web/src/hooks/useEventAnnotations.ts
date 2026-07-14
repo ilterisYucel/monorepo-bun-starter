@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { logsApi } from "@/features/logs/services/logsApi";
+import { logsApi } from "../features/logs/services/logsApi";
 import type { TimeRange, EventAnnotationsProvider } from "@gd-monorepo/ui";
 import type { LogEntry } from "@gd-monorepo/shared-types";
 
