@@ -227,6 +227,8 @@ export const CONTROLLER = {
   DISABLED_RACKS_97_99:   40026, // bit16
   DISABLED_RESERVED_1:    40027, // uint16 — Reserved
   DISABLED_RESERVED_2:    40028, // uint16 — Reserved
+  CHARGE_POWER_SETPOINT:  40030, // uint16 — Charge power setpoint (kW, scale 0.01)
+  DISCHARGE_POWER_SETPOINT: 40031, // uint16 — Discharge power setpoint (kW, scale 0.01)
 } as const;
 
 // ============================================================================
@@ -256,6 +258,7 @@ export const COMMAND = {
   EXIT_MANUAL:             0x0007,
   EVENT_CLEAR:             0x0009,
   RESET:                   0x000A,
+  DISCHARGE:               0x000B,
 } as const;
 
 /** Request Acknowledge values (NAMEPLATE.REQUEST_ACKNOWLEDGE — address 30030) */

@@ -1,7 +1,7 @@
 // packages/core/src/messaging/bullmq-adapter.ts
 
 import { Queue, Worker, Job, QueueEvents } from "bullmq";
-import type { DeviceJob, JobType } from "@gd-monorepo/shared-types";
+import type { DeviceJob, JobType, JobResult } from "@gd-monorepo/shared-types";
 import type { IMessageQueue, QueueStatus, WorkerOptions } from "./interface";
 import type { RedisConnection } from "./redis";
 import type { JobsOptions, RepeatOptions } from "bullmq";
@@ -89,6 +89,34 @@ export class BullMQAdapter implements IMessageQueue {
     });
   }
 
+  async executeAndWait(jobData: DeviceJob, timeoutMs: number): Promise<JobResult> {
+    const queue = await this.getQueue(jobData.type);
+    const job = await queue.add(jobData.type, jobData, {
+      jobId: jobData.jobId,
+      priority: jobData.priority ?? 10,
+    });
+
+    const events = this.queueEvents.get(jobData.type);
+    if (!events) {
+      console.error(`[BullMQ] executeAndWait: no QueueEvents for ${jobData.type} — job may not be consumed`);
+      try {
+        const result = await job.waitUntilFinished(null as any, timeoutMs);
+        if (result && typeof result === "object") return result as JobResult;
+        return { success: true };
+      } catch (err) {
+        return { success: false, reason: String(err) };
+      }
+    }
+
+    try {
+      const result = await job.waitUntilFinished(events, timeoutMs);
+      if (result && typeof result === "object") return result as JobResult;
+      return { success: true };
+    } catch (err) {
+      return { success: false, reason: String(err) };
+    }
+  }
+
   async addRepeatableJob(
     name: string,
     job: DeviceJob,
@@ -117,8 +145,48 @@ export class BullMQAdapter implements IMessageQueue {
     });
   }
 
+  async registerWorkerFor(
+    type: JobType,
+    processor: (job: DeviceJob) => Promise<unknown>,
+    options?: WorkerOptions,
+  ): Promise<void> {
+    const worker = new Worker(
+      QUEUE_NAMES[type],
+      async (bullJob: Job) => {
+        const jobData = bullJob.data as DeviceJob;
+        return await processor(jobData);
+      },
+      {
+        connection: this.getRedisConnection(),
+        concurrency: options?.concurrency ?? 5,
+      },
+    );
+
+    if (options?.onCompleted) {
+      worker.on("completed", (bullJob) => {
+        const jobData = bullJob.data as DeviceJob;
+        options.onCompleted!(jobData);
+      });
+    }
+
+    if (options?.onFailed) {
+      worker.on("failed", (bullJob, err) => {
+        if (bullJob) {
+          const jobData = bullJob.data as DeviceJob;
+          options.onFailed!(jobData, err);
+        }
+      });
+    }
+
+    worker.on("error", (err) => {
+      console.error(`[BullMQ] Worker error for ${type}:`, err);
+    });
+
+    this.workers.set(type, worker);
+  }
+
   async registerWorker(
-    processor: (job: DeviceJob) => Promise<void>,
+    processor: (job: DeviceJob) => Promise<unknown>,
     options?: WorkerOptions,
   ): Promise<void> {
     const jobTypes: JobType[] = [
@@ -134,7 +202,7 @@ export class BullMQAdapter implements IMessageQueue {
         QUEUE_NAMES[type],
         async (bullJob: Job) => {
           const jobData = bullJob.data as DeviceJob;
-          await processor(jobData);
+          return await processor(jobData);
         },
         {
           connection: this.getRedisConnection(),

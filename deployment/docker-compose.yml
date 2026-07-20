@@ -112,6 +112,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
     ports:
       - "5001:5001"
     depends_on:

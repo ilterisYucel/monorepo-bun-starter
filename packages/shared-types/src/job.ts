@@ -35,6 +35,26 @@ export interface CommandDeviceJob extends BaseJob {
    * Atomic transaction: hepsi başarılı olmazsa hiçbiri yazılmasın
    */
   atomic?: boolean;
+  /**
+   * Yazma sonrası doğrulama konfigürasyonu.
+   * Belirtilen register'lar belirtilen değerlere eşit olana kadar poll yapılır.
+   */
+  validate?: {
+    minWaitMs?: number;
+    timeoutMs: number;
+    reads: Array<{ name: string; expect: string | number | boolean }>;
+  };
+}
+
+/**
+ * Komut çalıştırma sonucu.
+ * executeAndWait() sonrasında döner.
+ */
+export interface JobResult {
+  success: boolean;
+  validated?: boolean;
+  reason?: string;
+  data?: unknown;
 }
 
 export interface ManagementJob extends BaseJob {

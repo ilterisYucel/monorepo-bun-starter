@@ -7061,6 +7061,38 @@
       "tags": {
         "deviceId": "BSC-1"
       }
+    },
+    {
+      "name": "Charge Power Setpoint",
+      "description": "Şarj güç ayar noktası",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 40030,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "deviceId": "BSC-1"
+      }
+    },
+    {
+      "name": "Discharge Power Setpoint",
+      "description": "Deşarj güç ayar noktası",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 40031,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "deviceId": "BSC-1"
+      }
     }
   ],
   "bitfieldConfigs": [
@@ -9078,5 +9110,49 @@
   "simulator": {
     "type": "bsc",
     "rackCount": 8
+  },
+  "commands": {
+    "charge": {
+      "label": "Şarj",
+      "telemetries": [
+        { "name": "Command Request", "value": 2 },
+        { "name": "Charge Power Setpoint", "value": "{{powerKw}}" }
+      ],
+      "params": {
+        "powerKw": { "type": "number", "min": 0, "max": 500, "default": 50, "required": true, "label": "Güç (kW)" }
+      },
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [{ "name": "Request Acknowledge", "expect": 2 }]
+      }
+    },
+    "discharge": {
+      "label": "Deşarj",
+      "telemetries": [
+        { "name": "Command Request", "value": 11 },
+        { "name": "Discharge Power Setpoint", "value": "{{powerKw}}" }
+      ],
+      "params": {
+        "powerKw": { "type": "number", "min": 0, "max": 500, "default": 50, "required": true, "label": "Güç (kW)" }
+      },
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [{ "name": "Request Acknowledge", "expect": 2 }]
+      }
+    },
+    "stop": {
+      "label": "Durdur",
+      "telemetries": [
+        { "name": "Command Request", "value": 3 },
+        { "name": "Charge Power Setpoint", "value": 0 },
+        { "name": "Discharge Power Setpoint", "value": 0 }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [{ "name": "Request Acknowledge", "expect": 2 }]
+      }
+    }
   }
 }

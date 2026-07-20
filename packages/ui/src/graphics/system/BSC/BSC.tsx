@@ -54,6 +54,16 @@ const BSCV2Canvas: React.FC<{
   const isMountedRef = useRef(true);
   const prevDimsRef = useRef({ width: 0, height: 0 });
 
+  const handleAppRef = useCallback((app: any) => {
+    if (appRef.current && app !== appRef.current) {
+      try { appRef.current.destroy(true, true); } catch (_) {}
+      appRef.current = null;
+    }
+    if (app) {
+      appRef.current = app;
+    }
+  }, []);
+
   const [config, setConfig] = useState<StepConfig | null>(null);
   const [positions, setPositions] = useState<BSCPositions | null>(null);
   const [resizeKey, setResizeKey] = useState(0);
@@ -262,7 +272,7 @@ const BSCV2Canvas: React.FC<{
     >
       <Application
         key={resizeKey + (refreshCounter ?? 0)}
-        ref={appRef}
+        ref={handleAppRef}
         {...webglOverride}
         onInit={combinedOnInit}
         width={dimensions.width}

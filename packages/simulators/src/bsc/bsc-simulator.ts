@@ -174,7 +174,16 @@ export class BSCSimulator {
 
     // Holding register defaults
     this.holdingRegisters.set(CONTROLLER.HEARTBEAT, 0);
-    for (const reg of [CONTROLLER.COMMAND_REQUEST, ...Object.values(CONTROLLER).slice(2)]) {
+    this.holdingRegisters.set(CONTROLLER.COMMAND_REQUEST, 0);
+    this.holdingRegisters.set(CONTROLLER.CHARGE_POWER_SETPOINT, 5000);
+    this.holdingRegisters.set(CONTROLLER.DISCHARGE_POWER_SETPOINT, 0);
+    for (const reg of Object.values(CONTROLLER)) {
+      if (
+        reg === CONTROLLER.HEARTBEAT ||
+        reg === CONTROLLER.COMMAND_REQUEST ||
+        reg === CONTROLLER.CHARGE_POWER_SETPOINT ||
+        reg === CONTROLLER.DISCHARGE_POWER_SETPOINT
+      ) continue;
       this.holdingRegisters.set(reg, 0);
     }
   }
@@ -269,19 +278,30 @@ export class BSCSimulator {
   // ── rack state update ────────────────────────────────────────────────────
 
   private updateRackStates(elapsedSeconds: number): void {
-    // Get current power from holding registers
-    const cmdRegister = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+    const cmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+    const chargeSetpoint = this.holdingRegisters.get(CONTROLLER.CHARGE_POWER_SETPOINT) ?? 0;
+    const dischargeSetpoint = this.holdingRegisters.get(CONTROLLER.DISCHARGE_POWER_SETPOINT) ?? 0;
+
+    let powerKw = 0;
+    if (cmd === COMMAND.START) {
+      powerKw = chargeSetpoint * 0.01;
+    } else if (cmd === COMMAND.DISCHARGE) {
+      powerKw = -(dischargeSetpoint * 0.01);
+    }
+
+    console.log(`[BSC-Sim] updateRackStates: cmd=${cmd} bscState=${this.bscState} chargeSp=${chargeSetpoint} powerKw=${powerKw}`);
 
     for (const [, state] of this.rackStates) {
       if (!state.status) continue;
 
       if (this.bscState === BSC_STATE.NORMAL || this.bscState === BSC_STATE.MANUAL) {
-        // Self-discharge
-        const selfDischarge = 0.0001 * state.storedCapacityKwh;
-        state.storedCapacityKwh = Math.max(
-          state.storedCapacityKwh - selfDischarge,
-          socToCapacity(MIN_SOC_PERCENT),
-        );
+        const deltaEnergy = powerKw * (elapsedSeconds / 60);
+        state.storedCapacityKwh += deltaEnergy;
+        state.storedCapacityKwh = Math.max(state.storedCapacityKwh, socToCapacity(MIN_SOC_PERCENT));
+        state.storedCapacityKwh = Math.min(state.storedCapacityKwh, socToCapacity(MAX_SOC_PERCENT));
+        if (state.id === 1) {
+          console.log(`[BSC-Sim] Rack1 storedCapacity=${state.storedCapacityKwh.toFixed(2)} kWh SOC=${capacityToSocVoltage(state.storedCapacityKwh).soc.toFixed(3)}% delta=${deltaEnergy.toFixed(4)}kWh`);
+        }
       }
     }
   }
@@ -299,7 +319,7 @@ export class BSCSimulator {
     const cmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
     let chargeStatusBits: number;
     if (cmd === COMMAND.START) chargeStatusBits = 0b01; // Charge
-    else if (cmd === COMMAND.STOP) chargeStatusBits = 0b11; // Idle
+    else if (cmd === COMMAND.DISCHARGE) chargeStatusBits = 0b10; // Discharge
     else chargeStatusBits = 0b11; // Idle
     // Shift into b4:b5
     info |= chargeStatusBits << BSC_INFO_BITS.CHARGE_STATUS;
@@ -326,8 +346,11 @@ export class BSCSimulator {
     this.inputRegisters.set(SYSTEM_SUMMARY.BSC_SOH, avgSohPct);
 
     // DC Voltage / Current
+    const sysCmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+    const chargeSetpoint = this.holdingRegisters.get(CONTROLLER.CHARGE_POWER_SETPOINT) ?? 0;
+    const dischargeSetpoint = this.holdingRegisters.get(CONTROLLER.DISCHARGE_POWER_SETPOINT) ?? 0;
+
     let totalVoltage = 0;
-    let totalCurrent = 0;
     let voltCount = 0;
     for (const [, state] of this.rackStates) {
       if (!state.status) continue;
@@ -337,7 +360,13 @@ export class BSCSimulator {
     }
     const avgVoltage = voltCount > 0 ? totalVoltage / voltCount : 1300;
     writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE, Math.round(avgVoltage * 10000));
-    writeSint32(this.inputRegisters, SYSTEM_SUMMARY.DC_CURRENT, 0); // idle
+
+    let powerKw: number;
+    if (sysCmd === COMMAND.START) powerKw = chargeSetpoint * 0.01;
+    else if (sysCmd === COMMAND.DISCHARGE) powerKw = -(dischargeSetpoint * 0.01);
+    else powerKw = 0;
+    const totalCurrent = avgVoltage > 0 ? Math.round((powerKw * 1000 / avgVoltage) / 0.001) : 0;
+    writeSint32(this.inputRegisters, SYSTEM_SUMMARY.DC_CURRENT, totalCurrent);
 
     // Anticipated voltage (same as DC voltage for now)
     if (onlineCount === 0) {
@@ -346,11 +375,13 @@ export class BSCSimulator {
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE_ANTICIPATED, 0);
     }
 
-    // Power limits — 0 when idle, non-zero only when charging
-    const sysCmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+    // Power limits — from setpoint registers
     if (sysCmd === COMMAND.START) {
-      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 50000);
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, chargeSetpoint * 10);
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
+    } else if (sysCmd === COMMAND.DISCHARGE) {
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, dischargeSetpoint * 10);
     } else {
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
@@ -376,9 +407,9 @@ export class BSCSimulator {
     this.inputRegisters.set(SUMMARY_STATS.RACK_MAX_VOLTAGE, onlineCount > 0 ? 1 : 0);
     this.inputRegisters.set(SUMMARY_STATS.RACK_MIN_VOLTAGE, onlineCount > 0 ? 1 : 0);
 
-    writeSint32(this.inputRegisters, SUMMARY_STATS.MAX_CURRENT, 0);
-    writeSint32(this.inputRegisters, SUMMARY_STATS.AVG_CURRENT, 0);
-    writeSint32(this.inputRegisters, SUMMARY_STATS.MIN_CURRENT, 0);
+    writeSint32(this.inputRegisters, SUMMARY_STATS.MAX_CURRENT, totalCurrent);
+    writeSint32(this.inputRegisters, SUMMARY_STATS.AVG_CURRENT, totalCurrent);
+    writeSint32(this.inputRegisters, SUMMARY_STATS.MIN_CURRENT, totalCurrent);
 
     this.inputRegisters.set(SUMMARY_STATS.MAX_CELL_VOLTAGE, 35288);     // 3.5288V * 10000
     this.inputRegisters.set(SUMMARY_STATS.AVG_CELL_VOLTAGE, 35288);
@@ -422,6 +453,15 @@ export class BSCSimulator {
 
       const { soc, voltage } = capacityToSocVoltage(state.storedCapacityKwh);
 
+      const rackCmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+      const chargeSp = this.holdingRegisters.get(CONTROLLER.CHARGE_POWER_SETPOINT) ?? 0;
+      const dischargeSp = this.holdingRegisters.get(CONTROLLER.DISCHARGE_POWER_SETPOINT) ?? 0;
+
+      let rackPowerKw: number;
+      if (rackCmd === COMMAND.START) rackPowerKw = chargeSp * 0.01;
+      else if (rackCmd === COMMAND.DISCHARGE) rackPowerKw = -(dischargeSp * 0.01);
+
+
       // State
       this.inputRegisters.set(sBase + RS.STATE, RACK_STATE.NORMAL);
 
@@ -429,7 +469,15 @@ export class BSCSimulator {
       let status = 0;
       status = setBit(status, 8, true);   // b8: Battery Ready
       status = setBit(status, 7, true);   // b7: DC Line Closed
-      // b4:b3 charge/discharge — idle (00)
+      // b4:b3 charge/discharge: 00=Idle, 01=Charge, 10=Discharge (aligned with system)
+      if (rackPowerKw > 0) {
+        status = setBit(status, 3, true);   // b3=1
+        status = setBit(status, 4, false);  // b4=0 → 01 = Charge
+      } else if (rackPowerKw < 0) {
+        status = setBit(status, 3, false);  // b3=0
+        status = setBit(status, 4, true);   // b4=1 → 10 = Discharge
+      }
+      // else 00 = Idle (default)
       this.inputRegisters.set(sBase + RS.STATUS_FLAGS, status);
 
       // Component status
@@ -456,11 +504,13 @@ export class BSCSimulator {
       this.inputRegisters.set(sBase + RS.SOC, Math.round(soc * 100));
       this.inputRegisters.set(sBase + RS.SOH, Math.round(99 * 100));
 
-      // Power limits — 0 when idle, non-zero only when charging
-      const rackCmd = this.holdingRegisters.get(CONTROLLER.COMMAND_REQUEST) ?? COMMAND.NONE;
+      // Power limits — total system power on each rack
       if (rackCmd === COMMAND.START) {
-        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 72641);
+        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, chargeSp * 10);
         writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 0);
+      } else if (rackCmd === COMMAND.DISCHARGE) {
+        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 0);
+        writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, dischargeSp * 10);
       } else {
         writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 0);
         writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 0);
@@ -469,8 +519,9 @@ export class BSCSimulator {
       // Cell sum voltage (V * 10000)
       writeUint32(this.inputRegisters, sBase + RS.CELL_SUM_VOLTAGE, Math.round(voltage * 10000));
 
-      // Current (idle = 0)
-      writeSint32(this.inputRegisters, sBase + RS.CURRENT, 0);
+      // Current — derived from power and voltage
+      const rackCurrent = voltage > 0 ? Math.round((rackPowerKw * 1000 / voltage) / 0.001) : 0;
+      writeSint32(this.inputRegisters, sBase + RS.CURRENT, rackCurrent);
 
       // Cell voltages
       this.inputRegisters.set(sBase + RS.MAX_CELL_VOLTAGE, 35288);
@@ -532,6 +583,7 @@ export class BSCSimulator {
   }
 
   writeHoldingRegister(address: number, value: number): void {
+    console.log(`[BSC-Sim] writeHoldingRegister: addr=${address} value=${value}`);
     this.holdingRegisters.set(address, value);
 
     // Controller heartbeat
@@ -590,23 +642,18 @@ export class BSCSimulator {
         this.acknowledge = ACKNOWLEDGE.DONE;
         break;
       case COMMAND.START:
-        // Simulate initialization
-        this.acknowledge = ACKNOWLEDGE.IN_PROGRESS;
-        // In next tick cycle, initialize
-        setTimeout(() => {
-          if (this.acknowledge === ACKNOWLEDGE.IN_PROGRESS) {
-            this.bscState = BSC_STATE.NORMAL;
-            for (const [, state] of this.rackStates) {
-              state.status = !state.disabled;
-            }
-            this.acknowledge = ACKNOWLEDGE.DONE;
-          }
-        }, 0);
+        this.bscState = BSC_STATE.NORMAL;
+        for (const [, state] of this.rackStates) {
+          state.status = !state.disabled;
+        }
+        this.acknowledge = ACKNOWLEDGE.DONE;
+        this.updateSystemRegisters(0);
+        this.updatePerRackRegisters();
         break;
       case COMMAND.STOP:
-        this.bscState = BSC_STATE.NONE;
-        for (const [, state] of this.rackStates) state.status = false;
         this.acknowledge = ACKNOWLEDGE.DONE;
+        this.updateSystemRegisters(0);
+        this.updatePerRackRegisters();
         break;
       case COMMAND.OPEN_ALL_CONTACTORS:
         for (const [, state] of this.rackStates) state.status = false;
@@ -636,6 +683,15 @@ export class BSCSimulator {
       case COMMAND.RESET:
         this.resetSimulator();
         this.acknowledge = ACKNOWLEDGE.DONE;
+        break;
+      case COMMAND.DISCHARGE:
+        this.bscState = BSC_STATE.NORMAL;
+        for (const [, state] of this.rackStates) {
+          state.status = !state.disabled;
+        }
+        this.acknowledge = ACKNOWLEDGE.DONE;
+        this.updateSystemRegisters(0);
+        this.updatePerRackRegisters();
         break;
       default:
         this.acknowledge = ACKNOWLEDGE.INVALID_REQUEST;

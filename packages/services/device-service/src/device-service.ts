@@ -190,9 +190,9 @@ export class DeviceService {
       if (job.type === "READ_DEVICE") {
         await this.readDevice(job);
       } else if (job.type === "COMMAND_DEVICE") {
-        await this.executeCommand(job);
+        return await this.executeCommand(job);
       }
-    });
+    }, { concurrency: 10 });
 
     console.log(`[DeviceService] ${this.devices.size} cihaz baslatildi`);
   }
@@ -248,23 +248,59 @@ export class DeviceService {
     await this.scheduler.publishTelemetry(job.deviceId, allData);
   }
 
-  private async executeCommand(job: CommandDeviceJob): Promise<void> {
+  private async executeCommand(job: CommandDeviceJob): Promise<{ success: boolean; validated?: boolean; reason?: string }> {
     const entry = this.devices.get(job.deviceId);
     if (!entry) {
-      console.warn(
-        `[DeviceService] Bilinmeyen cihaz komut istegi: ${job.deviceId}`,
-      );
-      return;
+      const msg = `Bilinmeyen cihaz: ${job.deviceId}`;
+      console.warn(`[DeviceService] ${msg}`);
+      return { success: false, reason: msg };
     }
 
-    console.log(
-      `[DeviceService] Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`,
-    );
+    console.log(`[DeviceService] Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`);
 
-    if (job.atomic && entry.device.writeAtomic) {
-      await entry.device.writeAtomic(job.telemetries);
-    } else {
-      await entry.device.write(job.telemetries);
+    try {
+      if (job.atomic && entry.device.writeAtomic) {
+        await entry.device.writeAtomic(job.telemetries);
+      } else {
+        await entry.device.write(job.telemetries);
+      }
+    } catch (err) {
+      const msg = `Write failed: ${String(err)}`;
+      console.error(`[DeviceService] ${msg}`);
+      return { success: false, reason: msg };
     }
+
+    this.simulators.forceTick(job.deviceId);
+    console.log(`[DeviceService] forceTick done for ${job.deviceId}`);
+
+    try {
+      const allData = await entry.device.read();
+      const bitfields = (await entry.device.readBitfields?.()) ?? [];
+      await this.scheduler.publishTelemetry(job.deviceId, [...allData, ...bitfields]);
+    } catch (err) {
+      console.error(`[DeviceService] Read+broadcast after command failed: ${String(err)}`);
+    }
+
+    if (job.validate) {
+      if ((job.validate.minWaitMs ?? 0) > 0) {
+        await new Promise((r) => setTimeout(r, job.validate.minWaitMs));
+      }
+      const start = Date.now();
+      while (Date.now() - start < job.validate.timeoutMs) {
+        try {
+          const readBack = await entry.device.read();
+          const allMatch = job.validate.reads.every((expected) => {
+            const actual = readBack.find((r) => r.name === expected.name);
+            return actual && actual.value === expected.expect;
+          });
+          if (allMatch) return { success: true, validated: true };
+        } catch {
+        }
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return { success: true, validated: false, reason: "Validation timeout" };
+    }
+
+    return { success: true };
   }
 }

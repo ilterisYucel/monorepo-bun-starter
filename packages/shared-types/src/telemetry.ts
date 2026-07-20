@@ -435,6 +435,41 @@ export interface SimulatorConfig {
   registerMap?: string;
 }
 
+/** Komut parametresi (UI input → telemetry value mapping için template resolve) */
+export interface CommandParam {
+  type: "number" | "string" | "boolean";
+  min?: number;
+  max?: number;
+  default?: unknown;
+  required?: boolean;
+  label?: string;
+}
+
+/** Konfigürasyondaki command tanımı */
+export interface CommandConfig {
+  label?: string;
+  telemetries: Array<{ name: string; value: unknown; unit?: string }>;
+  params?: Record<string, CommandParam>;
+  atomic?: boolean;
+  timeoutMs?: number;
+  validate?: {
+    minWaitMs?: number;
+    reads: Array<{ name: string; expect: string | number | boolean }>;
+  };
+}
+
+/** Manevra konfigürasyonu — birden fazla cihaza sıralı/paralel komut zinciri */
+export interface ManeuverConfig {
+  mode: "parallel" | "sequential";
+  steps: Array<{
+    deviceId: string;
+    command?: string;
+    telemetries?: Array<{ name: string; value: unknown; unit?: string }>;
+    params?: Record<string, unknown>;
+  }>;
+  onFailure?: "stop" | "continue";
+}
+
 /**
  * Bir cihaza ait konfigürasyon dosyasının yapısı.
  * Her cihaz için bir dosya, konfigürasyon dizininde yer alır.
@@ -450,6 +485,7 @@ export interface DeviceConfigFile {
   bitfieldConfigs?: BitfieldConfig[];
   pollIntervalMs?: number;
   simulator?: SimulatorConfig;
+  commands?: Record<string, CommandConfig>;
 }
 
 export interface PostgresConfig {

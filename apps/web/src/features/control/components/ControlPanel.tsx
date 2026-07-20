@@ -1,7 +1,9 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { TelemetryInput, SCADA_ICONS } from "@gd-monorepo/ui";
+import toast from "react-hot-toast";
 import { controlApi } from "../services/controlApi";
 import { useLogProvider } from "../../../hooks/useLogProvider";
+import { useDevicesStore } from "../../../stores/devicesStore";
 import type { OperationMode } from "../types/control";
 import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import * as S from "./ControlPanel.styles";
@@ -33,6 +35,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   } | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { addLog } = useLogProvider();
+  const devices = useDevicesStore((s) => s.devices);
+  const bscIds = useMemo(
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack").map((d) => d.id),
+    [devices],
+  );
 
   const isCharging = currentChargeStatus === "Charge";
   const isDischarging = currentChargeStatus === "Discharge";
@@ -59,24 +66,29 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const sendIdleCommand = useCallback(async () => {
     setIsLoading(true);
     try {
-      await controlApi.setPower("Idle", 0, 0);
-      addLog({
-        type: "success",
-        source: "user",
-        message: "DURDUR komutu gönderildi. Tüm rack'ler durduruldu.",
-      });
+      const { results } = await controlApi.executeMulti(
+        bscIds.map((id) => ({ deviceId: id, command: "stop" })),
+      );
+      const allOk = results.every((r) => r.success);
+      if (allOk) {
+        toast.success(`DURDUR: ${bscIds.length} cihaz ✅`);
+        addLog({ type: "success", source: "user", message: `DURDUR: ${bscIds.length} cihaz ✅` });
+      } else {
+        for (const r of results) {
+          if (!r.success) {
+            toast.error(`${r.deviceId}: DURDUR başarısız ❌ — ${r.reason}`);
+            addLog({ type: "error", source: "user", message: `${r.deviceId}: DURDUR başarısız — ${r.reason}` });
+          }
+        }
+      }
       setActiveCommand(null);
       onCommandSent?.();
-    } catch (error) {
-      addLog({
-        type: "error",
-        source: "user",
-        message: "DURDUR komutu gönderilemedi!",
-      });
+    } catch {
+      toast.error("DURDUR gönderilemedi!");
     } finally {
       setIsLoading(false);
     }
-  }, [addLog, onCommandSent]);
+  }, [onCommandSent, bscIds, addLog]);
 
   const startTimer = useCallback(
     (seconds: number) => {
@@ -101,45 +113,42 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   );
 
   const sendPowerCommand = useCallback(
-    async (chargeStatus: "Charge" | "Discharge") => {
+    async (command: "charge" | "discharge") => {
       setIsLoading(true);
-      const finalDurationSeconds =
-        operationMode === "TIMER" ? durationSeconds : 31536000;
 
       try {
-        await controlApi.setPower(chargeStatus, powerKw, finalDurationSeconds);
+        const { results } = await controlApi.executeMulti(
+          bscIds.map((id) => ({ deviceId: id, command, params: { powerKw } })),
+        );
 
-        addLog({
-          type: "success",
-          source: "user",
-          message: `${chargeStatus === "Charge" ? "ŞARJ" : "DEŞARJ"} komutu gönderildi. Güç: ${powerKw} kW${operationMode === "TIMER" ? `, Süre: ${durationSeconds} sn` : " (Sürekli mod)"}`,
-        });
+        const allOk = results.every((r) => r.success);
 
-        if (operationMode === "TIMER") {
-          startTimer(durationSeconds);
+        if (allOk) {
+          toast.success(`${command === "charge" ? "ŞARJ" : "DEŞARJ"}: ${bscIds.length} cihaz ✅ (${powerKw} kW)`);
+          addLog({ type: "success", source: "user", message: `${command === "charge" ? "ŞARJ" : "DEŞARJ"}: ${bscIds.length} cihaz ✅ (${powerKw} kW)` });
         } else {
+          for (const r of results) {
+            if (!r.success) {
+              toast.error(`${r.deviceId}: ${command === "charge" ? "ŞARJ" : "DEŞARJ"} başarısız ❌ — ${r.reason}`);
+              addLog({ type: "error", source: "user", message: `${r.deviceId}: ${command === "charge" ? "ŞARJ" : "DEŞARJ"} başarısız — ${r.reason}` });
+            }
+          }
+        }
+
+        if (operationMode === "TIMER" && allOk) {
+          startTimer(durationSeconds);
+        } else if (allOk) {
           setActiveCommand({ isActive: true });
         }
 
         onCommandSent?.();
-      } catch (error) {
-        addLog({
-          type: "error",
-          source: "user",
-          message: `${chargeStatus === "Charge" ? "ŞARJ" : "DEŞARJ"} komutu gönderilemedi! Güç: ${powerKw} kW`,
-        });
+      } catch {
+        toast.error(`${command === "charge" ? "ŞARJ" : "DEŞARJ"} gönderilemedi!`);
       } finally {
         setIsLoading(false);
       }
     },
-    [
-      operationMode,
-      durationSeconds,
-      powerKw,
-      startTimer,
-      onCommandSent,
-      addLog,
-    ],
+    [operationMode, durationSeconds, powerKw, startTimer, onCommandSent, bscIds, addLog],
   );
 
   const formatTime = (seconds: number): string => {
@@ -199,7 +208,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           max={500}
           step={10}
           size="small"
-          deviceId="x-rack-simulator"
+          deviceId={bscIds.length > 0 ? bscIds.join(", ") : undefined}
           disabled={isLoading}
         />
       </S.InputsGroup>
@@ -208,13 +217,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <label>Kontrol</label>
         <S.ControlButtons>
           <S.BtnCharge
-            onClick={() => sendPowerCommand("Charge")}
+            onClick={() => sendPowerCommand("charge")}
             disabled={isChargeDisabled}
           >
             <ChargeIcon size={14} /> ŞARJ
           </S.BtnCharge>
           <S.BtnDischarge
-            onClick={() => sendPowerCommand("Discharge")}
+            onClick={() => sendPowerCommand("discharge")}
             disabled={isDischargeDisabled}
           >
             <DischargeIcon size={14} /> DEŞARJ

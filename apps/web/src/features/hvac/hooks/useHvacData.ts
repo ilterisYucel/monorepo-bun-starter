@@ -38,7 +38,7 @@ export const useHvacData = () => {
   const { data: telemetries = [], isLoading, refetch } = useQuery({
     queryKey: [...HVAC_QUERY_KEY, hvacIds],
     queryFn: ({ signal }) => hvacApi.getLatest(hvacIds, signal),
-    refetchInterval: 5000,
+    refetchInterval: 10000,
   });
 
   const units = telemetriesToHvacUnits(telemetries);

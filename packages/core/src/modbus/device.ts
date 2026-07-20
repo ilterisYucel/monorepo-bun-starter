@@ -720,7 +720,7 @@ export class ModbusDevice implements IDevice {
           const tTags = t.tags;
 
           if (!tTags || Object.keys(tTags).length === 0) {
-            return !mtTags || Object.keys(mtTags).length === 0;
+            return true;
           }
 
           if (!mtTags) return false;

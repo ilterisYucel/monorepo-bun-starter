@@ -1,4 +1,5 @@
 export * from "./telemetry";
+export * from "./telemetry-transport";
 export * from "./modbus-adapter";
 export * from "./job";
 export * from "./device-interface";

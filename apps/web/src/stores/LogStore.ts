@@ -4,8 +4,30 @@ import { persist } from "zustand/middleware";
 import type { LogEntry, LogProvider } from "@gd-monorepo/ui";
 import { logsApi } from "../features/logs/services/logsApi";
 
-const MAX_LOGS = 500;
+const MAX_LOGS = 200;
 let _fetchedBackend = false;
+
+function createDebouncedStorage(delay = 2000) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  return {
+    getItem(name: string): string | null {
+      return localStorage.getItem(name);
+    },
+    setItem(name: string, value: string): void {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        localStorage.setItem(name, value);
+      }, delay);
+    },
+    removeItem(name: string): void {
+      if (timer) clearTimeout(timer);
+      localStorage.removeItem(name);
+    },
+  };
+}
+
+const debouncedStorage = createDebouncedStorage();
 
 type StoreState = LogProvider & { fetchBackend: () => Promise<void> };
 
@@ -80,6 +102,6 @@ export const useLogStore = create<StoreState>()(
         }
       },
     }),
-    { name: "log-storage" },
+    { name: "log-storage", storage: debouncedStorage },
   ),
 );

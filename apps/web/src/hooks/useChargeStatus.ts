@@ -3,16 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { apiClient } from "../lib/api-client";
 import { useDevicesStore } from "../stores/devicesStore";
-import { useRealtimeTelemetry } from "@gd-monorepo/ui";
+import { useRealtimeStream } from "../contexts/RealtimeContext";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 
 interface LatestResponse {
   telemetries: TelemetryData[];
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
-
 export const CHARGE_STATUS_QUERY_KEY = ["chargeStatus"];
+
+function valueToChargeStatus(value: unknown): ChargeStatus {
+  if (value === 1) return "Charge";
+  if (value === 2) return "Discharge";
+  return "Idle";
+}
 
 export const useChargeStatus = (): { chargeStatus: ChargeStatus; isLoading: boolean } => {
   const devices = useDevicesStore((s) => s.devices);
@@ -21,31 +25,32 @@ export const useChargeStatus = (): { chargeStatus: ChargeStatus; isLoading: bool
     [devices],
   );
 
-  const { data: chargeStatus = "Idle" as ChargeStatus, isLoading } = useQuery<ChargeStatus>({
+  const { data: httpStatus = "Idle" as ChargeStatus, isLoading } = useQuery<ChargeStatus>({
     queryKey: [...CHARGE_STATUS_QUERY_KEY, bscIds],
     queryFn: async ({ signal }) => {
       const response = await apiClient.get<LatestResponse>(
         `/unified/telemetry/latest?deviceIds=${bscIds.join(",")}`,
         { signal },
       );
-      const chargeStatusTelemetry = response.data.telemetries.find(
-        (t) => t.name === "ChargeStatus",
-      );
-      const value = chargeStatusTelemetry?.value;
-      if (value === 1) return "Charge";
-      if (value === 2) return "Discharge";
-      return "Idle";
+      const entry = response.data.telemetries.find((t) => t.name === "ChargeStatus");
+      return valueToChargeStatus(entry?.value);
     },
     refetchInterval: 5000,
   });
 
-  const firstBscId = bscIds[0] ?? "";
-  useRealtimeTelemetry({
-    wsUrl: WS_URL,
-    deviceId: firstBscId,
-    enabled: firstBscId !== "",
-    getToken: () => localStorage.getItem("auth-token"),
-  });
+  const { data: wsData } = useRealtimeStream();
+
+  const chargeStatus = useMemo((): ChargeStatus => {
+    const wsEntries = wsData.filter((t) => t.name === "ChargeStatus");
+    if (wsEntries.length > 0) {
+      const statuses = new Set(wsEntries.map((t) => valueToChargeStatus(t.value)));
+      if (statuses.size === 1) return [...statuses][0]!;
+      if (statuses.has("Charge")) return "Charge";
+      if (statuses.has("Discharge")) return "Discharge";
+      return "Idle";
+    }
+    return httpStatus;
+  }, [wsData, httpStatus]);
 
   return { chargeStatus, isLoading };
 };

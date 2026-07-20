@@ -29,6 +29,26 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    console.error('[Desktop] Render process gone:', details.reason, 'exitCode:', details.exitCode)
+    if (details.reason === 'crashed' || details.reason === 'oom' || details.reason === 'abnormal-exit') {
+      mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    }
+  })
+
+  mainWindow.webContents.on('crashed', (_event, killed) => {
+    console.error('[Desktop] Renderer crashed, killed:', killed)
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  })
+
+  mainWindow.webContents.on('unresponsive', () => {
+    console.warn('[Desktop] Renderer unresponsive')
+  })
+
+  mainWindow.webContents.on('responsive', () => {
+    console.log('[Desktop] Renderer responsive again')
+  })
+
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

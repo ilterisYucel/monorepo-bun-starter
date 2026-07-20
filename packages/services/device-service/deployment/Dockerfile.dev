@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY . .
 
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 RUN bun install
 
 WORKDIR /app/packages/services/device-service

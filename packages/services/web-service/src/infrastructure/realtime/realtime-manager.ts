@@ -7,11 +7,28 @@ const RING_BUFFER_MAX = 299;
 export class RealtimeManager {
   private connections: Map<string, Set<WebSocket>> = new Map();
   private redisClient: ReturnType<RedisConnection["getClient"]>;
+  private sweepInterval?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly redis: RedisConnection,
   ) {
     this.redisClient = redis.getClient();
+    this.startSweep();
+  }
+
+  private startSweep(): void {
+    this.sweepInterval = setInterval(() => {
+      this.connections.forEach((subscribers, deviceId) => {
+        for (const ws of subscribers) {
+          if (ws.readyState === ws.CLOSED || ws.readyState === ws.CLOSING) {
+            subscribers.delete(ws);
+          }
+        }
+        if (subscribers.size === 0) {
+          this.connections.delete(deviceId);
+        }
+      });
+    }, 60000);
   }
 
   subscribe(deviceId: string, ws: WebSocket): void {
@@ -62,6 +79,16 @@ export class RealtimeManager {
     await this.redisClient.expire(key, 300);
   }
 
+  async writeBatchToRingBuffer(deviceId: string, dataList: unknown[]): Promise<void> {
+    if (dataList.length === 0) return;
+    const key = `${RING_BUFFER_PREFIX}:${deviceId}:buffer`;
+    const serialized = dataList.map((d) => typeof d === "string" ? d : JSON.stringify(d));
+
+    await this.redisClient.lPush(key, ...serialized);
+    await this.redisClient.lTrim(key, 0, RING_BUFFER_MAX);
+    await this.redisClient.expire(key, 300);
+  }
+
   async ringBuffer(deviceId: string): Promise<unknown[]> {
     const key = `${RING_BUFFER_PREFIX}:${deviceId}:buffer`;
     const items = await this.redisClient.lRange(key, 0, -1);
@@ -97,5 +124,12 @@ export class RealtimeManager {
       total += subs.size;
     });
     return total;
+  }
+
+  close(): void {
+    if (this.sweepInterval) {
+      clearInterval(this.sweepInterval);
+      this.sweepInterval = undefined;
+    }
   }
 }

@@ -101,6 +101,13 @@ export class SimulatorProvider {
     console.log("[SimulatorProvider] Tick durduruldu");
   }
 
+  forceTick(deviceId: string): void {
+    const entry = this.entries.get(deviceId);
+    if (entry) {
+      entry.tick();
+    }
+  }
+
   count(): number {
     return this.entries.size;
   }

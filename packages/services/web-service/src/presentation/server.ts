@@ -26,11 +26,12 @@ import { dataRoutes } from "./routes/data-routes";
 import { unifiedRoutes } from "./routes/unified-routes";
 import { deviceRoutes } from "./routes/device-routes";
 import { logRoutes } from "./routes/log-routes";
+import { makeCommandRoutes } from "./routes/command-routes";
 import { LogRepository } from "../infrastructure/persistence/log-repository";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
-import type { MaterializedViewManager } from "@gd-monorepo/core";
+import type { MaterializedViewManager, IMessageQueue } from "@gd-monorepo/core";
 
 export interface ServerDependencies {
   serverConfig: ServerConfig;
@@ -47,6 +48,8 @@ export interface ServerDependencies {
   listUsersUseCase: ListUsersUseCase;
   realtime: RealtimeManager;
   mvManager: MaterializedViewManager;
+  mq: IMessageQueue;
+  configDir: string;
 }
 
 export class WebServiceServer {
@@ -117,7 +120,12 @@ export class WebServiceServer {
       },
     });
     await this.app.register(swaggerUi, { routePrefix: "/docs" });
-    await this.app.register(websocket);
+    await this.app.register(websocket, {
+      options: {
+        pingInterval: 30000,
+        pingTimeout: 10000,
+      },
+    });
 
     this.app.addHook("onRequest", createRbacHook(deps.tokens));
   }
@@ -173,6 +181,13 @@ export class WebServiceServer {
       async (fastify) => {
         await telemetryWsRoutes(fastify, { realtime: deps.realtime, tokens: deps.tokens });
       },
+    );
+
+    await this.app.register(
+      async (fastify) => {
+        await makeCommandRoutes(fastify, { mq: deps.mq, configDir: deps.configDir });
+      },
+      { prefix: "/api/commands" },
     );
   }
 }

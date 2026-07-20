@@ -3,11 +3,10 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../../../lib/api-client";
 import { useDevicesStore } from "../../../stores/devicesStore";
-import { useRealtimeTelemetry, useTelemetry } from "@gd-monorepo/ui";
+import { useTelemetry } from "@gd-monorepo/ui";
+import { useRealtimeStream } from "../../../contexts/RealtimeContext";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { DeviceInfo } from "../../../features/devices/types/device";
-
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
 
 interface LatestResponse {
   telemetries: TelemetryData[];
@@ -90,6 +89,9 @@ const telemetriesToRacks = (
       case "ChargePower":
         rack.power_kw = telemetry.value as number;
         break;
+      case "DischargePower":
+        rack.power_kw = -(telemetry.value as number);
+        break;
       case "Temperature": {
         const agg = telemetry.tags?.aggregation;
         if (!agg || agg === "avg") {
@@ -160,13 +162,7 @@ export const useDashboardData = (
     refetchInterval: 5000,
   });
 
-  const firstBscId = bscDevices[0]?.id ?? "";
-  const { data: realtimeDashData } = useRealtimeTelemetry({
-    wsUrl: WS_URL,
-    deviceId: firstBscId,
-    enabled: firstBscId !== "",
-    getToken: () => localStorage.getItem("auth-token"),
-  });
+  const { data: realtimeDashData } = useRealtimeStream();
 
   const { data: mergedTelemetries } = useTelemetry({
     historicalData: telemetries,

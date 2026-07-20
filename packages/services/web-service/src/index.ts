@@ -1,5 +1,6 @@
 import { buildContainer } from "./config/container";
 import type { ServerDependencies } from "./presentation/server";
+import { deviceConfigDir } from "./config/default";
 
 export async function main() {
   console.log("[run] Web Service baslatiliyor...");
@@ -33,20 +34,31 @@ export async function main() {
     listUsersUseCase: c.listUsersUseCase as any,
     realtime,
     mvManager,
+    mq,
+    configDir: deviceConfigDir(),
   };
 
   await postgres.connect();
   await redis.connect();
   await userRepo.initialize(seed);
 
-  await mq.registerWorker(async (job: any) => {
+  await mq.registerWorkerFor("WS_BROADCAST", async (job: any) => {
     if (job.type === "WS_BROADCAST") {
+      const byDevice = new Map<string, any[]>();
+
       for (const t of job.telemetries) {
-        realtime.broadcast(t.deviceId, t);
-        await realtime.writeToRingBuffer(t.deviceId, t);
+        if (!byDevice.has(t.deviceId)) {
+          byDevice.set(t.deviceId, []);
+        }
+        byDevice.get(t.deviceId)!.push(t);
+      }
+
+      for (const [deviceId, data] of byDevice) {
+        await realtime.writeBatchToRingBuffer(deviceId, data);
+        realtime.broadcast(deviceId, { type: "telemetry", deviceId, data });
       }
     }
-  });
+  }, { concurrency: 10 });
 
   let stopping = false;
   const shutdown = async (signal: string) => {

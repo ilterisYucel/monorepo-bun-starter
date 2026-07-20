@@ -1,6 +1,6 @@
 // packages/core/src/messaging/interface.ts
 
-import type { DeviceJob, JobType } from "@gd-monorepo/shared-types";
+import type { DeviceJob, JobType, JobResult } from "@gd-monorepo/shared-types";
 
 /**
  * Message Queue Worker yapılandırma seçenekleri
@@ -82,6 +82,17 @@ export interface IMessageQueue {
   addJob(job: DeviceJob): Promise<void>;
 
   /**
+   * Job ekler ve tamamlanmasını bekler.
+   * Senkron request-response pattern için kullanılır (REST komut gönderimi gibi).
+   * Job başarıyla tamamlanana veya timeout'a ulaşana kadar bekler.
+   *
+   * @param job - Eklenecek job
+   * @param timeoutMs - Maksimum bekleme süresi (ms)
+   * @returns JobResult — success, validated, reason
+   */
+  executeAndWait(job: DeviceJob, timeoutMs: number): Promise<JobResult>;
+
+  /**
    * Tekrarlayan job ekler.
    *
    * NOT: Bu özellik BullMQ gibi bazı sistemlerde native desteklenir.
@@ -154,7 +165,17 @@ export interface IMessageQueue {
    * ```
    */
   registerWorker(
-    processor: (job: DeviceJob) => Promise<void>,
+    processor: (job: DeviceJob) => Promise<unknown>,
+    options?: WorkerOptions,
+  ): Promise<void>;
+
+  /**
+   * Tek bir queue tipi için worker kaydeder.
+   * Diğer queue'lara dokunmaz — worker race condition'ı önler.
+   */
+  registerWorkerFor(
+    type: JobType,
+    processor: (job: DeviceJob) => Promise<unknown>,
     options?: WorkerOptions,
   ): Promise<void>;
 

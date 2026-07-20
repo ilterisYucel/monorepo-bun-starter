@@ -15,7 +15,7 @@ export class DataService {
   async start(): Promise<void> {
     this.running = true;
 
-    await this.mq.registerWorker(async (job) => {
+    await this.mq.registerWorkerFor("WRITE_TELEMETRY", async (job) => {
       if (!this.running) return;
 
       if (job.type === "WRITE_TELEMETRY") {
@@ -40,7 +40,7 @@ export class DataService {
           await Promise.all(logInserts);
         }
       }
-    });
+    }, { concurrency: 10 });
 
     console.log("[DataService] WRITE_TELEMETRY worker baslatildi");
   }

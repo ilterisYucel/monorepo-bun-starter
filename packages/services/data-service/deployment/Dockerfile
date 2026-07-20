@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json bun.lock nx.json tsconfig.base.json ./
 COPY apps apps/
 COPY packages packages/
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 RUN bun install
 
 COPY . .

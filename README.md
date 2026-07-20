@@ -185,7 +185,81 @@ configs/
 └── hvac-simulator.json    # HVAC simulator config — telemetry entries
 ```
 
-## Deployment
+## Frontend Architecture (Data-Source Agnostic)
+
+All UI components in `packages/ui` are transport-agnostic. They consume data through **contract interfaces** — never through direct WebSocket, fetch, or state library calls.
+
+### Layered Data Flow
+
+```
+┌── packages/shared-types ────┐
+│ ITelemetryTransport          │  ← Strategy interface (all transports implement this)
+│ TelemetryData (canonical)    │
+└──────────────────────────────┘
+              ↑
+┌── packages/ui ───────────────┐
+│ transports/                  │  ← Concrete implementations
+│  WebSocketTransport          │
+│  HttpPollingTransport        │
+│  MockTransport               │
+│                              │
+│ hooks/useRealtimeTelemetry   │  ← Consumes ITelemetryTransport, provides data to React
+│ core/DeviceTelemetryProvider │  ← Compound component (isolated per-device data context)
+│ interfaces/                  │  ← Provider contracts (TelemetryProvider, LogProvider, …)
+│ components/                  │  ← Pure presentational (TelemetryChart, LogTerminal, BSC, TMS, …)
+└──────────────────────────────┘
+              ↑
+┌── apps/web ──────────────────┐
+│ contexts/TransportContext    │  ← App-level transport selection (WS → prod, Mock → dev)
+│ hooks/useTelemetryProvider   │  ← Implements TelemetryProvider via TanStack Query
+│ hooks/useChargeStatus        │  ← Domain-specific hooks
+│ stores/                      │  ← Zustand (LogStore implements LogProvider)
+└──────────────────────────────┘
+```
+
+### Key Contracts
+
+| Contract | Layer | Purpose |
+|----------|-------|---------|
+| `ITelemetryTransport` | `shared-types` | Real-time data transport (WS, HTTP, SSE, Mock — swappable) |
+| `TelemetryProvider` | `ui/interfaces` | Time-series data + range/points controls for `TelemetryChart` |
+| `LogProvider` | `ui/interfaces` | Log entries for `LogTerminal` |
+| `EventAnnotationsProvider` | `ui/interfaces` | Event markers for chart annotations |
+| `DeviceTelemetryProvider` | `ui/core` | Isolated real-time data context per device (Grafana-style panel isolation) |
+
+### Transport Strategy
+
+```tsx
+// App-level: choose your transport
+<TransportProvider>                          // Holds WS + HTTP transports
+  <RealtimeProvider>                         // Single WS stream for SCADA
+    <DeviceTelemetryProvider deviceId="bsc-1" transport={useTransport('ws')}>
+      <DeviceTelemetryProvider.Gauge metric="Voltage" />
+      <DeviceTelemetryProvider.StatusBadge />
+    </DeviceTelemetryProvider>
+    <TelemetryChart provider={telemetryProvider} />  // HTTP + WS merged
+  </RealtimeProvider>
+</TransportProvider>
+```
+
+**Adding a new transport:** implement `ITelemetryTransport`, export from `@gd-monorepo/ui/transports`, inject into `TransportProvider`. Zero component changes needed.
+
+### Runtime Stability (24/7 Operation)
+
+The codebase includes 10+ optimizations for Chrome SIGILL crash prevention during continuous operation (8+ hours, container monitor):
+
+| Fix | Impact |
+|-----|--------|
+| WS batch: 2,700 msg/s → 10 msg/s (99.6% reduction) | `web-service/src/index.ts` |
+| Client rAF batch: N state updates/frame → 1/frame | `useRealtimeTelemetry.ts` |
+| PIXI WebGL leak: ref callback destroys old app on resize | `BSC.tsx`, `TMS.tsx` |
+| PIXI ticker: 60fps → 6fps React state updates | `BSCGraphic.hooks.ts`, `TMSGraphic.hooks.ts` |
+| WS ping/pong: 30s interval, dead connection detection | `server.ts` (both services) |
+| Dead socket sweep: 60s cleanup cycle | `realtime-manager.ts` |
+| localStorage throttle: 2s debounce | `LogStore.ts` |
+| Token auto-refresh: breaks reconnect loop | `RealtimeContext.tsx` |
+| Error Boundary: WebGL/React crash fallback | `ErrorBoundary.tsx` |
+| Electron crash handlers: auto-reload on renderer crash | `apps/desktop/src/main/index.ts` |
 
 ### Full Stack (docker compose)
 

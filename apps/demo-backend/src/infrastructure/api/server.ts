@@ -27,7 +27,10 @@ export class FastifyServer {
 
     const options: FastifyServerOptions = {
       logger: false,
-      bodyLimit: 1048576, // 1MB
+      bodyLimit: 1048576,
+      requestTimeout: 30000,
+      keepAliveTimeout: 65000,
+      connectionTimeout: 10000,
       trustProxy: true,
     };
 
@@ -101,7 +104,12 @@ export class FastifyServer {
     });
 
     // WebSocket desteği
-    await this.app.register(websocket);
+    await this.app.register(websocket, {
+      options: {
+        pingInterval: 30000,
+        pingTimeout: 10000,
+      },
+    });
   }
 
   private async registerRoutes(): Promise<void> {

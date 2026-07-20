@@ -79,3 +79,7 @@ export function seedUsers(): SeedUser[] {
     },
   ];
 }
+
+export function deviceConfigDir(): string {
+  return process.env.DEVICE_CONFIG_DIR ?? "../device-service/config";
+}

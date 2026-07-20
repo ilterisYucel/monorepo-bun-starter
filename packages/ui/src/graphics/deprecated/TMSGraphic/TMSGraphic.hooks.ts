@@ -79,9 +79,14 @@ export function usePixiTicker() {
         add: (fn: (ticker: { deltaMS: number }) => void) => void;
       };
     }) => {
+      let throttleCounter = 0;
       app.ticker.add((ticker) => {
         timestampRef.current += ticker.deltaMS;
-        setFrameCount((prev) => prev + 1);
+        throttleCounter++;
+        if (throttleCounter >= 10) {
+          throttleCounter = 0;
+          setFrameCount((prev) => prev + 10);
+        }
       });
     },
     [],

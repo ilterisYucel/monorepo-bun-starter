@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
+import type { ITelemetryTransport, TelemetryData } from "@gd-monorepo/shared-types";
 
 export interface TelemetryEntry {
   name: string;
@@ -10,141 +11,115 @@ export interface TelemetryEntry {
   tags?: Record<string, string>;
 }
 
-interface WsMessage {
-  type: string;
-  deviceId: string;
-  data?: TelemetryEntry[];
-}
-
-interface UseRealtimeTelemetryOptions {
-  wsUrl: string;
+export interface UseRealtimeTelemetryOptions {
+  transport: ITelemetryTransport;
   deviceId: string;
   bufferSize?: number;
   enabled?: boolean;
-  getToken?: () => string | null;
 }
 
 export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
   const {
-    wsUrl,
+    transport,
     deviceId,
     bufferSize = 100,
     enabled = true,
-    getToken,
   } = options;
 
-  const [realtimeData, setRealtimeData] = useState<TelemetryEntry[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const wasEverOpened = useRef(false);
-  const wsReconnectAttempts = useRef(0);
-  const getTokenRef = useRef(getToken);
-  getTokenRef.current = getToken;
+  const cancelledRef = useRef(false);
+  const pendingBatchRef = useRef<TelemetryEntry[]>([]);
+  const rafRef = useRef<number | null>(null);
+  const storeRef = useRef<{ buffer: readonly TelemetryEntry[]; listeners: Set<() => void> }>({
+    buffer: [],
+    listeners: new Set(),
+  });
 
-  const connect = useCallback(() => {
-    if (!enabled || wsRef.current?.readyState === WebSocket.OPEN) return;
-
-    const currentToken = getTokenRef.current?.();
-    const resolvedWsUrl = currentToken ? `${wsUrl}?token=${encodeURIComponent(currentToken)}` : wsUrl;
-
-    try {
-      const ws = new WebSocket(resolvedWsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        wasEverOpened.current = true;
-        wsReconnectAttempts.current = 0;
-        setIsConnected(true);
-        setError(null);
-
-        ws.send(
-          JSON.stringify({
-            type: "subscribe",
-            deviceId,
-          }),
-        );
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const msg: WsMessage = JSON.parse(event.data);
-
-          switch (msg.type) {
-            case "initial":
-              if (Array.isArray(msg.data)) {
-                setRealtimeData(msg.data);
-              }
-              break;
-            case "subscribed":
-              break;
-            default:
-              setRealtimeData((prev) => {
-                const updated = [...prev, msg as unknown as TelemetryEntry];
-                return updated.slice(-bufferSize);
-              });
-              break;
-          }
-        } catch {
-          setError("Failed to parse WebSocket message");
-        }
-      };
-
-      ws.onclose = () => {
-        setIsConnected(false);
-        wsRef.current = null;
-
-        if (!wasEverOpened.current) {
-          setError("WebSocket connection rejected — credentials may be invalid");
-          return;
-        }
-
-        wsReconnectAttempts.current += 1;
-        const delay = Math.min(3000 * Math.pow(2, wsReconnectAttempts.current - 1), 30000);
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, delay);
-      };
-
-      ws.onerror = () => {
-        setError("WebSocket connection error — server may be unavailable or credentials invalid");
-        wsRef.current = null;
-      };
-    } catch {
-      setError("Failed to create WebSocket connection");
+  const flushBatch = useCallback(() => {
+    rafRef.current = null;
+    const batch = pendingBatchRef.current;
+    if (batch.length === 0) return;
+    pendingBatchRef.current = [];
+    const store = storeRef.current;
+    const updated = [...store.buffer, ...batch].slice(-bufferSize);
+    store.buffer = Object.freeze(updated);
+    for (const fn of store.listeners) {
+      fn();
     }
-  }, [wsUrl, deviceId, bufferSize, enabled]);
+  }, [bufferSize]);
+
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const store = storeRef.current;
+      store.listeners.add(onStoreChange);
+      return () => {
+        store.listeners.delete(onStoreChange);
+      };
+    },
+    [],
+  );
+
+  const getSnapshot = useCallback(
+    () => storeRef.current.buffer as TelemetryEntry[],
+    [],
+  );
+
+  const realtimeData = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
-    connect();
+    if (!enabled) return;
+    cancelledRef.current = false;
+
+    const unsub = transport.subscribe({
+      onData(batch: TelemetryData[]) {
+        if (cancelledRef.current) return;
+        for (const entry of batch) {
+          pendingBatchRef.current.push(entry as TelemetryEntry);
+        }
+        if (rafRef.current === null) {
+          rafRef.current = requestAnimationFrame(flushBatch);
+        }
+      },
+      onError(err: Error) {
+        if (cancelledRef.current) return;
+        setError(err.message);
+      },
+      onConnectionChange(state) {
+        if (cancelledRef.current) return;
+        setIsConnected(state === "connected");
+        if (state === "error") {
+          setError("Connection error");
+        } else if (state === "connected") {
+          setError(null);
+        }
+      },
+    });
+
+    transport.connect({ deviceId });
 
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      cancelledRef.current = true;
+      unsub();
+      transport.disconnect();
 
-      if (wsRef.current) {
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(
-            JSON.stringify({
-              type: "unsubscribe",
-              deviceId,
-            }),
-          );
-        }
-        if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
-          wsRef.current.close();
-        }
-        wsRef.current = null;
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
     };
-  }, [connect, deviceId]);
+  }, [transport, deviceId, enabled, flushBatch]);
+
+  const reconnect = useCallback(() => {
+    transport.disconnect().then(() => {
+      transport.connect({ deviceId });
+    });
+  }, [transport, deviceId]);
 
   return {
     data: realtimeData,
     isConnected,
     error,
-    reconnect: connect,
+    reconnect,
   };
 }

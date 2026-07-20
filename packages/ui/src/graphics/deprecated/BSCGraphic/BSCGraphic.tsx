@@ -52,6 +52,16 @@ const BSCCanvas: React.FC<{
   const appRef = useRef<any>(null);
   const isMountedRef = useRef(true);
 
+  const handleAppRef = useCallback((app: any) => {
+    if (appRef.current && app !== appRef.current) {
+      try { appRef.current.destroy(true, true); } catch (_) {}
+      appRef.current = null;
+    }
+    if (app) {
+      appRef.current = app;
+    }
+  }, []);
+
   const [config, setConfig] = useState<StepConfig | null>(null);
   const [positions, setPositions] = useState<BSCPositions | null>(null);
   const [redrawKey, setRedrawKey] = useState(0);
@@ -152,7 +162,7 @@ const BSCCanvas: React.FC<{
     >
       <Application
         key={redrawKey + (refreshCounter ?? 0) + resizeKey}
-        ref={appRef}
+        ref={handleAppRef}
         {...webglOverride}
         onInit={combinedOnInit}
         width={dimensions.width}

@@ -1,20 +1,20 @@
 // apps/web/src/hooks/useTelemetryProvider.ts
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient, API_BASE_URL } from "../lib/api-client";
+import { apiClient } from "../lib/api-client";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type {
   TelemetryProviderOptions,
   UseTelemetryProvider,
   TimeRange,
 } from "@gd-monorepo/ui";
-import { useRealtimeTelemetry, useTelemetry } from "@gd-monorepo/ui";
+import { useTelemetry } from "@gd-monorepo/ui";
+import { useRealtimeStream } from "../contexts/RealtimeContext";
+import { API_BASE_URL } from "../lib/api-client";
 
 interface DownsampledResponse {
   telemetries: TelemetryData[];
 }
-
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
 
 function rangeToDates(range: TimeRange): { from: string; to: string } {
   const now = Date.now();
@@ -92,38 +92,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
     refetchInterval: range === "1m" ? 2000 : range === "1h" ? 10000 : 60000,
   });
 
-  const firstDeviceId = options.deviceIds?.[0] ?? "";
-  const { data: wsData, error: wsError, reconnect } = useRealtimeTelemetry({
-    wsUrl: WS_URL,
-    deviceId: firstDeviceId,
-    enabled: firstDeviceId !== "",
-    getToken: () => localStorage.getItem("auth-token"),
-  });
-
-  useEffect(() => {
-    if (!wsError || !wsError.includes("credentials")) return;
-
-    const refreshToken = localStorage.getItem("auth-refresh-token");
-    if (!refreshToken) return;
-
-    let cancelled = false;
-    fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    })
-      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
-      .then((data: { accessToken: string }) => {
-        if (cancelled) return;
-        localStorage.setItem("auth-token", data.accessToken);
-        reconnect();
-      })
-      .catch(() => {
-        /* refresh failed — user must re-login */
-      });
-
-    return () => { cancelled = true; };
-  }, [wsError, reconnect]);
+  const { data: wsData, error: _wsError, reconnect: _reconnect } = useRealtimeStream();
 
   const { data: mergedData } = useTelemetry({
     historicalData: httpData,
