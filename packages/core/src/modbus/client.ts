@@ -3,6 +3,12 @@
 import net from "net";
 import { ModbusTCPClient as JSModbusClient } from "jsmodbus";
 
+const randomFloat = (): number => {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0]! / 0xFFFFFFFF;
+};
+
 export interface ModbusClientConfig {
   host: string;
   port: number;
@@ -73,7 +79,7 @@ export class ModbusTcpClient {
       30000
     );
     this.reconnectAttempts++;
-    const jitter = Math.random() * delay * 0.3;
+    const jitter = randomFloat() * delay * 0.3;
     await new Promise((r) => setTimeout(r, delay + jitter));
     await this.connect();
   }

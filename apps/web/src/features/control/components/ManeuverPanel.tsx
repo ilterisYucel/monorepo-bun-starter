@@ -35,14 +35,20 @@ export const ManeuverPanel: React.FC = () => {
       const m = MANEUVERS[name];
       if (!m) return;
 
+      const ctrl = MANEUVER_CONTROLS[name];
+      const stepParams = ctrl?.transform
+        ? ctrl.transform(values ?? {}, m.steps)
+        : m.steps.map(() => values ?? {});
+      const hasParams = stepParams.some((p: Record<string, number>) => Object.keys(p).length > 0);
+
       setStates((prev) => ({ ...prev, [name]: { status: "running", stepResults: [] } }));
 
       try {
         const { results } = await controlApi.executeMulti(
-          m.steps.map((s) => ({
+          m.steps.map((s, i) => ({
             deviceId: s.deviceId,
             command: s.command ?? "",
-            params: values ?? s.params ?? {},
+            params: hasParams ? stepParams[i] : s.params ?? {},
           })),
           m.mode,
           m.onFailure,
@@ -125,9 +131,9 @@ export const ManeuverPanel: React.FC = () => {
             state={s?.status ?? "idle"}
             stepResults={s?.stepResults}
             inputs={ctrl?.inputs}
-            timer={ctrl?.timer}
+            timerConfig={ctrl?.timerConfig}
             onRun={(values: Record<string, number>) => execute(name, values)}
-            onTimerExpired={ctrl?.timer ? () => execute("fl_idle") : undefined}
+            onTimerExpired={ctrl?.timerConfig ? () => execute("fl_idle") : undefined}
             onRetry={() => execute(name)}
             onRollback={m.rollbackSteps ? () => rollback(name) : undefined}
           />

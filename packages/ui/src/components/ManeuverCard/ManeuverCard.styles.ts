@@ -118,6 +118,30 @@ export const TimerLabel = styled.span`
   color: ${COLORS.textMuted};
 `;
 
+export const TimerCheckbox = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const Checkbox = styled.input`
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: ${COLORS.info};
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+`;
+
+export const CheckboxLabel = styled.label`
+  font-size: 12px;
+  color: ${COLORS.textMuted};
+  cursor: pointer;
+  user-select: none;
+`;
+
 export const CountdownRow = styled.div`
   display: flex;
   align-items: center;

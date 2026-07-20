@@ -1,4 +1,4 @@
-import type { ManeuverConfig } from "@gd-monorepo/shared-types";
+import type { ManeuverConfig, CommandStep } from "@gd-monorepo/shared-types";
 
 export interface StepResult {
   deviceId: string;
@@ -11,6 +11,8 @@ export interface InputField {
   name: string;
   label: string;
   unit: string;
+  deviceId?: string;
+  description?: string;
   min: number;
   max: number;
   step: number;
@@ -28,10 +30,16 @@ export interface ManeuverCardProps {
   stepResults?: StepResult[];
 
   inputs?: InputField[];
-  timer?: boolean;
+  timerConfig?: boolean;
 
   onRun: (values: Record<string, number>) => void;
   onTimerExpired?: () => void;
   onRetry?: () => void;
   onRollback?: () => void;
 }
+
+/** Kullanıcı girdilerini adım-spesifik parametrelere dönüştürür */
+export type ManeuverTransform = (
+  values: Record<string, number>,
+  steps: CommandStep[],
+) => Record<string, number>[];

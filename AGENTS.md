@@ -42,7 +42,7 @@ shared-types (leaf, no deps)
 | `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth)  |
 | `shared-utils` | Empty placeholder — exports nothing                                  |
 | `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
-| `simulators`   | BSC/HVAC/XRack device simulators — register-accurate                 |
+| `simulators`   | BSC/HVAC/XRack/CB/DC-Output device simulators — register-accurate                 |
 | `ui`           | Shared React components (PixiJS graphics, Recharts, Emotion)         |
 | `web`          | React v19 frontend (Vite v8, TanStack Query, Zustand)                |
 | `desktop`      | Electron v39 + React v19 (electron-vite)                             |
@@ -238,6 +238,154 @@ apps/demo-backend/src/
 | Adapter | `ModbusTcpClient` (wraps jsmodbus), `BullMQAdapter` (wraps bullmq) | Adapts 3rd-party libs to internal interfaces |
 | Facade | `ModbusDevice` | High-level `read()`/`write()` API hides register tables, batching, byte order |
 | Transactional | `ModbusDevice.writeAtomic()` | Manual read-backup + rollback on failure |
+
+## Command config system (device JSONs)
+
+Every device config JSON can define a `"commands"` section. Commands reference telemetry entries by `name` to resolve register addresses and MODBUS table types.
+
+### Pattern
+
+```json
+{
+  "commands": {
+    "<commandName>": {
+      "label": "Human-readable label",
+      "telemetries": [
+        { "name": "<telemetry name>", "value": <register value> }
+      ],
+      "params": {
+        "<paramName>": {
+          "type": "number",
+          "min": 0,
+          "max": 3568,
+          "default": 50,
+          "required": true,
+          "label": "Güç (kW)"
+        }
+      },
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [{ "name": "<status telemetry>", "expect": <expected value> }]
+      }
+    }
+  }
+}
+```
+
+- `telemetries[].name` — must match a telemetry entry in the config's `"telemetry"` array
+- `telemetries[].value` — direct value or `"{{paramName}}"` template, resolved from user params
+- `params` — user-facing inputs (shown in UI before executing)
+- `validate.reads` — after write, reads back these telemetry names and compares `value === expect`
+- `atomic` — if true and device supports `writeAtomic()`, uses read-backup + rollback on failure
+
+### Per-device examples
+
+| Device | Register Type | Validation | Commands |
+|--------|--------------|------------|----------|
+| BSC | `HOLDING_REGISTER` writes | `INPUT_REGISTER` read-back (e.g. `Request Acknowledge`) | `charge`, `discharge`, `stop` |
+| HVAC | `HOLDING_REGISTER` writes | `INPUT_REGISTER` read-back (e.g. `Equipment Status`) | `on`, `off`, `force_cool`, `force_heat` |
+| CB | `COIL` writes | `DISCRETE_INPUT` read-back (e.g. `Is Closed`, `Is Tripped`) | `open`, `close`, `reset` |
+| DC Output | `COIL` writes | `DISCRETE_INPUT` read-back (e.g. `Is On`) | `on`, `off` |
+
+**Flow:** Web → `POST /api/commands/execute` → `COMMAND_DEVICE` BullMQ job → `ModbusDevice.write()` → validates read-back.
+
+## Maneuver system
+
+Maneuvers are named, reusable multi-device command chains. 18 maneuvers defined from .drawio flow diagrams (FL-01 through FL-11). Replaces the old ControlPanel + Scheduler on the Control page.
+
+### Key types (`packages/shared-types/src/telemetry.ts`)
+
+```ts
+interface CommandStep {
+  deviceId: string;
+  command?: string;
+  telemetries?: Array<{ name: string; value: unknown; unit?: string }>;
+  params?: Record<string, unknown>;
+}
+
+interface ManeuverConfig {
+  name: string;
+  label: string;
+  description?: string;
+  mode: "parallel" | "sequential";
+  onFailure?: "stop" | "continue";
+  steps: CommandStep[];
+  rollbackSteps?: CommandStep[];
+}
+```
+
+### File map
+
+| File | Role |
+|------|------|
+| `apps/web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
+| `apps/web/src/features/control/components/ManeuverPanel.tsx` | Renders masonry grid of cards, manages per-maneuver state |
+| `packages/ui/src/components/ManeuverCard/` | Stateless card — inputs, timer checkbox, schedule dropdown, step list, status-aware buttons |
+
+### ManeuverControls
+
+Per-maneuver UI configuration, defined next to `MANEUVERS` in `maneuvers.ts`:
+
+```ts
+interface ManeuverControls {
+  inputs?: InputField[];        // TelemetryInput definitions
+  timerConfig?: boolean;        // show "Zamanlı" checkbox → reveals Süre input
+  transform?: ManeuverTransform; // per-step param calculator
+}
+
+type ManeuverTransform = (
+  values: Record<string, number>,
+  steps: CommandStep[],
+) => Record<string, number>[];
+```
+
+**Transform example** — divide total power across N BSC devices:
+```ts
+transform: (values, steps) => {
+  const perDevice = Math.round(values.powerKw / steps.length);
+  return steps.map(() => ({ powerKw: perDevice }));
+}
+```
+
+### ManeuverCard state machine
+
+| State | Buttons shown |
+|-------|--------------|
+| `idle` | `▶ Çalıştır ▾` (split: Şimdi / 📅 Zamanla) |
+| `running` | `Çalışıyor...` (disabled) |
+| `success` | `▶ Çalıştır` (re-run) |
+| `failed` | `Tekrar Dene` + `Geri Al` (if `rollbackSteps` defined) |
+
+Schedule dropdown: datetime-local input → `setTimeout` countdown → `onRun(values)` at target time.
+
+### Adding a new maneuver
+
+1. Add entry to `MANEUVERS` in `maneuvers.ts`
+2. If inputs/timer needed → add entry to `MANEUVER_CONTROLS`
+3. If params need per-step calculation → add `transform`
+4. `ManeuverPanel` auto-renders all entries from `MANEUVERS` — no panel changes needed
+
+### ControlPage — bare masonry grid
+
+```tsx
+// ControlPage.tsx
+export const ControlPage: React.FC = () => (
+  <S.ControlPageContainer>
+    <ManeuverPanel />
+  </S.ControlPageContainer>
+);
+```
+
+Old `ControlPanel` (charge/discharge/stop buttons) and `Scheduler` (in-memory command list) removed. Charge/discharge/idle are now maneuver cards in the grid.
+
+### Emergency Stop sidebar
+
+`Sidebar.tsx` emergency button wired directly to `MANEUVERS.fl03_emergency_stop`:
+```ts
+const m = MANEUVERS.fl03_emergency_stop;
+await controlApi.executeMulti(m.steps, m.mode);
+```
 
 ## Icon system (`packages/ui/src/icons/`)
 

@@ -6,6 +6,12 @@ import type {
   TelemetryData,
 } from "@gd-monorepo/shared-types";
 
+const randomFloat = (): number => {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0]! / 0xFFFFFFFF;
+};
+
 export interface MockTelemetryDef {
   name: string;
   unit: string;
@@ -32,7 +38,7 @@ export class MockTransport implements ITelemetryTransport {
       const now = new Date().toISOString();
       const batch: TelemetryData[] = this.definitions.map((def) => ({
         name: def.name,
-        value: +(def.min + Math.random() * (def.max - def.min)).toFixed(2),
+        value: +(def.min + randomFloat() * (def.max - def.min)).toFixed(2),
         unit: def.unit,
         timestamp: now,
         deviceId,

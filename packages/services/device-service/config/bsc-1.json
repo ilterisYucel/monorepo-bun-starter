@@ -9119,7 +9119,7 @@
         { "name": "Charge Power Setpoint", "value": "{{powerKw}}" }
       ],
       "params": {
-        "powerKw": { "type": "number", "min": 0, "max": 500, "default": 50, "required": true, "label": "Güç (kW)" }
+        "powerKw": { "type": "number", "min": 0, "max": 3568, "default": 50, "required": true, "label": "Güç (kW)" }
       },
       "atomic": true,
       "timeoutMs": 3000,
@@ -9134,7 +9134,7 @@
         { "name": "Discharge Power Setpoint", "value": "{{powerKw}}" }
       ],
       "params": {
-        "powerKw": { "type": "number", "min": 0, "max": 500, "default": 50, "required": true, "label": "Güç (kW)" }
+        "powerKw": { "type": "number", "min": 0, "max": 3568, "default": 50, "required": true, "label": "Güç (kW)" }
       },
       "atomic": true,
       "timeoutMs": 3000,

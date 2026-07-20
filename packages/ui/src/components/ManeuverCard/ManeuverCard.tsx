@@ -31,7 +31,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
   state,
   stepResults,
   inputs,
-  timer,
+  timerConfig,
   onRun,
   onTimerExpired,
   onRetry,
@@ -43,6 +43,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
 
   const [values, setValues] = useState<Record<string, number>>(defaults);
   const [durationSeconds, setDurationSeconds] = useState(30);
+  const [timerEnabled, setTimerEnabled] = useState(false);
   const [timerRemaining, setTimerRemaining] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -144,11 +145,11 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
 
   const handleRunNow = useCallback(() => {
     setDropdownOpen(false);
-    if (timer) {
+    if (timerEnabled) {
       startTimer();
     }
     onRun(values);
-  }, [values, timer, onRun, startTimer]);
+  }, [values, timerEnabled, onRun, startTimer]);
 
   const handleScheduleClick = useCallback(() => {
     setDropdownOpen(false);
@@ -193,13 +194,15 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
         <S.CardDescription>{maneuver.description}</S.CardDescription>
       )}
 
-      {(inputs && inputs.length > 0 || timer) && (
+      {(inputs && inputs.length > 0 || timerConfig) && (
         <>
           <S.SectionLabel>Girdiler</S.SectionLabel>
           {inputs?.map((input) => (
             <TelemetryInput
               key={input.name}
               name={input.label}
+              description={input.description}
+              deviceId={input.deviceId}
               value={values[input.name] ?? input.default}
               onChange={(v) => setValues((prev) => ({ ...prev, [input.name]: v }))}
               unit={input.unit}
@@ -210,18 +213,32 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
               disabled={isExecuting}
             />
           ))}
-          {timer && (
-            <TelemetryInput
-              name="Süre"
-              value={durationSeconds}
-              onChange={setDurationSeconds}
-              unit="sn"
-              min={1}
-              max={28800}
-              step={30}
-              size="small"
-              disabled={isExecuting}
-            />
+          {timerConfig && (
+            <>
+              <S.TimerCheckbox>
+                <S.Checkbox
+                  type="checkbox"
+                  id={`timer-${maneuver.name}`}
+                  checked={timerEnabled}
+                  onChange={(e) => setTimerEnabled(e.target.checked)}
+                  disabled={isExecuting}
+                />
+                <S.CheckboxLabel htmlFor={`timer-${maneuver.name}`}>Zamanlı (süre dolunca otomatik durur)</S.CheckboxLabel>
+              </S.TimerCheckbox>
+              {timerEnabled && (
+                <TelemetryInput
+                  name="Süre"
+                  value={durationSeconds}
+                  onChange={setDurationSeconds}
+                  unit="sn"
+                  min={1}
+                  max={28800}
+                  step={30}
+                  size="small"
+                  disabled={isExecuting}
+                />
+              )}
+            </>
           )}
         </>
       )}

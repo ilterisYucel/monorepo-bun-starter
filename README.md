@@ -26,6 +26,8 @@ flowchart TB
 
     subgraph DEVICES["Devices"]
         BSC["BSC x2\n(LG Battery Controller)\n8 racks each"]
+        CB["CB x2\n(DC Circuit Breaker)"]
+        DCO["DC Output x2\n(Power Supply)"]
         HVAC["HVAC x8\n(Cooling units)"]
     end
 
@@ -38,6 +40,8 @@ flowchart TB
     WS -->|query devices table| TSDB
     DEV -->|Modbus TCP| BSC
     DEV -->|Modbus TCP| HVAC
+    DEV -->|Modbus TCP| CB
+    DEV -->|Modbus TCP| DCO
     DEV -->|upsert| TSDB
 ```
 
@@ -121,7 +125,7 @@ Level 4:  web, desktop                                     (depend on shared-typ
 | `shared-types` | Library | Pure TS | — |
 | `shared-utils` | Library | Placeholder | — |
 | `core` | Library | Modbus, DB, MQ | `bullmq`, `pg`, `redis`, `jsmodbus` (CANbus/MQTT are stubs) |
-| `simulators` | Library | Device sims | BSC, HVAC, XRack models |
+| `simulators` | Library | Device sims | BSC, HVAC, CB, DC-Output, XRack models |
 | `ui` | Library | React components | `pixi.js`, `recharts`, `@emotion/*` |
 | `data-service` | Service | BullMQ consumer | `bullmq`, `pg` |
 | `device-service` | Service | Modbus poller | `jsmodbus`, `pg` |
@@ -177,13 +181,21 @@ src/
 
 ## Device Configurations
 
-`configs/` is the device simulator config repository.
+Device configs live in `packages/services/device-service/config/` (local dev) and `deployment/config-docker/` (Docker). Each JSON defines telemetry registers, optional simulator settings, and optional command definitions.
 
 ```
-configs/
-├── bsc-simulator.json     # BSC simulator config — 8 racks, telemetry entries, bitfield configs
-└── hvac-simulator.json    # HVAC simulator config — telemetry entries
+config/
+├── service.json           # Shared: Redis, Postgres, poll intervals
+├── bsc-1.json             # BSC-1: ~300 telemetry registers + charge/discharge/stop commands
+├── bsc-2.json             # BSC-2 (same structure, port 504)
+├── cb-1.json              # CB-1: COIL writes (open/close/reset)
+├── cb-2.json              # CB-2
+├── dc-output-1.json       # DC Output 1: COIL writes (on/off)
+├── dc-output-2.json       # DC Output 2
+├── hvac-1.json..hvac-8    # 8 HVAC units: HOLDING_REGISTER writes (on/off/force_cool/force_heat)
 ```
+
+All configs have `simulator.type` matching a simulator in `SimulatorProvider` (`bsc`, `hvac`, `cb`, `dc-output`, `xrack`). Commands use the `"commands"` section to define named operations with write registers, optional params, and post-write validation reads.
 
 ## Frontend Architecture (Data-Source Agnostic)
 
@@ -345,6 +357,67 @@ Web-Service unified endpoints:
     │
     ▼
 Web App (React) → React Query (5s polling) → TelemetryChart, RackCards, Dashboard
+```
+
+## Maneuver System
+
+The Control page uses a card-based maneuver UI. 18 named maneuvers cover startup, shutdown, calibration, thermal management, safety, fault protection, and maintenance — derived from `.drawio` flow diagrams (FL-01 through FL-11). Each maneuver is a `ManeuverConfig` — a multi-device command chain executed via `POST /api/commands/execute-multi`.
+
+### File map
+
+| File | Role |
+|------|------|
+| `apps/web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
+| `apps/web/src/features/control/components/ManeuverPanel.tsx` | Masonry grid of cards, per-maneuver state tracking |
+| `packages/ui/src/components/ManeuverCard/` | Stateless card component — inputs, timer checkbox, schedule, step status |
+
+### Card layout
+
+```
+┌───────────────────────────────────┐
+│ ⚡ Şarj                     2 · ∥ │  ← header: title + step count + parallel/sequential
+│ BSC'leri şarj moduna alır.        │  ← description
+│                                   │
+│ ── GİRDİLER ──────────────────── │
+│ Toplam Güç: ──●── 3000 kW        │  ← TelemetryInput (single input)
+│ ☐ Zamanlı                        │  ← timer checkbox (auto-stop on expiry)
+│                                   │
+│ ── ADIMLAR ────────────────────│
+│ ○ BSC-1  charge                  │  ← pending (no result yet)
+│ ✅ BSC-2  charge                 │  ← success
+│ ❌ BSC-3  charge                 │  ← failed
+│                                   │
+│          [▶ Çalıştır ▾]          │  ← split button: Şimdi / 📅 Zamanla
+└───────────────────────────────────┘
+```
+
+### State machine
+
+| State | Buttons shown |
+|-------|--------------|
+| `idle` | `▶ Çalıştır ▾` (Şimdi / 📅 Zamanla schedule) |
+| `running` | `Çalışıyor...` (disabled) |
+| `success` | `▶ Çalıştır` (re-run) |
+| `failed` | `Tekrar Dene` + `Geri Al` (if `rollbackSteps` defined) |
+
+### Power distribution (ManeuverTransform)
+
+Charge/discharge cards use a single "Toplam Güç" input. `ManeuverTransform` divides it across N BSC devices:
+
+```ts
+transform: (values, steps) => {
+  const perDevice = Math.round(values.powerKw / steps.length);
+  return steps.map(() => ({ powerKw: perDevice }));
+}
+// 3000 kW → BSC-1: 1500, BSC-2: 1500
+```
+
+### Emergency Stop
+
+`Sidebar.tsx` emergency button calls `MANEUVERS.fl03_emergency_stop`:
+```ts
+const m = MANEUVERS.fl03_emergency_stop;
+await controlApi.executeMulti(m.steps, m.mode);  // sequential: stop BSCs → off DCs → open CBs
 ```
 
 ## Tech Stack

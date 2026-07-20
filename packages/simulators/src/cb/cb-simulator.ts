@@ -1,6 +1,12 @@
 // CB Simulator — DC Circuit Breaker simulation
 import { COILS, DISCRETE, INPUT, HOLDING } from "./register-map";
 
+const randomFloat = (): number => {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0]! / 0xFFFFFFFF;
+};
+
 interface CbState {
   closed: boolean;
   tripped: boolean;
@@ -74,7 +80,7 @@ export class CbSimulator {
     }
 
     if (s.closed && !s.tripped) {
-      const jitter = (Math.random() - 0.5) * 20;
+      const jitter = (randomFloat() - 0.5) * 20;
       s.current = 1000 + jitter;
 
       if (s.current > s.tripThreshold) {

@@ -1,5 +1,5 @@
 import type { ManeuverConfig } from "@gd-monorepo/shared-types";
-import type { InputField } from "@gd-monorepo/ui";
+import type { InputField, ManeuverTransform } from "@gd-monorepo/ui";
 
 const HVAC_IDS = ["HVAC-1", "HVAC-2", "HVAC-3", "HVAC-4", "HVAC-5", "HVAC-6", "HVAC-7", "HVAC-8"];
 const BSC_IDS = ["BSC-1", "BSC-2"];
@@ -22,15 +22,7 @@ export const MANEUVERS: Record<string, ManeuverConfig> = {
   fl_charge: {
     name: "fl_charge",
     label: "Şarj",
-    description: "BSC'leri şarj moduna alır. Güç (kW) parametresi ile çalışır.",
-    mode: "parallel",
-    steps: BSC_IDS.map((id) => ({ deviceId: id, command: "charge" })),
-  },
-
-  fl_charge_timed: {
-    name: "fl_charge_timed",
-    label: "Şarj (Zamanlı)",
-    description: "BSC'leri şarj moduna alır, süre dolunca otomatik durdurur.",
+    description: "BSC'leri şarj moduna alır.",
     mode: "parallel",
     steps: BSC_IDS.map((id) => ({ deviceId: id, command: "charge" })),
   },
@@ -38,15 +30,7 @@ export const MANEUVERS: Record<string, ManeuverConfig> = {
   fl_discharge: {
     name: "fl_discharge",
     label: "Deşarj",
-    description: "BSC'leri deşarj moduna alır. Güç (kW) parametresi ile çalışır.",
-    mode: "parallel",
-    steps: BSC_IDS.map((id) => ({ deviceId: id, command: "discharge" })),
-  },
-
-  fl_discharge_timed: {
-    name: "fl_discharge_timed",
-    label: "Deşarj (Zamanlı)",
-    description: "BSC'leri deşarj moduna alır, süre dolunca otomatik durdurur.",
+    description: "BSC'leri deşarj moduna alır.",
     mode: "parallel",
     steps: BSC_IDS.map((id) => ({ deviceId: id, command: "discharge" })),
   },
@@ -182,19 +166,21 @@ export const MANEUVERS: Record<string, ManeuverConfig> = {
   },
 };
 
-export const MANEUVER_CONTROLS: Record<string, { inputs?: InputField[]; timer?: boolean }> = {
+export const MANEUVER_CONTROLS: Record<string, { inputs?: InputField[]; timerConfig?: boolean; transform?: ManeuverTransform }> = {
   fl_charge: {
-    inputs: [{ name: "powerKw", label: "Güç", unit: "kW", min: 0, max: 500, step: 10, default: 50 }],
-  },
-  fl_charge_timed: {
-    inputs: [{ name: "powerKw", label: "Güç", unit: "kW", min: 0, max: 500, step: 10, default: 50 }],
-    timer: true,
+    inputs: [{ name: "powerKw", label: "Toplam Güç", unit: "kW", description: "Toplam güç BSC sayısına bölünerek her cihaza eşit dağıtılır.", min: 0, max: 3568, step: 10, default: 100 }],
+    timerConfig: true,
+    transform: (values: Record<string, number>, steps: Array<{ deviceId: string; command?: string }>) => {
+      const perDevice = Math.round((values.powerKw ?? 100) / steps.length);
+      return steps.map(() => ({ powerKw: perDevice }));
+    },
   },
   fl_discharge: {
-    inputs: [{ name: "powerKw", label: "Güç", unit: "kW", min: 0, max: 500, step: 10, default: 50 }],
-  },
-  fl_discharge_timed: {
-    inputs: [{ name: "powerKw", label: "Güç", unit: "kW", min: 0, max: 500, step: 10, default: 50 }],
-    timer: true,
+    inputs: [{ name: "powerKw", label: "Toplam Güç", unit: "kW", description: "Toplam güç BSC sayısına bölünerek her cihaza eşit dağıtılır.", min: 0, max: 3568, step: 10, default: 100 }],
+    timerConfig: true,
+    transform: (values: Record<string, number>, steps: Array<{ deviceId: string; command?: string }>) => {
+      const perDevice = Math.round((values.powerKw ?? 100) / steps.length);
+      return steps.map(() => ({ powerKw: perDevice }));
+    },
   },
 };

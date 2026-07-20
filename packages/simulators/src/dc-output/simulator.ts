@@ -1,6 +1,12 @@
 // DC Output Simulator — DC Power Supply simulation
 import { COILS, DISCRETE, INPUT, HOLDING } from "./register-map";
 
+const randomFloat = (): number => {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0]! / 0xFFFFFFFF;
+};
+
 interface DcOutputState {
   outputOn: boolean;
   fault: boolean;
@@ -58,7 +64,7 @@ export class DcOutputSimulator {
     if (s.outputOn && !s.fault) {
       s.actualVoltage += (s.voltageSetpoint - s.actualVoltage) * 0.3 * elapsedSeconds;
 
-      const baseCurrent = 500 + (Math.random() - 0.5) * 40;
+      const baseCurrent = 500 + (randomFloat() - 0.5) * 40;
       s.actualCurrent += (baseCurrent - s.actualCurrent) * 0.2 * elapsedSeconds;
 
       if (s.actualVoltage > s.ovThreshold * 10) {
