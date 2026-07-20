@@ -1,0 +1,13 @@
+import"./iframe-BN3XbMSJ.js";import{t as e}from"./react-D4CrgfyT.js";import{t}from"./jsx-runtime-0piXhLHj.js";import{T as n,a as r,d as i,h as a,l as o,u as s,y as c}from"./src-XiiGd4j3.js";var l=t();e(),o({Container:n,Graphics:a,Text:i,Sprite:c});var u={title:`Graphics/CircuitBreaker`,component:r,tags:[`autodocs`]},d={step:30},f={circuitBreaker:{endX:120,gapSize:12},convergence:{x:40},topBusY:30,bottomBusY:90},p={width:200,height:160,background:`#0f0f1a`},m=()=>(0,l.jsx)(`div`,{style:p,children:(0,l.jsx)(s,{width:200,height:160,background:986906,antialias:!1,resolution:1,children:(0,l.jsx)(r,{config:d,positions:f,breakerStatus:`online`,breakerPosition:`close`})})}),h=()=>(0,l.jsx)(`div`,{style:p,children:(0,l.jsx)(s,{width:200,height:160,background:986906,antialias:!1,resolution:1,children:(0,l.jsx)(r,{config:d,positions:f,breakerStatus:`online`,breakerPosition:`open`})})}),g=()=>(0,l.jsx)(`div`,{style:p,children:(0,l.jsx)(s,{width:200,height:160,background:986906,antialias:!1,resolution:1,children:(0,l.jsx)(r,{config:d,positions:f,breakerStatus:`offline`,breakerPosition:`close`})})});m.__docgenInfo={description:``,methods:[],displayName:`OnlineClosed`},h.__docgenInfo={description:``,methods:[],displayName:`OnlineOpen`},g.__docgenInfo={description:``,methods:[],displayName:`Offline`},m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`() => <div style={wrapper}>
+    <Application width={200} height={160} background={0x0f0f1a} antialias={false} resolution={1}>
+      <CircuitBreaker config={config} positions={positions} breakerStatus="online" breakerPosition="close" />
+    </Application>
+  </div>`,...m.parameters?.docs?.source}}},h.parameters={...h.parameters,docs:{...h.parameters?.docs,source:{originalSource:`() => <div style={wrapper}>
+    <Application width={200} height={160} background={0x0f0f1a} antialias={false} resolution={1}>
+      <CircuitBreaker config={config} positions={positions} breakerStatus="online" breakerPosition="open" />
+    </Application>
+  </div>`,...h.parameters?.docs?.source}}},g.parameters={...g.parameters,docs:{...g.parameters?.docs,source:{originalSource:`() => <div style={wrapper}>
+    <Application width={200} height={160} background={0x0f0f1a} antialias={false} resolution={1}>
+      <CircuitBreaker config={config} positions={positions} breakerStatus="offline" breakerPosition="close" />
+    </Application>
+  </div>`,...g.parameters?.docs?.source}}};var _=[`OnlineClosed`,`OnlineOpen`,`Offline`];export{g as Offline,m as OnlineClosed,h as OnlineOpen,_ as __namedExportsOrder,u as default};
