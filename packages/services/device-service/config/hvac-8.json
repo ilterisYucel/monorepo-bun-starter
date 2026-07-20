@@ -913,6 +913,88 @@
       }
     }
   ],
+  "commands": {
+  "on": {
+    "label": "Aç (On)",
+    "telemetries": [
+      {
+        "name": "Remote On/Off",
+        "value": 1
+      }
+    ],
+    "timeoutMs": 2000,
+    "validate": {
+      "reads": [
+        {
+          "name": "Equipment Status",
+          "expect": 2
+        }
+      ]
+    }
+  },
+  "off": {
+    "label": "Kapat (Off)",
+    "telemetries": [
+      {
+        "name": "Remote On/Off",
+        "value": 0
+      }
+    ],
+    "timeoutMs": 2000,
+    "validate": {
+      "reads": [
+        {
+          "name": "Equipment Status",
+          "expect": 1
+        }
+      ]
+    }
+  },
+  "force_cool": {
+    "label": "Soğutmayı Zorla",
+    "telemetries": [
+      {
+        "name": "Remote On/Off",
+        "value": 1
+      },
+      {
+        "name": "Cooling Setpoint",
+        "value": 10
+      }
+    ],
+    "timeoutMs": 3000,
+    "validate": {
+      "reads": [
+        {
+          "name": "Equipment Status",
+          "expect": 2
+        }
+      ]
+    }
+  },
+  "force_heat": {
+    "label": "Isıtmayı Zorla",
+    "telemetries": [
+      {
+        "name": "Remote On/Off",
+        "value": 1
+      },
+      {
+        "name": "Heating Setpoint",
+        "value": 500
+      }
+    ],
+    "timeoutMs": 3000,
+    "validate": {
+      "reads": [
+        {
+          "name": "Equipment Status",
+          "expect": 2
+        }
+      ]
+    }
+  }
+},
   "pollIntervalMs": 2000,
   "simulator": {
     "type": "hvac"

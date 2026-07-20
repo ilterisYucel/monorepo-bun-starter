@@ -458,15 +458,22 @@ export interface CommandConfig {
   };
 }
 
+/** Tek bir cihaza gönderilecek komut adımı */
+export interface CommandStep {
+  deviceId: string;
+  command?: string;
+  telemetries?: Array<{ name: string; value: unknown; unit?: string }>;
+  params?: Record<string, unknown>;
+}
+
 /** Manevra konfigürasyonu — birden fazla cihaza sıralı/paralel komut zinciri */
 export interface ManeuverConfig {
+  name: string;
+  label: string;
+  description?: string;
   mode: "parallel" | "sequential";
-  steps: Array<{
-    deviceId: string;
-    command?: string;
-    telemetries?: Array<{ name: string; value: unknown; unit?: string }>;
-    params?: Record<string, unknown>;
-  }>;
+  steps: CommandStep[];
+  rollbackSteps?: CommandStep[];
   onFailure?: "stop" | "continue";
 }
 

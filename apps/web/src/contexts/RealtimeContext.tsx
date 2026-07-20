@@ -16,7 +16,7 @@ const RealtimeContext = createContext<RealtimeStream | null>(null);
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const devices = useDevicesStore((s) => s.devices);
   const bscIds = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack").map((d) => d.id),
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack" || d.type === "cb" || d.type === "dc-output").map((d) => d.id),
     [devices],
   );
   const deviceId = useMemo(() => bscIds.join(","), [bscIds]);

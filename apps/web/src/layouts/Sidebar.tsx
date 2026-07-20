@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SCADA_ICONS } from "@gd-monorepo/ui";
+import toast from "react-hot-toast";
 import { LogoutButton } from "../features/auth";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { useDevicesStore } from "../stores/devicesStore";
+import { controlApi } from "../features/control/services/controlApi";
+import { MANEUVERS } from "../features/control/maneuvers";
 import * as S from "./Sidebar.styles";
 
 export type PageType =
@@ -45,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { user, isAuthenticated, isGuest } = useAuth();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
   const { fetch: fetchDevices } = useDevicesStore();
 
   useEffect(() => {
@@ -53,13 +57,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [isAuthenticated, fetchDevices]);
 
-  const handleEmergencyStop = () => {
+  const handleEmergencyStop = async () => {
     if (
-      confirm(
+      !confirm(
         "ACIL DURDURMA: Tum sistem duracak. Devam etmek istiyor musunuz?",
       )
     ) {
-      console.log("Emergency stop triggered");
+      return;
+    }
+
+    setEmergencyLoading(true);
+    try {
+      const m = MANEUVERS.fl03_emergency_stop;
+      if (!m) return;
+      const { results } = await controlApi.executeMulti(
+        m.steps.map((s) => ({ deviceId: s.deviceId, command: s.command ?? "", params: s.params ?? {} })),
+        m.mode,
+      );
+      const allOk = results.every((r) => r.success);
+      if (allOk) {
+        toast.success(`ACIL DURDUR: ${results.length} adım ✅`);
+      } else {
+        for (const r of results) {
+          if (!r.success) toast.error(`${r.deviceId}: ${r.command} ❌`);
+        }
+      }
+    } catch {
+      toast.error("ACIL DURDUR gönderilemedi!");
+    } finally {
+      setEmergencyLoading(false);
     }
   };
 
@@ -161,6 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <S.EmergencyStopBtn
               collapsed={collapsed}
               onClick={handleEmergencyStop}
+              disabled={emergencyLoading}
               title={collapsed ? "ACIL DURDUR" : undefined}
             >
               <EmergencyIcon size={collapsed ? 18 : 16} />

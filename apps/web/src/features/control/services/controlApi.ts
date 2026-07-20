@@ -1,4 +1,3 @@
-// apps/web/src/features/control/services/controlApi.ts
 import { apiClient } from "../../../lib/api-client";
 
 interface ExecuteResult {
@@ -25,9 +24,13 @@ export const controlApi = {
 
   executeMulti: async (
     commands: Array<{ deviceId: string; command: string; params?: Record<string, unknown> }>,
+    mode: "parallel" | "sequential" = "parallel",
+    onFailure: "stop" | "continue" = "stop",
   ): Promise<{ results: ExecuteResult[] }> => {
     const response = await apiClient.post<{ results: ExecuteResult[] }>("/commands/execute-multi", {
       commands: commands.map((c) => ({ ...c, params: c.params ?? {} })),
+      mode,
+      onFailure,
     });
     return response.data;
   },

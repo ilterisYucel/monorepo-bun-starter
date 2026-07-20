@@ -37,7 +37,7 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
   const bh = config.step * 1.0;
 
   return (
-    <pixiContainer cursor="pointer" eventMode="static" onClick={onClick}>
+    <pixiContainer cursor={onClick ? "pointer" : "none"} eventMode={onClick ? "static" : "none"} onClick={onClick}>
       <pixiGraphics draw={drawBody} />
       <pixiGraphics draw={(g: GraphicsType) => { gPulseRef.current = g; }} />
       <pixiGraphics

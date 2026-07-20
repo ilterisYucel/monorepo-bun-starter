@@ -125,6 +125,7 @@ export const InputGroup = styled.div<{ $status?: StatusKey }>`
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
   background: ${COLORS.bgInput};
   border: 1px solid ${COLORS.borderDefault};
   border-radius: 0;
@@ -151,6 +152,7 @@ export const LeftSection = styled.div`
 
 export const ValueInput = styled.input<{ $status?: StatusKey }>`
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   color: ${({ $status }) =>
@@ -180,6 +182,7 @@ export const Controls = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex-shrink: 0;
   margin-left: auto;
 `;
 

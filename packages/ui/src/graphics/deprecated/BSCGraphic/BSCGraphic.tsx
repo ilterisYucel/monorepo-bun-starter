@@ -99,10 +99,11 @@ const BSCCanvas: React.FC<{
   }, []);
 
   const handleBreakerClick = useCallback(() => {
+    if (!onBreakerToggle) return;
     if (breakerStatus === "offline") return;
     const newPos = breakerPosition === "close" ? "open" : "close";
     setBreakerPosition(newPos);
-    onBreakerToggle?.(newPos);
+    onBreakerToggle(newPos);
   }, [breakerStatus, breakerPosition, onBreakerToggle]);
 
   const zoom = usePixiZoom({ enabled: zoomEnabled });
@@ -192,7 +193,7 @@ const BSCCanvas: React.FC<{
             g.fill({ color: 0xffffff, alpha: 0.001 });
           }}
           interactive cursor={breakerStatus === "online" ? "pointer" : "not-allowed"}
-          onClick={handleBreakerClick}
+          onClick={onBreakerToggle ? handleBreakerClick : undefined}
         />
         {textComponents}
       </Application>
@@ -259,7 +260,7 @@ export const BSCGraphic: React.FC<BSCGraphicProps> = ({
           unit={unit}
           flowDirection={flowDirection}
           onRackClick={onRackClick}
-          onBreakerToggle={(pos) => onBreakerToggle?.(i, pos)}
+          onBreakerToggle={onBreakerToggle ? (pos) => onBreakerToggle(i, pos) : undefined}
           refreshCounter={redrawKey}
           zoomEnabled={zoomEnabled}
         />

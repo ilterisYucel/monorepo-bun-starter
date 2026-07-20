@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { TelemetryInput, SCADA_ICONS } from "@gd-monorepo/ui";
 import toast from "react-hot-toast";
 import { controlApi } from "../services/controlApi";
 import { useLogProvider } from "../../../hooks/useLogProvider";
-import { useDevicesStore } from "../../../stores/devicesStore";
+import { MANEUVERS } from "../maneuvers";
 import type { OperationMode } from "../types/control";
-import type { ChargeStatus } from "@gd-monorepo/shared-types";
+import type { ChargeStatus, ManeuverConfig } from "@gd-monorepo/shared-types";
 import * as S from "./ControlPanel.styles";
 
 interface ControlPanelProps {
@@ -19,6 +19,15 @@ const RepeatIcon = SCADA_ICONS.continuous;
 const ChargeIcon = SCADA_ICONS.batteryCharge;
 const DischargeIcon = SCADA_ICONS.batteryDischarge;
 const StopIcon = SCADA_ICONS.stop;
+
+const executeManeuver = async (m: ManeuverConfig, params?: Record<string, unknown>) => {
+  const steps = m.steps.map((s) => ({
+    deviceId: s.deviceId,
+    command: s.command ?? "",
+    params: params ?? s.params ?? {},
+  }));
+  return controlApi.executeMulti(steps, m.mode);
+};
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   currentChargeStatus,
@@ -35,11 +44,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   } | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { addLog } = useLogProvider();
-  const devices = useDevicesStore((s) => s.devices);
-  const bscIds = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack").map((d) => d.id),
-    [devices],
-  );
 
   const isCharging = currentChargeStatus === "Charge";
   const isDischarging = currentChargeStatus === "Discharge";
@@ -65,30 +69,30 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   const sendIdleCommand = useCallback(async () => {
     setIsLoading(true);
+    const m = MANEUVERS.fl_idle;
+    if (!m) return;
     try {
-      const { results } = await controlApi.executeMulti(
-        bscIds.map((id) => ({ deviceId: id, command: "stop" })),
-      );
+      const { results } = await executeManeuver(m);
       const allOk = results.every((r) => r.success);
       if (allOk) {
-        toast.success(`DURDUR: ${bscIds.length} cihaz ✅`);
-        addLog({ type: "success", source: "user", message: `DURDUR: ${bscIds.length} cihaz ✅` });
+        toast.success(`${m.label}: ${results.length} cihaz ✅`);
+        addLog({ type: "success", source: "user", message: `${m.label}: ${results.length} cihaz ✅` });
       } else {
         for (const r of results) {
           if (!r.success) {
-            toast.error(`${r.deviceId}: DURDUR başarısız ❌ — ${r.reason}`);
-            addLog({ type: "error", source: "user", message: `${r.deviceId}: DURDUR başarısız — ${r.reason}` });
+            toast.error(`${r.deviceId}: ${m.label} başarısız ❌ — ${r.reason}`);
+            addLog({ type: "error", source: "user", message: `${r.deviceId}: ${m.label} başarısız — ${r.reason}` });
           }
         }
       }
       setActiveCommand(null);
       onCommandSent?.();
     } catch {
-      toast.error("DURDUR gönderilemedi!");
+      toast.error(`${m.label} gönderilemedi!`);
     } finally {
       setIsLoading(false);
     }
-  }, [onCommandSent, bscIds, addLog]);
+  }, [onCommandSent, addLog]);
 
   const startTimer = useCallback(
     (seconds: number) => {
@@ -115,22 +119,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const sendPowerCommand = useCallback(
     async (command: "charge" | "discharge") => {
       setIsLoading(true);
+      const m = MANEUVERS[command === "charge" ? "fl_charge" : "fl_discharge"];
+      if (!m) return;
 
       try {
-        const { results } = await controlApi.executeMulti(
-          bscIds.map((id) => ({ deviceId: id, command, params: { powerKw } })),
-        );
-
+        const { results } = await executeManeuver(m, { powerKw });
         const allOk = results.every((r) => r.success);
 
         if (allOk) {
-          toast.success(`${command === "charge" ? "ŞARJ" : "DEŞARJ"}: ${bscIds.length} cihaz ✅ (${powerKw} kW)`);
-          addLog({ type: "success", source: "user", message: `${command === "charge" ? "ŞARJ" : "DEŞARJ"}: ${bscIds.length} cihaz ✅ (${powerKw} kW)` });
+          toast.success(`${m.label}: ${results.length} cihaz ✅ (${powerKw} kW)`);
+          addLog({ type: "success", source: "user", message: `${m.label}: ${results.length} cihaz ✅ (${powerKw} kW)` });
         } else {
           for (const r of results) {
             if (!r.success) {
-              toast.error(`${r.deviceId}: ${command === "charge" ? "ŞARJ" : "DEŞARJ"} başarısız ❌ — ${r.reason}`);
-              addLog({ type: "error", source: "user", message: `${r.deviceId}: ${command === "charge" ? "ŞARJ" : "DEŞARJ"} başarısız — ${r.reason}` });
+              toast.error(`${r.deviceId}: ${m.label} başarısız ❌ — ${r.reason}`);
+              addLog({ type: "error", source: "user", message: `${r.deviceId}: ${m.label} başarısız — ${r.reason}` });
             }
           }
         }
@@ -143,12 +146,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         onCommandSent?.();
       } catch {
-        toast.error(`${command === "charge" ? "ŞARJ" : "DEŞARJ"} gönderilemedi!`);
+        toast.error(`${m.label} gönderilemedi!`);
       } finally {
         setIsLoading(false);
       }
     },
-    [operationMode, durationSeconds, powerKw, startTimer, onCommandSent, bscIds, addLog],
+    [operationMode, durationSeconds, powerKw, startTimer, onCommandSent, addLog],
   );
 
   const formatTime = (seconds: number): string => {
@@ -208,7 +211,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           max={500}
           step={10}
           size="small"
-          deviceId={bscIds.length > 0 ? bscIds.join(", ") : undefined}
           disabled={isLoading}
         />
       </S.InputsGroup>

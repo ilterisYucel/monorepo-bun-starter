@@ -129,10 +129,11 @@ const BSCV2Canvas: React.FC<{
   }, []);
 
   const handleBreakerClick = useCallback(() => {
+    if (!onBreakerToggle) return;
     if (breakerStatus === "offline") return;
     const newPos = breakerPosition === "close" ? "open" : "close";
     setBreakerPosition(newPos);
-    onBreakerToggle?.(newPos);
+    onBreakerToggle(newPos);
   }, [breakerStatus, breakerPosition, onBreakerToggle]);
 
   const zoom = usePixiZoom({ enabled: zoomEnabled });
@@ -328,7 +329,7 @@ const BSCV2Canvas: React.FC<{
           positions={positions}
           breakerStatus={breakerStatus}
           breakerPosition={breakerPosition}
-          onClick={handleBreakerClick}
+          onClick={onBreakerToggle ? handleBreakerClick : undefined}
         />
 
         {/* DC Output */}
@@ -414,7 +415,7 @@ export const BSC: React.FC<BSCGraphicProps> = ({
           unit={unit}
           flowDirection={flowDirection}
           onRackClick={onRackClick}
-          onBreakerToggle={(pos) => onBreakerToggle?.(i, pos)}
+          onBreakerToggle={onBreakerToggle ? (pos) => onBreakerToggle(i, pos) : undefined}
           refreshCounter={redrawKey}
           zoomEnabled={zoomEnabled}
         />

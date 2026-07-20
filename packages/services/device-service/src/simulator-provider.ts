@@ -7,6 +7,10 @@ import {
   HvacSimulatorAdapter,
   XRackSimulator,
   XRackSimulatorAdapter,
+  CbSimulator,
+  CbSimulatorAdapter,
+  DcOutputSimulator,
+  DcOutputSimulatorAdapter,
 } from "@gd-monorepo/simulators";
 import type { IModbusSimulatorAdapter, DeviceConfigFile, SimulatorConfig } from "@gd-monorepo/shared-types";
 
@@ -59,6 +63,20 @@ export class SimulatorProvider {
         const rackCount = sim.rackCount ?? 16;
         const xrack = new XRackSimulator(rackCount);
         return { adapter: new XRackSimulatorAdapter(xrack), tick: () => xrack.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("cb", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const cb = new CbSimulator();
+        return { adapter: new CbSimulatorAdapter(cb), tick: () => cb.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("dc-output", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const dc = new DcOutputSimulator();
+        return { adapter: new DcOutputSimulatorAdapter(dc), tick: () => dc.tick(elapsed) };
       },
     });
   }

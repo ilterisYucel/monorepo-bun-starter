@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   DeviceGauges,
   BSC,
@@ -12,6 +12,7 @@ import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
 import { useHvacData, type HvacUnit } from "../features/hvac";
 import { hvacUnitsToTmsProps } from "../features/hvac";
 import { useDevicesStore } from "../stores/devicesStore";
+import { useRealtimeStream } from "../contexts/RealtimeContext";
 import * as S from "./DashboardPage.styles";
 import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
 
@@ -33,20 +34,55 @@ export const DashboardPage: React.FC = () => {
   );
 
   const systemLogProvider = useFilteredLogProvider("system");
+  const { data: realtimeData } = useRealtimeStream();
 
-  const [dcOutputs] = useState([
-    { status: "online" as const, voltage: 398, current: 75 },
-    { status: "online" as const, voltage: 396, current: 72 },
-  ]);
+  const breakerStatuses = useMemo<Array<"online" | "offline">>(
+    () =>
+      bscDevices.map((_bsc, idx) => {
+        const isTripped = realtimeData.find(
+          (t) => t.deviceId === `CB-${idx + 1}` && t.name === "Is Tripped",
+        );
+        if (!isTripped) return "online";
+        return isTripped.value === 1 || isTripped.value === true
+          ? "offline"
+          : "online";
+      }),
+    [bscDevices, realtimeData],
+  );
 
-  const [breakerStatuses] = useState<Array<"online" | "offline">>([
-    "online",
-    "online",
-  ]);
+  const breakerPositions = useMemo<Array<"open" | "close">>(
+    () =>
+      bscDevices.map((_bsc, idx) => {
+        const isClosed = realtimeData.find(
+          (t) => t.deviceId === `CB-${idx + 1}` && t.name === "Is Closed",
+        );
+        if (!isClosed) return "close";
+        return isClosed.value === 1 || isClosed.value === true
+          ? "close"
+          : "open";
+      }),
+    [bscDevices, realtimeData],
+  );
 
-  const [breakerPositions, setBreakerPositions] = useState<
-    Array<"open" | "close">
-  >(["open", "close"]);
+  const dcOutputs = useMemo(
+    () =>
+      bscDevices.map((_bsc, idx) => {
+        const dcEntries = realtimeData.filter((t) => t.deviceId === `DC-${idx + 1}`);
+        const isOn = dcEntries.find((t) => t.name === "Is On");
+        const voltage = dcEntries.find((t) => t.name === "Actual Voltage");
+        const current = dcEntries.find((t) => t.name === "Actual Current");
+        if (!isOn) return { status: "online" as const, voltage: 0, current: 0 };
+        return {
+          status:
+            isOn.value === 1 || isOn.value === true
+              ? ("online" as const)
+              : ("offline" as const),
+          voltage: (voltage?.value as number) ?? 0,
+          current: (current?.value as number) ?? 0,
+        };
+      }),
+    [bscDevices, realtimeData],
+  );
 
   const tmsProps = useMemo(
     () => (hvacUnits.length > 0 ? hvacUnitsToTmsProps(hvacUnits) : null),
@@ -141,18 +177,6 @@ export const DashboardPage: React.FC = () => {
     console.log("Rack clicked:", rackId);
   };
 
-  const handleBreakerToggle = (
-    bscIndex: number,
-    position: "open" | "close",
-  ) => {
-    console.log(`Breaker BSC-${bscIndex + 1} toggled:`, position);
-    setBreakerPositions((prev) => {
-      const next = [...prev];
-      next[bscIndex] = position;
-      return next;
-    });
-  };
-
   const bscUnits: BSCUnit[] = useMemo(() => {
     const offsets = bscDevices.reduce<number[]>((acc, d, i) => {
       acc.push(
@@ -206,7 +230,6 @@ export const DashboardPage: React.FC = () => {
             width="100%"
             flowDirection={chargeStatus}
             onRackClick={handleRackClick}
-            onBreakerToggle={handleBreakerToggle}
           />
         </S.BscColumn>
         <S.TmsColumn>

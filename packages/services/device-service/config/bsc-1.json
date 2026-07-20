@@ -9106,7 +9106,7 @@
       }
     }
   ],
-  "pollIntervalMs": 1000,
+  "pollIntervalMs": 2000,
   "simulator": {
     "type": "bsc",
     "rackCount": 8
