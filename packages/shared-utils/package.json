@@ -16,6 +16,10 @@
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "vitest run",
     "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
   }
 }

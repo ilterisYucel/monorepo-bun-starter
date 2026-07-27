@@ -12,10 +12,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  sonarcloud:
-    name: SonarCloud Scan
+  test:
+    name: Test & Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+      timescaledb:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     permissions:
       contents: read
     steps:
@@ -28,7 +46,53 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --ignore-scripts
+        run: bun install
+
+      - name: Build all
+        run: bun nx run-many --target=build --all
+
+      - name: Run tests with coverage
+        run: bun vitest --config vitest.workspace.ts --coverage --reporter=junit --outputFile.junit=test-results/junit.xml --reporter=default
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.6
+        with:
+          name: coverage
+          path: |
+            **/coverage/lcov.info
+          retention-days: 1
+
+      - name: Upload test results
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.6
+        with:
+          name: test-results
+          path: |
+            **/test-results/junit.xml
+          retention-days: 1
+
+  sonarcloud:
+    name: SonarCloud Scan
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.7
+        with:
+          name: coverage
+          path: .
+
+      - name: Download test results
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.7
+        with:
+          name: test-results
+          path: .
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92 # v2.3.0

@@ -83,10 +83,13 @@ desktop.ini
 **/dist-electron/
 
 # ============================================
-# TEST COVERAGE
+# TEST COVERAGE & RESULTS
 # ============================================
 coverage/
 **/coverage/
+**/test-results/
+.playwright/
+playwright-report/
 .nyc_output/
 
 # ============================================

@@ -1,0 +1,30 @@
+{
+  "name": "device-library",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/device-library/src",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --passWithNoTests",
+        "cwd": "packages/device-library"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun build src/index.ts --outdir dist --target bun",
+        "cwd": "packages/device-library"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rm -rf dist",
+        "cwd": "packages/device-library"
+      }
+    }
+  }
+}

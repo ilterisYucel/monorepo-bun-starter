@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "bun run run.ts",
+    "test": "vitest run",
     "typecheck": "bun --bun tsc --noEmit"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
   }
 }

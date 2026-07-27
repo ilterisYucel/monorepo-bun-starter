@@ -1,0 +1,55 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build all
+        run: bun nx run-many --target=build --all
+
+      - name: Start services
+        run: |
+          docker compose -f deployment/docker-compose.container.dev.yml up -d --wait
+          sleep 5
+
+      - name: Install Playwright
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: bunx playwright test --project=chromium
+
+      - name: Upload screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.6
+        with:
+          name: playwright-screenshots
+          path: test-results/
+
+      - name: Stop services
+        if: always()
+        run: docker compose -f deployment/docker-compose.container.dev.yml down -v

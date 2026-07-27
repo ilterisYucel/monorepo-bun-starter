@@ -1,0 +1,60 @@
+{
+  "name": "container-desktop",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/container-desktop/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "electron-vite dev",
+        "cwd": "apps/container-desktop"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build",
+        "cwd": "apps/container-desktop"
+      },
+      "outputs": ["{projectRoot}/out", "{projectRoot}/release"]
+    },
+    "build:win": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build:win",
+        "cwd": "apps/container-desktop"
+      },
+      "outputs": ["{projectRoot}/release"]
+    },
+    "build:linux": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build:linux",
+        "cwd": "apps/container-desktop"
+      },
+      "outputs": ["{projectRoot}/release"]
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run lint",
+        "cwd": "apps/container-desktop"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --passWithNoTests",
+        "cwd": "apps/container-desktop"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run typecheck",
+        "cwd": "apps/container-desktop"
+      }
+    }
+  }
+}

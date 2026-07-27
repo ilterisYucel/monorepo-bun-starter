@@ -12,9 +12,13 @@
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "vitest run",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
   }
 }

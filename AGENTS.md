@@ -4,14 +4,17 @@
 ```
 bun install                     # Install deps (Bun only, no npm/pnpm/yarn)
 bun run dev                     # All apps in parallel (max 5)
-bun run dev:web                 # Web only (Vite, port 5173)
-bun run dev:desktop             # Electron only
+bun run dev:container-web                 # Web only (Vite, port 5173)
+bun run dev:container-desktop             # Electron only
+bun run dev:container             # Full stack (Docker dev mode)
+bun run start:container           # Full stack (Docker prod mode)
+bun run stop:container            # Stop container stack
 nx run demo-backend:dev         # Demo Backend (Fastify, port 5000)
 nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
 nx run data-service:dev         # Data Service (BullMQ consumer)
 bun run build                   # Build all (Nx orders by ^build deps)
-nx run web:test                 # Vitest (no test files written yet)
+nx run container-web:test                 # Vitest (no test files written yet)
 nx run <proj>:<target>          # Run any Nx target
 nx graph                        # Dependency graph visualizer
 ```
@@ -120,7 +123,7 @@ import { WebSocketTransport, HttpPollingTransport, MockTransport } from "@gd-mon
 | `LogProvider` | Log entries + add/clear actions | `LogTerminal` |
 | `EventAnnotationsProvider` | Event annotations for chart vertical lines | `TelemetryChart` (optional) |
 
-These are **interfaces only** — no implementations exist in `packages/ui`. Implementations live in `apps/web` (using TanStack Query, Zustand, etc.).
+These are **interfaces only** — no implementations exist in `packages/ui`. Implementations live in `apps/container-web` (using TanStack Query, Zustand, etc.).
 
 ### Compound component contracts (`packages/ui/src/core/`)
 
@@ -139,7 +142,7 @@ Each `DeviceTelemetryProvider`:
 - Crash in one provider's stream does NOT affect other providers (Grafana panel isolation)
 - Sub-components access data via internal React Context — no prop drilling
 
-### Transport wiring in apps (`apps/web/src/contexts/TransportContext.tsx`)
+### Transport wiring in apps (`apps/container-web/src/contexts/TransportContext.tsx`)
 
 ```tsx
 // App-level transport selection:
@@ -159,7 +162,7 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 | Package | Allowed Imports | Forbidden Imports |
 |---------|----------------|-------------------|
 | `packages/ui` | `react`, `@gd-monorepo/shared-types`, browser APIs | TanStack Query, Zustand, SWR, Axios, `apps/*` |
-| `apps/web` | `@gd-monorepo/ui`, TanStack Query, Zustand, Axios | — (app layer can use anything) |
+| `apps/container-web` | `@gd-monorepo/ui`, TanStack Query, Zustand, Axios | — (app layer can use anything) |
 
 **UI components never:**
 - Import `useQuery` or `useMutation` directly
@@ -176,9 +179,9 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 | Contract | Location | Implementations |
 |:---------|:---------|:----------------|
 | `ITelemetryTransport` | `shared-types/src/telemetry-transport.ts` | `WebSocketTransport`, `HttpPollingTransport`, `MockTransport` (all in `ui/transports`) |
-| `TelemetryProvider` | `ui/src/interfaces/telemetry-provider.ts` | `useTelemetryProvider` (in `apps/web/src/hooks/`) |
-| `LogProvider` | `ui/src/interfaces/log-provider.ts` | `useLogStore` (Zustand, in `apps/web/src/stores/`) |
-| `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts` | `useEventAnnotations` (in `apps/web/src/hooks/`) |
+| `TelemetryProvider` | `ui/src/interfaces/telemetry-provider.ts` | `useTelemetryProvider` (in `apps/container-web/src/hooks/`) |
+| `LogProvider` | `ui/src/interfaces/log-provider.ts` | `useLogStore` (Zustand, in `apps/container-web/src/stores/`) |
+| `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts` | `useEventAnnotations` (in `apps/container-web/src/hooks/`) |
 
 ### Adding a new data source
 
@@ -202,7 +205,7 @@ The following optimizations were applied across the codebase to prevent Chrome S
 | **Zustand localStorage throttle** | Debounced storage wrapper: writes max once per 2s | `LogStore.ts` |
 | **Token refresh** | `RealtimeProvider` auto-refreshes expired JWT, breaks reconnect loop | `RealtimeContext.tsx` |
 | **Error Boundary** | React error boundary catches WebGL/React crashes, shows reload UI | `ErrorBoundary.tsx` |
-| **Electron crash handler** | `render-process-gone`, `crashed`, `unresponsive` handlers with auto-reload | `apps/desktop/src/main/index.ts` |
+| **Electron crash handler** | `render-process-gone`, `crashed`, `unresponsive` handlers with auto-reload | `apps/container-desktop/src/main/index.ts` |
 
 ### Concrete DI examples
 ```ts
@@ -319,8 +322,8 @@ interface ManeuverConfig {
 
 | File | Role |
 |------|------|
-| `apps/web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
-| `apps/web/src/features/control/components/ManeuverPanel.tsx` | Renders masonry grid of cards, manages per-maneuver state |
+| `apps/container-web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
+| `apps/container-web/src/features/control/components/ManeuverPanel.tsx` | Renders masonry grid of cards, manages per-maneuver state |
 | `packages/ui/src/components/ManeuverCard/` | Stateless card — inputs, timer checkbox, schedule dropdown, step list, status-aware buttons |
 
 ### ManeuverControls
@@ -506,13 +509,13 @@ When touching any file with hardcoded hex colors:
 - **Router:** React Router v7 with `createBrowserRouter`. Protected routes check localStorage.
 
 ## Vite resolves packages to source
-`apps/web` and `apps/desktop` Vite config aliases map `@gd-monorepo/*` to `packages/*/src/` (not `dist/`) for HMR. Library builds are not required for frontend dev.
+`apps/container-web` and `apps/container-desktop` Vite config aliases map `@gd-monorepo/*` to `packages/*/src/` (not `dist/`) for HMR. Library builds are not required for frontend dev.
 
 ## Docker / deployment
 - Compose files: `deployment/docker-compose.demo-backend.yml` (prod) and `.dev.yml` (hot-reload).
 - Stack: TimescaleDB + Redis + demo-backend (Fastify) + web (nginx).
 - Backend Dockerfiles: `apps/demo-backend/deployment/`.
-- Web Dockerfiles: `apps/web/deployment/`.
+- Web Dockerfiles: `apps/container-web/deployment/`.
 
 ## Key framework versions
 - **Runtime:** Bun (latest)

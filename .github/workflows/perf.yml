@@ -1,0 +1,45 @@
+name: Performance Tests
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Every Monday at 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  perf:
+    name: k6 Performance
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build all
+        run: bun nx run-many --target=build --all
+
+      - name: Start services
+        run: |
+          docker compose -f deployment/docker-compose.container.dev.yml up -d --wait
+          sleep 5
+
+      - name: Run k6 tests
+        uses: grafana/k6-action@b8e19d55840f2e95dca5e2712ac4c73dce85bc3f # v0.3.1
+        with:
+          filename: deployment/k6/smoke.js
+
+      - name: Stop services
+        if: always()
+        run: docker compose -f deployment/docker-compose.container.dev.yml down -v
