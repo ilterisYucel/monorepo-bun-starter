@@ -437,3 +437,171 @@ await controlApi.executeMulti(m.steps, m.mode);  // sequential: stop BSCs → of
 | UI Components | PixiJS 8, Recharts 3, Emotion CSS-in-JS |
 | Deployment | Docker Compose (6 services) |
 | Simulators | BSC (LG Battery Controller), HVAC (Cooling Units), XRack (legacy) |
+
+## v2.0 Roadmap: Low-Code/No-Code SCADA/EMS Platform
+
+Hedef: Grafana benzeri, surukle-birak ile SCADA ekranlari ve tek hat semalari olusturulabilen, 2B/3B grafik destegi olan dusuk kodlu bir platform. Musteriler cihaz yerlestirme, protokol konfigurasyonu, manevra tanimlama, widget bazli gosterge panolari ve canli veri izleme islemlerini kod yazmadan yapabilmeli.
+
+### Mevcut Durum (v1.x — Build On)
+
+| Alan | Mevcut | Detay |
+|:-----|:-------|:------|
+| **Konfigurasyon Sistemi** | ✅ | Device config JSON'lari (BSC, HVAC, CB, DC-Output) — 300+ register, bitfield, command tanimlari, Zod validasyonu |
+| **Protokol Destegi** | 🟡 | Modbus TCP (production), CANbus/MQTT (stub — `throw Error("not implemented")`) |
+| **Cihaz Simulatorleri** | ✅ | BSC, HVAC, XRack, CB, DC-Output — register-accurate, gelistirme/test icin |
+| **Veri Pipeline** | ✅ | Device-Service → BullMQ → Data-Service (TimescaleDB) + WebSocket broadcast |
+| **2B Grafikler (PixiJS)** | ✅ | BSC (batarya rack), TMS (HVAC termal) sistem komponentleri + 8 element komponent (RackCell, CircuitBreaker, DCOutput, HvacUnit, RoomCard, PanelCard, Cable, CableBus) — animasyonlu guc akis oklari, glow efektleri, zoom, responsive sizing |
+| **UI Komponentleri** | ✅ | TelemetryGauge (linear + dairesel speedometer), TelemetryChart, TelemetryInput, DeviceGauges, LogTerminal, RackCard, ManeuverCard, MultiLineChart |
+| **Gercek Zamanli Transport** | ✅ | Strategy pattern — WebSocketTransport, HttpPollingTransport, MockTransport (hepsi `ITelemetryTransport` implementasyonu) |
+| **Compound Component** | ✅ | DeviceTelemetryProvider — Grafana tarzi cihaz basina izole veri konteksti |
+| **Manevra Sistemi** | ✅ | 18 tanimli manevra (FL-01...FL-11) — parallel/sequential, rollback, read-back validasyonu |
+| **Auth & RBAC** | ✅ | JWT (jose), 3 rol (admin/teknik/guest), kullanici CRUD |
+| **Editor (yeni)** | 🟡 | ReactFlow canvas + DnD palette + property panel + ModbusConfigForm + undo/redo + localStorage persistence + JSON export + `/api/projects` CRUD |
+| **Device Library** | 🟡 | 5 cihaz tipi (Battery Bank, PCS, Breaker, Solar Panel, HVAC) — `DeviceDefinition` metadata, default register'lar, connection point'ler, alarm kurallari |
+| **Tasarim Sistemi** | ✅ | 104 renk token'i, 35 SCADA ikonu, Emotion CSS-in-JS |
+| **Desktop** | ✅ | Electron v39 + crash handler'lar |
+| **CI/CD** | ❌ | Yok — `.github/` dizini yok |
+| **Test** | ❌ | Vitest configure ama sifir test dosyasi |
+
+### Eksikler ve v2.0 Yapilacaklar
+
+#### A. Dusuk Kodlu Ekran Olusturma (En Kritik)
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| A1 | **Screen/Dashboard Composition Engine** | 🔴 Kritik | `ScreenConfig` / `DashboardLayout` tipi yok. Tum sayfalar hardcoded JSX. Kullanicilarin surukle-birak ile widget yerlestirip kaydedebilecegi bir grid layout motoru yok. |
+| A2 | **Widget Sistemi** | 🔴 Kritik | `WidgetDefinition` tipi (`{id, type, props, position, size}`), widget registry, deklaratif widget renderer yok. Mevcut komponentler manuel olarak JSX'te birlestiriliyor. |
+| A3 | **Runtime Screen Renderer** | 🔴 Kritik | Kaydedilmis bir `ScreenConfig` JSON'unu okuyup live SCADA ekrani render edecek motor yok. Editor ciktisi static diyagram — canli veri baglantisi yok. |
+| A4 | **Editor ↔ Runtime Koprusu** | 🔴 Kritik | Editorde yerlestirilen cihazlar ile PixiJS SCADA grafikleri arasinda baglanti yok. "Kanvasa PCS yerlestirdim" → "PCS icin canli guc verisini PixiJS'te goster" akisi yok. |
+| A5 | **Widget DnD Editor** | 🔴 Kritik | Editor su anda sadece cihaz yerlestirme yapiyor. Widget (gauge, chart, log terminal) surukle-birak yok. |
+| A6 | **Coklu Ekran Destegi** | 🟠 Yuksek | Tek bir Dashboard sayfasi var. Kullanici birden fazla ozel ekran olusturamiyor. |
+
+#### B. 3B Grafik Destegi
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| B1 | **3B Render Pipeline** | 🔴 Kritik | Three.js / Babylon.js entegrasyonu yok. Tum grafikler 2B PixiJS. |
+| B2 | **3B Cihaz Modelleri** | 🟠 Yuksek | 3B batarya odasi, rack modelleri, HVAC uniteleri — hicbiri yok. |
+| B3 | **3B Scene Graph** | 🟠 Yuksek | Kamera kontrolleri, orbit/zoom/pan, isiklandirma sistemi yok. |
+
+#### C. Konfigurasyon Odakli Grafik Motoru
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| C1 | **Config-Driven Device Renderer** | 🔴 Kritik | BSC (8 rack) ve TMS (room + 2 HVAC) hardcoded. Yeni bir cihaz tipi icin PixiJS kodu yazmak gerekiyor. `DeviceDefinition`'a dayali otomatik render yok. |
+| C2 | **Auto-Layout Motoru** | 🟠 Yuksek | Tek hat semasi icin force-directed, hierarchical, grid layout algoritmalari yok. Editor'de pozisyonlar serbest (ReactFlow drag). |
+| C3 | **Eksik Cihaz Grafikleri** | 🟠 Yuksek | PCS, solar panel, trafo, grid connection, jenerator grafikleri yok. |
+| C4 | **Dinamik Topoloji** | 🟡 Orta | Baglanti noktalari tanimli (`ConnectionPoint`) ama kablo cizimi icin kullanilmiyor. Editor'deki edge'ler PixiJS kablolara donusmuyor. |
+
+#### D. Editor Gelistirmeleri
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| D1 | **Register Map Editor** | 🔴 Kritik | Editor sadece baglanti parametrelerini (host/port) duzenliyor. Telemetri register'lari (adres, tip, scale, unit) duzenlenemiyor. |
+| D2 | **Config Export → Device-Service** | 🔴 Kritik | Editorde yapilan protokol konfigurasyonu, device-service'in okuyacagi device config JSON'a donusmuyor. "Deploy" butonu yok. |
+| D3 | **Manevra Builder** | 🟠 Yuksek | 18 maneuver hardcoded TypeScript sabitleri. Gorsel maneuver editoru (adim surukle, parametre tanimla, validasyon ekle, test et) yok. |
+| D4 | **Project Load by URL** | 🟡 Orta | `/editor/:projectId` route'u tanimli ama `useParams()` hic cagrilmiyor — proje yukleme calismiyor. |
+| D5 | **Copy/Paste, Multi-Select, Grouping** | 🟡 Orta | Editor'de kopyala-yapistir, coklu secim, gruplama, hizalama kilavuzlari yok. |
+| D6 | **Undo Surekliligi** | 🟡 Orta | Surukleme hareketleri sirasinda snapshot alinmiyor — sadece birakinca undo stack'e ekleniyor. |
+| D7 | **Import** | 🟡 Orta | Export (JSON indir) var ama Import (JSON yukle) yok. |
+| D8 | **Node Resizing / Custom Theming** | 🟢 Dusuk | Editor node'lari sabit boyutlu. Tema destegi yok. |
+
+#### E. Alarm ve Olay Sistemi
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| E1 | **Alarm Evaluation Engine** | 🔴 Kritik | `device-library`'de `AlarmRuleDefinition`'lar tanimli ama degerlendiren bir motor yok. `"SOC < 20"` gibi kosullar calistirilmiyor. |
+| E2 | **Alarm Dashboard UI** | 🟠 Yuksek | Aktif alarm listesi, alarm detayi, acknowledge islemi yok. |
+| E3 | **Alarm Escalation / Notification** | 🟡 Orta | E-posta, SMS, webhook bildirimleri yok. |
+| E4 | **Alarm History** | 🟡 Orta | Gecmis alarm kaydi ve analizi yok. |
+
+#### F. Low-Code Expression / Otomasyon Motoru
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| F1 | **Expression Engine** | 🟠 Yuksek | Formul editoru yok. `Guc = Gerilim × Akim` gibi hesaplanmis metrik tanimlanamiyor. |
+| F2 | **Trigger-Action Kurallari** | 🟠 Yuksek | "Sicaklik > 40°C ise HVAC'i calistir" gibi otomasyon kurallari yok. |
+| F3 | **Custom Scripting** | 🟡 Orta | Kullanici tanimli script/plugin destegi yok. |
+
+#### G. Protokol ve Cihaz Iletisimi
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| G1 | **CANbus Adapter** | 🟠 Yuksek | `CANBusDevice` — tum metodlar `throw Error("not implemented")`. SocketCAN, DBC parser yok. |
+| G2 | **MQTT Adapter** | 🟠 Yuksek | `MQTTDevice` — ayni sekilde stub. Topic subscription, JSON parsing yok. |
+| G3 | **OPC-UA, IEC 61850, DNP3, BACnet** | 🟡 Orta | Endustriyel standart protokollerin hicbiri desteklenmiyor. |
+
+#### H. Raporlama ve Veri Analizi
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| H1 | **Report Builder** | 🟠 Yuksek | `ReportsPage` placeholder ("gelistirme asamasinda"). Rapor sablonu, ozel tarih araligi karsilastirma yok. |
+| H2 | **Enerji Hesaplamalari** | 🟠 Yuksek | kWh toplamlari, maliyet analizi, verimlilik hesaplamalari yok. |
+| H3 | **PDF/CSV/Excel Export** | 🟡 Orta | Rapor disa aktarimi yok. |
+| H4 | **Data Export** | 🟡 Orta | Ham veri disa aktarimi (CSV, Excel) yok. |
+
+#### I. Coklu Musteri / Site Yonetimi
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| I1 | **Site/Location Hierarchy** | 🟠 Yuksek | Tum cihazlar duz bir isim alaninda. Lokasyon, bolge, site hiyerarsisi yok. |
+| I2 | **Per-Site Dashboard** | 🟠 Yuksek | Site bazli ayri dashboard'lar yok. |
+| I3 | **Cross-Site Aggregation** | 🟡 Orta | Farkli lokasyonlardaki cihazlarin toplu gorunumu yok. |
+
+#### J. Altyapi ve Operasyonel Eksikler
+
+| # | Eksik | Onem | Aciklama |
+|:--|:------|:-----|:---------|
+| J1 | **Test Coverage** | 🔴 Kritik | Sifir test dosyasi. Vitest konfigurasyonu var ama kullanilmiyor. |
+| J2 | **CI/CD Pipeline** | 🟠 Yuksek | `.github/` dizini yok. Build, test, deploy otomasyonu yok. |
+| J3 | **API Rate Limiting** | 🟠 Yuksek | Rate limiting yok. |
+| J4 | **Security Hardening** | 🟠 Yuksek | JWT localStorage'da (XSS riski), CORS tum origin'lere acik. |
+| J5 | **Real-time Collaboration** | 🟡 Orta | Editor tek kullanicili. OT/CRDT, presence yok. |
+| J6 | **Versioning / Audit Trail** | 🟡 Orta | Konfigurasyon degisiklik gecmisi, kim-ne zaman yapti kaydi yok. |
+| J7 | **User Management UI** | 🟡 Orta | Backend'de kullanici CRUD var ama UI yok. Admin kullanicilari API uzerinden yonetmek zorunda. |
+| J8 | **Mobile / PWA** | 🟢 Dusuk | Mobil uyumlu tasarim yok. |
+
+#### K. Bos / Stub Paketler
+
+| # | Paket | Durum |
+|:--|:------|:------|
+| K1 | `packages/shared-utils` | Tamamen bos — sifir export |
+| K2 | `apps/backend` | Tamamen bos — sifir kaynak dosyasi |
+| K3 | `packages/ui/src/graphics/devices` | Bos barrel (`export {}`) |
+| K4 | `packages/ui/src/graphics/hooks` | Sadece 1 dosya (`usePixiTickerEffect`) |
+
+### Onerilen v2.0 Paket Mimarisi
+
+```
+NEW PACKAGES (onerilen):
+├── dashboard-engine/          # ScreenConfig tipleri, widget registry, runtime renderer
+├── alarm-engine/              # Kural degerlendirme, bildirim, acknowledge
+├── expression-engine/         # Formul parser, hesaplanmis metrikler, trigger-action
+├── layout-engine/             # Tek hat semasi icin auto-layout (force-directed, hierarchical)
+
+EXPAND EXISTING:
+├── apps/editor/               # Screen builder modu, widget DnD, register map editor, maneuver builder
+├── packages/ui/src/graphics/  # 3B pipeline (Three.js), config-driven device renderer, yeni cihaz grafikleri
+├── packages/device-library/   # 20+ yeni cihaz tipi, cihaz basina gorsel sablon
+├── packages/core/             # Gercek CANbus, MQTT, OPC-UA adaptorleri
+
+NEW TYPES (shared-types):
+├── ScreenConfig               # {id, name, widgets: WidgetPlacement[], grid: GridConfig}
+├── WidgetDefinition           # {type, props, size, position, dataSource}
+├── WidgetRegistry             # Map<string, React.ComponentType>
+├── DeviceGraphicTemplate      # Cihaz tipi basina PixiJS/Three.js canvas sablonu
+├── AlarmRule                  # Degerlendirilebilir ifade + severity + hedef
+├── AlarmState                 # Active, acknowledged, resolved durumlari
+├── SiteNode                   # Hiyerarsik site/lokasyon/alan modeli
+├── CalculatedMetric           # Formul + bagimliliklar + cikti
+├── AutomationRule             # Trigger condition → Action
+```
+
+### Oncelik Siralamasi (Onerilen)
+
+| Oncelik | Faz | Kapsam |
+|:--------|:----|:-------|
+| **P0** | Faz 1 | A1-A6 (Screen Engine + Widget Sistemi + Runtime Renderer), C1 (Config-Driven Renderer), D1-D2 (Register Editor + Config Export) |
+| **P1** | Faz 2 | B1-B3 (3B Pipeline), E1-E2 (Alarm Engine), G1-G2 (CANbus + MQTT) |
+| **P2** | Faz 3 | D3 (Manevra Builder), F1-F2 (Expression + Automation), H1-H2 (Raporlama), I1-I2 (Site Yonetimi) |
+| **P3** | Faz 4 | J1-J8 (Test, CI/CD, Security, Audit), C2-C4 (Auto-Layout, Eksik Grafikler) |

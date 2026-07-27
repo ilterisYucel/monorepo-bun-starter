@@ -15,6 +15,7 @@
     "clean": "nx run-many --target=clean"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.16.0",
     "@nx/react": "^22.7.1",
     "@nx/vite": "^22.7.1",
     "@types/bun": "latest",

@@ -1,0 +1,51 @@
+flowchart TB
+    subgraph UI["KULLANICI ARAYUZU"]
+        WEB["Web Uygulamasi<br/>React 19"]
+        DESKTOP["Masaustu Uygulamasi<br/>Electron"]
+    end
+
+    subgraph API["API KATMANI"]
+        WS["Web-Service<br/>JWT Kimlik Dogrulama<br/>Yetkilendirme<br/>REST API"]
+    end
+
+    subgraph ISLEM["ISLEM KATMANI"]
+        DEV["Cihaz Servisi<br/>Modbus Polling"]
+        DATA["Veri Servisi<br/>TimescaleDB Yazma"]
+        INT["Entegrasyon Servisi<br/>Plugin Motoru<br/>EPIAS Fiyat Cekme"]
+        MQ["Mesaj Kuyrugu<br/>BullMQ + Redis"]
+    end
+
+    subgraph VERI["VERI KATMANI"]
+        TSDB["TimescaleDB<br/>Zaman Serisi Veritabani"]
+        REDIS["Redis<br/>On Bellek + Mesaj Kuyrugu"]
+    end
+
+    subgraph CIHAZ["CIHAZ KATMANI"]
+        BSC["BSC<br/>Batarya Kontrol"]
+        PCS["PCS<br/>Guc Donusturucu"]
+        CB["CB<br/>Devre Kesici"]
+        DCO["DC Output<br/>Guc Cikisi"]
+        HVAC["HVAC<br/>Iklimlendirme"]
+    end
+
+    subgraph DISAPI["DIS SERVISLER"]
+        EPIAS["EPIAS API<br/>Aktif Piyasa Fiyati"]
+    end
+
+    WEB --> WS
+    DESKTOP --> WS
+    WS --> TSDB
+    DEV --> MQ
+    MQ --> DATA
+    DATA --> TSDB
+    INT --> EPIAS
+    INT --> MQ
+    DEV --> BSC
+    DEV --> PCS
+    DEV --> CB
+    DEV --> DCO
+    DEV --> HVAC
+    WS --> REDIS
+    DEV --> REDIS
+    DATA --> REDIS
+    INT --> REDIS
