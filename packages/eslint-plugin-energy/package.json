@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "typecheck": "bun tsc --noEmit"
   },
@@ -19,6 +20,7 @@
     "eslint": ">=9.0.0"
   },
   "devDependencies": {
-    "@typescript-eslint/utils": "^8.0.0"
+    "@typescript-eslint/utils": "^8.0.0",
+    "vitest": "^3.0.0"
   }
 }

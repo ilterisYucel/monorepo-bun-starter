@@ -55,7 +55,7 @@ services:
   web:
     build:
       context: ../
-      dockerfile: apps/web/deployment/Dockerfile
+      dockerfile: apps/container-web/deployment/Dockerfile
     container_name: battery-web
     environment:
       NODE_ENV: production

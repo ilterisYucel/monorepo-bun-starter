@@ -28,6 +28,7 @@
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
   },
@@ -40,7 +41,8 @@
   },
   "devDependencies": {
     "@types/pg": "^8.10.9",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
   },
   "peerDependencies": {
     "@gd-monorepo/shared-types": "*"

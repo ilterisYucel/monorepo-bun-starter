@@ -221,7 +221,7 @@ All UI components in `packages/ui` are transport-agnostic. They consume data thr
 │ components/                  │  ← Pure presentational (TelemetryChart, LogTerminal, BSC, TMS, …)
 └──────────────────────────────┘
               ↑
-┌── apps/web ──────────────────┐
+┌── apps/container-web ──────────────────┐
 │ contexts/TransportContext    │  ← App-level transport selection (WS → prod, Mock → dev)
 │ hooks/useTelemetryProvider   │  ← Implements TelemetryProvider via TanStack Query
 │ hooks/useChargeStatus        │  ← Domain-specific hooks
@@ -271,16 +271,16 @@ The codebase includes 10+ optimizations for Chrome SIGILL crash prevention durin
 | localStorage throttle: 2s debounce | `LogStore.ts` |
 | Token auto-refresh: breaks reconnect loop | `RealtimeContext.tsx` |
 | Error Boundary: WebGL/React crash fallback | `ErrorBoundary.tsx` |
-| Electron crash handlers: auto-reload on renderer crash | `apps/desktop/src/main/index.ts` |
+| Electron crash handlers: auto-reload on renderer crash | `apps/container-desktop/src/main/index.ts` |
 
 ### Full Stack (docker compose)
 
 ```bash
 # Production
-docker compose -f deployment/docker-compose.yml up -d
+docker compose -f deployment/docker-compose.container.yml up -d
 
 # Development (hot-reload)
-docker compose -f deployment/docker-compose.dev.yml up
+docker compose -f deployment/docker-compose.container.dev.yml up
 ```
 
 | Service | Port | Purpose |
@@ -367,8 +367,8 @@ The Control page uses a card-based maneuver UI. 18 named maneuvers cover startup
 
 | File | Role |
 |------|------|
-| `apps/web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
-| `apps/web/src/features/control/components/ManeuverPanel.tsx` | Masonry grid of cards, per-maneuver state tracking |
+| `apps/container-web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
+| `apps/container-web/src/features/control/components/ManeuverPanel.tsx` | Masonry grid of cards, per-maneuver state tracking |
 | `packages/ui/src/components/ManeuverCard/` | Stateless card component — inputs, timer checkbox, schedule, step status |
 
 ### Card layout

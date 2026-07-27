@@ -58,15 +58,15 @@ services:
   web:
     build:
       context: ../
-      dockerfile: apps/web/deployment/Dockerfile.dev
+      dockerfile: apps/container-web/deployment/Dockerfile.dev
     container_name: battery-web-dev
     environment:
       NODE_ENV: development
     ports:
       - "5173:5173"
     volumes:
-      - ../apps/web/src:/app/apps/web/src
-      - ../apps/web/index.html:/app/apps/web/index.html
+      - ../apps/container-web/src:/app/apps/web/src
+      - ../apps/container-web/index.html:/app/apps/web/index.html
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
       - ../packages/ui/src:/app/packages/ui/src

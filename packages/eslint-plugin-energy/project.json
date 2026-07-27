@@ -1,0 +1,30 @@
+{
+  "name": "eslint-plugin-energy",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/eslint-plugin-energy/src",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --passWithNoTests",
+        "cwd": "packages/eslint-plugin-energy"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun build src/index.ts --outdir dist --target bun",
+        "cwd": "packages/eslint-plugin-energy"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rm -rf dist",
+        "cwd": "packages/eslint-plugin-energy"
+      }
+    }
+  }
+}
