@@ -59,7 +59,7 @@ export interface ITimeseriesDatabase {
   getLatestN(
     deviceId: string,
     limit: number,
-    name?: string,
+    names?: string[],
     tags?: Record<string, string>,
   ): Promise<TelemetryData[]>;
 

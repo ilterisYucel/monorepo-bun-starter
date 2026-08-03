@@ -19,15 +19,16 @@ export async function unifiedRoutes(
     try {
       await registry.refresh();
 
-      const { deviceIds } = request.query as { deviceIds?: string };
+      const { deviceIds, names } = request.query as { deviceIds?: string; names?: string };
       const ids = deviceIds ? deviceIds.split(",") : [];
+      const nameFilter = names ? names.split(",") : undefined;
 
       const targetDevices = registry.online().filter(
         (d) => ids.length === 0 || ids.includes(d.id),
       );
 
       const results = await Promise.all(
-        targetDevices.map((d) => timescale.getLatestN(d.id, 2000)),
+        targetDevices.map((d) => timescale.getLatestN(d.id, 2000, nameFilter)),
       );
       const allTelemetries = results.flat();
 

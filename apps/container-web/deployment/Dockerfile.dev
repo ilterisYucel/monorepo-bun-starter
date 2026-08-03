@@ -8,6 +8,6 @@ COPY . .
 # Root'da install yap (tüm workspace'leri çözer)
 RUN bun install
 
-WORKDIR /app/apps/web
+WORKDIR /app/apps/container-web
 
 CMD ["bun", "run", "dev"]

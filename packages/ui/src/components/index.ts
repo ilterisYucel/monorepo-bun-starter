@@ -3,6 +3,7 @@ export * from "./MultiLineChartV2";
 export * from "./TelemetryChart";
 export * from "./LogTerminal";
 export * from "./RackCard";
+export * from "./BSCCard";
 
 export * from "./ManeuverCard";
 export * from "../graphics/deprecated/BSCGraphic";

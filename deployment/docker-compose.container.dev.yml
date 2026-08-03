@@ -144,13 +144,13 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ../apps/container-web/src:/app/apps/web/src
-      - ../apps/container-web/index.html:/app/apps/web/index.html
+      - ../apps/container-web/src:/app/apps/container-web/src
+      - ../apps/container-web/index.html:/app/apps/container-web/index.html
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
       - ../packages/ui/src:/app/packages/ui/src
       - ../tsconfig.base.json:/app/tsconfig.base.json
-      - /app/apps/web/node_modules
+      - /app/apps/container-web/node_modules
       - /app/node_modules
     depends_on:
       web-service:

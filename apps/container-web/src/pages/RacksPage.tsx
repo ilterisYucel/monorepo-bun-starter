@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { RackCard, TelemetryChart } from "@gd-monorepo/ui";
+import { RackCard, BSCCard, TelemetryChart } from "@gd-monorepo/ui";
 import { RackDetailModal } from "../features/racks/components/RackDetailModal";
 import type { RackDetailData } from "../features/racks/components/RackDetailModal";
 import * as S from "./RacksPage.styles";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useRacksData } from "../features/racks/hooks/useRacksData";
+import { telemetriesToBscSummaries } from "../features/racks/utils/bscHelpers";
 import { useTelemetryProvider } from "../hooks/useTelemetryProvider";
 import { useEventAnnotations } from "../hooks/useEventAnnotations";
 import { useDevicesStore } from "../stores/devicesStore";
@@ -20,11 +21,19 @@ const TELEMETRY_NAMES = [
 
 export const RacksPage: React.FC = () => {
   const { chargeStatus } = useChargeStatus();
-  const { racks, rackDetails, isLoading } = useRacksData(chargeStatus);
+  const { racks, rackDetails, mergedTelemetries, isLoading } = useRacksData(chargeStatus);
   const devices = useDevicesStore((s) => s.devices);
-  const bscIds = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack").map((d) => d.id),
+  const bscDevices = useMemo(
+    () => devices.filter((d) => d.type === "bsc" || d.type === "xrack"),
     [devices],
+  );
+  const bscSummaries = useMemo(
+    () => telemetriesToBscSummaries(mergedTelemetries, chargeStatus, bscDevices),
+    [mergedTelemetries, chargeStatus, bscDevices],
+  );
+  const bscIds = useMemo(
+    () => bscDevices.map((d) => d.id),
+    [bscDevices],
   );
   const rackTelemetryProvider = useTelemetryProvider({
     telemetryNames: TELEMETRY_NAMES,
@@ -44,6 +53,11 @@ export const RacksPage: React.FC = () => {
         </S.LoadingContainer>
       ) : (
         <>
+          <S.BSCCardGrid>
+            {bscSummaries.map((bsc, i) => (
+              <BSCCard key={i} {...bsc} />
+            ))}
+          </S.BSCCardGrid>
           <S.RackGrid>
             {racks.map((rack) => (
               <RackCard

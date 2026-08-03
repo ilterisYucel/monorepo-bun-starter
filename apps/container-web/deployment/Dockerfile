@@ -4,13 +4,13 @@ FROM oven/bun:latest AS builder
 WORKDIR /app
 COPY . .
 RUN bun install
-WORKDIR /app/apps/web
+WORKDIR /app/apps/container-web
 RUN bun run build
 
 FROM nginx:alpine
 
 # Build output'u kopyala
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/container-web/dist /usr/share/nginx/html
 
 # 🔥 NGINX PROXY CONFIG - BURASI ÇOK ÖNEMLİ
 RUN echo 'server { \

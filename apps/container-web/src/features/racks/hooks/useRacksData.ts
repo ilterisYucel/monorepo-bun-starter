@@ -32,5 +32,5 @@ export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
   const racks = telemetriesToRacks(mergedTelemetries, chargeStatus, bscDevices);
   const rackDetails = telemetriesToRackDetailMap(mergedTelemetries, chargeStatus, bscDevices);
 
-  return { racks, rackDetails, isLoading, refetch };
+  return { racks, rackDetails, mergedTelemetries, isLoading, refetch };
 };

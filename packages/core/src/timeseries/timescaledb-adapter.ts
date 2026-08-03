@@ -273,14 +273,14 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     name?: string,
     tags?: Record<string, string>,
   ): Promise<TelemetryData | null> {
-    const results = await this.getLatestN(deviceId, 1, name, tags);
+    const results = await this.getLatestN(deviceId, 1, name ? [name] : undefined, tags);
     return results[0] ?? null;
   }
 
   async getLatestN(
     deviceId: string,
     limit: number,
-    name?: string,
+    names?: string[],
     tags?: Record<string, string>,
   ): Promise<TelemetryData[]> {
     await this.ensureTableExists(deviceId);
@@ -294,9 +294,9 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const params: unknown[] = [];
     let paramIndex = 1;
 
-    if (name) {
-      sql += ` AND name = $${paramIndex}`;
-      params.push(name);
+    if (names && names.length > 0) {
+      sql += ` AND name = ANY($${paramIndex})`;
+      params.push(names);
       paramIndex++;
     }
 
