@@ -1,0 +1,106 @@
+name: field-stack
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: field-timescaledb
+    command:
+      - -cshared_buffers=32MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=96MB
+      - -cmaintenance_work_mem=16MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5434:5432"
+    volumes:
+      - field-timescale-data:/var/lib/postgresql/data
+    networks:
+      - field-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 512m
+
+  redis:
+    image: redis:7-alpine
+    container_name: field-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    ports:
+      - "6381:6379"
+    volumes:
+      - field-redis-data:/data
+    networks:
+      - field-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 128m
+
+  web-service:
+    build:
+      context: ../
+      dockerfile: packages/services/web-service/deployment/Dockerfile
+    container_name: field-web-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: field
+      PORT: 5002
+      HOST: 0.0.0.0
+      JWT_SECRET: field-jwt-secret-change-in-production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    ports:
+      - "5002:5002"
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+    restart: unless-stopped
+    mem_limit: 256m
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/field/deployment/Dockerfile
+    container_name: field-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "88:80"
+    depends_on:
+      - web-service
+    networks:
+      - field-network
+    restart: unless-stopped
+    mem_limit: 128m
+
+volumes:
+  field-timescale-data:
+  field-redis-data:
+
+networks:
+  field-network:
+    driver: bridge
