@@ -1,0 +1,1 @@
+var e={};throw Error(`Could not resolve "sync-ammo" imported by "@playcanvas/react". Is it installed?`);export{e as default};
