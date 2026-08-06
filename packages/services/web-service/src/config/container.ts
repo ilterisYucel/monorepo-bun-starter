@@ -12,6 +12,7 @@ import {
   serverConfig,
   postgresConfig,
   seedUsers,
+  serviceTier,
 } from "./default";
 import { LoginUseCase } from "../application/use-cases/login-use-case";
 import { RefreshTokenUseCase } from "../application/use-cases/refresh-token-use-case";
@@ -24,6 +25,8 @@ import { TokenAdapter } from "../infrastructure/auth/token-adapter";
 import { UserRepository } from "../infrastructure/persistence/user-repository";
 import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
 import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
+import { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
+import { FieldPoller } from "../infrastructure/field-poller";
 import { WebServiceServer } from "../presentation/server";
 
 function redisConfig(): RedisConfig {
@@ -64,6 +67,20 @@ export function buildContainer() {
 
     realtime: asFunction(
       ({ redis }) => new RealtimeManager(redis),
+    ).singleton(),
+
+    containerProxy: asFunction(() => {
+      const tier = serviceTier();
+      if (tier === "field") return new ContainerProxy();
+      return undefined;
+    }).singleton(),
+
+    fieldPoller: asFunction(
+      ({ postgres }) => {
+        const tier = serviceTier();
+        if (tier === "boss") return new FieldPoller(postgres);
+        return undefined;
+      },
     ).singleton(),
 
     userRepo: asFunction(

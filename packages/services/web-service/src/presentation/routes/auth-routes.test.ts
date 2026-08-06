@@ -31,6 +31,7 @@ function buildTestApp() {
     passwordHashByUsername: vi.fn().mockResolvedValue("hashed-pw-xyz"),
     storeRefreshToken: vi.fn(),
     findById: vi.fn().mockResolvedValue(mockUser),
+    usersByFieldIds: vi.fn().mockResolvedValue([mockUser]),
     list: vi.fn().mockResolvedValue([mockUser]),
     create: vi.fn().mockResolvedValue(mockUser),
     update: vi.fn().mockResolvedValue(mockUser),

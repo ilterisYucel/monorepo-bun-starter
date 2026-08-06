@@ -1,5 +1,4 @@
-// packages/ui/src/components/LogTerminal/LogTerminal.tsx
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { SCADA_ICONS } from "../../icons";
 import type { LogTerminalProps } from "./LogTerminal.types";
 import * as S from "./LogTerminal.styles";
@@ -55,9 +54,48 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
   maxHeight = 350,
   title = "Komut Terminali & Event Log",
   titleIcon = <InfoIcon size={18} />,
+  tagFilters,
 }) => {
   const { logs, clearLogs } = provider;
   const bodyRef = useRef<HTMLDivElement>(null);
+
+  const [selectedTags, setSelectedTags] = useState<Record<string, string>>({});
+
+  const tagOptions = useMemo(() => {
+    if (!tagFilters || logs.length === 0) return {};
+    const options: Record<string, string[]> = {};
+    for (const filter of tagFilters) {
+      const values = new Set<string>();
+      for (const log of logs) {
+        const v = log.tags?.[filter.tagKey];
+        if (v) values.add(v);
+      }
+      options[filter.tagKey] = [...values].sort();
+    }
+    return options;
+  }, [tagFilters, logs]);
+
+  useEffect(() => {
+    if (!tagFilters || Object.keys(tagOptions).length === 0) return;
+    if (Object.keys(selectedTags).length > 0) return;
+    const initial: Record<string, string> = {};
+    for (const filter of tagFilters) {
+      const first = tagOptions[filter.tagKey]?.[0];
+      if (first) initial[filter.tagKey] = first;
+    }
+    if (Object.keys(initial).length > 0) setSelectedTags(initial);
+  }, [tagFilters, tagOptions, selectedTags]);
+
+  const filteredLogs = useMemo(() => {
+    if (!tagFilters) return logs;
+    return logs.filter((log) => {
+      for (const filter of tagFilters) {
+        const selected = selectedTags[filter.tagKey];
+        if (selected && log.tags?.[filter.tagKey] !== selected) return false;
+      }
+      return true;
+    });
+  }, [logs, tagFilters, selectedTags]);
 
   useEffect(() => {
     if (bodyRef.current) {
@@ -72,13 +110,35 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           <span>{titleIcon}</span>
           <span>{title}</span>
         </S.Title>
+        {tagFilters && (
+          <S.FiltersRow>
+            {tagFilters.map((filter) => (
+              <S.FilterGroup key={filter.tagKey}>
+                <S.FilterLabel>{filter.label}</S.FilterLabel>
+                <S.FilterSelect
+                  value={selectedTags[filter.tagKey] ?? tagOptions[filter.tagKey]?.[0] ?? ""}
+                  onChange={(e) =>
+                    setSelectedTags((prev) => ({
+                      ...prev,
+                      [filter.tagKey]: e.target.value,
+                    }))
+                  }
+                >
+                  {(tagOptions[filter.tagKey] ?? []).map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </S.FilterSelect>
+              </S.FilterGroup>
+            ))}
+          </S.FiltersRow>
+        )}
         <S.ClearBtn onClick={clearLogs}>
           <TrashIcon size={14} /> Temizle
         </S.ClearBtn>
       </S.Header>
 
       <S.Body ref={bodyRef}>
-        {logs.length === 0 ? (
+        {filteredLogs.length === 0 ? (
           <S.Empty>
             <S.EmptyIcon>
               <InfoIcon size={32} />
@@ -89,7 +149,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
             </S.EmptySmall>
           </S.Empty>
         ) : (
-          logs.map((log) => {
+          filteredLogs.map((log) => {
             const EntryComponent = getEntryComponent(log.type);
             const TypeIcon = typeIconMap[log.type] || InfoIcon;
             const SrcIcon = sourceIconMap[log.source] || SystemIcon;
@@ -108,7 +168,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
       </S.Body>
 
       <S.Footer>
-        <span>Toplam {logs.length} kayıt</span>
+        <span>Toplam {filteredLogs.length} kayıt</span>
         <S.Legend>
           <S.LegendSuccess><SuccessIcon size={12} /> Başarılı</S.LegendSuccess>
           <S.LegendError><ErrorIcon size={12} /> Hata</S.LegendError>

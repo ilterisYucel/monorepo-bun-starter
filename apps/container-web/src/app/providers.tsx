@@ -8,6 +8,7 @@ import { router } from "./router";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
 import { TransportProvider } from "../contexts/TransportContext";
 import { RealtimeProvider } from "../contexts/RealtimeContext";
+import { COLORS } from "@gd-monorepo/ui";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 
 export const AppProviders: React.FC = () => {
@@ -34,10 +35,10 @@ export const AppProviders: React.FC = () => {
         toastOptions={{
           duration: 4000,
           style: {
-            background: "#1f1f2e",
-            color: "#e0e0e0",
-            border: "1px solid #2a2a3a",
-            fontFamily: "monospace",
+            background: COLORS.bgPopup,
+            color: COLORS.textLight,
+            border: `1px solid ${COLORS.borderDefault}`,
+            fontFamily: "var(--mono)",
             fontSize: "13px",
           },
         }}

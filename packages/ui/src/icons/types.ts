@@ -36,4 +36,5 @@ export type ScadaIconName =
   | "zoomIn"
   | "container"
   | "menu"
-  | "close";
+  | "close"
+  | "fireAlarm";

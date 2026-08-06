@@ -6,9 +6,10 @@ export interface IUserRepository {
 
   findByUsername(username: string): Promise<User | undefined>;
   findById(id: string): Promise<User | undefined>;
+  usersByFieldIds(fieldIds: string[]): Promise<User[]>;
   list(): Promise<User[]>;
 
-  create(username: string, passwordHash: string, role: Role, name: string): Promise<User>;
+  create(username: string, passwordHash: string, role: Role, name: string, fieldIds?: string[]): Promise<User>;
 
   update(
     id: string,
@@ -17,6 +18,7 @@ export interface IUserRepository {
       password_hash?: string;
       role?: Role;
       name?: string;
+      field_ids?: string[];
     },
   ): Promise<User>;
 

@@ -16,7 +16,8 @@ export type PageType =
   | "events"
   | "system-charts"
   | "reports"
-  | "devices";
+  | "devices"
+  | "fire";
 
 interface SidebarProps {
   currentPage: PageType;
@@ -37,6 +38,7 @@ const menuItems = [
   { id: "reports" as const, label: "Raporlar", icon: SCADA_ICONS.reports },
   { id: "events" as const, label: "Olay & Gecmis", icon: SCADA_ICONS.events },
   { id: "devices" as const, label: "Cihazlar", icon: SCADA_ICONS.container },
+  { id: "fire" as const, label: "Yangın Paneli", icon: SCADA_ICONS.fireAlarm },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({

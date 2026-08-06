@@ -1,0 +1,256 @@
+{
+  "deviceId": "EP203",
+  "name": "Fire Suppression Panel",
+  "manufacturer": "C-TEC",
+  "model": "EP203",
+  "protocol": "MODBUS",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 502,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "name": "Fault",
+      "description": "System fault — normally energized relay, opens on fault or power loss",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "status" }
+    },
+    {
+      "name": "Fire",
+      "description": "Any zone in fire alarm condition",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "alarm" }
+    },
+    {
+      "name": "1st Stage Alarm",
+      "description": "First stage pre-discharge warning active",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+    },
+    {
+      "name": "2nd Stage Alarm",
+      "description": "Second stage — release countdown started",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+    },
+    {
+      "name": "Discharged",
+      "description": "Extinguishant has been released",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+    },
+    {
+      "name": "Extract",
+      "description": "Post-discharge vent fan running",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+    },
+    {
+      "name": "Mode Auto",
+      "description": "Auto-only mode active (false = auto + manual)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "mode" }
+    },
+    {
+      "name": "Hold",
+      "description": "Extinguishant countdown paused",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+    },
+    {
+      "name": "Abort",
+      "description": "Release sequence cancelled",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+    },
+    {
+      "name": "Reset",
+      "description": "System has been reset",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 9,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "status" }
+    },
+    {
+      "name": "Local Fire",
+      "description": "Local fire signal (duplicate of Fire)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 10,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "alarm" }
+    },
+    {
+      "name": "Manual Release",
+      "description": "Trigger manual extinguisher release (pulse coil)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "command" }
+    },
+    {
+      "name": "Hold DO",
+      "description": "Pause extinguishant countdown (maintain contact)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "command" }
+    },
+    {
+      "name": "Abort DO",
+      "description": "Cancel release sequence (pulse coil)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "command" }
+    },
+    {
+      "name": "Mode Select",
+      "description": "Toggle auto-only / auto+manual mode (pulse coil)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": { "deviceId": "EP203", "group": "command" }
+    }
+  ],
+  "pollIntervalMs": 2000,
+  "commands": {
+    "manual_release": {
+      "label": "Manuel Salım",
+      "telemetries": [{ "name": "Manual Release", "value": 1 }],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [{ "name": "1st Stage Alarm", "expect": true }]
+      }
+    },
+    "hold": {
+      "label": "Sayımı Durdur",
+      "telemetries": [{ "name": "Hold DO", "value": 1 }],
+      "timeoutMs": 0,
+      "validate": {
+        "reads": [{ "name": "Hold", "expect": true }]
+      }
+    },
+    "abort": {
+      "label": "Salımı İptal",
+      "telemetries": [{ "name": "Abort DO", "value": 1 }],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [{ "name": "Abort", "expect": true }]
+      }
+    },
+    "mode_toggle": {
+      "label": "Mod Değiştir",
+      "telemetries": [{ "name": "Mode Select", "value": 1 }],
+      "timeoutMs": 2000
+    }
+  }
+}

@@ -1,11 +1,10 @@
-// packages/ui/src/components/LogTerminal/types.ts
 import type { LogProvider } from "../../interfaces/log-provider";
+import type { TagFilterConfig } from "../TelemetryChart/TelemetryChart.types";
 
 export interface LogTerminalProps {
-  /** Log provider (IoC) */
   provider: LogProvider;
-  /** Maksimum yükseklik (px) */
   maxHeight?: number;
   title?: string;
   titleIcon?: React.ReactNode;
+  tagFilters?: TagFilterConfig[];
 }

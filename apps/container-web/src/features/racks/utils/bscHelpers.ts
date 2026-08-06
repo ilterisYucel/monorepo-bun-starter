@@ -70,7 +70,7 @@ export const telemetriesToBscSummaries = (
     console.log(`[bscHelpers] ${device.id}: ${systemCount} sys, ch=${chargePowerKw} disch=${dischargePowerKw} ant=${anticipatedVoltage} ver=${version} st=${state} hb=${heartbeat} ack=${requestAck} lr=${lastAcceptedReq}`);
 
     result.push({
-      name: device.name || device.id,
+      name: device.id,
       status: device.status,
       chargeStatus: globalChargeStatus,
       soc,

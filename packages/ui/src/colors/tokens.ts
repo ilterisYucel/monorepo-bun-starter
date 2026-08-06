@@ -70,6 +70,7 @@ const tokens = {
   cable: "#5a5a7a",
   terminal: "#4a4a6a",
   shadow: "#000000",
+  overlayBg: "rgba(0, 0, 0, 0.6)",
   dcActiveCenter: "#4a8af7",
   dcActiveEdge: "#1d4ed8",
   dcIdleCenter: "#7a8696",

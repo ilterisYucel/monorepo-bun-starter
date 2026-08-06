@@ -9,6 +9,7 @@ export interface LogEntry {
   message: string;
   details?: string;
   fixed?: boolean;
+  tags?: Record<string, string>;
 }
 
 export interface LogQueryParams {

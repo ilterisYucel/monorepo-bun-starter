@@ -176,3 +176,38 @@ export const LegendSuccess = styled.span`color: ${COLORS.success};`;
 export const LegendError = styled.span`color: ${COLORS.error};`;
 export const LegendWarning = styled.span`color: ${COLORS.warning};`;
 export const LegendInfo = styled.span`color: ${COLORS.info};`;
+
+export const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+export const FilterLabel = styled.span`
+  font-size: 11px;
+  color: ${COLORS.textMuted};
+  white-space: nowrap;
+`;
+
+export const FilterSelect = styled.select`
+  padding: 3px 8px;
+  background: ${COLORS.bgInput};
+  border: 1px solid ${COLORS.borderDefault};
+  border-radius: 6px;
+  color: ${COLORS.textPrimary};
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+
+  &:focus {
+    border-color: ${COLORS.info};
+  }
+`;
+
+export const FiltersRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  margin-right: 12px;
+`;

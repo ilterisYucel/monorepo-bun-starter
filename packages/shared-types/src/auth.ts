@@ -1,10 +1,11 @@
-export type Role = "admin" | "teknik" | "guest";
+export type Role = "admin" | "teknik" | "guest" | "boss";
 
 export interface User {
   id: string;
   username: string;
   role: Role;
   name: string;
+  fieldIds?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +20,7 @@ export interface CreateUserRequest {
   password: string;
   role: Role;
   name: string;
+  fieldIds?: string[];
 }
 
 export interface UpdateUserRequest {
@@ -26,6 +28,7 @@ export interface UpdateUserRequest {
   password?: string;
   role?: Role;
   name?: string;
+  fieldIds?: string[];
 }
 
 export interface AuthResponse {

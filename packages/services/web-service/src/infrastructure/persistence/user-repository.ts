@@ -9,6 +9,7 @@ interface UserRow {
   password_hash: string;
   role: Role;
   name: string;
+  field_ids: string[] | null;
   refresh_token: string | null;
   refresh_token_expires_at: string | null;
   created_at: string;
@@ -21,6 +22,7 @@ function toUser(row: UserRow): User {
     username: row.username,
     role: row.role,
     name: row.name,
+    fieldIds: row.field_ids ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -35,8 +37,9 @@ export class UserRepository implements IUserRepository {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         username VARCHAR(100) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
-        role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'teknik', 'guest')),
+        role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'teknik', 'guest', 'boss')),
         name VARCHAR(200) NOT NULL,
+        field_ids UUID[] DEFAULT '{}',
         refresh_token TEXT,
         refresh_token_expires_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -82,13 +85,15 @@ export class UserRepository implements IUserRepository {
     passwordHash: string,
     role: Role,
     name: string,
+    fieldIds?: string[],
   ): Promise<User> {
     const row = await this.db.queryOne<UserRow>(
-      `INSERT INTO users (username, password_hash, role, name)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [username, passwordHash, role, name],
+      `INSERT INTO users (username, password_hash, role, name, field_ids)
+       VALUES ($1, $2, $3, $4, $5::uuid[]) RETURNING *`,
+      [username, passwordHash, role, name, fieldIds ?? []],
     );
-    return toUser(row!);
+    if (!row) throw new Error(`Failed to create user: ${username}`);
+    return toUser(row);
   }
 
   async update(
@@ -98,6 +103,7 @@ export class UserRepository implements IUserRepository {
       password_hash?: string;
       role?: Role;
       name?: string;
+      field_ids?: string[];
     },
   ): Promise<User> {
     const sets: string[] = [];
@@ -120,6 +126,10 @@ export class UserRepository implements IUserRepository {
       sets.push(`name = $${i++}`);
       params.push(fields.name);
     }
+    if (fields.field_ids !== undefined) {
+      sets.push(`field_ids = $${i++}::uuid[]`);
+      params.push(fields.field_ids);
+    }
 
     sets.push(`updated_at = NOW()`);
     params.push(id);
@@ -128,11 +138,20 @@ export class UserRepository implements IUserRepository {
       `UPDATE users SET ${sets.join(", ")} WHERE id = $${i} RETURNING *`,
       params,
     );
-    return toUser(row!);
+    if (!row) throw new Error(`Failed to update user: ${id}`);
+    return toUser(row);
   }
 
   async delete(id: string): Promise<void> {
     await this.db.execute("DELETE FROM users WHERE id = $1", [id]);
+  }
+
+  async usersByFieldIds(fieldIds: string[]): Promise<User[]> {
+    const rows = await this.db.query<UserRow>(
+      "SELECT * FROM users WHERE field_ids && $1::uuid[] ORDER BY created_at ASC",
+      [fieldIds],
+    );
+    return rows.map(toUser);
   }
 
   async list(): Promise<User[]> {

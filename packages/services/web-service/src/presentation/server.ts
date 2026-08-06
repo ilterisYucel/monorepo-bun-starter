@@ -30,7 +30,12 @@ import { makeCommandRoutes } from "./routes/command-routes";
 import { LogRepository } from "../infrastructure/persistence/log-repository";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
+import { containerWsRoutes } from "../infrastructure/container-proxy/container-ws-routes";
+import { fieldRoutes } from "./routes/field-routes";
+import { adminRoutes } from "./routes/admin-routes";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
+import type { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
+import type { FieldPoller } from "../infrastructure/field-poller";
 import type { MaterializedViewManager, IMessageQueue } from "@gd-monorepo/core";
 
 export interface ServerDependencies {
@@ -47,6 +52,8 @@ export interface ServerDependencies {
   deleteUserUseCase: DeleteUserUseCase;
   listUsersUseCase: ListUsersUseCase;
   realtime: RealtimeManager;
+  containerProxy?: ContainerProxy;
+  fieldPoller?: FieldPoller;
   mvManager: MaterializedViewManager;
   mq: IMessageQueue;
   configDir: string;
@@ -189,5 +196,29 @@ export class WebServiceServer {
       },
       { prefix: "/api/commands" },
     );
+
+    await this.app.register(
+      async (fastify) => {
+        await fieldRoutes(fastify, { db: deps.postgres, containerProxy: deps.containerProxy });
+      },
+      { prefix: "/api/fields" },
+    );
+
+    if (deps.fieldPoller) {
+      await this.app.register(
+        async (fastify) => {
+          await adminRoutes(fastify, { fieldPoller: deps.fieldPoller });
+        },
+        { prefix: "/api/admin/fields" },
+      );
+    }
+
+    if (deps.containerProxy) {
+      await this.app.register(
+        async (fastify) => {
+          await containerWsRoutes(fastify, { containerProxy: deps.containerProxy });
+        },
+      );
+    }
   }
 }

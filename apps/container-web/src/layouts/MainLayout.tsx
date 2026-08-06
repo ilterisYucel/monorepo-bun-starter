@@ -39,6 +39,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       onPageChange("reports");
     } else if (path === "devices") {
       onPageChange("devices");
+    } else if (path === "fire") {
+      onPageChange("fire");
     }
   }, [location, onPageChange]);
 

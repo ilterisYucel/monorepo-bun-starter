@@ -1,4 +1,5 @@
 import React from "react";
+import { COLORS } from "@gd-monorepo/ui";
 
 interface Props {
   children: React.ReactNode;
@@ -43,29 +44,29 @@ export class ErrorBoundary extends React.Component<Props, State> {
             justifyContent: "center",
             height: "100vh",
             padding: "32px",
-            background: "#1a1a2e",
-            color: "#e0e0e0",
-            fontFamily: "monospace",
+            background: COLORS.bgCard,
+            color: COLORS.textLight,
+            fontFamily: "var(--mono)",
             textAlign: "center",
           }}
         >
-          <h2 style={{ color: "#ef4444", marginBottom: "16px" }}>Something went wrong</h2>
-          <p style={{ color: "#a0a0b0", marginBottom: "8px", maxWidth: "500px" }}>
+          <h2 style={{ color: COLORS.error, marginBottom: "16px" }}>Something went wrong</h2>
+          <p style={{ color: COLORS.textMuted, marginBottom: "8px", maxWidth: "500px" }}>
             {this.state.error?.message || "An unexpected error occurred"}
           </p>
-          <p style={{ color: "#6b7280", fontSize: "12px", marginBottom: "24px" }}>
+          <p style={{ color: COLORS.textDisabled, fontSize: "12px", marginBottom: "24px" }}>
             The application encountered an error and cannot continue. This may be caused by a WebGL context loss or memory exhaustion.
           </p>
           <button
             onClick={this.handleReset}
             style={{
               padding: "10px 24px",
-              background: "#3b82f6",
-              color: "#fff",
+              background: COLORS.info,
+              color: COLORS.textWhite,
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",
-              fontFamily: "monospace",
+              fontFamily: "var(--mono)",
               fontSize: "14px",
             }}
           >

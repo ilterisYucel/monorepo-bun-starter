@@ -2,6 +2,7 @@ export type {
   ITimeseriesDatabase,
   TimeSeriesQuery,
   AggregateQuery,
+  DownsampleOptions,
 } from "./interface";
 export { TimescaleDBAdapter } from "./timescaledb-adapter";
 export type { TimescaleDBConfig } from "./timescaledb-adapter";

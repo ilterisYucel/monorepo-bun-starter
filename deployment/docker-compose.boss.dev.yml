@@ -1,0 +1,114 @@
+name: boss-stack
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: boss-timescaledb-dev
+    command:
+      - -cshared_buffers=32MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=96MB
+      - -cmaintenance_work_mem=16MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5435:5432"
+    volumes:
+      - boss-timescale-data-dev:/var/lib/postgresql/data
+    networks:
+      - boss-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: boss-redis-dev
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    ports:
+      - "6382:6379"
+    volumes:
+      - boss-redis-data-dev:/data
+    networks:
+      - boss-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web-service:
+    build:
+      context: ../
+      dockerfile: packages/services/web-service/deployment/Dockerfile.dev
+    container_name: boss-web-service-dev
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: boss
+      PORT: 5003
+      HOST: 0.0.0.0
+      JWT_SECRET: dev-secret-change-in-production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    ports:
+      - "5003:5003"
+    volumes:
+      - ../packages/services/web-service/src:/app/packages/services/web-service/src
+      - ../packages/services/web-service/run.ts:/app/packages/services/web-service/run.ts
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - boss-network
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/superadmin/deployment/Dockerfile.dev
+    container_name: boss-web-dev
+    environment:
+      NODE_ENV: development
+      VITE_SUPERADMIN_SERVICE_URL: http://web-service:5003
+    ports:
+      - "5175:5175"
+    volumes:
+      - ../apps/superadmin/src:/app/apps/superadmin/src
+      - ../apps/superadmin/vite.config.ts:/app/apps/superadmin/vite.config.ts
+      - ../apps/superadmin/tsconfig.json:/app/apps/superadmin/tsconfig.json
+      - ../apps/superadmin/index.html:/app/apps/superadmin/index.html
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/ui/src:/app/packages/ui/src
+      - ../tsconfig.base.json:/app/tsconfig.base.json
+      - /app/apps/superadmin/node_modules
+      - /app/node_modules
+    depends_on:
+      - web-service
+    networks:
+      - boss-network
+
+volumes:
+  boss-timescale-data-dev:
+  boss-redis-data-dev:
+
+networks:
+  boss-network:
+    driver: bridge

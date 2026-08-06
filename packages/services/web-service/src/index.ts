@@ -1,6 +1,6 @@
 import { buildContainer } from "./config/container";
 import type { ServerDependencies } from "./presentation/server";
-import { deviceConfigDir } from "./config/default";
+import { deviceConfigDir, serviceTier } from "./config/default";
 
 export async function main() {
   console.log("[run] Web Service baslatiliyor...");
@@ -33,6 +33,8 @@ export async function main() {
     deleteUserUseCase: c.deleteUserUseCase as any,
     listUsersUseCase: c.listUsersUseCase as any,
     realtime,
+    containerProxy: c.containerProxy as any,
+    fieldPoller: c.fieldPoller as any,
     mvManager,
     mq,
     configDir: deviceConfigDir(),
@@ -66,6 +68,8 @@ export async function main() {
     stopping = true;
     console.log(`[run] ${signal} alindi, kapatiliyor...`);
     await server.stop();
+    if (deps.containerProxy) await deps.containerProxy.stop();
+    if (deps.fieldPoller) deps.fieldPoller.stop();
     await mq.close();
     await timescale.close();
     await postgres.disconnect();
@@ -77,5 +81,13 @@ export async function main() {
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   await server.start(deps);
-  console.log("[run] Hazir.");
+
+  if (deps.containerProxy) {
+    await deps.containerProxy.start();
+  }
+  if (deps.fieldPoller) {
+    await deps.fieldPoller.start();
+  }
+
+  console.log(`[run] Hazir (tier: ${serviceTier()}).`);
 }

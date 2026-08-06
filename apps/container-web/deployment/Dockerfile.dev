@@ -6,6 +6,8 @@ WORKDIR /app
 COPY . .
 
 # Root'da install yap (tüm workspace'leri çözer)
+# Electron binary indirmeyi atla — container-web'in ihtiyacı yok
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 RUN bun install
 
 WORKDIR /app/apps/container-web

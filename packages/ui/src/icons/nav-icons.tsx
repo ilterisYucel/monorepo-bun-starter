@@ -35,6 +35,7 @@ import {
   TbZoomScan,
   TbBox,
   TbX,
+  TbFireExtinguisher,
 } from "react-icons/tb";
 import type { ScadaIconName } from "./types";
 
@@ -75,4 +76,5 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   container:         TbBox,
   menu:              TbInfoCircle,
   close:             TbX,
+  fireAlarm:         TbFireExtinguisher,
 };

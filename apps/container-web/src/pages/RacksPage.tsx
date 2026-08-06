@@ -53,24 +53,33 @@ export const RacksPage: React.FC = () => {
         </S.LoadingContainer>
       ) : (
         <>
-          <S.BSCCardGrid>
-            {bscSummaries.map((bsc, i) => (
-              <BSCCard key={i} {...bsc} />
-            ))}
-          </S.BSCCardGrid>
-          <S.RackGrid>
-            {racks.map((rack) => (
-              <RackCard
-                key={`${rack.deviceId}-${rack.id}`}
-                {...rack}
-                charge_status={chargeStatus}
-                onDetailClick={() => {
-              const detail = rackDetails.get(`${rack.deviceId}-${rack.id}`);
-              if (detail) setDetailData(detail);
-            }}
-              />
-            ))}
-          </S.RackGrid>
+          <S.BSCSectionGrid>
+            {bscSummaries.map((bsc, idx) => {
+              const bscRacks = racks.filter(
+                (r) => r.deviceId === bscDevices[idx]?.id,
+              );
+              return (
+                <S.BSCSection key={bsc.name}>
+                  <BSCCard {...bsc} />
+                  <S.RackSubGrid>
+                    {bscRacks.map((rack) => (
+                      <RackCard
+                        key={`${rack.deviceId}-${rack.id}`}
+                        {...rack}
+                        charge_status={chargeStatus}
+                        onDetailClick={() => {
+                          const detail = rackDetails.get(
+                            `${rack.deviceId}-${rack.id}`,
+                          );
+                          if (detail) setDetailData(detail);
+                        }}
+                      />
+                    ))}
+                  </S.RackSubGrid>
+                </S.BSCSection>
+              );
+            })}
+          </S.BSCSectionGrid>
           <TelemetryChart
             provider={rackTelemetryProvider}
             telemetryNames={TELEMETRY_NAMES}

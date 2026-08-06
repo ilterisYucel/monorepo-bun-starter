@@ -1,9 +1,8 @@
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import type { FastifyInstance } from "fastify";
 import type { IMessageQueue } from "@gd-monorepo/core";
-import type { DeviceConfigFile, CommandConfig, TelemetryData } from "@gd-monorepo/shared-types";
+import type { CommandConfig, TelemetryData } from "@gd-monorepo/shared-types";
+import { loadDeviceConfig } from "../../infrastructure/config-loader";
 
 const telemetryEntrySchema = z.object({
   name: z.string().min(1),
@@ -26,25 +25,6 @@ const executeMultiSchema = z.object({
   mode: z.enum(["parallel", "sequential"]).default("parallel"),
   onFailure: z.enum(["stop", "continue"]).default("stop"),
 });
-
-function loadDeviceConfig(configDir: string, deviceId: string): DeviceConfigFile | null {
-  const deviceIdLower = deviceId.toLowerCase();
-  const patterns = [
-    join(configDir, `${deviceIdLower}.json`),
-    join(configDir, `${deviceId}.json`),
-  ];
-
-  for (const p of patterns) {
-    if (existsSync(p)) {
-      try {
-        return JSON.parse(readFileSync(p, "utf-8"));
-      } catch {
-        continue;
-      }
-    }
-  }
-  return null;
-}
 
 function resolveTelemetries(
   command: CommandConfig,

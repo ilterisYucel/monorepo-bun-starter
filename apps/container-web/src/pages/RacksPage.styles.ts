@@ -12,42 +12,23 @@ export const RacksPageContainer = styled.div`
   padding: 2px;
 `;
 
-export const BSCCardGrid = styled.div`
+export const BSCSectionGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
-`;
-
-export const RackGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
   margin-bottom: 32px;
-
-  @media (max-width: 1600px) {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  @media (max-width: 400px) {
-    grid-template-columns: 1fr;
-  }
 `;
 
-export const ChartContainer = styled.div`
-  background: ${COLORS.bgCard};
-  border-radius: 20px;
-  border: 1px solid ${COLORS.borderDefault};
-  overflow: hidden;
-  padding: 20px;
+export const BSCSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const RackSubGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
 `;
 
 export const LoadingContainer = styled.div`

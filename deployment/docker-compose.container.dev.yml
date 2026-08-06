@@ -1,3 +1,5 @@
+name: container-stack
+
 services:
   timescaledb:
     image: timescale/timescaledb:latest-pg14
@@ -13,11 +15,11 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: battery
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - timescale-data-dev:/var/lib/postgresql/data
     networks:
-      - battery-network-dev
+      - container-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
       interval: 10s
@@ -34,11 +36,11 @@ services:
       --save ""
       --appendonly no
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis-data-dev:/data
     networks:
-      - battery-network-dev
+      - container-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -66,7 +68,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - battery-network-dev
+      - container-network
 
   data-service:
     build:
@@ -93,7 +95,7 @@ services:
       timescaledb:
         condition: service_healthy
     networks:
-      - battery-network-dev
+      - container-network
 
   web-service:
     build:
@@ -131,7 +133,7 @@ services:
       retries: 10
       start_period: 10s
     networks:
-      - battery-network-dev
+      - container-network
 
   web:
     build:
@@ -156,12 +158,12 @@ services:
       web-service:
         condition: service_healthy
     networks:
-      - battery-network-dev
+      - container-network
 
 volumes:
   timescale-data-dev:
   redis-data-dev:
 
 networks:
-  battery-network-dev:
+  container-network:
     driver: bridge

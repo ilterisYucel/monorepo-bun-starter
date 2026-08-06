@@ -4,7 +4,9 @@ import type { ITokenService } from "../../domain/services/ITokenService";
 
 const ROUTE_PERMISSIONS: Record<string, Role[]> = {
   "/api/auth/users": ["admin"],
-  "/api/data/": ["admin", "teknik", "guest"],
+  "/api/fields": ["admin", "teknik", "boss"],
+  "/api/admin/fields": ["boss"],
+  "/api/data/": ["admin", "teknik", "guest", "boss"],
 };
 
 const PUBLIC_PREFIXES = [

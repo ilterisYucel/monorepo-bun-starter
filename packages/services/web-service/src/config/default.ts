@@ -31,11 +31,28 @@ export interface ServerConfig {
   host: string;
 }
 
+export type ServiceTier = "container" | "field" | "boss";
+
+export function serviceTier(): ServiceTier {
+  const tier = process.env.SERVICE_TIER ?? "container";
+  if (tier !== "container" && tier !== "field" && tier !== "boss") {
+    throw new Error(`Gecersiz SERVICE_TIER: ${tier}`);
+  }
+  return tier;
+}
+
+const DEFAULT_PORTS: Record<ServiceTier, number> = {
+  container: 5001,
+  field: 5002,
+  boss: 5003,
+};
+
 export function serverConfig(): ServerConfig {
+  const tier = serviceTier();
   return validateOrThrow<ServerConfig>(
     serverConfigSchema,
     {
-      port: Number.parseInt(process.env.PORT ?? "5001", 10),
+      port: Number.parseInt(process.env.PORT ?? String(DEFAULT_PORTS[tier]), 10),
       host: process.env.HOST ?? "0.0.0.0",
     },
     "serverConfig",
@@ -70,6 +87,12 @@ export function seedUsers(): SeedUser[] {
       password: "admin123",
       role: "admin",
       name: "Admin Kullanici",
+    },
+    {
+      username: "boss",
+      password: "boss123",
+      role: "boss",
+      name: "Yonetici",
     },
     {
       username: "guest",

@@ -4,6 +4,7 @@ export * from "./modbus-adapter";
 export * from "./job";
 export * from "./device-interface";
 export * from "./auth";
+export * from "./field";
 export * from "./result";
 export * from "./log";
 export * from "./schemas";

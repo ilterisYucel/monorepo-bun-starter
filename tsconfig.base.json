@@ -37,7 +37,9 @@
       "@gd-monorepo/backend": ["./apps/backend/src"],
       "@gd-monorepo/simulators": ["./packages/simulators/src"],
       "@gd-monorepo/ui": ["./packages/ui/src"],
-      "@gd-monorepo/device-library": ["./packages/device-library/src"]
+      "@gd-monorepo/device-library": ["./packages/device-library/src"],
+      "@gd-monorepo/field": ["./apps/field/src"],
+      "@gd-monorepo/superadmin": ["./apps/superadmin/src"]
     }
   },
   "exclude": ["node_modules", "dist", "out", "release", "**/dist", "**/out"]

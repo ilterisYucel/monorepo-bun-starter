@@ -3,6 +3,7 @@ import { TimescaleDBAdapter, MaterializedViewManager } from "@gd-monorepo/core";
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import { DeviceRegistry } from "../../infrastructure/persistence/device-registry";
+import { loadDeviceConfig } from "../../infrastructure/config-loader";
 
 export async function unifiedRoutes(
   fastify: FastifyInstance,
@@ -177,6 +178,32 @@ export async function unifiedRoutes(
       });
     } catch (error) {
       console.error("[UnifiedRoutes] telemetry/:deviceId hata:", error);
+      return reply.status(500).send({ error: "Internal server error" });
+    }
+  });
+
+  fastify.get("/devices/:deviceId/telemetry-config", async (request, reply) => {
+    try {
+      const { deviceId } = request.params as { deviceId: string };
+      const configDir = process.env.DEVICE_CONFIG_DIR ?? "../device-service/config";
+
+      const config = loadDeviceConfig(configDir, deviceId);
+      if (!config) {
+        return reply.status(404).send({ error: `${deviceId} icin konfigurasyon bulunamadi` });
+      }
+
+      return reply.send({
+        deviceId: config.deviceId,
+        name: config.name,
+        manufacturer: config.manufacturer,
+        model: config.model,
+        protocol: config.protocol,
+        connection: config.connection,
+        telemetry: config.telemetry,
+        commands: config.commands ? Object.keys(config.commands) : [],
+      });
+    } catch (error) {
+      console.error("[UnifiedRoutes] telemetry-config hata:", error);
       return reply.status(500).send({ error: "Internal server error" });
     }
   });
