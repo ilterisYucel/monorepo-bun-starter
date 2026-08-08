@@ -1,21 +1,28 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate, useParams, Navigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
-import { SCADA_ICONS } from "@gd-monorepo/ui";
+import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import { SystemHeader } from "./SystemHeader";
 import * as S from "./FieldShell.styles";
 
 const NAV_ITEMS = [
-  { path: "", label: "Panel", icon: SCADA_ICONS.dashboard },
-  { path: "containers", label: "Konteynerler", icon: SCADA_ICONS.container },
-  { path: "charts", label: "Grafikler", icon: SCADA_ICONS.charts },
-  { path: "control", label: "Kontrol", icon: SCADA_ICONS.control },
-  { path: "events", label: "Olaylar", icon: SCADA_ICONS.events },
-  { path: "reports", label: "Raporlar", icon: SCADA_ICONS.reports },
-  { path: "devices", label: "Cihazlar", icon: SCADA_ICONS.container },
+  { path: "", key: "nav.dashboard", icon: SCADA_ICONS.dashboard },
+  { path: "containers", key: "nav.containers", icon: SCADA_ICONS.container },
+  { path: "charts", key: "nav.charts", icon: SCADA_ICONS.charts },
+  { path: "control", key: "nav.control", icon: SCADA_ICONS.control },
+  { path: "events", key: "nav.eventsShort", icon: SCADA_ICONS.events },
+  { path: "reports", key: "nav.reports", icon: SCADA_ICONS.reports },
+  { path: "devices", key: "nav.devices", icon: SCADA_ICONS.container },
 ];
 
+const ROLE_KEYS: Record<string, string> = {
+  admin: "common.role.admin",
+  teknik: "common.role.teknik",
+  boss: "common.role.boss",
+};
+
 export const FieldShell: React.FC = () => {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const { fieldId } = useParams<{ fieldId: string }>();
@@ -37,14 +44,9 @@ export const FieldShell: React.FC = () => {
   const UserIcon = SCADA_ICONS.user;
   const LogoutIcon = SCADA_ICONS.logout;
 
-  const roleLabel =
-    user?.role === "admin"
-      ? "Admin"
-      : user?.role === "teknik"
-        ? "Teknik"
-        : user?.role === "boss"
-          ? "Yonetici"
-          : "—";
+  const roleLabel = user?.role
+    ? t(ROLE_KEYS[user.role] ?? user.role)
+    : "—";
 
   return (
     <S.Shell>
@@ -63,18 +65,19 @@ export const FieldShell: React.FC = () => {
               ? currentPath === `/field/${fieldId}`
               : currentPath.startsWith(navPath);
             const Icon = item.icon;
+            const label = t(item.key);
             return (
               <S.NavItem
-                key={item.label}
+                key={item.key}
                 $active={active}
                 $collapsed={collapsed}
                 onClick={() => navigate(navPath)}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? label : undefined}
               >
                 <S.NavIcon>
                   <Icon size={20} />
                 </S.NavIcon>
-                {!collapsed && <S.NavLabel>{item.label}</S.NavLabel>}
+                {!collapsed && <S.NavLabel>{label}</S.NavLabel>}
               </S.NavItem>
             );
           })}
@@ -85,10 +88,10 @@ export const FieldShell: React.FC = () => {
           <S.SidebarToggle
             $collapsed={collapsed}
             onClick={() => setCollapsed(!collapsed)}
-            aria-label={collapsed ? "Menuyu genislet" : "Menuyu daralt"}
+            aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
           >
             <CollapseIcon size={14} />
-            {!collapsed && <S.ToggleLabel>Daralt</S.ToggleLabel>}
+            {!collapsed && <S.ToggleLabel>{t("nav.collapseShort")}</S.ToggleLabel>}
           </S.SidebarToggle>
         </S.ToggleContainer>
 
@@ -99,7 +102,7 @@ export const FieldShell: React.FC = () => {
             </S.UserProfileAvatar>
             {!collapsed && (
               <>
-                <S.UserProfileName>{user?.name ?? "Kullanici"}</S.UserProfileName>
+                <S.UserProfileName>{user?.name ?? t("nav.user")}</S.UserProfileName>
                 <S.UserRoleBadge $role={user?.role ?? "teknik"}>
                   {roleLabel}
                 </S.UserRoleBadge>
@@ -113,17 +116,17 @@ export const FieldShell: React.FC = () => {
               onClick={() => navigate(`/field/${fieldId}/control`)}
             >
               <EmergencyIcon size={16} />
-              {" "}ACIL DURDUR
+              {" "}{t("nav.emergency.button")}
             </S.EmergencyStopBtn>
           )}
 
           <S.LogoutBtn
             $collapsed={collapsed}
             onClick={() => logout()}
-            title={collapsed ? "Cikis" : undefined}
+            title={collapsed ? t("auth.logout") : undefined}
           >
             <LogoutIcon size={collapsed ? 18 : 16} />
-            {!collapsed && <S.LogoutText>Cikis</S.LogoutText>}
+            {!collapsed && <S.LogoutText>{t("auth.logout")}</S.LogoutText>}
           </S.LogoutBtn>
         </S.SidebarFooter>
       </S.SidebarWrapper>

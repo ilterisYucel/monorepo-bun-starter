@@ -2,6 +2,12 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg14
     container_name: battery-timescaledb-dev
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -12,6 +18,11 @@ services:
       - timescale-data-dev:/var/lib/postgresql/data
     networks:
       - battery-network-dev
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -22,6 +33,11 @@ services:
       - redis-data-dev:/data
     networks:
       - battery-network-dev
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   demo-backend:
     build:
@@ -46,6 +62,7 @@ services:
       - ../apps/demo-backend/src:/app/apps/demo-backend/src
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
       - ../packages/simulators/src:/app/packages/simulators/src
     depends_on:
       - timescaledb
@@ -54,6 +71,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - battery-network-dev
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build:
@@ -77,6 +99,11 @@ services:
       - demo-backend
     networks:
       - battery-network-dev
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   timescale-data-dev:

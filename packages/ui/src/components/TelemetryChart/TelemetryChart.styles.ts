@@ -95,26 +95,6 @@ export const ControlLabel = styled.label`
   white-space: nowrap;
 `;
 
-export const ControlSelect = styled.select`
-  background: ${COLORS.bgPanel};
-  border: 1px solid ${COLORS.borderDefault};
-  color: ${COLORS.textPrimary};
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-
-  &:hover {
-    border-color: ${COLORS.info};
-  }
-
-  &:focus-visible {
-    outline: 1px solid ${COLORS.info};
-    outline-offset: -1px;
-  }
-`;
-
 export const DropdownWrapper = styled.div`
   position: relative;
 `;
@@ -175,10 +155,67 @@ export const Checkbox = styled.input`
   flex-shrink: 0;
 `;
 
+export const SearchInput = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  background: ${COLORS.bgPanel};
+  border: 1px solid ${COLORS.borderDefault};
+  border-radius: 6px;
+  color: ${COLORS.textPrimary};
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+
+  &:focus {
+    border-color: ${COLORS.info};
+  }
+
+  &::placeholder {
+    color: ${COLORS.textDisabled};
+  }
+`;
+
+export const CategoryHeader = styled.div`
+  padding: 6px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${COLORS.textMuted};
+  cursor: default;
+`;
+
 export const DropdownDivider = styled.div`
   height: 1px;
   background: ${COLORS.borderDefault};
   margin: 4px 0;
+`;
+
+export const CustomRangeRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+
+export const DateTimeInput = styled.input`
+  background: ${COLORS.bgPanel};
+  border: 1px solid ${COLORS.borderDefault};
+  color: ${COLORS.textPrimary};
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color-scheme: dark;
+  cursor: pointer;
+
+  &:hover {
+    border-color: ${COLORS.info};
+  }
+
+  &:focus-visible {
+    outline: 1px solid ${COLORS.info};
+    outline-offset: -1px;
+  }
 `;
 
 export const Skeleton = styled.div`

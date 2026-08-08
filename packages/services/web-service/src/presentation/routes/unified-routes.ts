@@ -28,10 +28,19 @@ export async function unifiedRoutes(
         (d) => ids.length === 0 || ids.includes(d.id),
       );
 
-      const results = await Promise.all(
-        targetDevices.map((d) => timescale.getLatestN(d.id, 2000, nameFilter)),
+      const LATEST_TELEMETRY_LIMIT = 2000;
+      const results = await Promise.allSettled(
+        targetDevices.map((d) => timescale.getLatestN(d.id, LATEST_TELEMETRY_LIMIT, nameFilter)),
       );
-      const allTelemetries = results.flat();
+      const allTelemetries = results.flatMap((r) =>
+        r.status === "fulfilled" ? r.value : [],
+      );
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+      if (failedCount > 0) {
+        console.warn(
+          `[UnifiedRoutes] telemetry/latest: ${failedCount}/${results.length} cihaz sorgusu basarisiz`,
+        );
+      }
 
       return reply.send({ telemetries: allTelemetries });
     } catch (error) {
@@ -75,7 +84,7 @@ export async function unifiedRoutes(
       );
 
       const tagFilter = rack_id ? { rack_id } : undefined;
-      const results = await Promise.all(
+      const results = await Promise.allSettled(
         targetDevices2.map((d) =>
           timescale.getDownsampledData({
             deviceId: d.id,
@@ -87,7 +96,15 @@ export async function unifiedRoutes(
           }),
         ),
       );
-      const allTelemetries = results.flat();
+      const allTelemetries = results.flatMap((r) =>
+        r.status === "fulfilled" ? r.value : [],
+      );
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+      if (failedCount > 0) {
+        console.warn(
+          `[UnifiedRoutes] telemetry/downsampled: ${failedCount}/${results.length} cihaz sorgusu basarisiz`,
+        );
+      }
 
       return reply.send({ telemetries: allTelemetries });
     } catch (error) {
@@ -232,10 +249,19 @@ export async function unifiedRoutes(
     try {
       const { name } = request.params as { name: string };
 
-      const [columns, stats] = await Promise.all([
+      // Retention ile uyumlu zaman filtresi — tüm chunk'ları taramayı önler.
+      // TIMESCALE_RETENTION_AFTER env değişkeni yoksa varsayılan 90 gün kullanılır.
+      const retentionDays = process.env.TIMESCALE_RETENTION_AFTER
+        ? parseInt(process.env.TIMESCALE_RETENTION_AFTER) || 90
+        : 90;
+
+      const safeName = name.replace(/[^a-zA-Z0-9_]/g, "_");
+
+      const [columnsResult, statsResult] = await Promise.allSettled([
         timescale.executeRaw(`
           SELECT DISTINCT name, COUNT(*) as data_points
-          FROM ${name}
+          FROM ${safeName}
+          WHERE timestamp >= NOW() - INTERVAL '${retentionDays} days'
           GROUP BY name
           ORDER BY name
         `) as any,
@@ -244,9 +270,13 @@ export async function unifiedRoutes(
             MIN(timestamp) as first_data,
             MAX(timestamp) as last_data,
             COUNT(*) as total_points
-          FROM ${name}
+          FROM ${safeName}
+          WHERE timestamp >= NOW() - INTERVAL '${retentionDays} days'
         `) as any,
       ]);
+
+      const columns = columnsResult.status === "fulfilled" ? (columnsResult.value as any) : undefined;
+      const stats = statsResult.status === "fulfilled" ? (statsResult.value as any) : undefined;
 
       return reply.send({
         hypertable: name,

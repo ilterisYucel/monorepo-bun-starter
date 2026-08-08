@@ -161,6 +161,38 @@ export async function makeCommandRoutes(
       const jobId = `${deviceId}-${commandName ?? "raw"}-${Date.now()}`;
       const job = buildJob(deviceId, telemetries, commandConfig, jobId);
       const result = await mq.executeAndWait(job, timeoutMs);
+
+      // Zamanlı komut: _durationSeconds varsa, süre dolunca otomatik stop job'ı zamanla
+      const durationSeconds = params && typeof params._durationSeconds === "number"
+        ? params._durationSeconds
+        : undefined;
+      if (durationSeconds && durationSeconds > 0 && result.success) {
+        const stopJobId = `${deviceId}-stop-${Date.now()}`;
+        try {
+          await mq.addJob(
+            {
+              jobId: stopJobId,
+              type: "COMMAND_DEVICE" as const,
+              deviceId,
+              timestamp: new Date().toISOString(),
+              telemetries: [{
+                name: "Request",
+                value: "Stop (timer)",
+                unit: "",
+                timestamp: new Date().toISOString(),
+                deviceId,
+                description: `${durationSeconds}s timer sonucu otomatik durdurma`,
+              }] as any,
+              atomic: true,
+            },
+            { delay: durationSeconds * 1000 },
+          );
+          console.log(`[CommandRoutes] Zamanli stop planlandi: ${deviceId}, ${durationSeconds}s`);
+        } catch (err) {
+          console.warn(`[CommandRoutes] Zamanli stop planlanamadi: ${deviceId}`, err);
+        }
+      }
+
       return { deviceId, command: commandName, ...result };
     };
 

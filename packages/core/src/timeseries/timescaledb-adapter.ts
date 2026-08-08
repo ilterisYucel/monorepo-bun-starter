@@ -1,30 +1,29 @@
 // packages/core/src/timeseries/TimescaleDBAdapter.ts
 
 import { Pool } from "pg";
-import type { TelemetryData, PostgresConfig } from "@gd-monorepo/shared-types";
+import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type {
   ITimeseriesDatabase,
   TimeSeriesQuery,
   AggregateQuery,
   DownsampleOptions,
 } from "./interface";
+import type { TimescaleDBConfig } from "./config";
 
 import type { PoolClient } from "pg";
-// import pLimit from "p-limit";
-// const limit = pLimit(50);
 
-export type TimescaleDBConfig = PostgresConfig;
+export { type TimescaleDBConfig } from "./config";
+
+const ALLOWED_AGGREGATE_FNS = new Set(["AVG", "SUM", "MIN", "MAX", "COUNT", "FIRST", "LAST"]);
 
 export class TimescaleDBAdapter implements ITimeseriesDatabase {
-  private pool: Pool;
+  private readonly pool: Pool;
+  private readonly config: TimescaleDBConfig;
   private tableCache: Set<string> = new Set();
   private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
-  constructor(config: PostgresConfig) {
-    const poolMax = config.maxConnections ?? (Number(process.env.TIMESCALE_POOL_SIZE) || 5);
-    const statementTimeout = Number(process.env.TIMESCALE_STATEMENT_TIMEOUT_MS) || 30000;
-    const idleTimeout = Number(process.env.TIMESCALE_IDLE_TIMEOUT_MS) || 30000;
-    const connTimeout = Number(process.env.TIMESCALE_CONNECTION_TIMEOUT_MS) || 5000;
+  constructor(config: TimescaleDBConfig) {
+    this.config = config;
     this.pool = new Pool({
       host: config.host,
       port: config.port,
@@ -32,10 +31,10 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       password: config.password,
       database: config.database,
       ssl: config.ssl,
-      max: poolMax,
-      statement_timeout: statementTimeout,
-      idleTimeoutMillis: idleTimeout,
-      connectionTimeoutMillis: connTimeout,
+      max: config.maxConnections ?? 5,
+      statement_timeout: config.statementTimeoutMs,
+      idleTimeoutMillis: config.idleTimeoutMs,
+      connectionTimeoutMillis: config.connectionTimeoutMs,
     });
   }
 
@@ -50,7 +49,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     if (this.tableCache.has(tableName)) return;
 
-    const chunkInterval = process.env.TIMESCALE_CHUNK_INTERVAL || "1 day";
+    const chunkInterval = this.config.chunkInterval;
     const query = `
       CREATE TABLE IF NOT EXISTS ${tableName} (
         name VARCHAR(100) NOT NULL,
@@ -80,7 +79,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
           timescaledb.compress_segmentby = 'name'
         );
       `);
-      const compressAfter = process.env.TIMESCALE_COMPRESS_AFTER || "7 days";
+      const compressAfter = this.config.compressAfter;
       await this.pool.query(`
         SELECT add_compression_policy('${tableName}', INTERVAL '${compressAfter}', if_not_exists => true);
       `);
@@ -91,7 +90,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
   async runRetention(deviceId: string, retainAfter?: string): Promise<void> {
     const tableName = this.getTableName(deviceId);
-    const after = retainAfter || process.env.TIMESCALE_RETENTION_AFTER;
+    const after = retainAfter || this.config.retentionAfter;
     if (!after) return;
     try {
       await this.pool.query(`
@@ -142,7 +141,13 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       },
     );
 
-    await Promise.all(devicePromises);
+    const results = await Promise.allSettled(devicePromises);
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      console.warn(
+        `[TimescaleDB] ${failed}/${results.length} cihaz yazma islemi basarisiz`,
+      );
+    }
   }
 
   private async writeSingle(
@@ -229,7 +234,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     await this.ensureTableExists(query.deviceId);
     const tableName = this.getTableName(query.deviceId);
 
-    const aggregateFn = query.aggregateFn;
+    const aggregateFn = ALLOWED_AGGREGATE_FNS.has(query.aggregateFn) ? query.aggregateFn : "AVG";
     const interval = query.interval;
 
     let sql = `
@@ -459,8 +464,6 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     GROUP BY bucket, tags
     ORDER BY bucket ASC
   `;
-
-    console.log(`[TimescaleDB] Query: ${query.substring(0, 500)}...`);
 
     const result = params.length > 0
       ? await this.pool.query(query, params)

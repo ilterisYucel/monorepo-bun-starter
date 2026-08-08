@@ -77,4 +77,5 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   menu:              TbInfoCircle,
   close:             TbX,
   fireAlarm:         TbFireExtinguisher,
+  settings:          TbSettings,
 };

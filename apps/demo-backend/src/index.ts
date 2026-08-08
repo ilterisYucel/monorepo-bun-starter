@@ -3,6 +3,7 @@ import {
   BullMQAdapter,
   TimescaleDBAdapter,
 } from "@gd-monorepo/core";
+import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { XRackManager } from "./infrastructure/xrack-manager";
 import { ModbusDevice } from "@gd-monorepo/core";
 import { DeviceJobHandler } from "./application/device-job-handler";
@@ -14,6 +15,13 @@ import { createModbusConfig, RACK_COUNT, TICK_SECONDS } from "./config";
 async function main() {
   console.log("[Demo Backend] Starting...");
 
+  // Konfigürasyon yukleme
+  const config = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [
+    new EnvSource(),
+  ]);
+  config.load();
+  console.log("[Demo Backend] Konfigürasyon:", config.redacted());
+
   // 1. Simülatörü başlat
   const xrackManager = new XRackManager(RACK_COUNT);
   xrackManager.start(TICK_SECONDS);
@@ -21,25 +29,31 @@ async function main() {
 
   // 2. Modbus Device (simülatöre bağlı)
   const modbusConfig = createModbusConfig();
-
   const modbusDevice = new ModbusDevice(modbusConfig, simulatorAdapter);
-
   await modbusDevice.connect();
 
   // 3. TimescaleDB
   const timescale = new TimescaleDBAdapter({
-    host: process.env.TIMESCALE_HOST || "localhost",
-    port: parseInt(process.env.TIMESCALE_PORT || "5432"),
-    user: process.env.TIMESCALE_USER || "postgres",
-    password: process.env.TIMESCALE_PASSWORD || "password",
-    database: process.env.TIMESCALE_DATABASE || "battery",
-    maxConnections: parseInt(process.env.TIMESCALE_POOL_SIZE || "20"),
+    host: config.get<string>("timescale.host"),
+    port: config.get<number>("timescale.port"),
+    user: config.get<string>("timescale.user"),
+    password: config.get<string>("timescale.password"),
+    database: config.get<string>("timescale.database"),
+    maxConnections: config.get<number>("timescale.maxConnections"),
+    chunkInterval: config.get<string>("timescale.chunkInterval"),
+    compressAfter: config.get<string>("timescale.compressAfter"),
+    retentionAfter: config.get<string>("timescale.retentionAfter"),
+    statementTimeoutMs: config.get<number>("timescale.statementTimeoutMs"),
+    idleTimeoutMs: config.get<number>("timescale.idleTimeoutMs"),
+    connectionTimeoutMs: config.get<number>("timescale.connectionTimeoutMs"),
   });
 
   // 4. Redis ve Message Queue
   const redis = new RedisConnection({
-    host: process.env.REDIS_HOST || "localhost",
-    port: parseInt(process.env.REDIS_PORT || "6379"),
+    host: config.get<string>("redis.host"),
+    port: config.get<number>("redis.port"),
+    password: config.get<string | undefined>("redis.password"),
+    db: config.get<number | undefined>("redis.db"),
   });
   await redis.connect();
   const messageQueue = new BullMQAdapter(redis);
@@ -58,54 +72,44 @@ async function main() {
 
   // 7. Fastify Server
   const server = new FastifyServer({
-    port: parseInt(process.env.PORT || "5000"),
-    host: process.env.HOST || "0.0.0.0",
-    http2: process.env.HTTP2 === "true",
+    port: config.get<number>("server.port"),
+    host: config.get<string>("server.host"),
+    http2: false,
   });
 
   // Routes'u kaydet
   const app = server.getApp();
   await app.register(
     async (fastify) => {
-      await racksRoutes(fastify, {
-        timescale,
-        powerHandler,
-        deviceId: modbusConfig.id,
-      });
+      await racksRoutes(fastify, { timescale, messageQueue, powerHandler });
     },
-    { prefix: "/api/racks" },
+    { prefix: "/api" },
   );
 
-  await server.start();
-
-  // 8. Repeatable READ job ekle (her 5 saniyede bir)
-  await messageQueue.addRepeatableJob(
-    "read-xrack",
-    {
-      jobId: "read-xrack",
-      type: "READ_DEVICE",
-      deviceId: modbusConfig.id,
-      timestamp: new Date().toISOString(),
-    },
-    `*/${TICK_SECONDS} * * * * *`,
-  );
-
-  console.log("[Demo Backend] Ready");
-
-  // Graceful shutdown
-  const shutdown = async () => {
-    console.log("[Demo Backend] Shutting down...");
-    await server.stop();
-    await messageQueue.close();
-    await redis.disconnect();
-    await timescale.close();
-    await modbusDevice.disconnect();
+  // 8. Graceful shutdown
+  let stopping = false;
+  const shutdown = async (signal: string) => {
+    if (stopping) return;
+    stopping = true;
+    console.log(`[Demo Backend] ${signal} alindi, kapatiliyor...`);
     xrackManager.stop();
+    await server.stop();
+    await modbusDevice.disconnect();
+    await messageQueue.close();
+    await timescale.close();
+    await redis.disconnect();
     process.exit(0);
   };
 
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  // 9. Başlat
+  await server.start();
+  console.log(`[Demo Backend] Hazir (port: ${config.get<number>("server.port")})`);
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error("[Demo Backend] Kritik hata:", err);
+  process.exit(1);
+});

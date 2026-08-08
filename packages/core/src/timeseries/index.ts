@@ -6,6 +6,7 @@ export type {
 } from "./interface";
 export { TimescaleDBAdapter } from "./timescaledb-adapter";
 export type { TimescaleDBConfig } from "./timescaledb-adapter";
+export { buildTimescaleDBConfig } from "./config";
 export { MaterializedViewManager } from "./materialized-view-manager";
 export type {
   MaterializedInterval,

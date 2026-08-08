@@ -242,3 +242,24 @@ export const LoginButton = styled.button<{ collapsed: boolean }>`
     background: ${COLORS.infoHover};
   }
 `;
+
+export const SettingsBtn = styled.button<{ collapsed: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: ${({ collapsed }) => (collapsed ? "center" : "flex-start")};
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: ${COLORS.textMuted};
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${COLORS.bgHover};
+    color: ${COLORS.textLight};
+  }
+`;

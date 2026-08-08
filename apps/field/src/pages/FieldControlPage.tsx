@@ -1,7 +1,9 @@
 import React from "react";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
-export const FieldControlPage: React.FC = () => (
+export const FieldControlPage: React.FC = () => {
+  const { t } = useTranslation();
+  return (
     <div>
       <div
       style={{
@@ -13,7 +15,8 @@ export const FieldControlPage: React.FC = () => (
         color: COLORS.textMuted,
       }}
     >
-      Saha seviyesi manevralar — ManeuverPanel eklenecek
+      {t("field.controlPlaceholder")}
     </div>
   </div>
-);
+  );
+};

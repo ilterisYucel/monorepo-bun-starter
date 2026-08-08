@@ -1,5 +1,30 @@
 import type { ChargeStatus } from "@gd-monorepo/shared-types";
 
+export interface BSCCardLabels {
+  online: string;
+  offline: string;
+  charging: string;
+  discharging: string;
+  idle: string;
+  voltage: string;
+  current: string;
+  chargePower: string;
+  dischargePower: string;
+  anticipatedVoltage: string;
+  maxTemperature: string;
+  version: string;
+  state: string;
+  heartbeat: string;
+  commandResponse: string;
+  lastCommand: string;
+  rack: string;
+  systemPower: string;
+  systemSoc: string;
+  systemSoh: string;
+  active: string;
+  detail: string;
+}
+
 export interface BSCCardProps {
   name: string;
   status: "online" | "offline";
@@ -21,4 +46,5 @@ export interface BSCCardProps {
   requestAck: string;
   lastAcceptedReq: string;
   onDetailClick?: () => void;
+  labels?: BSCCardLabels;
 }

@@ -1,5 +1,5 @@
 // packages/ui/src/core/TelemetryInput/TelemetryInput.tsx
-import React, { useCallback, useState, useEffect, useMemo } from "react";
+import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import type { TelemetryInputProps } from "./TelemetryInput.types";
 import * as S from "./TelemetryInput.styles";
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
@@ -28,12 +28,20 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
   warningThreshold,
   alarmThreshold,
   showRangeBar = true,
+  type = "number",
+  options,
 }) => {
-  const [inputValue, setInputValue] = useState(value.toFixed(decimals));
+  const [inputValue, setInputValue] = useState(() =>
+    value.toFixed(decimals),
+  );
+  const [focused, setFocused] = useState(false);
+  const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
-    setInputValue(value.toFixed(decimals));
-  }, [value, decimals]);
+    if (!focused) {
+      setInputValue(value.toFixed(decimals));
+    }
+  }, [value, decimals, focused]);
 
   const effectiveStatus = useMemo<StatusKey | undefined>(() => {
     if (status) return status;
@@ -53,13 +61,21 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
   const handleIncrease = useCallback(() => {
     if (disabled) return;
     const newValue = Math.min(max, value + step);
-    if (newValue !== value) onChange(parseFloat(newValue.toFixed(decimals)));
+    if (newValue !== value) {
+      const formatted = parseFloat(newValue.toFixed(decimals));
+      setInputValue(formatted.toFixed(decimals));
+      onChange(formatted);
+    }
   }, [disabled, value, step, max, decimals, onChange]);
 
   const handleDecrease = useCallback(() => {
     if (disabled) return;
     const newValue = Math.max(min, value - step);
-    if (newValue !== value) onChange(parseFloat(newValue.toFixed(decimals)));
+    if (newValue !== value) {
+      const formatted = parseFloat(newValue.toFixed(decimals));
+      setInputValue(formatted.toFixed(decimals));
+      onChange(formatted);
+    }
   }, [disabled, value, step, min, decimals, onChange]);
 
   const handleInputChange = useCallback(
@@ -70,25 +86,23 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
       if (rawValue === "" || rawValue === "-") return;
       const numValue = parseFloat(rawValue);
       if (isNaN(numValue)) return;
-      let clampedValue = Math.min(max, Math.max(min, numValue));
-      if (step !== 1) {
-        const steppedValue = Math.round(clampedValue / step) * step;
-        clampedValue = parseFloat(steppedValue.toFixed(decimals));
-      }
-      clampedValue = parseFloat(clampedValue.toFixed(decimals));
+      const clampedValue = Math.min(max, Math.max(min, numValue));
       if (clampedValue !== value) onChange(clampedValue);
     },
-    [disabled, min, max, step, decimals, value, onChange],
+    [disabled, min, max, value, onChange],
   );
 
+  const handleFocus = useCallback(() => setFocused(true), []);
+
   const handleBlur = useCallback(() => {
+    setFocused(false);
     if (disabled) return;
     let numValue = parseFloat(inputValue);
     if (isNaN(numValue)) numValue = value;
-    let clampedValue = Math.min(max, Math.max(min, numValue));
-    clampedValue = parseFloat(clampedValue.toFixed(decimals));
-    setInputValue(clampedValue.toFixed(decimals));
-    if (clampedValue !== value) onChange(clampedValue);
+    const clampedValue = Math.min(max, Math.max(min, numValue));
+    const formatted = parseFloat(clampedValue.toFixed(decimals));
+    setInputValue(formatted.toFixed(decimals));
+    if (formatted !== value) onChange(formatted);
   }, [disabled, inputValue, min, max, decimals, value, onChange]);
 
   const handleKeyDown = useCallback(
@@ -109,6 +123,71 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
   );
 
   const hasTags = tags && Object.keys(tags).length > 0;
+
+  // Select varyantı
+  if (type === "select" && options) {
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (disabled) return;
+      const val = Number(e.target.value);
+      if (val !== value) onChange(val);
+    };
+
+    const handleArrowClick = () => {
+      const el = selectRef.current;
+      if (!el) return;
+      if ((el as any).showPicker) {
+        (el as any).showPicker();
+      } else {
+        el.click();
+      }
+    };
+
+    return (
+      <S.Container
+        className={className}
+        disabled={disabled}
+        size={size}
+        $status={effectiveStatus}
+        style={{
+          width: width
+            ? typeof width === "number"
+              ? `${width}px`
+              : width
+            : "100%",
+        }}
+      >
+        <S.Header>
+          <S.LabelSection>
+            {effectiveStatus && <S.StatusDot $status={effectiveStatus} />}
+            <S.Name>{name}</S.Name>
+            {deviceId && <S.DeviceId>{deviceId}</S.DeviceId>}
+          </S.LabelSection>
+        </S.Header>
+
+        <S.InputGroup $status={effectiveStatus}>
+          <S.SelectValue
+            ref={selectRef}
+            $status={effectiveStatus}
+            value={String(value)}
+            onChange={handleSelectChange}
+            disabled={disabled}
+          >
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </S.SelectValue>
+          <S.SelectArrow onClick={handleArrowClick} />
+          <S.Unit>{unit}</S.Unit>
+        </S.InputGroup>
+
+        {description && (
+          <S.Description>{description}</S.Description>
+        )}
+      </S.Container>
+    );
+  }
 
   return (
     <S.Container
@@ -148,6 +227,7 @@ export const TelemetryInput: React.FC<TelemetryInputProps> = ({
           $status={effectiveStatus}
           value={inputValue}
           onChange={handleInputChange}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}

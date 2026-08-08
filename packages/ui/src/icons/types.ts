@@ -37,4 +37,5 @@ export type ScadaIconName =
   | "container"
   | "menu"
   | "close"
-  | "fireAlarm";
+  | "fireAlarm"
+  | "settings";

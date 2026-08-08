@@ -1,2 +1,2 @@
 export { BSCCard } from "./BSCCard";
-export type { BSCCardProps } from "./BSCCard.types";
+export type { BSCCardProps, BSCCardLabels } from "./BSCCard.types";

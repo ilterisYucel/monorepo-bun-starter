@@ -5,10 +5,10 @@ services:
     image: timescale/timescaledb:latest-pg14
     container_name: battery-timescaledb-dev
     command:
-      - -cshared_buffers=32MB
+      - -cshared_buffers=256MB
       - -cwork_mem=4MB
-      - -ceffective_cache_size=96MB
-      - -cmaintenance_work_mem=16MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
       - -cmax_connections=50
     environment:
       POSTGRES_USER: postgres
@@ -25,6 +25,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -46,6 +51,11 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   device-service:
     build:
@@ -63,12 +73,18 @@ services:
       - ../packages/services/device-service/deployment/config-docker:/app/config-docker:ro
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
       - ../packages/simulators/src:/app/packages/simulators/src
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   data-service:
     build:
@@ -89,6 +105,7 @@ services:
       - ../packages/services/data-service/run.ts:/app/packages/services/data-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
     depends_on:
       redis:
         condition: service_healthy
@@ -96,6 +113,11 @@ services:
         condition: service_healthy
     networks:
       - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web-service:
     build:
@@ -114,6 +136,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
     ports:
       - "5001:5001"
     volumes:
@@ -121,6 +147,7 @@ services:
       - ../packages/services/web-service/run.ts:/app/packages/services/web-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
     depends_on:
       redis:
         condition: service_healthy
@@ -134,6 +161,11 @@ services:
       start_period: 10s
     networks:
       - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build:
@@ -159,6 +191,11 @@ services:
         condition: service_healthy
     networks:
       - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   timescale-data-dev:

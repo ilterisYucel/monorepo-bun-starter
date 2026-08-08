@@ -1,10 +1,11 @@
 import React from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
 export const MobileShell: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { t } = useTranslation();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -42,7 +43,7 @@ export const MobileShell: React.FC = () => {
               padding: "4px 8px",
             }}
           >
-            Çıkış
+            {t("auth.logout")}
           </button>
         </div>
       </header>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { SCADA_ICONS, COLORS } from "@gd-monorepo/ui";
+import { SCADA_ICONS, COLORS, useTranslation } from "@gd-monorepo/ui";
 import type { ChargeStatus } from "@gd-monorepo/shared-types";
+import type { TranslateFn } from "@gd-monorepo/ui";
 import * as S from "./SystemHeader.styles";
 
 interface SystemHeaderProps {
@@ -29,17 +30,15 @@ const powerColor = (kw: number): string => {
   return COLORS.success;
 };
 
-const formatClock = (d: Date): string =>
-  d.toLocaleString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+const CHARGE_KEY: Record<string, string> = {
+  Charge: "device.chargeStatus.Charge",
+  Discharge: "device.chargeStatus.Discharge",
+  Idle: "device.chargeStatus.Idle",
+};
 
 const Boxes: React.FC<{
+  t: TranslateFn;
+  locale: () => string;
   containerId: string;
   flowDirection: ChargeStatus;
   ppcConnected: boolean;
@@ -47,37 +46,66 @@ const Boxes: React.FC<{
   now: Date;
   ambientTemp?: number;
   ambientHumidity?: number;
-}> = ({ containerId, flowDirection, ppcConnected, powerConsumption, now, ambientTemp, ambientHumidity }) => {
-  const chargeLabel =
-    flowDirection === "Charge" ? "Şarj Oluyor"
-    : flowDirection === "Discharge" ? "Deşarj Oluyor"
-    : "Beklemede";
+}> = ({
+  t,
+  locale,
+  containerId,
+  flowDirection,
+  ppcConnected,
+  powerConsumption,
+  now,
+  ambientTemp,
+  ambientHumidity,
+}) => {
+  const chargeLabel = t(
+    CHARGE_KEY[flowDirection] ?? "device.chargeStatus.Idle",
+  );
 
   const ChargeStatusIcon =
-    flowDirection === "Charge" ? ChargeIcon
-    : flowDirection === "Discharge" ? DischargeIcon
-    : IdleIcon;
+    flowDirection === "Charge"
+      ? ChargeIcon
+      : flowDirection === "Discharge"
+        ? DischargeIcon
+        : IdleIcon;
 
   const chargeColor =
-    flowDirection === "Charge" ? COLORS.success
-    : flowDirection === "Discharge" ? COLORS.warning
-    : COLORS.idle;
+    flowDirection === "Charge"
+      ? COLORS.success
+      : flowDirection === "Discharge"
+        ? COLORS.warning
+        : COLORS.idle;
 
   const PPCIcon = ppcConnected ? OnlineIcon : OfflineIcon;
   const ppcColor = ppcConnected ? COLORS.success : COLORS.error;
-  const ppcLabel = ppcConnected ? "PPC: Bağlı" : "PPC: Bağlantı Yok";
+  const ppcLabel = ppcConnected
+    ? t("container.connected")
+    : t("container.disconnected");
 
   const kwColor = powerColor(powerConsumption);
+
+  const formatClock = (d: Date): string =>
+    d.toLocaleString(locale(), {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
   return (
     <>
       <S.Box>
         <ChargeStatusIcon size={16} color={chargeColor} />
-        <S.Label style={{ color: chargeColor }}>{chargeLabel}</S.Label>
+        <S.Label style={{ color: chargeColor }}>
+          {chargeLabel}
+        </S.Label>
       </S.Box>
       <S.Box>
         <ContainerIcon size={16} />
-        <S.Label>Container: {containerId}</S.Label>
+        <S.Label>
+          {t("header.container")}: {containerId}
+        </S.Label>
       </S.Box>
       <S.Box>
         <PPCIcon size={16} color={ppcColor} />
@@ -89,18 +117,24 @@ const Boxes: React.FC<{
       </S.Box>
       <S.Box>
         <PowerIcon size={16} color={kwColor} />
-        <S.Label style={{ color: kwColor }}>Guc Tuketimi: {powerConsumption} kW</S.Label>
+        <S.Label style={{ color: kwColor }}>
+          {t("device.powerConsumption")}: {powerConsumption} kW
+        </S.Label>
       </S.Box>
       {ambientTemp !== undefined && (
         <S.Box>
           <TempIcon size={16} />
-          <S.Label>Ortam: {ambientTemp.toFixed(1)}°C</S.Label>
+          <S.Label>
+            {t("header.ambient")}: {ambientTemp.toFixed(1)}°C
+          </S.Label>
         </S.Box>
       )}
       {ambientHumidity !== undefined && (
         <S.Box>
           <TempIcon size={16} />
-          <S.Label>Nem: {ambientHumidity.toFixed(0)}%</S.Label>
+          <S.Label>
+            {t("header.humidity")}: {ambientHumidity.toFixed(0)}%
+          </S.Label>
         </S.Box>
       )}
     </>
@@ -115,6 +149,7 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
   ambientTemp,
   ambientHumidity,
 }) => {
+  const { t, locale } = useTranslation();
   const [now, setNow] = useState(new Date());
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -126,7 +161,10 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node)
+      ) {
         setMenuOpen(false);
       }
     };
@@ -138,6 +176,8 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
     <S.Bar>
       <S.Grid>
         <Boxes
+          t={t}
+          locale={locale}
           containerId={containerId}
           flowDirection={flowDirection}
           ppcConnected={ppcConnected}
@@ -154,6 +194,8 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
         {menuOpen && (
           <S.Popup>
             <Boxes
+              t={t}
+              locale={locale}
               containerId={containerId}
               flowDirection={flowDirection}
               ppcConnected={ppcConnected}

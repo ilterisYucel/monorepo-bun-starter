@@ -73,9 +73,9 @@ export class MaterializedViewManager {
   ): Promise<void> {
     const intervals = options?.intervals ?? DEFAULT_INTERVALS;
 
-    for (const interval of intervals) {
-      await this.createSingleMV(hypertableName, interval);
-    }
+    await Promise.all(
+      intervals.map((interval) => this.createSingleMV(hypertableName, interval)),
+    );
   }
 
   private getViewName(
@@ -89,7 +89,8 @@ export class MaterializedViewManager {
     hypertable: string,
     interval: MaterializedInterval,
   ): Promise<void> {
-    const viewName = this.getViewName(hypertable, interval);
+    const safeName = hypertable.replace(/[^a-zA-Z0-9_]/g, "_");
+    const viewName = this.getViewName(safeName, interval);
 
     if (this.viewCache.has(viewName)) return;
 
@@ -105,7 +106,7 @@ export class MaterializedViewManager {
         LAST(value, timestamp) AS last_value,
         COUNT(*) AS sample_count,
         STDDEV(value) AS stddev_value
-      FROM ${hypertable}
+      FROM ${safeName}
       GROUP BY bucket, name
     `);
 
@@ -154,19 +155,24 @@ export class MaterializedViewManager {
   async dropMaterializedViews(hypertableName: string): Promise<void> {
     const intervals = DEFAULT_INTERVALS;
 
-    for (const interval of intervals) {
-      const viewName = this.getViewName(hypertableName, interval);
-
-      try {
+    const results = await Promise.allSettled(
+      intervals.map(async (interval) => {
+        const viewName = this.getViewName(hypertableName, interval);
         await this.db.executeRaw(`DROP MATERIALIZED VIEW IF EXISTS ${viewName}`);
         this.viewCache.delete(viewName);
-        console.log(`[MaterializedViewManager] MV silindi: ${viewName}`);
-      } catch (error) {
+      }),
+    );
+
+    for (const r of results) {
+      if (r.status === "rejected") {
         console.warn(
-          `[MaterializedViewManager] MV silinirken hata: ${viewName}`,
-          error,
+          `[MaterializedViewManager] MV silinirken hata: ${hypertableName}`,
+          r.reason,
         );
       }
+    }
+    if (results.some((r) => r.status === "fulfilled")) {
+      console.log(`[MaterializedViewManager] MV'ler silindi: ${hypertableName}`);
     }
   }
 

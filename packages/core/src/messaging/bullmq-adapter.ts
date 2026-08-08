@@ -81,11 +81,12 @@ export class BullMQAdapter implements IMessageQueue {
     this.queueEvents.set(type, queueEvents);
   }
 
-  async addJob(job: DeviceJob): Promise<void> {
+  async addJob(job: DeviceJob, opts?: { delay?: number }): Promise<void> {
     const queue = await this.getQueue(job.type);
     await queue.add(job.type, job, {
       jobId: job.jobId,
       priority: job.priority ?? 10,
+      ...(opts?.delay ? { delay: opts.delay } : {}),
     });
   }
 
@@ -100,7 +101,7 @@ export class BullMQAdapter implements IMessageQueue {
     if (!events) {
       console.error(`[BullMQ] executeAndWait: no QueueEvents for ${jobData.type} — job may not be consumed`);
       try {
-        const result = await job.waitUntilFinished(null as any, timeoutMs);
+        const result = await job.waitUntilFinished(undefined, timeoutMs);
         if (result && typeof result === "object") return result as JobResult;
         return { success: true };
       } catch (err) {
@@ -135,9 +136,13 @@ export class BullMQAdapter implements IMessageQueue {
     name: string,
     job: DeviceJob,
     everyMs: number,
+    startDate?: Date,
   ): Promise<void> {
     const queue = await this.getQueue(job.type);
     const repeatOptions: RepeatOptions = { every: everyMs };
+    if (startDate) {
+      repeatOptions.startDate = startDate;
+    }
 
     await queue.add(name, job, {
       repeat: repeatOptions,
@@ -235,41 +240,47 @@ export class BullMQAdapter implements IMessageQueue {
   }
 
   async getQueueStatus(): Promise<QueueStatus[]> {
-    const statuses: QueueStatus[] = [];
+    const results = await Promise.all(
+      Array.from(this.queues).map(async ([type, queue]) => {
+        const counts = await Promise.allSettled([
+          queue.getWaitingCount(),
+          queue.getActiveCount(),
+          queue.getCompletedCount(),
+          queue.getFailedCount(),
+          queue.getDelayedCount(),
+        ]);
+        const [waiting, active, completed, failed, delayed] = counts.map((c) =>
+          c.status === "fulfilled" ? c.value : 0,
+        );
 
-    for (const [type, queue] of this.queues) {
-      const [waiting, active, completed, failed, delayed] = await Promise.all([
-        queue.getWaitingCount(),
-        queue.getActiveCount(),
-        queue.getCompletedCount(),
-        queue.getFailedCount(),
-        queue.getDelayedCount(),
-      ]);
+        return {
+          name: type,
+          waiting,
+          active,
+          completed,
+          failed,
+          delayed,
+        };
+      }),
+    );
 
-      statuses.push({
-        name: type,
-        waiting,
-        active,
-        completed,
-        failed,
-        delayed,
-      });
-    }
-
-    return statuses;
+    return results;
   }
 
   async getQueueStats(type: JobType): Promise<QueueStatus | null> {
     const queue = this.queues.get(type);
     if (!queue) return null;
 
-    const [waiting, active, completed, failed, delayed] = await Promise.all([
+    const counts = await Promise.allSettled([
       queue.getWaitingCount(),
       queue.getActiveCount(),
       queue.getCompletedCount(),
       queue.getFailedCount(),
       queue.getDelayedCount(),
     ]);
+    const [waiting, active, completed, failed, delayed] = counts.map((c) =>
+      c.status === "fulfilled" ? c.value : 0,
+    );
 
     return { name: type, waiting, active, completed, failed, delayed };
   }
@@ -292,19 +303,16 @@ export class BullMQAdapter implements IMessageQueue {
   }
 
   async close(): Promise<void> {
-    // Worker'ları kapat
-    for (const worker of this.workers.values()) {
-      await worker.close();
-    }
+    await Promise.all(
+      Array.from(this.workers.values()).map((w) => w.close()),
+    );
 
-    // QueueEvents'leri kapat
-    for (const queueEvents of this.queueEvents.values()) {
-      await queueEvents.close();
-    }
+    await Promise.all(
+      Array.from(this.queueEvents.values()).map((qe) => qe.close()),
+    );
 
-    // Queue'ları kapat
-    for (const queue of this.queues.values()) {
-      await queue.close();
-    }
+    await Promise.all(
+      Array.from(this.queues.values()).map((q) => q.close()),
+    );
   }
 }

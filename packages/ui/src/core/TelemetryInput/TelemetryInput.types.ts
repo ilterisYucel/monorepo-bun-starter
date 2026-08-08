@@ -15,11 +15,11 @@ export interface TelemetryInputProps {
   deviceId?: string;
   /** Tags (opsiyonel) - key-value pair olarak gösterilecek */
   tags?: Record<string, string>;
-  /** Minimum değer */
+  /** Minimum değer (number tipinde) */
   min?: number;
-  /** Maksimum değer */
+  /** Maksimum değer (number tipinde) */
   max?: number;
-  /** Artırma/azaltma adımı */
+  /** Artırma/azaltma adımı (number tipinde) */
   step?: number;
   /** Ondalık basamak sayısı */
   decimals?: number;
@@ -41,4 +41,16 @@ export interface TelemetryInputProps {
   alarmThreshold?: number;
   /** Değer aralığı gösterge barı (varsayılan: true) */
   showRangeBar?: boolean;
+  /**
+   * Girdi tipi.
+   * - "number" (varsayılan): Sayısal stepper
+   * - "select": Açılır menü — options ile birlikte kullanılır
+   */
+  type?: "number" | "select";
+  /**
+   * Select tipindeki girdiler için seçenekler.
+   * value: sayısal değer (onChange'e bu değer iletilir)
+   * label: kullanıcıya gösterilecek metin
+   */
+  options?: Array<{ value: number; label: string }>;
 }

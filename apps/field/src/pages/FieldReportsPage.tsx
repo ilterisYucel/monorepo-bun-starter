@@ -1,7 +1,9 @@
 import React from "react";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
-export const FieldReportsPage: React.FC = () => (
+export const FieldReportsPage: React.FC = () => {
+  const { t } = useTranslation();
+  return (
     <div>
       <div
       style={{
@@ -13,7 +15,8 @@ export const FieldReportsPage: React.FC = () => (
         color: COLORS.textMuted,
       }}
     >
-      Raporlar — yapim asamasinda
+      {t("reports.placeholderShort")}
     </div>
   </div>
-);
+  );
+};

@@ -6,11 +6,13 @@ import {
   BullMQAdapter,
   MaterializedViewManager,
 } from "@gd-monorepo/core";
-import type { RedisConfig } from "@gd-monorepo/core";
 import {
+  createConfigLoader,
   authConfig,
   serverConfig,
   postgresConfig,
+  timescaleDBConfig,
+  redisConfig,
   seedUsers,
   serviceTier,
 } from "./default";
@@ -29,28 +31,24 @@ import { ContainerProxy } from "../infrastructure/container-proxy/container-prox
 import { FieldPoller } from "../infrastructure/field-poller";
 import { WebServiceServer } from "../presentation/server";
 
-function redisConfig(): RedisConfig {
-  return {
-    host: process.env.REDIS_HOST ?? "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
-    password: process.env.REDIS_PASSWORD,
-    db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : undefined,
-  };
-}
-
 export function buildContainer() {
   const container = createContainer();
 
   container.register({
-    authCfg: asValue(authConfig()),
-    serverCfg: asValue(serverConfig()),
-    pgCfg: asValue(postgresConfig()),
-    redisCfg: asValue(redisConfig()),
+    config: asValue(createConfigLoader()),
+
+    // Config degerleri — ConfigLoader'dan turetilir
+    authCfg: asFunction(({ config }) => authConfig(config)).singleton(),
+    serverCfg: asFunction(({ config }) => serverConfig(config)).singleton(),
+    pgCfg: asFunction(({ config }) => postgresConfig(config)).singleton(),
+    tsCfg: asFunction(({ config }) => timescaleDBConfig(config)).singleton(),
+    redisCfg: asFunction(({ config }) => redisConfig(config)).singleton(),
     seed: asValue(seedUsers()),
 
+    // Altyapi adapter'lari
     postgres: asFunction(({ pgCfg }) => new PostgresAdapter(pgCfg)).singleton(),
     timescale: asFunction(
-      ({ pgCfg }) => new TimescaleDBAdapter(pgCfg),
+      ({ tsCfg }) => new TimescaleDBAdapter(tsCfg),
     ).singleton(),
 
     redis: asFunction(
@@ -69,20 +67,22 @@ export function buildContainer() {
       ({ redis }) => new RealtimeManager(redis),
     ).singleton(),
 
-    containerProxy: asFunction(() => {
-      const tier = serviceTier();
+    // Tier-aware servisler
+    containerProxy: asFunction(({ config }) => {
+      const tier = serviceTier(config);
       if (tier === "field") return new ContainerProxy();
       return undefined;
     }).singleton(),
 
     fieldPoller: asFunction(
-      ({ postgres }) => {
-        const tier = serviceTier();
+      ({ postgres, config }) => {
+        const tier = serviceTier(config);
         if (tier === "boss") return new FieldPoller(postgres);
         return undefined;
       },
     ).singleton(),
 
+    // Repository ve Use-Case'ler
     userRepo: asFunction(
       ({ postgres }) => new UserRepository(postgres),
     ).singleton(),

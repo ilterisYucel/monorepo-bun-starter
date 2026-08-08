@@ -18,6 +18,7 @@
     "@fastify/websocket": "^11.0.0",
     "@gd-monorepo/core": "*",
     "@gd-monorepo/shared-types": "*",
+    "@gd-monorepo/shared-utils": "*",
     "@gd-monorepo/simulators": "*",
     "fastify": "^5.0.0",
     "pino-pretty": "^13.1.3"

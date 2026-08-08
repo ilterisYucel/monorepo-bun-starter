@@ -5,6 +5,7 @@ import {
   TMS,
   LogTerminal,
   SCADA_ICONS,
+  useTranslation,
 } from "@gd-monorepo/ui";
 import type { RoomData, BSCUnit } from "@gd-monorepo/ui";
 import { useChargeStatus } from "../hooks/useChargeStatus";
@@ -24,6 +25,7 @@ const TempIcon = SCADA_ICONS.temperature;
 const WarningIcon = SCADA_ICONS.logWarning;
 
 export const DashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const { chargeStatus } = useChargeStatus();
   const { racks, averages, isLoading } = useDashboardData(chargeStatus);
   const { units: hvacUnits, averages: hvacAvg } = useHvacData();
@@ -89,7 +91,7 @@ export const DashboardPage: React.FC = () => {
     [hvacUnits],
   );
 
-  const gauges = [
+  const gauges = useMemo(() => [
     {
       value: averages.avgSoC,
       label: "SoC",
@@ -108,7 +110,7 @@ export const DashboardPage: React.FC = () => {
     },
     {
       value: averages.avgPower,
-      label: "Guc",
+      label: t("device.power"),
       unit: "kW",
       min: 0,
       max: 500,
@@ -116,7 +118,7 @@ export const DashboardPage: React.FC = () => {
     },
     {
       value: averages.avgVoltage,
-      label: "Voltaj",
+      label: t("device.voltage"),
       unit: "V",
       min: 0,
       max: 5000,
@@ -124,13 +126,13 @@ export const DashboardPage: React.FC = () => {
     },
     {
       value: averages.avgCurrent,
-      label: "Akim",
+      label: t("device.current"),
       unit: "A",
       min: 0,
       max: 200,
       icon: <BoltIcon size={18} />,
     },
-  ];
+  ], [averages, t]);
 
   const tmsGauges = useMemo(() => {
     const roomMap = new Map<string, HvacUnit[]>();
@@ -205,7 +207,7 @@ export const DashboardPage: React.FC = () => {
     return (
       <S.LoadingContainer>
         <S.Spinner />
-        <p>Veriler yukleniyor...</p>
+        <p>{t("common.loading")}</p>
       </S.LoadingContainer>
     );
   }
@@ -246,7 +248,7 @@ export const DashboardPage: React.FC = () => {
             <LogTerminal
               provider={systemLogProvider}
               maxHeight={435}
-              title="Sistem Event & Hatalari"
+              title={t("page.systemEvents")}
               titleIcon={<WarningIcon size={18} />}
             />
           </S.TerminalCard>

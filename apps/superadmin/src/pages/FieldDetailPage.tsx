@@ -4,6 +4,7 @@ import {
   COLORS,
   SCADA_ICONS,
   ContainerConnectionBadge,
+  useTranslation,
 } from "@gd-monorepo/ui";
 
 const BackIcon = SCADA_ICONS.collapse;
@@ -20,6 +21,7 @@ const MOCK_CONTAINERS = [
 export const FieldDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div>
@@ -46,7 +48,7 @@ export const FieldDetailPage: React.FC = () => {
           <BackIcon size={18} />
         </button>
         <h2 style={{ flex: 1, fontSize: "16px", color: COLORS.textWhite }}>
-          {id ?? "Saha"}
+          {id ?? t("field.title")}
         </h2>
         <button
           style={{
@@ -70,10 +72,10 @@ export const FieldDetailPage: React.FC = () => {
         }}
       >
         {[
-          { label: "Toplam Guc", value: "12.4 MW" },
-          { label: "Ort. SoC", value: "%82" },
-          { label: "Konteyner", value: "4/4" },
-          { label: "Alarm", value: "0" },
+          { label: t("container.totalPower"), value: "12.4 MW" },
+          { label: t("dashboard.avgSoc"), value: "%82" },
+          { label: t("container.title"), value: "4/4" },
+          { label: t("container.alarm"), value: "0" },
         ].map((g) => (
           <div
             key={g.label}
@@ -104,7 +106,7 @@ export const FieldDetailPage: React.FC = () => {
             marginBottom: "8px",
           }}
         >
-          Konteynerler
+          {t("boss.sectionContainers")}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {MOCK_CONTAINERS.map((c) => (
@@ -125,7 +127,7 @@ export const FieldDetailPage: React.FC = () => {
               </span>
               <ContainerConnectionBadge
                 connected={c.connected}
-                label={c.connected ? "Bagli" : "Baglantı Yok"}
+                label={c.connected ? t("status.connected") : t("status.disconnected")}
                 size="small"
               />
             </div>

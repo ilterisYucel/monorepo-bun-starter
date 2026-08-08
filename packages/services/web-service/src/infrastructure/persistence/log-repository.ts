@@ -20,6 +20,29 @@ export class LogRepository {
 
   async initialize(): Promise<void> {
     await this.db.execute(CREATE_TABLE);
+    // Eski log kayıtlarını temizle (varsayılan: 30 günden eski)
+    await this.deleteOlderThan(30);
+  }
+
+  /**
+   * Belirtilen gün sayısından eski log kayıtlarını siler.
+   * Disk büyümesini kontrol altında tutmak için startup'ta ve
+   * periyodik olarak çağrılmalıdır.
+   *
+   * system_logs tablosu hypertable olmadığı için retention politikası
+   * uygulanamaz — manuel DELETE gereklidir.
+   */
+  async deleteOlderThan(days: number): Promise<void> {
+    try {
+      const result = await this.db.execute(
+        `DELETE FROM system_logs WHERE timestamp < NOW() - INTERVAL '${days} days'`,
+      );
+      console.log(
+        `[LogRepository] ${days} gunden eski loglar temizlendi.`,
+      );
+    } catch (err) {
+      console.error("[LogRepository] Log temizleme basarisiz:", err);
+    }
   }
 
   async insert(entry: Omit<LogEntry, "id" | "timestamp">): Promise<LogEntry> {

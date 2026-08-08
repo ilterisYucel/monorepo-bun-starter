@@ -14,25 +14,42 @@ export interface TelemetryEntry {
 export interface UseRealtimeTelemetryOptions {
   transport: ITelemetryTransport;
   deviceId: string;
-  bufferSize?: number;
   enabled?: boolean;
+}
+
+interface StoreState {
+  deviceBuffers: Map<string, TelemetryEntry[]>;
+  snapshot: readonly TelemetryEntry[];
+  listeners: Set<() => void>;
+}
+
+const DEFAULT_BUFFER_SIZE_PER_DEVICE = 10;
+
+function buildSnapshot(deviceBuffers: Map<string, TelemetryEntry[]>): readonly TelemetryEntry[] {
+  const result: TelemetryEntry[] = [];
+  for (const entries of deviceBuffers.values()) {
+    result.push(...entries);
+  }
+  return Object.freeze(result);
 }
 
 export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
   const {
     transport,
     deviceId,
-    bufferSize = 100,
     enabled = true,
   } = options;
+
+  const bufferSizePerDevice = DEFAULT_BUFFER_SIZE_PER_DEVICE;
 
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cancelledRef = useRef(false);
   const pendingBatchRef = useRef<TelemetryEntry[]>([]);
   const rafRef = useRef<number | null>(null);
-  const storeRef = useRef<{ buffer: readonly TelemetryEntry[]; listeners: Set<() => void> }>({
-    buffer: [],
+  const storeRef = useRef<StoreState>({
+    deviceBuffers: new Map(),
+    snapshot: Object.freeze([]) as readonly TelemetryEntry[],
     listeners: new Set(),
   });
 
@@ -42,12 +59,25 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
     if (batch.length === 0) return;
     pendingBatchRef.current = [];
     const store = storeRef.current;
-    const updated = [...store.buffer, ...batch].slice(-bufferSize);
-    store.buffer = Object.freeze(updated);
+
+    for (const entry of batch) {
+      let entries = store.deviceBuffers.get(entry.deviceId);
+      if (!entries) {
+        entries = [];
+        store.deviceBuffers.set(entry.deviceId, entries);
+      }
+      entries.push(entry);
+      if (entries.length > bufferSizePerDevice) {
+        entries.splice(0, entries.length - bufferSizePerDevice);
+      }
+    }
+
+    store.snapshot = buildSnapshot(store.deviceBuffers);
+
     for (const fn of store.listeners) {
       fn();
     }
-  }, [bufferSize]);
+  }, [bufferSizePerDevice]);
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -61,7 +91,7 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
   );
 
   const getSnapshot = useCallback(
-    () => storeRef.current.buffer as TelemetryEntry[],
+    () => storeRef.current.snapshot,
     [],
   );
 

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@gd-monorepo/shared-types": "*",
+    "@gd-monorepo/shared-utils": "*",
     "@gd-monorepo/core": "*"
   },
   "devDependencies": {

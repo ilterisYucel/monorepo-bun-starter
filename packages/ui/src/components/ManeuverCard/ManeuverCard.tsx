@@ -1,12 +1,29 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { TelemetryInput } from "../../core/TelemetryInput";
 import { SCADA_ICONS } from "../../icons";
-import type { ManeuverCardProps } from "./ManeuverCard.types";
+import type { ManeuverCardProps, ManeuverCardLabels } from "./ManeuverCard.types";
 import * as S from "./ManeuverCard.styles";
 
 const ControlIcon = SCADA_ICONS.control;
 const CheckIcon = SCADA_ICONS.logSuccess;
 const FailIcon = SCADA_ICONS.logError;
+
+const DEFAULT_TR: ManeuverCardLabels = {
+  inputs: "Girdiler",
+  steps: "Adımlar",
+  timed: "Zamanlı (süre dolunca otomatik durur)",
+  duration: "Süre",
+  seconds: "sn",
+  remaining: "kaldı",
+  cancel: "İptal",
+  schedule: "Zamanla",
+  rollback: "Geri Al",
+  retry: "Tekrar Dene",
+  run: "▶ Çalıştır",
+  now: "Şimdi",
+  scheduled: "📅 Zamanla...",
+  running: "Çalışıyor...",
+};
 
 interface StepRowData {
   deviceId: string;
@@ -36,7 +53,9 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
   onTimerExpired,
   onRetry,
   onRollback,
+  labels: rawLabels,
 }) => {
+  const L = rawLabels ?? DEFAULT_TR;
   const defaults = useRef(
     Object.fromEntries((inputs ?? []).map((i) => [i.name, i.default])),
   ).current;
@@ -105,7 +124,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
       }
       const mins = Math.floor(diff / 60000);
       const secs = Math.floor((diff % 60000) / 1000);
-      setScheduleCountdown(`${mins} dk ${secs} sn`);
+      setScheduleCountdown(`${mins} dk ${secs} ${L.seconds}`);
     };
     tick();
     countdownIntervalRef.current = setInterval(tick, 1000);
@@ -145,11 +164,12 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
 
   const handleRunNow = useCallback(() => {
     setDropdownOpen(false);
+    const timer = timerEnabled ? { durationSeconds } : undefined;
+    onRun(values, timer);
     if (timerEnabled) {
       startTimer();
     }
-    onRun(values);
-  }, [values, timerEnabled, onRun, startTimer]);
+  }, [values, timerEnabled, durationSeconds, onRun, startTimer]);
 
   const handleScheduleClick = useCallback(() => {
     setDropdownOpen(false);
@@ -157,7 +177,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
   }, []);
 
   const canRollback = maneuver.rollbackSteps && maneuver.rollbackSteps.length > 0;
-  const isExecuting = state === "running";
+  const isExecuting = state === "running" || state === "timer";
 
   const steps: StepRowData[] = useMemo(() => {
     return maneuver.steps.map((s) => {
@@ -196,7 +216,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
 
       {(inputs && inputs.length > 0 || timerConfig) && (
         <>
-          <S.SectionLabel>Girdiler</S.SectionLabel>
+          <S.SectionLabel>{L.inputs}</S.SectionLabel>
           {inputs?.map((input) => (
             <TelemetryInput
               key={input.name}
@@ -211,6 +231,8 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
               step={input.step}
               size="small"
               disabled={isExecuting}
+              type={input.type}
+              options={input.options}
             />
           ))}
           {timerConfig && (
@@ -223,14 +245,14 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
                   onChange={(e) => setTimerEnabled(e.target.checked)}
                   disabled={isExecuting}
                 />
-                <S.CheckboxLabel htmlFor={`timer-${maneuver.name}`}>Zamanlı (süre dolunca otomatik durur)</S.CheckboxLabel>
+                <S.CheckboxLabel htmlFor={`timer-${maneuver.name}`}>{L.timed}</S.CheckboxLabel>
               </S.TimerCheckbox>
               {timerEnabled && (
                 <TelemetryInput
-                  name="Süre"
+                  name={L.duration}
                   value={durationSeconds}
                   onChange={setDurationSeconds}
-                  unit="sn"
+                  unit={L.seconds}
                   min={1}
                   max={28800}
                   step={30}
@@ -243,7 +265,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
         </>
       )}
 
-      <S.SectionLabel>Adımlar</S.SectionLabel>
+      <S.SectionLabel>{L.steps}</S.SectionLabel>
       <S.StepList>
         {steps.map((s, i) => (
           <StepRow key={i} step={s} />
@@ -253,14 +275,14 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
       {timerRemaining !== null && (
         <S.TimerDisplay>
           <S.TimerTime>{formatTime(timerRemaining)}</S.TimerTime>
-          <S.TimerLabel>kaldı</S.TimerLabel>
+          <S.TimerLabel>{L.remaining}</S.TimerLabel>
         </S.TimerDisplay>
       )}
 
       {scheduleCountdown && (
         <S.CountdownRow>
-          <S.CountdownText>⏳ {scheduleCountdown} kaldı</S.CountdownText>
-          <S.CancelBtn onClick={clearSchedule}>İptal</S.CancelBtn>
+          <S.CountdownText>⏳ {scheduleCountdown} {L.remaining}</S.CountdownText>
+          <S.CancelBtn onClick={clearSchedule}>{L.cancel}</S.CancelBtn>
         </S.CountdownRow>
       )}
 
@@ -275,10 +297,10 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
             onClick={handleSchedule}
             disabled={!scheduleInput}
           >
-            Zamanla
+            {L.schedule}
           </S.ScheduleBtn>
           <S.CancelBtn onClick={() => { setScheduleOpen(false); setScheduleInput(""); }}>
-            İptal
+            {L.cancel}
           </S.CancelBtn>
         </S.ScheduleRow>
       )}
@@ -286,15 +308,15 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
       <S.CardFooter>
         <S.ButtonGroup ref={dropdownRef}>
           {state === "failed" && canRollback && (
-            <S.RollbackBtn onClick={onRollback}>Geri Al</S.RollbackBtn>
+            <S.RollbackBtn onClick={onRollback}>{L.rollback}</S.RollbackBtn>
           )}
           {state === "failed" && onRetry && (
-            <S.RetryBtn onClick={onRetry}>Tekrar Dene</S.RetryBtn>
+            <S.RetryBtn onClick={onRetry}>{L.retry}</S.RetryBtn>
           )}
           {(state === "idle" || state === "success") && (
             <S.SplitButton disabled={isExecuting}>
               <S.RunBtn onClick={handleRunNow} disabled={isExecuting}>
-                ▶ Çalıştır
+                {L.run}
               </S.RunBtn>
               <S.DropdownToggle
                 disabled={isExecuting}
@@ -302,14 +324,17 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
               />
               {dropdownOpen && (
                 <S.Dropdown>
-                  <S.DropdownItem onClick={handleRunNow}>Şimdi</S.DropdownItem>
-                  <S.DropdownItem onClick={handleScheduleClick}>📅 Zamanla...</S.DropdownItem>
+                  <S.DropdownItem onClick={handleRunNow}>{L.now}</S.DropdownItem>
+                  <S.DropdownItem onClick={handleScheduleClick}>{L.scheduled}</S.DropdownItem>
                 </S.Dropdown>
               )}
             </S.SplitButton>
           )}
           {state === "running" && (
-            <S.RunBtn disabled>Çalışıyor...</S.RunBtn>
+            <S.RunBtn disabled>{L.running}</S.RunBtn>
+          )}
+          {state === "timer" && (
+            <S.RunBtn disabled>{L.running}</S.RunBtn>
           )}
         </S.ButtonGroup>
       </S.CardFooter>

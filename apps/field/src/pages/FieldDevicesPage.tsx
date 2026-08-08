@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { DeviceTable } from "@gd-monorepo/ui";
+import { DeviceTable, useTranslation } from "@gd-monorepo/ui";
 import type { DeviceTableRow } from "@gd-monorepo/ui";
 import { COLORS } from "@gd-monorepo/ui";
 import { useContainerData } from "../features/containers/hooks/useContainerData";
 import { useFieldDevices } from "../features/field-devices/hooks/useFieldDevices";
 
 export const FieldDevicesPage: React.FC = () => {
+  const { t } = useTranslation();
   const { fieldId } = useParams<{ fieldId: string }>();
   const { containers } = useContainerData(fieldId ?? "");
   const [selectedContainer, setSelectedContainer] = useState("container-1");
@@ -23,7 +24,7 @@ export const FieldDevicesPage: React.FC = () => {
       isLoading={isLoading}
       headerSlot={
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "12px", color: COLORS.textMuted }}>Konteyner:</span>
+          <span style={{ fontSize: "12px", color: COLORS.textMuted }}>{t("container.label")}</span>
           <select
             value={selectedContainer}
             onChange={(e) => setSelectedContainer(e.target.value)}

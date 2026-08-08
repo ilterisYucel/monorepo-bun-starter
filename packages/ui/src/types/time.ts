@@ -10,4 +10,4 @@
  * - `"6M"`: Son 6 ay
  * - `"1y"`: Son 1 yıl
  */
-export type TimeRange = "1m" | "1h" | "1d" | "1w" | "1M" | "3M" | "6M" | "1y";
+export type TimeRange = "1m" | "1h" | "1d" | "1w" | "1M" | "3M" | "6M" | "1y" | "custom";

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SCADA_ICONS } from "@gd-monorepo/ui";
+import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import toast from "react-hot-toast";
 import { LogoutButton } from "../features/auth";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { useDevicesStore } from "../stores/devicesStore";
 import { controlApi } from "../features/control/services/controlApi";
 import { MANEUVERS } from "../features/control/maneuvers";
+import { SettingsPanel } from "../features/settings";
 import * as S from "./Sidebar.styles";
 
 export type PageType =
@@ -26,19 +27,33 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
+const NAV_KEY: Record<string, string> = {
+  dashboard: "nav.dashboard",
+  racks: "nav.racks",
+  control: "nav.control",
+  "system-charts": "nav.analytics",
+  reports: "nav.reports",
+  events: "nav.events",
+  devices: "nav.devices",
+  fire: "nav.fire",
+};
+
+const ROLE_KEY: Record<string, string> = {
+  admin: "common.role.admin",
+  teknik: "common.role.teknik",
+  guest: "common.role.guest",
+  boss: "common.role.boss",
+};
+
 const menuItems = [
-  { id: "dashboard" as const, label: "Panel", icon: SCADA_ICONS.dashboard },
-  { id: "racks" as const, label: "Rack Detaylari", icon: SCADA_ICONS.battery },
-  { id: "control" as const, label: "Kontrol", icon: SCADA_ICONS.control },
-  {
-    id: "system-charts" as const,
-    label: "Analitik",
-    icon: SCADA_ICONS.charts,
-  },
-  { id: "reports" as const, label: "Raporlar", icon: SCADA_ICONS.reports },
-  { id: "events" as const, label: "Olay & Gecmis", icon: SCADA_ICONS.events },
-  { id: "devices" as const, label: "Cihazlar", icon: SCADA_ICONS.container },
-  { id: "fire" as const, label: "Yangın Paneli", icon: SCADA_ICONS.fireAlarm },
+  { id: "dashboard" as const, icon: SCADA_ICONS.dashboard },
+  { id: "racks" as const, icon: SCADA_ICONS.battery },
+  { id: "control" as const, icon: SCADA_ICONS.control },
+  { id: "system-charts" as const, icon: SCADA_ICONS.charts },
+  { id: "reports" as const, icon: SCADA_ICONS.reports },
+  { id: "events" as const, icon: SCADA_ICONS.events },
+  { id: "devices" as const, icon: SCADA_ICONS.container },
+  { id: "fire" as const, icon: SCADA_ICONS.fireAlarm },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -47,10 +62,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed,
   onToggleCollapse,
 }) => {
+  const { t } = useTranslation();
   const { user, isAuthenticated, isGuest } = useAuth();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [emergencyLoading, setEmergencyLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { fetch: fetchDevices } = useDevicesStore();
 
   useEffect(() => {
@@ -60,45 +77,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [isAuthenticated, fetchDevices]);
 
   const handleEmergencyStop = async () => {
-    if (
-      !confirm(
-        "ACIL DURDURMA: Tum sistem duracak. Devam etmek istiyor musunuz?",
-      )
-    ) {
-      return;
-    }
+    if (!confirm(t("nav.emergency.confirm"))) return;
 
     setEmergencyLoading(true);
     try {
       const m = MANEUVERS.fl03_emergency_stop;
       if (!m) return;
       const { results } = await controlApi.executeMulti(
-        m.steps.map((s) => ({ deviceId: s.deviceId, command: s.command ?? "", params: s.params ?? {} })),
+        m.steps.map((s) => ({
+          deviceId: s.deviceId,
+          command: s.command ?? "",
+          params: s.params ?? {},
+        })),
         m.mode,
       );
       const allOk = results.every((r) => r.success);
       if (allOk) {
-        toast.success(`ACIL DURDUR: ${results.length} adım ✅`);
+        toast.success(
+          `${t("nav.emergency.button")}: ${results.length} ${t("maneuver.steps").toLowerCase()} ✅`,
+        );
       } else {
         for (const r of results) {
           if (!r.success) toast.error(`${r.deviceId}: ${r.command} ❌`);
         }
       }
     } catch {
-      toast.error("ACIL DURDUR gönderilemedi!");
+      toast.error(`${t("nav.emergency.button")} gönderilemedi!`);
     } finally {
       setEmergencyLoading(false);
     }
   };
 
+  const getRoleLabel = (role: string): string =>
+    t(ROLE_KEY[role] ?? role);
+
   const LogoIcon = SCADA_ICONS.logo;
   const CollapseIcon = SCADA_ICONS.collapse;
   const EmergencyIcon = SCADA_ICONS.emergency;
   const UserIcon = SCADA_ICONS.user;
+  const SettingsIcon = SCADA_ICONS.settings;
 
-  const visibleMenu = !isAuthenticated || user?.role === "guest"
-    ? menuItems.filter((item) => item.id === "dashboard")
-    : menuItems;
+  const visibleMenu =
+    !isAuthenticated || user?.role === "guest"
+      ? menuItems.filter((item) => item.id === "dashboard")
+      : menuItems;
 
   return (
     <S.SidebarContainer collapsed={collapsed}>
@@ -112,18 +134,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <S.SidebarNav>
         {visibleMenu.map((item) => {
           const Icon = item.icon;
+          const label = t(NAV_KEY[item.id] ?? item.id);
           return (
             <S.NavItem
               key={item.id}
               active={currentPage === item.id}
               collapsed={collapsed}
               onClick={() => onPageChange(item.id)}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? label : undefined}
             >
               <S.NavIcon>
                 <Icon size={20} />
               </S.NavIcon>
-              {!collapsed && <S.NavLabel>{item.label}</S.NavLabel>}
+              {!collapsed && <S.NavLabel>{label}</S.NavLabel>}
             </S.NavItem>
           );
         })}
@@ -134,10 +157,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <S.SidebarToggle
           collapsed={collapsed}
           onClick={onToggleCollapse}
-          aria-label={collapsed ? "Menuyu genislet" : "Menuyu daralt"}
+          aria-label={
+            collapsed ? t("nav.expand") : t("nav.collapse")
+          }
         >
           <CollapseIcon size={14} />
-          {!collapsed && <S.ToggleLabel>Daralt</S.ToggleLabel>}
+          {!collapsed && (
+            <S.ToggleLabel>{t("nav.collapse")}</S.ToggleLabel>
+          )}
         </S.SidebarToggle>
       </S.ToggleContainer>
 
@@ -157,14 +184,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {showProfilePopup && (
                     <S.UserProfilePopup>
                       <S.UserProfileName>
-                        {user?.name ?? "Kullanici"}
+                        {user?.name ?? t("nav.user")}
                       </S.UserProfileName>
                       <S.UserRoleBadge role={user?.role ?? "guest"}>
-                        {user?.role === "admin"
-                          ? "Admin"
-                          : user?.role === "teknik"
-                            ? "Teknik"
-                            : "Misafir"}
+                        {getRoleLabel(user?.role ?? "guest")}
                       </S.UserRoleBadge>
                     </S.UserProfilePopup>
                   )}
@@ -174,26 +197,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <S.UserProfileAvatar>
                     <UserIcon size={20} />
                   </S.UserProfileAvatar>
-                  <S.UserProfileName>{user?.name}</S.UserProfileName>
+                  <S.UserProfileName>
+                    {user?.name}
+                  </S.UserProfileName>
                   <S.UserRoleBadge role={user?.role ?? "guest"}>
-                    {user?.role === "admin"
-                      ? "Admin"
-                      : user?.role === "teknik"
-                        ? "Teknik"
-                        : "Misafir"}
+                    {getRoleLabel(user?.role ?? "guest")}
                   </S.UserRoleBadge>
                 </S.UserProfileDetails>
               )}
             </S.UserProfileContainer>
 
+            <S.SettingsBtn
+              collapsed={collapsed}
+              onClick={() => setShowSettings(true)}
+              title={collapsed ? t("settings.button") : undefined}
+            >
+              <SettingsIcon size={20} />
+              {!collapsed && t("settings.button")}
+            </S.SettingsBtn>
+
             <S.EmergencyStopBtn
               collapsed={collapsed}
               onClick={handleEmergencyStop}
               disabled={emergencyLoading}
-              title={collapsed ? "ACIL DURDUR" : undefined}
+              title={
+                collapsed ? t("nav.emergency.button") : undefined
+              }
             >
               <EmergencyIcon size={collapsed ? 18 : 16} />
-              {!collapsed && " ACIL DURDUR"}
+              {!collapsed && ` ${t("nav.emergency.button")}`}
             </S.EmergencyStopBtn>
 
             <LogoutButton collapsed={collapsed} />
@@ -202,13 +234,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <S.LoginButton
             collapsed={collapsed}
             onClick={() => navigate("/login")}
-            title={collapsed ? "Giris Yap" : undefined}
+            title={collapsed ? t("auth.login") : undefined}
           >
             <UserIcon size={collapsed ? 18 : 16} />
-            {!collapsed && "Giris Yap"}
+            {!collapsed && t("auth.login")}
           </S.LoginButton>
         )}
       </S.SidebarFooter>
+
+      {showSettings && (
+        <SettingsPanel onClose={() => setShowSettings(false)} />
+      )}
     </S.SidebarContainer>
   );
 };

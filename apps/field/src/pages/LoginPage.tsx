@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -9,6 +9,7 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState("");
   const { login, isAuthenticated, user } = useAuthStore();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (isAuthenticated && user) {
     if (user.role === "boss") {
@@ -26,7 +27,7 @@ export const LoginPage: React.FC = () => {
     try {
       await login(username, password);
     } catch {
-      setError("Gecersiz kullanici adi veya sifre");
+      setError(t("auth.loginError"));
     }
   };
 
@@ -54,7 +55,7 @@ export const LoginPage: React.FC = () => {
         }}
       >
         <h2 style={{ color: COLORS.textWhite, textAlign: "center", marginBottom: "8px" }}>
-          Saha Girisi
+          {t("auth.loginTitle.field")}
         </h2>
 
         {error && (
@@ -65,7 +66,7 @@ export const LoginPage: React.FC = () => {
 
         <input
           type="text"
-          placeholder="Kullanici adi"
+          placeholder={t("auth.usernamePlaceholder")}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={{
@@ -81,7 +82,7 @@ export const LoginPage: React.FC = () => {
 
         <input
           type="password"
-          placeholder="Sifre"
+          placeholder={t("auth.passwordPlaceholder")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           style={{
@@ -108,7 +109,7 @@ export const LoginPage: React.FC = () => {
             cursor: "pointer",
           }}
         >
-          Giris Yap
+          {t("auth.login")}
         </button>
       </form>
     </div>

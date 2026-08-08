@@ -10,8 +10,7 @@
       "default": "./src/index.ts"
     }
   },
-  "dependencies": {},
-  "peerDependencies": {
+  "dependencies": {
     "@gd-monorepo/shared-types": "*"
   },
   "scripts": {

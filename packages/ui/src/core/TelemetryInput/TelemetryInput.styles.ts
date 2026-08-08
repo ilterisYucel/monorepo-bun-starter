@@ -130,6 +130,7 @@ export const InputGroup = styled.div<{ $status?: StatusKey }>`
   border: 1px solid ${COLORS.borderDefault};
   border-radius: 0;
   padding: 8px 16px;
+  position: relative;
   transition: all 0.2s;
 
   &:focus-within {
@@ -272,4 +273,52 @@ export const LimitBadge = styled.span<{ isMin?: boolean }>`
   display: inline-flex;
   align-items: center;
   gap: 4px;
+`;
+
+export const SelectValue = styled.select<{ $status?: StatusKey }>`
+  flex: 1;
+  min-width: 0;
+  background: ${COLORS.bgInput};
+  border: 1px solid ${COLORS.borderDefault};
+  border-radius: 6px;
+  outline: none;
+  color: ${({ $status }) =>
+    $status ? statusColors[$status] : COLORS.textPrimary};
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 500;
+  padding: 6px 32px 6px 10px;
+  appearance: none;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: ${({ $status }) =>
+      $status ? statusColors[$status] : COLORS.info};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  option {
+    background: ${COLORS.bgCard};
+    color: ${COLORS.textPrimary};
+    padding: 8px;
+  }
+`;
+
+export const SelectArrow = styled.span`
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid ${COLORS.textMuted};
 `;

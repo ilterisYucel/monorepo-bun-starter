@@ -63,9 +63,11 @@ export interface QueueStatus {
  */
 export interface IMessageQueue {
   /**
-   * Queue'ya tek bir job ekler
+   * Queue'ya tek bir job ekler.
+   * Opsiyonel olarak delay (ms) ile gelecekte çalışacak şekilde zamanlanabilir.
    *
    * @param job - Eklenecek job (DeviceJob tipinde)
+   * @param opts - Opsiyonel: { delay?: number } — milisaniye cinsinden gecikme
    * @returns Promise
    *
    * @example
@@ -77,9 +79,12 @@ export interface IMessageQueue {
    *   timestamp: new Date().toISOString(),
    *   priority: 1
    * });
+   *
+   * // 30 saniye gecikmeli stop komutu
+   * await messageQueue.addJob(stopJob, { delay: 30000 });
    * ```
    */
-  addJob(job: DeviceJob): Promise<void>;
+  addJob(job: DeviceJob, opts?: { delay?: number }): Promise<void>;
 
   /**
    * Job ekler ve tamamlanmasını bekler.
@@ -131,12 +136,14 @@ export interface IMessageQueue {
    * @param name - Job'un benzersiz adı
    * @param job - Eklenecek job
    * @param everyMs - Her kaç milisaniyede bir çalışacağı (min: 100ms)
+   * @param startDate - Ilk calisma zamani (verilmezse `Date.now() + everyMs`)
    * @returns Promise
    */
   addRepeatableJobEvery(
     name: string,
     job: DeviceJob,
     everyMs: number,
+    startDate?: Date,
   ): Promise<void>;
 
   /**

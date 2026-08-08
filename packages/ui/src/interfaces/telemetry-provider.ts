@@ -68,6 +68,18 @@ export interface TelemetryProvider {
    * @default "1h"
    */
   range: TimeRange;
+
+  /**
+   * Özel zaman aralığı başlangıcı (ISO 8601).
+   * Sadece `range === "custom"` olduğunda geçerlidir.
+   */
+  customFrom?: string;
+
+  /**
+   * Özel zaman aralığı bitişi (ISO 8601).
+   * Sadece `range === "custom"` olduğunda geçerlidir.
+   */
+  customTo?: string;
   
   /**
    * Dönecek veri noktası sayısı.
@@ -93,6 +105,15 @@ export interface TelemetryProvider {
    * @param range - Yeni zaman aralığı
    */
   setRange: (range: TimeRange) => void;
+
+  /**
+   * Özel zaman aralığını ayarlar.
+   * Aynı anda range'i "custom" yapar ve from/to değerlerini kaydeder.
+   *
+   * @param from — ISO 8601 başlangıç tarihi
+   * @param to — ISO 8601 bitiş tarihi
+   */
+  setCustomRange: (from: string, to: string) => void;
   
   /**
    * Nokta sayısını değiştirir.

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SCADA_ICONS } from "@gd-monorepo/ui";
+import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import { useAuth } from "../hooks/useAuth";
 import * as S from "./LoginForm.styles";
 
@@ -13,6 +13,7 @@ export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +26,7 @@ export const LoginForm: React.FC = () => {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error || "Giris basarisiz";
+          ?.error || t("auth.loginFailed");
       setError(message);
     }
     setIsLoading(false);
@@ -38,11 +39,11 @@ export const LoginForm: React.FC = () => {
           <h1>
             <LogoIcon size={28} /> EMS
           </h1>
-          <p>Enerji Yonetim Sistemi</p>
+          <p>{t("auth.appTitle")}</p>
         </S.LoginHeader>
         <S.LoginFormElement onSubmit={handleSubmit}>
           <S.FormGroup>
-            <label>Kullanici Adi</label>
+            <label>{t("auth.username")}</label>
             <input
               type="text"
               value={username}
@@ -52,7 +53,7 @@ export const LoginForm: React.FC = () => {
             />
           </S.FormGroup>
           <S.FormGroup>
-            <label>Sifre</label>
+            <label>{t("auth.password")}</label>
             <input
               type="password"
               value={password}
@@ -63,17 +64,17 @@ export const LoginForm: React.FC = () => {
           </S.FormGroup>
           {error && <S.ErrorMessage>{error}</S.ErrorMessage>}
           <S.LoginBtn type="submit" disabled={isLoading}>
-            {isLoading ? "Giris yapiliyor..." : "Giris Yap"}
+            {isLoading ? t("auth.loggingIn") : t("auth.login")}
           </S.LoginBtn>
           <S.GuestDivider>
-            <span>veya</span>
+            <span>{t("auth.or")}</span>
           </S.GuestDivider>
           <S.GuestBtn type="button" onClick={() => navigate("/dashboard")}>
-            Misafir Olarak Devam Et
+            {t("auth.guest")}
           </S.GuestBtn>
         </S.LoginFormElement>
         <S.LoginInfo>
-          <p>Demo Kullanici:</p>
+          <p>{t("auth.demoUser")}</p>
           <S.DemoUsers>
             <span>admin / admin123</span>
           </S.DemoUsers>

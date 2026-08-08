@@ -4,41 +4,53 @@ import {
   TimescaleDBAdapter,
   PostgresAdapter,
 } from "@gd-monorepo/core";
-import { validateOrThrow, redisConfigSchema, postgresConfigSchema } from "@gd-monorepo/shared-types";
-import type { PostgresConfig } from "@gd-monorepo/shared-types";
-import type { RedisConfig } from "@gd-monorepo/core";
+import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { DataService } from "./src/data-service";
-
-function redisConfig(): RedisConfig {
-  return validateOrThrow<RedisConfig>(redisConfigSchema, {
-    host: process.env.REDIS_HOST ?? "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
-    password: process.env.REDIS_PASSWORD,
-    db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : undefined,
-  }, "redisConfig");
-}
-
-function postgresConfig(): PostgresConfig {
-  return validateOrThrow<PostgresConfig>(postgresConfigSchema, {
-    host: process.env.TIMESCALE_HOST ?? "127.0.0.1",
-    port: parseInt(process.env.TIMESCALE_PORT ?? "5432", 10),
-    user: process.env.TIMESCALE_USER ?? "postgres",
-    password: process.env.TIMESCALE_PASSWORD ?? "password",
-    database: process.env.TIMESCALE_DATABASE ?? "battery",
-    maxConnections: parseInt(process.env.TIMESCALE_POOL_SIZE ?? "20", 10),
-  }, "postgresConfig");
-}
 
 async function main() {
   console.log("[run] Data Service baslatiliyor...");
 
-  const redis = new RedisConnection(redisConfig());
+  // Konfigürasyon yukleme (oncelik: process.env > varsayilan)
+  const config = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [
+    new EnvSource(),
+  ]);
+  config.load();
+  console.log("[run] Konfigürasyon:", config.redacted());
+
+  // Redis
+  const redis = new RedisConnection({
+    host: config.get<string>("redis.host"),
+    port: config.get<number>("redis.port"),
+    password: config.get<string | undefined>("redis.password"),
+    db: config.get<number | undefined>("redis.db"),
+  });
   const mq = new BullMQAdapter(redis);
 
-  const pgConfig = postgresConfig();
-  const timescale = new TimescaleDBAdapter(pgConfig);
+  // TimescaleDB
+  const timescale = new TimescaleDBAdapter({
+    host: config.get<string>("timescale.host"),
+    port: config.get<number>("timescale.port"),
+    user: config.get<string>("timescale.user"),
+    password: config.get<string>("timescale.password"),
+    database: config.get<string>("timescale.database"),
+    maxConnections: config.get<number>("timescale.maxConnections"),
+    chunkInterval: config.get<string>("timescale.chunkInterval"),
+    compressAfter: config.get<string>("timescale.compressAfter"),
+    retentionAfter: config.get<string>("timescale.retentionAfter"),
+    statementTimeoutMs: config.get<number>("timescale.statementTimeoutMs"),
+    idleTimeoutMs: config.get<number>("timescale.idleTimeoutMs"),
+    connectionTimeoutMs: config.get<number>("timescale.connectionTimeoutMs"),
+  });
 
-  const postgres = new PostgresAdapter(pgConfig);
+  // PostgreSQL (system_logs tablosu icin)
+  const postgres = new PostgresAdapter({
+    host: config.get<string>("timescale.host"),
+    port: config.get<number>("timescale.port"),
+    user: config.get<string>("timescale.user"),
+    password: config.get<string>("timescale.password"),
+    database: config.get<string>("timescale.database"),
+    maxConnections: config.get<number>("timescale.maxConnections"),
+  });
   await postgres.connect();
 
   await postgres.execute(`
@@ -51,6 +63,16 @@ async function main() {
       details     TEXT
     )
   `);
+
+  // Eski loglari temizle (30 gunden eski)
+  try {
+    await postgres.execute(
+      "DELETE FROM system_logs WHERE timestamp < NOW() - INTERVAL '30 days'",
+    );
+    console.log("[run] Eski loglar temizlendi.");
+  } catch (err) {
+    console.error("[run] Log temizleme basarisiz:", err);
+  }
 
   const service = new DataService(mq, timescale, postgres);
 

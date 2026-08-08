@@ -1,10 +1,44 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import React, { Component } from "react";
+import React, { Component, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 import { RouterProvider } from "react-router-dom";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, TR_DICT, EN_DICT, TranslationProvider } from "@gd-monorepo/ui";
 import { queryClient } from "../lib/query-client";
 import { router } from "./router";
+import { BOSS_TR_DICT } from "../i18n/tr";
+import { BOSS_EN_DICT } from "../i18n/en";
+
+const STORAGE_KEY = "boss-settings";
+
+function readLocale(): string {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.locale === "tr" || parsed.locale === "en") return parsed.locale;
+    }
+  } catch { /* ignore */ }
+  return "tr";
+}
+
+const TranslationWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const locale = readLocale();
+  const dicts = useMemo(
+    () => ({ tr: TR_DICT, en: EN_DICT }),
+    [],
+  );
+  const extraKeys = useMemo(
+    () => ({ tr: BOSS_TR_DICT, en: BOSS_EN_DICT }),
+    [],
+  );
+  return (
+    <TranslationProvider dictionaries={dicts} defaultLocale={locale} extraKeys={extraKeys}>
+      {children}
+    </TranslationProvider>
+  );
+};
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode },
@@ -41,7 +75,9 @@ class ErrorBoundary extends Component<
 export const AppProviders: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <TranslationWrapper>
+        <RouterProvider router={router} />
+      </TranslationWrapper>
       <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
     </QueryClientProvider>
   </ErrorBoundary>

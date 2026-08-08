@@ -5,10 +5,10 @@ services:
     image: timescale/timescaledb:latest-pg14
     container_name: battery-timescaledb
     command:
-      - -cshared_buffers=32MB
+      - -cshared_buffers=256MB
       - -cwork_mem=4MB
-      - -ceffective_cache_size=96MB
-      - -cmaintenance_work_mem=16MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
       - -cmax_connections=50
     environment:
       POSTGRES_USER: postgres
@@ -27,6 +27,11 @@ services:
       retries: 5
     restart: unless-stopped
     mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -50,6 +55,11 @@ services:
       retries: 5
     restart: unless-stopped
     mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   device-service:
     build:
@@ -70,6 +80,11 @@ services:
       - battery-network
     restart: unless-stopped
     mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   data-service:
     build:
@@ -94,6 +109,11 @@ services:
       - battery-network
     restart: unless-stopped
     mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web-service:
     build:
@@ -113,6 +133,9 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
       DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
     ports:
       - "5001:5001"
     depends_on:
@@ -124,6 +147,11 @@ services:
       - battery-network
     restart: unless-stopped
     mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build:
@@ -140,6 +168,11 @@ services:
       - battery-network
     restart: unless-stopped
     mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   timescale-data:

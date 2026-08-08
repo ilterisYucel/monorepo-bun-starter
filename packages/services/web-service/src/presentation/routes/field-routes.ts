@@ -109,7 +109,7 @@ export async function fieldRoutes(
       [fieldId],
     );
 
-    const containerList = await Promise.all(
+    const containerResults = await Promise.allSettled(
       containers.map(async (c) => {
         const latest = deps.containerProxy ? deps.containerProxy.latestTelemetry(c.container_id) : [];
         const connected = deps.containerProxy
@@ -124,6 +124,9 @@ export async function fieldRoutes(
           latestTelemetry: latest,
         };
       }),
+    );
+    const containerList = containerResults.flatMap((r) =>
+      r.status === "fulfilled" ? [r.value] : [],
     );
 
     return reply.send({ field, containers: containerList, telemetries: [] });
@@ -141,7 +144,7 @@ export async function fieldRoutes(
       [fieldId],
     );
 
-    const result = await Promise.all(
+    const fieldResults = await Promise.allSettled(
       rows.map(async (c) => {
         const status = deps.containerProxy?.connectionStatus().get(c.container_id) ?? "idle";
         return {
@@ -152,6 +155,9 @@ export async function fieldRoutes(
           latestTelemetry: deps.containerProxy?.latestTelemetry(c.container_id) ?? [],
         };
       }),
+    );
+    const result = fieldResults.flatMap((r) =>
+      r.status === "fulfilled" ? [r.value] : [],
     );
 
     return reply.send(result);

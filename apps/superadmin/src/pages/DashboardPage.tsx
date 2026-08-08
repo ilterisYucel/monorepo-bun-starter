@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FieldMap, FieldCard, COLORS, SCADA_ICONS } from "@gd-monorepo/ui";
+import { FieldMap, FieldCard, COLORS, SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import type { FieldMarker } from "@gd-monorepo/ui";
 
 const MOCK_FIELDS: FieldMarker[] = [
@@ -46,6 +46,7 @@ const RefreshIcon = SCADA_ICONS.refresh;
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div>
@@ -66,7 +67,7 @@ export const DashboardPage: React.FC = () => {
         }}
       >
         <span style={{ fontWeight: 700, fontSize: "15px", color: COLORS.textWhite }}>
-          Sahalar ({MOCK_FIELDS.length})
+          {t("field.titlePlural")} ({MOCK_FIELDS.length})
         </span>
         <button
           style={{

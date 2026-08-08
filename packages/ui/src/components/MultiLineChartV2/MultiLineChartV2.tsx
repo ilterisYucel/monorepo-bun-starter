@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
-import type { MultiLineChartProps } from "./MultiLineChartV2.types";
+import type { MultiLineChartV2Props, MultiLineChartLabels } from "./MultiLineChartV2.types";
 import type { LogEntry } from "@gd-monorepo/shared-types";
 import * as S from "./MultiLineChartV2.styles";
 import { COLORS } from "../../colors";
@@ -19,10 +19,10 @@ const ANNOTATION_COLORS: Record<LogEntry["type"], string> = {
   info: COLORS.info,
 };
 
-const formatTooltipTime = (timestamp: string): string => {
+const formatTooltipTime = (timestamp: string, locale: string): string => {
   const d = new Date(timestamp);
   if (Number.isNaN(d.getTime())) return timestamp;
-  return d.toLocaleString("tr-TR", {
+  return d.toLocaleString(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -32,17 +32,17 @@ const formatTooltipTime = (timestamp: string): string => {
   });
 };
 
-const formatStat = (v: number | string): string => {
+const formatStat = (v: number | string, locale: string): string => {
   if (typeof v === "string") return v;
-  return v.toLocaleString("tr-TR", {
+  return v.toLocaleString(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 };
 
-const formatTooltipVal = (v: number | string): string => {
+const formatTooltipVal = (v: number | string, locale: string): string => {
   if (typeof v === "number") {
-    return v.toLocaleString("tr-TR", {
+    return v.toLocaleString(locale, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
@@ -65,7 +65,7 @@ interface TooltipState {
   annotLeft?: number;
 }
 
-export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
+export const MultiLineChartV2: React.FC<MultiLineChartV2Props> = ({
   data,
   title,
   subtitle,
@@ -75,7 +75,30 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
   showLegend = true,
   isLoading = false,
   annotations,
+  labels: rawLabels,
+  locale: rawLocale = "tr",
 }) => {
+  const L: MultiLineChartLabels = rawLabels ?? {
+    series: "Seri",
+    last: "Son",
+    min: "Min",
+    max: "Max",
+    avg: "Ort",
+    noData: "Henüz veri yok...",
+  };
+  const locale = rawLocale;
+  const fmtTime = useCallback(
+    (ts: string) => formatTooltipTime(ts, locale),
+    [locale],
+  );
+  const fmtNumber = useCallback(
+    (v: number | string) => formatStat(v, locale),
+    [locale],
+  );
+  const fmtVal = useCallback(
+    (v: number | string) => formatTooltipVal(v, locale),
+    [locale],
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<uPlot | null>(null);
   const annotationsRef = useRef<LogEntry[] | undefined>(annotations);
@@ -367,7 +390,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
   if (data.length === 0) {
     return (
       <S.Empty style={{ height: `${height}px` }}>
-        <p>Henüz veri yok...</p>
+        <p>{L.noData}</p>
       </S.Empty>
     );
   }
@@ -398,7 +421,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
               fontSize: 12,
             }}
           >
-            {formatTooltipTime(new Date(tooltip.cursorTs * 1000).toISOString())}
+            {fmtTime(new Date(tooltip.cursorTs * 1000).toISOString())}
           </div>
           {tooltipContent.showTelemetry && tooltipContent.dataPoint && (
             <>
@@ -435,7 +458,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
                   <span
                     style={{ color: COLORS.textNearWhite, fontSize: 12, fontWeight: 600 }}
                   >
-                    {formatTooltipVal((tooltipContent.dataPoint as any)[key])}
+                    {fmtVal((tooltipContent.dataPoint as any)[key])}
                   </span>
                 </div>
               ))}
@@ -466,18 +489,18 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
       {showLegend && lines.length > 0 && (
         <S.LegendTable>
           <S.LegendHeader>
-            <S.LegendCell flex={3}>Seri</S.LegendCell>
+            <S.LegendCell flex={3}>{L.series}</S.LegendCell>
             <S.LegendCell flex={1} align="right">
-              Son
+              {L.last}
             </S.LegendCell>
             <S.LegendCell flex={1} align="right">
-              Min
+              {L.min}
             </S.LegendCell>
             <S.LegendCell flex={1} align="right">
-              Max
+              {L.max}
             </S.LegendCell>
             <S.LegendCell flex={1} align="right">
-              Ort
+              {L.avg}
             </S.LegendCell>
           </S.LegendHeader>
           {lines.map((key) => {
@@ -493,16 +516,16 @@ export const MultiLineChartV2: React.FC<MultiLineChartProps> = ({
                   {key}
                 </S.LegendCell>
                 <S.LegendCell flex={1} align="right">
-                  {stats ? formatStat(stats.last) : "-"}
+                  {stats ? fmtNumber(stats.last) : "-"}
                 </S.LegendCell>
                 <S.LegendCell flex={1} align="right">
-                  {stats ? formatStat(stats.min) : "-"}
+                  {stats ? fmtNumber(stats.min) : "-"}
                 </S.LegendCell>
                 <S.LegendCell flex={1} align="right">
-                  {stats ? formatStat(stats.max) : "-"}
+                  {stats ? fmtNumber(stats.max) : "-"}
                 </S.LegendCell>
                 <S.LegendCell flex={1} align="right">
-                  {stats ? formatStat(stats.avg) : "-"}
+                  {stats ? fmtNumber(stats.avg) : "-"}
                 </S.LegendCell>
               </S.LegendRow>
             );

@@ -1,18 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useDevicesStore } from "../stores/devicesStore";
 import { DeviceTable } from "@gd-monorepo/ui";
 import type { DeviceTableRow } from "@gd-monorepo/ui";
 import { COLORS } from "@gd-monorepo/ui";
 import { DeviceDetailModal } from "../features/devices/components/DeviceDetailModal";
 
+const typeOrder: Record<string, number> = {
+  bsc: 0,
+  xrack: 1,
+  hvac: 2,
+  cb: 3,
+  "dc-output": 4,
+};
+
 export const DevicesPage: React.FC = () => {
   const { devices, loaded, loading } = useDevicesStore();
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
 
+  const sortedDevices = useMemo(
+    () =>
+      [...devices].sort((a, b) => {
+        const ta = typeOrder[a.type] ?? 99;
+        const tb = typeOrder[b.type] ?? 99;
+        if (ta !== tb) return ta - tb;
+        return a.name.localeCompare(b.name);
+      }),
+    [devices],
+  );
+
   return (
     <>
       <DeviceTable
-        devices={devices as DeviceTableRow[]}
+        devices={sortedDevices as DeviceTableRow[]}
         isLoading={loading || !loaded}
         renderActions={(device) => (
           <button

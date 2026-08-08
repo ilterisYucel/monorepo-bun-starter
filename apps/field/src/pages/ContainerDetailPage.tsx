@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { COLORS, SCADA_ICONS, ContainerConnectionBadge } from "@gd-monorepo/ui";
+import { COLORS, SCADA_ICONS, ContainerConnectionBadge, useTranslation } from "@gd-monorepo/ui";
 import { useContainerTelemetry } from "../features/containers/hooks/useContainerTelemetry";
 
 const BackIcon = SCADA_ICONS.collapse;
@@ -9,21 +9,10 @@ const TempIcon = SCADA_ICONS.temperature;
 const PowerIcon = SCADA_ICONS.powerPlug;
 const HealthIcon = SCADA_ICONS.health;
 
-const STATUS_LABEL: Record<string, string> = {
-  online: "Aktif",
-  warning: "Uyarı",
-  offline: "Çevrimdışı",
-};
-
-const getDeviceStatusDot = (status: string) => {
-  const color =
-    status === "online"
-      ? COLORS.success
-      : status === "warning"
-        ? COLORS.warning
-        : COLORS.error;
-  const text = STATUS_LABEL[status] ?? status;
-  return { color, text };
+const STATUS_KEY: Record<string, string> = {
+  online: "status.active",
+  warning: "status.warning",
+  offline: "common.offline",
 };
 
 interface DeviceSummary {
@@ -69,21 +58,33 @@ function deviceSummaries(containerId: string, status: string): DeviceSummary[] {
 
   if (containerId === "container-2") {
     return [
-      { name: "BSC-1", soc: 65, soh: 88, voltage: 46.8, current: 173, power: 8.1, temperature: 42, chargeStatus: "Deşarj Oluyor" },
-      { name: "BSC-2", soc: 60, soh: 86, voltage: 46.5, current: 165, power: 7.7, temperature: 40, chargeStatus: "Deşarj Oluyor" },
-      { name: "CB-1", isClosed: true, isTripped: false },
-      { name: "CB-2", isClosed: false, isTripped: true },
+      { name: "BSC-1", soc: 65, soh: 91, voltage: 47.5, current: 310, power: 14.7, temperature: 42, chargeStatus: "Deşarj Oluyor" },
+      { name: "BSC-2", soc: 70, soh: 92, voltage: 47.8, current: 290, power: 13.9, temperature: 40, chargeStatus: "Deşarj Oluyor" },
+      { name: "CB-1", isClosed: true, isTripped: true },
+      { name: "CB-2", isClosed: false, isTripped: false },
       { name: "DC-OUTPUT-1", isOn: false, dcVoltage: 0, dcCurrent: 0, dcPower: 0, temperature: 28 },
-      { name: "DC-OUTPUT-2", isOn: true, dcVoltage: 47.0, dcCurrent: 90, dcPower: 4.23, temperature: 33 },
-      { name: "HVAC (4 oda)", roomCount: 4, avgRoomTemp: 25.0 },
+      { name: "DC-OUTPUT-2", isOn: true, dcVoltage: 47.5, dcCurrent: 95, dcPower: 4.51, temperature: 32 },
+      { name: "HVAC (4 oda)", roomCount: 4, avgRoomTemp: 23.1 },
     ];
   }
 
   return [];
 }
 
+const getDeviceStatusDot = (status: string, t: (k: string) => string) => {
+  const color =
+    status === "online"
+      ? COLORS.success
+      : status === "warning"
+        ? COLORS.warning
+        : COLORS.error;
+  const text = t(STATUS_KEY[status] ?? status);
+  return { color, text };
+};
+
 const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ device, status }) => {
-  const dot = getDeviceStatusDot(device.name.startsWith("CB") && device.isTripped ? "warning" : status);
+  const { t } = useTranslation();
+  const dot = getDeviceStatusDot(status, t);
 
   return (
     <div
@@ -92,31 +93,22 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
         border: `1px solid ${COLORS.borderDefault}`,
         borderRadius: "12px",
         padding: "14px",
-        marginBottom: "10px",
+        marginBottom: "8px",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "10px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: dot.color,
-              display: "inline-block",
-            }}
-          />
-          <span style={{ fontWeight: 700, fontSize: "14px", color: COLORS.textWhite }}>
-            {device.name}
-          </span>
-        </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+        <div
+          style={{
+            width: "8px",
+            height: "8px",
+            borderRadius: "50%",
+            background: dot.color,
+            flexShrink: 0,
+          }}
+        />
+        <span style={{ fontWeight: 600, fontSize: "14px", color: COLORS.textWhite }}>
+          {device.name}
+        </span>
         <span style={{ fontSize: "11px", color: dot.color }}>{dot.text}</span>
       </div>
 
@@ -125,10 +117,10 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
           {[
             { label: "SoC", value: `%${Math.round(device.soc)}`, icon: BatteryIcon },
             { label: "SoH", value: `%${Math.round(device.soh ?? 0)}`, icon: HealthIcon },
-            { label: "Voltaj", value: `${(device.voltage ?? 0).toFixed(1)}V` },
-            { label: "Akım", value: `${(device.current ?? 0)}A` },
-            { label: "Güç", value: `${(device.power ?? 0).toFixed(1)} kW`, icon: PowerIcon },
-            { label: "Sıcaklık", value: `${(device.temperature ?? 0)}°C`, icon: TempIcon },
+            { label: t("device.voltage"), value: `${(device.voltage ?? 0).toFixed(1)}V` },
+            { label: t("device.current"), value: `${(device.current ?? 0)}A` },
+            { label: t("device.power"), value: `${(device.power ?? 0).toFixed(1)} kW`, icon: PowerIcon },
+            { label: t("device.temperature"), value: `${(device.temperature ?? 0)}°C`, icon: TempIcon },
           ].map((m) => {
             const Ico = m.icon;
             return (
@@ -170,9 +162,9 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
                 color: device.isClosed ? COLORS.success : COLORS.error,
               }}
             >
-              {device.isClosed ? "Kapalı" : "Açık"}
+              {device.isClosed ? t("status.closed") : t("status.open")}
             </div>
-            <div style={{ fontSize: "10px", color: COLORS.textMuted }}>Durum</div>
+            <div style={{ fontSize: "10px", color: COLORS.textMuted }}>{t("device.state")}</div>
           </div>
           <div
             style={{
@@ -189,9 +181,9 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
                 color: device.isTripped ? COLORS.error : COLORS.success,
               }}
             >
-              {device.isTripped ? "Atmış" : "Normal"}
+              {device.isTripped ? t("status.tripped") : t("status.normal")}
             </div>
-            <div style={{ fontSize: "10px", color: COLORS.textMuted }}>Trip</div>
+            <div style={{ fontSize: "10px", color: COLORS.textMuted }}>{t("container.trip")}</div>
           </div>
         </div>
       )}
@@ -214,9 +206,9 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
                 color: device.isOn ? COLORS.success : COLORS.error,
               }}
             >
-              {device.isOn ? "Açık" : "Kapalı"}
+              {device.isOn ? t("status.open") : t("status.closed")}
             </div>
-            <div style={{ fontSize: "10px", color: COLORS.textMuted }}>Çıkış Durumu</div>
+            <div style={{ fontSize: "10px", color: COLORS.textMuted }}>{t("container.outputStatus")}</div>
           </div>
           {device.dcVoltage !== undefined && (
             <>
@@ -224,13 +216,13 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
                 <div style={{ fontSize: "13px", fontWeight: 700, color: COLORS.textWhite }}>
                   {device.dcVoltage.toFixed(1)}V
                 </div>
-                <div style={{ fontSize: "10px", color: COLORS.textMuted }}>DC Voltaj</div>
+                <div style={{ fontSize: "10px", color: COLORS.textMuted }}>{t("container.dcVoltage")}</div>
               </div>
               <div style={{ padding: "8px", background: COLORS.bgInput, borderRadius: "8px", textAlign: "center" }}>
                 <div style={{ fontSize: "13px", fontWeight: 700, color: COLORS.textWhite }}>
                   {device.dcCurrent}A
                 </div>
-                <div style={{ fontSize: "10px", color: COLORS.textMuted }}>DC Akım</div>
+                <div style={{ fontSize: "10px", color: COLORS.textMuted }}>{t("container.dcCurrent")}</div>
               </div>
             </>
           )}
@@ -247,9 +239,9 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
           }}
         >
           <div style={{ fontSize: "14px", fontWeight: 700, color: COLORS.textWhite }}>
-            {device.roomCount} oda — Ort. {device.avgRoomTemp?.toFixed(1) ?? "—"}°C
+            {t("container.rooms", { count: String(device.roomCount), temp: device.avgRoomTemp?.toFixed(1) ?? "—" })}
           </div>
-          <div style={{ fontSize: "10px", color: COLORS.textMuted }}>HVAC</div>
+          <div style={{ fontSize: "10px", color: COLORS.textMuted }}>{t("device.type.hvac")}</div>
         </div>
       )}
     </div>
@@ -257,6 +249,7 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
 };
 
 export const ContainerDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { fieldId, containerId } = useParams<{ fieldId: string; containerId: string }>();
   const navigate = useNavigate();
   const { container } = useContainerTelemetry(containerId ?? "");
@@ -264,7 +257,7 @@ export const ContainerDetailPage: React.FC = () => {
   if (!container) {
     return (
       <div style={{ padding: "20px", color: COLORS.error }}>
-        Konteyner bulunamadı: {containerId}
+        {t("container.notFound")}: {containerId}
       </div>
     );
   }
@@ -302,7 +295,7 @@ export const ContainerDetailPage: React.FC = () => {
         </h2>
         <ContainerConnectionBadge
           connected={container.connected}
-          label="PPC: Bağlı"
+          label={t("container.connected")}
           size="small"
         />
       </div>
@@ -321,11 +314,11 @@ export const ContainerDetailPage: React.FC = () => {
             value: soc ? `%${Math.round(soc.value as number)}` : "—",
           },
           {
-            label: "Durum",
-            value: STATUS_LABEL[container.status] ?? container.status,
+            label: t("device.state"),
+            value: t(STATUS_KEY[container.status] ?? container.status),
           },
           {
-            label: "Cihaz",
+            label: t("container.devices"),
             value: `${container.connected ? "13/13" : "0/13"}`,
           },
         ].map((g) => (
@@ -350,7 +343,7 @@ export const ContainerDetailPage: React.FC = () => {
       </div>
 
       <div style={{ fontSize: "12px", fontWeight: 600, color: COLORS.textMuted, marginBottom: "10px" }}>
-        Cihazlar
+        {t("container.devices")}
       </div>
 
       {devices.map((d) => (

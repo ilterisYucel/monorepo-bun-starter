@@ -1,9 +1,10 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, useTranslation } from "@gd-monorepo/ui";
 import { useContainerData } from "../features/containers/hooks/useContainerData";
 
 export const FieldDashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const { fieldId } = useParams<{ fieldId: string }>();
   const { containers } = useContainerData(fieldId ?? "");
 
@@ -40,19 +41,19 @@ export const FieldDashboardPage: React.FC = () => {
           <div style={{ fontSize: "28px", fontWeight: 800, color: COLORS.info }}>
             {totalPower.toFixed(1)} <span style={{ fontSize: "14px", color: COLORS.textMuted }}>MW</span>
           </div>
-          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>Toplam Güç</div>
+          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>{t("container.totalPower")}</div>
         </div>
         <div style={{ textAlign: "center", flex: 1 }}>
           <div style={{ fontSize: "28px", fontWeight: 800, color: COLORS.success }}>
             %{Math.round(avgSoc)}
           </div>
-          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>Ort. SoC</div>
+          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>{t("dashboard.avgSoc")}</div>
         </div>
         <div style={{ textAlign: "center", flex: 1 }}>
           <div style={{ fontSize: "28px", fontWeight: 800, color: COLORS.textWhite }}>
             {onlineContainers}/{totalContainers}
           </div>
-          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>Konteyner</div>
+          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>{t("container.title")}</div>
         </div>
         <div style={{ textAlign: "center", flex: 1 }}>
           <div
@@ -64,7 +65,7 @@ export const FieldDashboardPage: React.FC = () => {
           >
             {offlineCount}
           </div>
-          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>Alarm</div>
+          <div style={{ fontSize: "11px", color: COLORS.textMuted }}>{t("container.alarm")}</div>
         </div>
       </div>
 
@@ -112,16 +113,16 @@ export const FieldDashboardPage: React.FC = () => {
                 %{c.soc !== undefined ? Math.round(c.soc) : "—"}
               </div>
               <div style={{ fontSize: "11px", color: COLORS.textMuted }}>
-                Güç
+                {t("device.power")}
               </div>
               <div style={{ fontSize: "11px", color: COLORS.textPrimary, textAlign: "right" }}>
                 {c.powerKw !== undefined ? `${c.powerKw.toFixed(1)} kW` : "—"}
               </div>
               <div style={{ fontSize: "11px", color: COLORS.textMuted }}>
-                Durum
+                {t("device.state")}
               </div>
               <div style={{ fontSize: "11px", color: c.connected ? COLORS.success : COLORS.error, textAlign: "right" }}>
-                {c.connected ? "Bağlı" : "Bağlantı Yok"}
+                {c.connected ? t("status.connected") : t("status.disconnected")}
               </div>
             </div>
           </div>

@@ -15,7 +15,7 @@ export class DeviceScheduler {
     private readonly config: ServiceConfigFile,
   ) {}
 
-  scheduleRead(deviceId: string, intervalMs: number): Promise<void> {
+  scheduleRead(deviceId: string, intervalMs: number, startDate?: Date): Promise<void> {
     const jobName = `read-${deviceId}`;
 
     const job: ReadDeviceJob = {
@@ -25,6 +25,9 @@ export class DeviceScheduler {
       timestamp: new Date().toISOString(),
     };
 
+    if (startDate) {
+      return this.mq.addRepeatableJobEvery(jobName, job, intervalMs, startDate);
+    }
     return this.mq.addRepeatableJobEvery(jobName, job, intervalMs);
   }
 
@@ -52,7 +55,7 @@ export class DeviceScheduler {
     const timestamp = new Date().toISOString();
     const base = `${deviceId}-${Date.now()}`;
 
-    await Promise.all([
+    const results = await Promise.allSettled([
       this.mq.addJob({
         jobId: `${base}-write`,
         type: "WRITE_TELEMETRY",
@@ -75,6 +78,12 @@ export class DeviceScheduler {
         telemetries: data,
       }),
     ]);
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      console.warn(
+        `[DeviceScheduler] ${deviceId} icin ${failed}/3 job kuyruga eklenemedi`,
+      );
+    }
   }
 
   close(): Promise<void> {

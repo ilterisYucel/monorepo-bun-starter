@@ -1,6 +1,7 @@
 import { buildContainer } from "./config/container";
 import type { ServerDependencies } from "./presentation/server";
 import { deviceConfigDir, serviceTier } from "./config/default";
+import type { ConfigLoader } from "@gd-monorepo/shared-utils";
 
 export async function main() {
   console.log("[run] Web Service baslatiliyor...");
@@ -8,6 +9,7 @@ export async function main() {
   const container = buildContainer();
   const c = container.cradle as Record<string, unknown>;
 
+  const config = c.config as ConfigLoader;
   const postgres = c.postgres as any;
   const timescale = c.timescale as any;
   const userRepo = c.userRepo as any;
@@ -37,12 +39,31 @@ export async function main() {
     fieldPoller: c.fieldPoller as any,
     mvManager,
     mq,
-    configDir: deviceConfigDir(),
+    configDir: deviceConfigDir(config),
   };
 
   await postgres.connect();
   await redis.connect();
   await userRepo.initialize(seed);
+
+  // Mevcut tüm cihazlar için retention, chunk ve compress ayarlarını uygula.
+  // Bu çağrı, TimescaleDB'nin hypertable'larına add_retention_policy,
+  // add_compression_policy ve set_chunk_time_interval komutlarını gönderir.
+  // Eğer politikalar zaten varsa (if_not_exists => true) tekrar eklenmez.
+  try {
+    const devices = await postgres.query<{ id: string }>(
+      "SELECT id FROM devices",
+    );
+    console.log(
+      `[run] ${devices.length} cihaz icin retention kontrol ediliyor...`,
+    );
+    await Promise.allSettled(
+      devices.map((d) => timescale.runRetention(d.id)),
+    );
+    console.log("[run] Retention politikasi kontrolu tamamlandi.");
+  } catch (err) {
+    console.error("[run] Retention kontrolu basarisiz (devam ediliyor):", err);
+  }
 
   await mq.registerWorkerFor("WS_BROADCAST", async (job: any) => {
     if (job.type === "WS_BROADCAST") {
@@ -55,10 +76,12 @@ export async function main() {
         byDevice.get(t.deviceId)!.push(t);
       }
 
-      for (const [deviceId, data] of byDevice) {
-        await realtime.writeBatchToRingBuffer(deviceId, data);
-        realtime.broadcast(deviceId, { type: "telemetry", deviceId, data });
-      }
+      await Promise.all(
+        Array.from(byDevice).map(async ([deviceId, data]) => {
+          await realtime.writeBatchToRingBuffer(deviceId, data);
+          realtime.broadcast(deviceId, { type: "telemetry", deviceId, data });
+        }),
+      );
     }
   }, { concurrency: 10 });
 
@@ -89,5 +112,5 @@ export async function main() {
     await deps.fieldPoller.start();
   }
 
-  console.log(`[run] Hazir (tier: ${serviceTier()}).`);
+  console.log(`[run] Hazir (tier: ${serviceTier(config)}).`);
 }

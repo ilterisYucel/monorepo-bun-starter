@@ -1,7 +1,4 @@
-// apps/web/src/features/auth/types/user.ts
-export interface User {
-  id: string;
-  username: string;
-  role: "admin" | "teknik" | "guest";
-  name: string;
-}
+import type { User as SharedUser, Role } from "@gd-monorepo/shared-types";
+
+export type User = SharedUser;
+export type { Role };

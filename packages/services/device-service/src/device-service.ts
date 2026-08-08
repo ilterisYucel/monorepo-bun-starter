@@ -164,21 +164,56 @@ export class DeviceService {
       console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
     }
 
-    for (const entry of entries) {
-      await this.scheduler.scheduleRead(entry.device.id, entry.pollIntervalMs);
+    const bscDevices = entries.filter(
+      (e) => e.type === "bsc" || e.type === "xrack",
+    );
+    const alignedStart: Date | undefined =
+      bscDevices.length > 0
+        ? new Date(
+            Math.ceil(Date.now() / bscDevices[0].pollIntervalMs) *
+              bscDevices[0].pollIntervalMs,
+          )
+        : undefined;
 
-      if (this.sql) {
-        await this.sql.execute(UPSERT_DEVICE, [
+    const scheduleResults = await Promise.allSettled(
+      entries.map((entry) => {
+        const isBsc = entry.type === "bsc" || entry.type === "xrack";
+        const startDate = isBsc ? alignedStart : undefined;
+        return this.scheduler.scheduleRead(
           entry.device.id,
-          entry.name,
-          entry.manufacturer ?? null,
-          entry.model ?? null,
-          entry.protocol,
-          entry.type,
-          entry.rackCount ?? null,
           entry.pollIntervalMs,
-          JSON.stringify(entry.configConnection),
-        ]);
+          startDate,
+        );
+      }),
+    );
+    const scheduleFailed = scheduleResults.filter((r) => r.status === "rejected").length;
+    if (scheduleFailed > 0) {
+      console.warn(
+        `[DeviceService] ${scheduleFailed}/${entries.length} cihaz zamanlanamadi`,
+      );
+    }
+
+    if (this.sql) {
+      const upsertResults = await Promise.allSettled(
+        entries.map((entry) =>
+          this.sql!.execute(UPSERT_DEVICE, [
+            entry.device.id,
+            entry.name,
+            entry.manufacturer ?? null,
+            entry.model ?? null,
+            entry.protocol,
+            entry.type,
+            entry.rackCount ?? null,
+            entry.pollIntervalMs,
+            JSON.stringify(entry.configConnection),
+          ]),
+        ),
+      );
+      const upsertFailed = upsertResults.filter((r) => r.status === "rejected").length;
+      if (upsertFailed > 0) {
+        console.warn(
+          `[DeviceService] ${upsertFailed}/${entries.length} cihaz kaydi yapilamadi`,
+        );
       }
     }
 
@@ -207,16 +242,16 @@ export class DeviceService {
         try {
           await this.sql.execute(SET_DEVICE_OFFLINE, [entry.device.id]);
         } catch {
-          /* status guncelleme hatasi yoksay */
+          console.warn(`[DeviceService] Status update failed for ${entry.device.id}`);
         }
       }
       try {
         await entry.device.disconnect();
       } catch {
-        /* baglanti kesme hatasi yoksay */
+        console.warn(`[DeviceService] Disconnect failed for ${entry.device.id}`);
       }
     });
-    await Promise.all(disconnectPromises);
+    await Promise.allSettled(disconnectPromises);
 
     await this.scheduler.close();
 
@@ -295,6 +330,7 @@ export class DeviceService {
           });
           if (allMatch) return { success: true, validated: true };
         } catch {
+          // ELEGANT-EXCEPTION: validation read-back failure; retry in next poll cycle
         }
         await new Promise((r) => setTimeout(r, 50));
       }

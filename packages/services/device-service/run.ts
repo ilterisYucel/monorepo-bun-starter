@@ -1,26 +1,28 @@
 import { RedisConnection, BullMQAdapter } from "@gd-monorepo/core";
+import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { DeviceService } from "./src/device-service";
-
-function configDir(): string {
-  return process.env.DEVICE_CONFIG_DIR ?? "./config";
-}
-
-function redisConfig() {
-  return {
-    host: process.env.REDIS_HOST ?? "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
-    password: process.env.REDIS_PASSWORD,
-    db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : undefined,
-  };
-}
 
 async function main() {
   console.log("[run] Device Service baslatiliyor...");
-  console.log(`[run] Konfigurasyon dizini: ${configDir()}`);
 
-  const redis = new RedisConnection(redisConfig());
+  // Konfigürasyon yukleme (oncelik: process.env > varsayilan)
+  const config = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [
+    new EnvSource(),
+  ]);
+  config.load();
+  console.log("[run] Konfigürasyon:", config.redacted());
+
+  const configDir = config.get<string>("device.configDir");
+  console.log(`[run] Konfigurasyon dizini: ${configDir}`);
+
+  const redis = new RedisConnection({
+    host: config.get<string>("redis.host"),
+    port: config.get<number>("redis.port"),
+    password: config.get<string | undefined>("redis.password"),
+    db: config.get<number | undefined>("redis.db"),
+  });
   const mq = new BullMQAdapter(redis);
-  const service = await DeviceService.fromConfigDir(configDir(), mq);
+  const service = await DeviceService.fromConfigDir(configDir, mq);
 
   let stopping = false;
   const shutdown = async (signal: string) => {

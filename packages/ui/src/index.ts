@@ -24,3 +24,6 @@ export * from "./graphics"
 
 // Transports
 export * from "./transports"
+
+// i18n
+export * from "./i18n"

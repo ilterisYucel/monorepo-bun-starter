@@ -1,6 +1,19 @@
 import type { Rack } from "../../types/rack";
 
+export interface RackCardLabels {
+  online: string;
+  offline: string;
+  charging: string;
+  discharging: string;
+  idle: string;
+  voltage: string;
+  current: string;
+  power: string;
+  temperature: string;
+  detail: string;
+}
+
 export interface RackCardProps extends Rack {
-  /** Detay sayfasına yönlendirme callback'i */
   onDetailClick?: () => void;
+  labels?: RackCardLabels;
 }

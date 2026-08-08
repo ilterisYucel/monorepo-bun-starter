@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
-import { COLORS } from "@gd-monorepo/ui";
+import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -9,6 +9,7 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState("");
   const { login, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (isAuthenticated) {
     navigate("/dashboard", { replace: true });
@@ -21,7 +22,7 @@ export const LoginPage: React.FC = () => {
     try {
       await login(username, password);
     } catch {
-      setError("Gecersiz kullanici adi veya sifre");
+      setError(t("auth.loginError"));
     }
   };
 
@@ -51,7 +52,7 @@ export const LoginPage: React.FC = () => {
         }}
       >
         <h2 style={{ color: COLORS.textWhite, textAlign: "center", fontSize: "18px" }}>
-          Yonetici Girisi
+          {t("auth.loginTitle.boss")}
         </h2>
 
         {error && (
@@ -62,7 +63,7 @@ export const LoginPage: React.FC = () => {
 
         <input
           type="text"
-          placeholder="Kullanici adi"
+          placeholder={t("auth.usernamePlaceholder")}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
@@ -80,7 +81,7 @@ export const LoginPage: React.FC = () => {
 
         <input
           type="password"
-          placeholder="Sifre"
+          placeholder={t("auth.passwordPlaceholder")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
@@ -110,7 +111,7 @@ export const LoginPage: React.FC = () => {
             marginTop: "4px",
           }}
         >
-          Giris Yap
+          {t("auth.login")}
         </button>
       </form>
     </div>

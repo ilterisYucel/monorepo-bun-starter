@@ -37,7 +37,7 @@ export class DataService {
           );
 
         if (logInserts.length > 0) {
-          await Promise.all(logInserts);
+          await Promise.allSettled(logInserts);
         }
       }
     }, { concurrency: 10 });
@@ -66,6 +66,7 @@ export class DataService {
       ]);
       return mqOk && dbOk && sqlOk;
     } catch {
+      console.warn("[DataService] Health check failed");
       return false;
     }
   }
