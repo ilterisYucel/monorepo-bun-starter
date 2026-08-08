@@ -1,4 +1,4 @@
-import{s as e}from"./factories-CCuBTyQA.js";import{t}from"./RackCard-C8csDSLG.js";var n={title:`Components/RackCard`,component:t,tags:[`autodocs`]},r={args:e(`online`,`Charge`,{soc:85,voltage:48.5,current:15.2})},i={args:e(`online`,`Discharge`,{soc:42,voltage:46.1})},a={args:e(`offline`,`Idle`,{soc:null})},o={args:e(`online`,`Idle`,{soc:72})};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
+import{s as e}from"./factories-CCuBTyQA.js";import{t}from"./RackCard-BH_fi4ik.js";var n={title:`Components/RackCard`,component:t,tags:[`autodocs`]},r={args:e(`online`,`Charge`,{soc:85,voltage:48.5,current:15.2})},i={args:e(`online`,`Discharge`,{soc:42,voltage:46.1})},a={args:e(`offline`,`Idle`,{soc:null})},o={args:e(`online`,`Idle`,{soc:72})};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
   args: createMockRack("online", "Charge", {
     soc: 85,
     voltage: 48.5,
