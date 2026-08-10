@@ -3,7 +3,7 @@ FROM oven/bun:latest AS builder
 WORKDIR /app
 COPY . .
 ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
-RUN bun install
+RUN bun install --ignore-scripts
 
 WORKDIR /app/apps/field
 RUN bun run build
@@ -37,4 +37,5 @@ RUN echo 'server { \
   }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+USER nginx
 CMD ["nginx", "-g", "daemon off;"]
