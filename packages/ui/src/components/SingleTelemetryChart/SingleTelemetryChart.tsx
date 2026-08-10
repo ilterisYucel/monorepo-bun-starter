@@ -201,7 +201,8 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
       if (telemetry.name !== selectedMetric) continue;
 
       if (hasTagFilters && sigMap.size > 0) {
-        const sig = (tagFilters ?? []).map((f) => telemetry.tags?.[f.tagKey] ?? "").join("|");
+        const activeFilters = tagFilters.filter((f) => (selectedTags[f.tagKey]?.length ?? 0) > 0);
+        const sig = (activeFilters ?? []).map((f) => telemetry.tags?.[f.tagKey] ?? "").join("|");
         const colName = sigMap.get(sig);
         if (!colName) continue;
         if (!timeMap.has(telemetry.timestamp)) timeMap.set(telemetry.timestamp, { timestamp: telemetry.timestamp });

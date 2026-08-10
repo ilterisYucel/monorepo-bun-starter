@@ -168,7 +168,7 @@ export const RacksPage: React.FC = () => {
             tagFilters={tagFilterList}
             eventAnnotations={eventAnnotations}
             defaultMetric="SOC"
-            defaultTagSelections={{ deviceId: bscIds.length > 0 ? [bscIds[0]] : [], rack_id: ["1"] }}
+            defaultTagSelections={{ deviceId: bscIds, rack_id: ["1"] }}
           />
         </>
       )}

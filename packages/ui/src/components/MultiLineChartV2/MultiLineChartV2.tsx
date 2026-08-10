@@ -114,10 +114,15 @@ export const MultiLineChartV2: React.FC<MultiLineChartV2Props> = ({
 
   const lines = useMemo(() => {
     if (data.length === 0) return [];
-    const first = data[0];
-    return Object.keys(first as any).filter(
-      (k) => k !== "timestamp" && !k.startsWith("_"),
-    );
+    const keys = new Set<string>();
+    for (const point of data) {
+      for (const key of Object.keys(point as any)) {
+        if (key !== "timestamp" && !key.startsWith("_")) {
+          keys.add(key);
+        }
+      }
+    }
+    return Array.from(keys);
   }, [data]);
 
   const legendStats = useMemo(() => {
