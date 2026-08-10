@@ -135,7 +135,7 @@ export const DeviceDetailModal: React.FC<DeviceDetailModalProps> = ({
 
         <S.Body>
           {loading && <S.Spinner>Yükleniyor...</S.Spinner>}
-          {error && <S.Error>{error}</S.Error>}
+          {error && <S.ErrorBox>{error}</S.ErrorBox>}
 
           {config && tab === "general" && (
             <S.InfoGrid>

@@ -197,7 +197,7 @@ export const EmergencyStopBtn = styled.button<{ $collapsed: boolean }>`
   background: ${COLORS.error};
   border: none;
   color: white;
-  padding: ${({ $collapsed }) => ($collapsed ? "10px" : "10px")};
+  padding: 10px;
   border-radius: 8px;
   font-weight: 700;
   font-size: ${({ $collapsed }) => ($collapsed ? "16px" : "14px")};

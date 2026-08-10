@@ -194,7 +194,7 @@ export const Spinner = styled.div`
   font-size: 14px;
 `;
 
-export const Error = styled.div`
+export const ErrorBox = styled.div`
   padding: 24px;
   color: ${COLORS.error};
   text-align: center;

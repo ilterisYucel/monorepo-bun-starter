@@ -70,7 +70,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
         const v = log.tags?.[filter.tagKey];
         if (v) values.add(v);
       }
-      options[filter.tagKey] = [...values].sort();
+      options[filter.tagKey] = [...values].sort((a, b) => a.localeCompare(b, "tr"));
     }
     return options;
   }, [tagFilters, logs]);

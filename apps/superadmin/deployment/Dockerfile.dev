@@ -7,6 +7,9 @@ COPY . .
 ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 RUN bun install
 
+RUN useradd -m bun && chown -R bun:bun /app
+USER bun
+
 WORKDIR /app/apps/superadmin
 
 CMD ["bun", "run", "dev"]

@@ -64,7 +64,7 @@ export function useTelemetryNames(deviceIds: string[], rackFilter?: string) {
       }
     }
 
-    return Array.from(nameSet).sort();
+    return Array.from(nameSet).sort((a, b) => a.localeCompare(b, "tr"));
   }, [configs, rackFilter]);
 
   return { names, isLoading };

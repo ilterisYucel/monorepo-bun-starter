@@ -138,7 +138,7 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
         const v = d.tags?.[filter.tagKey];
         if (v) values.add(v);
       }
-      options[filter.tagKey] = [...values].sort();
+      options[filter.tagKey] = [...values].sort((a, b) => a.localeCompare(b, "tr"));
     }
     return options;
   }, [tagFilters, telemetries]);

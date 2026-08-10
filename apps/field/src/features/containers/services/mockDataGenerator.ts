@@ -194,7 +194,7 @@ export function mockTimeSeries(containerId: string, rangeMs?: number): Telemetry
 
   for (let i = 0; i < points; i++) {
     const time = new Date(NOW - durationMs + i * intervalMs).toISOString();
-    const noise = (Math.random() - 0.5) * 0.1;
+    const noise = (Math.random() - 0.5) * 0.1; // NOSONAR — mock data only, not security-sensitive
 
     for (const base of baseEntries) {
       const baseVal = base.value as number;

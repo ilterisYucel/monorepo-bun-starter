@@ -14,7 +14,7 @@
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run build",
+        "command": "bun run build",
         "cwd": "apps/container-desktop"
       },
       "outputs": ["{projectRoot}/out", "{projectRoot}/release"]
@@ -22,7 +22,7 @@
     "build:win": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run build:win",
+        "command": "bun run build:win",
         "cwd": "apps/container-desktop"
       },
       "outputs": ["{projectRoot}/release"]
@@ -30,7 +30,7 @@
     "build:linux": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run build:linux",
+        "command": "bun run build:linux",
         "cwd": "apps/container-desktop"
       },
       "outputs": ["{projectRoot}/release"]
@@ -38,7 +38,7 @@
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run lint",
+        "command": "bun run lint",
         "cwd": "apps/container-desktop"
       }
     },
@@ -52,7 +52,7 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run typecheck",
+        "command": "bun run typecheck",
         "cwd": "apps/container-desktop"
       }
     }
