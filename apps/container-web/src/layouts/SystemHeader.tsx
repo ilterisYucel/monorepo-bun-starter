@@ -118,7 +118,7 @@ const Boxes: React.FC<{
       <S.Box>
         <PowerIcon size={16} color={kwColor} />
         <S.Label style={{ color: kwColor }}>
-          {t("device.powerConsumption")}: {powerConsumption} kW
+          {t("device.powerConsumption")}: {powerConsumption.toFixed(1)} kW
         </S.Label>
       </S.Box>
       {ambientTemp !== undefined && (

@@ -130,6 +130,8 @@ export const APP_EN_DICT = {
   "maneuver.desc.fl09_comm_loss": "Stops charge/discharge when PPC or equipment communication is lost.",
   "maneuver.desc.fl10_maintenance_shutdown": "Stops BSC devices and opens DC switches when entering maintenance mode. Runs sequentially.",
   "maneuver.desc.fl11_ground_fault": "Safely shuts down the system when the IMD insulation value drops below ideal.",
+  "maneuver.desc.fl_dc_breaker_close": "Closes all DC circuit breakers (CB-1, CB-2).",
+  "maneuver.desc.fl_contactor_close": "Closes contactors on all BSC devices.",
 
   "maneuver.fieldChargeAll": "Charge All Containers",
   "maneuver.fieldChargeAllDesc": "Puts all containers in the field into charge mode simultaneously",

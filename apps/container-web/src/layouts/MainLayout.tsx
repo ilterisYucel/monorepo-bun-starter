@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, type PageType } from "./Sidebar";
 import { SystemHeader } from "./SystemHeader";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useHvacData } from "../features/hvac";
+import { useEnergyAnalyzerData } from "../features/energy-analyzer";
 import * as S from "./MainLayout.styles";
 
 interface MainLayoutProps {
@@ -22,6 +23,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { chargeStatus } = useChargeStatus();
   const { averages: hvacAvg } = useHvacData();
+  const { summaries: eaSummaries } = useEnergyAnalyzerData();
+  const totalActivePower = useMemo(
+    () => eaSummaries.reduce((sum, s) => sum + s.phaseA.activePower + s.phaseB.activePower + s.phaseC.activePower, 0),
+    [eaSummaries],
+  );
 
   useEffect(() => {
     const path = location.pathname.substring(1);
@@ -62,6 +68,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       <S.MainContent sidebarCollapsed={sidebarCollapsed}>
         <SystemHeader
           flowDirection={chargeStatus}
+          powerConsumption={totalActivePower}
           ambientTemp={hvacAvg.avgCurrentTemp || undefined}
           ambientHumidity={hvacAvg.avgReturnHumidity || undefined}
         />

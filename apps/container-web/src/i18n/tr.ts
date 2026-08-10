@@ -131,6 +131,8 @@ export const APP_TR_DICT = {
   "maneuver.desc.fl09_comm_loss": "PPC veya ekipman iletişimi kesildiğinde şarj/deşarj işlemini durdurur.",
   "maneuver.desc.fl10_maintenance_shutdown": "Bakım moduna geçişte BSC'leri durdurur, DC switch'leri açar. Sıralı çalışır.",
   "maneuver.desc.fl11_ground_fault": "IMD izolasyon değeri idealin altına düştüğünde sistemi güvenli şekilde kapatır.",
+  "maneuver.desc.fl_dc_breaker_close": "Tüm DC kesicileri kapatır (CB-1, CB-2).",
+  "maneuver.desc.fl_contactor_close": "Tüm BSC cihazlarındaki kontaktörleri kapatır.",
 
   "maneuver.fieldChargeAll": "Tüm Konteynerleri Şarj Et",
   "maneuver.fieldChargeAllDesc": "Sahadaki tüm konteynerleri aynı anda şarj moduna alır",

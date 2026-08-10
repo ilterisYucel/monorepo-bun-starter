@@ -114,46 +114,6 @@ export const RelayValue = styled.span<{ $active: boolean }>`
   color: ${({ $active }) => ($active ? COLORS.error : COLORS.success)};
 `;
 
-export const ControlsRow = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-`;
-
-export const CmdButton = styled.button<{ $dangerous?: boolean }>`
-  padding: 10px 20px;
-  border: 2px solid
-    ${({ $dangerous }) => ($dangerous ? COLORS.error : COLORS.info)};
-  border-radius: 10px;
-  background: ${({ $dangerous }) =>
-    $dangerous ? COLORS.errorAlpha12 : COLORS.infoAlpha12};
-  color: ${({ $dangerous }) => ($dangerous ? COLORS.error : COLORS.info)};
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover {
-    background: ${({ $dangerous }) =>
-      $dangerous ? COLORS.errorAlpha25 : COLORS.infoAlpha25};
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-`;
-
-export const ConfirmText = styled.div`
-  font-size: 13px;
-  color: ${COLORS.error};
-  margin-bottom: 12px;
-  padding: 10px;
-  background: ${COLORS.errorAlpha12};
-  border-radius: 8px;
-  border: 1px solid ${COLORS.errorStroke};
-`;
-
 export const Loading = styled.div`
   text-align: center;
   padding: 60px;

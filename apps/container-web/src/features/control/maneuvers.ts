@@ -178,6 +178,22 @@ export const MANEUVERS: Record<string, ManeuverConfig> = {
     mode: "sequential",
     steps: [...bscStop(), ...cbOpen()],
   },
+
+  fl_dc_breaker_close: {
+    name: "fl_dc_breaker_close",
+    label: "DC Kesici Kapat",
+    description: "maneuver.desc.fl_dc_breaker_close",
+    mode: "parallel",
+    steps: cbClose(),
+  },
+
+  fl_contactor_close: {
+    name: "fl_contactor_close",
+    label: "Kontaktör Kapat",
+    description: "maneuver.desc.fl_contactor_close",
+    mode: "parallel",
+    steps: BSC_IDS.map((id) => ({ deviceId: id, command: "contactor_close" })),
+  },
 };
 
 export const MANEUVER_CONTROLS: Record<

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import { useFireAlarmData } from "../features/fire/hooks/useFireAlarmData";
 import * as S from "./FirePanelPage.styles";
@@ -6,9 +6,6 @@ import * as S from "./FirePanelPage.styles";
 const StatusOk = SCADA_ICONS.statusOnline;
 const StatusFault = SCADA_ICONS.statusOffline;
 const WarningIcon = SCADA_ICONS.logWarning;
-const StopIcon = SCADA_ICONS.stop;
-const PauseIcon = SCADA_ICONS.statusIdle;
-const RefreshIcon = SCADA_ICONS.refresh;
 
 interface RelayItemProps {
   label: string;
@@ -35,8 +32,7 @@ const RelayItem: React.FC<RelayItemProps> = ({
 );
 
 export const FirePanelPage: React.FC = () => {
-  const { state, isLoading, sendCommand } = useFireAlarmData();
-  const [confirming, setConfirming] = useState<string | null>(null);
+  const { state, isLoading } = useFireAlarmData();
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -46,15 +42,6 @@ export const FirePanelPage: React.FC = () => {
   const systemOk = !state.fault && !state.fire && !state.firstStage && !state.secondStage;
   const systemFire = state.fire || state.localFire;
   const systemFault = state.fault;
-
-  const handleCommand = (cmd: string, dangerous?: boolean): void => {
-    if (dangerous && confirming !== cmd) {
-      setConfirming(cmd);
-      return;
-    }
-    sendCommand(cmd);
-    setConfirming(null);
-  };
 
   const activeLabel = t("status.active");
   const inactiveLabel = t("status.inactive");
@@ -108,38 +95,6 @@ export const FirePanelPage: React.FC = () => {
         <RelayItem label={t("fire.relay.fault")} active={state.fault} inverted activeLabel={normalLabel} inactiveLabel={faultLabel} />
         <RelayItem label={t("fire.relay.fire")} active={state.fire} activeLabel={activeLabel} inactiveLabel={inactiveLabel} />
       </S.RelayGrid>
-
-      {confirming === "manual_release" && (
-        <S.ConfirmText>
-          &#9888; {t("fire.confirmReleaseFull")}
-        </S.ConfirmText>
-      )}
-
-      <S.ControlsRow>
-        {confirming === "manual_release" ? (
-          <>
-            <S.CmdButton $dangerous onClick={() => handleCommand("manual_release")}>
-              <StopIcon size={16} /> {t("fire.confirmButton")}
-            </S.CmdButton>
-            <S.CmdButton onClick={() => setConfirming(null)}>
-              {t("fire.cancelButton")}
-            </S.CmdButton>
-          </>
-        ) : (
-          <S.CmdButton $dangerous onClick={() => handleCommand("manual_release", true)}>
-            <StopIcon size={16} /> {t("fire.manualRelease")}
-          </S.CmdButton>
-        )}
-        <S.CmdButton onClick={() => handleCommand("hold")}>
-          <PauseIcon size={16} /> {t("fire.button.hold")}
-        </S.CmdButton>
-        <S.CmdButton onClick={() => handleCommand("abort")}>
-          <StopIcon size={16} /> {t("fire.cancel")}
-        </S.CmdButton>
-        <S.CmdButton onClick={() => handleCommand("mode_toggle")}>
-          <RefreshIcon size={16} /> {t("fire.button.modeToggle")}
-        </S.CmdButton>
-      </S.ControlsRow>
     </S.Container>
   );
 };

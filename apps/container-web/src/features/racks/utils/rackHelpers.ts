@@ -11,13 +11,15 @@ export const telemetriesToRacks = (
 ): Rack[] => {
   const rackMap = new Map<string, Rack>();
 
+  let globalIndex = 0;
   for (const device of bscDevices) {
     for (let i = 1; i <= (device.rack_count ?? 0); i++) {
+      globalIndex++;
       const key = `${device.id}-${i}`;
       rackMap.set(key, {
         id: i,
         deviceId: device.id,
-        name: `Rack ${i}`,
+        name: `Rack ${globalIndex}`,
         status: "offline",
         charge_status: globalChargeStatus,
         soc: null,
