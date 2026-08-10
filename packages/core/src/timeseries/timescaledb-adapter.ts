@@ -444,6 +444,12 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const params: unknown[] = [];
     let paramIndex = 1;
 
+    if (selectedNames.length > 0) {
+      whereConditions.push(`name = ANY($${paramIndex})`);
+      params.push(selectedNames);
+      paramIndex++;
+    }
+
     if (tags) {
       for (const [key, value] of Object.entries(tags)) {
         whereConditions.push(`tags->>'${key}' = $${paramIndex}`);

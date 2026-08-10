@@ -6,7 +6,7 @@ services:
     container_name: container-timescaledb-dev
     command:
       - -cshared_buffers=256MB
-      - -cwork_mem=4MB
+      - -cwork_mem=32MB
       - -ceffective_cache_size=768MB
       - -cmaintenance_work_mem=64MB
       - -cmax_connections=50
