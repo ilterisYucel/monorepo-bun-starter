@@ -280,7 +280,7 @@ export const timescaleStatementTimeoutMs: ConfigDefinition<number> = {
   key: "timescale.statementTimeoutMs",
   env: "TIMESCALE_STATEMENT_TIMEOUT_MS",
   filePath: "timescale.statementTimeoutMs",
-  default: 30000,
+  default: 60000,
   validate: (v) => {
     const num = Number(v);
     if (isNaN(num) || num <= 0) throw new Error(`Geçersiz statement timeout: ${v}`);

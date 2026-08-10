@@ -9,7 +9,7 @@ services:
     command:
       - -cshared_buffers=256MB
       - -cwork_mem=32MB
-      - -ceffective_cache_size=768MB
+      - -ceffective_cache_size=384MB
       - -cmaintenance_work_mem=64MB
       - -cmax_connections=50
     environment:
