@@ -37,7 +37,8 @@
     "jsmodbus": "^4.0.10",
     "p-limit": "^7.3.0",
     "pg": "^8.11.3",
-    "redis": "^4.6.13"
+    "redis": "^4.6.13",
+    "serialport": "^13.0.0"
   },
   "devDependencies": {
     "@types/pg": "^8.10.9",

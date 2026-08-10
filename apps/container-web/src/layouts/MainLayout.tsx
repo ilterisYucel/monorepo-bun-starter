@@ -41,6 +41,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       onPageChange("devices");
     } else if (path === "fire") {
       onPageChange("fire");
+    } else if (path === "energy-analyzer") {
+      onPageChange("energy-analyzer");
     }
   }, [location, onPageChange]);
 

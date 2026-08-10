@@ -78,4 +78,5 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   close:             TbX,
   fireAlarm:         TbFireExtinguisher,
   settings:          TbSettings,
+  energyAnalyzer:    TbBolt,
 };

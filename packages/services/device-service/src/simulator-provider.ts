@@ -11,6 +11,8 @@ import {
   CbSimulatorAdapter,
   DcOutputSimulator,
   DcOutputSimulatorAdapter,
+  EnergyAnalyzerSimulator,
+  EnergyAnalyzerSimulatorAdapter,
 } from "@gd-monorepo/simulators";
 import type { IModbusSimulatorAdapter, DeviceConfigFile, SimulatorConfig } from "@gd-monorepo/shared-types";
 
@@ -77,6 +79,13 @@ export class SimulatorProvider {
       build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
         const dc = new DcOutputSimulator();
         return { adapter: new DcOutputSimulatorAdapter(dc), tick: () => dc.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("energy-analyzer", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const meter = new EnergyAnalyzerSimulator();
+        return { adapter: new EnergyAnalyzerSimulatorAdapter(meter), tick: () => meter.tick(elapsed) };
       },
     });
   }

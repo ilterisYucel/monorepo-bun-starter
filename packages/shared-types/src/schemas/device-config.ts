@@ -13,7 +13,7 @@ const telemetryEntrySchema = z.object({
 }).catchall(z.unknown());
 
 const simulatorConfigSchema = z.object({
-  type: z.enum(["bsc", "hvac", "xrack", "cb", "dc-output"]),
+  type: z.enum(["bsc", "hvac", "xrack", "cb", "dc-output", "energy-analyzer"]),
   rackCount: z.number().int().positive().optional(),
   registerMap: z.string().optional(),
 });

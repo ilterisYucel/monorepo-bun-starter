@@ -21,7 +21,6 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
   return (
     <S.Container>
       <S.Header>
-        <S.Title>Cihaz Listesi</S.Title>
         {headerSlot}
       </S.Header>
       <S.Table>

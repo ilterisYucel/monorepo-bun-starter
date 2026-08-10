@@ -460,6 +460,7 @@ export class BSCSimulator {
       let rackPowerKw: number;
       if (rackCmd === COMMAND.START) rackPowerKw = chargeSp * 0.01;
       else if (rackCmd === COMMAND.DISCHARGE) rackPowerKw = -(dischargeSp * 0.01);
+      else rackPowerKw = 0;
 
 
       // State

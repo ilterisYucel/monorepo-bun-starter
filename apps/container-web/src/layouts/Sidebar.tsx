@@ -18,7 +18,8 @@ export type PageType =
   | "system-charts"
   | "reports"
   | "devices"
-  | "fire";
+  | "fire"
+  | "energy-analyzer";
 
 interface SidebarProps {
   currentPage: PageType;
@@ -36,6 +37,7 @@ const NAV_KEY: Record<string, string> = {
   events: "nav.events",
   devices: "nav.devices",
   fire: "nav.fire",
+  "energy-analyzer": "nav.energyAnalyzer",
 };
 
 const ROLE_KEY: Record<string, string> = {
@@ -54,6 +56,7 @@ const menuItems = [
   { id: "events" as const, icon: SCADA_ICONS.events },
   { id: "devices" as const, icon: SCADA_ICONS.container },
   { id: "fire" as const, icon: SCADA_ICONS.fireAlarm },
+  { id: "energy-analyzer" as const, icon: SCADA_ICONS.energyAnalyzer },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({

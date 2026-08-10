@@ -318,7 +318,7 @@ export function buildLabels(inputs: LabelInputs): JSX.Element[] {
     components.push(
       <pixiText
         key="out-voltage"
-        text={`${dcOutput.voltage}V`}
+        text={`${dcOutput.voltage?.toFixed(1)}V`}
         x={output.x}
         y={output.y + output.radius + step * 0.25}
         anchor={0.5}
@@ -330,7 +330,7 @@ export function buildLabels(inputs: LabelInputs): JSX.Element[] {
       />,
       <pixiText
         key="out-current"
-        text={`${dcOutput.current}A`}
+        text={`${dcOutput.current?.toFixed(1)}A`}
         x={output.x}
         y={output.y + output.radius + 0.75 * step}
         anchor={0.5}

@@ -430,7 +430,7 @@ export type TelemetryConfigEntry = Omit<
 
 /** Simülatör konfigürasyonu (cihaz konfig dosyası içinde) */
 export interface SimulatorConfig {
-  type: "bsc" | "hvac" | "xrack";
+  type: "bsc" | "hvac" | "xrack" | "cb" | "dc-output" | "energy-analyzer";
   rackCount?: number;
   registerMap?: string;
 }

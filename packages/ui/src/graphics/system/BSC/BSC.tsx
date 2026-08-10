@@ -216,9 +216,9 @@ const BSCV2Canvas: React.FC<{
                       g.stroke({ width: Math.max(0.4, step * 0.015), color: COLOR.borderStroke, alpha: 0.6 });
                     }}
                   />
-                  <pixiText key="out-v" text={`${unit.dcOutput.voltage}V`} x={dcX} y={output.y + output.radius + step * 0.4} anchor={0.5}
+                  <pixiText key="out-v" text={`${unit.dcOutput.voltage?.toFixed(1)}V`} x={dcX} y={output.y + output.radius + step * 0.4} anchor={0.5}
                     style={{ fontSize: smallFs + 3, fill: COLOR.textMuted, fontFamily: "monospace" }} />
-                  <pixiText key="out-a" text={`${unit.dcOutput.current}A`} x={dcX} y={output.y + output.radius + step * 0.8} anchor={0.5}
+                  <pixiText key="out-a" text={`${unit.dcOutput.current?.toFixed(1)}A`} x={dcX} y={output.y + output.radius + step * 0.8} anchor={0.5}
                     style={{ fontSize: smallFs + 3, fill: COLOR.warning, fontFamily: "monospace", fontWeight: "bold" }} />
                 </>
               )}

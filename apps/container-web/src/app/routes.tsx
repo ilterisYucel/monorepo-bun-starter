@@ -10,6 +10,7 @@ import { SystemChartsPage } from "../pages/SystemChartsPage";
 import { ReportsPage } from "../pages/ReportsPage";
 import { DevicesPage } from "../pages/DevicesPage";
 import { FirePanelPage } from "../pages/FirePanelPage";
+import { EnergyAnalyzerPage } from "../pages/EnergyAnalyzerPage";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
 import type { PageType } from "../layouts/Sidebar";
 import type { Role } from "@gd-monorepo/shared-types";
@@ -129,6 +130,16 @@ export const routes: RouteObject[] = [
       <PrivateRoute roles={["admin", "teknik"]}>
         <LayoutWrapper pageType="fire">
           <FirePanelPage />
+        </LayoutWrapper>
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/energy-analyzer",
+    element: (
+      <PrivateRoute roles={["admin", "teknik"]}>
+        <LayoutWrapper pageType="energy-analyzer">
+          <EnergyAnalyzerPage />
         </LayoutWrapper>
       </PrivateRoute>
     ),

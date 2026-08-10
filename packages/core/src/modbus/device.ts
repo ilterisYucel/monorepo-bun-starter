@@ -8,6 +8,7 @@ import type {
   BitfieldConfig,
   IDevice,
 } from "@gd-monorepo/shared-types";
+import type { IModbusClient } from "./interface";
 import { ModbusTcpClient } from "./client";
 import { BinaryPayloadDecoder } from "./decoder";
 
@@ -17,10 +18,16 @@ export interface ModbusDeviceConfig {
   manufacturer: string;
   model: string;
   connection: {
-    host: string;
-    port: number;
+    host?: string;
+    port?: number;
     slaveId?: number;
     timeout?: number;
+    path?: string;
+    baudRate?: number;
+    dataBits?: number;
+    stopBits?: number;
+    parity?: string;
+    interface?: "tcp" | "rtu";
   };
   telemetryList: ModbusTelemetryData[];
   bitfieldConfigs?: BitfieldConfig[];
@@ -32,20 +39,31 @@ export class ModbusDevice implements IDevice {
   private config: ModbusDeviceConfig;
 
   get id(): string { return this.config.id; }
-  private client: ModbusTcpClient | null = null;
+  private client: IModbusClient | null = null;
   private adapter!: IModbusSimulatorAdapter | undefined;
   private isSimulator: boolean;
   private readonly MAX_REGISTERS_PER_REQUEST = 125;
   private lastReconnectAttempt: number = 0;
   private readonly reconnectCooldownMs: number = 10000;
 
-  constructor(config: ModbusDeviceConfig, adapter?: IModbusSimulatorAdapter) {
+  constructor(
+    config: ModbusDeviceConfig,
+    adapter?: IModbusSimulatorAdapter,
+    client?: IModbusClient,
+  ) {
     this.config = config;
     this.isSimulator = !!adapter;
     if (this.isSimulator) {
       this.adapter = adapter;
+    } else if (client) {
+      this.client = client;
     } else {
-      this.client = new ModbusTcpClient(config.connection);
+      this.client = new ModbusTcpClient({
+        host: config.connection.host ?? "127.0.0.1",
+        port: config.connection.port ?? 502,
+        slaveId: config.connection.slaveId,
+        timeout: config.connection.timeout,
+      });
     }
   }
 
