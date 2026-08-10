@@ -12,6 +12,25 @@ import { useTelemetryNames } from "../hooks/useTelemetryNames";
 import { useEventAnnotations } from "../hooks/useEventAnnotations";
 import { useDevicesStore } from "../stores/devicesStore";
 
+const ESSENTIAL_RACK_CHART_NAMES = new Set([
+  "BalanceTime",
+  "CalibrationInfo",
+  "CellLocation",
+  "CellVoltage",
+  "ChargePower",
+  "CloseCurrent",
+  "Count",
+  "Current",
+  "DischargePower",
+  "NonBalancePeriod",
+  "OpenCount",
+  "SOC",
+  "SOH",
+  "State",
+  "Temperature",
+  "Voltage",
+]);
+
 export const RacksPage: React.FC = () => {
   const { t, locale } = useTranslation();
   const loc = locale();
@@ -27,7 +46,11 @@ export const RacksPage: React.FC = () => {
     [mergedTelemetries, chargeStatus, bscDevices],
   );
   const bscIds = useMemo(() => bscDevices.map((d) => d.id), [bscDevices]);
-  const { names: telemetryNames } = useTelemetryNames(bscIds);
+  const { names: allTelemetryNames } = useTelemetryNames(bscIds);
+  const telemetryNames = useMemo(
+    () => allTelemetryNames.filter((n) => ESSENTIAL_RACK_CHART_NAMES.has(n)),
+    [allTelemetryNames],
+  );
   const rackTelemetryProvider = useTelemetryProvider({
     telemetryNames,
     defaultRange: "1h",

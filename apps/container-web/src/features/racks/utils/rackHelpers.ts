@@ -17,7 +17,7 @@ export const telemetriesToRacks = (
       rackMap.set(key, {
         id: i,
         deviceId: device.id,
-        name: `${device.id} Rack ${i}`,
+        name: `Rack ${i}`,
         status: "offline",
         charge_status: globalChargeStatus,
         soc: null,

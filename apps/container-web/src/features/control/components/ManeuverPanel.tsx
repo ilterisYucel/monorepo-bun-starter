@@ -172,7 +172,7 @@ export const ManeuverPanel: React.FC = () => {
 
   return (
     <S.ManeuverGrid>
-      {Object.entries(MANEUVERS).map(([name, m]) => {
+      {Object.entries(MANEUVERS).filter(([name]) => name !== "fl_bsc_power").map(([name, m]) => {
         const s = states[name];
         const ctrl = MANEUVER_CONTROLS[name];
         return (
