@@ -1,0 +1,9 @@
+import"./rolldown-runtime-aKtaBQYM.js";import{t as e}from"./react-BLJmJXjR.js";import{t}from"./jsx-runtime-DKdBMi_L.js";import{S as n,g as r}from"./Geometry-DsFOYoGD.js";import{n as i}from"./CanvasRenderer-CSK-Cc-P.js";import{c as a,d as o,l as s,u as c}from"./src-fk4bjFRo.js";import{u as l}from"./factories-CCuBTyQA.js";var u=t();e(),s({Container:n,Graphics:i,Text:o,Sprite:r});var d={title:`Graphics/RoomCard`,component:a,tags:[`autodocs`]},f={index:0,x:10,y:10,width:120,height:180,hvac1:{x:15,y:30,width:50,height:80},hvac2:{x:75,y:30,width:50,height:80}},p={step:30},m={width:160,height:220,background:`#0f0f1a`},h=()=>(0,u.jsx)(`div`,{style:m,children:(0,u.jsx)(c,{width:160,height:220,background:986906,antialias:!1,resolution:1,children:(0,u.jsx)(a,{room:l(22),roomPos:f,config:p})})}),g=()=>(0,u.jsx)(`div`,{style:m,children:(0,u.jsx)(c,{width:160,height:220,background:986906,antialias:!1,resolution:1,children:(0,u.jsx)(a,{room:l(35),roomPos:f,config:p})})});h.__docgenInfo={description:``,methods:[],displayName:`RoomO1`},g.__docgenInfo={description:``,methods:[],displayName:`RoomO2`},h.parameters={...h.parameters,docs:{...h.parameters?.docs,source:{originalSource:`() => <div style={wrapper}>
+    <Application width={160} height={220} background={0x0f0f1a} antialias={false} resolution={1}>
+      <RoomCard room={createMockRoomData(22)} roomPos={roomPos} config={config} />
+    </Application>
+  </div>`,...h.parameters?.docs?.source}}},g.parameters={...g.parameters,docs:{...g.parameters?.docs,source:{originalSource:`() => <div style={wrapper}>
+    <Application width={160} height={220} background={0x0f0f1a} antialias={false} resolution={1}>
+      <RoomCard room={createMockRoomData(35)} roomPos={roomPos} config={config} />
+    </Application>
+  </div>`,...g.parameters?.docs?.source}}};var _=[`RoomO1`,`RoomO2`];export{h as RoomO1,g as RoomO2,_ as __namedExportsOrder,d as default};
