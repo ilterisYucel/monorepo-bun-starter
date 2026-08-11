@@ -14,7 +14,7 @@ import { useSettingsStore } from "../features/settings/stores/settingsStore";
 import { APP_TR_DICT } from "../i18n/tr";
 import { APP_EN_DICT } from "../i18n/en";
 
-const TranslationWrapper: React.FC<{ children: React.ReactNode }> = ({
+export const TranslationWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const locale = useSettingsStore((s) => s.locale);

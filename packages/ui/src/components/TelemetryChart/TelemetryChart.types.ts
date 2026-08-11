@@ -36,6 +36,8 @@ export interface TelemetryChartLabels {
   userActions: string;
   correctedEvents: string;
   loadFailed: string;
+  loading: string;
+  noData: string;
   pointsUnit: string;
   intervalPrefix: string;
   seconds: string;

@@ -2,7 +2,8 @@ import React, { createContext, useContext, useMemo, useEffect, useRef } from "re
 import { useRealtimeTelemetry } from "@gd-monorepo/ui";
 import { useDevicesStore } from "../stores/devicesStore";
 import { useTransport } from "./TransportContext";
-import { API_BASE_URL } from "../lib/api-client";
+import { API_BASE_URL, apiClient } from "../lib/api-client";
+import { queryClient } from "../lib/query-client";
 import type { TelemetryEntry } from "@gd-monorepo/ui";
 
 interface RealtimeStream {
@@ -29,6 +30,36 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     deviceId,
     enabled,
   });
+
+  useEffect(() => {
+    if (bscIds.length === 0) return;
+    queryClient.prefetchQuery({
+      queryKey: ["telemetry-configs", [...bscIds]],
+      queryFn: async () => {
+        const results = await Promise.all(
+          bscIds.map((id) =>
+            apiClient
+              .get(`/unified/devices/${id}/telemetry-config`)
+              .then((r) => r.data)
+              .catch(() => null),
+          ),
+        );
+        return results.filter(Boolean);
+      },
+      staleTime: 60 * 60 * 1000,
+    });
+
+    for (const id of bscIds) {
+      queryClient.prefetchQuery({
+        queryKey: ["telemetry-config", id],
+        queryFn: () =>
+          apiClient
+            .get(`/unified/devices/${id}/telemetry-config`)
+            .then((r) => r.data),
+        staleTime: 60 * 60 * 1000,
+      });
+    }
+  }, [deviceId]);
 
   useEffect(() => {
     if (!error || !error.includes("credentials")) return;

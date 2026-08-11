@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useQuery } from "@tanstack/react-query";
 import { COLORS } from "@gd-monorepo/ui";
 import { devicesApi } from "../services/devicesApi";
 import { apiClient } from "../../../lib/api-client";
@@ -25,44 +26,37 @@ export const DeviceDetailModal: React.FC<DeviceDetailModalProps> = ({
   onClose,
 }) => {
   const [tab, setTab] = useState<"general" | "telemetry">("general");
-  const [config, setConfig] = useState<TelemetryConfigResponse | null>(null);
-  const [latestMap, setLatestMap] = useState<Map<string, { value: unknown; unit: string }>>(new Map());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data: config, isLoading: configLoading, isError: configError } = useQuery({
+    queryKey: ["telemetry-config", deviceId!],
+    queryFn: () => devicesApi.getTelemetryConfig(deviceId!),
+    enabled: open && !!deviceId,
+    staleTime: 60 * 60 * 1000,
+  });
 
-  const fetchData = useCallback(async () => {
-    if (!deviceId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const configData = await devicesApi.getTelemetryConfig(deviceId);
-      setConfig(configData);
+  const { data: latestTelemetries } = useQuery({
+    queryKey: ["telemetry-latest", deviceId],
+    queryFn: async () => {
+      const res = await apiClient.get(`/unified/telemetry/latest?deviceIds=${deviceId}`);
+      return (res.data?.telemetries as any[]) ?? [];
+    },
+    enabled: open && !!deviceId,
+    staleTime: 5000,
+  });
 
-      try {
-        const latestData = await apiClient.get(
-          `/unified/telemetry/latest?deviceIds=${deviceId}`,
-        );
-        const map = new Map<string, { value: unknown; unit: string }>();
-        const telemetries = (latestData.data?.telemetries as any[]) ?? [];
-        for (const t of telemetries) {
-          map.set(t.name, { value: t.value, unit: t.unit ?? "" });
-        }
-        setLatestMap(map);
-      } catch {
-        setLatestMap(new Map());
-      }
-    } catch {
-      setError("Konfigürasyon yüklenemedi");
+  const latestMap = useMemo(() => {
+    if (!latestTelemetries) return new Map<string, { value: unknown; unit: string }>();
+    const map = new Map<string, { value: unknown; unit: string }>();
+    for (const t of latestTelemetries) {
+      map.set(t.name, { value: t.value, unit: t.unit ?? "" });
     }
-    setLoading(false);
-  }, [deviceId]);
+    return map;
+  }, [latestTelemetries]);
 
   useEffect(() => {
     if (open && deviceId) {
       setTab("general");
-      fetchData();
     }
-  }, [open, deviceId, fetchData]);
+  }, [open, deviceId]);
 
   const tagKeys = useMemo(() => {
     if (!config) return [];
@@ -134,8 +128,8 @@ export const DeviceDetailModal: React.FC<DeviceDetailModalProps> = ({
         </S.Tabs>
 
         <S.Body>
-          {loading && <S.Spinner>Yükleniyor...</S.Spinner>}
-          {error && <S.ErrorBox>{error}</S.ErrorBox>}
+          {configLoading && <S.Spinner>Yükleniyor...</S.Spinner>}
+          {configError && <S.ErrorBox>Konfigürasyon yüklenemedi</S.ErrorBox>}
 
           {config && tab === "general" && (
             <S.InfoGrid>

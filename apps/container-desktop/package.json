@@ -32,6 +32,7 @@
   "build": {
     "appId": "com.gd.ems",
     "productName": "GD EMS",
+    "executableName": "gd-ems",
     "directories": {
       "output": "release"
     },
@@ -52,7 +53,8 @@
         "AppImage",
         "deb"
       ],
-      "icon": "resources/icon.png"
+      "icon": "resources/icon.png",
+      "artifactName": "${productName}-${version}.${ext}"
     },
     "mac": {
       "target": [

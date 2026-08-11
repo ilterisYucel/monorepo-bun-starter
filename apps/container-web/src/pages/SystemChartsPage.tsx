@@ -7,6 +7,13 @@ import { useTelemetryNames } from "../hooks/useTelemetryNames";
 import { useEventAnnotations } from "../hooks/useEventAnnotations";
 import { useDevicesStore } from "../stores/devicesStore";
 
+const SYSTEM_CHART_DEFAULTS = [
+  "SOC", "SOH", "Voltage", "Current", "ChargePower",
+  "DischargePower", "Temperature", "BalanceTime", "CellVoltage",
+  "State", "Heartbeat", "Count", "OpenCount", "NonBalancePeriod",
+  "CloseCurrent", "CellLocation", "AnticipatedVoltage",
+];
+
 export const SystemChartsPage: React.FC = () => {
   const { t, locale } = useTranslation();
   const loc = locale();
@@ -19,7 +26,11 @@ export const SystemChartsPage: React.FC = () => {
     [devices],
   );
 
-  const { names: telemetryNames } = useTelemetryNames(bscIds, "system");
+  const { names: rawTelemetryNames } = useTelemetryNames(bscIds, "system");
+  const telemetryNames = useMemo(
+    () => rawTelemetryNames.length > 0 ? rawTelemetryNames : SYSTEM_CHART_DEFAULTS,
+    [rawTelemetryNames],
+  );
   const telemetryProvider = useTelemetryProvider({
     telemetryNames,
     defaultRange: "1h",
@@ -56,6 +67,8 @@ export const SystemChartsPage: React.FC = () => {
       userActions: t("chart.control.userActions"),
       correctedEvents: t("chart.control.correctedEvents"),
       loadFailed: t("error.loadFailed"),
+      loading: t("common.loading"),
+      noData: t("common.noData"),
       pointsUnit: t("chart.subtitle.points"),
       intervalPrefix: "~",
       seconds: t("chart.unit.seconds"),

@@ -32,6 +32,8 @@ const DEFAULT_TR: TelemetryChartLabels = {
   userActions: "Kullanıcı Hareketleri",
   correctedEvents: "Düzeltilmiş Olaylar",
   loadFailed: "Veri yüklenirken hata oluştu",
+  loading: "Yükleniyor...",
+  noData: "Henüz veri yok...",
   pointsUnit: "nokta",
   intervalPrefix: "~",
   seconds: "sn",
@@ -304,14 +306,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
     () => buildSubtitle(chartData, range, points, L, locale),
     [chartData, range, points, L, locale],
   );
-
-  if (isLoading) {
-    return (
-      <S.Container>
-        <S.Skeleton style={{ height: `${height + 80}px` }} />
-      </S.Container>
-    );
-  }
 
   if (isError) {
     return (
@@ -595,16 +589,23 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         </S.Controls>
       </S.Header>
 
-      <MultiLineChartV2
-        data={chartData}
-        yAxisLabel={yAxisLabel}
-        height={height}
-        colors={colors}
-        showLegend={showLegend}
-        annotations={filteredAnnotations}
-        labels={LEGEND_TR}
-        locale={locale}
-      />
+      {isLoading ? (
+        <S.SkeletonWrapper>
+          <S.Skeleton style={{ width: "100%", height: `${height}px` }} />
+          <S.LoadingText>{L.loading}</S.LoadingText>
+        </S.SkeletonWrapper>
+      ) : (
+        <MultiLineChartV2
+          data={chartData}
+          yAxisLabel={yAxisLabel}
+          height={height}
+          colors={colors}
+          showLegend={showLegend}
+          annotations={filteredAnnotations}
+          labels={LEGEND_TR}
+          locale={locale}
+        />
+      )}
     </S.Container>
   );
 };

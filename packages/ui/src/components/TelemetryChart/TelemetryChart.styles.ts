@@ -224,6 +224,22 @@ export const Skeleton = styled.div`
   border-radius: 12px;
 `;
 
+export const SkeletonWrapper = styled.div`
+  position: relative;
+  margin: 0 20px 20px;
+`;
+
+export const LoadingText = styled.span`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${COLORS.textDisabled};
+  font-size: 13px;
+  font-weight: 500;
+`;
+
 export const ErrorBox = styled.div`
   padding: 24px;
   text-align: center;

@@ -48,7 +48,12 @@ export const RacksPage: React.FC = () => {
   const bscIds = useMemo(() => bscDevices.map((d) => d.id), [bscDevices]);
   const { names: allTelemetryNames } = useTelemetryNames(bscIds);
   const telemetryNames = useMemo(
-    () => allTelemetryNames.filter((n) => ESSENTIAL_RACK_CHART_NAMES.has(n)),
+    () => {
+      if (allTelemetryNames.length > 0) {
+        return allTelemetryNames.filter((n) => ESSENTIAL_RACK_CHART_NAMES.has(n));
+      }
+      return [...ESSENTIAL_RACK_CHART_NAMES];
+    },
     [allTelemetryNames],
   );
   const rackTelemetryProvider = useTelemetryProvider({
@@ -129,6 +134,8 @@ export const RacksPage: React.FC = () => {
     userActions: t("chart.control.userActions"),
     correctedEvents: t("chart.control.correctedEvents"),
     loadFailed: t("error.loadFailed"),
+    loading: t("common.loading"),
+    noData: t("common.noData"),
     pointsUnit: t("chart.subtitle.points"),
     intervalPrefix: "~",
     seconds: t("chart.unit.seconds"),

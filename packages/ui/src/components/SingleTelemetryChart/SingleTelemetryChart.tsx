@@ -15,7 +15,9 @@ const DEFAULT_TR: TelemetryChartLabels = {
   timeRange: "Zaman Aralığı", points: "Nokta", metric: "Metrik",
   all: "Tümü", none: "Hiçbiri", selected: "{count} seçili",
   systemEvents: "Sistem Olayları", userActions: "Kullanıcı Hareketleri",
-  correctedEvents: "Düzeltilmiş Olaylar", loadFailed: "Veri yüklenirken hata oluştu",
+  correctedEvents: "Düzeltilmiş Olaylar",   loadFailed: "Veri yüklenirken hata oluştu",
+  loading: "Yükleniyor...",
+  noData: "Henüz veri yok...",
   pointsUnit: "nokta", intervalPrefix: "~",
   seconds: "sn", minutes: "dk", hours: "sa", days: "g",
   onlyEssential: "Sadece Temel", onlyDetail: "Sadece Detay",
@@ -227,9 +229,7 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
 
   const subtitle = useMemo(() => buildSubtitle(chartData, range, points, L, locale), [chartData, range, points, L, locale]);
 
-  if (isLoading) return <S.Container><S.Skeleton style={{ height: `${height + 80}px` }} /></S.Container>;
   if (isError) return <S.Container><S.ErrorBox><S.ErrorTitle>{L.loadFailed}</S.ErrorTitle>{error?.message && <S.ErrorDetail>{error.message}</S.ErrorDetail>}</S.ErrorBox></S.Container>;
-  if (telemetries.length === 0) return <S.Container><S.Skeleton style={{ height: `${height + 80}px` }} /></S.Container>;
 
   return (
     <S.Container>
@@ -336,7 +336,14 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
         </S.Controls>
       </S.Header>
 
-      <MultiLineChartV2 data={chartData} yAxisLabel={yAxisLabel} height={height} colors={colors} showLegend={showLegend} annotations={filteredAnnotations} labels={LEGEND_TR} locale={locale} />
+      {isLoading || telemetries.length === 0 ? (
+        <S.SkeletonWrapper>
+          <S.Skeleton style={{ width: "100%", height: `${height}px` }} />
+          <S.LoadingText>{isLoading ? L.loading : L.noData}</S.LoadingText>
+        </S.SkeletonWrapper>
+      ) : (
+        <MultiLineChartV2 data={chartData} yAxisLabel={yAxisLabel} height={height} colors={colors} showLegend={showLegend} annotations={filteredAnnotations} labels={LEGEND_TR} locale={locale} />
+      )}
     </S.Container>
   );
 };
