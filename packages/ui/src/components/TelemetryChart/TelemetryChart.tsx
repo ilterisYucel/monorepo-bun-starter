@@ -592,7 +592,15 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       {isLoading ? (
         <S.SkeletonWrapper>
           <S.Skeleton style={{ width: "100%", height: `${height}px` }} />
-          <S.LoadingText>{L.loading}</S.LoadingText>
+          <S.LoadingOverlay>
+            <S.LoadingRing />
+            <S.LoadingText>
+              <span>{L.loading}</span>
+              <S.LoadingDot>.</S.LoadingDot>
+              <S.LoadingDot>.</S.LoadingDot>
+              <S.LoadingDot>.</S.LoadingDot>
+            </S.LoadingText>
+          </S.LoadingOverlay>
         </S.SkeletonWrapper>
       ) : (
         <MultiLineChartV2

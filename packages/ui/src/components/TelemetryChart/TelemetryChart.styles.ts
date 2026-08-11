@@ -3,9 +3,19 @@ import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
 import { COLORS } from "../../colors";
 
-const pulse = keyframes`
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.4; }
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
+
+const pulseRing = keyframes`
+  0% { transform: scale(0.5); opacity: 0.7; }
+  100% { transform: scale(1.1); opacity: 0; }
+`;
+
+const dotPulse = keyframes`
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 1; }
 `;
 
 export const Container = styled.div`
@@ -219,8 +229,14 @@ export const DateTimeInput = styled.input`
 `;
 
 export const Skeleton = styled.div`
-  animation: ${pulse} 1.8s ease-in-out infinite;
-  background: ${COLORS.bgSkeleton};
+  background: linear-gradient(
+    110deg,
+    ${COLORS.bgSkeleton} 25%,
+    ${COLORS.bgPanel} 40%,
+    ${COLORS.bgSkeleton} 55%
+  );
+  background-size: 200% 100%;
+  animation: ${shimmer} 2s ease-in-out infinite;
   border-radius: 12px;
 `;
 
@@ -229,15 +245,55 @@ export const SkeletonWrapper = styled.div`
   margin: 0 20px 20px;
 `;
 
-export const LoadingText = styled.span`
+export const LoadingOverlay = styled.div`
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: ${COLORS.textDisabled};
-  font-size: 13px;
+  gap: 14px;
+`;
+
+export const LoadingRing = styled.div`
+  position: relative;
+  width: 44px;
+  height: 44px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 3px solid ${COLORS.info};
+    border-radius: 50%;
+    opacity: 0.15;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 3px solid ${COLORS.info};
+    border-radius: 50%;
+    animation: ${pulseRing} 1.5s ease-out infinite;
+  }
+`;
+
+export const LoadingText = styled.span`
+  display: flex;
+  align-items: center;
+  color: ${COLORS.textMuted};
+  font-size: 15px;
   font-weight: 500;
+  letter-spacing: 0.02em;
+`;
+
+export const LoadingDot = styled.span`
+  animation: ${dotPulse} 1.2s ease-in-out infinite;
+
+  &:nth-of-type(1) { animation-delay: 0s; }
+  &:nth-of-type(2) { animation-delay: 0.25s; }
+  &:nth-of-type(3) { animation-delay: 0.5s; }
 `;
 
 export const ErrorBox = styled.div`

@@ -339,7 +339,19 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
       {isLoading || telemetries.length === 0 ? (
         <S.SkeletonWrapper>
           <S.Skeleton style={{ width: "100%", height: `${height}px` }} />
-          <S.LoadingText>{isLoading ? L.loading : L.noData}</S.LoadingText>
+          <S.LoadingOverlay>
+            <S.LoadingRing />
+            <S.LoadingText>
+              <span>{isLoading ? L.loading : L.noData}</span>
+              {isLoading && (
+                <>
+                  <S.LoadingDot>.</S.LoadingDot>
+                  <S.LoadingDot>.</S.LoadingDot>
+                  <S.LoadingDot>.</S.LoadingDot>
+                </>
+              )}
+            </S.LoadingText>
+          </S.LoadingOverlay>
         </S.SkeletonWrapper>
       ) : (
         <MultiLineChartV2 data={chartData} yAxisLabel={yAxisLabel} height={height} colors={colors} showLegend={showLegend} annotations={filteredAnnotations} labels={LEGEND_TR} locale={locale} />
