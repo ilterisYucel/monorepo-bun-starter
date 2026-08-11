@@ -7,10 +7,10 @@ services:
     image: timescale/timescaledb:latest-pg14
     container_name: container-timescaledb
     command:
-      - -cshared_buffers=256MB
-      - -cwork_mem=32MB
-      - -ceffective_cache_size=384MB
-      - -cmaintenance_work_mem=64MB
+      - -cshared_buffers=4GB
+      - -cwork_mem=64MB
+      - -ceffective_cache_size=12GB
+      - -cmaintenance_work_mem=1GB
       - -cmax_connections=50
     environment:
       POSTGRES_USER: postgres
@@ -28,7 +28,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    mem_limit: 512m
     logging:
       driver: json-file
       options:
@@ -81,7 +80,7 @@ services:
     networks:
       - container-network
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 512m
     logging:
       driver: json-file
       options:
@@ -110,7 +109,7 @@ services:
     networks:
       - container-network
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 512m
     logging:
       driver: json-file
       options:
@@ -148,7 +147,13 @@ services:
     networks:
       - container-network
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5001/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     logging:
       driver: json-file
       options:

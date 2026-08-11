@@ -3,6 +3,26 @@ import type { ServerDependencies } from "./presentation/server";
 import { deviceConfigDir, serviceTier } from "./config/default";
 import type { ConfigLoader } from "@gd-monorepo/shared-utils";
 
+async function retry<T>(
+  label: string,
+  fn: () => Promise<T>,
+  maxAttempts = 10,
+  delayMs = 3000,
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === maxAttempts) throw err;
+      console.warn(
+        `[run] ${label} basarisiz (${attempt}/${maxAttempts}), ${delayMs}ms sonra tekrar deneniyor...`,
+      );
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw new Error("unreachable");
+}
+
 export async function main() {
   console.log("[run] Web Service baslatiliyor...");
 
@@ -42,8 +62,8 @@ export async function main() {
     configDir: deviceConfigDir(config),
   };
 
-  await postgres.connect();
-  await redis.connect();
+  await retry("Postgres baglantisi", () => postgres.connect());
+  await retry("Redis baglantisi", () => redis.connect());
   await userRepo.initialize(seed);
 
   // Mevcut tüm cihazlar için retention, chunk ve compress ayarlarını uygula.
@@ -65,26 +85,6 @@ export async function main() {
     console.error("[run] Retention kontrolu basarisiz (devam ediliyor):", err);
   }
 
-  await mq.registerWorkerFor("WS_BROADCAST", async (job: any) => {
-    if (job.type === "WS_BROADCAST") {
-      const byDevice = new Map<string, any[]>();
-
-      for (const t of job.telemetries) {
-        if (!byDevice.has(t.deviceId)) {
-          byDevice.set(t.deviceId, []);
-        }
-        byDevice.get(t.deviceId)!.push(t);
-      }
-
-      await Promise.all(
-        Array.from(byDevice).map(async ([deviceId, data]) => {
-          await realtime.writeBatchToRingBuffer(deviceId, data);
-          realtime.broadcast(deviceId, { type: "telemetry", deviceId, data });
-        }),
-      );
-    }
-  }, { concurrency: 10 });
-
   let stopping = false;
   const shutdown = async (signal: string) => {
     if (stopping) return;
@@ -104,6 +104,31 @@ export async function main() {
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   await server.start(deps);
+
+  try {
+    await mq.registerWorkerFor("WS_BROADCAST", async (job: any) => {
+      if (job.type === "WS_BROADCAST") {
+        const byDevice = new Map<string, any[]>();
+
+        for (const t of job.telemetries) {
+          if (!byDevice.has(t.deviceId)) {
+            byDevice.set(t.deviceId, []);
+          }
+          byDevice.get(t.deviceId)!.push(t);
+        }
+
+        await Promise.all(
+          Array.from(byDevice).map(async ([deviceId, data]) => {
+            await realtime.writeBatchToRingBuffer(deviceId, data);
+            realtime.broadcast(deviceId, { type: "telemetry", deviceId, data });
+          }),
+        );
+      }
+    }, { concurrency: 5 });
+    console.log("[run] BullMQ WS_BROADCAST worker kaydedildi.");
+  } catch (err) {
+    console.error("[run] BullMQ worker kaydi basarisiz:", err);
+  }
 
   if (deps.containerProxy) {
     await deps.containerProxy.start();
