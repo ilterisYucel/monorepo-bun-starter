@@ -11,6 +11,7 @@ export interface RoomData {
 export interface TMSGraphicProps {
   rooms: RoomData[];
   panel_temp: number;
+  panel_humidity?: number;
   status?: "online" | "offline";
   width?: number | string;
   bordered?: boolean;

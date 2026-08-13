@@ -8,14 +8,14 @@ export const AppLayout = styled.div`
   overflow-x: hidden;
 `;
 
-export const MainContent = styled.div<{ sidebarCollapsed: boolean }>`
+export const MainContent = styled.div<{ sidebarCollapsed: boolean; $sidebarWidth?: number }>`
   flex: 1;
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  margin-left: ${({ sidebarCollapsed }) =>
-    sidebarCollapsed ? "70px" : "260px"};
+  margin-left: ${({ sidebarCollapsed, $sidebarWidth }) =>
+    $sidebarWidth ? `${$sidebarWidth}px` : sidebarCollapsed ? "70px" : "260px"};
   transition: margin-left 0.3s ease;
   min-width: 0;
 
@@ -27,6 +27,6 @@ export const MainContent = styled.div<{ sidebarCollapsed: boolean }>`
 export const PageContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 0 24px 24px 24px;
+  padding: 0 8px 24px 8px;
   min-width: 0;
 `;

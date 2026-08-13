@@ -29,6 +29,7 @@ export const TR_DICT = {
   "common.selected": "{count} seçili",
   "common.confirm": "Onayla",
   "common.back": "Geri",
+  "common.underConstruction": "Yapım Aşamasında",
   "common.role.admin": "Admin",
   "common.role.teknik": "Teknik",
   "common.role.guest": "Misafir",

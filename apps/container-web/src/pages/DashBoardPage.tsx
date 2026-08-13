@@ -189,9 +189,11 @@ export const DashboardPage: React.FC = () => {
 
     return bscDevices.map((device, idx) => {
       const rackCount = device.rack_count ?? 8;
+      const bscRacks = racks.slice(offsets[idx]!, offsets[idx]! + rackCount);
+      const onlineCount = bscRacks.filter(r => r.status === "online").length;
       return {
         deviceId: device.id,
-        racks: racks.slice(offsets[idx]!, offsets[idx]! + rackCount),
+        racks: bscRacks,
         breakerStatus: breakerStatuses[idx] ?? "online",
         breakerPosition: breakerPositions[idx] ?? "close",
         dcOutput: dcOutputs[idx] ?? {
@@ -199,9 +201,18 @@ export const DashboardPage: React.FC = () => {
           voltage: 398,
           current: 75,
         },
+        systemSummary: {
+          avgSoC: averages.avgSoC,
+          avgSoH: averages.avgSoH,
+          avgVoltage: averages.avgVoltage,
+          avgCurrent: averages.avgCurrent,
+          avgPower: averages.avgPower,
+          onlineRackCount: onlineCount,
+          totalRackCount: rackCount,
+        },
       };
     });
-  }, [bscDevices, racks, breakerStatuses, breakerPositions, dcOutputs]);
+  }, [bscDevices, racks, breakerStatuses, breakerPositions, dcOutputs, averages]);
 
   if (isLoading) {
     return (

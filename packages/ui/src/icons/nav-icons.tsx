@@ -36,6 +36,12 @@ import {
   TbBox,
   TbX,
   TbFireExtinguisher,
+  TbServer,
+  TbSnowflake,
+  TbTrendingUp,
+  TbWind,
+  TbCircuitSwitchOpen,
+  TbOutlet,
 } from "react-icons/tb";
 import type { ScadaIconName } from "./types";
 
@@ -79,4 +85,11 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   fireAlarm:         TbFireExtinguisher,
   settings:          TbSettings,
   energyAnalyzer:    TbBolt,
+  bsc:               TbServer,
+  hvac:              TbSnowflake,
+  analytics:         TbTrendingUp,
+  hvacUnit:          TbWind,
+  circuitBreaker:    TbCircuitSwitchOpen,
+  dcOutput:          TbOutlet,
+  scadaChart:        TbChartAreaLine,
 };

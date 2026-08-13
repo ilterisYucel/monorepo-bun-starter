@@ -6,3 +6,5 @@ export * from "./CableBus";
 export * from "./CircuitBreaker";
 export * from "./DCOutput";
 export * from "./RackCell";
+export * from "./FirePanel";
+export * from "./EnergyAnalyzerGraphic";

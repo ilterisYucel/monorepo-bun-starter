@@ -39,4 +39,11 @@ export type ScadaIconName =
   | "close"
   | "fireAlarm"
   | "settings"
-  | "energyAnalyzer";
+  | "energyAnalyzer"
+  | "bsc"
+  | "hvac"
+  | "analytics"
+  | "hvacUnit"
+  | "circuitBreaker"
+  | "dcOutput"
+  | "scadaChart";
