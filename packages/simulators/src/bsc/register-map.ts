@@ -227,6 +227,8 @@ export const CONTROLLER = {
   DISABLED_RACKS_97_99:   40026, // bit16
   DISABLED_RESERVED_1:    40027, // uint16 — Reserved
   DISABLED_RESERVED_2:    40028, // uint16 — Reserved
+  // ELEGANT-EXCEPTION: 40030/40031 resmi Rev AF haritasında YOKTUR (C2B 40028'de biter).
+  // Simulator'ın eski güç modeli için geçici; evdeki PC güncellemesinde kaldırılacak.
   CHARGE_POWER_SETPOINT:  40030, // uint16 — Charge power setpoint (kW, scale 0.01)
   DISCHARGE_POWER_SETPOINT: 40031, // uint16 — Discharge power setpoint (kW, scale 0.01)
 } as const;
@@ -258,6 +260,10 @@ export const COMMAND = {
   EXIT_MANUAL:             0x0007,
   EVENT_CLEAR:             0x0009,
   RESET:                   0x000A,
+  // ELEGANT-EXCEPTION: 0x000B resmi Rev AF haritasında kaldırıldı ("removed").
+  // BSC'ye charge/discharge komutu YOKTUR — güç PCS tarafından kontrol edilir.
+  // Simulator'ın güç modeli henüz PCS-tabanlı olmadığı için geçici tutuldu;
+  // evdeki PC simulator güncellemesinde kaldırılacak (bkz. docs/BSC-VERI-ANALIZI.md).
   DISCHARGE:               0x000B,
 } as const;
 

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
-import { TimescaleDBAdapter, MaterializedViewManager } from "@gd-monorepo/core";
+import type { ITimeseriesDatabase } from "@gd-monorepo/core";
+import type { MaterializedViewManager } from "@gd-monorepo/core";
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import { DeviceRegistry } from "../../infrastructure/persistence/device-registry";
@@ -9,7 +10,7 @@ export async function unifiedRoutes(
   fastify: FastifyInstance,
   options: {
     registry: DeviceRegistry;
-    timescale: TimescaleDBAdapter;
+    timescale: ITimeseriesDatabase;
     mvManager: MaterializedViewManager;
     postgres: ISqlDatabase;
   },

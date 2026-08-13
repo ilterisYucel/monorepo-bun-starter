@@ -72,6 +72,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-docker
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
     depends_on:
       redis:
         condition: service_healthy

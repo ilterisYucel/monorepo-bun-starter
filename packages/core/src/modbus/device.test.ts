@@ -6,6 +6,22 @@ import type {
 } from "@gd-monorepo/shared-types";
 import { ModbusDevice } from "./device";
 import type { ModbusDeviceConfig } from "./device";
+import type { IModbusTransport } from "./transport/interface";
+
+function mockTransport(adapter: IModbusSimulatorAdapter): IModbusTransport {
+  return {
+    connect: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    reconnect: vi.fn().mockResolvedValue(undefined),
+    isConnected: () => true,
+    readHoldingRegisters: (a, c) => adapter.readHoldingRegisters(a, c),
+    writeHoldingRegisters: (a, v) => adapter.writeHoldingRegisters(a, v),
+    readInputRegisters: (a, c) => adapter.readInputRegisters(a, c),
+    readCoils: (a, c) => adapter.readCoils(a, c),
+    writeCoils: (a, v) => adapter.writeMultipleCoils(a, v),
+    readDiscreteInputs: (a, c) => adapter.readDiscreteInputs(a, c),
+  };
+}
 
 function mockHoldingRegs(regs: Record<number, number>): IModbusSimulatorAdapter {
   return {
@@ -115,7 +131,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       const results = await device.read();
       expect(results).toHaveLength(1);
       expect(results[0]?.name).toBe("Voltage");
@@ -149,7 +165,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       const results = await device.read();
       expect(results).toHaveLength(2);
       const names = results.map((r) => r.name);
@@ -176,7 +192,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       const results = await device.read();
       expect(results).toHaveLength(1);
       expect(results[0]?.value).toBe(50000);
@@ -199,7 +215,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       const results = await device.read();
       expect(results).toHaveLength(1);
       expect((results[0]?.value as number)).toBeCloseTo(230.5, 1);
@@ -232,7 +248,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       const results = await device.read([
         {
           ...voltageEntry,
@@ -262,7 +278,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       await device.write([
         {
           ...makeTelemetry({ name: "Setpoint" }),
@@ -287,7 +303,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       await device.write([
         {
           ...makeTelemetry({ name: "Energy" }),
@@ -314,7 +330,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       await device.write([
         {
           ...makeTelemetry({ name: "Setpoint" }),
@@ -342,7 +358,7 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       await device.writeAtomic([
         {
           ...makeTelemetry({ name: "Setpoint" }),
@@ -368,9 +384,9 @@ describe("ModbusDevice (with mock adapter)", () => {
           }),
         ],
       });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       // Make write fail after the first call
-      (adapter.writeHoldingRegister as ReturnType<typeof vi.fn>)
+      (adapter.writeHoldingRegisters as ReturnType<typeof vi.fn>)
         .mockRejectedValueOnce(new Error("Write failed"));
 
       await expect(
@@ -390,7 +406,7 @@ describe("ModbusDevice (with mock adapter)", () => {
   describe("id", () => {
     it("returns the configured device id", () => {
       const config = makeConfig({ id: "bsc-rack-3" });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       expect(device.id).toBe("bsc-rack-3");
     });
   });
@@ -398,12 +414,12 @@ describe("ModbusDevice (with mock adapter)", () => {
   describe("simulator mode", () => {
     it("uses adapter when provided (no real client)", () => {
       const config = makeConfig({ id: "sim-1" });
-      const device = new ModbusDevice(config, adapter);
+      const device = new ModbusDevice(config, mockTransport(adapter));
       expect(device.id).toBe("sim-1");
     });
 
     it("does not throw on connect in simulator mode", async () => {
-      const device = new ModbusDevice(makeConfig({}), adapter);
+      const device = new ModbusDevice(makeConfig({}), mockTransport(adapter));
       await expect(device.connect()).resolves.toBeUndefined();
     });
   });

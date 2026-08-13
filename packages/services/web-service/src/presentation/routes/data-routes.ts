@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import { TimescaleDBAdapter } from "@gd-monorepo/core";
+import type { ITimeseriesDatabase } from "@gd-monorepo/core";
 
 export async function dataRoutes(
   fastify: FastifyInstance,
-  options: { timescale: TimescaleDBAdapter },
+  options: { timescale: ITimeseriesDatabase },
 ) {
   const { timescale } = options;
 

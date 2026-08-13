@@ -5,3 +5,6 @@ export { HvacSimulator, HvacSimulatorAdapter } from "./hvac";
 export { CbSimulator, CbSimulatorAdapter } from "./cb";
 export { DcOutputSimulator, DcOutputSimulatorAdapter } from "./dc-output";
 export { EnergyAnalyzerSimulator, EnergyAnalyzerSimulatorAdapter } from "./energy-analyzer";
+export { PcsSimulator, PcsSimulatorAdapter } from "./pcs";
+export { SimulatorTransport } from "./simulator-transport";
+export { EmuSimulator, EmuSimulatorAdapter } from "./emu";

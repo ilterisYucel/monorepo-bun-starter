@@ -13,9 +13,18 @@ const telemetryEntrySchema = z.object({
 }).catchall(z.unknown());
 
 const simulatorConfigSchema = z.object({
-  type: z.enum(["bsc", "hvac", "xrack", "cb", "dc-output", "energy-analyzer"]),
+  type: z.enum(["bsc", "hvac", "xrack", "cb", "dc-output", "energy-analyzer", "pcs", "emu"]),
   rackCount: z.number().int().positive().optional(),
   registerMap: z.string().optional(),
+  pcsCount: z.number().int().positive().optional(),
+});
+
+const deviceTransportConfigSchema = z.object({
+  kind: z.enum(["tcp", "rtu", "simulator"]),
+  type: z.string().min(1).optional(),
+  rackCount: z.number().int().positive().optional(),
+  registerMap: z.string().optional(),
+  pcsCount: z.number().int().positive().optional(),
 });
 
 export const bitfieldFieldSchema = z.object({
@@ -49,9 +58,11 @@ export const deviceConfigFileSchema = z.object({
   manufacturer: z.string(),
   model: z.string(),
   protocol: z.enum(["MODBUS", "CANBUS", "MQTT"]),
+  type: z.string().min(1).optional(),
+  rackCount: z.number().int().positive().optional(),
   connection: z.record(z.unknown()),
   telemetry: z.array(telemetryEntrySchema).min(1),
   bitfieldConfigs: z.array(bitfieldConfigSchema).optional(),
   pollIntervalMs: z.number().int().positive().optional(),
-  simulator: simulatorConfigSchema.optional(),
+  transport: deviceTransportConfigSchema.optional(),
 });

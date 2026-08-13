@@ -49,6 +49,9 @@ function bscEntries(deviceId: string, containerId: string, soc: number, soh: num
     entry("Power", power, "kW", deviceId, containerId, t, rackSystem),
     entry("MaxCellTemperature", temp, "°C", deviceId, containerId, t, rackSystem),
     entry("ChargeStatus", chargeStatus, "", deviceId, containerId, t, rackSystem),
+    // ponytail: LG BSC limitleri — gerçek register adları (30063/30065)
+    entry("AvailableChargePower", Math.round((100 - soc) * 0.6), "kW", deviceId, containerId, t, rackSystem),
+    entry("AvailableDischargePower", Math.round(soc * 0.5), "kW", deviceId, containerId, t, rackSystem),
   ];
 }
 
@@ -224,4 +227,184 @@ export function mockTimeSeries(containerId: string, rangeMs?: number): Telemetry
 
 export function mockAllTimeSeries(containerIds: string[], rangeMs?: number): TelemetryData[] {
   return containerIds.flatMap((id) => mockTimeSeries(id, rangeMs));
+}
+
+// =============================================================================
+// PCS telemetrisi (field device-service tarafından poll edilen, konteyner başına bir PCS)
+// Register adları: EMU Modbus TCP V0.0.2 — PCS Modules bloğu
+// =============================================================================
+
+export interface MockPcs {
+  pcsId: string;
+  containerId: string;
+  containerName: string;
+  connected: boolean;
+  latestTelemetry: TelemetryData[];
+}
+
+function containerPowerKw(container: MockContainer): number {
+  return container.latestTelemetry
+    .filter((t) => t.name === "Power" && t.deviceId.startsWith("BSC") && t.tags?.rack_id === "system")
+    .reduce((sum, t) => sum + (t.value as number), 0);
+}
+
+function containerChargeState(container: MockContainer): "Charge" | "Discharge" | "Idle" {
+  const statuses = container.latestTelemetry
+    .filter((t) => t.name === "ChargeStatus")
+    .map((t) => t.value as string);
+  if (statuses.includes("Charge")) return "Charge";
+  if (statuses.includes("Discharge")) return "Discharge";
+  return "Idle";
+}
+
+function pcsEntries(containerId: string, pcsId: string, powerKw: number, t: string): TelemetryData[] {
+  // İşaret kuralı (EMU dökümanı): + = deşarj, − = şarj
+  const signed = Math.round(powerKw * 10) / 10;
+  const absP = Math.abs(signed);
+  const pf = absP > 0 ? 0.99 : 0;
+  const apparent = pf > 0 ? absP / pf : 0;
+  const reactive = pf > 0 ? absP * Math.tan(Math.acos(pf)) : 0;
+  const phaseCurrent = (absP * 1000) / (400 * Math.sqrt(3));
+  const dcCurrent = (absP * 1000) / 750;
+  const ac = (extra?: Record<string, string>) => ({ scope: "ac", ...extra });
+
+  return [
+    entry("AC Voltage AB", 400, "V", pcsId, containerId, t, ac({ phase: "ab" })),
+    entry("AC Voltage BC", 400, "V", pcsId, containerId, t, ac({ phase: "bc" })),
+    entry("AC Voltage CA", 400, "V", pcsId, containerId, t, ac({ phase: "ca" })),
+    entry("AC Frequency", 50, "Hz", pcsId, containerId, t, ac()),
+    entry("Phase Current A", phaseCurrent, "A", pcsId, containerId, t, ac({ phase: "a" })),
+    entry("Phase Current B", phaseCurrent, "A", pcsId, containerId, t, ac({ phase: "b" })),
+    entry("Phase Current C", phaseCurrent, "A", pcsId, containerId, t, ac({ phase: "c" })),
+    entry("AC Active Power", signed, "kW", pcsId, containerId, t, ac()),
+    entry("AC Reactive Power", Math.round(reactive * 10) / 10, "kvar", pcsId, containerId, t, ac()),
+    entry("AC Apparent Power", Math.round(apparent * 10) / 10, "kVA", pcsId, containerId, t, ac()),
+    entry("Power Factor", pf, "", pcsId, containerId, t, ac()),
+    entry("DC Voltage", 750, "V", pcsId, containerId, t, { scope: "dc" }),
+    entry("DC Current", Math.round(dcCurrent * 10) / 10, "A", pcsId, containerId, t, { scope: "dc" }),
+    entry("DC Power", signed, "kW", pcsId, containerId, t, { scope: "dc" }),
+    entry("IGBT Temperature", 42 + (absP / 240) * 15, "°C", pcsId, containerId, t),
+    entry("Cabin Temperature", 28 + (absP / 240) * 8, "°C", pcsId, containerId, t),
+    entry("Available Charge Power", Math.round((240 - (signed < 0 ? absP : 0)) * 10) / 10, "kW", pcsId, containerId, t),
+    entry("Available Discharge Power", Math.round((240 - (signed > 0 ? absP : 0)) * 10) / 10, "kW", pcsId, containerId, t),
+    entry("Available Inductive Reactive Power", 240, "kvar", pcsId, containerId, t),
+    entry("Available Capacitive Reactive Power", 240, "kvar", pcsId, containerId, t),
+    entry("Total Charge Energy", 1240, "kWh", pcsId, containerId, t),
+    entry("Total Discharge Energy", 980, "kWh", pcsId, containerId, t),
+    entry("Daily Charge Energy", 42, "kWh", pcsId, containerId, t),
+    entry("Daily Discharge Energy", 36, "kWh", pcsId, containerId, t),
+  ];
+}
+
+export function mockPcs(pcsId: string): MockPcs | undefined {
+  const n = Number(pcsId.replace("PCS-", ""));
+  const container = MOCK_CONTAINERS[n - 1];
+  if (!container) return undefined;
+
+  const state = containerChargeState(container);
+  const powerKw = container.connected ? containerPowerKw(container) : 0;
+  const signedPower = state === "Charge" ? -powerKw : state === "Discharge" ? powerKw : 0;
+
+  return {
+    pcsId,
+    containerId: container.containerId,
+    containerName: container.name,
+    connected: container.connected,
+    latestTelemetry: pcsEntries(container.containerId, pcsId, signedPower, ts()),
+  };
+}
+
+export function mockPcsList(): MockPcs[] {
+  return MOCK_CONTAINERS.map((_, i) => mockPcs(`PCS-${i + 1}`)!);
+}
+
+// =============================================================================
+// EMU istasyon telemetrisi (field device-service — EMU cihazı)
+// =============================================================================
+
+export interface MockEmu {
+  latestTelemetry: TelemetryData[];
+  pcsCount: number;
+  runningPcsCount: number;
+}
+
+export function mockEmu(): MockEmu {
+  const pcsList = mockPcsList();
+  const connected = pcsList.filter((p) => p.connected);
+  const activePower = connected.reduce(
+    (sum, p) => sum + ((p.latestTelemetry.find((x) => x.name === "AC Active Power")?.value as number) ?? 0),
+    0,
+  );
+  const socs = connected.map((p) => {
+    const c = MOCK_CONTAINERS.find((m) => m.containerId === p.containerId);
+    return c?.latestTelemetry.find((t) => t.name === "SOC" && t.tags?.rack_id === "system")?.value as number ?? 0;
+  });
+  const avgSoc = socs.length > 0 ? socs.reduce((a, b) => a + b, 0) / socs.length : 0;
+  const pf = activePower !== 0 ? 0.99 : 0;
+  const apparent = pf > 0 ? Math.abs(activePower) / pf : 0;
+  const reactive = pf > 0 ? Math.abs(activePower) * Math.tan(Math.acos(pf)) : 0;
+  const stationState = activePower < 0 ? 4 : activePower > 0 ? 5 : 3;
+
+  const t = ts();
+  const emuId = "EMU-1";
+  const e = (name: string, value: number, unit: string, extraTags?: Record<string, string>): TelemetryData =>
+    entry(name, Math.round(value * 10) / 10, unit, emuId, "field", t, { scope: "station", ...extraTags });
+
+  return {
+    pcsCount: pcsList.length,
+    runningPcsCount: connected.length,
+    latestTelemetry: [
+      e("Nominal Capacity", 750, "kVA"),
+      e("System SOC", avgSoc, "%"),
+      e("System SOH", 94.2, "%"),
+      e("Station State", stationState, ""),
+      e("Active Power", activePower, "kW"),
+      e("Reactive Power", reactive, "kvar"),
+      e("Apparent Power", apparent, "kVA"),
+      e("Power Factor", pf, ""),
+      e("AC Frequency", 50, "Hz"),
+      e("DC Voltage", 750, "V"),
+      e("DC Current", Math.abs(activePower) * 1000 / 750, "A"),
+      e("DC Power", activePower, "kW"),
+      e("Available Charge Power", 720 - (activePower < 0 ? -activePower : 0), "kW"),
+      e("Available Discharge Power", 720 - (activePower > 0 ? activePower : 0), "kW"),
+      e("Total Charged Energy", 3720, "kWh"),
+      e("Total Discharged Energy", 2940, "kWh"),
+      e("Daily Charged Energy", 126, "kWh"),
+      e("Daily Discharged Energy", 108, "kWh"),
+    ],
+  };
+}
+
+// =============================================================================
+// Saha toplam serisi (dashboard + charts için)
+// =============================================================================
+
+export function mockFieldAggregate(rangeMs?: number): TelemetryData[] {
+  const points = 288;
+  const durationMs = rangeMs ?? 24 * 60 * 60 * 1000;
+  const intervalMs = durationMs / points;
+  const connected = MOCK_CONTAINERS.filter((c) => c.connected);
+  const basePower = connected.reduce((sum, c) => sum + containerPowerKw(c), 0);
+  const baseSoc =
+    connected.reduce((sum, c) => {
+      const soc = c.latestTelemetry.find(
+        (t) => t.name === "SOC" && t.tags?.rack_id === "system",
+      );
+      return sum + ((soc?.value as number) ?? 0);
+    }, 0) / Math.max(1, connected.length);
+
+  const result: TelemetryData[] = [];
+  for (let i = 0; i < points; i++) {
+    const t = new Date(NOW - durationMs + i * intervalMs).toISOString();
+    const wave = Math.sin((i / points) * Math.PI * 2);
+    const power = Math.max(0, basePower * (1 + wave * 0.25) + wave * 2);
+    const soc = Math.min(100, Math.max(0, baseSoc + wave * 3));
+
+    result.push(
+      entry("TotalPower", Math.round(power * 10) / 10, "kW", "FIELD", "field", t, { scope: "field" }),
+      entry("AvgSoc", Math.round(soc * 10) / 10, "%", "FIELD", "field", t, { scope: "field" }),
+    );
+  }
+  return result;
 }

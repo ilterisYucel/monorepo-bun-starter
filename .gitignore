@@ -111,3 +111,6 @@ __pycache__/
 *.gz
 .claude/worktrees
 .claude/settings.local.json
+# tsc build artıkları (composite projelerde src içine yanlışlıkla emit olabilir)
+**/src/**/*.d.ts
+**/src/**/*.d.ts.map
