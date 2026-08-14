@@ -5,7 +5,6 @@ import type {
   ModbusTelemetryData,
   CanbusTelemetryData,
   MqttTelemetryData,
-  CanonicalMetric,
 } from "../telemetry/telemetry-data";
 import type { CommandConfig } from "../commands/command";
 
@@ -18,8 +17,13 @@ export type TelemetryConfigEntry = Omit<
   ModbusTelemetryData | CanbusTelemetryData | MqttTelemetryData,
   "value" | "timestamp" | "deviceId"
 > & {
-  /** Kanonik metrik adı — device-service tarafından tags.canonical olarak taşınır */
-  canonical?: CanonicalMetric;
+  /**
+   * Kanonik metrik adı (serbest string — örn: "soc", "battery_ready").
+   * device-service tarafından tags.canonical olarak taşınır.
+   *
+   * TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak.
+   */
+  canonical?: string;
 };
 
 /**

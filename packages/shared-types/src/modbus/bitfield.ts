@@ -1,7 +1,5 @@
 // Bit-bazlı register konfigürasyonu — Modbus alarm/status register'ları için.
 
-import type { CanonicalMetric } from "../telemetry/telemetry-data";
-
 /**
  * Alarm ve durum register'ları için bit-alan tanımı.
  * BSC BMS gibi cihazlarda, tek bir register içindeki her bit
@@ -34,8 +32,13 @@ export interface BitfieldField {
   logType?: "error" | "warning" | "info";
   /** TelemetryData.tags'a eklenecek etiketler (örn: { rack_id: "3" }) */
   tags?: Record<string, string>;
-  /** Kanonik metrik adı (örn: "battery_ready") — tags.canonical olarak taşınır */
-  canonical?: CanonicalMetric;
+  /**
+   * Kanonik metrik adı (serbest string — örn: "soc", "battery_ready").
+   * device-service tarafından tags.canonical olarak taşınır.
+   *
+   * TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak.
+   */
+  canonical?: string;
 }
 
 /**

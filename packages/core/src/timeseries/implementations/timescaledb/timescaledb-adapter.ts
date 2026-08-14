@@ -338,7 +338,6 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     limit: number,
     names?: string[],
     tags?: Record<string, string>,
-    canonicals?: string[],
   ): Promise<TelemetryData[]> {
     await this.ensureTableExists(deviceId);
     const tableName = this.getTableName(deviceId);
@@ -354,12 +353,6 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     if (names && names.length > 0) {
       sql += ` AND name = ANY($${paramIndex})`;
       params.push(names);
-      paramIndex++;
-    }
-
-    if (canonicals && canonicals.length > 0) {
-      sql += ` AND tags->>'canonical' = ANY($${paramIndex})`;
-      params.push(canonicals);
       paramIndex++;
     }
 
@@ -464,7 +457,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
   async getDownsampledData(
     options: DownsampleOptions,
   ): Promise<TelemetryData[]> {
-    const { from, to, points = 120, deviceId, names, tags, canonicals } = options;
+    const { from, to, points = 120, deviceId, names, tags } = options;
 
     await this.ensureTableExists(deviceId);
 
@@ -505,12 +498,6 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     if (selectedNames.length > 0) {
       whereConditions.push(`name = ANY($${paramIndex})`);
       params.push(selectedNames);
-      paramIndex++;
-    }
-
-    if (canonicals && canonicals.length > 0) {
-      whereConditions.push(`tags->>'canonical' = ANY($${paramIndex})`);
-      params.push(canonicals);
       paramIndex++;
     }
 

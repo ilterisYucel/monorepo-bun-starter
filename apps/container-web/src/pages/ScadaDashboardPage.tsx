@@ -103,8 +103,8 @@ export const ScadaDashboardPage: React.FC = () => {
         breakerPosition: breakerPositions[idx] ?? "close",
         dcOutput: dcOutputs[idx] ?? { status: "online" as const, voltage: 398, current: 75 },
         systemSummary: {
-          avgSoC: averages.avgSoC,
-          avgSoH: averages.avgSoH,
+          avgSoC: averages.avgSoc,
+          avgSoH: averages.avgSoh,
           avgVoltage: averages.avgVoltage,
           avgCurrent: averages.avgCurrent,
           avgPower: averages.avgPower,

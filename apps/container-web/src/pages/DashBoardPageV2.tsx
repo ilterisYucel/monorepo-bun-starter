@@ -43,8 +43,8 @@ export const DashboardPageV2: React.FC = () => {
   const bscGaugeBlocks = useMemo(() => bscDevices.map((d) => ({
     id: d.id,
     gauges: [
-      { value: averages.avgSoC, label: "SoC", unit: "%", min: 0, max: 100, icon: <BatteryIcon size={16} /> },
-      { value: averages.avgSoH, label: "SoH", unit: "%", min: 0, max: 100, icon: <ShieldIcon size={16} /> },
+      { value: averages.avgSoc, label: "SoC", unit: "%", min: 0, max: 100, icon: <BatteryIcon size={16} /> },
+      { value: averages.avgSoh, label: "SoH", unit: "%", min: 0, max: 100, icon: <ShieldIcon size={16} /> },
       { value: Math.abs(averages.avgPower), label: t("device.power"), unit: "kW", min: 0, max: 500, icon: <PlugIcon size={16} /> },
       { value: averages.avgVoltage, label: t("device.voltage"), unit: "V", min: 0, max: 5000, icon: <BatteryIcon size={16} /> },
     ] as DeviceGaugeItem[],

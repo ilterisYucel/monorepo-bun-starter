@@ -5,7 +5,7 @@ import { useRealtimeStream } from "../../../contexts/RealtimeContext";
 import { racksApi } from "../services/racksApi";
 import { telemetriesToRacks, telemetriesToRackDetailMap } from "../utils/rackHelpers";
 import { useDevicesStore } from "../../../stores/devicesStore";
-import type { ChargeStatus } from "@gd-monorepo/shared-types";
+import type { ChargeStatus, TelemetryData } from "@gd-monorepo/shared-types";
 
 export const RACKS_QUERY_KEY = ["racks"];
 
@@ -29,8 +29,9 @@ export const useRacksData = (chargeStatus: "Charge" | "Discharge" | "Idle") => {
     realtimeData,
   });
 
-  const racks = telemetriesToRacks(mergedTelemetries, chargeStatus, bscDevices);
-  const rackDetails = telemetriesToRackDetailMap(mergedTelemetries, chargeStatus, bscDevices);
+  const merged = mergedTelemetries as unknown as TelemetryData[];
+  const racks = telemetriesToRacks(merged, chargeStatus, bscDevices);
+  const rackDetails = telemetriesToRackDetailMap(merged, chargeStatus, bscDevices);
 
   return { racks, rackDetails, mergedTelemetries, isLoading, refetch };
 };

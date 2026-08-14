@@ -21,14 +21,9 @@ export async function unifiedRoutes(
     try {
       await registry.refresh();
 
-      const { deviceIds, names, canonicals } = request.query as {
-        deviceIds?: string;
-        names?: string;
-        canonicals?: string;
-      };
+      const { deviceIds, names } = request.query as { deviceIds?: string; names?: string };
       const ids = deviceIds ? deviceIds.split(",") : [];
       const nameFilter = names ? names.split(",") : undefined;
-      const canonicalFilter = canonicals ? canonicals.split(",") : undefined;
 
       const targetDevices = registry.online().filter(
         (d) => ids.length === 0 || ids.includes(d.id),
@@ -37,13 +32,7 @@ export async function unifiedRoutes(
       const LATEST_TELEMETRY_LIMIT = 2000;
       const results = await Promise.allSettled(
         targetDevices.map((d) =>
-          timescale.getLatestN(
-            d.id,
-            LATEST_TELEMETRY_LIMIT,
-            nameFilter,
-            undefined,
-            canonicalFilter,
-          ),
+          timescale.getLatestN(d.id, LATEST_TELEMETRY_LIMIT, nameFilter),
         ),
       );
       const allTelemetries = results.flatMap((r) =>
@@ -74,7 +63,6 @@ export async function unifiedRoutes(
         points,
         names,
         rack_id,
-        canonicals,
       } = request.query as {
         deviceIds?: string;
         from?: string;
@@ -82,7 +70,6 @@ export async function unifiedRoutes(
         points?: string;
         names?: string;
         rack_id?: string;
-        canonicals?: string;
       };
 
       if (!from || !to) {
@@ -93,7 +80,6 @@ export async function unifiedRoutes(
 
       const ids = deviceIds ? deviceIds.split(",") : [];
       const nameFilter = names ? names.split(",") : undefined;
-      const canonicalFilter = canonicals ? canonicals.split(",") : undefined;
       const targetPoints = points ? parseInt(points) : 120;
 
       const targetDevices2 = registry.online().filter(
@@ -110,7 +96,6 @@ export async function unifiedRoutes(
             to: new Date(to),
             points: targetPoints,
             tags: tagFilter,
-            canonicals: canonicalFilter,
           }),
         ),
       );

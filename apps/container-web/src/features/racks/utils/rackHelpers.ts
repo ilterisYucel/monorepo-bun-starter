@@ -4,6 +4,45 @@ import type { Rack } from "@gd-monorepo/ui";
 import type { DeviceInfo } from "../../devices/types/device";
 import type { RackDetailData, RackExtendedTelemetry, RackNameplate, RackDiagnosticGroup } from "../components/RackDetailModal/RackDetailModal.types";
 
+/**
+ * Canonical tag'i generic olarak rack alanina yazar.
+ *
+ * Konvansiyon (low-code yonu): canonical degeri = UI alan adi.
+ * Ornek: canonical "soc" → rack.soc, "soh" → rack.soh.
+ * Yalnizca deger donusumu gerektirenler ozel islenir:
+ * - "battery_ready" → status (boolean → online/offline)
+ * - "charge_power" → power_kw (+isaret)
+ * - "discharge_power" → power_kw (-isaret)
+ *
+ * @returns canonical eşleştiyse true (caller name fallback'e bakmaz)
+ */
+export const applyCanonicalTelemetry = (
+  rack: Rack,
+  telemetry: TelemetryData,
+): boolean => {
+  const canonical = telemetry.tags?.canonical;
+  if (!canonical) return false;
+
+  switch (canonical) {
+    case "battery_ready":
+      rack.status = telemetry.value === 1 ? "online" : "offline";
+      return true;
+    case "charge_power":
+      rack.power_kw = telemetry.value as number;
+      return true;
+    case "discharge_power":
+      rack.power_kw = -(telemetry.value as number);
+      return true;
+  }
+
+  if (canonical in rack && canonical !== "status" && canonical !== "charge_status") {
+    (rack as unknown as Record<string, unknown>)[canonical] = telemetry.value as number;
+    return true;
+  }
+
+  return false;
+};
+
 export const telemetriesToRacks = (
   telemetries: TelemetryData[],
   globalChargeStatus: ChargeStatus,
@@ -42,37 +81,10 @@ export const telemetriesToRacks = (
     const rack = rackMap.get(key);
     if (!rack) continue;
 
-    // Kanonik metrik eşlemesi (config'deki canonical attr) — name'e bağlı değil.
-    // Legacy name case'leri eski veriler/cihazlar için fallback olarak durur.
-    const canonical = telemetry.tags?.canonical;
-    const name = telemetry.name.replace(/\s+R\d+$/, "");
+    // Canonical eşlemesi (generic) — eski name eşlemesi fallback olarak durur
+    if (applyCanonicalTelemetry(rack, telemetry)) continue;
 
-    switch (canonical) {
-      case "battery_ready":
-        rack.status = telemetry.value === 1 ? "online" : "offline";
-        continue;
-      case "soc":
-        rack.soc = telemetry.value as number;
-        continue;
-      case "soh":
-        rack.soh = telemetry.value as number;
-        continue;
-      case "voltage":
-        rack.voltage = telemetry.value as number;
-        continue;
-      case "current":
-        rack.current = telemetry.value as number;
-        continue;
-      case "charge_power":
-        rack.power_kw = telemetry.value as number;
-        continue;
-      case "discharge_power":
-        rack.power_kw = -(telemetry.value as number);
-        continue;
-      case "temperature":
-        rack.temperature = telemetry.value as number;
-        continue;
-    }
+    const name = telemetry.name.replace(/\s+R\d+$/, "");
 
     switch (name) {
       case "Battery Ready":

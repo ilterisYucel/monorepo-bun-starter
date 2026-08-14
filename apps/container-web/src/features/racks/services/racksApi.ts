@@ -6,21 +6,11 @@ interface LatestResponse {
   telemetries: TelemetryData[];
 }
 
-const CANONICALS = [
-  "battery_ready",
-  "soc",
-  "soh",
-  "voltage",
-  "current",
-  "charge_power",
-  "discharge_power",
-  "temperature",
-];
-
+// Filtresiz son telemetriler — canonical eşlemesi client tarafinda
+// generic resolver ile yapilir (bkz. rackHelpers.applyCanonicalTelemetry).
 export const racksApi = {
   getLatest: async (deviceIds: string[], signal?: AbortSignal): Promise<TelemetryData[]> => {
     const params = new URLSearchParams({ deviceIds: deviceIds.join(",") });
-    params.set("canonicals", CANONICALS.join(","));
     const response = await apiClient.get<LatestResponse>(
       `/unified/telemetry/latest?${params.toString()}`,
       { signal },

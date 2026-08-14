@@ -93,7 +93,7 @@ export const DashboardPage: React.FC = () => {
 
   const gauges = useMemo(() => [
     {
-      value: averages.avgSoC,
+      value: averages.avgSoc,
       label: "SoC",
       unit: "%",
       min: 0,
@@ -101,7 +101,7 @@ export const DashboardPage: React.FC = () => {
       icon: <BatteryIcon size={18} />,
     },
     {
-      value: averages.avgSoH,
+      value: averages.avgSoh,
       label: "SoH",
       unit: "%",
       min: 0,
@@ -202,8 +202,8 @@ export const DashboardPage: React.FC = () => {
           current: 75,
         },
         systemSummary: {
-          avgSoC: averages.avgSoC,
-          avgSoH: averages.avgSoH,
+          avgSoC: averages.avgSoc,
+          avgSoH: averages.avgSoh,
           avgVoltage: averages.avgVoltage,
           avgCurrent: averages.avgCurrent,
           avgPower: averages.avgPower,
