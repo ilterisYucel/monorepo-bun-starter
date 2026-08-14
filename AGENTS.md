@@ -14,12 +14,21 @@ nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
 nx run data-service:dev         # Data Service (BullMQ consumer)
 bun run build                   # Build all (Nx orders by ^build deps)
-nx run container-web:test                 # Vitest (no test files written yet)
+bun run test                    # All unit/component/integration tests (vitest workspace)
+bun run test:coverage           # With coverage report
+bun run test:e2e                # Playwright (requires docker stack)
+bun run test:perf               # k6 smoke tests
+nx run <proj>:test              # Single project tests
 nx run <proj>:<target>          # Run any Nx target
 nx graph                        # Dependency graph visualizer
 ```
-No root `test`, `lint`, or `format` scripts exist. Linting is per-project.
-Only `web` has a `test` Nx target (vitest); no test files exist anywhere.
+No root `lint` or `format` scripts exist. Linting is per-project.
+
+## Testing
+- **`TESTING.md` is the authoritative testing reference** — layers, file naming, mocking rules, coverage targets, and commands. Read it before writing or running any test.
+- Unit/component/integration: Vitest workspace (`vitest.workspace.ts`, 14 projects).
+- E2E: Playwright (`e2e/`). Perf: k6 (`deployment/k6/`). Both via root scripts.
+- Mocking rules: external deps (redis, pg, bullmq) via `vi.mock()` + root-level `__mocks__/`; `@gd-monorepo/*` internal packages are never mocked.
 
 ## Monorepo structure
 - **Bun** is the package manager. Workspaces: `apps/*` + `packages/**`.
@@ -532,8 +541,7 @@ When touching any file with hardcoded hex colors:
 - Workspace dependencies use `"*"` version (e.g. `"@gd-monorepo/core": "*"`).
 
 ## What's missing
-- No test files exist anywhere (vitest configured but unused).
-- No CI/CD workflows (no `.github/` directory).
+- No PR-level unit-test CI workflow (`.github/workflows/` has `e2e.yml`, `perf.yml`, `sonar.yml`, `storybook.yml`, but no `test.yml`).
 - No pre-commit hooks, no centralized linting/formatting.
 - `shared-utils` package is empty.
 - CANbus and MQTT are empty stubs in core.

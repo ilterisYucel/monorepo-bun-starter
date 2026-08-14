@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Markdown → DOCX converter with cover page, header, and embedded images."""
 
-import re, os
+import re, os, argparse
 from docx import Document
 from docx.shared import Inches, Pt, Cm, RGBColor, Emu
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
@@ -14,6 +14,10 @@ MARKDOWN_PATH = os.path.join(os.path.dirname(__file__), "proje-tanitim-raporu.md
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo.png")
 ARCH_IMG_PATH = os.path.join(os.path.dirname(__file__), "images", "architecture.png")
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "GD-ESS-EYS-Yazilim-Tanitim-Dokumani.docx")
+
+COVER_TITLE = "GD-ESS EYS\nYazilim Tanitim Dokumani"
+COVER_SUBTITLE = "Enerji Depolama Sistemi (EDS) Izleme, Kontrol ve Yonetim Yazilimi"
+COVER_DATE = "Temmuz 2026  ·  Versiyon 1.0"
 
 FONT_NAME = "Times New Roman"
 FONT_SIZE = Pt(12)
@@ -81,7 +85,7 @@ def add_cover_page(doc):
     # Title
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("GD-ESS EYS\nYazilim Tanitim Dokumani")
+    run = p.add_run(COVER_TITLE)
     run.font.name = FONT_NAME
     run.font.size = Pt(26)
     run.bold = True
@@ -95,7 +99,7 @@ def add_cover_page(doc):
     # Subtitle line
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("Enerji Depolama Sistemi (EDS) Izleme, Kontrol ve Yonetim Yazilimi")
+    run = p.add_run(COVER_SUBTITLE)
     run.font.name = FONT_NAME
     run.font.size = Pt(14)
     run.font.color.rgb = RGBColor(100, 100, 100)
@@ -104,7 +108,7 @@ def add_cover_page(doc):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(40)
-    run = p.add_run("Temmuz 2026  ·  Versiyon 1.0")
+    run = p.add_run(COVER_DATE)
     run.font.name = FONT_NAME
     run.font.size = Pt(11)
     run.font.color.rgb = RGBColor(130, 130, 130)
@@ -488,6 +492,29 @@ def _add_inline_runs(paragraph, text, font_size):
 
 
 def main():
+    global MARKDOWN_PATH, OUTPUT_PATH, COVER_TITLE, COVER_SUBTITLE, COVER_DATE
+
+    parser = argparse.ArgumentParser(
+        description="Markdown → DOCX converter with cover page, header, and embedded images."
+    )
+    parser.add_argument("--input", help="Input markdown file path")
+    parser.add_argument("--output", help="Output .docx file path")
+    parser.add_argument("--title", help="Cover page title (use \\n for line break)")
+    parser.add_argument("--subtitle", help="Cover page subtitle")
+    parser.add_argument("--date-line", help="Cover page date/version line")
+    args = parser.parse_args()
+
+    if args.input:
+        MARKDOWN_PATH = os.path.abspath(args.input)
+    if args.output:
+        OUTPUT_PATH = os.path.abspath(args.output)
+    if args.title:
+        COVER_TITLE = args.title.replace("\\n", "\n")
+    if args.subtitle:
+        COVER_SUBTITLE = args.subtitle
+    if args.date_line:
+        COVER_DATE = args.date_line
+
     doc = Document()
 
     # ---- Global styles ----
