@@ -36,10 +36,16 @@ function resolveTelemetries(
     let resolvedValue: unknown = t.value;
 
     if (typeof resolvedValue === "string") {
-      const match = resolvedValue.match(/^\{\{(\w+)\}\}$/);
+      const match = resolvedValue.match(/^([+-]?)\{\{(\w+)\}\}$/);
       if (match) {
-        const paramName = match[1]!;
-        resolvedValue = params?.[paramName];
+        const paramName = match[2]!;
+        const param = params?.[paramName];
+        // İşaret öneki: PCS setpoint'leri için (+ deşarj, − şarj)
+        if (match[1] === "-" && typeof param === "number") {
+          resolvedValue = -param;
+        } else {
+          resolvedValue = param;
+        }
       }
     }
 

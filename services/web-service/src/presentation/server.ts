@@ -18,7 +18,7 @@ import type { DeleteUserUseCase } from "../application/use-cases/delete-user-use
 import type { ListUsersUseCase } from "../application/use-cases/list-users-use-case";
 import type { IUserRepository } from "../domain/repositories/IUserRepository";
 import type { ITokenService } from "../domain/services/ITokenService";
-import { TimescaleDBAdapter } from "@gd-monorepo/core";
+import type { ITimeseriesDatabase } from "@gd-monorepo/core";
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import { createRbacHook } from "./middleware/rbac";
 import { makeAuthRoutes } from "./routes/auth-routes";
@@ -40,7 +40,7 @@ import type { MaterializedViewManager, IMessageQueue } from "@gd-monorepo/core";
 
 export interface ServerDependencies {
   serverConfig: ServerConfig;
-  timescale: TimescaleDBAdapter;
+  timescale: ITimeseriesDatabase;
   postgres: ISqlDatabase;
   tokens: ITokenService;
   userRepo: IUserRepository;

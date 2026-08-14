@@ -8,9 +8,8 @@ interface SystemHeaderProps {
 }
 
 const ContainerIcon = SCADA_ICONS.container;
-const OnlineIcon = SCADA_ICONS.statusOnline;
-const OfflineIcon = SCADA_ICONS.statusOffline;
 const ClockIcon = SCADA_ICONS.timer;
+const PcsIcon = SCADA_ICONS.powerPlug;
 
 export const SystemHeader: React.FC<SystemHeaderProps> = ({ fieldId = "—" }) => {
   const { t, locale } = useTranslation();
@@ -25,12 +24,8 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({ fieldId = "—" }) =
 
   const onlineContainers = containers.filter((c) => c.connected).length;
   const totalContainers = containers.length;
-  const ppcConnected = onlineContainers > 0;
-  const PPCIcon = ppcConnected ? OnlineIcon : OfflineIcon;
-  const ppcColor = ppcConnected ? COLORS.success : COLORS.error;
-  const ppcLabel = ppcConnected
-    ? t("container.connected")
-    : t("container.disconnected");
+  const pcsOnline = onlineContainers;
+  const pcsTotal = totalContainers;
 
   return (
     <S.Bar>
@@ -40,12 +35,12 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({ fieldId = "—" }) =
           <S.Label>{t("field.label")} {fieldId}</S.Label>
         </S.Box>
         <S.Box>
-          <PPCIcon size={16} color={ppcColor} />
-          <S.Label style={{ color: ppcColor }}>{ppcLabel}</S.Label>
-        </S.Box>
-        <S.Box>
           <ContainerIcon size={16} />
           <S.Label>{t("container.label")} {onlineContainers}/{totalContainers}</S.Label>
+        </S.Box>
+        <S.Box>
+          <PcsIcon size={16} />
+          <S.Label>PCS {pcsOnline}/{pcsTotal}</S.Label>
         </S.Box>
         <S.Box>
           <ClockIcon size={16} />

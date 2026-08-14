@@ -5,46 +5,58 @@ import type { DeviceTableRow } from "@gd-monorepo/ui";
 import { COLORS } from "@gd-monorepo/ui";
 import { useContainerData } from "../features/containers/hooks/useContainerData";
 import { useFieldDevices } from "../features/field-devices/hooks/useFieldDevices";
+import { mockPcs } from "../features/containers/services/mockDataGenerator";
+import { PcsCard } from "../features/containers/components/PcsCard";
 
 export const FieldDevicesPage: React.FC = () => {
   const { t } = useTranslation();
   const { fieldId } = useParams<{ fieldId: string }>();
   const { containers } = useContainerData(fieldId ?? "");
-  const [selectedContainer, setSelectedContainer] = useState("container-1");
-  const { devices, isLoading } = useFieldDevices(selectedContainer);
+  const [selectedPcs, setSelectedPcs] = useState("PCS-1");
+  const { devices, isLoading } = useFieldDevices(selectedPcs);
 
-  const containerOptions = useMemo(
-    () => containers.map((c) => ({ id: c.containerId, name: c.name })),
+  const pcsOptions = useMemo(
+    () => containers.map((c, i) => ({ id: `PCS-${i + 1}`, name: `PCS — ${c.name}` })),
     [containers],
   );
 
+  const pcs = useMemo(() => mockPcs(selectedPcs), [selectedPcs]);
+
   return (
-    <DeviceTable
-      devices={devices as DeviceTableRow[]}
-      isLoading={isLoading}
-      headerSlot={
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "12px", color: COLORS.textMuted }}>{t("container.label")}</span>
-          <select
-            value={selectedContainer}
-            onChange={(e) => setSelectedContainer(e.target.value)}
-            style={{
-              padding: "6px 10px",
-              background: COLORS.bgInput,
-              border: `1px solid ${COLORS.borderDefault}`,
-              borderRadius: "8px",
-              color: COLORS.textPrimary,
-              fontSize: "13px",
-              outline: "none",
-              cursor: "pointer",
-            }}
-          >
-            {containerOptions.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+    <div>
+      <DeviceTable
+        devices={devices as DeviceTableRow[]}
+        isLoading={isLoading}
+        headerSlot={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "12px", color: COLORS.textMuted }}>{t("field.pcsSelect")}</span>
+            <select
+              value={selectedPcs}
+              onChange={(e) => setSelectedPcs(e.target.value)}
+              style={{
+                padding: "6px 10px",
+                background: COLORS.bgInput,
+                border: `1px solid ${COLORS.borderDefault}`,
+                borderRadius: "8px",
+                color: COLORS.textPrimary,
+                fontSize: "13px",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              {pcsOptions.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        }
+      />
+
+      {pcs && (
+        <div style={{ marginTop: "12px" }}>
+          <PcsCard pcs={pcs} />
         </div>
-      }
-    />
+      )}
+    </div>
   );
 };

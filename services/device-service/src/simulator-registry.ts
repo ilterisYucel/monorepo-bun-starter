@@ -1,4 +1,5 @@
 import { readFileSync } from "fs";
+import type { IModbusTransport } from "@gd-monorepo/core";
 import {
   BSCSimulator,
   BSCSimulatorAdapter,
@@ -13,6 +14,11 @@ import {
   DcOutputSimulatorAdapter,
   EnergyAnalyzerSimulator,
   EnergyAnalyzerSimulatorAdapter,
+  PcsSimulator,
+  PcsSimulatorAdapter,
+  EmuSimulator,
+  EmuSimulatorAdapter,
+  SimulatorTransport,
 } from "@gd-monorepo/simulators";
 import type { IModbusSimulatorAdapter, DeviceConfigFile, SimulatorConfig } from "@gd-monorepo/shared-types";
 
@@ -27,13 +33,17 @@ export interface SimulatorFactory {
   build(deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry;
 }
 
-export class SimulatorProvider {
-  private readonly entries: Map<string, SimulatorEntry>;
+/**
+ * Simülatör kayıt defteri: config'de transport.kind === "simulator" olan cihazlar
+ * için IModbusTransport döndürür. Tick yaşam döngüsü SimulatorTransport'un
+ * kendisindedir (connect → başlar, disconnect → durur).
+ */
+export class SimulatorRegistry {
+  private readonly transports: Map<string, IModbusTransport>;
   private readonly registry: Map<string, SimulatorFactory>;
-  private tickTimer: ReturnType<typeof setInterval> | undefined;
 
   constructor() {
-    this.entries = new Map();
+    this.transports = new Map();
     this.registry = new Map();
     this.registerDefaults();
   }
@@ -88,6 +98,20 @@ export class SimulatorProvider {
         return { adapter: new EnergyAnalyzerSimulatorAdapter(meter), tick: () => meter.tick(elapsed) };
       },
     });
+
+    this.registry.set("pcs", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const pcs = new PcsSimulator();
+        return { adapter: new PcsSimulatorAdapter(pcs), tick: () => pcs.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("emu", {
+      build: (_deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const emu = new EmuSimulator(sim.pcsCount ?? 3);
+        return { adapter: new EmuSimulatorAdapter(emu), tick: () => emu.tick(elapsed) };
+      },
+    });
   }
 
   register(type: string, factory: SimulatorFactory): void {
@@ -96,57 +120,44 @@ export class SimulatorProvider {
 
   createFromConfigs(configs: DeviceConfigFile[]): void {
     for (const config of configs) {
-      if (!config.simulator) continue;
-      const entry = this.buildEntry(config.deviceId, config.simulator);
-      this.entries.set(config.deviceId, entry);
-      console.log(`[SimulatorProvider] Simulator olusturuldu: ${config.deviceId} (${config.simulator.type})`);
-    }
-  }
+      const transport = config.transport;
+      if (!transport || transport.kind !== "simulator") continue;
 
-  adapter(deviceId: string): IModbusSimulatorAdapter | undefined {
-    return this.entries.get(deviceId)?.adapter;
-  }
-
-  start(): void {
-    if (this.entries.size === 0) return;
-
-    this.tickTimer = setInterval(() => {
-      for (const [, entry] of this.entries) {
-        entry.tick();
+      const simType = transport.type ?? config.type;
+      if (!simType) {
+        console.warn(`[SimulatorRegistry] ${config.deviceId}: simulator tipi belirtilmemis`);
+        continue;
       }
-    }, TICK_INTERVAL_MS);
 
-    console.log(`[SimulatorProvider] Tick baslatildi (${TICK_INTERVAL_MS}ms, ${this.entries.size} simulator)`);
+      const factory = this.registry.get(simType);
+      if (!factory) {
+        console.warn(`[SimulatorRegistry] Bilinmeyen simulator tipi: ${simType} (${config.deviceId})`);
+        continue;
+      }
+
+      const elapsed = TICK_INTERVAL_MS / 1000;
+      const sim: SimulatorConfig = {
+        type: simType as SimulatorConfig["type"],
+        rackCount: transport.rackCount,
+        registerMap: transport.registerMap,
+        pcsCount: transport.pcsCount,
+      };
+      const entry = factory.build(config.deviceId, sim, elapsed);
+
+      this.transports.set(
+        config.deviceId,
+        new SimulatorTransport(entry.adapter, entry.tick, TICK_INTERVAL_MS),
+      );
+      console.log(`[SimulatorRegistry] Simulator transport hazir: ${config.deviceId} (${simType})`);
+    }
   }
 
-  stop(): void {
-    if (this.tickTimer) {
-      clearInterval(this.tickTimer);
-      this.tickTimer = undefined;
-    }
-    this.entries.clear();
-    console.log("[SimulatorProvider] Tick durduruldu");
-  }
-
-  forceTick(deviceId: string): void {
-    const entry = this.entries.get(deviceId);
-    if (entry) {
-      entry.tick();
-    }
+  /** Config'de simulator transport'u olan cihaz için transport döndürür; yoksa undefined. */
+  transportFor(deviceId: string): IModbusTransport | undefined {
+    return this.transports.get(deviceId);
   }
 
   count(): number {
-    return this.entries.size;
-  }
-
-  private buildEntry(deviceId: string, sim: SimulatorConfig): SimulatorEntry {
-    const elapsed = TICK_INTERVAL_MS / 1000;
-    const factory = this.registry.get(sim.type);
-
-    if (!factory) {
-      throw new Error(`Bilinmeyen simulator tipi: ${sim.type}. SimulatorProvider.register() ile kaydedilmesi gerekiyor.`);
-    }
-
-    return factory.build(deviceId, sim, elapsed);
+    return this.transports.size;
   }
 }

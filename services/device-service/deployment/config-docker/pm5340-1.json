@@ -23,7 +23,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "current" }
+      "tags": {
+        "phase": "A",
+        "group": "current"
+      }
     },
     {
       "name": "Current B",
@@ -37,7 +40,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "current" }
+      "tags": {
+        "phase": "B",
+        "group": "current"
+      }
     },
     {
       "name": "Current C",
@@ -51,7 +57,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "current" }
+      "tags": {
+        "phase": "C",
+        "group": "current"
+      }
     },
     {
       "name": "Current N",
@@ -65,7 +74,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "N", "group": "current" }
+      "tags": {
+        "phase": "N",
+        "group": "current"
+      }
     },
     {
       "name": "Current Avg",
@@ -79,7 +91,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "avg", "group": "current" }
+      "tags": {
+        "phase": "avg",
+        "group": "current"
+      }
     },
     {
       "name": "Current Unbalance A",
@@ -93,7 +108,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "unbalance" }
+      "tags": {
+        "phase": "A",
+        "group": "unbalance"
+      }
     },
     {
       "name": "Current Unbalance B",
@@ -107,7 +125,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "unbalance" }
+      "tags": {
+        "phase": "B",
+        "group": "unbalance"
+      }
     },
     {
       "name": "Current Unbalance C",
@@ -121,7 +142,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "unbalance" }
+      "tags": {
+        "phase": "C",
+        "group": "unbalance"
+      }
     },
     {
       "name": "Current Unbalance Worst",
@@ -135,7 +159,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "worst", "group": "unbalance" }
+      "tags": {
+        "phase": "worst",
+        "group": "unbalance"
+      }
     },
     {
       "name": "Voltage L-L AB",
@@ -149,7 +176,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "AB", "group": "voltage" }
+      "tags": {
+        "phase": "AB",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-L BC",
@@ -163,7 +193,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "BC", "group": "voltage" }
+      "tags": {
+        "phase": "BC",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-L CA",
@@ -177,7 +210,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "CA", "group": "voltage" }
+      "tags": {
+        "phase": "CA",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-L Avg",
@@ -191,7 +227,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "avg", "group": "voltage" }
+      "tags": {
+        "phase": "avg",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-N A",
@@ -205,7 +244,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "voltage" }
+      "tags": {
+        "phase": "A",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-N B",
@@ -219,7 +261,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "voltage" }
+      "tags": {
+        "phase": "B",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-N C",
@@ -233,7 +278,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "voltage" }
+      "tags": {
+        "phase": "C",
+        "group": "voltage"
+      }
     },
     {
       "name": "Voltage L-N Avg",
@@ -247,7 +295,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "avg", "group": "voltage" }
+      "tags": {
+        "phase": "avg",
+        "group": "voltage"
+      }
     },
     {
       "name": "Active Power Total",
@@ -261,7 +312,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "total", "group": "power" }
+      "tags": {
+        "phase": "total",
+        "group": "power"
+      }
     },
     {
       "name": "Active Power A",
@@ -275,7 +329,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "power" }
+      "tags": {
+        "phase": "A",
+        "group": "power"
+      }
     },
     {
       "name": "Active Power B",
@@ -289,7 +346,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "power" }
+      "tags": {
+        "phase": "B",
+        "group": "power"
+      }
     },
     {
       "name": "Active Power C",
@@ -303,7 +363,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "power" }
+      "tags": {
+        "phase": "C",
+        "group": "power"
+      }
     },
     {
       "name": "Reactive Power Total",
@@ -317,7 +380,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "total", "group": "power" }
+      "tags": {
+        "phase": "total",
+        "group": "power"
+      }
     },
     {
       "name": "Reactive Power A",
@@ -331,7 +397,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "power" }
+      "tags": {
+        "phase": "A",
+        "group": "power"
+      }
     },
     {
       "name": "Reactive Power B",
@@ -345,7 +414,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "power" }
+      "tags": {
+        "phase": "B",
+        "group": "power"
+      }
     },
     {
       "name": "Reactive Power C",
@@ -359,7 +431,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "power" }
+      "tags": {
+        "phase": "C",
+        "group": "power"
+      }
     },
     {
       "name": "Apparent Power Total",
@@ -373,7 +448,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "total", "group": "power" }
+      "tags": {
+        "phase": "total",
+        "group": "power"
+      }
     },
     {
       "name": "Apparent Power A",
@@ -387,7 +465,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "power" }
+      "tags": {
+        "phase": "A",
+        "group": "power"
+      }
     },
     {
       "name": "Apparent Power B",
@@ -401,7 +482,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "power" }
+      "tags": {
+        "phase": "B",
+        "group": "power"
+      }
     },
     {
       "name": "Apparent Power C",
@@ -415,7 +499,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "power" }
+      "tags": {
+        "phase": "C",
+        "group": "power"
+      }
     },
     {
       "name": "Power Factor Total",
@@ -429,7 +516,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "total", "group": "pf" }
+      "tags": {
+        "phase": "total",
+        "group": "pf"
+      }
     },
     {
       "name": "Power Factor A",
@@ -443,7 +533,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "pf" }
+      "tags": {
+        "phase": "A",
+        "group": "pf"
+      }
     },
     {
       "name": "Power Factor B",
@@ -457,7 +550,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "pf" }
+      "tags": {
+        "phase": "B",
+        "group": "pf"
+      }
     },
     {
       "name": "Power Factor C",
@@ -471,7 +567,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "pf" }
+      "tags": {
+        "phase": "C",
+        "group": "pf"
+      }
     },
     {
       "name": "Frequency",
@@ -485,7 +584,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "group": "frequency" }
+      "tags": {
+        "group": "frequency"
+      }
     },
     {
       "name": "Active Energy Delivered",
@@ -499,7 +600,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "direction": "delivered", "group": "energy" }
+      "tags": {
+        "direction": "delivered",
+        "group": "energy"
+      }
     },
     {
       "name": "Active Energy Received",
@@ -513,7 +617,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "direction": "received", "group": "energy" }
+      "tags": {
+        "direction": "received",
+        "group": "energy"
+      }
     },
     {
       "name": "Reactive Energy Delivered",
@@ -527,7 +634,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "direction": "delivered", "group": "energy" }
+      "tags": {
+        "direction": "delivered",
+        "group": "energy"
+      }
     },
     {
       "name": "Reactive Energy Received",
@@ -541,7 +651,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "direction": "received", "group": "energy" }
+      "tags": {
+        "direction": "received",
+        "group": "energy"
+      }
     },
     {
       "name": "Apparent Energy",
@@ -555,7 +668,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "group": "energy" }
+      "tags": {
+        "group": "energy"
+      }
     },
     {
       "name": "THD Current A",
@@ -569,7 +684,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "thd" }
+      "tags": {
+        "phase": "A",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Current B",
@@ -583,7 +701,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "thd" }
+      "tags": {
+        "phase": "B",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Current C",
@@ -597,7 +718,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "thd" }
+      "tags": {
+        "phase": "C",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Voltage L-L AB",
@@ -611,7 +735,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "AB", "group": "thd" }
+      "tags": {
+        "phase": "AB",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Voltage L-L BC",
@@ -625,7 +752,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "BC", "group": "thd" }
+      "tags": {
+        "phase": "BC",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Voltage L-L CA",
@@ -639,7 +769,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "CA", "group": "thd" }
+      "tags": {
+        "phase": "CA",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Voltage L-N A",
@@ -653,7 +786,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "A", "group": "thd" }
+      "tags": {
+        "phase": "A",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Voltage L-N B",
@@ -667,7 +803,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "B", "group": "thd" }
+      "tags": {
+        "phase": "B",
+        "group": "thd"
+      }
     },
     {
       "name": "THD Voltage L-N C",
@@ -681,7 +820,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "phase": "C", "group": "thd" }
+      "tags": {
+        "phase": "C",
+        "group": "thd"
+      }
     },
     {
       "name": "Present Demand Power",
@@ -695,7 +837,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "type": "present", "group": "demand_power" }
+      "tags": {
+        "type": "present",
+        "group": "demand_power"
+      }
     },
     {
       "name": "Peak Demand Power",
@@ -709,7 +854,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "type": "peak", "group": "demand_power" }
+      "tags": {
+        "type": "peak",
+        "group": "demand_power"
+      }
     },
     {
       "name": "Present Demand Current",
@@ -723,33 +871,62 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "type": "present", "group": "demand_current" }
+      "tags": {
+        "type": "present",
+        "group": "demand_current"
+      }
     }
   ],
   "pollIntervalMs": 2000,
-  "simulator": {
-    "type": "energy-analyzer"
-  },
   "commands": {
     "reset_energy": {
       "label": "Enerji Sayaçlarını Sıfırla",
       "telemetries": [
-        { "name": "Active Energy Delivered", "value": 0 },
-        { "name": "Active Energy Received", "value": 0 },
-        { "name": "Reactive Energy Delivered", "value": 0 },
-        { "name": "Reactive Energy Received", "value": 0 },
-        { "name": "Apparent Energy", "value": 0 }
+        {
+          "name": "Active Energy Delivered",
+          "value": 0
+        },
+        {
+          "name": "Active Energy Received",
+          "value": 0
+        },
+        {
+          "name": "Reactive Energy Delivered",
+          "value": 0
+        },
+        {
+          "name": "Reactive Energy Received",
+          "value": 0
+        },
+        {
+          "name": "Apparent Energy",
+          "value": 0
+        }
       ],
       "timeoutMs": 3000
     },
     "reset_demand": {
       "label": "Talep Değerlerini Sıfırla",
       "telemetries": [
-        { "name": "Present Demand Power", "value": 0 },
-        { "name": "Peak Demand Power", "value": 0 },
-        { "name": "Present Demand Current", "value": 0 }
+        {
+          "name": "Present Demand Power",
+          "value": 0
+        },
+        {
+          "name": "Peak Demand Power",
+          "value": 0
+        },
+        {
+          "name": "Present Demand Current",
+          "value": 0
+        }
       ],
       "timeoutMs": 3000
     }
+  },
+  "type": "energy-analyzer",
+  "transport": {
+    "kind": "simulator",
+    "type": "energy-analyzer"
   }
 }

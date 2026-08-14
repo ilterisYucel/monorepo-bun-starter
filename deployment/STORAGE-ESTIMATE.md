@@ -265,3 +265,54 @@ Aynı AWS region içinde EBS → S3 veri transferi **ücretsizdir**. S3'e yazma 
 TimescaleDB chunk'ları S3'e doğrudan yazılmaz; önce bir export mekanizması (örn. `pg_dump` parquet veya CSV) ile chunk'lar S3 bucket'a aktarılır, ardından TimescaleDB'den `drop_chunks()` ile silinir. Bu işlem otomatize edilmelidir (cron job veya pg_cron).
 
 Alternatif olarak, TimescaleDB'nin tiered storage (data tiering) özelliği kullanılabilir ancak bu özellik TimescaleDB Cloud/Enterprise lisansı gerektirir. Community edition için manuel export + drop yaklaşımı önerilir.
+
+---
+
+## 8. RevPi 8GB RAM Profili (Container-level — edge deployment)
+
+### 8.1 Karar: TimescaleDB'de kalınır, InfluxDB'ye geçilmez
+
+Gerekçeler:
+- Relasyonel veri zaten gerekli (users, devices, system_logs, field kayıtları) → PG şart. PG + Influx aynı RevPi'de = tek ayarlı PG+Timescale'den daha fazla RAM. İkinci motor erişim maliyetini düşürmez, toplam RAM'i artırır.
+- Darboğaz RAM'dir, sıkıştırma oranı değil. 90 günlük retention ile disk ihtiyacı yönetilebilir (§4); Influx'un disk avantajı bu kurulumda belirleyici değildir.
+- Kontrat (`ITimeseriesDatabase`) zaten var — Influx'a geçiş gerektiğinde implementasyon katmanında yapılır (`core/src/timeseries/implementations/influxdb/`, bkz. DEVICE-SERVICE-TRANSPORT-MIMARISI.md ile aynı Strategy yaklaşımı). Yazılım tarafı buna hazırdır; donanım kararı şimdilik Timescale'dir.
+
+### 8.2 RAM bütçesi (8 GB toplam)
+
+| Tüketici | Hedef | Not |
+|---|---|---|
+| PostgreSQL+TimescaleDB | ~1.5–2 GB | Aşağıdaki ayarlarla |
+| Redis | ≤128 MB | mevcut `mem_limit: 128m`, `maxmemory 64mb` |
+| device/data/web-service | ~1.5–2 GB | mevcut `mem_limit`'lerle (512m/512m/2g) — web-service limiti RevPi'de düşürülmeli: 1g |
+| Electron (LCD) + Chromium | ~1–1.5 GB | kiosk modunda |
+| İşletim sistemi + Docker | ~1 GB | |
+| **Güvenlik payı** | kalan | 24/7 çalışmada swap'a düşmemek için |
+
+### 8.3 PostgreSQL ayarları (RevPi 8GB — prod compose'da uygulanacak)
+
+```yaml
+command:
+  - -cshared_buffers=768MB          # 4GB DEĞİL — 8GB makinede aşırı
+  - -ceffective_cache_size=5GB      # 12GB DEĞİL — OS sayfa önbelleği tahmini
+  - -cwork_mem=8MB
+  - -cmaintenance_work_mem=256MB    # sıkıştırma politikaları için gerekli
+  - -cmax_connections=30
+  - -cwal_buffers=16MB
+  - -ccheckpoint_completion_target=0.9
+  - -csynchronous_commit=off        # edge telemetri için kabul edilebilir kayıp penceresi
+```
+
+Timescale ayarları değişmez: `chunk_interval=6 hours`, `compress_after=1 day`, `retention_after=90 days` (§3 zaten bunlar).
+
+### 8.4 Sorgu maliyetini düşürmek (motor değiştirmeden)
+
+1. **Continuous aggregate'lar** (dashboard rollup'ları: 5 dk / 1 saat) — sıkıştırılmış chunk taramasından çok daha ucuz; en yüksek kazanç burada.
+2. `MaterializedViewManager` (mevcut) sık kullanılan görünümler için korunur.
+3. `getDownsampledData` → `time_bucket` zaten sıkıştırılmış chunk'larda çalışır; `points` değeri 120–240 arası tutulur (üstü gereksiz tarama).
+4. `statement_timeout=30s` + `idle_timeout=30s` (mevcut) korunur; yavaş sorgular bağlantıyı şişirmez.
+
+### 8.5 Not
+
+- Mevcut `docker-compose.container.yml` bir **sunucu profili** içerir (`shared_buffers=4GB`, `effective_cache_size=12GB`) — RevPi'de bu ayarlar swap + OOM riski taşır. §8.3 değerleriyle değiştirilmelidir.
+- `timescale/timescaledb:latest-pg14` yerine sabit sürüm pinlenmelidir (saha reprodüksiyonu).
+- SD-kart aşınması: `logging` rotasyonları (mevcut 10m/3 dosya) korunur; WAL boyutu yukarıdaki ayarlarla sınırlıdır.

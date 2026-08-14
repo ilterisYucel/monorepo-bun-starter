@@ -232,6 +232,33 @@ The following optimizations were applied across the codebase to prevent Chrome S
 | **Error Boundary** | React error boundary catches WebGL/React crashes, shows reload UI | `ErrorBoundary.tsx` |
 | **Electron crash handler** | `render-process-gone`, `crashed`, `unresponsive` handlers with auto-reload | `apps/container-desktop/src/main/index.ts` |
 
+## Device transport strategy (MANDATORY)
+
+**`ModbusDevice` taşıma katmanını hiç bilmez.** Gerçek (TCP/RTU) ve simüle cihazlar aynı sınıftan üretilir; fark yalnızca enjekte edilen `IModbusTransport`'tadır (Strategy pattern).
+
+```
+IDevice ◄── ModbusDevice(config, transport?: IModbusTransport)
+               └─ transport yoksa → varsayılan ModbusClientTransport(ModbusTcpClient)
+IModbusTransport (packages/core/src/modbus/transport/)
+   ├── ModbusClientTransport   (IModbusClient sarmalayıcı: TCP/RTU)
+   └── SimulatorTransport      (simulators paketi; tick yaşam döngüsü kendi içinde:
+                                connect() başlatır, disconnect() durdurur)
+```
+
+Config seçimi açıktır (`transport.kind`):
+
+```json
+{ "transport": { "kind": "tcp" } }                         // varsayılan
+{ "transport": { "kind": "rtu" } }                         // connection.path vb. kullanır
+{ "transport": { "kind": "simulator", "type": "pcs" } }    // SimulatorRegistry'den transport
+```
+
+Kurallar:
+- `ModbusDevice` içinde `isSimulator` dallanması YASAKTIR — her yer `this.transport.*`.
+- Yeni cihaz simülatörü = yeni simülatör modülü + `SimulatorRegistry`'e 1 kayıt satırı.
+- Simülatörler komut yazımlarını **anında** uygular (validate read-back tick beklemez).
+- Config'de üst seviye `type` alanı zorunludur (üretimde transport "simulator" olmayabilir).
+
 ### Concrete DI examples
 ```ts
 // GOOD: inject constructed instance, config object
@@ -242,7 +269,7 @@ class TimescaleDBAdapter implements ITimeseriesDatabase {
   constructor(config: TimescaleDBConfig) {} // creates own pg.Pool
 }
 class ModbusDevice {
-  constructor(config: ModbusDeviceConfig, adapter?: IModbusSimulatorAdapter) {}
+  constructor(config: ModbusDeviceConfig, transport?: IModbusTransport) {}
 }
 
 // BAD: global singleton, decorators, hardcoded deps
@@ -556,6 +583,10 @@ When touching any file with hardcoded hex colors:
 - **Bun only.** `bun install`, `bun run`, `bun build`, `bun --watch`.
 - `bun.lock` is committed. No `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`.
 - Workspace dependencies use `"*"` version (e.g. `"@gd-monorepo/core": "*"`).
+
+## Build artifacts rule
+- Paket dizinlerinde bare `tsc` çalıştırılmaz — composite projeler `outDir` yerine src'e emit edebilir. Nx hedefleri (`nx run <p>:build/test`) veya `tsc -b` kullanılır.
+- `*.d.ts`, `*.d.ts.map`, `*.tsbuildinfo` build çıktısıdır ve gitignore'dadır; el yazımı tip dosyaları yalnızca `src/preload/index.d.ts` (Electron) ve `vite-env.d.ts`/`vite.env.d.ts` (Vite env) kalıplarıdır.
 
 ## What's missing
 - No PR-level unit-test CI workflow (`.github/workflows/` has `e2e.yml`, `perf.yml`, `sonar.yml`, `storybook.yml`, but no `test.yml`).

@@ -22,7 +22,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "status" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "status"
+      }
     },
     {
       "name": "Fire",
@@ -36,7 +39,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "alarm" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "alarm"
+      }
     },
     {
       "name": "1st Stage Alarm",
@@ -50,7 +56,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "extinguisher"
+      }
     },
     {
       "name": "2nd Stage Alarm",
@@ -64,7 +73,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "extinguisher"
+      }
     },
     {
       "name": "Discharged",
@@ -78,7 +90,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "extinguisher"
+      }
     },
     {
       "name": "Extract",
@@ -92,7 +107,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "extinguisher"
+      }
     },
     {
       "name": "Mode Auto",
@@ -106,7 +124,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "mode" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "mode"
+      }
     },
     {
       "name": "Hold",
@@ -120,7 +141,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "extinguisher"
+      }
     },
     {
       "name": "Abort",
@@ -134,7 +158,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "extinguisher" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "extinguisher"
+      }
     },
     {
       "name": "Reset",
@@ -148,7 +175,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "status" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "status"
+      }
     },
     {
       "name": "Local Fire",
@@ -162,7 +192,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "alarm" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "alarm"
+      }
     },
     {
       "name": "Manual Release",
@@ -176,7 +209,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "command" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "command"
+      }
     },
     {
       "name": "Hold DO",
@@ -190,7 +226,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "command" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "command"
+      }
     },
     {
       "name": "Abort DO",
@@ -204,7 +243,10 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "command" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "command"
+      }
     },
     {
       "name": "Mode Select",
@@ -218,39 +260,78 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "EP203", "group": "command" }
+      "tags": {
+        "deviceId": "EP203",
+        "group": "command"
+      }
     }
   ],
   "pollIntervalMs": 2000,
   "commands": {
     "manual_release": {
       "label": "Manuel Salım",
-      "telemetries": [{ "name": "Manual Release", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Manual Release",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "1st Stage Alarm", "expect": true }]
+        "reads": [
+          {
+            "name": "1st Stage Alarm",
+            "expect": true
+          }
+        ]
       }
     },
     "hold": {
       "label": "Sayımı Durdur",
-      "telemetries": [{ "name": "Hold DO", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Hold DO",
+          "value": 1
+        }
+      ],
       "timeoutMs": 0,
       "validate": {
-        "reads": [{ "name": "Hold", "expect": true }]
+        "reads": [
+          {
+            "name": "Hold",
+            "expect": true
+          }
+        ]
       }
     },
     "abort": {
       "label": "Salımı İptal",
-      "telemetries": [{ "name": "Abort DO", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Abort DO",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "Abort", "expect": true }]
+        "reads": [
+          {
+            "name": "Abort",
+            "expect": true
+          }
+        ]
       }
     },
     "mode_toggle": {
       "label": "Mod Değiştir",
-      "telemetries": [{ "name": "Mode Select", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Mode Select",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000
     }
-  }
+  },
+  "type": "ep"
 }

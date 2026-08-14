@@ -22,7 +22,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Is Tripped",
@@ -36,7 +38,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Current",
@@ -50,7 +54,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Voltage",
@@ -64,7 +70,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Temperature",
@@ -78,7 +86,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Trip Count",
@@ -92,7 +102,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Operate Count",
@@ -106,7 +118,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Trip Threshold",
@@ -120,7 +134,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "UV Threshold",
@@ -134,7 +150,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "OV Threshold",
@@ -148,7 +166,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Open",
@@ -162,7 +182,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Close",
@@ -176,7 +198,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     },
     {
       "name": "Reset",
@@ -190,35 +214,71 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "CB-1" }
+      "tags": {
+        "deviceId": "CB-1"
+      }
     }
   ],
   "pollIntervalMs": 2000,
   "commands": {
     "open": {
       "label": "Aç (Open)",
-      "telemetries": [{ "name": "Open", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Open",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "Is Closed", "expect": false }]
+        "reads": [
+          {
+            "name": "Is Closed",
+            "expect": false
+          }
+        ]
       }
     },
     "close": {
       "label": "Kapat (Close)",
-      "telemetries": [{ "name": "Close", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Close",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "Is Closed", "expect": true }]
+        "reads": [
+          {
+            "name": "Is Closed",
+            "expect": true
+          }
+        ]
       }
     },
     "reset": {
       "label": "Reset Trip",
-      "telemetries": [{ "name": "Reset", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Reset",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "Is Tripped", "expect": false }]
+        "reads": [
+          {
+            "name": "Is Tripped",
+            "expect": false
+          }
+        ]
       }
     }
   },
-  "simulator": { "type": "cb" }
+  "type": "cb",
+  "transport": {
+    "kind": "simulator",
+    "type": "cb"
+  }
 }

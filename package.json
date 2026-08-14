@@ -23,6 +23,7 @@
     "start:container": "docker compose -f deployment/docker-compose.container.yml up -d",
     "stop:container": "docker compose -f deployment/docker-compose.container.yml down",
     "build": "nx run-many --target=build",
+    "gen:pcs": "bun tools/gen-pcs-configs.mjs",
     "build:container-web": "nx run container-web:build",
     "build:container-desktop": "nx run container-desktop:build",
     "test": "vitest",
