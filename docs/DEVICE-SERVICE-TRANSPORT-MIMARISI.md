@@ -48,7 +48,7 @@ IDevice (shared-types) ◄── ModbusDevice(config, transport?)
 | `IDevice` | `shared-types/src/device-interface.ts` | `connect/disconnect/read/readBitfields?/write/writeAtomic?` — device-service'in gördüğü tek kontrat |
 | `IModbusTransport` | `core/src/modbus/transport/interface.ts` | `connect/disconnect/reconnect/isConnected` + register/coil/discrete okuma-yazma |
 | `IModbusClient` | `core/src/modbus/interface.ts` | Gerçek Modbus istemcilerinin kontratı (TCP/RTU) |
-| `IModbusSimulatorAdapter` | `shared-types/src/modbus-adapter.ts` | Simülatörün register seviyesindeki portu (yaşam döngüsü YOK — SimulatorTransport ekler) |
+| `IModbusSimulatorAdapter` | `shared-types/src/modbus/adapter.ts` | Simülatörün register seviyesindeki portu (yaşam döngüsü YOK — SimulatorTransport ekler) |
 
 Metot setleri (transport): `readHoldingRegisters`, `writeHoldingRegisters` (tek/çoklu ayırt etmeden değer dizisi), `readInputRegisters`, `readCoils`, `writeCoils`, `readDiscreteInputs`.
 

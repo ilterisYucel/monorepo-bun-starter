@@ -187,7 +187,7 @@ TEİAŞ test prosedürlerinin büyük kısmı **batarya/PCS (Power Conversion Sy
 - React v19 + Vite v8 frontend (`apps/web/`)
 - PixiJS v8 ile gerçek zamanlı cihaz grafikleri (`packages/ui/src/components/`)
 - Recharts v3 ile zaman serisi grafikleri (TelemetryChart)
-- ITelemetryTransport interface ile WebSocket/HTTP polling/Mock transport stratejileri (`packages/shared-types/src/telemetry-transport.ts`)
+- ITelemetryTransport interface ile WebSocket/HTTP polling/Mock transport stratejileri (`packages/shared-types/src/telemetry/transport.ts`)
 - Compound component pattern: `DeviceTelemetryProvider` her cihaz için izole veri akışı sağlar
 
 ---

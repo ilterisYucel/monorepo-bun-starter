@@ -157,7 +157,7 @@ Tüm veri akışı arayüzler üzerinden soyutlanır. Bileşenler somut implemen
 
 | Arayüz | Konum | Amaç |
 |--------|-------|------|
-| `ITelemetryTransport` | `shared-types/src/telemetry-transport.ts` | Gerçek zamanlı veri taşıma soyutlaması |
+| `ITelemetryTransport` | `shared-types/src/telemetry/transport.ts` | Gerçek zamanlı veri taşıma soyutlaması |
 | `TelemetryProvider` | `ui/src/interfaces/telemetry-provider.ts` | Zaman serisi sorgulama ve filtreleme |
 | `LogProvider` | `ui/src/interfaces/log-provider.ts` | Log kaydı durumu ve yönetimi |
 | `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts` | Grafikler için olay işaretleri |

@@ -96,7 +96,7 @@ shared-types (leaf, no deps)
 |:----------|:---------|:--------|
 | `IMessageQueue` | `packages/core/src/messaging/interface.ts` | Job queue abstraction |
 | `ITimeseriesDatabase` | `packages/core/src/timeseries/interface.ts` | Time-series DB abstraction |
-| `IModbusSimulatorAdapter` | `packages/shared-types/src/modbus-adapter.ts` | Modbus simulator contract |
+| `IModbusSimulatorAdapter` | `packages/shared-types/src/modbus/adapter.ts` | Modbus simulator contract |
 | `IUserRepository` | `web-service/src/domain/repositories/IUserRepository.ts` | User persistence contract |
 | `ITokenService` | `web-service/src/domain/services/ITokenService.ts` | JWT token sign/verify |
 | `IPasswordHasher` | `web-service/src/domain/services/IPasswordHasher.ts` | Password hashing contract |
@@ -105,7 +105,7 @@ shared-types (leaf, no deps)
 
 **All UI components in `packages/ui` MUST be state-library-agnostic.** They receive data via props or React Context — never by importing TanStack Query, Zustand, SWR, or any state management library directly.
 
-### Transport contracts (`packages/shared-types/src/telemetry-transport.ts`)
+### Transport contracts (`packages/shared-types/src/telemetry/transport.ts`)
 
 ```ts
 // Interface that ALL real-time data transports must implement
@@ -203,7 +203,7 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 
 | Contract | Location | Implementations |
 |:---------|:---------|:----------------|
-| `ITelemetryTransport` | `shared-types/src/telemetry-transport.ts` | `WebSocketTransport`, `HttpPollingTransport`, `MockTransport` (all in `ui/transports`) |
+| `ITelemetryTransport` | `shared-types/src/telemetry/transport.ts` | `WebSocketTransport`, `HttpPollingTransport`, `MockTransport` (all in `ui/transports`) |
 | `TelemetryProvider` | `ui/src/interfaces/telemetry-provider.ts` | `useTelemetryProvider` (in `apps/container-web/src/hooks/`) |
 | `LogProvider` | `ui/src/interfaces/log-provider.ts` | `useLogStore` (Zustand, in `apps/container-web/src/stores/`) |
 | `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts` | `useEventAnnotations` (in `apps/container-web/src/hooks/`) |
