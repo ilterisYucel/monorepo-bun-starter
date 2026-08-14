@@ -37,7 +37,11 @@ export interface TelemetryChartLabels {
   correctedEvents: string;
   loadFailed: string;
   loading: string;
+  /** Boş grafikte gösterilen "veri bekleniyor" metni (tarama animasyonuyla birlikte) */
+  waitingData: string;
   noData: string;
+  /** Header'daki istatistik tablosu toggle etiketi */
+  stats: string;
   pointsUnit: string;
   intervalPrefix: string;
   seconds: string;
@@ -91,4 +95,7 @@ export interface TelemetryChartProps {
 
   /** Varsayılan tag filtre seçimleri (örn: { deviceId: ["bsc-1"], rack_id: ["1"] }) */
   defaultTagSelections?: Record<string, string[]>;
+
+  /** Alt istatistik tablosu (Son/Min/Max/Ort) varsayılan görünürlüğü. Varsayılan: true */
+  defaultShowStats?: boolean;
 }

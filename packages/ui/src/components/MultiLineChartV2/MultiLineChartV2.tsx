@@ -73,6 +73,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartV2Props> = ({
   height = 300,
   colors = S.DEFAULT_COLORS,
   showLegend = true,
+  showStats = true,
   isLoading = false,
   annotations,
   labels: rawLabels,
@@ -491,7 +492,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartV2Props> = ({
           )}
         </div>
       )}
-      {showLegend && lines.length > 0 && (
+      {showLegend && showStats && lines.length > 0 && (
         <S.LegendTable>
           <S.LegendHeader>
             <S.LegendCell flex={3}>{L.series}</S.LegendCell>

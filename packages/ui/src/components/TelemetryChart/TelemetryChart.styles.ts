@@ -18,6 +18,19 @@ const dotPulse = keyframes`
   50% { opacity: 1; }
 `;
 
+// Boş grafikte gösterilen tarama animasyonu — yatay çizgi aşağı-yukarı süpürür,
+// hayalet grid üzerinde "veri aranıyor" hissi verir (loading ring'den farklıdır).
+const scanSweep = keyframes`
+  0% { top: 8%; opacity: 0.15; }
+  50% { opacity: 0.9; }
+  100% { top: 92%; opacity: 0.15; }
+`;
+
+const scanPulse = keyframes`
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
+`;
+
 export const Container = styled.div`
   background: ${COLORS.bgCard};
   border-radius: 16px;
@@ -243,6 +256,70 @@ export const Skeleton = styled.div`
 export const SkeletonWrapper = styled.div`
   position: relative;
   margin: 0 20px 20px;
+`;
+
+export const DataScanWrapper = styled.div`
+  position: relative;
+  margin: 0 20px 20px;
+`;
+
+export const DataScanGhost = styled.div`
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: ${COLORS.bgSkeleton};
+`;
+
+export const DataScanGrid = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(${COLORS.borderDivider} 1px, transparent 1px),
+    linear-gradient(90deg, ${COLORS.borderDivider} 1px, transparent 1px);
+  background-size: 100% 25%, 12.5% 100%;
+  opacity: 0.4;
+  animation: ${scanPulse} 2.6s ease-in-out infinite;
+`;
+
+export const DataScanLine = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    ${COLORS.info} 30%,
+    ${COLORS.infoLight} 50%,
+    ${COLORS.info} 70%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px ${COLORS.infoAlpha25};
+  animation: ${scanSweep} 2.2s ease-in-out infinite;
+`;
+
+export const DataScanText = styled.span`
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: ${COLORS.textMuted};
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+
+  &::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: ${COLORS.info};
+    animation: ${dotPulse} 1.4s ease-in-out infinite;
+  }
 `;
 
 export const LoadingOverlay = styled.div`

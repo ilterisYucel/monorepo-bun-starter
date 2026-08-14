@@ -109,6 +109,9 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
       return response.data.telemetries || [];
     },
     staleTime: 30000,
+    // Geçici boş yanıtlar (ör. registry.online() anlık boş kalması) grafiği
+    // silmesin — yeni veri gelene kadar önceki veri yerinde kalır.
+    placeholderData: (previousData) => previousData,
     refetchInterval: range === "1m" ? LIVE_1M_REFRESH_MS : range === "1h" ? LIVE_1H_REFRESH_MS : STATIC_REFRESH_MS,
   });
 

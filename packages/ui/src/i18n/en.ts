@@ -20,6 +20,7 @@ export const EN_DICT = {
   "common.offline": "Offline",
   "common.loading": "Loading...",
   "common.noData": "No data yet",
+  "common.waitingData": "Waiting for data...",
   "common.detail": "Show Details",
   "common.cancel": "Cancel",
   "common.save": "Save",
@@ -67,6 +68,7 @@ export const EN_DICT = {
   "chart.control.categoryDetail": "Other Metrics",
   "chart.control.searchPlaceholder": "Search metrics...",
   "chart.control.noResults": "No results found",
+  "chart.control.stats": "Statistics",
 
   "chart.subtitle.points": "{count} points",
   "chart.subtitle.interval": "~{label} interval",
