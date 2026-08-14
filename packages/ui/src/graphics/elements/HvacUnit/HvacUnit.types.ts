@@ -4,4 +4,5 @@ export interface HvacUnitProps {
   hvac: HvacData;
   pos: RectPosition;
   config: { step: number };
+  minimal?: boolean;
 }

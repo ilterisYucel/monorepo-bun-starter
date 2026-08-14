@@ -23,6 +23,7 @@ export const TMS: React.FC<TMSGraphicProps> = React.memo(
   function TMSGraphicV2({
     rooms,
     panel_temp,
+    panel_humidity,
     status = "online",
     width = "100%",
     bordered = true,
@@ -199,6 +200,7 @@ export const TMS: React.FC<TMSGraphicProps> = React.memo(
           <PanelCard
             pos={layout.panel}
             panelTemp={panel_temp}
+            panelHumidity={panel_humidity}
             config={config}
           />
           </pixiContainer>

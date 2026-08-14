@@ -154,6 +154,10 @@ export const DataGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin-bottom: 4px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const DataItem = styled.div`

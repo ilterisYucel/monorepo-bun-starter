@@ -29,6 +29,7 @@ export const EN_DICT = {
   "common.selected": "{count} selected",
   "common.confirm": "Confirm",
   "common.back": "Back",
+  "common.underConstruction": "Under Construction",
   "common.role.admin": "Admin",
   "common.role.teknik": "Technical",
   "common.role.guest": "Guest",
