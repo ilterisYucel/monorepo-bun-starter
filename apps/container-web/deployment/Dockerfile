@@ -3,6 +3,7 @@ FROM oven/bun:latest AS builder
 # 🔥 ARTIK VITE_API_URL'E GEREK YOK!
 WORKDIR /app
 COPY . .
+ENV PUPPETEER_SKIP_DOWNLOAD=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN bun install
 WORKDIR /app/apps/container-web
 RUN bun run build

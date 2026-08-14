@@ -15,6 +15,7 @@ COPY packages/shared-types/package.json packages/shared-types/
 COPY packages/simulators/package.json packages/simulators/
 
 # 🔥 Nx'i yükle
+ENV PUPPETEER_SKIP_DOWNLOAD=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN bun install
 
 # Kaynak kodları kopyala
