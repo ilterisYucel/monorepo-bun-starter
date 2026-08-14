@@ -339,10 +339,10 @@ export async function unifiedRoutes(
 
   fastify.get("/projects", async (_request, reply) => {
     try {
-      const result = await postgres.execute(
+      const projects = await postgres.query(
         `SELECT id, name, nodes, edges, created_at, updated_at FROM projects ORDER BY updated_at DESC`
       );
-      return reply.send({ projects: result.rows ?? [] });
+      return reply.send({ projects });
     } catch (error) {
       console.error("[UnifiedRoutes] projects list hata:", error);
       return reply.status(500).send({ error: "Internal server error" });
@@ -352,14 +352,14 @@ export async function unifiedRoutes(
   fastify.get("/projects/:id", async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
-      const result = await postgres.execute(
+      const rows = await postgres.query<{ id: string; name: string; nodes: unknown; edges: unknown }>(
         `SELECT id, name, nodes, edges, created_at, updated_at FROM projects WHERE id = $1`,
         [id]
       );
-      if (!result.rows || result.rows.length === 0) {
+      if (rows.length === 0) {
         return reply.status(404).send({ error: "Proje bulunamadi" });
       }
-      return reply.send(result.rows[0]);
+      return reply.send(rows[0]);
     } catch (error) {
       console.error("[UnifiedRoutes] project load hata:", error);
       return reply.status(500).send({ error: "Internal server error" });
@@ -373,11 +373,11 @@ export async function unifiedRoutes(
         nodes: unknown;
         edges: unknown;
       };
-      const result = await postgres.execute(
+      const rows = await postgres.query<{ id: string }>(
         `INSERT INTO projects (name, nodes, edges) VALUES ($1, $2, $3) RETURNING id`,
         [name, JSON.stringify(nodes), JSON.stringify(edges)]
       );
-      return reply.status(201).send({ id: result.rows?.[0]?.id });
+      return reply.status(201).send({ id: rows[0]?.id });
     } catch (error) {
       console.error("[UnifiedRoutes] project create hata:", error);
       return reply.status(500).send({ error: "Internal server error" });

@@ -25,13 +25,14 @@ describe("MANEUVERS", () => {
     }
   });
 
-  describe("fl_charge", () => {
+  describe("fl06_charge", () => {
     it("targets all BSC devices", () => {
-      const m = MANEUVERS.fl_charge;
-      const deviceIds = m.steps.map((s) => s.deviceId);
+      const m = MANEUVERS.fl06_charge;
+      const bscSteps = m.steps.filter((s) => s.deviceId.startsWith("BSC"));
+      const deviceIds = bscSteps.map((s) => s.deviceId);
       expect(deviceIds).toContain("BSC-1");
       expect(deviceIds).toContain("BSC-2");
-      expect(m.steps.every((s) => s.command === "charge")).toBe(true);
+      expect(bscSteps.every((s) => s.command === "charge")).toBe(true);
     });
   });
 
@@ -62,8 +63,9 @@ describe("MANEUVERS", () => {
 describe("maneuver helpers", () => {
   // ponytail: verify helper functions produce expected device IDs
   it("BSC charge targets 2 devices", () => {
-    const m = MANEUVERS.fl_charge;
-    expect(m.steps).toHaveLength(2);
+    const m = MANEUVERS.fl06_charge;
+    const bscSteps = m.steps.filter((s) => s.deviceId.startsWith("BSC"));
+    expect(bscSteps).toHaveLength(2);
   });
 
   it("HVAC maneuvers target 8 devices", () => {

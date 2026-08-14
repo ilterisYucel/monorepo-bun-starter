@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { IUserRepository } from "../../../domain/repositories/IUserRepository";
+import type { IUserRepository } from "../../domain/repositories/IUserRepository";
 import * as useCaseModule from "./delete-user-use-case";
 import { CreateUserUseCase } from "./create-user-use-case";
-import type { IPasswordHasher } from "../../../domain/services/IPasswordHasher";
+import type { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 
 function mockRepo(overrides?: Partial<IUserRepository>): IUserRepository {
   return {
@@ -18,7 +18,7 @@ function mockRepo(overrides?: Partial<IUserRepository>): IUserRepository {
     findByRefreshToken: vi.fn(),
     clearRefreshToken: vi.fn(),
     ...overrides,
-  };
+  } as IUserRepository;
 }
 
 function mockHasher(): IPasswordHasher {

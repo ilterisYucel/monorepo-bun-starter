@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { IUserRepository } from "../../../domain/repositories/IUserRepository";
-import type { ITokenService } from "../../../domain/services/ITokenService";
-import type { IPasswordHasher } from "../../../domain/services/IPasswordHasher";
+import type { IUserRepository } from "../../domain/repositories/IUserRepository";
+import type { ITokenService } from "../../domain/services/ITokenService";
+import type { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 import { LoginUseCase } from "./login-use-case";
 
 function mockUserRepo(overrides?: Partial<IUserRepository>): IUserRepository {
@@ -18,7 +18,7 @@ function mockUserRepo(overrides?: Partial<IUserRepository>): IUserRepository {
     findByRefreshToken: vi.fn(),
     clearRefreshToken: vi.fn(),
     ...overrides,
-  };
+  } as IUserRepository;
 }
 
 function mockTokens(overrides?: Partial<ITokenService>): ITokenService {

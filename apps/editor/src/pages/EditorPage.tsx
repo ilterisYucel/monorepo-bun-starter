@@ -55,17 +55,25 @@ export const EditorPage: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const LazyToolbar = React.lazy(
-    () => import("../features/editor/components/EditorToolbar"),
+  const LazyToolbar = React.lazy(() =>
+    import("../features/editor/components/EditorToolbar").then((m) => ({
+      default: m.EditorToolbar,
+    })),
   );
-  const LazyPalette = React.lazy(
-    () => import("../features/editor/components/DevicePalette"),
+  const LazyPalette = React.lazy(() =>
+    import("../features/editor/components/DevicePalette").then((m) => ({
+      default: m.DevicePalette,
+    })),
   );
-  const LazyCanvas = React.lazy(
-    () => import("../features/editor/components/EditorCanvas"),
+  const LazyCanvas = React.lazy(() =>
+    import("../features/editor/components/EditorCanvas").then((m) => ({
+      default: m.EditorCanvas,
+    })),
   );
-  const LazyPanel = React.lazy(
-    () => import("../features/editor/components/PropertyPanel"),
+  const LazyPanel = React.lazy(() =>
+    import("../features/editor/components/PropertyPanel").then((m) => ({
+      default: m.PropertyPanel,
+    })),
   );
 
   return (

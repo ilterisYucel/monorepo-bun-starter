@@ -26,6 +26,8 @@ function mockTimescale(overrides?: Partial<ITimeseriesDatabase>): ITimeseriesDat
     getDownsampledData: vi.fn(),
     getLatest: vi.fn(),
     getLatestN: vi.fn(),
+    listDevices: vi.fn(),
+    runRetention: vi.fn(),
     executeRaw: vi.fn(),
     close: vi.fn(),
     health: vi.fn().mockResolvedValue(true),

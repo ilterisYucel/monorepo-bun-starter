@@ -25,8 +25,6 @@ function mockTransport(adapter: IModbusSimulatorAdapter): IModbusTransport {
 
 function mockHoldingRegs(regs: Record<number, number>): IModbusSimulatorAdapter {
   return {
-    connect: vi.fn().mockResolvedValue(undefined),
-    disconnect: vi.fn().mockResolvedValue(undefined),
     readHoldingRegisters: vi.fn().mockImplementation(
       async (start: number, count: number) => {
         const result: number[] = [];

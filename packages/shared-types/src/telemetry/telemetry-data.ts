@@ -6,6 +6,16 @@ import type { ByteOrder } from "../modbus/modbus-types";
 /** Batarya şarj/deşarj/boşta durumu */
 export type ChargeStatus = "Charge" | "Discharge" | "Idle";
 
+/** Register içindeki verinin tipi (Modbus) */
+export type RegisterDataType =
+  | "BOOL"
+  | "INT16"
+  | "UINT16"
+  | "INT32"
+  | "UINT32"
+  | "FLOAT32"
+  | "FLOAT64";
+
 /**
  * Tüm telemetry verilerinin temel interface'i
  * Her telemetry verisi bu alanları içermek zorundadır
@@ -61,14 +71,7 @@ export interface ModbusTelemetryData extends BaseTelemetryData {
     | "INPUT_REGISTER"
     | "HOLDING_REGISTER";
   /** Register içindeki verinin tipi */
-  registerDataType:
-    | "BOOL"
-    | "INT16"
-    | "UINT16"
-    | "INT32"
-    | "UINT32"
-    | "FLOAT32"
-    | "FLOAT64";
+  registerDataType: RegisterDataType;
   /** Ham değeri gerçek değere çevirmek için çarpan (value = raw * scale + offset) */
   scale: number;
   /** Ham değere eklenecek kayma (value = raw * scale + offset) */

@@ -11,5 +11,5 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
 
-  "references": [{ "path": "../shared-types" }]
+  "references": [{ "path": "../shared-types" }, { "path": "../core" }]
 }

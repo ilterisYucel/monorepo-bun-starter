@@ -4,11 +4,17 @@ import type { IModbusSimulatorAdapter } from "@gd-monorepo/shared-types";
 
 function mockSim(): IModbusSimulatorAdapter {
   return {
+    readHoldingRegister: vi.fn().mockResolvedValue(1),
     readHoldingRegisters: vi.fn().mockResolvedValue([1]),
+    writeHoldingRegister: vi.fn().mockResolvedValue(undefined),
     writeHoldingRegisters: vi.fn().mockResolvedValue(undefined),
+    readInputRegister: vi.fn().mockResolvedValue(2),
     readInputRegisters: vi.fn().mockResolvedValue([2]),
+    readCoil: vi.fn().mockResolvedValue(true),
     readCoils: vi.fn().mockResolvedValue([true]),
+    writeCoil: vi.fn().mockResolvedValue(undefined),
     writeMultipleCoils: vi.fn().mockResolvedValue(undefined),
+    readDiscreteInput: vi.fn().mockResolvedValue(false),
     readDiscreteInputs: vi.fn().mockResolvedValue([false]),
   };
 }

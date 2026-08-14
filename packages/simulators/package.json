@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@gd-monorepo/core": "*",
     "@gd-monorepo/shared-types": "*",
     "bun-types": "^1.3.14"
   },

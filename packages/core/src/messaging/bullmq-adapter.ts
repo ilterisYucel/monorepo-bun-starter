@@ -101,13 +101,7 @@ export class BullMQAdapter implements IMessageQueue {
     const events = this.queueEvents.get(jobData.type);
     if (!events) {
       console.error(`[BullMQ] executeAndWait: no QueueEvents for ${jobData.type} — job may not be consumed`);
-      try {
-        const result = await job.waitUntilFinished(undefined, timeoutMs);
-        if (result && typeof result === "object") return result as JobResult;
-        return { success: true };
-      } catch (err) {
-        return { success: false, reason: String(err) };
-      }
+      return { success: false, reason: `no QueueEvents for ${jobData.type}` };
     }
 
     try {
@@ -241,6 +235,16 @@ export class BullMQAdapter implements IMessageQueue {
     }
   }
 
+  private countResults(
+    counts: PromiseSettledResult<number>[],
+  ): [number, number, number, number, number] {
+    const value = (index: number): number => {
+      const item = counts[index];
+      return item && item.status === "fulfilled" ? item.value : 0;
+    };
+    return [value(0), value(1), value(2), value(3), value(4)];
+  }
+
   async getQueueStatus(): Promise<QueueStatus[]> {
     const results = await Promise.all(
       Array.from(this.queues).map(async ([type, queue]) => {
@@ -251,9 +255,8 @@ export class BullMQAdapter implements IMessageQueue {
           queue.getFailedCount(),
           queue.getDelayedCount(),
         ]);
-        const [waiting, active, completed, failed, delayed] = counts.map((c) =>
-          c.status === "fulfilled" ? c.value : 0,
-        );
+        const [waiting, active, completed, failed, delayed] =
+          this.countResults(counts);
 
         return {
           name: type,
@@ -280,9 +283,8 @@ export class BullMQAdapter implements IMessageQueue {
       queue.getFailedCount(),
       queue.getDelayedCount(),
     ]);
-    const [waiting, active, completed, failed, delayed] = counts.map((c) =>
-      c.status === "fulfilled" ? c.value : 0,
-    );
+    const [waiting, active, completed, failed, delayed] =
+      this.countResults(counts);
 
     return { name: type, waiting, active, completed, failed, delayed };
   }

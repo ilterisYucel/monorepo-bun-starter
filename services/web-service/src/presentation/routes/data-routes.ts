@@ -29,7 +29,7 @@ export async function dataRoutes(
       const results = await timescale.getLatestN(
         deviceId,
         limitNum,
-        name,
+        name ? [name] : undefined,
       );
 
       return reply.send({ telemetries: results });

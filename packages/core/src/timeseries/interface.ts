@@ -69,6 +69,12 @@ export interface ITimeseriesDatabase {
   listDevices(): Promise<string[]>;
 
   /**
+   * Cihaz hypertable'i icin retention/compress/chunk politikalari uygular.
+   * Politika zaten varsa tekrar eklenmez.
+   */
+  runRetention(deviceId: string, retainAfter?: string): Promise<void>;
+
+  /**
    * Ham sorgu çalıştır (backend'in yerel dilinde: SQL/Flux — bakım işlemleri için)
    */
   executeRaw(sql: string, params?: unknown[]): Promise<unknown>;

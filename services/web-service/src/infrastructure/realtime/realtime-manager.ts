@@ -84,7 +84,7 @@ export class RealtimeManager {
     const key = `${RING_BUFFER_PREFIX}:${deviceId}:buffer`;
     const serialized = dataList.map((d) => typeof d === "string" ? d : JSON.stringify(d));
 
-    await this.redisClient.lPush(key, ...serialized);
+    await this.redisClient.lPush(key, serialized);
     await this.redisClient.lTrim(key, 0, RING_BUFFER_MAX);
     await this.redisClient.expire(key, 300);
   }

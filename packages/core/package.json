@@ -38,10 +38,12 @@
     "p-limit": "^7.3.0",
     "pg": "^8.11.3",
     "redis": "^4.6.13",
-    "serialport": "^13.0.0"
+    "serialport": "^13.0.0",
+    "ws": "^8.0.0"
   },
   "devDependencies": {
     "@types/pg": "^8.10.9",
+    "@types/ws": "^8.0.0",
     "typescript": "^5.4.0",
     "vitest": "^3.0.0"
   },

@@ -2,8 +2,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { addEdge, applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
 import type { NodeChange, EdgeChange, Connection, XYPosition } from "@xyflow/react";
+import type { Edge } from "@xyflow/react";
 import type { DeviceType } from "@gd-monorepo/device-library";
-import type { DeviceNodeData, EditorSnapshot } from "../types/editor";
+import type { DeviceNode, DeviceNodeData, EditorSnapshot } from "../types/editor";
 
 const MAX_UNDO = 50;
 let _idCounter = 0;
@@ -33,20 +34,8 @@ function loadSnapshot(snapshot: EditorSnapshot): Partial<EditorState> {
 export interface EditorState {
   projectId: string | null;
   projectName: string;
-  nodes: Array<{
-    id: string;
-    type: string;
-    position: XYPosition;
-    data: DeviceNodeData;
-  }>;
-  edges: Array<{
-    id: string;
-    source: string;
-    target: string;
-    sourceHandle?: string;
-    targetHandle?: string;
-    type?: string;
-  }>;
+  nodes: DeviceNode[];
+  edges: Edge[];
   selectedNodeId: string | null;
   undoStack: EditorSnapshot[];
   redoStack: EditorSnapshot[];

@@ -9,6 +9,7 @@ export type {
   AlarmRuleDefinition,
 } from "./types";
 
+import { DEVICE_LIBRARY } from "./registry";
 export { DEVICE_LIBRARY, DEVICE_TYPES } from "./registry";
 export { BATTERY_BANK_DEFINITION } from "./definitions/battery-bank";
 export { PCS_DEFINITION } from "./definitions/pcs";

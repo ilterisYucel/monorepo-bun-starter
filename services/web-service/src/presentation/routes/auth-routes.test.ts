@@ -13,6 +13,7 @@ import { DeleteUserUseCase } from "../../application/use-cases/delete-user-use-c
 import { ListUsersUseCase } from "../../application/use-cases/list-users-use-case";
 import { makeAuthRoutes } from "./auth-routes";
 import { Result } from "@gd-monorepo/shared-types";
+import type { ServerDependencies } from "../server";
 
 const mockUser = {
   id: "user-1",
@@ -82,7 +83,7 @@ describe("Auth Routes (Fastify integration)", () => {
   beforeEach(async () => {
     const test = buildTestApp();
     app = test.app;
-    await app.register(makeAuthRoutes, test.deps);
+    await app.register(makeAuthRoutes, test.deps as unknown as ServerDependencies);
     await app.ready();
   });
 
@@ -138,7 +139,7 @@ describe("Auth Routes (Fastify integration)", () => {
       (test.tokens.verifyRefresh as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined as never);
       (test.repo.findByRefreshToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
       const failApp = Fastify();
-      failApp.register(makeAuthRoutes, test.deps);
+      failApp.register(makeAuthRoutes, test.deps as unknown as ServerDependencies);
       await failApp.ready();
 
       const res = await failApp.inject({
@@ -186,7 +187,7 @@ describe("Auth Routes (Fastify integration)", () => {
       const test = buildTestApp();
       (test.repo.findById as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
       const failApp = Fastify();
-      failApp.register(makeAuthRoutes, test.deps);
+      failApp.register(makeAuthRoutes, test.deps as unknown as ServerDependencies);
       await failApp.ready();
 
       const res = await failApp.inject({
@@ -202,7 +203,7 @@ describe("Auth Routes (Fastify integration)", () => {
       const test = buildTestApp();
       (test.repo.findByUsername as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
       const createApp = Fastify();
-      createApp.register(makeAuthRoutes, test.deps);
+      createApp.register(makeAuthRoutes, test.deps as unknown as ServerDependencies);
       await createApp.ready();
 
       const res = await createApp.inject({

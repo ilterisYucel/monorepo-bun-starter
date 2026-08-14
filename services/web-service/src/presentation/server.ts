@@ -127,12 +127,14 @@ export class WebServiceServer {
       },
     });
     await this.app.register(swaggerUi, { routePrefix: "/docs" });
+    // ELEGANT-EXCEPTION: ws 8.17+ sunucu tarafinda pingInterval destekler;
+    // @types/ws bu alani henuz bilmedigi icin plugin options tipine cast edilir.
     await this.app.register(websocket, {
       options: {
         pingInterval: 30000,
         pingTimeout: 10000,
       },
-    });
+    } as unknown as Parameters<typeof websocket>[1]);
 
     this.app.addHook("onRequest", createRbacHook(deps.tokens));
   }
@@ -204,19 +206,21 @@ export class WebServiceServer {
       { prefix: "/api/fields" },
     );
 
-    if (deps.fieldPoller) {
+    const fieldPoller = deps.fieldPoller;
+    if (fieldPoller) {
       await this.app.register(
         async (fastify) => {
-          await adminRoutes(fastify, { fieldPoller: deps.fieldPoller });
+          await adminRoutes(fastify, { fieldPoller });
         },
         { prefix: "/api/admin/fields" },
       );
     }
 
-    if (deps.containerProxy) {
+    const containerProxy = deps.containerProxy;
+    if (containerProxy) {
       await this.app.register(
         async (fastify) => {
-          await containerWsRoutes(fastify, { containerProxy: deps.containerProxy });
+          await containerWsRoutes(fastify, { containerProxy });
         },
       );
     }

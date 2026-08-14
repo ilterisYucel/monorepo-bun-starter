@@ -2,6 +2,7 @@ import { buildContainer } from "./config/container";
 import type { ServerDependencies } from "./presentation/server";
 import { deviceConfigDir, serviceTier } from "./config/default";
 import type { ConfigLoader } from "@gd-monorepo/shared-utils";
+import type { ISqlDatabase, ITimeseriesDatabase } from "@gd-monorepo/core";
 
 async function retry<T>(
   label: string,
@@ -30,8 +31,8 @@ export async function main() {
   const c = container.cradle as Record<string, unknown>;
 
   const config = c.config as ConfigLoader;
-  const postgres = c.postgres as any;
-  const timescale = c.timescale as any;
+  const postgres = c.postgres as ISqlDatabase;
+  const timescale = c.timescale as ITimeseriesDatabase;
   const userRepo = c.userRepo as any;
   const server = c.server as any;
   const seed = c.seed as any;

@@ -6,6 +6,7 @@ import {
   Controls,
   MiniMap,
   type Node,
+  type Edge,
   type Connection,
   type XYPosition,
   type ReactFlowInstance,
@@ -14,6 +15,7 @@ import "@xyflow/react/dist/style.css";
 import { COLORS, SCADA_ICONS } from "@gd-monorepo/ui";
 import { DEVICE_LIBRARY, type DeviceType } from "@gd-monorepo/device-library";
 import { useEditorStore } from "../stores/editorStore";
+import type { DeviceNode } from "../types/editor";
 
 const Wrapper = styled.div`
   flex: 1;
@@ -92,7 +94,7 @@ export const EditorCanvas: React.FC = () => {
   const selectNode = useEditorStore((s) => s.selectNode);
   const addDevice = useEditorStore((s) => s.addDevice);
 
-  const reactFlowRef = useRef<ReactFlowInstance | null>(null);
+  const reactFlowRef = useRef<ReactFlowInstance<DeviceNode, Edge> | null>(null);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();

@@ -10,6 +10,8 @@ export interface DeviceInstanceConfig {
 
 export interface DeviceNodeData extends DeviceInstanceConfig {
   deviceType: DeviceType;
+  // ReactFlow Node<T> constraint'i Record<string, unknown> ister
+  [key: string]: unknown;
 }
 
 export type DeviceNode = Node<DeviceNodeData>;
