@@ -54,7 +54,7 @@ SCADARuntime
     ├── uses: ISqlDatabase (packages/core)
     │        PostgresAdapter for metadata
     │
-    └── uses: RealtimeManager (packages/services/web-service)
+    └── uses: RealtimeManager (services/web-service)
              WebSocket broadcast + Redis ring buffer
 ```
 

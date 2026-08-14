@@ -48,8 +48,8 @@ function parseDurationToMs(value: string): number {
       `Gecersiz duration: "${value}". Beklenen format: "<sayi><birim>" (ornegin: "30s", "5m", "2h", "30000ms")`,
     );
   }
-  const num = parseFloat(match[1]);
-  const unit = match[2];
+  const num = parseFloat(match[1]!);
+  const unit = match[2]!;
 
   switch (unit) {
     case "ms":
@@ -82,8 +82,8 @@ function parseBytes(value: string): number {
       `Gecersiz byte: "${value}". Beklenen format: "<sayi><birim>" (ornegin: "256MB", "1GB")`,
     );
   }
-  const num = parseFloat(match[1]);
-  const unit = match[2];
+  const num = parseFloat(match[1]!);
+  const unit = match[2]!;
 
   const multipliers: Record<string, number> = {
     b: 1,

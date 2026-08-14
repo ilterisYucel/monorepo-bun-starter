@@ -60,7 +60,7 @@ services:
   web-service:
     build:
       context: ../
-      dockerfile: packages/services/web-service/deployment/Dockerfile.dev
+      dockerfile: services/web-service/deployment/Dockerfile.dev
     container_name: field-web-service-dev
     environment:
       NODE_ENV: development
@@ -75,15 +75,15 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
+      DEVICE_CONFIG_DIR: /app/services/device-service/config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
     ports:
       - "5002:5002"
     volumes:
-      - ../packages/services/web-service/src:/app/packages/services/web-service/src
-      - ../packages/services/web-service/run.ts:/app/packages/services/web-service/run.ts
+      - ../services/web-service/src:/app/services/web-service/src
+      - ../services/web-service/run.ts:/app/services/web-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src

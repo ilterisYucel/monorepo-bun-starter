@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false,
+    "emitDeclarationOnly": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../../packages/shared-types" },
+    { "path": "../../packages/shared-utils" },
+    { "path": "../../packages/core" },
+    { "path": "../../packages/plugin-sdk" },
+    { "path": "../../packages/plugins/epias-market-prices" }
+  ]
+}

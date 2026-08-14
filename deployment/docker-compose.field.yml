@@ -64,7 +64,7 @@ services:
   web-service:
     build:
       context: ../
-      dockerfile: packages/services/web-service/deployment/Dockerfile
+      dockerfile: services/web-service/deployment/Dockerfile
     container_name: field-web-service
     environment:
       NODE_ENV: production

@@ -32,7 +32,7 @@ export class EnvSource implements ConfigSource {
     return raw as unknown as T;
   }
 
-  private coerce(raw: string, _def: ConfigDefinition): string | number | undefined {
+  private coerce(raw: string, _def: ConfigDefinition<any>): string | number | undefined {
     const num = Number(raw);
     if (!isNaN(num) && raw.trim() !== "") return num;
     return raw;

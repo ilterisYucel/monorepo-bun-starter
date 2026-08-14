@@ -42,7 +42,7 @@ Three-tier federated architecture. Each tier owns its database independently. Co
 
 ### Backend
 
-Extends and reuses patterns from `packages/services/web-service`.
+Extends and reuses patterns from `services/web-service`.
 
 #### Modules
 
@@ -1001,6 +1001,6 @@ bun run dev:container        # Container full stack (Docker, port 5001/5173)
 | `SCADA_ICONS`, `COLORS` | `packages/ui/src/` | Both apps |
 | `ITelemetryTransport` | `packages/shared-types` | `apps/field` (ContainerProxy wraps this) |
 | `WebSocketTransport` | `packages/ui/src/transports/` | `apps/field` |
-| Auth middleware (JWT + RBAC) | `packages/services/web-service` | Both backends |
+| Auth middleware (JWT + RBAC) | `services/web-service` | Both backends |
 | TimescaleDB adapter | `packages/core` | `apps/field` backend |
-| awilix DI container pattern | `packages/services/web-service` | Both backends |
+| awilix DI container pattern | `services/web-service` | Both backends |

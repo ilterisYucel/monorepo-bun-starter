@@ -264,57 +264,22 @@
         "eslint": ">=9.0.0",
       },
     },
-    "packages/services/data-service": {
-      "name": "@gd-monorepo/data-service",
+    "packages/plugin-sdk": {
+      "name": "@gd-monorepo/plugin-sdk",
       "version": "1.0.0",
-      "dependencies": {
-        "@gd-monorepo/core": "*",
-        "@gd-monorepo/shared-types": "*",
-        "@gd-monorepo/shared-utils": "*",
-      },
       "devDependencies": {
         "typescript": "^5.4.0",
         "vitest": "^3.0.0",
       },
     },
-    "packages/services/device-service": {
-      "name": "@gd-monorepo/device-service",
+    "packages/plugins/epias-market-prices": {
+      "name": "@gd-monorepo/epias-market-prices",
       "version": "1.0.0",
       "dependencies": {
-        "@gd-monorepo/core": "*",
+        "@gd-monorepo/plugin-sdk": "*",
         "@gd-monorepo/shared-types": "*",
-        "@gd-monorepo/shared-utils": "*",
-        "@gd-monorepo/simulators": "*",
-        "smol-toml": "^1.1.0",
-        "yaml": "^2.4.0",
       },
       "devDependencies": {
-        "typescript": "^5.4.0",
-        "vitest": "^3.0.0",
-      },
-    },
-    "packages/services/web-service": {
-      "name": "@gd-monorepo/web-service",
-      "version": "1.0.0",
-      "dependencies": {
-        "@fastify/compress": "^8.3.1",
-        "@fastify/cors": "^10.0.0",
-        "@fastify/swagger": "^9.0.0",
-        "@fastify/swagger-ui": "^5.0.0",
-        "@fastify/websocket": "^11.0.0",
-        "@gd-monorepo/core": "*",
-        "@gd-monorepo/shared-types": "*",
-        "@gd-monorepo/shared-utils": "*",
-        "awilix": "^11.0.0",
-        "bullmq": "^5.0.0",
-        "fastify": "^5.0.0",
-        "jose": "^5.0.0",
-        "redis": "^4.0.0",
-        "ws": "^8.0.0",
-        "zod": "^3.25.0",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
         "typescript": "^5.4.0",
         "vitest": "^3.0.0",
       },
@@ -323,6 +288,7 @@
       "name": "@gd-monorepo/shared-types",
       "version": "1.0.0",
       "dependencies": {
+        "@gd-monorepo/plugin-sdk": "*",
         "zod": "^3.25.0",
       },
       "devDependencies": {
@@ -398,6 +364,77 @@
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-dom": "^18.2.0 || ^19.0.0",
+      },
+    },
+    "services/data-service": {
+      "name": "@gd-monorepo/data-service",
+      "version": "1.0.0",
+      "dependencies": {
+        "@gd-monorepo/core": "*",
+        "@gd-monorepo/shared-types": "*",
+        "@gd-monorepo/shared-utils": "*",
+      },
+      "devDependencies": {
+        "typescript": "^5.4.0",
+        "vitest": "^3.0.0",
+      },
+    },
+    "services/device-service": {
+      "name": "@gd-monorepo/device-service",
+      "version": "1.0.0",
+      "dependencies": {
+        "@gd-monorepo/core": "*",
+        "@gd-monorepo/shared-types": "*",
+        "@gd-monorepo/shared-utils": "*",
+        "@gd-monorepo/simulators": "*",
+        "smol-toml": "^1.1.0",
+        "yaml": "^2.4.0",
+      },
+      "devDependencies": {
+        "typescript": "^5.4.0",
+        "vitest": "^3.0.0",
+      },
+    },
+    "services/integration-service": {
+      "name": "@gd-monorepo/integration-service",
+      "version": "1.0.0",
+      "dependencies": {
+        "@gd-monorepo/core": "*",
+        "@gd-monorepo/epias-market-prices": "*",
+        "@gd-monorepo/plugin-sdk": "*",
+        "@gd-monorepo/shared-types": "*",
+        "@gd-monorepo/shared-utils": "*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.4.0",
+        "vitest": "^3.0.0",
+      },
+    },
+    "services/web-service": {
+      "name": "@gd-monorepo/web-service",
+      "version": "1.0.0",
+      "dependencies": {
+        "@fastify/compress": "^8.3.1",
+        "@fastify/cors": "^10.0.0",
+        "@fastify/swagger": "^9.0.0",
+        "@fastify/swagger-ui": "^5.0.0",
+        "@fastify/websocket": "^11.0.0",
+        "@gd-monorepo/core": "*",
+        "@gd-monorepo/shared-types": "*",
+        "@gd-monorepo/shared-utils": "*",
+        "awilix": "^11.0.0",
+        "bullmq": "^5.0.0",
+        "fastify": "^5.0.0",
+        "jose": "^5.0.0",
+        "redis": "^4.0.0",
+        "ws": "^8.0.0",
+        "zod": "^3.25.0",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.4.0",
+        "vitest": "^3.0.0",
       },
     },
   },
@@ -818,19 +855,25 @@
 
     "@gd-monorepo/core": ["@gd-monorepo/core@workspace:packages/core"],
 
-    "@gd-monorepo/data-service": ["@gd-monorepo/data-service@workspace:packages/services/data-service"],
+    "@gd-monorepo/data-service": ["@gd-monorepo/data-service@workspace:services/data-service"],
 
     "@gd-monorepo/demo-backend": ["@gd-monorepo/demo-backend@workspace:apps/demo-backend"],
 
     "@gd-monorepo/device-library": ["@gd-monorepo/device-library@workspace:packages/device-library"],
 
-    "@gd-monorepo/device-service": ["@gd-monorepo/device-service@workspace:packages/services/device-service"],
+    "@gd-monorepo/device-service": ["@gd-monorepo/device-service@workspace:services/device-service"],
 
     "@gd-monorepo/editor": ["@gd-monorepo/editor@workspace:apps/editor"],
+
+    "@gd-monorepo/epias-market-prices": ["@gd-monorepo/epias-market-prices@workspace:packages/plugins/epias-market-prices"],
 
     "@gd-monorepo/eslint-plugin-energy": ["@gd-monorepo/eslint-plugin-energy@workspace:packages/eslint-plugin-energy"],
 
     "@gd-monorepo/field": ["@gd-monorepo/field@workspace:apps/field"],
+
+    "@gd-monorepo/integration-service": ["@gd-monorepo/integration-service@workspace:services/integration-service"],
+
+    "@gd-monorepo/plugin-sdk": ["@gd-monorepo/plugin-sdk@workspace:packages/plugin-sdk"],
 
     "@gd-monorepo/shared-types": ["@gd-monorepo/shared-types@workspace:packages/shared-types"],
 
@@ -842,7 +885,7 @@
 
     "@gd-monorepo/ui": ["@gd-monorepo/ui@workspace:packages/ui"],
 
-    "@gd-monorepo/web-service": ["@gd-monorepo/web-service@workspace:packages/services/web-service"],
+    "@gd-monorepo/web-service": ["@gd-monorepo/web-service@workspace:services/web-service"],
 
     "@headlessui/react": ["@headlessui/react@2.2.10", "", { "dependencies": { "@floating-ui/react": "^0.26.16", "@react-aria/focus": "^3.20.2", "@react-aria/interactions": "^3.25.0", "@tanstack/react-virtual": "^3.13.9", "use-sync-external-store": "^1.5.0" }, "peerDependencies": { "react": "^18 || ^19 || ^19.0.0-rc", "react-dom": "^18 || ^19 || ^19.0.0-rc" } }, "sha512-5pVLNK9wlpxTUTy9GpgbX/SdcRh+HBnPktjM2wbiLTH4p+2EPHBO1aoSryUCuKUIItdDWO9ITlhUL8UnUN/oIA=="],
 

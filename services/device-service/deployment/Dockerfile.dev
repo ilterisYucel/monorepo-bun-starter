@@ -1,0 +1,12 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+COPY . .
+
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
+RUN bun install
+
+WORKDIR /app/services/device-service
+
+CMD ["bun", "--watch", "run.ts"]

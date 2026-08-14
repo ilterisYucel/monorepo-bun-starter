@@ -65,7 +65,7 @@ services:
   device-service:
     build:
       context: ../
-      dockerfile: packages/services/device-service/deployment/Dockerfile
+      dockerfile: services/device-service/deployment/Dockerfile
     container_name: container-device-service
     environment:
       NODE_ENV: production
@@ -76,7 +76,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ../packages/services/device-service/deployment/config-docker:/app/config-docker:ro
+      - ../services/device-service/deployment/config-docker:/app/config-docker:ro
     networks:
       - container-network
     restart: unless-stopped
@@ -90,7 +90,7 @@ services:
   data-service:
     build:
       context: ../
-      dockerfile: packages/services/data-service/deployment/Dockerfile
+      dockerfile: services/data-service/deployment/Dockerfile
     container_name: container-data-service
     environment:
       NODE_ENV: production
@@ -119,7 +119,7 @@ services:
   web-service:
     build:
       context: ../
-      dockerfile: packages/services/web-service/deployment/Dockerfile
+      dockerfile: services/web-service/deployment/Dockerfile
     container_name: container-web-service
     environment:
       NODE_ENV: production
@@ -133,7 +133,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
+      DEVICE_CONFIG_DIR: /app/services/device-service/config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"

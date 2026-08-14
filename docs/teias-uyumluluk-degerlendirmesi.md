@@ -77,7 +77,7 @@ TEİAŞ test prosedürlerinin büyük kısmı **batarya/PCS (Power Conversion Sy
 - TimescaleDB hypertable (`device_{deviceId}`) sürekli veri depolama sağlar (`packages/core/src/timeseries/timescaledb-adapter.ts:42-68`)
 - 1 günlük chunk interval, 7 gün sonra otomatik sıkıştırma, 365 gün retention (`:53, :83-85, :92-104`)
 - 5 katmanlı materialized view (5s, 1m, 15m, 1h, 1d) ile uzun süreli veriye hızlı erişim (`packages/core/src/timeseries/materialized-view-manager.ts:21-61`)
-- REST API üzerinden range/latest/downsampled/aggregate sorguları (`packages/services/web-service/src/presentation/routes/data-routes.ts`)
+- REST API üzerinden range/latest/downsampled/aggregate sorguları (`services/web-service/src/presentation/routes/data-routes.ts`)
 - SOC, aktif güç, DC güç, enerji kapasitesi gibi tüm gerekli sinyaller telemetri olarak tanımlanabilir
 
 ---
@@ -88,7 +88,7 @@ TEİAŞ test prosedürlerinin büyük kısmı **batarya/PCS (Power Conversion Sy
 
 **Nasıl karşılıyoruz:**
 - `ModbusDevice.writeAtomic()` — 3 aşamalı transactional yazma: backup → write → rollback (`packages/core/src/modbus/device.ts:224-427`)
-- `validate` mekanizması: yazma sonrası 50ms aralıklarla read-back poll, configurable timeout (`packages/services/device-service/src/device-service.ts:284-301`)
+- `validate` mekanizması: yazma sonrası 50ms aralıklarla read-back poll, configurable timeout (`services/device-service/src/device-service.ts:284-301`)
 - BSC protokolü için `Request Acknowledge` register (30030) ile 17 farklı yanıt kodu doğrulaması (`packages/simulators/src/bsc/register-map.ts:265-286`)
 - JSON konfigürasyonda `commands.<name>.validate.reads` ile her komuta özel doğrulama register'ları tanımlanabilir
 
@@ -137,7 +137,7 @@ TEİAŞ test prosedürlerinin büyük kısmı **batarya/PCS (Power Conversion Sy
 - `ModbusTcpClient` — exponential backoff: 1000ms taban, 5 deneme, 30000ms maksimum gecikme, %30'a kadar random jitter (`packages/core/src/modbus/client.ts:75-85`)
 - `ModbusDevice` — 10000ms reconnect cooldown (`device.ts:40, 56-58`)
 - BullMQ worker — 3 retry, exponential backoff (`packages/core/src/messaging/bullmq-adapter.ts:9-13`)
-- WebSocket — dead socket sweep 60sn, ping/pong 30sn (`packages/services/web-service/src/realtime-manager.ts:20-31`)
+- WebSocket — dead socket sweep 60sn, ping/pong 30sn (`services/web-service/src/realtime-manager.ts:20-31`)
 
 ---
 
@@ -159,8 +159,8 @@ TEİAŞ test prosedürlerinin büyük kısmı **batarya/PCS (Power Conversion Sy
 **Gereksinim:** Test sırasında oluşan hataların loglanması ve sonradan incelenebilmesi.
 
 **Nasıl karşılıyoruz:**
-- `system_logs` tablosu: id (UUID), timestamp (TIMESTAMPTZ), type (info/success/error/warning), source (system/user), message, details (`packages/services/web-service/src/domain/repositories/log-repository.ts:4-15`)
-- Bitfield tabanlı otomatik log: `DataService` her telemetri yazımında `logType` tag'ine sahip ve değeri truthy olan bitfield'ları otomatik loglar (`packages/services/data-service/src/data-service.ts:24-37`)
+- `system_logs` tablosu: id (UUID), timestamp (TIMESTAMPTZ), type (info/success/error/warning), source (system/user), message, details (`services/web-service/src/domain/repositories/log-repository.ts:4-15`)
+- Bitfield tabanlı otomatik log: `DataService` her telemetri yazımında `logType` tag'ine sahip ve değeri truthy olan bitfield'ları otomatik loglar (`services/data-service/src/data-service.ts:24-37`)
 - Tüm modüllerde `[ModülAdı]` prefix'i ile console.log/warn/error loglaması
 - Örnek prefix'ler: `[ModbusDevice]`, `[BullMQ]`, `[DeviceService]`, `[TimescaleDB]`, `[FastifyServer]`, `[RealtimeManager]`
 
@@ -171,7 +171,7 @@ TEİAŞ test prosedürlerinin büyük kısmı **batarya/PCS (Power Conversion Sy
 **Gereksinim:** Her cihazın register haritasına göre özel konfigürasyon.
 
 **Nasıl karşılıyoruz:**
-- JSON, TOML ve YAML format desteği (`packages/services/device-service/src/config-loader.ts:36`)
+- JSON, TOML ve YAML format desteği (`services/device-service/src/config-loader.ts:36`)
 - Cihaz başına: deviceId, name, manufacturer, model, protocol, connection (host/port/slaveId/timeout), pollIntervalMs, simulator tipi, parallelRead/Write (`shared-types/src/schemas/device-config.ts:46-57`)
 - Telemetri başına: registerAddress, registerTableType, registerDataType, scale, offset, byteOrder, priority, tags (`shared-types/src/telemetry.ts:484-497`)
 - Bitfield başına: registerAddress, registerType, bitStart/bitEnd, alarmLimit, logType

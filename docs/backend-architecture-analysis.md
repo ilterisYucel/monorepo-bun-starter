@@ -122,7 +122,7 @@ Her simulator'a karsilik gelen `*SimulatorAdapter`, `IModbusSimulatorAdapter` im
 
 ### 1.3 Backend Servisler
 
-#### `packages/services/device-service` — Modbus Poller
+#### `services/device-service` — Modbus Poller
 
 | Konu | Detay |
 |------|-------|
@@ -134,7 +134,7 @@ Her simulator'a karsilik gelen `*SimulatorAdapter`, `IModbusSimulatorAdapter` im
 | Komut calistirma | `COMMAND_DEVICE` job -> write/writeAtomic -> forceTick -> read-back -> publishTelemetry -> validation poll loop |
 | SimulatorProvider | 6 simulator tipini register eder, interval ile tick'ler, `forceTick()` destegi |
 
-#### `packages/services/data-service` — TimescaleDB Writer
+#### `services/data-service` — TimescaleDB Writer
 
 | Konu | Detay |
 |------|-------|
@@ -144,7 +144,7 @@ Her simulator'a karsilik gelen `*SimulatorAdapter`, `IModbusSimulatorAdapter` im
 | Log | logType iceren telemetriler `system_logs` tablosuna da yazilir |
 | Temizlik | Baslangicta 30 gunden eski loglari siler |
 
-#### `packages/services/web-service` — REST API + WebSocket Server
+#### `services/web-service` — REST API + WebSocket Server
 
 | Konu | Detay |
 |------|-------|
@@ -261,7 +261,7 @@ Client baglanir -> WebSocket /ws/telemetry?token=JWT
 
 **Degisiklik 1 — `device-service.ts` (`executeCommand()`):**
 
-`packages/services/device-service/src/device-service.ts:286-341`
+`services/device-service/src/device-service.ts:286-341`
 
 ```ts
 // Mevcut kodda 312-314. satirlar:
@@ -279,7 +279,7 @@ return { success: true, data: readBackData };  // ← YENI
 
 **Degisiklik 2 — `command-routes.ts` (`POST /execute`):**
 
-`packages/services/web-service/src/presentation/routes/command-routes.ts:120-126`
+`services/web-service/src/presentation/routes/command-routes.ts:120-126`
 
 ```ts
 // Mevcut:
@@ -614,13 +614,13 @@ Simdi:
 | `packages/core/src/messaging/bullmq-adapter.ts` | BullMQ adapter, 5 kuyruk tanimi, executeAndWait |
 | `packages/core/src/modbus/device.ts` | ModbusDevice — read, write, writeAtomic, readBitfields |
 | `packages/core/src/timeseries/timescaledb-adapter.ts` | TimescaleDB adapter — hypertable, compression, retention |
-| `packages/services/device-service/src/device-service.ts` | DeviceService — executeCommand, readDevice |
-| `packages/services/device-service/src/device-scheduler.ts` | DeviceScheduler — scheduleRead, publishTelemetry |
-| `packages/services/device-service/src/simulator-provider.ts` | SimulatorProvider — 6 simulator registry, tick, forceTick |
-| `packages/services/data-service/src/data-service.ts` | DataService — WRITE_TELEMETRY consumer |
-| `packages/services/web-service/src/index.ts` | Web service main — WS_BROADCAST worker, startup/shutdown |
-| `packages/services/web-service/src/infrastructure/realtime/realtime-manager.ts` | RealtimeManager — subscribe, broadcast, ring buffer, sweep |
-| `packages/services/web-service/src/presentation/routes/command-routes.ts` | Command routes — execute, executeMulti, timeout |
+| `services/device-service/src/device-service.ts` | DeviceService — executeCommand, readDevice |
+| `services/device-service/src/device-scheduler.ts` | DeviceScheduler — scheduleRead, publishTelemetry |
+| `services/device-service/src/simulator-provider.ts` | SimulatorProvider — 6 simulator registry, tick, forceTick |
+| `services/data-service/src/data-service.ts` | DataService — WRITE_TELEMETRY consumer |
+| `services/web-service/src/index.ts` | Web service main — WS_BROADCAST worker, startup/shutdown |
+| `services/web-service/src/infrastructure/realtime/realtime-manager.ts` | RealtimeManager — subscribe, broadcast, ring buffer, sweep |
+| `services/web-service/src/presentation/routes/command-routes.ts` | Command routes — execute, executeMulti, timeout |
 | `packages/shared-types/src/telemetry.ts` | TelemetryData, DeviceConfigFile, CommandStep, ManeuverConfig |
 | `packages/shared-types/src/job.ts` | DeviceJob union, JobType, JobResult |
 

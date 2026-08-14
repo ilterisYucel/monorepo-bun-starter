@@ -51,6 +51,9 @@ export {
   servicePollIntervalMs,
   workerConcurrency,
   managementIntervalMs,
+  integrationPluginDir,
+  integrationConfigDir,
+  integrationStateDir,
   i18nDefaultLocale,
   i18nAvailableLocales,
 } from "./definitions";

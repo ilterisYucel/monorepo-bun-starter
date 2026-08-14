@@ -94,7 +94,7 @@
 | `packages/core/src/modbus/device.ts` | `ensureConnected()`, `reconnectCooldownMs` state |
 | `packages/core/src/timeseries/timescaledb-adapter.ts` | Pool timeouts, smaller pool, `setupCompression()`, `runRetention()`, chunk interval |
 | `packages/core/src/sql/postgres-adapter.ts` | Pool timeouts, smaller pool |
-| `packages/services/web-service/src/presentation/server.ts` | `requestTimeout`, `keepAliveTimeout` |
+| `services/web-service/src/presentation/server.ts` | `requestTimeout`, `keepAliveTimeout` |
 | `apps/web/src/lib/api-client.ts` | Timeout 300s → 30s |
 | `apps/web/src/lib/query-client.ts` | `retry: 2`, backoff, `gcTime` |
 | `apps/web/src/hooks/useChargeStatus.ts` | `{ signal }` passed to axios |
@@ -107,8 +107,8 @@
 | `apps/web/src/features/hvac/services/hvacApi.ts` | `signal?` param |
 | `apps/web/src/features/devices/services/devicesApi.ts` | `signal?` param |
 | `apps/web/src/features/logs/services/logsApi.ts` | `signal?` param |
-| `packages/services/device-service/src/device-service.ts` | `Promise.allSettled` connect |
-| `packages/services/device-service/src/device-scheduler.ts` | Redis error catch |
+| `services/device-service/src/device-service.ts` | `Promise.allSettled` connect |
+| `services/device-service/src/device-scheduler.ts` | Redis error catch |
 | `packages/ui/src/graphics/hooks/usePixiTickerEffect.ts` | `g.destroyed` guard, `gRef` cleanup |
 | `deployment/docker-compose.yml` | Resource limits, PG tuning, Redis config, healthcheck |
 | `deployment/docker-compose.dev.yml` | PG tuning, Redis config |

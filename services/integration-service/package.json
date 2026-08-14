@@ -1,0 +1,22 @@
+{
+  "name": "@gd-monorepo/integration-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run run.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gd-monorepo/core": "*",
+    "@gd-monorepo/epias-market-prices": "*",
+    "@gd-monorepo/plugin-sdk": "*",
+    "@gd-monorepo/shared-types": "*",
+    "@gd-monorepo/shared-utils": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
+  }
+}

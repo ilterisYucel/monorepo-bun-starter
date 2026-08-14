@@ -1,0 +1,31 @@
+{
+  "name": "integration-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "services/integration-service/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run run.ts",
+        "cwd": "services/integration-service"
+      },
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "services/integration-service"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "services/integration-service"
+      }
+    }
+  },
+  "implicitDependencies": ["core", "shared-types", "shared-utils", "plugin-sdk", "epias-market-prices"]
+}

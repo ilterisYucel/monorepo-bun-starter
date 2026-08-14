@@ -165,7 +165,7 @@ private getBucketInterval(seconds: number): string {
 
 ## 3. Device Table Schema (non-hypertable, plain PostgreSQL)
 
-### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/device-service/src/device-service.ts`
+### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/services/device-service/src/device-service.ts`
 
 Lines 27-43 -- the `devices` metadata table (plain table, NOT a hypertable):
 ```sql
@@ -197,7 +197,7 @@ This table stores device metadata (not telemetry). The same PostgreSQL database 
 
 ## 4. User & System Log Tables (plain PostgreSQL, non-hypertable)
 
-### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/persistence/user-repository.ts`
+### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/persistence/user-repository.ts`
 
 `users` table (lines 34-44):
 ```sql
@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_refresh_token ON users (refresh_token);
 ```
 
-### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/persistence/log-repository.ts`
+### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/persistence/log-repository.ts`
 
 `system_logs` table (lines 4-16):
 ```sql
@@ -234,7 +234,7 @@ CREATE INDEX IF NOT EXISTS idx_logs_type ON system_logs (type, timestamp DESC);
 
 Also created in the data-service:
 
-### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/run.ts`
+### File: `/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/run.ts`
 
 Lines 44-53 -- same `system_logs` table, created independently by the data-service.
 
@@ -298,25 +298,25 @@ export interface ITimeseriesDatabase {
 | `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/core/src/sql/postgres-adapter.ts` | General PostgreSQL adapter (for metadata tables, NOT timeseries) |
 | `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/core/src/sql/interface.ts` | `ISqlDatabase` contract (distinct from `ITimeseriesDatabase`) |
 
-### packages/services/data-service (telemetry persistence):
+### services/data-service (telemetry persistence):
 | File | Purpose |
 |------|---------|
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/src/data-service.ts` | BullMQ worker consuming `WRITE_TELEMETRY` jobs, writing to TimescaleDB |
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/run.ts` | Bootstrap: creates `TimescaleDBAdapter`, `PostgresAdapter`, creates `system_logs` table |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/src/data-service.ts` | BullMQ worker consuming `WRITE_TELEMETRY` jobs, writing to TimescaleDB |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/run.ts` | Bootstrap: creates `TimescaleDBAdapter`, `PostgresAdapter`, creates `system_logs` table |
 
-### packages/services/web-service (API serving TimescaleDB data):
+### services/web-service (API serving TimescaleDB data):
 | File | Purpose |
 |------|---------|
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/container.ts` | DI container: registers `TimescaleDBAdapter` as singleton |
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/default.ts` | Config factory reading `POSTGRES_HOST` etc. env vars |
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/data-routes.ts` | REST endpoints: `/devices`, `/:deviceId/latest`, `/:deviceId/range`, `/:deviceId/downsampled`, `/:deviceId/aggregate` |
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/unified-routes.ts` | Unified endpoints: `/telemetry/latest`, `/telemetry/downsampled` (multi-device) |
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/index.ts` | Main: initializes TimescaleDB, passes to routes |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/container.ts` | DI container: registers `TimescaleDBAdapter` as singleton |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/default.ts` | Config factory reading `POSTGRES_HOST` etc. env vars |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/data-routes.ts` | REST endpoints: `/devices`, `/:deviceId/latest`, `/:deviceId/range`, `/:deviceId/downsampled`, `/:deviceId/aggregate` |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/unified-routes.ts` | Unified endpoints: `/telemetry/latest`, `/telemetry/downsampled` (multi-device) |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/index.ts` | Main: initializes TimescaleDB, passes to routes |
 
-### packages/services/device-service (metadata storage):
+### services/device-service (metadata storage):
 | File | Purpose |
 |------|---------|
-| `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/device-service/src/device-service.ts` | Creates `devices` table via `PostgresAdapter` (not TimescaleDB adapter) |
+| `/home/ilteris/Documents/bms/gd-pms-monorepo/services/device-service/src/device-service.ts` | Creates `devices` table via `PostgresAdapter` (not TimescaleDB adapter) |
 
 ### apps/demo-backend (legacy):
 | File | Purpose |
@@ -421,10 +421,10 @@ There are **zero WebSocket route handlers** — no `fastify.get('...', { websock
 
 #### b) `web-service` — No WebSocket at all
 
-**File:** `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/package.json`
+**File:** `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/package.json`
 - `@fastify/websocket` is **NOT** a dependency.
 
-**File:** `/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/server.ts`
+**File:** `/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/server.ts`
 - No WebSocket import, no WebSocket registration. The server uses only REST plugins (cors, compress, swagger, swagger-ui).
 
 The web-service routes are all REST-based:
@@ -544,7 +544,7 @@ There are no:
 |---|---|---|
 | WS plugin registered | **Yes (stub only)** — demo-backend | `apps/demo-backend/src/infrastructure/api/server.ts:8,104` |
 | WS route handlers | **None** | N/A |
-| WS in web-service | **None** | `packages/services/web-service/src/presentation/server.ts` |
+| WS in web-service | **None** | `services/web-service/src/presentation/server.ts` |
 | WS in device/data-service | **None** | N/A |
 | WS client in web | **None** | `apps/web/src/lib/api-client.ts` (Axios REST only) |
 | WS client in desktop | **None** | `apps/desktop/src/main/index.ts` |
@@ -896,7 +896,7 @@ _Thinking:_
 7009: DEVICE�SERVICE� TEMİZ VE BASİT
 7010: typescript
 7011: 
-7012: // packages/services/device-service/src/device-poller.ts
+7012: // services/device-service/src/device-poller.ts
 7013: // BU KADAR BASİT KALMALI!
 7014: export class DevicePoller {
 7015: constructor(
@@ -932,7 +932,7 @@ _Thinking:_
 7045: WEB�SERVICE� UNIFIED TELEMETRY API
 7046: typescript
 7047: 
-7048: // packages/services/web-service/src/presentation/routes/telemetry-routes.ts
+7048: // services/web-service/src/presentation/routes/telemetry-routes.ts
 7049: export async function telemetryRoutes(fastify: FastifyInstance, opts: AppOptions)
 7050: {
 7051: const mvManager = new MaterializedViewManager(opts.db);
@@ -1282,7 +1282,7 @@ Now I have the end of the conversation. Let me read more of the early part to un
 6532: Interval stratejin şöyle olmalı:
 6533: typescript
 6534: 
-6535: // packages/services/web-service/src/config/data-refresh-config.ts
+6535: // services/web-service/src/config/data-refresh-config.ts
 6536: export const DATA_REFRESH_CONFIG = {
 6537: // WebSocket (anlık veri)
 6538: realtime: {
@@ -1358,7 +1358,7 @@ Now I have the end of the conversation. Let me read more of the early part to un
 6608: Hemen başla:
 6609: bash
 6610: 
-6611: cd packages/services/device-service
+6611: cd services/device-service
 6612: # DevicePoller'a Redis publish ekle
 6613: # 20 satır kod değişikliği
 6614: 
@@ -1397,7 +1397,7 @@ Now I have the end of the conversation. Let me read more of the early part to un
 6647: WEB�SERVICE� WEBSOCKET � REDIS PUB/SUB
 6648: typescript
 6649: 
-6650: // packages/services/web-service/src/infrastructure/realtime/realtime-manager.ts
+6650: // services/web-service/src/infrastructure/realtime/realtime-manager.ts
 6651: import { Redis } from 'ioredis';
 6652: import { FastifyInstance } from 'fastify';
 6653: export class RealtimeManager {
@@ -1934,7 +1934,7 @@ Let me now read the key section that starts the WebSocket and materialized view 
 6225: DOWNSAMPLING STRATEJİSİ �Interval Optimizasyonu)
 6226: typescript
 6227: 
-6228: // packages/services/web-service/src/application/telemetry/downsampling.ts
+6228: // services/web-service/src/application/telemetry/downsampling.ts
 6229: 
 6230: 7/3/26, 2:44 PM
 6231: 
@@ -2050,7 +2050,7 @@ Let me now read the key section that starts the WebSocket and materialized view 
 6341: OPTİMİZE EDİLMİŞ UNIFIED ENDPOINT
 6342: typescript
 6343: 
-6344: // packages/services/web-service/src/presentation/routes/unified-routes.ts
+6344: // services/web-service/src/presentation/routes/unified-routes.ts
 6345: 
 6346: 7/3/26, 2:44 PM
 6347: 
@@ -2483,7 +2483,7 @@ Now let me construct the full plan:
    - Smart view selection by time range
    - API: `createMaterializedViews(hypertable)`, `selectView(hypertable, timeRange)`
 
-2. **`RealtimeManager`** — new class in `packages/services/web-service/src/infrastructure/realtime/`
+2. **`RealtimeManager`** — new class in `services/web-service/src/infrastructure/realtime/`
    - Manages WebSocket connections per device
    - subscribe/unsubscribe methods
    - broadcast method
@@ -2670,9 +2670,9 @@ Key methods:
 
 #### 2. Data-Service: Return telemetry as `returnvalue`
 
-In `packages/services/data-service/src/data-service.ts`, the worker processor should `return telemetry` after writing, so `QueueEvents` listeners receive it.
+In `services/data-service/src/data-service.ts`, the worker processor should `return telemetry` after writing, so `QueueEvents` listeners receive it.
 
-#### 3. `RealtimeManager` — `packages/services/web-service/src/infrastructure/realtime/`
+#### 3. `RealtimeManager` — `services/web-service/src/infrastructure/realtime/`
 
 - `Map<deviceId, Set<WebSocket>>` for connection tracking
 - `subscribe(deviceId, ws)` / `unsubscribe(deviceId, ws)` 
@@ -3505,13 +3505,13 @@ Let me start by reading all the key files I need to understand before implementi
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/src/data-service.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/src/data-service.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/src/data-service.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/src/data-service.ts</path>
 <type>file</type>
 <content>
 1: import type { IMessageQueue, ITimeseriesDatabase } from "@gd-monorepo/core";
@@ -3596,13 +3596,13 @@ Let me start by reading all the key files I need to understand before implementi
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/run.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/run.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/run.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/run.ts</path>
 <type>file</type>
 <content>
 1: import {
@@ -3699,13 +3699,13 @@ Now let me read the web-service related files to understand the DI container, ro
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/container.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/container.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/container.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/container.ts</path>
 <type>file</type>
 <content>
 1: import { createContainer, asFunction, asValue } from "awilix";
@@ -3791,13 +3791,13 @@ Now let me read the web-service related files to understand the DI container, ro
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/unified-routes.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/unified-routes.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/unified-routes.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/unified-routes.ts</path>
 <type>file</type>
 <content>
 1: import type { FastifyInstance } from "fastify";
@@ -3903,13 +3903,13 @@ Now let me read the web-service related files to understand the DI container, ro
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/server.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/server.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/server.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/server.ts</path>
 <type>file</type>
 <content>
 1: import Fastify, {
@@ -4079,13 +4079,13 @@ Now let me read the web-service related files to understand the DI container, ro
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/index.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/index.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/index.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/index.ts</path>
 <type>file</type>
 <content>
 1: import { buildContainer } from "./config/container";
@@ -4149,13 +4149,13 @@ Now let me read the web-service related files to understand the DI container, ro
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/data-routes.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/data-routes.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/data-routes.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/data-routes.ts</path>
 <type>file</type>
 <content>
 1: import type { FastifyInstance } from "fastify";
@@ -4853,13 +4853,13 @@ File not found: /home/ilteris/Documents/bms/gd-pms-monorepo/packages/core/src/re
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/default.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/default.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/default.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/default.ts</path>
 <type>file</type>
 <content>
 1: import type { Role, PostgresConfig } from "@gd-monorepo/shared-types";
@@ -5095,13 +5095,13 @@ Now let me also check the core package's barrel export, the web-service package.
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/package.json"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/package.json"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/package.json</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/package.json</path>
 <type>file</type>
 <content>
 1: {
@@ -5927,7 +5927,7 @@ Now I have a complete understanding of the codebase. Let me start implementing t
 
 1. **MaterializedViewManager** — in `packages/core/src/timeseries/materialized-view-manager.ts`
 2. **Update DataService** — return telemetry from worker
-3. **RealtimeManager** — in `packages/services/web-service/src/infrastructure/realtime/`
+3. **RealtimeManager** — in `services/web-service/src/infrastructure/realtime/`
 4. **BullMQ QueueEvents listener** — in web-service
 5. **WebSocket route** — in web-service
 6. **Frontend hooks** — in `packages/ui/src/hooks/`
@@ -6496,7 +6496,7 @@ Now modify DataService to return telemetry data so QueueEvents captures it:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/src/data-service.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/src/data-service.ts",
   "newString": "    await this.mq.registerWorker(async (job) => {\n      if (!this.running) return;\n\n      if (job.type === \"WRITE_TELEMETRY\") {\n        await this.timescale.write(job.telemetries);\n\n        const logInserts = job.telemetries\n          .filter((td) => td.logType && td.value)\n          .map((td) =>\n            this.sql.execute(\n              `INSERT INTO system_logs (type, source, message, details)\n               VALUES ($1, $2, $3, $4)`,\n              [\n                td.logType!,\n                \"system\",\n                `${td.deviceId}: ${td.name}`,\n                `${td.description} | value=${td.value}`,\n              ],\n            ),\n          );\n\n        if (logInserts.length > 0) {\n          await Promise.all(logInserts);\n        }\n\n        return job.telemetries;\n      }\n\n      if (job.type === \"MANAGEMENT\") {\n        await this.timescale.write(job.telemetries);\n        return job.telemetries;\n      }\n    });",
   "oldString": "    await this.mq.registerWorker(async (job) => {\n      if (!this.running) return;\n\n      if (job.type === \"WRITE_TELEMETRY\") {\n        await this.timescale.write(job.telemetries);\n\n        const logInserts = job.telemetries\n          .filter((td) => td.logType && td.value)\n          .map((td) =>\n            this.sql.execute(\n              `INSERT INTO system_logs (type, source, message, details)\n               VALUES ($1, $2, $3, $4)`,\n              [\n                td.logType!,\n                \"system\",\n                `${td.deviceId}: ${td.name}`,\n                `${td.description} | value=${td.value}`,\n              ],\n            ),\n          );\n\n        if (logInserts.length > 0) {\n          await Promise.all(logInserts);\n        }\n      }\n    });"
 }
@@ -6557,11 +6557,11 @@ Found 7 matches
   Line 156:   registerWorker(
 
 
-/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/src/data-service.ts:
+/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/src/data-service.ts:
   Line 18:     await this.mq.registerWorker(async (job) => {
 
 
-/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/device-service/src/device-service.ts:
+/home/ilteris/Documents/bms/gd-pms-monorepo/services/device-service/src/device-service.ts:
   Line 181:     await this.mq.registerWorker(async (job) => {
 
 ```
@@ -6620,7 +6620,7 @@ I need to check the demo-backend and device-service usages to make sure they sti
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/device-service/src/device-service.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/device-service/src/device-service.ts",
   "offset": 177,
   "limit": 20
 }
@@ -6628,7 +6628,7 @@ I need to check the demo-backend and device-service usages to make sure they sti
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/device-service/src/device-service.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/device-service/src/device-service.ts</path>
 <type>file</type>
 <content>
 177:     }
@@ -6779,7 +6779,7 @@ First add dependencies to web-service `package.json`:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/package.json",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/package.json",
   "newString": "  \"dependencies\": {\n    \"@fastify/compress\": \"^8.3.1\",\n    \"@fastify/cors\": \"^10.0.0\",\n    \"@fastify/swagger\": \"^9.0.0\",\n    \"@fastify/swagger-ui\": \"^5.0.0\",\n    \"@fastify/websocket\": \"^11.0.0\",\n    \"@gd-monorepo/core\": \"*\",\n    \"@gd-monorepo/shared-types\": \"*\",\n    \"awilix\": \"^11.0.0\",\n    \"bullmq\": \"^5.0.0\",\n    \"fastify\": \"^5.0.0\",\n    \"jose\": \"^5.0.0\",\n    \"redis\": \"^4.0.0\",\n    \"zod\": \"^3.25.0\"\n  },",
   "oldString": "  \"dependencies\": {\n    \"@fastify/compress\": \"^8.3.1\",\n    \"@fastify/cors\": \"^10.0.0\",\n    \"@fastify/swagger\": \"^9.0.0\",\n    \"@fastify/swagger-ui\": \"^5.0.0\",\n    \"@gd-monorepo/core\": \"*\",\n    \"@gd-monorepo/shared-types\": \"*\",\n    \"awilix\": \"^11.0.0\",\n    \"fastify\": \"^5.0.0\",\n    \"jose\": \"^5.0.0\",\n    \"zod\": \"^3.25.0\"\n  },"
 }
@@ -6803,7 +6803,7 @@ Now let me install the dependencies with bun. Actually, let me first create all 
 **Input:**
 ```json
 {
-  "command": "ls /home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/",
+  "command": "ls /home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/",
   "description": "Check infrastructure directory structure"
 }
 ```
@@ -6828,7 +6828,7 @@ Now create the realtime directory and create RealtimeManager:
 **Input:**
 ```json
 {
-  "command": "mkdir -p /home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime",
+  "command": "mkdir -p /home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime",
   "description": "Create realtime infrastructure directory"
 }
 ```
@@ -6854,7 +6854,7 @@ Create `RealtimeManager`:
 ```json
 {
   "content": "import type { RedisConnection } from \"@gd-monorepo/core\";\nimport type { WebSocket } from \"ws\";\n\nconst RING_BUFFER_PREFIX = \"device\";\nconst RING_BUFFER_MAX = 299;\n\nexport class RealtimeManager {\n  private connections: Map<string, Set<WebSocket>> = new Map();\n  private redisClient: ReturnType<RedisConnection[\"getClient\"]>;\n\n  constructor(\n    private readonly redis: RedisConnection,\n  ) {\n    this.redisClient = redis.getClient();\n  }\n\n  subscribe(deviceId: string, ws: WebSocket): void {\n    if (!this.connections.has(deviceId)) {\n      this.connections.set(deviceId, new Set());\n    }\n    this.connections.get(deviceId)!.add(ws);\n    console.log(`[RealtimeManager] Abone eklendi: ${deviceId} (toplam: ${this.connections.get(deviceId)!.size})`);\n  }\n\n  unsubscribe(deviceId: string, ws: WebSocket): void {\n    const subscribers = this.connections.get(deviceId);\n    if (subscribers) {\n      subscribers.delete(ws);\n      if (subscribers.size === 0) {\n        this.connections.delete(deviceId);\n      }\n      console.log(`[RealtimeManager] Abone cikti: ${deviceId}`);\n    }\n  }\n\n  unsubscribeAll(ws: WebSocket): void {\n    this.connections.forEach((subscribers, deviceId) => {\n      if (subscribers.delete(ws) && subscribers.size === 0) {\n        this.connections.delete(deviceId);\n      }\n    });\n  }\n\n  broadcast(deviceId: string, data: unknown): void {\n    const subscribers = this.connections.get(deviceId);\n    if (!subscribers || subscribers.size === 0) return;\n\n    const message = JSON.stringify(data);\n    subscribers.forEach((ws) => {\n      if (ws.readyState === ws.OPEN) {\n        ws.send(message);\n      }\n    });\n  }\n\n  async writeToRingBuffer(deviceId: string, data: unknown): Promise<void> {\n    const key = `${RING_BUFFER_PREFIX}:${deviceId}:buffer`;\n    const serialized = typeof data === \"string\" ? data : JSON.stringify(data);\n\n    await this.redisClient.lPush(key, serialized);\n    await this.redisClient.lTrim(key, 0, RING_BUFFER_MAX);\n    await this.redisClient.expire(key, 300);\n  }\n\n  async ringBuffer(deviceId: string): Promise<unknown[]> {\n    const key = `${RING_BUFFER_PREFIX}:${deviceId}:buffer`;\n    const items = await this.redisClient.lRange(key, 0, -1);\n    return items.map((item) => {\n      try {\n        return JSON.parse(item);\n      } catch {\n        return item;\n      }\n    });\n  }\n\n  async sendInitialData(deviceId: string, ws: WebSocket): Promise<void> {\n    const buffer = await this.ringBuffer(deviceId);\n    if (buffer.length > 0 && ws.readyState === ws.OPEN) {\n      ws.send(\n        JSON.stringify({\n          type: \"initial\",\n          deviceId,\n          data: buffer,\n        }),\n      );\n    }\n  }\n\n  subscriberCount(deviceId?: string): number {\n    if (deviceId) {\n      return this.connections.get(deviceId)?.size ?? 0;\n    }\n\n    let total = 0;\n    this.connections.forEach((subs) => {\n      total += subs.size;\n    });\n    return total;\n  }\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/realtime-manager.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/realtime-manager.ts"
 }
 ```
 
@@ -6879,7 +6879,7 @@ Create BullMQ event listener that bridges completed jobs to RealtimeManager:
 ```json
 {
   "content": "import { QueueEvents } from \"bullmq\";\nimport { QUEUE_NAMES } from \"@gd-monorepo/core\";\nimport type { RedisConnection } from \"@gd-monorepo/core\";\nimport type { TelemetryData } from \"@gd-monorepo/shared-types\";\nimport type { RealtimeManager } from \"./realtime-manager\";\n\nexport class TelemetryEventListener {\n  private queueEventsList: QueueEvents[] = [];\n  private running: boolean = false;\n\n  constructor(\n    private readonly redis: RedisConnection,\n    private readonly realtime: RealtimeManager,\n  ) {}\n\n  start(): void {\n    this.running = true;\n\n    const eventTypes = [\"WRITE_TELEMETRY\", \"MANAGEMENT\"] as const;\n\n    for (const type of eventTypes) {\n      const queueEvents = new QueueEvents(QUEUE_NAMES[type], {\n        connection: this.redis.getConnectionConfig(),\n      });\n\n      queueEvents.on(\"completed\", async ({ jobId, returnvalue }) => {\n        if (!this.running) return;\n\n        const telemetries = returnvalue as TelemetryData[] | undefined;\n        if (!telemetries || !Array.isArray(telemetries)) return;\n\n        for (const telemetry of telemetries) {\n          this.realtime.broadcast(telemetry.deviceId, telemetry);\n          await this.realtime.writeToRingBuffer(\n            telemetry.deviceId,\n            telemetry,\n          );\n        }\n      });\n\n      queueEvents.on(\"error\", (error) => {\n        console.error(\n          `[TelemetryEventListener] ${type} queue events error:`,\n          error,\n        );\n      });\n\n      this.queueEventsList.push(queueEvents);\n      console.log(`[TelemetryEventListener] ${type} dinleniyor`);\n    }\n  }\n\n  async stop(): Promise<void> {\n    this.running = false;\n\n    for (const qe of this.queueEventsList) {\n      await qe.close();\n    }\n\n    this.queueEventsList = [];\n    console.log(\"[TelemetryEventListener] Durduruldu\");\n  }\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts"
 }
 ```
 
@@ -6904,7 +6904,7 @@ Now create the WebSocket route plugin:
 ```json
 {
   "content": "import type { FastifyInstance } from \"fastify\";\nimport type { RealtimeManager } from \"./realtime-manager\";\n\nexport async function telemetryWsRoutes(\n  fastify: FastifyInstance,\n  options: {\n    realtime: RealtimeManager;\n  },\n): Promise<void> {\n  const { realtime } = options;\n\n  fastify.get(\n    \"/ws/telemetry\",\n    { websocket: true },\n    (socket, _request) => {\n      console.log(\"[WS] Yeni WebSocket baglantisi\");\n\n      socket.on(\"message\", async (raw: Buffer) => {\n        try {\n          const msg = JSON.parse(raw.toString());\n\n          if (msg.type === \"subscribe\" && msg.deviceId) {\n            realtime.subscribe(msg.deviceId, socket);\n            await realtime.sendInitialData(msg.deviceId, socket);\n            socket.send(\n              JSON.stringify({\n                type: \"subscribed\",\n                deviceId: msg.deviceId,\n              }),\n            );\n          } else if (msg.type === \"unsubscribe\" && msg.deviceId) {\n            realtime.unsubscribe(msg.deviceId, socket);\n            socket.send(\n              JSON.stringify({\n                type: \"unsubscribed\",\n                deviceId: msg.deviceId,\n              }),\n            );\n          }\n        } catch (error) {\n          socket.send(\n            JSON.stringify({\n              type: \"error\",\n              message: \"Invalid message format\",\n            }),\n          );\n        }\n      });\n\n      socket.on(\"close\", () => {\n        realtime.unsubscribeAll(socket);\n        console.log(\"[WS] WebSocket baglantisi kapandi\");\n      });\n\n      socket.on(\"error\", (error) => {\n        console.error(\"[WS] WebSocket hatasi:\", error);\n      });\n    },\n  );\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/ws-routes.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/ws-routes.ts"
 }
 ```
 
@@ -6928,7 +6928,7 @@ Create barrel export:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/index.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/index.ts",
   "content": "export { RealtimeManager } from \"./realtime-manager\";\nexport { TelemetryEventListener } from \"./telemetry-event-listener\";\nexport { telemetryWsRoutes } from \"./ws-routes\";\n"
 }
 ```
@@ -7051,7 +7051,7 @@ Now update `server.ts` to support WebSocket and accept new dependencies:
 ```json
 {
   "content": "import Fastify, {\n  type FastifyInstance,\n  type FastifyServerOptions,\n} from \"fastify\";\nimport { ZodError } from \"zod\";\nimport cors from \"@fastify/cors\";\nimport compress from \"@fastify/compress\";\nimport swagger from \"@fastify/swagger\";\nimport swaggerUi from \"@fastify/swagger-ui\";\nimport websocket from \"@fastify/websocket\";\nimport type { ServerConfig } from \"../config/default\";\nimport type { LoginUseCase } from \"../application/use-cases/login-use-case\";\nimport type { RefreshTokenUseCase } from \"../application/use-cases/refresh-token-use-case\";\nimport type { LogoutUseCase } from \"../application/use-cases/logout-use-case\";\nimport type { CreateUserUseCase } from \"../application/use-cases/create-user-use-case\";\nimport type { UpdateUserUseCase } from \"../application/use-cases/update-user-use-case\";\nimport type { DeleteUserUseCase } from \"../application/use-cases/delete-user-use-case\";\nimport type { ListUsersUseCase } from \"../application/use-cases/list-users-use-case\";\nimport type { IUserRepository } from \"../domain/repositories/IUserRepository\";\nimport type { ITokenService } from \"../domain/services/ITokenService\";\nimport { TimescaleDBAdapter } from \"@gd-monorepo/core\";\nimport type { ISqlDatabase } from \"@gd-monorepo/core\";\nimport { createRbacHook } from \"./middleware/rbac\";\nimport { makeAuthRoutes } from \"./routes/auth-routes\";\nimport { dataRoutes } from \"./routes/data-routes\";\nimport { unifiedRoutes } from \"./routes/unified-routes\";\nimport { deviceRoutes } from \"./routes/device-routes\";\nimport { logRoutes } from \"./routes/log-routes\";\nimport { LogRepository } from \"../infrastructure/persistence/log-repository\";\nimport { DeviceRegistry } from \"../infrastructure/persistence/device-registry\";\nimport { telemetryWsRoutes } from \"../infrastructure/realtime/ws-routes\";\nimport type { RealtimeManager } from \"../infrastructure/realtime/realtime-manager\";\nimport type { MaterializedViewManager } from \"@gd-monorepo/core\";\n\nexport interface ServerDependencies {\n  serverConfig: ServerConfig;\n  timescale: TimescaleDBAdapter;\n  postgres: ISqlDatabase;\n  tokens: ITokenService;\n  userRepo: IUserRepository;\n  loginUseCase: LoginUseCase;\n  refreshTokenUseCase: RefreshTokenUseCase;\n  logoutUseCase: LogoutUseCase;\n  createUserUseCase: CreateUserUseCase;\n  updateUserUseCase: UpdateUserUseCase;\n  deleteUserUseCase: DeleteUserUseCase;\n  listUsersUseCase: ListUsersUseCase;\n  realtime: RealtimeManager;\n  mvManager: MaterializedViewManager;\n}\n\nexport class WebServiceServer {\n  private readonly app: FastifyInstance;\n  private readonly config: ServerConfig;\n\n  constructor(config: ServerConfig) {\n    this.config = config;\n    const options: FastifyServerOptions = {\n      logger: false,\n      bodyLimit: 1048576,\n      trustProxy: true,\n    };\n    this.app = Fastify(options);\n\n    this.app.setErrorHandler((error, _request, reply) => {\n      if (error instanceof ZodError) {\n        return reply.status(400).send({ error: error.flatten() });\n      }\n      console.error(\"[CRITICAL]\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    });\n  }\n\n  async start(deps: ServerDependencies): Promise<void> {\n    await this.registerPlugins(deps);\n    await this.registerRoutes(deps);\n\n    await this.app.listen({\n      port: this.config.port,\n      host: this.config.host,\n    });\n\n    console.log(\n      `[WebServiceServer] ${this.config.host}:${this.config.port} adresinde dinleniyor`,\n    );\n  }\n\n  async stop(): Promise<void> {\n    await this.app.close();\n    console.log(\"[WebServiceServer] Durduruldu\");\n  }\n\n  getApp(): FastifyInstance {\n    return this.app;\n  }\n\n  private async registerPlugins(deps: ServerDependencies): Promise<void> {\n    await this.app.register(cors, { origin: true, credentials: true });\n    await this.app.register(compress, { global: true, threshold: 1024 });\n    await this.app.register(swagger, {\n      openapi: {\n        info: {\n          title: \"Web Service API\",\n          description: \"Auth + Veri API\",\n          version: \"1.0.0\",\n        },\n        servers: [\n          { url: `http://${this.config.host}:${this.config.port}` },\n        ],\n        components: {\n          securitySchemes: {\n            bearerAuth: { type: \"http\", scheme: \"bearer\" },\n          },\n        },\n      },\n    });\n    await this.app.register(swaggerUi, { routePrefix: \"/docs\" });\n    await this.app.register(websocket);\n\n    this.app.addHook(\"onRequest\", createRbacHook(deps.tokens));\n  }\n\n  private async registerRoutes(deps: ServerDependencies): Promise<void> {\n    this.app.get(\"/health\", async (_request, reply) => {\n      return reply.send({\n        status: \"ok\",\n        timestamp: new Date().toISOString(),\n        uptime: process.uptime(),\n      });\n    });\n\n    await this.app.register(\n      async (fastify) => {\n        await makeAuthRoutes(fastify, deps);\n      },\n      { prefix: \"/api/auth\" },\n    );\n\n    await this.app.register(\n      async (fastify) => {\n        await dataRoutes(fastify, { timescale: deps.timescale });\n      },\n      { prefix: \"/api/data\" },\n    );\n\n    const registry = new DeviceRegistry(deps.postgres);\n    const logRepo = new LogRepository(deps.postgres);\n    await logRepo.initialize();\n\n    await this.app.register(\n      async (fastify) => {\n        await unifiedRoutes(fastify, {\n          registry,\n          timescale: deps.timescale,\n          mvManager: deps.mvManager,\n        });\n        await deviceRoutes(fastify, { postgres: deps.postgres });\n      },\n      { prefix: \"/api/unified\" },\n    );\n\n    await this.app.register(\n      async (fastify) => {\n        await logRoutes(fastify, { logRepo });\n      },\n      { prefix: \"/api/logs\" },\n    );\n\n    await this.app.register(\n      async (fastify) => {\n        await telemetryWsRoutes(fastify, { realtime: deps.realtime });\n      },\n    );\n  }\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/server.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/server.ts"
 }
 ```
 
@@ -7075,7 +7075,7 @@ Now update DI container with new dependencies:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/config/container.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/config/container.ts",
   "content": "import { createContainer, asFunction, asValue } from \"awilix\";\nimport {\n  PostgresAdapter,\n  TimescaleDBAdapter,\n  RedisConnection,\n  MaterializedViewManager,\n} from \"@gd-monorepo/core\";\nimport type { RedisConfig } from \"@gd-monorepo/core\";\nimport {\n  authConfig,\n  serverConfig,\n  postgresConfig,\n  seedUsers,\n} from \"./default\";\nimport { LoginUseCase } from \"../application/use-cases/login-use-case\";\nimport { RefreshTokenUseCase } from \"../application/use-cases/refresh-token-use-case\";\nimport { LogoutUseCase } from \"../application/use-cases/logout-use-case\";\nimport { CreateUserUseCase } from \"../application/use-cases/create-user-use-case\";\nimport { UpdateUserUseCase } from \"../application/use-cases/update-user-use-case\";\nimport { DeleteUserUseCase } from \"../application/use-cases/delete-user-use-case\";\nimport { ListUsersUseCase } from \"../application/use-cases/list-users-use-case\";\nimport { TokenAdapter } from \"../infrastructure/auth/token-adapter\";\nimport { UserRepository } from \"../infrastructure/persistence/user-repository\";\nimport { BunPasswordHasher } from \"../infrastructure/auth/bun-password-hasher\";\nimport { RealtimeManager } from \"../infrastructure/realtime/realtime-manager\";\nimport { WebServiceServer } from \"../presentation/server\";\n\nfunction redisConfig(): RedisConfig {\n  return {\n    host: process.env.REDIS_HOST ?? \"127.0.0.1\",\n    port: parseInt(process.env.REDIS_PORT ?? \"6379\", 10),\n    password: process.env.REDIS_PASSWORD,\n    db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : undefined,\n  };\n}\n\nexport function buildContainer() {\n  const container = createContainer();\n\n  container.register({\n    authCfg: asValue(authConfig()),\n    serverCfg: asValue(serverConfig()),\n    pgCfg: asValue(postgresConfig()),\n    redisCfg: asValue(redisConfig()),\n    seed: asValue(seedUsers()),\n\n    postgres: asFunction(({ pgCfg }) => new PostgresAdapter(pgCfg)).singleton(),\n    timescale: asFunction(\n      ({ pgCfg }) => new TimescaleDBAdapter(pgCfg),\n    ).singleton(),\n\n    redis: asFunction(\n      ({ redisCfg }) => new RedisConnection(redisCfg),\n    ).singleton(),\n\n    mvManager: asFunction(\n      ({ timescale }) => new MaterializedViewManager(timescale),\n    ).singleton(),\n\n    realtime: asFunction(\n      ({ redis }) => new RealtimeManager(redis),\n    ).singleton(),\n\n    userRepo: asFunction(\n      ({ postgres }) => new UserRepository(postgres),\n    ).singleton(),\n    tokens: asFunction(\n      ({ authCfg }) => new TokenAdapter(authCfg),\n    ).singleton(),\n    hasher: asFunction(() => new BunPasswordHasher()).singleton(),\n\n    loginUseCase: asFunction(\n      ({ userRepo, tokens, hasher }) =>\n        new LoginUseCase(userRepo, tokens, hasher),\n    ).singleton(),\n    refreshTokenUseCase: asFunction(\n      ({ userRepo, tokens }) =>\n        new RefreshTokenUseCase(userRepo, tokens),\n    ).singleton(),\n    logoutUseCase: asFunction(\n      ({ userRepo }) => new LogoutUseCase(userRepo),\n    ).singleton(),\n    createUserUseCase: asFunction(\n      ({ userRepo, hasher }) => new CreateUserUseCase(userRepo, hasher),\n    ).singleton(),\n    updateUserUseCase: asFunction(\n      ({ userRepo, hasher }) => new UpdateUserUseCase(userRepo, hasher),\n    ).singleton(),\n    deleteUserUseCase: asFunction(\n      ({ userRepo }) => new DeleteUserUseCase(userRepo),\n    ).singleton(),\n    listUsersUseCase: asFunction(\n      ({ userRepo }) => new ListUsersUseCase(userRepo),\n    ).singleton(),\n\n    server: asFunction(\n      ({ serverCfg }) => new WebServiceServer(serverCfg),\n    ).singleton(),\n  });\n\n  return container;\n}\n"
 }
 ```
@@ -7101,7 +7101,7 @@ Update `index.ts` bootstrap to wire new components:
 ```json
 {
   "content": "import { buildContainer } from \"./config/container\";\nimport type { ServerDependencies } from \"./presentation/server\";\nimport { TelemetryEventListener } from \"./infrastructure/realtime/telemetry-event-listener\";\n\nexport async function main() {\n  console.log(\"[run] Web Service baslatiliyor...\");\n\n  const container = buildContainer();\n  const c = container.cradle as Record<string, unknown>;\n\n  const postgres = c.postgres as any;\n  const timescale = c.timescale as any;\n  const userRepo = c.userRepo as any;\n  const server = c.server as any;\n  const seed = c.seed as any;\n  const serverCfg = c.serverCfg as any;\n  const realtime = c.realtime as any;\n  const redis = c.redis as any;\n  const mvManager = c.mvManager as any;\n\n  const deps: ServerDependencies = {\n    serverConfig: serverCfg,\n    timescale,\n    postgres,\n    tokens: c.tokens as any,\n    userRepo: c.userRepo as any,\n    loginUseCase: c.loginUseCase as any,\n    refreshTokenUseCase: c.refreshTokenUseCase as any,\n    logoutUseCase: c.logoutUseCase as any,\n    createUserUseCase: c.createUserUseCase as any,\n    updateUserUseCase: c.updateUserUseCase as any,\n    deleteUserUseCase: c.deleteUserUseCase as any,\n    listUsersUseCase: c.listUsersUseCase as any,\n    realtime,\n    mvManager,\n  };\n\n  await postgres.connect();\n  await redis.connect();\n  await userRepo.initialize(seed);\n\n  const listener = new TelemetryEventListener(redis, realtime);\n  listener.start();\n\n  let stopping = false;\n  const shutdown = async (signal: string) => {\n    if (stopping) return;\n    stopping = true;\n    console.log(`[run] ${signal} alindi, kapatiliyor...`);\n    await listener.stop();\n    await server.stop();\n    await timescale.close();\n    await postgres.disconnect();\n    await redis.disconnect();\n    process.exit(0);\n  };\n\n  process.on(\"SIGTERM\", () => shutdown(\"SIGTERM\"));\n  process.on(\"SIGINT\", () => shutdown(\"SIGINT\"));\n\n  await server.start(deps);\n  console.log(\"[run] Hazir.\");\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/index.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/index.ts"
 }
 ```
 
@@ -7126,7 +7126,7 @@ Now update `unified-routes.ts` to include MV-based smart telemetry and hypertabl
 ```json
 {
   "content": "import type { FastifyInstance } from \"fastify\";\nimport { TimescaleDBAdapter, MaterializedViewManager } from \"@gd-monorepo/core\";\nimport type { TelemetryData } from \"@gd-monorepo/shared-types\";\nimport { DeviceRegistry } from \"../../infrastructure/persistence/device-registry\";\n\nexport async function unifiedRoutes(\n  fastify: FastifyInstance,\n  options: {\n    registry: DeviceRegistry;\n    timescale: TimescaleDBAdapter;\n    mvManager: MaterializedViewManager;\n  },\n) {\n  const { registry, timescale, mvManager } = options;\n\n  fastify.get(\"/telemetry/latest\", async (request, reply) => {\n    try {\n      await registry.refresh();\n\n      const { deviceIds } = request.query as { deviceIds?: string };\n      const ids = deviceIds ? deviceIds.split(\",\") : [];\n\n      const targetDevices = registry.online().filter(\n        (d) => ids.length === 0 || ids.includes(d.id),\n      );\n\n      const results = await Promise.all(\n        targetDevices.map((d) => timescale.getLatestN(d.id, 2000)),\n      );\n      const allTelemetries = results.flat();\n\n      return reply.send({ telemetries: allTelemetries });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] telemetry/latest hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n\n  fastify.get(\"/telemetry/downsampled\", async (request, reply) => {\n    try {\n      await registry.refresh();\n\n      const {\n        deviceIds,\n        from,\n        to,\n        points,\n        names,\n        rack_id,\n      } = request.query as {\n        deviceIds?: string;\n        from?: string;\n        to?: string;\n        points?: string;\n        names?: string;\n        rack_id?: string;\n      };\n\n      if (!from || !to) {\n        return reply\n          .status(400)\n          .send({ error: \"from ve to parametreleri gerekli\" });\n      }\n\n      const ids = deviceIds ? deviceIds.split(\",\") : [];\n      const nameFilter = names ? names.split(\",\") : undefined;\n      const targetPoints = points ? parseInt(points) : 120;\n\n      const targetDevices2 = registry.online().filter(\n        (d) => ids.length === 0 || ids.includes(d.id),\n      );\n\n      const tagFilter = rack_id ? { rack_id } : undefined;\n      const results = await Promise.all(\n        targetDevices2.map((d) =>\n          timescale.getDownsampledData({\n            deviceId: d.id,\n            names: nameFilter,\n            from: new Date(from),\n            to: new Date(to),\n            points: targetPoints,\n            tags: tagFilter,\n          }),\n        ),\n      );\n      const allTelemetries = results.flat();\n\n      return reply.send({ telemetries: allTelemetries });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] telemetry/downsampled hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n\n  fastify.get(\"/telemetry/:deviceId\", async (request, reply) => {\n    try {\n      const { deviceId } = request.params as { deviceId: string };\n      const {\n        from,\n        to,\n        interval,\n        registers,\n      } = request.query as {\n        from?: string;\n        to?: string;\n        interval?: string;\n        registers?: string;\n      };\n\n      const fromDate = from ? new Date(from) : new Date(Date.now() - 3600000);\n      const toDate = to ? new Date(to) : new Date();\n\n      const timeRange = { from: fromDate, to: toDate };\n\n      const tableName = `device_${deviceId.replace(/[^a-zA-Z0-9_]/g, \"_\")}`;\n      await mvManager.ensureMaterializedViews(tableName);\n\n      let selectedView: string;\n      if (interval && interval !== \"auto\") {\n        selectedView = `${tableName}_${interval}`;\n      } else {\n        selectedView = mvManager.selectView(tableName, timeRange);\n      }\n\n      const isRawView = selectedView === tableName;\n\n      let sql: string;\n      const params: unknown[] = [fromDate.toISOString(), toDate.toISOString()];\n\n      if (isRawView) {\n        sql = `\n          SELECT name, value, unit, description, timestamp, tags\n          FROM ${selectedView}\n          WHERE timestamp BETWEEN $1 AND $2\n        `;\n      } else {\n        sql = `\n          SELECT\n            bucket AS timestamp,\n            name,\n            avg_value AS value,\n            min_value,\n            max_value,\n            last_value,\n            sample_count\n          FROM ${selectedView}\n          WHERE bucket BETWEEN $1 AND $2\n        `;\n      }\n\n      if (registers) {\n        const registerList = registers.split(\",\");\n        const placeholders = registerList\n          .map((_, i) => `$${i + 3}`)\n          .join(\", \");\n        sql += ` AND name IN (${placeholders})`;\n        params.push(...registerList);\n      }\n\n      sql += ` ORDER BY ${isRawView ? \"timestamp\" : \"bucket\"} ASC`;\n\n      const result = await timescale.executeRaw(sql, params) as any;\n      const data = result?.rows ?? [];\n\n      const viewInterval = isRawView\n        ? \"raw\"\n        : selectedView.replace(`${tableName}_`, \"\");\n\n      return reply.send({\n        deviceId,\n        interval: viewInterval,\n        dataPointCount: data.length,\n        data,\n      });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] telemetry/:deviceId hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n\n  fastify.get(\"/timeseries/hypertables\", async (_request, reply) => {\n    try {\n      const result = await timescale.executeRaw(`\n        SELECT\n          hypertable_name,\n          hypertable_schema,\n          num_chunks,\n          compression_enabled,\n          total_size\n        FROM timescaledb_information.hypertables\n        ORDER BY hypertable_name\n      `) as any;\n\n      return reply.send({ hypertables: result?.rows ?? [] });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] hypertables hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n\n  fastify.get(\"/timeseries/hypertables/:name\", async (request, reply) => {\n    try {\n      const { name } = request.params as { name: string };\n\n      const [columns, stats] = await Promise.all([\n        timescale.executeRaw(`\n          SELECT DISTINCT name, COUNT(*) as data_points\n          FROM ${name}\n          GROUP BY name\n          ORDER BY name\n        `) as any,\n        timescale.executeRaw(`\n          SELECT\n            MIN(timestamp) as first_data,\n            MAX(timestamp) as last_data,\n            COUNT(*) as total_points\n          FROM ${name}\n        `) as any,\n      ]);\n\n      return reply.send({\n        hypertable: name,\n        telemetryNames: columns?.rows ?? [],\n        stats: stats?.rows?.[0] ?? {},\n      });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] hypertable detail hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n\n  fastify.get(\"/timeseries/materialized-views\", async (_request, reply) => {\n    try {\n      const views = await mvManager.existingViews();\n      return reply.send({ materializedViews: views });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] mv list hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n\n  fastify.post(\"/timeseries/materialized-views\", async (request, reply) => {\n    try {\n      const { hypertable } = request.body as {\n        hypertable: string;\n        intervals?: string[];\n      };\n\n      if (!hypertable) {\n        return reply\n          .status(400)\n          .send({ error: \"hypertable parametresi gerekli\" });\n      }\n\n      await mvManager.ensureMaterializedViews(hypertable);\n\n      return reply.send({\n        success: true,\n        hypertable,\n        message: \"Materialized view'ler olusturuldu\",\n      });\n    } catch (error) {\n      console.error(\"[UnifiedRoutes] mv create hata:\", error);\n      return reply.status(500).send({ error: \"Internal server error\" });\n    }\n  });\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/presentation/routes/unified-routes.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/presentation/routes/unified-routes.ts"
 }
 ```
 
@@ -7516,7 +7516,7 @@ Several issues to fix. Let me address the ones from my changes (the shared-types
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/package.json",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/package.json",
   "newString": "    \"@fastify/websocket\": \"^11.0.0\",\n    \"@gd-monorepo/core\": \"*\",\n    \"@gd-monorepo/shared-types\": \"*\",\n    \"awilix\": \"^11.0.0\",\n    \"bullmq\": \"^5.0.0\",\n    \"fastify\": \"^5.0.0\",\n    \"jose\": \"^5.0.0\",\n    \"redis\": \"^4.0.0\",\n    \"ws\": \"^8.0.0\",\n    \"zod\": \"^3.25.0\"\n  },\n  \"devDependencies\": {\n    \"@types/bun\": \"latest\",\n    \"@types/ws\": \"^8.0.0\",\n    \"typescript\": \"^5.4.0\"\n  }",
   "oldString": "    \"@fastify/websocket\": \"^11.0.0\",\n    \"@gd-monorepo/core\": \"*\",\n    \"@gd-monorepo/shared-types\": \"*\",\n    \"awilix\": \"^11.0.0\",\n    \"bullmq\": \"^5.0.0\",\n    \"fastify\": \"^5.0.0\",\n    \"jose\": \"^5.0.0\",\n    \"redis\": \"^4.0.0\",\n    \"zod\": \"^3.25.0\"\n  },\n  \"devDependencies\": {\n    \"@types/bun\": \"latest\",\n    \"typescript\": \"^5.4.0\"\n  }"
 }
@@ -7542,7 +7542,7 @@ Fix the type issues in the new files:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/ws-routes.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/ws-routes.ts",
   "newString": "      socket.on(\"error\", (error: Error) => {",
   "oldString": "      socket.on(\"error\", (error) => {"
 }
@@ -7566,7 +7566,7 @@ Fix the telemetry-event-listener cast:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts",
   "newString": "        const telemetries = returnvalue as unknown as TelemetryData[] | undefined;",
   "oldString": "        const telemetries = returnvalue as TelemetryData[] | undefined;"
 }
@@ -7721,13 +7721,13 @@ Now let me check the web-service tsconfig to understand how it resolves packages
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/tsconfig.json"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/tsconfig.json"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/tsconfig.json</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/tsconfig.json</path>
 <type>file</type>
 <content>
 1: {
@@ -8608,7 +8608,7 @@ Actually, the `ws` package (v8+) ships its own types, so `@types/ws` is not need
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/package.json",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/package.json",
   "newString": "  \"devDependencies\": {\n    \"@types/bun\": \"latest\",\n    \"typescript\": \"^5.4.0\"\n  }",
   "oldString": "  \"devDependencies\": {\n    \"@types/bun\": \"latest\",\n    \"@types/ws\": \"^8.0.0\",\n    \"typescript\": \"^5.4.0\"\n  }"
 }
@@ -8905,12 +8905,12 @@ packages/core/src/messaging/interface.ts
 packages/core/src/timeseries/index.ts
 packages/core/src/timeseries/interface.ts
 packages/core/src/timeseries/timescaledb-adapter.ts
-packages/services/data-service/src/data-service.ts
-packages/services/web-service/package.json
-packages/services/web-service/src/config/container.ts
-packages/services/web-service/src/index.ts
-packages/services/web-service/src/presentation/routes/unified-routes.ts
-packages/services/web-service/src/presentation/server.ts
+services/data-service/src/data-service.ts
+services/web-service/package.json
+services/web-service/src/config/container.ts
+services/web-service/src/index.ts
+services/web-service/src/presentation/routes/unified-routes.ts
+services/web-service/src/presentation/server.ts
 packages/ui/src/hooks/index.ts
 ---
  .../features/dashboard/hooks/useDashboardData.ts   |  19 ++-
@@ -8922,10 +8922,10 @@ packages/ui/src/hooks/index.ts
  packages/core/src/timeseries/index.ts              |   6 +
  packages/core/src/timeseries/interface.ts          |   5 +
  .../core/src/timeseries/timescaledb-adapter.ts     |   5 +
- packages/services/data-service/src/data-service.ts |   7 +
- packages/services/web-service/package.json         |   4 +
+ services/data-service/src/data-service.ts |   7 +
+ services/web-service/package.json         |   4 +
  .../services/web-service/src/config/container.ts   |  31 +++-
- packages/services/web-service/src/index.ts         |  12 ++
+ services/web-service/src/index.ts         |  12 ++
  .../src/presentation/routes/unified-routes.ts      | 178 ++++++++++++++++++++-
  .../web-service/src/presentation/server.ts         |  20 ++-
  packages/ui/src/hooks/index.ts                     |   6 +-
@@ -8940,15 +8940,15 @@ packages/ui/src/hooks/index.ts
  M packages/core/src/timeseries/index.ts
  M packages/core/src/timeseries/interface.ts
  M packages/core/src/timeseries/timescaledb-adapter.ts
- M packages/services/data-service/src/data-service.ts
- M packages/services/web-service/package.json
- M packages/services/web-service/src/config/container.ts
- M packages/services/web-service/src/index.ts
- M packages/services/web-service/src/presentation/routes/unified-routes.ts
- M packages/services/web-service/src/presentation/server.ts
+ M services/data-service/src/data-service.ts
+ M services/web-service/package.json
+ M services/web-service/src/config/container.ts
+ M services/web-service/src/index.ts
+ M services/web-service/src/presentation/routes/unified-routes.ts
+ M services/web-service/src/presentation/server.ts
  M packages/ui/src/hooks/index.ts
 ?? packages/core/src/timeseries/materialized-view-manager.ts
-?? packages/services/web-service/src/infrastructure/realtime/
+?? services/web-service/src/infrastructure/realtime/
 ?? packages/ui/src/hooks/useRealtimeTelemetry.ts
 ?? packages/ui/src/hooks/useTelemetry.ts
 
@@ -9175,13 +9175,13 @@ Let me do a final review of the new files:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/realtime-manager.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/realtime-manager.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/realtime-manager.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/realtime-manager.ts</path>
 <type>file</type>
 <content>
 1: import type { RedisConnection } from "@gd-monorepo/core";
@@ -9439,13 +9439,13 @@ Device → Device-Service → BullMQ ──┬── Data-Service (writes TSDB, 
 | `messaging/interface.ts:156` | Processor signature changed to `Promise<unknown>` for returnvalue capture |
 | `messaging/bullmq-adapter.ts:16` | `return processor(jobData)` instead of `await`, `QUEUE_NAMES` now exported |
 
-### Data-Service (`packages/services/data-service`)
+### Data-Service (`services/data-service`)
 
 | File | Change |
 |------|--------|
 | `data-service.ts:42-48` | Returns `job.telemetries` from `WRITE_TELEMETRY` and `MANAGEMENT` workers — QueueEvents `returnvalue` now contains the telemetry array |
 
-### Web-Service (`packages/services/web-service`)
+### Web-Service (`services/web-service`)
 
 | File | Change |
 |------|--------|
@@ -9758,7 +9758,7 @@ Revert Data-Service to its pure single-responsibility form:
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/data-service/src/data-service.ts",
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/data-service/src/data-service.ts",
   "newString": "    await this.mq.registerWorker(async (job) => {\n      if (!this.running) return;\n\n      if (job.type === \"WRITE_TELEMETRY\") {\n        await this.timescale.write(job.telemetries);\n\n        const logInserts = job.telemetries\n          .filter((td) => td.logType && td.value)\n          .map((td) =>\n            this.sql.execute(\n              `INSERT INTO system_logs (type, source, message, details)\n               VALUES ($1, $2, $3, $4)`,\n              [\n                td.logType!,\n                \"system\",\n                `${td.deviceId}: ${td.name}`,\n                `${td.description} | value=${td.value}`,\n              ],\n            ),\n          );\n\n        if (logInserts.length > 0) {\n          await Promise.all(logInserts);\n        }\n      }\n    });",
   "oldString": "    await this.mq.registerWorker(async (job) => {\n      if (!this.running) return;\n\n      if (job.type === \"WRITE_TELEMETRY\") {\n        await this.timescale.write(job.telemetries);\n\n        const logInserts = job.telemetries\n          .filter((td) => td.logType && td.value)\n          .map((td) =>\n            this.sql.execute(\n              `INSERT INTO system_logs (type, source, message, details)\n               VALUES ($1, $2, $3, $4)`,\n              [\n                td.logType!,\n                \"system\",\n                `${td.deviceId}: ${td.name}`,\n                `${td.description} | value=${td.value}`,\n              ],\n            ),\n          );\n\n        if (logInserts.length > 0) {\n          await Promise.all(logInserts);\n        }\n\n        return job.telemetries;\n      }\n\n      if (job.type === \"MANAGEMENT\") {\n        await this.timescale.write(job.telemetries);\n        return job.telemetries;\n      }\n    });"
 }
@@ -9901,7 +9901,7 @@ Rewrite `TelemetryEventListener` to fetch job payload directly via Queue:
 ```json
 {
   "content": "import { Queue, QueueEvents, type Job } from \"bullmq\";\nimport { QUEUE_NAMES } from \"@gd-monorepo/core\";\nimport type { RedisConnection } from \"@gd-monorepo/core\";\nimport type { TelemetryData } from \"@gd-monorepo/shared-types\";\nimport type { RealtimeManager } from \"./realtime-manager\";\n\ninterface TelemetryJob {\n  telemetries: TelemetryData[];\n}\n\nexport class TelemetryEventListener {\n  private readonly queues: Queue[] = [];\n  private readonly queueEventsList: QueueEvents[] = [];\n  private running: boolean = false;\n\n  constructor(\n    private readonly redis: RedisConnection,\n    private readonly realtime: RealtimeManager,\n  ) {}\n\n  start(): void {\n    this.running = true;\n\n    const eventTypes = [\"WRITE_TELEMETRY\", \"MANAGEMENT\"] as const;\n\n    for (const type of eventTypes) {\n      const queue = new Queue(QUEUE_NAMES[type], {\n        connection: this.redis.getConnectionConfig(),\n      });\n      this.queues.push(queue);\n\n      const queueEvents = new QueueEvents(QUEUE_NAMES[type], {\n        connection: this.redis.getConnectionConfig(),\n      });\n\n      queueEvents.on(\"completed\", async ({ jobId }) => {\n        if (!this.running) return;\n\n        try {\n          const job: Job<TelemetryJob> | null = await queue.getJob(jobId);\n          if (!job) return;\n\n          const telemetries = job.data.telemetries;\n          if (!telemetries || !Array.isArray(telemetries)) return;\n\n          for (const telemetry of telemetries) {\n            this.realtime.broadcast(telemetry.deviceId, telemetry);\n            await this.realtime.writeToRingBuffer(\n              telemetry.deviceId,\n              telemetry,\n            );\n          }\n        } catch (error) {\n          console.error(\n            `[TelemetryEventListener] ${type} job verisi alinamadi:`,\n            error,\n          );\n        }\n      });\n\n      queueEvents.on(\"error\", (error) => {\n        console.error(\n          `[TelemetryEventListener] ${type} queue events error:`,\n          error,\n        );\n      });\n\n      this.queueEventsList.push(queueEvents);\n      console.log(`[TelemetryEventListener] ${type} dinleniyor`);\n    }\n  }\n\n  async stop(): Promise<void> {\n    this.running = false;\n\n    for (const qe of this.queueEventsList) {\n      await qe.close();\n    }\n\n    for (const queue of this.queues) {\n      await queue.close();\n    }\n\n    this.queueEventsList.length = 0;\n    this.queues.length = 0;\n    console.log(\"[TelemetryEventListener] Durduruldu\");\n  }\n}\n",
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts"
 }
 ```
 
@@ -9996,9 +9996,9 @@ Build successful. Let me verify the final state of all changed files with git di
  packages/core/src/timeseries/index.ts              |   6 +
  packages/core/src/timeseries/interface.ts          |   5 +
  .../core/src/timeseries/timescaledb-adapter.ts     |   5 +
- packages/services/web-service/package.json         |   4 +
+ services/web-service/package.json         |   4 +
  .../services/web-service/src/config/container.ts   |  31 +++-
- packages/services/web-service/src/index.ts         |  12 ++
+ services/web-service/src/index.ts         |  12 ++
  .../src/presentation/routes/unified-routes.ts      | 178 ++++++++++++++++++++-
  .../web-service/src/presentation/server.ts         |  20 ++-
  packages/ui/src/hooks/index.ts                     |   6 +-
@@ -10019,13 +10019,13 @@ The Data-Service file and messaging interface are no longer in the diff since I 
 **Input:**
 ```json
 {
-  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts"
+  "filePath": "/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts"
 }
 ```
 
 **Output:**
 ```
-<path>/home/ilteris/Documents/bms/gd-pms-monorepo/packages/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts</path>
+<path>/home/ilteris/Documents/bms/gd-pms-monorepo/services/web-service/src/infrastructure/realtime/telemetry-event-listener.ts</path>
 <type>file</type>
 <content>
 1: import { Queue, QueueEvents, type Job } from "bullmq";

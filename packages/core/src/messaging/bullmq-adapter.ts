@@ -19,6 +19,7 @@ export const QUEUE_NAMES: Record<JobType, string> = {
   COMMAND_DEVICE: "queue_command_device",
   MANAGEMENT: "queue_management",
   WS_BROADCAST: "queue_ws_broadcast",
+  FETCH_EXTERNAL: "queue_fetch_external",
 };
 
 export class BullMQAdapter implements IMessageQueue {
@@ -200,6 +201,7 @@ export class BullMQAdapter implements IMessageQueue {
       "COMMAND_DEVICE",
       "MANAGEMENT",
       "WS_BROADCAST",
+      "FETCH_EXTERNAL",
     ];
 
     for (const type of jobTypes) {

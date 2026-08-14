@@ -181,7 +181,7 @@ src/
 
 ## Device Configurations
 
-Device configs live in `packages/services/device-service/config/` (local dev) and `deployment/config-docker/` (Docker). Each JSON defines telemetry registers, optional simulator settings, and optional command definitions.
+Device configs live in `services/device-service/config/` (local dev) and `deployment/config-docker/` (Docker). Each JSON defines telemetry registers, optional simulator settings, and optional command definitions.
 
 ```
 config/
@@ -326,7 +326,7 @@ nx run <proj>:<target>              # Run any Nx target
 ### Per-project typecheck
 
 ```bash
-cd packages/services/web-service && bun --bun tsc --noEmit
+cd services/web-service && bun --bun tsc --noEmit
 nx run web-service:typecheck
 ```
 

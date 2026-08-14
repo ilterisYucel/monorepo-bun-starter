@@ -399,6 +399,34 @@ export const managementIntervalMs: ConfigDefinition<number> = {
 };
 
 // =============================================================================
+// Integration Service — plugin yukleme
+// =============================================================================
+
+export const integrationPluginDir: ConfigDefinition<string> = {
+  key: "integration.pluginDir",
+  env: "INTEGRATION_PLUGIN_DIR",
+  filePath: "integration.pluginDir",
+  default: "./plugins",
+  description: "Runtime plugin dizini (musteriye ozel pluginler)",
+};
+
+export const integrationConfigDir: ConfigDefinition<string> = {
+  key: "integration.configDir",
+  env: "INTEGRATION_CONFIG_DIR",
+  filePath: "integration.configDir",
+  default: "./config/plugins",
+  description: "Plugin konfigurasyon dizini (<plugin-adi>.json dosyalari)",
+};
+
+export const integrationStateDir: ConfigDefinition<string> = {
+  key: "integration.stateDir",
+  env: "INTEGRATION_STATE_DIR",
+  filePath: "integration.stateDir",
+  default: "./data/plugins",
+  description: "Plugin durum dizini (fetch cursor vb.)",
+};
+
+// =============================================================================
 // i18n / Çeviri
 // =============================================================================
 
@@ -430,8 +458,12 @@ export const i18nAvailableLocales: ConfigDefinition<string> = {
 /**
  * Tum ConfigDefinition'lari iceren liste.
  * Her servis bu listenin tamamini veya bir kismini kullanabilir.
+ *
+ * ELEGANT-EXCEPTION: heterojen listedir — T tip parametresi her girdide farklidir.
+ * `ConfigDefinition<any>[]` varyans denetimini devre disi birakir; degerler
+ * ConfigLoader icinde her key icin ayri ayri dogrulanir.
  */
-export const ALL_CONFIG_DEFINITIONS: ConfigDefinition[] = [
+export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   // Sunucu
   serverPort,
   serverHost,
@@ -475,6 +507,11 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition[] = [
   servicePollIntervalMs,
   workerConcurrency,
   managementIntervalMs,
+
+  // Integration Service
+  integrationPluginDir,
+  integrationConfigDir,
+  integrationStateDir,
 
   // i18n
   i18nDefaultLocale,

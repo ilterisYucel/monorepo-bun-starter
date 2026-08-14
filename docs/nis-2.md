@@ -16,7 +16,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 | :------ | :-------- | :---- |
 | Monorepo Yönetimi | Nx | Kurulu |
 | Paket Yöneticisi | Bun | Kurulu |
-| Backend Servisler | Node.js (packages/services/) | Geliştirme süreci devam ediyor |
+| Backend Servisler | Node.js (services/) | Geliştirme süreci devam ediyor |
 | Desktop Uygulama | Electron/Container (apps/desktop, apps/container-desktop) | Geliştirme süreci devam ediyor |
 | Web Frontend | React (apps/container-web, apps/field, apps/superadmin) | Geliştirme süreci devam ediyor |
 | Paylaşılan Paketler | core, shared-types, shared-utils, ui, device-library | Mevcut |
@@ -124,7 +124,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 **Amaç:** TamperEvidentLogger'ın tüm backend servislerin request/response döngüsüne dahil edilmesi ve otomatik audit log üretilmesi.
 
 **Yapılacaklar:**
-1.  `packages/services/data-service/src/`, `packages/services/device-service/src/` ve `packages/services/web-service/src/` altında logger entegrasyonu gerçekleştirilir.
+1.  `services/data-service/src/`, `services/device-service/src/` ve `services/web-service/src/` altında logger entegrasyonu gerçekleştirilir.
 2.  Her servis için ortak bir logger yapılandırması `packages/core` içerisinden sağlanır.
 3.  Hassas endpoint'lere yapılan istekler otomatik olarak `audit` seviyesinde loglanır.
 4.  Response süresi ve status code loga eklenir.
@@ -344,9 +344,9 @@ Bu adımların uygulanması sonucunda workspace'te aşağıdaki ekleme ve deği�
 - sonar-project.properties (NIS2 exclusion ve kaynak dizinleri)
 - nx.json (yeni runner tanımları)
 - playwright.config.ts (güvenlik testi projesi)
-- packages/services/data-service/src/ (logger entegrasyonu)
-- packages/services/device-service/src/ (logger entegrasyonu)
-- packages/services/web-service/src/ (logger entegrasyonu)
+- services/data-service/src/ (logger entegrasyonu)
+- services/device-service/src/ (logger entegrasyonu)
+- services/web-service/src/ (logger entegrasyonu)
 - packages/simulators/ (logger entegrasyonu)
 
 ---
@@ -360,9 +360,9 @@ Bu adımların uygulanması sonucunda workspace'te aşağıdaki ekleme ve deği�
 | 3 | Hard-coded secret kurallarının aktif edilmesi | SonarQube | SonarQube UI |
 | 4 | Quality Gate'in sertleştirilmesi ve sonar-project.properties güncellemesi | SonarQube | SonarQube UI / Root |
 | 5 | TamperEvidentLogger sınıfının yazılması | Kod | packages/core/src/lib/logger/ |
-| 6 | Backend servislere logger entegrasyonu | Kod | packages/services/*/ |
+| 6 | Backend servislere logger entegrasyonu | Kod | services/*/ |
 | 7 | VerifyChain metodu ve testinin yazılması | Kod / Test | packages/core/src/lib/logger/ |
-| 8 | Health check endpoint'inin yazılması | Kod | packages/services/*/ |
+| 8 | Health check endpoint'inin yazılması | Kod | services/*/ |
 | 9 | useAuditLog hook'unun yazılması ve uygulamalara entegrasyonu | Kod | packages/core + apps/*/ |
 | 10 | Simülatörlere güvenlik entegrasyonu | Kod | packages/simulators/ |
 | 11 | Nx ile SonarQube analizinin CI'a eklenmesi | CI/CD | CI konfigürasyonu |

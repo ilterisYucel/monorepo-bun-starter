@@ -1,0 +1,21 @@
+{
+  "clientId": "EPIAS-CLIENT-ID-BURAYA",
+  "baseUrl": "https://seffaflik.epias.com.tr/electricity-service/v1",
+  "intervalMs": 3600000,
+  "series": [
+    {
+      "name": "MCP",
+      "path": "/markets/dam/data/mcp",
+      "unit": "TRY/MWh",
+      "dateField": "date",
+      "valueField": "price"
+    },
+    {
+      "name": "SMF",
+      "path": "/markets/smp/data/smp",
+      "unit": "TRY/MWh",
+      "dateField": "date",
+      "valueField": "price"
+    }
+  ]
+}

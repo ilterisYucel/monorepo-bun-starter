@@ -60,7 +60,7 @@ services:
   device-service:
     build:
       context: ../
-      dockerfile: packages/services/device-service/deployment/Dockerfile.dev
+      dockerfile: services/device-service/deployment/Dockerfile.dev
     container_name: container-device-service-dev
     environment:
       NODE_ENV: development
@@ -68,9 +68,9 @@ services:
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-docker
     volumes:
-      - ../packages/services/device-service/src:/app/packages/services/device-service/src
-      - ../packages/services/device-service/run.ts:/app/packages/services/device-service/run.ts
-      - ../packages/services/device-service/deployment/config-docker:/app/config-docker:ro
+      - ../services/device-service/src:/app/services/device-service/src
+      - ../services/device-service/run.ts:/app/services/device-service/run.ts
+      - ../services/device-service/deployment/config-docker:/app/config-docker:ro
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
@@ -89,7 +89,7 @@ services:
   data-service:
     build:
       context: ../
-      dockerfile: packages/services/data-service/deployment/Dockerfile.dev
+      dockerfile: services/data-service/deployment/Dockerfile.dev
     container_name: container-data-service-dev
     environment:
       NODE_ENV: development
@@ -101,8 +101,8 @@ services:
       TIMESCALE_PASSWORD: password
       TIMESCALE_DATABASE: battery
     volumes:
-      - ../packages/services/data-service/src:/app/packages/services/data-service/src
-      - ../packages/services/data-service/run.ts:/app/packages/services/data-service/run.ts
+      - ../services/data-service/src:/app/services/data-service/src
+      - ../services/data-service/run.ts:/app/services/data-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
@@ -122,7 +122,7 @@ services:
   web-service:
     build:
       context: ../
-      dockerfile: packages/services/web-service/deployment/Dockerfile.dev
+      dockerfile: services/web-service/deployment/Dockerfile.dev
     container_name: container-web-service-dev
     environment:
       NODE_ENV: development
@@ -136,15 +136,15 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
+      DEVICE_CONFIG_DIR: /app/services/device-service/config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
     ports:
       - "5001:5001"
     volumes:
-      - ../packages/services/web-service/src:/app/packages/services/web-service/src
-      - ../packages/services/web-service/run.ts:/app/packages/services/web-service/run.ts
+      - ../services/web-service/src:/app/services/web-service/src
+      - ../services/web-service/run.ts:/app/services/web-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src

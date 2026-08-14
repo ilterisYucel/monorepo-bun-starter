@@ -60,7 +60,7 @@ services:
   web-service:
     build:
       context: ../
-      dockerfile: packages/services/web-service/deployment/Dockerfile.dev
+      dockerfile: services/web-service/deployment/Dockerfile.dev
     container_name: boss-web-service-dev
     environment:
       NODE_ENV: development
@@ -75,15 +75,15 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      DEVICE_CONFIG_DIR: /app/packages/services/device-service/config
+      DEVICE_CONFIG_DIR: /app/services/device-service/config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
     ports:
       - "5003:5003"
     volumes:
-      - ../packages/services/web-service/src:/app/packages/services/web-service/src
-      - ../packages/services/web-service/run.ts:/app/packages/services/web-service/run.ts
+      - ../services/web-service/src:/app/services/web-service/src
+      - ../services/web-service/run.ts:/app/services/web-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
@@ -130,9 +130,51 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  integration-service:
+    build:
+      context: ../
+      dockerfile: services/integration-service/deployment/Dockerfile.dev
+    container_name: boss-integration-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      INTEGRATION_PLUGIN_DIR: /app/customer-plugins
+      INTEGRATION_CONFIG_DIR: /app/config/plugins
+      INTEGRATION_STATE_DIR: /app/data/plugins
+    volumes:
+      - ../services/integration-service/src:/app/services/integration-service/src
+      - ../services/integration-service/run.ts:/app/services/integration-service/run.ts
+      - ../services/integration-service/config:/app/config
+      - ../deployment/customer-plugins:/app/customer-plugins
+      - ../packages/plugin-sdk/src:/app/packages/plugin-sdk/src
+      - ../packages/plugins/epias-market-prices/src:/app/packages/plugins/epias-market-prices/src
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
+      - integration-state-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - boss-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   boss-timescale-data-dev:
   boss-redis-data-dev:
+  integration-state-data:
 
 networks:
   boss-network:

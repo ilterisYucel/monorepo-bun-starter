@@ -2,7 +2,7 @@
 
 import type { TelemetryData } from "./telemetry";
 
-export type JobType = "READ_DEVICE" | "WRITE_TELEMETRY" | "COMMAND_DEVICE" | "MANAGEMENT" | "WS_BROADCAST";
+export type JobType = "READ_DEVICE" | "WRITE_TELEMETRY" | "COMMAND_DEVICE" | "MANAGEMENT" | "WS_BROADCAST" | "FETCH_EXTERNAL";
 
 export interface BaseJob {
   jobId: string;
@@ -67,4 +67,17 @@ export interface WsBroadcastJob extends BaseJob {
   telemetries: TelemetryData[];
 }
 
-export type DeviceJob = ReadDeviceJob | WriteTelemetryJob | CommandDeviceJob | ManagementJob | WsBroadcastJob;
+/**
+ * Entegrasyon plugin fetch isi.
+ * Integration service, plugin'in schedule() bildirimine gore
+ * bu job'i repeatable olarak queue'lar.
+ */
+export interface FetchExternalJob extends BaseJob {
+  type: "FETCH_EXTERNAL";
+  /** Calistirilacak plugin adi (manifest.name) */
+  pluginName: string;
+  /** Istege bagli fetch penceresi (backfill / manuel tetik) */
+  window?: { from?: string; to?: string };
+}
+
+export type DeviceJob = ReadDeviceJob | WriteTelemetryJob | CommandDeviceJob | ManagementJob | WsBroadcastJob | FetchExternalJob;

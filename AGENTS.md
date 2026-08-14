@@ -31,19 +31,32 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 - Mocking rules: external deps (redis, pg, bullmq) via `vi.mock()` + root-level `__mocks__/`; `@gd-monorepo/*` internal packages are never mocked.
 
 ## Monorepo structure
-- **Bun** is the package manager. Workspaces: `apps/*` + `packages/**`.
+- **Bun** is the package manager. Workspaces: `apps/*` + `packages/**` + `services/*`.
 - **Nx** v22 orchestrates build order via `"dependsOn": ["^build"]` in `nx.json`.
 - Cached Nx targets: `build`, `test`, `lint`.
+
+### Three-layer model (MANDATORY mental model)
+
+| Layer | What | Physical location | Examples |
+|:------|:-----|:------------------|:---------|
+| **Platform (engine)** | Reusable libraries — imported, never deployed | `packages/` | core, plugin-sdk, plugins/*, shared-types, shared-utils, simulators, device-library, ui |
+| **Capabilities** | Deployable, config-driven parts — runnable alone but not a product; composed into products via config | `services/` (backend) + `apps/` (frontend/desktop) | web-service, data-service, device-service, integration-service \| field, superadmin, container-web, desktop, editor |
+| **Products** | Assembled composition of capabilities + configs | `deployment/` (compose files + configs) | field stack, boss stack, container stack, customer variants |
+
+- Services are **not** products — a product is the configured composition (e.g. field product = device-service + data-service + web-service + field app + compose + device configs + `SERVICE_TIER=field`).
+- Low-code/no-code evolution: the editor generates the **product layer** (compose compositions + configs); capabilities stay generic; customer-specific behavior belongs in product configs/plugins — never in the platform.
+- `packages/` = import-only. If something has a `run.ts`/Dockerfile and gets deployed, it belongs in `services/` or `apps/`.
 
 ### Build order (implicit from Nx `^build`)
 ```
 shared-types (leaf, no deps)
-  → shared-utils, core, simulators
-    → ui
+  → shared-utils, core, simulators, plugin-sdk
+    → plugins/epias-market-prices, ui
       → demo-backend (depends on core, shared-types, simulators)
       → web-service (depends on core, shared-types)
       → data-service (depends on core, shared-types)
       → device-service (depends on core, shared-types, simulators)
+      → integration-service (depends on core, plugin-sdk, plugins/*)
       → web (depends on shared-types, shared-utils, ui)
       → desktop (depends on shared-types, shared-utils)
 ```
@@ -51,17 +64,20 @@ shared-types (leaf, no deps)
 ### Package ownership
 | Package        | Purpose                                                              |
 | :---------------| :---------------------------------------------------------------------|
-| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth)  |
-| `shared-utils` | Empty placeholder — exports nothing                                  |
+| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth, integration contracts) |
+| `shared-utils` | ConfigLoader, env sources, config definitions                          |
 | `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
+| `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader (see `docs/PLUGIN-MIMARISI.md`) |
+| `plugins/*`    | Built-in plugin packages (e.g. `epias-market-prices`) — loaded via StaticPluginSource |
 | `simulators`   | BSC/HVAC/XRack/CB/DC-Output device simulators — register-accurate                 |
 | `ui`           | Shared React components (PixiJS graphics, Recharts, Emotion)         |
 | `web`          | React v19 frontend (Vite v8, TanStack Query, Zustand)                |
 | `desktop`      | Electron v39 + React v19 (electron-vite)                             |
 | `demo-backend` | Fastify v5 backend (REST + WebSocket) — legacy                       |
-| `web-service`  | Hexagonal Fastify 5 API — Auth/JWT, TimescaleDB queries, awilix, zod |
-| `data-service` | BullMQ consumer — writes telemetry to TimescaleDB                    |
-| `device-service`| Modbus poller — reads device configs, produces BullMQ jobs           |
+| `web-service`  | Hexagonal Fastify 5 API — Auth/JWT, TimescaleDB queries, awilix, zod | *(in `services/`)* |
+| `data-service` | BullMQ consumer — writes telemetry to TimescaleDB                    | *(in `services/`)* |
+| `device-service`| Modbus poller — reads device configs, produces BullMQ jobs           | *(in `services/`)* |
+| `integration-service` | Plugin host — EPIAŞ etc. periodic data collection (BullMQ repeatable) | *(in `services/`)* |
 
 ## Dependency injection rules (MANDATORY)
 
@@ -521,10 +537,11 @@ When touching any file with hardcoded hex colors:
 `apps/container-web` and `apps/container-desktop` Vite config aliases map `@gd-monorepo/*` to `packages/*/src/` (not `dist/`) for HMR. Library builds are not required for frontend dev.
 
 ## Docker / deployment
-- Compose files: `deployment/docker-compose.demo-backend.yml` (prod) and `.dev.yml` (hot-reload).
-- Stack: TimescaleDB + Redis + demo-backend (Fastify) + web (nginx).
-- Backend Dockerfiles: `apps/demo-backend/deployment/`.
+- Compose files: `deployment/docker-compose.{field,boss,container}*.yml` (prod + dev) — the **product layer**.
+- Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
+- Backend Dockerfiles: `services/*/deployment/` (prod) + `Dockerfile.dev` (hot-reload).
 - Web Dockerfiles: `apps/container-web/deployment/`.
+- Customer plugins: `deployment/customer-plugins/` (mounted into integration-service at runtime).
 
 ## Key framework versions
 - **Runtime:** Bun (latest)
