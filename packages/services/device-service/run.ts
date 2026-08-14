@@ -22,7 +22,15 @@ async function main() {
     db: config.get<number | undefined>("redis.db"),
   });
   const mq = new BullMQAdapter(redis);
-  const service = await DeviceService.fromConfigDir(configDir, mq);
+
+  // Site kimligi: container-level app CONTAINER_ID, field-level app FIELD_ID
+  // env'i ile telemetriye otomatik tag olarak eklenir (bkz. TelemetryTagger).
+  const identity = {
+    containerId: config.get<string | undefined>("site.containerId"),
+    fieldId: config.get<string | undefined>("site.fieldId"),
+  };
+
+  const service = await DeviceService.fromConfigDir(configDir, mq, identity);
 
   let stopping = false;
   const shutdown = async (signal: string) => {

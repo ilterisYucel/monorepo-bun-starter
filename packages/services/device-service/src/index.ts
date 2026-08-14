@@ -1,5 +1,5 @@
 export { DeviceService } from "./device-service";
 export { DeviceConfigLoader } from "./config-loader";
 export { DeviceFactory } from "./device-factory";
-export { SimulatorProvider } from "./simulator-provider";
+export { SimulatorRegistry } from "./simulator-registry";
 export { DeviceScheduler } from "./device-scheduler";

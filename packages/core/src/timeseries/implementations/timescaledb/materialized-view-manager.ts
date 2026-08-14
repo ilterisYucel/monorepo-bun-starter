@@ -1,4 +1,4 @@
-import type { ITimeseriesDatabase } from "./interface";
+import type { ITimeseriesDatabase } from "../../interface";
 
 export interface MaterializedInterval {
   name: string;

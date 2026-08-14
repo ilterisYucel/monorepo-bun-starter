@@ -1,7 +1,10 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { COLORS, SCADA_ICONS, ContainerConnectionBadge, useTranslation } from "@gd-monorepo/ui";
+import type { TelemetryData } from "@gd-monorepo/shared-types";
 import { useContainerTelemetry } from "../features/containers/hooks/useContainerTelemetry";
+import { mockPcsList } from "../features/containers/services/mockDataGenerator";
+import { PcsCard } from "../features/containers/components/PcsCard";
 
 const BackIcon = SCADA_ICONS.collapse;
 const BatteryIcon = SCADA_ICONS.battery;
@@ -34,41 +37,54 @@ interface DeviceSummary {
   avgRoomTemp?: number;
 }
 
-function deviceSummaries(containerId: string, status: string): DeviceSummary[] {
-  if (status === "offline") {
-    return [
-      { name: "BSC-1" }, { name: "BSC-2" },
-      { name: "CB-1" }, { name: "CB-2" },
-      { name: "DC-OUTPUT-1" }, { name: "DC-OUTPUT-2" },
-      { name: "HVAC (4 oda)", roomCount: 4 },
-    ];
-  }
+function deviceSummaries(telemetry: TelemetryData[]): DeviceSummary[] {
+  const num = (deviceId: string, name: string): number | undefined =>
+    telemetry.find((x) => x.deviceId === deviceId && x.name === name)?.value as number | undefined;
+  const raw = (deviceId: string, name: string): unknown =>
+    telemetry.find((x) => x.deviceId === deviceId && x.name === name)?.value;
 
-  if (containerId === "container-1") {
-    return [
-      { name: "BSC-1", soc: 82, soh: 95, voltage: 48.2, current: 258, power: 12.4, temperature: 38, chargeStatus: "Şarj Oluyor" },
-      { name: "BSC-2", soc: 78, soh: 93, voltage: 48.0, current: 245, power: 11.8, temperature: 36, chargeStatus: "Şarj Oluyor" },
-      { name: "CB-1", isClosed: true, isTripped: false },
-      { name: "CB-2", isClosed: true, isTripped: false },
-      { name: "DC-OUTPUT-1", isOn: true, dcVoltage: 48.0, dcCurrent: 120, dcPower: 5.76, temperature: 35 },
-      { name: "DC-OUTPUT-2", isOn: true, dcVoltage: 47.8, dcCurrent: 105, dcPower: 5.02, temperature: 34 },
-      { name: "HVAC (4 oda)", roomCount: 4, avgRoomTemp: 22.5 },
-    ];
-  }
+  const bsc = ["BSC-1", "BSC-2"].map((id) => ({
+    name: id,
+    soc: num(id, "SOC"),
+    soh: num(id, "SOH"),
+    voltage: num(id, "Voltage"),
+    current: num(id, "Current"),
+    power: num(id, "Power"),
+    temperature: num(id, "MaxCellTemperature"),
+    chargeStatus: raw(id, "ChargeStatus") as string | undefined,
+  }));
 
-  if (containerId === "container-2") {
-    return [
-      { name: "BSC-1", soc: 65, soh: 91, voltage: 47.5, current: 310, power: 14.7, temperature: 42, chargeStatus: "Deşarj Oluyor" },
-      { name: "BSC-2", soc: 70, soh: 92, voltage: 47.8, current: 290, power: 13.9, temperature: 40, chargeStatus: "Deşarj Oluyor" },
-      { name: "CB-1", isClosed: true, isTripped: true },
-      { name: "CB-2", isClosed: false, isTripped: false },
-      { name: "DC-OUTPUT-1", isOn: false, dcVoltage: 0, dcCurrent: 0, dcPower: 0, temperature: 28 },
-      { name: "DC-OUTPUT-2", isOn: true, dcVoltage: 47.5, dcCurrent: 95, dcPower: 4.51, temperature: 32 },
-      { name: "HVAC (4 oda)", roomCount: 4, avgRoomTemp: 23.1 },
-    ];
-  }
+  const cb = ["CB-1", "CB-2"].map((id) => ({
+    name: id,
+    isClosed: raw(id, "Is Closed") as boolean | undefined,
+    isTripped: raw(id, "Is Tripped") as boolean | undefined,
+  }));
 
-  return [];
+  const dc = ["DC-1", "DC-2"].map((id) => ({
+    name: `DC-OUTPUT-${id.replace("DC-", "")}`,
+    isOn: raw(id, "Is On") as boolean | undefined,
+    dcVoltage: num(id, "Actual Voltage"),
+    dcCurrent: num(id, "Actual Current"),
+    dcPower: num(id, "Actual Power"),
+    temperature: num(id, "Temperature"),
+  }));
+
+  const rooms = new Map<string, { temp: number }>();
+  for (const x of telemetry) {
+    if (x.deviceId !== "HVAC-KONTROL" || x.name !== "Room Temperature") continue;
+    const roomId = x.tags?.room;
+    if (roomId && !rooms.has(roomId)) rooms.set(roomId, { temp: x.value as number });
+  }
+  const roomTemps = Array.from(rooms.values()).map((r) => r.temp);
+  const hvac = rooms.size > 0
+    ? [{
+        name: `HVAC (${rooms.size} oda)`,
+        roomCount: rooms.size,
+        avgRoomTemp: roomTemps.length > 0 ? roomTemps.reduce((a, b) => a + b, 0) / roomTemps.length : undefined,
+      }]
+    : [];
+
+  return [...bsc, ...cb, ...dc, ...hvac];
 }
 
 const getDeviceStatusDot = (status: string, t: (k: string) => string) => {
@@ -85,6 +101,15 @@ const getDeviceStatusDot = (status: string, t: (k: string) => string) => {
 const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ device, status }) => {
   const { t } = useTranslation();
   const dot = getDeviceStatusDot(status, t);
+
+  const chargeStatusLabel =
+    device.chargeStatus === "Charge"
+      ? t("status.charging")
+      : device.chargeStatus === "Discharge"
+        ? t("status.discharging")
+        : device.chargeStatus !== undefined
+          ? t("status.idleMode")
+          : undefined;
 
   return (
     <div
@@ -110,6 +135,17 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
           {device.name}
         </span>
         <span style={{ fontSize: "11px", color: dot.color }}>{dot.text}</span>
+        {chargeStatusLabel && (
+          <span
+            style={{
+              fontSize: "11px",
+              color: device.chargeStatus === "Charge" ? COLORS.success : COLORS.warning,
+              marginLeft: "auto",
+            }}
+          >
+            {chargeStatusLabel}
+          </span>
+        )}
       </div>
 
       {device.soc !== undefined && (
@@ -248,8 +284,15 @@ const DeviceCard: React.FC<{ device: DeviceSummary; status: string }> = ({ devic
   );
 };
 
+const PcsSection: React.FC<{ containerId: string }> = ({ containerId }) => {
+  const pcs = mockPcsList().find((p) => p.containerId === containerId);
+  if (!pcs) return null;
+  return <PcsCard pcs={pcs} />;
+};
+
 export const ContainerDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const loc = locale();
   const { fieldId, containerId } = useParams<{ fieldId: string; containerId: string }>();
   const navigate = useNavigate();
   const { container } = useContainerTelemetry(containerId ?? "");
@@ -262,10 +305,13 @@ export const ContainerDetailPage: React.FC = () => {
     );
   }
 
-  const devices = deviceSummaries(container.containerId, container.status);
+  const devices = deviceSummaries(container.latestTelemetry);
   const soc = container.latestTelemetry.find(
     (t) => t.name === "SOC" && t.tags?.rack_id === "system",
   );
+  const lastSeen = container.connected
+    ? new Date().toLocaleString(loc, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    : "—";
 
   return (
     <div>
@@ -319,7 +365,11 @@ export const ContainerDetailPage: React.FC = () => {
           },
           {
             label: t("container.devices"),
-            value: `${container.connected ? "13/13" : "0/13"}`,
+            value: `${container.connected ? `${devices.length}/${devices.length}` : `0/${devices.length}`}`,
+          },
+          {
+            label: t("container.lastSeen"),
+            value: lastSeen,
           },
         ].map((g) => (
           <div
@@ -341,6 +391,8 @@ export const ContainerDetailPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <PcsSection containerId={container.containerId} />
 
       <div style={{ fontSize: "12px", fontWeight: 600, color: COLORS.textMuted, marginBottom: "10px" }}>
         {t("container.devices")}

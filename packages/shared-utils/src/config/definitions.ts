@@ -356,6 +356,22 @@ export const deviceConfigDir: ConfigDefinition<string> = {
   description: "Cihaz konfigürasyon dosyalarinin bulundugu dizin",
 };
 
+export const siteContainerId: ConfigDefinition<string | undefined> = {
+  key: "site.containerId",
+  env: "CONTAINER_ID",
+  filePath: "site.containerId",
+  default: undefined,
+  description: "Container-level app kimligi — telemetry tag'lerine container_id olarak eklenir",
+};
+
+export const siteFieldId: ConfigDefinition<string | undefined> = {
+  key: "site.fieldId",
+  env: "FIELD_ID",
+  filePath: "site.fieldId",
+  default: undefined,
+  description: "Field-level app kimligi — telemetry tag'lerine field_id olarak eklenir",
+};
+
 export const servicePollIntervalMs: ConfigDefinition<number> = {
   key: "service.pollIntervalMs",
   env: "SERVICE_POLL_INTERVAL_MS",
@@ -475,6 +491,10 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition[] = [
   servicePollIntervalMs,
   workerConcurrency,
   managementIntervalMs,
+
+  // Site kimligi (telemetry tag'leri: container_id / field_id)
+  siteContainerId,
+  siteFieldId,
 
   // i18n
   i18nDefaultLocale,

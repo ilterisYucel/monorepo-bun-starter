@@ -805,7 +805,9 @@
     }
   ],
   "pollIntervalMs": 2000,
-  "simulator": {
+  "type": "hvac",
+  "transport": {
+    "kind": "simulator",
     "type": "hvac"
   }
 }

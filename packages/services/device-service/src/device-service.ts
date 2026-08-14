@@ -9,8 +9,9 @@ import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
 import { PostgresAdapter } from "@gd-monorepo/core";
 import { DeviceConfigLoader } from "./config-loader";
 import { DeviceFactory } from "./device-factory";
-import { SimulatorProvider } from "./simulator-provider";
+import { SimulatorRegistry } from "./simulator-registry";
 import { DeviceScheduler } from "./device-scheduler";
+import { TelemetryTagger } from "./telemetry-tagger";
 
 interface DeviceEntry {
   device: IDevice;
@@ -66,8 +67,9 @@ export class DeviceService {
   private running: boolean;
   private readonly mq: IMessageQueue;
   private readonly scheduler: DeviceScheduler;
-  private readonly simulators: SimulatorProvider;
+  private readonly simulators: SimulatorRegistry;
   private readonly sql: ISqlDatabase | undefined;
+  private readonly taggers: Map<string, TelemetryTagger>;
 
   constructor(
     devices: {
@@ -83,10 +85,12 @@ export class DeviceService {
     }[],
     mq: IMessageQueue,
     scheduler: DeviceScheduler,
-    simulators: SimulatorProvider,
+    simulators: SimulatorRegistry,
     sql?: ISqlDatabase,
+    identity?: { containerId?: string; fieldId?: string },
   ) {
     this.devices = new Map();
+    this.taggers = new Map();
     this.running = false;
     this.mq = mq;
     this.scheduler = scheduler;
@@ -95,17 +99,22 @@ export class DeviceService {
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
+      this.taggers.set(
+        d.device.id,
+        new TelemetryTagger({ deviceId: d.device.id, ...identity }),
+      );
     }
   }
 
   static async fromConfigDir(
     configDir: string,
     mq: IMessageQueue,
+    identity?: { containerId?: string; fieldId?: string },
   ): Promise<DeviceService> {
     const loader = new DeviceConfigLoader(configDir);
     const { service, devices: configs } = loader.load();
 
-    const simulators = new SimulatorProvider();
+    const simulators = new SimulatorRegistry();
     simulators.createFromConfigs(configs);
 
     const factory = new DeviceFactory(simulators);
@@ -118,8 +127,10 @@ export class DeviceService {
     const deviceEntries = configs.map((c) => {
       const device = factory.create(c);
       const pollIntervalMs = c.pollIntervalMs ?? defaultInterval;
-      const type = c.simulator?.type ?? "unknown";
-      const rackCount = c.simulator?.rackCount;
+      // Cihaz tipi ve rack sayısı config'in kendi alanlarıdır —
+      // generic servis transport/simülatör bilgisine DOKUNMAZ.
+      const type = c.type ?? "unknown";
+      const rackCount = c.rackCount;
       return {
         device,
         pollIntervalMs,
@@ -133,7 +144,7 @@ export class DeviceService {
       };
     });
 
-    return new DeviceService(deviceEntries, mq, scheduler, simulators, sql);
+    return new DeviceService(deviceEntries, mq, scheduler, simulators, sql, identity);
   }
 
   private static async buildSqlAdapter(
@@ -152,8 +163,6 @@ export class DeviceService {
   async start(): Promise<void> {
     this.running = true;
 
-    this.simulators.start();
-
     const entries = Array.from(this.devices.values());
     const results = await Promise.allSettled(entries.map((e) => e.device.connect()));
     const connected = results.filter((r) => r.status === "fulfilled").length;
@@ -164,27 +173,21 @@ export class DeviceService {
       console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
     }
 
-    const bscDevices = entries.filter(
-      (e) => e.type === "bsc" || e.type === "xrack",
-    );
-    const alignedStart: Date | undefined =
-      bscDevices.length > 0
-        ? new Date(
-            Math.ceil(Date.now() / bscDevices[0].pollIntervalMs) *
-              bscDevices[0].pollIntervalMs,
-          )
-        : undefined;
+    // Tüm cihazlar saniye sınırına hizalanır (generic):
+    // LG BSC gibi cihazlar register'ları saniye sınırında günceller; hizalı poll
+    // en taze değeri minimum gecikmeyle okur ve olay analizinde çapraz cihaz
+    // karşılaştırmayı tutarlı kılar. Izgara sabit 1000 ms'dir (sıra-bağımsız):
+    // 1 sn'lik cihaz her saniyede, 5 sn'lik cihaz her 5. saniyede aynı fazda poll eder.
+    const alignedStart = new Date(Math.ceil(Date.now() / 1000) * 1000);
 
     const scheduleResults = await Promise.allSettled(
-      entries.map((entry) => {
-        const isBsc = entry.type === "bsc" || entry.type === "xrack";
-        const startDate = isBsc ? alignedStart : undefined;
-        return this.scheduler.scheduleRead(
+      entries.map((entry) =>
+        this.scheduler.scheduleRead(
           entry.device.id,
           entry.pollIntervalMs,
-          startDate,
-        );
-      }),
+          alignedStart,
+        ),
+      ),
     );
     const scheduleFailed = scheduleResults.filter((r) => r.status === "rejected").length;
     if (scheduleFailed > 0) {
@@ -235,8 +238,6 @@ export class DeviceService {
   async stop(): Promise<void> {
     this.running = false;
 
-    this.simulators.stop();
-
     const disconnectPromises = Array.from(this.devices.values()).map(async (entry) => {
       if (this.sql) {
         try {
@@ -280,7 +281,13 @@ export class DeviceService {
     const bitfields = (await entry.device.readBitfields?.()) ?? [];
     const allData = [...data, ...bitfields];
 
-    await this.scheduler.publishTelemetry(job.deviceId, allData);
+    await this.publish(job.deviceId, allData);
+  }
+
+  private async publish(deviceId: string, data: TelemetryData[]): Promise<void> {
+    const tagger = this.taggers.get(deviceId);
+    const enriched = tagger ? tagger.enrich(data) : data;
+    await this.scheduler.publishTelemetry(deviceId, enriched);
   }
 
   private async executeCommand(job: CommandDeviceJob): Promise<{ success: boolean; validated?: boolean; reason?: string }> {
@@ -305,26 +312,25 @@ export class DeviceService {
       return { success: false, reason: msg };
     }
 
-    this.simulators.forceTick(job.deviceId);
-    console.log(`[DeviceService] forceTick done for ${job.deviceId}`);
-
     try {
       const allData = await entry.device.read();
       const bitfields = (await entry.device.readBitfields?.()) ?? [];
-      await this.scheduler.publishTelemetry(job.deviceId, [...allData, ...bitfields]);
+      await this.publish(job.deviceId, [...allData, ...bitfields]);
     } catch (err) {
       console.error(`[DeviceService] Read+broadcast after command failed: ${String(err)}`);
     }
 
-    if (job.validate) {
-      if ((job.validate.minWaitMs ?? 0) > 0) {
-        await new Promise((r) => setTimeout(r, job.validate.minWaitMs));
+    const validate = job.validate;
+    if (validate) {
+      const minWaitMs = validate.minWaitMs ?? 0;
+      if (minWaitMs > 0) {
+        await new Promise((r) => setTimeout(r, minWaitMs));
       }
       const start = Date.now();
-      while (Date.now() - start < job.validate.timeoutMs) {
+      while (Date.now() - start < validate.timeoutMs) {
         try {
           const readBack = await entry.device.read();
-          const allMatch = job.validate.reads.every((expected) => {
+          const allMatch = validate.reads.every((expected) => {
             const actual = readBack.find((r) => r.name === expected.name);
             return actual && actual.value === expected.expect;
           });

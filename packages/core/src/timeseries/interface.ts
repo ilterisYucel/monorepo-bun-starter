@@ -64,7 +64,12 @@ export interface ITimeseriesDatabase {
   ): Promise<TelemetryData[]>;
 
   /**
-   * Ham SQL çalıştır (DDL, maintenance işlemleri için)
+   * Verisi bulunan cihaz id'lerini listeler
+   */
+  listDevices(): Promise<string[]>;
+
+  /**
+   * Ham sorgu çalıştır (backend'in yerel dilinde: SQL/Flux — bakım işlemleri için)
    */
   executeRaw(sql: string, params?: unknown[]): Promise<unknown>;
 

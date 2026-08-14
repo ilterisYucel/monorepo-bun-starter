@@ -6371,7 +6371,7 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Controller LOC Alarm",
-          "dataTag": "ctrl_loc_alarm",
+          "dataTag": "controller_loc_alarm",
           "description": "Controller LOC Alarm",
           "unit": "-",
           "scale": 1,
@@ -6383,7 +6383,7 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Controller LOC Warning",
-          "dataTag": "ctrl_loc_warning",
+          "dataTag": "controller_loc_warning",
           "description": "Controller LOC Warning",
           "unit": "-",
           "scale": 1,
@@ -6395,8 +6395,116 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Controller LOC Fault",
-          "dataTag": "ctrl_loc_fault",
+          "dataTag": "controller_loc_fault",
           "description": "Controller LOC Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Under SOC Alarm",
+          "dataTag": "under_soc_alarm",
+          "description": "Under SOC Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "Under SOC Warning",
+          "dataTag": "under_soc_warning",
+          "description": "Under SOC Warning",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Under SOC Fault",
+          "dataTag": "under_soc_fault",
+          "description": "Under SOC Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Over SOC Alarm",
+          "dataTag": "over_soc_alarm",
+          "description": "Over SOC Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "Over SOC Warning",
+          "dataTag": "over_soc_warning",
+          "description": "Over SOC Warning",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "Over SOC Fault",
+          "dataTag": "over_soc_fault",
+          "description": "Over SOC Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Over Discharge Power Alarm",
+          "dataTag": "over_discharge_power_alarm",
+          "description": "Over Discharge Power Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Over Discharge Power Warning",
+          "dataTag": "over_discharge_power_warning",
+          "description": "Over Discharge Power Warning",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Over Discharge Power Fault",
+          "dataTag": "over_discharge_power_fault",
+          "description": "Over Discharge Power Fault",
           "unit": "-",
           "scale": 1,
           "offset": 0,
@@ -6410,46 +6518,10 @@
       "registerType": "INPUT_REGISTER",
       "fields": [
         {
-          "bitStart": 12,
-          "bitEnd": 12,
-          "name": "Over Discharge Power Alarm",
-          "dataTag": "Over Charge/Discharge Power_alarm",
-          "description": "Over Discharge Power Alarm",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Alarm",
-          "logType": "error"
-        },
-        {
-          "bitStart": 13,
-          "bitEnd": 13,
-          "name": "Over Discharge Power Warning",
-          "dataTag": "Over Charge/Discharge Power_warning",
-          "description": "Over Discharge Power Warning",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Warning",
-          "logType": "warning"
-        },
-        {
-          "bitStart": 14,
-          "bitEnd": 14,
-          "name": "Over Discharge Power Fault",
-          "dataTag": "Over Charge/Discharge Power_fault",
-          "description": "Over Discharge Power Fault",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Fault",
-          "logType": "error"
-        },
-        {
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Over Charge Power Alarm",
-          "dataTag": "Over Charge/Discharge Power_alarm",
+          "dataTag": "over_charge_power_alarm",
           "description": "Over Charge Power Alarm",
           "unit": "-",
           "scale": 1,
@@ -6461,7 +6533,7 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Over Charge Power Warning",
-          "dataTag": "Over Charge/Discharge Power_warning",
+          "dataTag": "over_charge_power_warning",
           "description": "Over Charge Power Warning",
           "unit": "-",
           "scale": 1,
@@ -6473,7 +6545,7 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Over Charge Power Fault",
-          "dataTag": "Over Charge/Discharge Power_fault",
+          "dataTag": "over_charge_power_fault",
           "description": "Over Charge Power Fault",
           "unit": "-",
           "scale": 1,
@@ -6491,7 +6563,7 @@
           "bitStart": 6,
           "bitEnd": 6,
           "name": "SLF (System Logging Failure) Alarm",
-          "dataTag": "Misc Diagnostics_alarm",
+          "dataTag": "slf_system_logging_failure_alarm",
           "description": "SLF (System Logging Failure) Alarm",
           "unit": "-",
           "scale": 1,
@@ -6503,7 +6575,7 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "SLF (System Logging Failure) Warning",
-          "dataTag": "Misc Diagnostics_warning",
+          "dataTag": "slf_system_logging_failure_warning",
           "description": "SLF (System Logging Failure) Warning",
           "unit": "-",
           "scale": 1,
@@ -6515,80 +6587,8 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "SLF (System Logging Failure) Fault",
-          "dataTag": "Misc Diagnostics_fault",
+          "dataTag": "slf_system_logging_failure_fault",
           "description": "SLF (System Logging Failure) Fault",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Fault",
-          "logType": "error"
-        },
-        {
-          "bitStart": 3,
-          "bitEnd": 3,
-          "name": "MFRD (Multiple Fault Rack) Alarm",
-          "dataTag": "Misc Diagnostics_alarm",
-          "description": "MFRD (Multiple Fault Rack) Alarm",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Alarm",
-          "logType": "error"
-        },
-        {
-          "bitStart": 4,
-          "bitEnd": 4,
-          "name": "MFRD (Multiple Fault Rack) Warning",
-          "dataTag": "Misc Diagnostics_warning",
-          "description": "MFRD (Multiple Fault Rack) Warning",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Warning",
-          "logType": "error"
-        },
-        {
-          "bitStart": 5,
-          "bitEnd": 5,
-          "name": "MFRD (Multiple Fault Rack) Fault",
-          "dataTag": "Misc Diagnostics_fault",
-          "description": "MFRD (Multiple Fault Rack) Fault",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Fault",
-          "logType": "error"
-        },
-        {
-          "bitStart": 9,
-          "bitEnd": 9,
-          "name": "Over Offline Rack Alarm",
-          "dataTag": "Misc Diagnostics_alarm",
-          "description": "Over Offline Rack Alarm",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Alarm",
-          "logType": "error"
-        },
-        {
-          "bitStart": 10,
-          "bitEnd": 10,
-          "name": "Over Offline Rack Warning",
-          "dataTag": "Misc Diagnostics_warning",
-          "description": "Over Offline Rack Warning",
-          "unit": "-",
-          "scale": 1,
-          "offset": 0,
-          "alarmLimit": "Warning",
-          "logType": "warning"
-        },
-        {
-          "bitStart": 11,
-          "bitEnd": 11,
-          "name": "Over Offline Rack Fault",
-          "dataTag": "Misc Diagnostics_fault",
-          "description": "Over Offline Rack Fault",
           "unit": "-",
           "scale": 1,
           "offset": 0,
@@ -6619,15 +6619,76 @@
       "registerType": "INPUT_REGISTER",
       "fields": [
         {
-          "bitStart": 0,
-          "bitEnd": 14,
-          "name": "Reserved",
-          "dataTag": "reserved_diag_5",
-          "description": "Reserved",
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "MFRD (Multiple Fault Rack) Alarm",
+          "dataTag": "mfrd_multiple_fault_rack_alarm",
+          "description": "MFRD (Multiple Fault Rack) Alarm",
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": ""
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "MFRD (Multiple Fault Rack) Warning",
+          "dataTag": "mfrd_multiple_fault_rack_warning",
+          "description": "MFRD (Multiple Fault Rack) Warning",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "MFRD (Multiple Fault Rack) Fault",
+          "dataTag": "mfrd_multiple_fault_rack_fault",
+          "description": "MFRD (Multiple Fault Rack) Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Over Offline Rack Alarm",
+          "dataTag": "over_offline_rack_alarm",
+          "description": "Over Offline Rack Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "Over Offline Rack Warning",
+          "dataTag": "over_offline_rack_warning",
+          "description": "Over Offline Rack Warning",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "Over Offline Rack Fault",
+          "dataTag": "over_offline_rack_fault",
+          "description": "Over Offline Rack Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
         }
       ]
     },
@@ -8274,11 +8335,5115 @@
       "tags": {
         "rack_id": "8"
       }
+    },
+    {
+      "registerAddress": 30238,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30239,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30240,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30241,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30242,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30243,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30247,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30248,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30250,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30251,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30223,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 1)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30388,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30389,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30390,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30391,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30392,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30393,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30397,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30398,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30400,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30401,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30373,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 2)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30538,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30539,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30540,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30541,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30542,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30543,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30547,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30548,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30550,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30551,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30523,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 3)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30688,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30689,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30690,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30691,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30692,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30693,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30697,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30698,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30700,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30701,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30673,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 4)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30838,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30839,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30840,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30841,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30842,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30843,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30847,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30848,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30850,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30851,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30823,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 5)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30988,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30989,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30990,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30991,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30992,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30993,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30997,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30998,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31000,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31001,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 30973,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 6)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 31138,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31139,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31140,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31141,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31142,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31143,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31147,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31148,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31150,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31151,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31123,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 7)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 31288,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Deviation Voltage Alarm",
+          "dataTag": "rack_deviation_voltage_alarm",
+          "description": "Rack Deviation Voltage Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Deviation Voltage Warning",
+          "dataTag": "rack_deviation_voltage_warning",
+          "description": "Rack Deviation Voltage Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Deviation Voltage Fault1",
+          "dataTag": "rack_deviation_voltage_fault1",
+          "description": "Rack Deviation Voltage Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Deviation Voltage Fault2",
+          "dataTag": "rack_deviation_voltage_fault2",
+          "description": "Rack Deviation Voltage Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31289,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Current Alarm",
+          "dataTag": "rack_over_charge_current_alarm",
+          "description": "Rack Over Charge Current Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Current Warning",
+          "dataTag": "rack_over_charge_current_warning",
+          "description": "Rack Over Charge Current Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Current Fault1",
+          "dataTag": "rack_over_charge_current_fault1",
+          "description": "Rack Over Charge Current Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Current Fault2",
+          "dataTag": "rack_over_charge_current_fault2",
+          "description": "Rack Over Charge Current Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31290,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under Temperature Alarm",
+          "dataTag": "under_temperature_alarm",
+          "description": "Under Temperature Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under Temperature Warning",
+          "dataTag": "under_temperature_warning",
+          "description": "Under Temperature Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under Temperature Fault1",
+          "dataTag": "under_temperature_fault1",
+          "description": "Under Temperature Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under Temperature Fault2",
+          "dataTag": "under_temperature_fault2",
+          "description": "Under Temperature Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31291,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack Over Charge Power Alarm",
+          "dataTag": "rack_over_charge_power_alarm",
+          "description": "Rack Over Charge Power Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack Over Charge Power Warning",
+          "dataTag": "rack_over_charge_power_warning",
+          "description": "Rack Over Charge Power Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack Over Charge Power Fault1",
+          "dataTag": "rack_over_charge_power_fault1",
+          "description": "Rack Over Charge Power Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack Over Charge Power Fault2",
+          "dataTag": "rack_over_charge_power_fault2",
+          "description": "Rack Over Charge Power Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31292,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Under SOH Alarm",
+          "dataTag": "under_soh_alarm",
+          "description": "Under SOH Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Under SOH Warning",
+          "dataTag": "under_soh_warning",
+          "description": "Under SOH Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Under SOH Fault1",
+          "dataTag": "under_soh_fault1",
+          "description": "Under SOH Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Under SOH Fault2",
+          "dataTag": "under_soh_fault2",
+          "description": "Under SOH Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31293,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Rack-BSC LOC by Rack Alarm",
+          "dataTag": "rack_bsc_loc_by_rack_alarm",
+          "description": "Rack-BSC LOC by Rack Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Rack-BSC LOC by Rack Warning",
+          "dataTag": "rack_bsc_loc_by_rack_warning",
+          "description": "Rack-BSC LOC by Rack Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Rack-BSC LOC by Rack Fault1",
+          "dataTag": "rack_bsc_loc_by_rack_fault1",
+          "description": "Rack-BSC LOC by Rack Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Rack-BSC LOC by Rack Fault2",
+          "dataTag": "rack_bsc_loc_by_rack_fault2",
+          "description": "Rack-BSC LOC by Rack Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31297,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Contactor Open Failure Alarm",
+          "dataTag": "contactor_open_failure_alarm",
+          "description": "Contactor Open Failure Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Contactor Open Failure Warning",
+          "dataTag": "contactor_open_failure_warning",
+          "description": "Contactor Open Failure Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Contactor Open Failure Fault1",
+          "dataTag": "contactor_open_failure_fault1",
+          "description": "Contactor Open Failure Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Contactor Open Failure Fault2",
+          "dataTag": "contactor_open_failure_fault2",
+          "description": "Contactor Open Failure Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31298,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Vaux 3.3V Error Alarm",
+          "dataTag": "vaux_3_3v_error_alarm",
+          "description": "Vaux 3.3V Error Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Vaux 3.3V Error Warning",
+          "dataTag": "vaux_3_3v_error_warning",
+          "description": "Vaux 3.3V Error Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Vaux 3.3V Error Fault1",
+          "dataTag": "vaux_3_3v_error_fault1",
+          "description": "Vaux 3.3V Error Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Vaux 3.3V Error Fault2",
+          "dataTag": "vaux_3_3v_error_fault2",
+          "description": "Vaux 3.3V Error Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31300,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "SBC 5V Error Alarm",
+          "dataTag": "sbc_5v_error_alarm",
+          "description": "SBC 5V Error Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "SBC 5V Error Warning",
+          "dataTag": "sbc_5v_error_warning",
+          "description": "SBC 5V Error Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "SBC 5V Error Fault1",
+          "dataTag": "sbc_5v_error_fault1",
+          "description": "SBC 5V Error Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "SBC 5V Error Fault2",
+          "dataTag": "sbc_5v_error_fault2",
+          "description": "SBC 5V Error Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31301,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "MC Open Over Count Alarm",
+          "dataTag": "mc_open_over_count_alarm",
+          "description": "MC Open Over Count Alarm (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Alarm",
+          "logType": "error"
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "MC Open Over Count Warning",
+          "dataTag": "mc_open_over_count_warning",
+          "description": "MC Open Over Count Warning (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Warning",
+          "logType": "warning"
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "MC Open Over Count Fault1",
+          "dataTag": "mc_open_over_count_fault1",
+          "description": "MC Open Over Count Fault1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "MC Open Over Count Fault2",
+          "dataTag": "mc_open_over_count_fault2",
+          "description": "MC Open Over Count Fault2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "alarmLimit": "Fault",
+          "logType": "error"
+        }
+      ]
+    },
+    {
+      "registerAddress": 31273,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 14,
+          "bitEnd": 15,
+          "name": "Fuse Status",
+          "dataTag": "fuse_status",
+          "description": "Fuse Status (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 13,
+          "name": "BPU Fan",
+          "dataTag": "bpu_fan",
+          "description": "BPU Fan (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 11,
+          "name": "Pack Fan2",
+          "dataTag": "pack_fan2",
+          "description": "Pack Fan2 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 9,
+          "name": "Pack Fan1",
+          "dataTag": "pack_fan1",
+          "description": "Pack Fan1 (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 7,
+          "name": "CB Status",
+          "dataTag": "cb_status",
+          "description": "CB Status (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 5,
+          "name": "MC(-) Status",
+          "dataTag": "mc_status",
+          "description": "MC(-) Status (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 3,
+          "name": "MC(+) Status",
+          "dataTag": "mc_status",
+          "description": "MC(+) Status (Rack 8)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
     }
   ],
   "pollIntervalMs": 1000,
-  "simulator": {
+  "commands": {
+    "emergency": {
+      "label": "Acil Durum",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 1
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "start": {
+      "label": "Başlat (Start)",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 2
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 35000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "stop": {
+      "label": "Durdur (Stop)",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 3
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "open_contactors": {
+      "label": "Kontaktörleri Aç",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 4
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "close_contactors": {
+      "label": "Kontaktörleri Kapat",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 5
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "enter_manual": {
+      "label": "Manuel Moda Geç",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 6
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "exit_manual": {
+      "label": "Manuel Moddan Çık",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 7
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "event_clear": {
+      "label": "Arıza Temizle (Event Clear)",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 9
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "reset": {
+      "label": "Sıfırla (Reset)",
+      "telemetries": [
+        {
+          "name": "Command Request",
+          "value": 10
+        }
+      ],
+      "atomic": true,
+      "timeoutMs": 5000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Request Acknowledge",
+            "expect": 2
+          }
+        ]
+      }
+    }
+  },
+  "type": "bsc",
+  "transport": {
+    "kind": "simulator",
     "type": "bsc",
     "rackCount": 8
-  }
+  },
+  "rackCount": 8
 }

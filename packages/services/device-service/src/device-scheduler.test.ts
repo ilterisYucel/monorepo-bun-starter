@@ -48,7 +48,7 @@ describe("DeviceScheduler", () => {
     it("uses deviceId in job name", async () => {
       await scheduler.scheduleRead("hvac-3", 3000);
       const call = (mq.addRepeatableJobEvery as ReturnType<typeof vi.fn>).mock
-        .calls[0];
+        .calls[0]!;
       expect(call[0]).toBe("read-hvac-3");
     });
   });

@@ -22,7 +22,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Fault",
@@ -36,7 +38,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Actual Voltage",
@@ -50,7 +54,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Actual Current",
@@ -64,7 +70,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Actual Power",
@@ -78,7 +86,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Temperature",
@@ -92,7 +102,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Energy Counter H",
@@ -106,7 +118,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Energy Counter L",
@@ -120,7 +134,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Voltage Setpoint",
@@ -134,7 +150,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Current Limit",
@@ -148,7 +166,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "OV Threshold",
@@ -162,7 +182,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "OC Threshold",
@@ -176,7 +198,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "On",
@@ -190,7 +214,9 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     },
     {
       "name": "Off",
@@ -204,27 +230,53 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": { "deviceId": "DC-2" }
+      "tags": {
+        "deviceId": "DC-2"
+      }
     }
   ],
   "pollIntervalMs": 2000,
   "commands": {
     "on": {
       "label": "Aç (On)",
-      "telemetries": [{ "name": "On", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "On",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "Is On", "expect": true }]
+        "reads": [
+          {
+            "name": "Is On",
+            "expect": true
+          }
+        ]
       }
     },
     "off": {
       "label": "Kapat (Off)",
-      "telemetries": [{ "name": "Off", "value": 1 }],
+      "telemetries": [
+        {
+          "name": "Off",
+          "value": 1
+        }
+      ],
       "timeoutMs": 2000,
       "validate": {
-        "reads": [{ "name": "Is On", "expect": false }]
+        "reads": [
+          {
+            "name": "Is On",
+            "expect": false
+          }
+        ]
       }
     }
   },
-  "simulator": { "type": "dc-output" }
+  "type": "dc-output",
+  "transport": {
+    "kind": "simulator",
+    "type": "dc-output"
+  }
 }

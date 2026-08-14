@@ -181,19 +181,29 @@ describe("deviceConfigFileSchema", () => {
     expect(r.success).toBe(false);
   });
 
-  it("rejects invalid simulator type", () => {
+  it("rejects invalid transport kind", () => {
     const r = deviceConfigFileSchema.safeParse({
       ...validDevice,
-      simulator: { type: "fridge" },
+      transport: { kind: "teleport" },
     });
     expect(r.success).toBe(false);
   });
 
-  it("accepts valid simulator types", () => {
-    for (const t of ["bsc", "hvac", "xrack", "cb", "dc-output"]) {
+  it("accepts simulator transport (tip açık string — kayıt defteri çalışma zamanında doğrular)", () => {
+    for (const t of ["bsc", "hvac", "xrack", "cb", "dc-output", "pcs", "emu", "gelecekteki-tip"]) {
       const r = deviceConfigFileSchema.safeParse({
         ...validDevice,
-        simulator: { type: t },
+        transport: { kind: "simulator", type: t },
+      });
+      expect(r.success).toBe(true);
+    }
+  });
+
+  it("accepts tcp and rtu transport kinds", () => {
+    for (const kind of ["tcp", "rtu"]) {
+      const r = deviceConfigFileSchema.safeParse({
+        ...validDevice,
+        transport: { kind },
       });
       expect(r.success).toBe(true);
     }

@@ -1,4 +1,4 @@
-import type { TelemetryData } from "./telemetry";
+import type { TelemetryData } from "./telemetry-data";
 
 export type ConnectionState = "idle" | "connecting" | "connected" | "error";
 

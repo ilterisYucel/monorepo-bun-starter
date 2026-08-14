@@ -7,12 +7,12 @@ import type {
   TimeSeriesQuery,
   AggregateQuery,
   DownsampleOptions,
-} from "./interface";
-import type { TimescaleDBConfig } from "./config";
+} from "../../interface";
+import type { TimescaleDBConfig } from "./timescaledb-config";
 
 import type { PoolClient } from "pg";
 
-export { type TimescaleDBConfig } from "./config";
+export { type TimescaleDBConfig } from "./timescaledb-config";
 
 const ALLOWED_AGGREGATE_FNS = new Set(["AVG", "SUM", "MIN", "MAX", "COUNT", "FIRST", "LAST"]);
 
@@ -22,20 +22,24 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private tableCache: Set<string> = new Set();
   private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
-  constructor(config: TimescaleDBConfig) {
+  constructor(config: TimescaleDBConfig, pool?: Pool) {
     this.config = config;
-    this.pool = new Pool({
-      host: config.host,
-      port: config.port,
-      user: config.user,
-      password: config.password,
-      database: config.database,
-      ssl: config.ssl,
-      max: config.maxConnections ?? 5,
-      statement_timeout: config.statementTimeoutMs,
-      idleTimeoutMillis: config.idleTimeoutMs,
-      connectionTimeoutMillis: config.connectionTimeoutMs,
-    });
+    // Pool testler için enjekte edilebilir (Grafana datasource plugin'lerindeki
+    // origin kuralı: bucket ızgarası sorgunun `from` zamanına hizalanır)
+    this.pool =
+      pool ??
+      new Pool({
+        host: config.host,
+        port: config.port,
+        user: config.user,
+        password: config.password,
+        database: config.database,
+        ssl: config.ssl,
+        max: config.maxConnections ?? 5,
+        statement_timeout: config.statementTimeoutMs,
+        idleTimeoutMillis: config.idleTimeoutMs,
+        connectionTimeoutMillis: config.connectionTimeoutMs,
+      });
   }
 
   private getTableName(deviceId: string): string {
@@ -239,7 +243,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     let sql = `
       SELECT 
-        time_bucket('${interval}', timestamp) AS bucket,
+        time_bucket('${interval}', timestamp, $1) AS bucket,
         ${aggregateFn}(value) AS value
       FROM ${tableName}
       WHERE timestamp BETWEEN $1 AND $2
@@ -462,7 +466,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     const query = `
     SELECT
-      time_bucket('${bucketInterval}', timestamp) AS bucket,
+      time_bucket('${bucketInterval}', timestamp, '${from.toISOString()}'::timestamptz) AS bucket,
       tags,
       ${avgFields}
     FROM ${tableName}
