@@ -1,6 +1,7 @@
 export type {
   ChargeStatus,
   RegisterDataType,
+  CanonicalMetric,
   BaseTelemetryData,
   TelemetryData,
   ModbusTelemetryData,

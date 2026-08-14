@@ -5,7 +5,7 @@ import { apiClient } from "../../../lib/api-client";
 import { useDevicesStore } from "../../../stores/devicesStore";
 import { useTelemetry } from "@gd-monorepo/ui";
 import { useRealtimeStream } from "../../../contexts/RealtimeContext";
-import type { TelemetryData } from "@gd-monorepo/shared-types";
+import type { TelemetryData, ChargeStatus } from "@gd-monorepo/shared-types";
 import type { DeviceInfo } from "../../../features/devices/types/device";
 
 interface LatestResponse {
@@ -70,6 +70,34 @@ const telemetriesToRacks = (
     const rack = rackMap.get(key);
     if (!rack) continue;
 
+    // Kanonik metrik eşlemesi — legacy name case'leri fallback olarak durur
+    switch (telemetry.tags?.canonical) {
+      case "battery_ready":
+        rack.status = telemetry.value === 1 ? "online" : "offline";
+        continue;
+      case "soc":
+        rack.soc = telemetry.value as number;
+        continue;
+      case "soh":
+        rack.soh = telemetry.value as number;
+        continue;
+      case "voltage":
+        rack.voltage = telemetry.value as number;
+        continue;
+      case "current":
+        rack.current = telemetry.value as number;
+        continue;
+      case "charge_power":
+        rack.power_kw = telemetry.value as number;
+        continue;
+      case "discharge_power":
+        rack.power_kw = -(telemetry.value as number);
+        continue;
+      case "temperature":
+        rack.temperature = telemetry.value as number;
+        continue;
+    }
+
     switch (telemetry.name) {
       case "Battery Ready":
         rack.status = telemetry.value === 1 ? "online" : "offline";
@@ -112,6 +140,28 @@ const extractSystemLevel = (
 
   for (const t of telemetries) {
     if (t.tags?.rack_id !== "system") continue;
+
+    // Kanonik metrik eşlemesi — legacy name case'leri fallback olarak durur
+    switch (t.tags?.canonical) {
+      case "soc":
+        if (!t.tags?.aggregation) result.avgSoC = t.value as number;
+        continue;
+      case "soh":
+        if (!t.tags?.aggregation) result.avgSoH = t.value as number;
+        continue;
+      case "voltage":
+        if (!t.tags?.aggregation) result.avgVoltage = t.value as number;
+        continue;
+      case "current":
+        if (!t.tags?.aggregation) result.avgCurrent = t.value as number;
+        continue;
+      case "charge_power":
+        result.avgPower = t.value as number;
+        continue;
+      case "discharge_power":
+        result.avgPower = -(t.value as number);
+        continue;
+    }
 
     switch (t.name) {
       case "SOC":

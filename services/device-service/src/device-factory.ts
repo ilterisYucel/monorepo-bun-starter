@@ -86,8 +86,15 @@ export class DeviceFactory {
       "value" | "timestamp" | "deviceId"
     >;
 
+    // Konfigürasyondaki canonical alanı tags.canonical olarak taşınır —
+    // cihazdan bağımsız semantik eşleme frontend tarafında name'e bağlı kalmaz.
+    const tags = entry.canonical
+      ? { ...(entry.tags ?? {}), canonical: entry.canonical }
+      : entry.tags;
+
     return {
       ...modbus,
+      tags,
       value: 0,
       timestamp: new Date().toISOString(),
       deviceId,

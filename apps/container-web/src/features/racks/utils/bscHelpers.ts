@@ -45,6 +45,16 @@ export const telemetriesToBscSummaries = (
       const agg = t.tags?.aggregation;
 
       if (!agg) {
+        // Kanonik metrik eşlemesi — legacy name case'leri fallback olarak durur
+        switch (t.tags?.canonical) {
+          case "soc": soc = num(t.value); continue;
+          case "soh": soh = num(t.value); continue;
+          case "voltage": voltage = num(t.value); continue;
+          case "current": current = num(t.value); continue;
+          case "charge_power": chargePowerKw = num(t.value); continue;
+          case "discharge_power": dischargePowerKw = num(t.value); continue;
+        }
+
         switch (t.name) {
           case "SOC": soc = num(t.value); break;
           case "SOH": soh = num(t.value); break;

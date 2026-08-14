@@ -232,6 +232,12 @@ The following optimizations were applied across the codebase to prevent Chrome S
 | **Error Boundary** | React error boundary catches WebGL/React crashes, shows reload UI | `ErrorBoundary.tsx` |
 | **Electron crash handler** | `render-process-gone`, `crashed`, `unresponsive` handlers with auto-reload | `apps/container-desktop/src/main/index.ts` |
 
+## Telemetry tagging & canonical metrics (MANDATORY)
+
+- **Config'lerde `device_id`/`container_id`/`field_id` tag'i yazmak YASAKTIR** — bu tag'lerin tek sahibi device-service `TelemetryTagger`'dır (`services/device-service/src/telemetry-tagger.ts`). Config yalnızca kendi alanına ait tag'leri (`rack_id`, `aggregation` vb.) taşır.
+- **Canonical metric attr:** Config telemetry/bitfield girişine opsiyonel `"canonical"` alanı verilebilir (`soc`, `soh`, `voltage`, `current`, `battery_ready`, `charge_power`, `discharge_power`, `temperature` — bkz. `CanonicalMetric` in shared-types). Değer, cihaz servisi tarafından `tags.canonical` olarak taşınır; frontend eşlemeleri (raf kartları, sistem ortalamaları) `tags.canonical` üzerinden çalışır — `name`'e bağlı değildir. Canonical verilmezse davranış değişmez (name ile gösterim).
+- **TODO:** `canonical` ileride tags yerine ayrı bir `TelemetryData` alanına taşınacak (DB kolonu + adapter eşleme + frontend kontratı ile birlikte).
+
 ## Device transport strategy (MANDATORY)
 
 **`ModbusDevice` taşıma katmanını hiç bilmez.** Gerçek (TCP/RTU) ve simüle cihazlar aynı sınıftan üretilir; fark yalnızca enjekte edilen `IModbusTransport`'tadır (Strategy pattern).

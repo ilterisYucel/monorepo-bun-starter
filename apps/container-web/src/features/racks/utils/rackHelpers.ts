@@ -42,7 +42,37 @@ export const telemetriesToRacks = (
     const rack = rackMap.get(key);
     if (!rack) continue;
 
+    // Kanonik metrik eşlemesi (config'deki canonical attr) — name'e bağlı değil.
+    // Legacy name case'leri eski veriler/cihazlar için fallback olarak durur.
+    const canonical = telemetry.tags?.canonical;
     const name = telemetry.name.replace(/\s+R\d+$/, "");
+
+    switch (canonical) {
+      case "battery_ready":
+        rack.status = telemetry.value === 1 ? "online" : "offline";
+        continue;
+      case "soc":
+        rack.soc = telemetry.value as number;
+        continue;
+      case "soh":
+        rack.soh = telemetry.value as number;
+        continue;
+      case "voltage":
+        rack.voltage = telemetry.value as number;
+        continue;
+      case "current":
+        rack.current = telemetry.value as number;
+        continue;
+      case "charge_power":
+        rack.power_kw = telemetry.value as number;
+        continue;
+      case "discharge_power":
+        rack.power_kw = -(telemetry.value as number);
+        continue;
+      case "temperature":
+        rack.temperature = telemetry.value as number;
+        continue;
+    }
 
     switch (name) {
       case "Battery Ready":

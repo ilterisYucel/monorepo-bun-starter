@@ -6,6 +6,24 @@ import type { ByteOrder } from "../modbus/modbus-types";
 /** Batarya şarj/deşarj/boşta durumu */
 export type ChargeStatus = "Charge" | "Discharge" | "Idle";
 
+/**
+ * Konfigürasyonda telemetri girişine verilebilen kanonik metrik adı.
+ * Cihazdan bağımsız semantik anlam taşır — frontend raf kartları/sistem
+ * ortalamaları bu değerle eşleşir (name'e bağlı kalmaz).
+ *
+ * TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak
+ * (DB kolonu + adapter eşleme + frontend kontratı ile birlikte).
+ */
+export type CanonicalMetric =
+  | "soc"
+  | "soh"
+  | "voltage"
+  | "current"
+  | "battery_ready"
+  | "charge_power"
+  | "discharge_power"
+  | "temperature";
+
 /** Register içindeki verinin tipi (Modbus) */
 export type RegisterDataType =
   | "BOOL"

@@ -174,7 +174,12 @@ export class ModbusDevice implements IDevice {
           const offset = field.offset ?? 0;
           const value = raw * scale + offset;
 
-          const configTags: Record<string, string> = { dataTag: field.dataTag, ...(cfg.tags ?? {}), ...(field.tags ?? {}) };
+          const configTags: Record<string, string> = {
+            dataTag: field.dataTag,
+            ...(field.canonical ? { canonical: field.canonical } : {}),
+            ...(cfg.tags ?? {}),
+            ...(field.tags ?? {}),
+          };
 
           results.push({
             name: field.name,

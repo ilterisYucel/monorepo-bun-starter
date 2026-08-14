@@ -19,10 +19,22 @@ export function useContainerData(_fieldId: string) {
         let maxTemp = 0;
 
         for (const bscId of bscDevices) {
+          // Kanonik metrik eşlemesi (canonical attr) — mock/name eşlemesi fallback
           const powerItem = c.latestTelemetry.find(
+            (t) =>
+              (t.tags?.canonical === "charge_power" ||
+                t.tags?.canonical === "discharge_power") &&
+              t.deviceId === bscId &&
+              t.tags?.rack_id === "system",
+          ) ?? c.latestTelemetry.find(
             (t) => t.name === "Power" && t.deviceId === bscId && t.tags?.rack_id === "system",
           );
           const socItem = c.latestTelemetry.find(
+            (t) =>
+              t.tags?.canonical === "soc" &&
+              t.deviceId === bscId &&
+              t.tags?.rack_id === "system",
+          ) ?? c.latestTelemetry.find(
             (t) => t.name === "SOC" && t.deviceId === bscId && t.tags?.rack_id === "system",
           );
           const tempItem = c.latestTelemetry.find(
@@ -46,7 +58,10 @@ export function useContainerData(_fieldId: string) {
         for (const deviceId of uniqueDevices) {
           const deviceEntries = c.latestTelemetry.filter((t) => t.deviceId === deviceId);
           if (deviceId.startsWith("BSC")) {
-            const power = deviceEntries.find((t) => t.name === "Power" && t.tags?.rack_id === "system");
+            const power = deviceEntries.find((t) =>
+              (t.tags?.canonical === "charge_power" || t.tags?.canonical === "discharge_power") &&
+              t.tags?.rack_id === "system",
+            ) ?? deviceEntries.find((t) => t.name === "Power" && t.tags?.rack_id === "system");
             if (power && (power.value as number) > 0) activeDevices++;
           } else if (deviceId.startsWith("CB")) {
             const closed = deviceEntries.find((t) => t.name === "Is Closed");

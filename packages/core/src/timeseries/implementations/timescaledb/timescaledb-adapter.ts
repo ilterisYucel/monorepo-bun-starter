@@ -20,6 +20,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private readonly pool: Pool;
   private readonly config: TimescaleDBConfig;
   private tableCache: Set<string> = new Set();
+  private tableLocks: Map<string, Promise<void>> = new Map();
   private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
   constructor(config: TimescaleDBConfig, pool?: Pool) {
@@ -53,42 +54,71 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     if (this.tableCache.has(tableName)) return;
 
-    const chunkInterval = this.config.chunkInterval;
-    const query = `
-      CREATE TABLE IF NOT EXISTS ${tableName} (
-        name VARCHAR(100) NOT NULL,
-        value DOUBLE PRECISION NOT NULL,
-        unit VARCHAR(50),
-        description TEXT,
-        quality INTEGER DEFAULT 1,
-        tags JSONB,
-        timestamp TIMESTAMPTZ NOT NULL
-      );
-      SELECT create_hypertable('${tableName}', 'timestamp', if_not_exists => TRUE, chunk_time_interval => INTERVAL '${chunkInterval}');
-      CREATE INDEX IF NOT EXISTS idx_${tableName}_name ON ${tableName} (name, timestamp DESC);
-      CREATE INDEX IF NOT EXISTS idx_${tableName}_timestamp ON ${tableName} (timestamp DESC);
-      CREATE INDEX IF NOT EXISTS idx_${tableName}_tags ON ${tableName} USING GIN (tags jsonb_path_ops);
-    `;
+    // Concurrent worker'lar ayni cihaz icin DDL yarisina girmesin —
+    // ilk cagiran calistirir, digerleri ayni promise'i bekler.
+    const pending = this.tableLocks.get(tableName);
+    if (pending) {
+      await pending;
+      return;
+    }
 
-    await this.pool.query(query);
-    await this.setupCompression(tableName);
-    this.tableCache.add(tableName);
+    const task = (async () => {
+      const chunkInterval = this.config.chunkInterval;
+      const query = `
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+          name VARCHAR(100) NOT NULL,
+          value DOUBLE PRECISION NOT NULL,
+          unit VARCHAR(50),
+          description TEXT,
+          quality INTEGER DEFAULT 1,
+          tags JSONB,
+          timestamp TIMESTAMPTZ NOT NULL
+        );
+        SELECT create_hypertable('${tableName}', 'timestamp', if_not_exists => TRUE, chunk_time_interval => INTERVAL '${chunkInterval}');
+        CREATE INDEX IF NOT EXISTS idx_${tableName}_name ON ${tableName} (name, timestamp DESC);
+        CREATE INDEX IF NOT EXISTS idx_${tableName}_timestamp ON ${tableName} (timestamp DESC);
+        CREATE INDEX IF NOT EXISTS idx_${tableName}_tags ON ${tableName} USING GIN (tags jsonb_path_ops);
+      `;
+
+      await this.pool.query(query);
+      await this.setupCompression(tableName);
+      this.tableCache.add(tableName);
+    })();
+
+    this.tableLocks.set(tableName, task);
+    try {
+      await task;
+    } finally {
+      this.tableLocks.delete(tableName);
+    }
+  }
+
+  private async isCompressionEnabled(tableName: string): Promise<boolean> {
+    const result = await this.pool.query(
+      `SELECT 1 FROM timescaledb_information.compression_settings WHERE hypertable_name = $1 LIMIT 1`,
+      [tableName.toLowerCase()],
+    );
+    return (result.rows.length ?? 0) > 0;
   }
 
   private async setupCompression(tableName: string): Promise<void> {
     try {
-      await this.pool.query(`
-        ALTER TABLE ${tableName} SET (
-          timescaledb.compress,
-          timescaledb.compress_segmentby = 'name'
-        );
-      `);
+      // Zaten sikistirilmis tabloya ALTER atmak hata uretir (her restart'ta uyari
+      // olarak loglaniyordu) — once catalog'dan kontrol et.
+      if (!(await this.isCompressionEnabled(tableName))) {
+        await this.pool.query(`
+          ALTER TABLE ${tableName} SET (
+            timescaledb.compress,
+            timescaledb.compress_segmentby = 'name'
+          );
+        `);
+      }
       const compressAfter = this.config.compressAfter;
       await this.pool.query(`
         SELECT add_compression_policy('${tableName}', INTERVAL '${compressAfter}', if_not_exists => true);
       `);
-    } catch {
-      console.warn(`[TimescaleDB] Sikistirma politikasi kurulamadi: ${tableName}`);
+    } catch (err) {
+      console.warn(`[TimescaleDB] Sikistirma politikasi kurulamadi: ${tableName}: ${String(err)}`);
     }
   }
 
@@ -119,31 +149,40 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       groupedByDevice.get(item.deviceId)!.push(item);
     }
 
-    // 🔥 Her device için AYRI CLIENT kullan (paralel çalışabilir)
-    const devicePromises = Array.from(groupedByDevice.entries()).map(
-      async ([deviceId, deviceTelemetries]) => {
-        const client = await this.pool.connect(); // 🔥 Her biri için ayrı client
-        try {
-          await client.query("BEGIN");
-
-          await this.ensureTableExists(deviceId);
-          const tableName = this.getTableName(deviceId);
-
-          // Aynı device içindeki telemetry'leri parallel yaz
-          const writePromises = deviceTelemetries.map((telemetry) =>
-            this.writeSingle(client, tableName, telemetry),
-          );
-          await Promise.all(writePromises);
-
-          await client.query("COMMIT");
-        } catch (error) {
-          await client.query("ROLLBACK");
-          throw error;
-        } finally {
-          client.release();
-        }
-      },
+    // Tablo olusturma yazimdan ONCE (pool uzerinde) — client transaction'i
+    // icinde DDL karismaz, concurrent cagrilar ayni promise'i bekler.
+    const deviceIds = Array.from(groupedByDevice.keys());
+    const ensureResults = await Promise.allSettled(
+      deviceIds.map((deviceId) => this.ensureTableExists(deviceId)),
     );
+    const failedEnsures = ensureResults.filter((r) => r.status === "rejected");
+    if (failedEnsures.length > 0) {
+      console.warn(
+        `[TimescaleDB] ${failedEnsures.length}/${deviceIds.length} tablo hazirligi basarisiz`,
+      );
+    }
+
+    // Her device icin tek client + tek multi-row INSERT — ayni client uzerinde
+    // paralel query YASAK (pg client'i tek query calistirabilir).
+    const devicePromises = deviceIds.map(async (deviceId) => {
+      const deviceTelemetries = groupedByDevice.get(deviceId) ?? [];
+      const tableName = this.getTableName(deviceId);
+      const client = await this.pool.connect();
+      try {
+        await client.query("BEGIN");
+        await this.writeBatch(client, tableName, deviceTelemetries);
+        await client.query("COMMIT");
+      } catch (error) {
+        try {
+          await client.query("ROLLBACK");
+        } catch {
+          // ELEGANT-EXCEPTION: rollback hatasi ikincildir, asil hata firlatilir
+        }
+        throw error;
+      } finally {
+        client.release();
+      }
+    });
 
     const results = await Promise.allSettled(devicePromises);
     const failed = results.filter((r) => r.status === "rejected").length;
@@ -154,29 +193,37 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     }
   }
 
-  private async writeSingle(
+  private async writeBatch(
     client: PoolClient,
     tableName: string,
-    telemetry: TelemetryData,
+    telemetries: TelemetryData[],
   ): Promise<void> {
-    const value = typeof telemetry.value === "number" ? telemetry.value : 0;
-    const quality =
-      telemetry.value !== undefined && telemetry.value !== null ? 1 : 0;
+    // Tek statement icin cok buyuk SQL uretmemek adina 200 satirlik dilimler
+    const BATCH_SIZE = 200;
+    for (let offset = 0; offset < telemetries.length; offset += BATCH_SIZE) {
+      const chunk = telemetries.slice(offset, offset + BATCH_SIZE);
+      const values = chunk
+        .map((_, i) => {
+          const base = i * 7;
+          return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7})`;
+        })
+        .join(", ");
+      const params = chunk.flatMap((telemetry) => [
+        telemetry.name,
+        typeof telemetry.value === "number" ? telemetry.value : 0,
+        telemetry.unit,
+        telemetry.description,
+        telemetry.value !== undefined && telemetry.value !== null ? 1 : 0,
+        JSON.stringify(telemetry.tags ?? {}),
+        new Date(telemetry.timestamp),
+      ]);
 
-    const query = `
-      INSERT INTO ${tableName} (name, value, unit, description, quality, tags, timestamp)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `;
-
-    await client.query(query, [
-      telemetry.name,
-      value,
-      telemetry.unit,
-      telemetry.description,
-      quality,
-      telemetry.tags ?? {}, // tags için boş obje (ileride doldurulabilir)
-      new Date(telemetry.timestamp),
-    ]);
+      await client.query(
+        `INSERT INTO ${tableName} (name, value, unit, description, quality, tags, timestamp)
+         VALUES ${values}`,
+        params,
+      );
+    }
   }
 
   async query(query: TimeSeriesQuery): Promise<TelemetryData[]> {
@@ -291,6 +338,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     limit: number,
     names?: string[],
     tags?: Record<string, string>,
+    canonicals?: string[],
   ): Promise<TelemetryData[]> {
     await this.ensureTableExists(deviceId);
     const tableName = this.getTableName(deviceId);
@@ -306,6 +354,12 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     if (names && names.length > 0) {
       sql += ` AND name = ANY($${paramIndex})`;
       params.push(names);
+      paramIndex++;
+    }
+
+    if (canonicals && canonicals.length > 0) {
+      sql += ` AND tags->>'canonical' = ANY($${paramIndex})`;
+      params.push(canonicals);
       paramIndex++;
     }
 
@@ -410,7 +464,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
   async getDownsampledData(
     options: DownsampleOptions,
   ): Promise<TelemetryData[]> {
-    const { from, to, points = 120, deviceId, names, tags } = options;
+    const { from, to, points = 120, deviceId, names, tags, canonicals } = options;
 
     await this.ensureTableExists(deviceId);
 
@@ -451,6 +505,12 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     if (selectedNames.length > 0) {
       whereConditions.push(`name = ANY($${paramIndex})`);
       params.push(selectedNames);
+      paramIndex++;
+    }
+
+    if (canonicals && canonicals.length > 0) {
+      whereConditions.push(`tags->>'canonical' = ANY($${paramIndex})`);
+      params.push(canonicals);
       paramIndex++;
     }
 

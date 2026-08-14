@@ -24,6 +24,8 @@ export interface DownsampleOptions {
   deviceId: string;
   names?: string[];
   tags?: Record<string, string>;
+  /** tags.canonical filtreleme (örn: ["soc", "soh"]) */
+  canonicals?: string[];
 }
 
 export interface ITimeseriesDatabase {
@@ -61,6 +63,7 @@ export interface ITimeseriesDatabase {
     limit: number,
     names?: string[],
     tags?: Record<string, string>,
+    canonicals?: string[],
   ): Promise<TelemetryData[]>;
 
   /**

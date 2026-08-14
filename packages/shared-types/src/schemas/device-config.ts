@@ -10,6 +10,18 @@ const byteOrderSchema = z.enum([
 const telemetryEntrySchema = z.object({
   protocol: z.enum(["MODBUS", "CANBUS", "MQTT"]),
   name: z.string().min(1),
+  canonical: z
+    .enum([
+      "soc",
+      "soh",
+      "voltage",
+      "current",
+      "battery_ready",
+      "charge_power",
+      "discharge_power",
+      "temperature",
+    ])
+    .optional(),
 }).catchall(z.unknown());
 
 const simulatorConfigSchema = z.object({
@@ -41,6 +53,18 @@ export const bitfieldFieldSchema = z.object({
   alarmLimit: z.string().optional(),
   logType: z.enum(["error", "warning", "info"]).optional(),
   tags: z.record(z.string()).optional(),
+  canonical: z
+    .enum([
+      "soc",
+      "soh",
+      "voltage",
+      "current",
+      "battery_ready",
+      "charge_power",
+      "discharge_power",
+      "temperature",
+    ])
+    .optional(),
 }).refine((f) => f.bitStart <= f.bitEnd, {
   message: "bitStart bitEnd'den küçük veya eşit olmalı",
 });

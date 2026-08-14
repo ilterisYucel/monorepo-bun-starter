@@ -8,10 +8,8 @@ import { useEventAnnotations } from "../hooks/useEventAnnotations";
 import { useDevicesStore } from "../stores/devicesStore";
 
 const SYSTEM_CHART_DEFAULTS = [
-  "SOC", "SOH", "Voltage", "Current", "ChargePower",
-  "DischargePower", "Temperature", "BalanceTime", "CellVoltage",
-  "State", "Heartbeat", "Count", "OpenCount", "NonBalancePeriod",
-  "CloseCurrent", "CellLocation", "AnticipatedVoltage",
+  "BSC SOC", "BSC SOH", "BSC DC Voltage", "BSC DC Current",
+  "Charge Power Limit", "Discharge Power Limit", "BSC State",
 ];
 
 export const SystemChartsPage: React.FC = () => {
