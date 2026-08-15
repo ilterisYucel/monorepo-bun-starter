@@ -83,7 +83,8 @@ export const SPRITE_ASSETS: Readonly<Record<string, SpriteAssetMeta>> = {
     key: "cable",
     url: cableUrl,
     scale: 2,
-    frame: { x: 0, y: 0, width: 424, height: 96 },
+    // Normalizasyon içeriği 6 tex'lik banda sıkıştırır -> ince hat
+    frame: { x: 0, y: 0, width: 424, height: 6 },
   },
   grid: {
     key: "grid",

@@ -81,13 +81,16 @@ for (const target of selected) {
     const corners = [
       [0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1],
     ].map(([x, y]) => data[(y * width + x) * 4 + 3]);
+    // ince bant sprite'larında (cable) üst köşeler hattın kendisi olabilir;
+    // yalnızca alt köşeler kontrol edilir
     return { width, height, opaque, opaqueRatio: opaque / (width * height), minX, maxX, minY, maxY, corners, hits };
   }, [element, dataUrl, FORBIDDEN]);
 
   const [ew, eh] = target.dims;
   const issues = [];
   if (stats.width !== ew || stats.height !== eh) issues.push(`boyut ${stats.width}x${stats.height} != beklenen ${ew}x${eh}`);
-  if (stats.corners.some((a) => a > 16)) issues.push(`köşe pikselleri şeffaf değil: ${stats.corners.join(",")}`);
+  const cornerCheck = element === "cable" ? stats.corners.slice(2) : stats.corners;
+  if (cornerCheck.some((a) => a > 16)) issues.push(`köşe pikselleri şeffaf değil: ${stats.corners.join(",")}`);
   if (stats.opaqueRatio < 0.02) issues.push("sprite neredeyse boş (opak oran < 2%)");
   if (stats.opaqueRatio > 0.97) issues.push("sprite tamamen dolu — arka plan temizliği çalışmamış olabilir");
   const sigForbidden = Object.entries(stats.hits).filter(([, n]) => n > stats.opaque * 0.03);

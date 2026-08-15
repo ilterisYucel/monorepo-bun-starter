@@ -46,8 +46,10 @@ export const SPRITE_SPECS = {
   },
   cable: {
     canvas: { width: 424, height: 96 },
-    frame: { x: 0, y: 0, width: 424, height: 96 },
-    margin: 8,
+    // AI ne kadar kalın çizerse çizsin: normalizasyon içeriği 6 tex'lik
+    // (3 logical) banda sıkıştırır -> kablo her zaman ince çıkar
+    frame: { x: 0, y: 0, width: 424, height: 6 },
+    margin: 2,
   },
   grid: {
     titleId: "gridsymbol",

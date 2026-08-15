@@ -30,7 +30,7 @@ export const Base = () => (
       <pixiGraphics
         draw={(g) => {
           g.clear();
-          g.setStrokeStyle({ width: 4, color: COLOR.cable, cap: "round", join: "round" });
+          g.setStrokeStyle({ width: 3, color: COLOR.cable, cap: "round", join: "round" });
           g.moveTo(6, 24);
           g.lineTo(206, 24);
           g.stroke();

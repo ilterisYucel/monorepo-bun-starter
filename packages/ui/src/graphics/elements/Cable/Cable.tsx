@@ -26,11 +26,11 @@ export const Cable: React.FC<CableProps> = ({ path, flowDirection, step, color }
   const cableTexture = useSpriteTexture("cable");
 
   // Segment sprite'ları: her düz segment için texture döndürülüp uzatılır.
-  // Texture canvas 212x48 mantıksal; kablo uçlarda ~6px marj içinde çizilir.
+  // Texture frame 3 logical yükseklikte (normalizasyon ince banda sıkıştırır).
   const segments = useMemo(() => {
     if (!cableTexture || path.length < 2) return null;
-    const endPad = 6;
-    const texH = 48;
+    const endPad = 2;
+    const texH = 3;
     return path.slice(0, -1).map((p1, i) => {
       const p2 = path[i + 1]!;
       const dx = p2.x - p1.x;

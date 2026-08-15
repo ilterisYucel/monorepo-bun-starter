@@ -36,7 +36,7 @@ const ELEMENTS = {
   cable: {
     ref: "base",
     describe:
-      "a short straight horizontal industrial power cable segment with clean insulated conduit, uniform thickness along its whole length, flat 2D front view. NO connectors, NO lugs, NO fittings, NO terminal ends — just the plain cable.",
+      "a THIN straight horizontal insulated power cable line, thickness only about 6 percent of the image height, uniform thin width along its whole length, flat 2D front view. NO connectors, NO lugs, NO fittings, NO conduit, NO pipe — just a thin plain cable line.",
     removeBg: true,
   },
   "circuitbreaker-close": {
