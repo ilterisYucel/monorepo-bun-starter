@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
+import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SPRITE_ASSETS } from "../../textures";
 
 import type { DashboardSCADAProps, SCADAStepConfig } from "./DashboardSCADA.types";
 import { calculateSCADAConfig } from "./DashboardSCADA.utils";
@@ -110,6 +112,7 @@ export const DashboardSCADA: React.FC<DashboardSCADAProps> = React.memo(function
     >
       <Application key={redrawKey + resizeKey} ref={handleAppRef} {...webglOverride} onInit={combinedOnInit}
         width={w} height={h} background={COLOR.bgCard} antialias resolution={window.devicePixelRatio || 1}>
+        <SpriteTextureProvider assets={SPRITE_ASSETS}>
         <pixiContainer>
 
           {/* ── Top Bar: Status + EA + Fire ── */}
@@ -253,6 +256,7 @@ export const DashboardSCADA: React.FC<DashboardSCADAProps> = React.memo(function
           </pixiContainer>
 
         </pixiContainer>
+        </SpriteTextureProvider>
       </Application>
     </div>
   );

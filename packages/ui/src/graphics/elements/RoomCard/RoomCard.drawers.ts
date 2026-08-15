@@ -45,6 +45,28 @@ function tempColor(temp: number): number {
   return COLOR.tempHot;
 }
 
+export function drawRoomChassis(
+  g: Graphics,
+  pos: RoomCardPosition,
+  cfg: { step: number },
+): void {
+  const { step } = cfg;
+  const { x, y, width: w, height: h } = pos;
+  const r = step * 0.3;
+
+  g.roundRect(x + step * 0.06, y + step * 0.1, w, h, r);
+  g.fill({ color: COLOR.shadow, alpha: 0.2 });
+
+  g.roundRect(x, y, w, h, r);
+  g.fill(roomBodyGrad());
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
+
+  const slotPad = step * 0.2;
+  g.roundRect(x + slotPad, y + h - step * 1.8, w - slotPad * 2, step * 1.6, step * 0.15);
+  g.fill({ color: COLOR.gradScreen, alpha: 0.5 });
+  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.borderStroke, alpha: 0.5 });
+}
+
 export function drawRoomBody(
   g: Graphics,
   pos: RoomCardPosition,

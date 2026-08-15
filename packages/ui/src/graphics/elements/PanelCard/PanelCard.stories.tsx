@@ -3,6 +3,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { PanelCard } from "@gd-monorepo/ui";
 import { createMockRectPosition } from "../../../__stories__/mocks/factories";
+import { drawPanelBody } from "./PanelCard.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -16,6 +17,21 @@ export default meta;
 const pos = createMockRectPosition(10, 10, 60, 100);
 const config = { step: 50 };
 const wrapper = { width: 100, height: 140, background: "#0f0f1a" } as const;
+
+export const Base = () => (
+  <div style={{ width: 72, height: 112 }}>
+    <Application width={72} height={112} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          drawPanelBody(g, { x: 6, y: 6, width: 60, height: 100 }, config);
+        }}
+      />
+    </Application>
+  </div>
+);
+Base.parameters = { backgrounds: { default: "transparent" } };
+
 
 export const Cold = () => (
   <div style={wrapper}>

@@ -1,18 +1,20 @@
 import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { Application, extend } from "@pixi/react";
-import { Container, Graphics, Text } from "pixi.js";
+import { Container, Graphics, Text, Sprite } from "pixi.js";
+import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SPRITE_ASSETS } from "../../textures";
 
 import type { BESSDiagramProps, BESSConfig } from "./BESSDiagram.types";
 import { calculateBESSConfig, getBSCLayout } from "./BESSDiagram.utils";
-import { drawGridSymbol, drawBusBar, drawContainerFrame } from "./BESSDiagram.drawers";
+import { drawBusBar, drawContainerFrame } from "./BESSDiagram.drawers";
 import { useWebGLDetect, usePixiResize } from "../../deprecated/BSCGraphic/BSCGraphic.hooks";
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { COLOR } from "../../../colors";
 
-import { RackCell, CircuitBreaker, DCOutput, RoomCard, HvacUnit, PanelCard, FirePanel, EnergyAnalyzerGraphic } from "../../elements";
+import { RackCell, CircuitBreaker, DCOutput, RoomCard, HvacUnit, PanelCard, FirePanel, EnergyAnalyzerGraphic, GridSymbol } from "../../elements";
 import type { RackCellConfig } from "../../elements/RackCell/RackCell.types";
 
-extend({ Container, Graphics, Text });
+extend({ Container, Graphics, Text, Sprite });
 
 const RACK_COUNT = 8;
 const PAD = 2;
@@ -148,6 +150,7 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
     >
       <Application key={redrawKey + resizeKey} ref={handleAppRef} {...webglOverride} onInit={combinedOnInit}
         width={w} height={h} background={COLOR.bgApp} antialias resolution={window.devicePixelRatio || 1}>
+        <SpriteTextureProvider assets={SPRITE_ASSETS}>
         <pixiContainer>
 
           <pixiGraphics
@@ -389,11 +392,10 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
             config={{ step: s }}
           />
 
-          <pixiGraphics
-            draw={(g) => {
-              g.clear();
-              drawGridSymbol(g, config.gridStartX, config.gridY, config.gridWidth, config.gridHeight, s);
-            }}
+          <GridSymbol
+            x={config.gridStartX} y={config.gridY}
+            width={config.gridWidth} height={config.gridHeight}
+            config={{ step: s }}
           />
           <pixiGraphics
             draw={(g) => {
@@ -465,6 +467,7 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
           )}
 
         </pixiContainer>
+        </SpriteTextureProvider>
       </Application>
     </div>
   );

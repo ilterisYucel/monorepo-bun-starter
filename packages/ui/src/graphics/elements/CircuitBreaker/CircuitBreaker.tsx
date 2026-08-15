@@ -1,8 +1,9 @@
 import React, { useCallback } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { CircuitBreakerProps } from "./CircuitBreaker.types";
-import { drawBreakerBody, drawBreakerPulse } from "./CircuitBreaker.drawers";
+import { drawBreakerBody, drawBreakerLever, drawBreakerPulse } from "./CircuitBreaker.drawers";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
+import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { COLOR } from "../../../colors";
 
 export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
@@ -16,6 +17,14 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
     (g: GraphicsType) => {
       g.clear();
       drawBreakerBody(g, config, positions, breakerStatus, breakerPosition);
+    },
+    [config, positions, breakerStatus, breakerPosition],
+  );
+
+  const drawLever = useCallback(
+    (g: GraphicsType) => {
+      g.clear();
+      drawBreakerLever(g, config, positions, breakerStatus, breakerPosition);
     },
     [config, positions, breakerStatus, breakerPosition],
   );
@@ -36,9 +45,28 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
   const by = centerY - config.step * 0.5;
   const bh = config.step * 1.0;
 
+  const chassisTexture = useSpriteTexture("circuitbreaker");
+  const chassisX = lineStartX - config.step * 0.1;
+  const chassisY = centerY - config.step * 0.35;
+  const chassisW = cb.endX - lineStartX + config.step * 0.2;
+  const chassisH = config.step * 0.7;
+
   return (
     <pixiContainer cursor={onClick ? "pointer" : "none"} eventMode={onClick ? "static" : "none"} onClick={onClick}>
-      <pixiGraphics draw={drawBody} />
+      {chassisTexture ? (
+        <>
+          <pixiSprite
+            texture={chassisTexture}
+            x={chassisX}
+            y={chassisY}
+            width={chassisW}
+            height={chassisH}
+          />
+          <pixiGraphics draw={drawLever} />
+        </>
+      ) : (
+        <pixiGraphics draw={drawBody} />
+      )}
       <pixiGraphics draw={(g: GraphicsType) => { gPulseRef.current = g; }} />
       <pixiGraphics
         draw={(g: GraphicsType) => {

@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { PanelCardProps } from "./PanelCard.types";
 import { drawPanelBody, drawPanelTemp } from "./PanelCard.drawers";
+import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { COLOR } from "../../../colors";
 
 export const PanelCard: React.FC<PanelCardProps> = ({ pos, panelTemp, panelHumidity, config, minimal }) => {
@@ -15,12 +16,25 @@ export const PanelCard: React.FC<PanelCardProps> = ({ pos, panelTemp, panelHumid
     [pos, panelTemp, config],
   );
 
+  const bodyTexture = useSpriteTexture("panelcard");
+  const margin = 6;
+
   const fs = Math.max(11, config.step * 0.3);
   const smallFs = Math.max(7, config.step * 0.17);
 
   return (
     <pixiContainer>
-      <pixiGraphics draw={drawBody} />
+      {bodyTexture ? (
+        <pixiSprite
+          texture={bodyTexture}
+          x={pos.x - margin}
+          y={pos.y - margin}
+          width={pos.width + margin * 2}
+          height={pos.height + margin * 2}
+        />
+      ) : (
+        <pixiGraphics draw={drawBody} />
+      )}
       <pixiGraphics draw={drawTemp} />
       <pixiText text="PANEL" x={pos.x + pos.width / 2} y={pos.y + config.step * 0.8} anchor={0.5}
         style={{ fontSize: fs, fill: COLOR.textPrimary, fontFamily: "monospace", fontWeight: "bold" }} />

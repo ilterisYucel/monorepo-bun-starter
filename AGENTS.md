@@ -594,6 +594,37 @@ When touching any file with hardcoded hex colors:
 - Paket dizinlerinde bare `tsc` çalıştırılmaz — composite projeler `outDir` yerine src'e emit edebilir. Nx hedefleri (`nx run <p>:build/test`) veya `tsc -b` kullanılır.
 - `*.d.ts`, `*.d.ts.map`, `*.tsbuildinfo` build çıktısıdır ve gitignore'dadır; el yazımı tip dosyaları yalnızca `src/preload/index.d.ts` (Electron) ve `vite-env.d.ts`/`vite.env.d.ts` (Vite env) kalıplarıdır.
 
+## Sprite pipeline (AI sprite üretimi — pixi çizimleri → sprite)
+
+Pixi `pixiGraphics` çizimlerini AI üretimi (fal.ai img2img) sprite'larla değiştirme altyapısı. Stil kuralları ve prompt şablonu: **`docs/SPRITE-STYLE-KIT.md`** (authoritative).
+
+### Komutlar
+```bash
+bun run sprite:refs                          # Storybook'tan referans PNG yakalar
+bun run sprite:refs -- --reset-sprites       # src/assets sprite'larını placeholder'a döndürür
+bun run sprite:gen rackcell                  # fal.ai ile sprite üretir (FAL_KEY gerekli)
+bun run sprite:gen --all [--skip-removal]
+bun tools/check-sprite.mjs                   # piksel bazlı kalite kapısı (boyut/şeffaflık/nötr renk)
+```
+`capture` refs/<element>/base.png'i her zaman tazeler; `src/assets/sprites/<element>/base.png`'i yalnızca dosya yoksa yazar — AI çıktılarını ezmez.
+
+### Dosya düzeni
+| Yol | İçerik |
+|:----|:-------|
+| `packages/ui/assets/sprites/refs/<element>/` | Faz 0 referans görselleri (capture script üretir, commit'lenir) |
+| `packages/ui/src/assets/sprites/<element>/base.png` | **Uygulamanın yüklediği sprite.** Placeholder = mevcut çizimin nötr baz render'ı; `sprite:gen` üzerine AI çıktısını yazar |
+| `packages/ui/src/graphics/textures.ts` | `SPRITE_ASSETS`: element → url + texture frame + scale |
+| `packages/ui/src/core/SpriteTextureProvider/` | `Assets.load` ile yükler, `useSpriteTexture(key)` ile texture sağlar |
+| `tools/sprites-spec.mjs` | Element başına canvas/frame/margin spesifikasyonu (capture+generate+check ortak) |
+
+### Kurallar
+- **Hibrit katman:** Sprite yalnızca nötr gövdeyi değiştirir. Durum renkleri, glow/pulse animasyonları ve `pixiText` etiketleri kod tarafında çizilmeye devam eder.
+- **Fallback:** Texture yüklenemezse element eski `drawX` çizimine döner — hiçbir koşulda boş ekran olmaz.
+- **Nötr baz:** AI çıktısında durum rengi (success/warning/error) ve metin BULUNAMAZ; renkler kodda tint/overlay ile verilir. img2img referansı olarak durumlu story DEĞİL, nötr `Base` story yakalaması kullanılır.
+- **Üretim modeli:** `fal-ai/nano-banana/edit` (giriş referansını temel alır) + `fal-ai/birefnet/v2` arka plan temizliği. Model çözünürlük değiştirirse generate script içerik bbox'ını kırpıp `sprites-spec.mjs` frame'ine normalize eder.
+- Element'e sprite eklemek için: chassis fonksiyonu (drawers) → Base story (transparent `backgroundAlpha={0}` + `backgrounds: { default: "transparent" }`) → `sprites-spec.mjs` girdisi → `SPRITE_ASSETS` meta (frame/scale) → elementte `useSpriteTexture` + fallback ternary.
+- Frame'ler yakalama DPR'ına göredir (şu an 2x). Kablo (`Cable`) özel durum: tek segment texture'ı her path segmenti için döndürülüp uzatılır (pabuç marjı 12px).
+
 ## What's missing
 - No PR-level unit-test CI workflow (`.github/workflows/` has `e2e.yml`, `perf.yml`, `sonar.yml`, `storybook.yml`, but no `test.yml`).
 - No pre-commit hooks, no centralized linting/formatting.

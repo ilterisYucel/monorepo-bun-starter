@@ -2,12 +2,18 @@ import React, { useCallback } from "react";
 import { COLOR } from "../../../colors";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { HvacUnitProps } from "./HvacUnit.types";
-import { drawHvacBody, drawHvacAnim } from "./HvacUnit.drawers";
+import { drawHvacBody, drawHvacStatus, drawHvacAnim } from "./HvacUnit.drawers";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
+import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 
 export const HvacUnit: React.FC<HvacUnitProps> = ({ hvac, pos, config, minimal }) => {
   const drawBody = useCallback(
     (g: GraphicsType) => { g.clear(); drawHvacBody(g, pos, hvac, config); },
+    [pos, hvac, config],
+  );
+
+  const drawStatus = useCallback(
+    (g: GraphicsType) => { g.clear(); drawHvacStatus(g, pos, hvac, config); },
     [pos, hvac, config],
   );
 
@@ -16,13 +22,29 @@ export const HvacUnit: React.FC<HvacUnitProps> = ({ hvac, pos, config, minimal }
     [pos, hvac, config],
   );
 
+  const bodyTexture = useSpriteTexture("hvacunit");
+  const margin = 5;
+
   const fs = Math.max(7, config.step * 0.2);
   const detailFs = Math.max(6, config.step * 0.15);
   const hasAlarm = (hvac.alarmCount ?? 0) > 0;
 
   return (
     <pixiContainer>
-      <pixiGraphics draw={drawBody} />
+      {bodyTexture ? (
+        <>
+          <pixiSprite
+            texture={bodyTexture}
+            x={pos.x - margin}
+            y={pos.y - margin}
+            width={pos.width + margin * 2}
+            height={pos.height + margin * 2}
+          />
+          <pixiGraphics draw={drawStatus} />
+        </>
+      ) : (
+        <pixiGraphics draw={drawBody} />
+      )}
       <pixiGraphics draw={(g: GraphicsType) => { gAnimRef.current = g; }} />
       <pixiText
         text={hvac.mode === "cooling" ? "COOL" : hvac.mode === "warming" ? "WARM" : "IDLE"}

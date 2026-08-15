@@ -3,6 +3,9 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { RackCell } from "@gd-monorepo/ui";
 import { createMockRack, createMockRackCellConfig } from "../../../__stories__/mocks/factories";
+import { drawRackBody, drawRackWindows } from "./RackCell.drawers";
+import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SPRITE_ASSETS } from "../../textures";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -15,6 +18,37 @@ export default meta;
 
 const config = createMockRackCellConfig(100);
 const wrapper = { width: 160, height: 420, background: "#0f0f1a" } as const;
+
+// Sprite üretimi için nötr baz: gövde + 6 boş display penceresi, şeffaf zemin.
+// AI pencereleri sprite gövdesine gömer; kod text'leri aynı koordinatlara yazar.
+export const Base = () => (
+  <div style={{ width: 160, height: 420 }}>
+    <Application width={160} height={420} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiContainer x={20} y={20}>
+        <pixiGraphics draw={(g) => { g.clear(); drawRackBody(g, config); }} />
+        <pixiGraphics draw={(g) => { g.clear(); drawRackWindows(g, config); }} />
+      </pixiContainer>
+    </Application>
+  </div>
+);
+Base.parameters = { backgrounds: { default: "transparent" } };
+
+// Sprite modu: SPRITE_ASSETS üzerinden texture enjekte edilir.
+export const SpriteMode = () => (
+  <div style={wrapper}>
+    <Application width={160} height={420} background={0x0f0f1a} antialias={false} resolution={1}>
+      <SpriteTextureProvider assets={SPRITE_ASSETS}>
+        <RackCell
+          rack={createMockRack("online", "Charge", { soc: 75, voltage: 48.2, current: 12.5 })}
+          x={20} y={20}
+          config={config}
+          flowDirection="Charge"
+        />
+      </SpriteTextureProvider>
+    </Application>
+  </div>
+);
+
 
 export const OnlineCharging = () => (
   <div style={wrapper}>

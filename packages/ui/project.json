@@ -44,7 +44,7 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["packages/ui/**/*.{ts,tsx}"]
+        "lintFilePatterns": ["packages/ui/src/**/*.{ts,tsx}", "packages/ui/.storybook/**/*.{ts,tsx}"]
       }
     },
     "storybook": {

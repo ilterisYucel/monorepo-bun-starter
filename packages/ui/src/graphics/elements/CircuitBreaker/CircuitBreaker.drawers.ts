@@ -30,7 +30,29 @@ function statusColor(
   return { fill: COLOR.error, stroke: COLOR.errorStroke };
 }
 
-export function drawBreakerBody(
+export function drawBreakerChassis(
+  g: Graphics,
+  cfg: { step: number },
+  pos: BreakerBusLayout,
+): void {
+  const { step } = cfg;
+  const { circuitBreaker: cb, convergence: cv, topBusY, bottomBusY } = pos;
+
+  const centerY = (topBusY + bottomBusY) / 2;
+  const lineStartX = cv.x + step * 0.2;
+
+  const bw = cb.endX - lineStartX;
+  const bx = lineStartX;
+  const by = centerY - step * 0.35;
+  const bh = step * 0.7;
+  const br = step * 0.08;
+
+  g.roundRect(bx - step * 0.1, by, bw + step * 0.2, bh, br);
+  g.fill(breakerBodyGrad());
+  g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke });
+}
+
+export function drawBreakerLever(
   g: Graphics,
   cfg: { step: number },
   pos: BreakerBusLayout,
@@ -45,17 +67,7 @@ export function drawBreakerBody(
   const strokeW = Math.max(3, step * 0.14);
   const actualMidX = (lineStartX + cb.endX) / 2;
   const gap = cb.gapSize * 1.8;
-  const { fill: sc, stroke: gc } = statusColor(breakerStatus, breakerPosition);
-
-  const bw = cb.endX - lineStartX;
-  const bx = lineStartX;
-  const by = centerY - step * 0.35;
-  const bh = step * 0.7;
-  const br = step * 0.08;
-
-  g.roundRect(bx - step * 0.1, by, bw + step * 0.2, bh, br);
-  g.fill(breakerBodyGrad());
-  g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke });
+  const { fill: sc } = statusColor(breakerStatus, breakerPosition);
 
   g.setStrokeStyle({ width: strokeW, color: sc });
 
@@ -92,6 +104,17 @@ export function drawBreakerBody(
     g.lineTo(cb.endX + step * 0.15, centerY);
     g.stroke();
   }
+}
+
+export function drawBreakerBody(
+  g: Graphics,
+  cfg: { step: number },
+  pos: BreakerBusLayout,
+  breakerStatus: "online" | "offline",
+  breakerPosition: "open" | "close",
+): void {
+  drawBreakerChassis(g, cfg, pos);
+  drawBreakerLever(g, cfg, pos, breakerStatus, breakerPosition);
 }
 
 export function drawBreakerPulse(

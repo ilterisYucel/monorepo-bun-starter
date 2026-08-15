@@ -18,6 +18,49 @@ function hvacBodyGrad(): FillGradient {
   return _hvacBodyGrad;
 }
 
+export function drawHvacChassis(
+  g: Graphics,
+  pos: RectPosition,
+  cfg: { step: number },
+): void {
+  const { step } = cfg;
+  const { x, y, width: w, height: h } = pos;
+  const r = step * 0.15;
+
+  g.roundRect(x, y, w, h, r);
+  g.fill(hvacBodyGrad());
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
+
+  g.roundRect(x + step * 0.08, y + step * 0.08, w - step * 0.16, h - step * 0.16, r * 0.5);
+  g.fill({ color: COLOR.gradScreen, alpha: 0.25 });
+}
+
+export function drawHvacStatus(
+  g: Graphics,
+  pos: RectPosition,
+  hvac: HvacData,
+  cfg: { step: number },
+): void {
+  const { step } = cfg;
+  const { x, y, width: w, height: h } = pos;
+  const r = step * 0.15;
+
+  const isOnline = hvac.status === "online";
+  let fillColor: number;
+  if (isOnline) {
+    fillColor = hvac.mode === "cooling" ? COLOR.info : hvac.mode === "warming" ? COLOR.warning : COLOR.idle;
+  } else {
+    fillColor = COLOR.idle;
+  }
+
+  g.roundRect(x + step * 0.08, y + step * 0.08, w - step * 0.16, h - step * 0.16, r * 0.5);
+  g.fill({ color: fillColor, alpha: 0.25 });
+
+  const dotR = Math.max(2, step * 0.06);
+  g.circle(x + w - dotR * 2, y + dotR * 2, dotR);
+  g.fill(isOnline ? COLOR.success : COLOR.error);
+}
+
 export function drawHvacBody(
   g: Graphics,
   pos: RectPosition,
@@ -31,19 +74,12 @@ export function drawHvacBody(
   const isOnline = hvac.status === "online";
   const borderColor = isOnline ? COLOR.success : COLOR.error;
 
-  let fillColor: number;
-  if (isOnline) {
-    fillColor = hvac.mode === "cooling" ? COLOR.info : hvac.mode === "warming" ? COLOR.warning : COLOR.idle;
-  } else {
-    fillColor = COLOR.idle;
-  }
-
   g.roundRect(x, y, w, h, r);
   g.fill(hvacBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: borderColor });
 
   g.roundRect(x + step * 0.08, y + step * 0.08, w - step * 0.16, h - step * 0.16, r * 0.5);
-  g.fill({ color: fillColor, alpha: 0.25 });
+  g.fill({ color: hvac.status === "online" ? (hvac.mode === "cooling" ? COLOR.info : hvac.mode === "warming" ? COLOR.warning : COLOR.idle) : COLOR.idle, alpha: 0.25 });
 
   const dotR = Math.max(2, step * 0.06);
   g.circle(x + w - dotR * 2, y + dotR * 2, dotR);

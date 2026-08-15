@@ -13,6 +13,8 @@ import { useWebGLDetect, usePixiResize } from "../../deprecated/TMSGraphic/TMSGr
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { SCADA_ICONS } from "../../../icons";
 import { COLOR, COLORS } from "../../../colors";
+import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SPRITE_ASSETS } from "../../textures";
 import { RoomCard, HvacUnit, PanelCard } from "../../elements";
 
 import * as S from "./TMS.styles";
@@ -168,6 +170,7 @@ export const TMS: React.FC<TMSGraphicProps> = React.memo(
           antialias
           resolution={window.devicePixelRatio || 1}
         >
+          <SpriteTextureProvider assets={SPRITE_ASSETS}>
           <pixiContainer y={-config.step * 0.4}>
           {/* Room cards */}
           {layout.rooms.map((roomPos, i) => {
@@ -204,6 +207,7 @@ export const TMS: React.FC<TMSGraphicProps> = React.memo(
             config={config}
           />
           </pixiContainer>
+        </SpriteTextureProvider>
         </Application>
       </S.Container>
     );

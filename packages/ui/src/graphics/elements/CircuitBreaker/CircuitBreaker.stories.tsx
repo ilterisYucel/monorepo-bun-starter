@@ -2,6 +2,9 @@ import React from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { CircuitBreaker } from "@gd-monorepo/ui";
+import { drawBreakerChassis } from "./CircuitBreaker.drawers";
+import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SPRITE_ASSETS } from "../../textures";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -20,6 +23,31 @@ const positions = {
   bottomBusY: 90,
 };
 const wrapper = { width: 200, height: 160, background: "#0f0f1a" } as const;
+
+export const Base = () => (
+  <div style={{ width: 160, height: 100 }}>
+    <Application width={160} height={100} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, config, positions); }} />
+    </Application>
+  </div>
+);
+Base.parameters = { backgrounds: { default: "transparent" } };
+
+export const SpriteMode = () => (
+  <div style={wrapper}>
+    <Application width={200} height={160} background={0x0f0f1a} antialias={false} resolution={1}>
+      <SpriteTextureProvider assets={SPRITE_ASSETS}>
+        <CircuitBreaker
+          config={config}
+          positions={positions}
+          breakerStatus="online"
+          breakerPosition="close"
+        />
+      </SpriteTextureProvider>
+    </Application>
+  </div>
+);
+
 
 export const OnlineClosed = () => (
   <div style={wrapper}>

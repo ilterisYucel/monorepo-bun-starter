@@ -2,6 +2,8 @@ import React, { useCallback } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { EnergyAnalyzerGraphicProps } from "./EnergyAnalyzerGraphic.types";
 import { drawEABody, drawLCDScreen, drawLabelBox, ROW_LABELS } from "./EnergyAnalyzerGraphic.drawers";
+import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
+import { hudTextStyle } from "../../hud";
 import { COLOR } from "../../../colors";
 
 export const EnergyAnalyzerGraphic: React.FC<EnergyAnalyzerGraphicProps> = ({
@@ -14,14 +16,28 @@ export const EnergyAnalyzerGraphic: React.FC<EnergyAnalyzerGraphicProps> = ({
     [x, y, w, h, config],
   );
 
+  const bodyTexture = useSpriteTexture("energyanalyzergraphic");
+  const margin = 4;
+
   const lcdX = x + step * 0.15;
   const lcdY = y + step * 0.5;
   const lcdW = w - step * 0.3;
   const lcdH = h * 0.52;
 
+  // Sprite modunda LCD camı sprite'ta gömülü; yalnızca okunabilirlik için
+  // hafif karartma + çerçeve çizilir. Çizim modunda scanline'lı cam korunur.
   const drawLCD = useCallback(
-    (g: GraphicsType) => { g.clear(); drawLCDScreen(g, lcdX, lcdY, lcdW, lcdH, step); },
-    [lcdX, lcdY, lcdW, lcdH, step],
+    (g: GraphicsType) => {
+      g.clear();
+      if (bodyTexture) {
+        g.roundRect(lcdX, lcdY, lcdW, lcdH, step * 0.08);
+        g.fill({ color: COLOR.textNearBlack, alpha: 0.35 });
+        g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.borderStroke, alpha: 0.5 });
+      } else {
+        drawLCDScreen(g, lcdX, lcdY, lcdW, lcdH, step);
+      }
+    },
+    [lcdX, lcdY, lcdW, lcdH, step, bodyTexture],
   );
 
   const titleFs = Math.max(7, step * 0.22);
@@ -46,7 +62,17 @@ export const EnergyAnalyzerGraphic: React.FC<EnergyAnalyzerGraphicProps> = ({
 
   return (
     <pixiContainer>
-      <pixiGraphics draw={drawBody} />
+      {bodyTexture ? (
+        <pixiSprite
+          texture={bodyTexture}
+          x={x - margin}
+          y={y - margin}
+          width={w + margin * 2}
+          height={h + margin * 2}
+        />
+      ) : (
+        <pixiGraphics draw={drawBody} />
+      )}
       <pixiGraphics draw={drawLCD} />
 
       <pixiGraphics
@@ -60,7 +86,7 @@ export const EnergyAnalyzerGraphic: React.FC<EnergyAnalyzerGraphicProps> = ({
       <pixiText
         text={label}
         x={x + w / 2} y={y + step * 0.08 + step * 0.175} anchor={0.5}
-        style={{ fontSize: titleFs, fill: COLOR.textLight, fontFamily: "monospace", fontWeight: "bold" }}
+        style={hudTextStyle({ size: titleFs, color: COLOR.textLight, bold: true })}
       />
 
       {ROW_LABELS.map((row, ri) => {
@@ -83,12 +109,12 @@ export const EnergyAnalyzerGraphic: React.FC<EnergyAnalyzerGraphicProps> = ({
             <pixiText
               text={row.label}
               x={labelX + step * 0.2} y={ry + rowHeight * 0.35} anchor={0.5}
-              style={{ fontSize: labelFs, fill: valColor, fontFamily: "monospace", fontWeight: "bold" }}
+              style={hudTextStyle({ size: labelFs, color: valColor, bold: true })}
             />
             <pixiText
               text={valText}
               x={valueX} y={ry + rowHeight * 0.35} anchor={0}
-              style={{ fontSize: valueFs, fill: COLOR.textNearWhite, fontFamily: "monospace" }}
+              style={hudTextStyle({ size: valueFs, color: COLOR.textNearWhite, glow: true })}
             />
           </pixiContainer>
         );

@@ -31,10 +31,13 @@
     "test:coverage": "vitest --config vitest.workspace.ts --coverage",
     "test:e2e": "playwright test",
     "test:perf": "k6 run deployment/k6/*.js",
+    "sprite:refs": "bun tools/capture-sprite-refs.mjs",
+    "sprite:gen": "bun tools/generate-sprite.mjs",
     "graph": "nx graph",
     "clean": "nx run-many --target=clean"
   },
   "devDependencies": {
+    "@fal-ai/client": "^1.10.1",
     "@mermaid-js/mermaid-cli": "^11.16.0",
     "@nx/react": "^22.7.1",
     "@nx/vite": "^22.7.1",

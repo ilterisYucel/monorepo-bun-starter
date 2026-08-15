@@ -3,6 +3,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { RoomCard } from "@gd-monorepo/ui";
 import { createMockRoomData } from "../../../__stories__/mocks/factories";
+import { drawRoomChassis } from "./RoomCard.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -22,6 +23,21 @@ const roomPos = {
 };
 const config = { step: 30 };
 const wrapper = { width: 160, height: 220, background: "#0f0f1a" } as const;
+
+export const Base = () => (
+  <div style={{ width: 130, height: 190 }}>
+    <Application width={130} height={190} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          drawRoomChassis(g, { ...roomPos, x: 5, y: 5 }, config);
+        }}
+      />
+    </Application>
+  </div>
+);
+Base.parameters = { backgrounds: { default: "transparent" } };
+
 
 export const RoomO1 = () => (
   <div style={wrapper}>

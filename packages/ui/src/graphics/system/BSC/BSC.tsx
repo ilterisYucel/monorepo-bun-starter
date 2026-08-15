@@ -14,6 +14,8 @@ import { useWebGLDetect, usePixiResize } from "../../deprecated/BSCGraphic/BSCGr
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { SCADA_ICONS } from "../../../icons";
 import { COLOR, COLORS } from "../../../colors";
+import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SPRITE_ASSETS } from "../../textures";
 import type { Rack } from "../../../types";
 import type { ChargeStatus } from "@gd-monorepo/shared-types";
 import type { RackCellConfig } from "../../elements/RackCell/RackCell.types";
@@ -282,6 +284,7 @@ const BSCV2Canvas: React.FC<{
         antialias
         resolution={window.devicePixelRatio || 1}
       >
+        <SpriteTextureProvider assets={SPRITE_ASSETS}>
         {/* Header */}
         <pixiText
           key="device-id"
@@ -341,6 +344,7 @@ const BSCV2Canvas: React.FC<{
 
         {/* Labels */}
         {labels}
+        </SpriteTextureProvider>
       </Application>
 
       {popoverData && (

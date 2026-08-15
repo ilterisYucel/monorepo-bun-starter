@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { RoomCardProps } from "./RoomCard.types";
 import { drawRoomBody, drawRoomTemp, drawRoomTempBorder } from "./RoomCard.drawers";
+import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { COLOR } from "../../../colors";
 
 export const RoomCard: React.FC<RoomCardProps> = ({ room, roomPos, config, minimal }) => {
@@ -19,12 +20,25 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, roomPos, config, minim
     [roomPos, room.temp, config],
   );
 
+  const bodyTexture = useSpriteTexture("roomcard");
+  const margin = 5;
+
   const fs = Math.max(10, config.step * 0.3);
   const smallFs = Math.max(7, config.step * 0.17);
 
   return (
     <pixiContainer>
-      <pixiGraphics draw={drawBody} />
+      {bodyTexture ? (
+        <pixiSprite
+          texture={bodyTexture}
+          x={roomPos.x - margin}
+          y={roomPos.y - margin}
+          width={roomPos.width + margin * 2}
+          height={roomPos.height + margin * 2}
+        />
+      ) : (
+        <pixiGraphics draw={drawBody} />
+      )}
       <pixiGraphics draw={drawTempBar} />
       <pixiText text={`O${roomPos.index + 1}`} x={roomPos.x + roomPos.width / 2}
         y={roomPos.y + config.step * 0.7} anchor={0.5}

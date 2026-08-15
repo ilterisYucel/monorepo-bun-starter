@@ -1,0 +1,110 @@
+# Sprite Stil Kiti (AI Üretim Referansı)
+
+**Amaç:** PixiJS canvas çizimlerini fal.ai (img2img) ile izometrik hafif 3B sprite'lara dönüştürürken tutarlılık sağlamak.
+**Kapsam:** `packages/ui/src/graphics/elements/*` — RackCell, Cable, CableBus, CircuitBreaker, DCOutput, RoomCard, HvacUnit, PanelCard, FirePanel, EnergyAnalyzerGraphic.
+**Referans görseller:** `packages/ui/assets/sprites/refs/<element>/<state>.png` (tools/capture-sprite-refs.mjs ile üretilir).
+
+---
+
+## 1. Global stil direktifleri (TÜM üretimlerde geçerli)
+
+| Alan | Kural |
+|:-----|:------|
+| Perspektif | İzometrik, hafif 3B derinlik (2.5D). Mevcut flat yerleşim geometrisi korunur; sprite'lar dikdörtgen alanlara sığar. |
+| Zemin | Koyu endüstriyel UI: `#0f0f1a` arka planla uyumlu, kart yüzeyi `#1a1a2e`. |
+| Işık | Tek ışık yönü: sol-üstten. Yumuşak gölgeler, parlak kenar vurguları (bevel). |
+| Aksan renkleri | Token paletiyle birebir: success `#10b981`, warning `#f59e0b`, error `#ef4444`, idle `#6b7280`, info `#3b82f6`. |
+| Durum renkleri | **Üretilmez.** Baz sprite'lar nötr (beyaz/gri gövde, koyu çerçeve) üretilir; durum renkleri kod tarafında tint/overlay ile verilir. |
+| Stil dili | Yumuşak plastik-metal karışımı, hafif neon iç aydınlatma, ince koyu kontur (1-2px). Foto-gerçekçilik DEĞİL; temiz game-UI estetiği. |
+| Arka plan | **Tamamen şeffaf** (transparent PNG). Hiçbir zemin/gölge dışa taşmaz. |
+| Çözünürlük | Element hizalama kutusunun 2x'i (DPR 2). Örn. RackCell kutusu 120×380 → 240×760 çıktı. |
+| Yazı | Sprite içine **metin üretilmez**. Tüm etiketler (SOC%, V, A, R01...) kod tarafında `pixiText` ile konur. |
+
+## 2. Renk eşleme (referans için)
+
+| Token | Hex | Kullanım |
+|:------|:----|:---------|
+| success / successGlow | `#10b981` / `#34d399` | Online, charge, kapalı kesici |
+| warning / warningGlow | `#f59e0b` / `#fbbf24` | Discharge, açık kesici |
+| error / errorStroke | `#ef4444` / `#f87171` | Offline, fault, fire |
+| idle | `#6b7280` | Pasif durum |
+| info / infoLight | `#3b82f6` / `#60a5fa` | HVAC soğutma |
+| bgCard / bgApp | `#1a1a2e` / `#0f0f1a` | Gövde yüzeyleri |
+
+## 3. Element başına üretim spesifikasyonu
+
+### RackCell (battery rack)
+- **Referans:** `refs/rackcell/online-charging.png` (tek referans yeter — durumlar nötr baz üzerine kod ile)
+- **Üretim:** 1 nötr baz sprite (rack gövdesi, pil modülleri seviyeleri görünür, terminaller üstte/altta).
+- **9-slice:** Gövde dikey olarak uzayabilir olmalı (üst kapak / orta gövde / alt kapak). Orta bölge pil modülü dokusu tekrar eder.
+- **Kod katmanları (kalır):** fill overlay (SOC seviye), glow (ticker), terminaller, 6 etiket satırı.
+
+### Cable / CableBus (kablolar, bus bar)
+- **Üretim:** 1 kablo segment dokusu (kısa düz parça, yatay) + 1 bağlantı ucu (terminal pabucu). Doku yatayda tekrarlanabilir (tile) olmalı.
+- **Kod katmanları:** Flow partikül animasyonu sprite üstünde kalır.
+- **Kural:** Kıvrımlı yol çizimi yapılmaz; path üzerinde segment + döndürme ile döşenir.
+
+### CircuitBreaker (kesici)
+- **Referans:** `refs/circuitbreaker/online-closed.png`, `online-open.png`
+- **Üretim:** 1 nötr baz (kesici gövdesi, kol yuvası görünür). Kol (handle) durumu kod tarafında 2 pozisyonda çizilebilir/rotasyonla gösterilebilir.
+- **Kod katmanları:** Pulse animasyonu, durum renk glow.
+
+### DCOutput (DC çıkış)
+- **Referans:** `refs/dcoutput/active.png`
+- **Üretim:** 1 nötr baz (yuvarlak/endüstriyel DC çıkış kafası).
+- **Kod katmanları:** Aktif glow, etiketler.
+
+### RoomCard (oda kartı)
+- **Referans:** `refs/roomcard/room-o-1.png`
+- **Üretim:** 1 nötr baz (oda kutusu, hafif izometrik iç perspektif, sıcaklık bar yuvası).
+- **Kod katmanları:** Sıcaklık barı (soğuk mavi→sıcak kırmızı), etiketler (O1, °C, set, RH).
+
+### HvacUnit (HVAC ünitesi)
+- **Referans:** `refs/hvacunit/online-cooling.png`
+- **Üretim:** 1 nötr baz (kompakt HVAC kutusu, fan ızgarası).
+- **Kod katmanları:** Durum renk gövde tint, etiketler.
+
+### PanelCard (yangın paneli)
+- **Referans:** `refs/panelcard/normal.png`
+- **Üretim:** 1 nötr baz (panel gövdesi, LED sıra yuvası — LED'ler kod tarafında).
+- **Kod katmanları:** Sıcaklık/nem etiketleri, LED dizileri.
+
+### FirePanel (yangın alarm paneli)
+- **Referans:** `refs/firepanel/normal.png`, `fire-alarm.png`
+- **Üretim:** 1 nötr baz (endüstriyel yangın paneli gövdesi, anahtar/LED yuvaları boş).
+- **Kod katmanları:** 9 durum lambası (FirePanelData alanları), anahtar çizimleri, etiketler.
+
+### EnergyAnalyzerGraphic (enerji analizörü)
+- **Referans:** `refs/energyanalyzergraphic/normal.png`
+- **Üretim:** 1 nötr baz (analizör gövdesi, LCD yuvası koyu/boş).
+- **Kod katmanları:** LCD değerler (V, A, kW, kWh), etiketler.
+
+## 4. Prompt şablonu (img2img)
+
+> Convert this flat technical drawing of a {ELEMENT_DESCRIPTION} into a polished 2.5D isometric game-UI sprite. Keep the exact layout, proportions and bounding box of the reference. Style: clean industrial battery energy storage system interface, soft plastic-metal hybrid body, subtle neon inner glow, thin dark outline, smooth bevel highlights, single light source from top-left, dark UI color scheme compatible with a #0f0f1a background. Neutral color body (gray/white panels, dark frame) — NO status colors (no green/orange/red). No text, no labels, no icons inside the sprite. Isolated on fully transparent background. Crisp vector-like edges, high detail, 2x resolution.
+
+**Negatif prompt:** `photorealistic, text, watermark, logo, background, floor, shadow outside object, perspective distortion, warped layout, green light, red light, orange light`
+
+## 5. Kalite kontrol kriterleri
+
+1. Sprite, referans PNG ile aynı bounding box oranına sahip olmalı (üst üste bindirmede taşma yok).
+2. Şeffaf arka plan kontrolü: köşe pikselleri alpha=0.
+3. Nötr baz kontrolü: sprite içinde success/warning/error hex'leri bulunmamalı (durum renkleri kodda).
+4. Metin içermemeli (AI üretimi metinler okunaksız olur).
+5. Tile edilebilirlik (Cable): segmentin sol ve sağ uçları kesintisiz birleşmeli.
+
+## 6. Dosya düzeni
+
+```
+packages/ui/assets/sprites/
+  refs/<element>/<state>.png      # Faz 0 referansları (capture script ile)
+  refs/<element>/base.png         # Nötr baz referansı (AI üretim girdisi)
+packages/ui/src/assets/sprites/<element>/base.png   # Uygulamanın yüklediği sprite
+tools/sprites-spec.mjs            # canvas/frame/margin spesifikasyonları
+```
+
+## 7. Üretim pipeline notları
+
+- **Model:** `fal-ai/nano-banana/edit` (giriş görselini düzenler) → `fal-ai/birefnet/v2` (arka plan temizliği).
+- **Normalizasyon:** Model çözünürlük/aspect değiştirebilir; generate script içerik bbox'ını kırpıp `sprites-spec.mjs` frame'ine yeniden boyutlandırır — frame metaları modelden bağımsız kalır.
+- **img2img referansı:** Durumlu (yeşil/turuncu içeren) story DEĞİL, nötr `Base` story yakalaması kullanılır — aksi halde model durum renklerini kopyalar.

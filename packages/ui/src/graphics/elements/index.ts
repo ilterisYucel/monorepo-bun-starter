@@ -8,3 +8,4 @@ export * from "./DCOutput";
 export * from "./RackCell";
 export * from "./FirePanel";
 export * from "./EnergyAnalyzerGraphic";
+export * from "./GridSymbol";

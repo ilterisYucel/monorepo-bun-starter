@@ -23,7 +23,20 @@ function outputBodyGrad(isActive: boolean): FillGradient {
   return _outputGrads.get(key)!;
 }
 
-export function drawOutputBody(
+export function drawOutputChassis(
+  g: Graphics,
+  cfg: { step: number },
+  output: OutputPosition,
+): void {
+  const { step } = cfg;
+  const or = output.radius;
+
+  g.circle(output.x, output.y, or);
+  g.fill(outputBodyGrad(false));
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
+}
+
+export function drawOutputBolt(
   g: Graphics,
   cfg: { step: number },
   output: OutputPosition,
@@ -33,10 +46,6 @@ export function drawOutputBody(
   const color = isActive ? COLOR.info : COLOR.idle;
 
   const or = output.radius;
-  g.circle(output.x, output.y, or);
-  g.fill(outputBodyGrad(isActive));
-  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
-
   g.circle(output.x, output.y, or * 0.7);
   g.fill({ color, alpha: 0.3 });
 
@@ -52,6 +61,16 @@ export function drawOutputBody(
   const dotR = Math.max(1.5, step * 0.05);
   g.circle(output.x, output.y - or + dotR * 2, dotR);
   g.fill(isActive ? COLOR.info : COLOR.idle);
+}
+
+export function drawOutputBody(
+  g: Graphics,
+  cfg: { step: number },
+  output: OutputPosition,
+  isActive: boolean,
+): void {
+  drawOutputChassis(g, cfg, output);
+  drawOutputBolt(g, cfg, output, isActive);
 }
 
 export function drawOutputGlow(

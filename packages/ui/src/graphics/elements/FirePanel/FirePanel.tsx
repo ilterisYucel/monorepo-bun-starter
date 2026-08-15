@@ -11,6 +11,7 @@ import {
 } from "./FirePanel.drawers";
 import type { LampDef } from "./FirePanel.drawers";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
+import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { COLOR } from "../../../colors";
 
 export const FirePanel: React.FC<FirePanelProps> = ({
@@ -22,6 +23,9 @@ export const FirePanel: React.FC<FirePanelProps> = ({
     (g: GraphicsType) => { g.clear(); drawPanelBody(g, x, y, w, h, data, config); },
     [x, y, w, h, data, config],
   );
+
+  const bodyTexture = useSpriteTexture("firepanel");
+  const margin = 4;
 
   const gLampsRef = usePixiTickerEffect(
     (g, time) => {
@@ -86,7 +90,17 @@ export const FirePanel: React.FC<FirePanelProps> = ({
 
   return (
     <pixiContainer>
-      <pixiGraphics draw={drawBody} />
+      {bodyTexture ? (
+        <pixiSprite
+          texture={bodyTexture}
+          x={x - margin}
+          y={y - margin}
+          width={w + margin * 2}
+          height={h + margin * 2}
+        />
+      ) : (
+        <pixiGraphics draw={drawBody} />
+      )}
       <pixiGraphics draw={(g: GraphicsType) => { gLampsRef.current = g; }} />
       <pixiGraphics draw={drawKeys} />
 
