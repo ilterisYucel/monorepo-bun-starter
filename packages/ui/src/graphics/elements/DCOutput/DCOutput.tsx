@@ -76,7 +76,7 @@ export const DCOutput: React.FC<DCOutputProps> = ({ config, output, dcOutput }) 
               <pixiText
                 text={voltText}
                 x={display.x + display.width * 0.3}
-                y={display.y + display.height * 0.3}
+                y={display.y + display.height * 0.7}
                 anchor={0.5}
                 style={styleVolt}
               />
