@@ -1,5 +1,6 @@
 import { Graphics, FillGradient } from "pixi.js";
 import type { RectPosition } from "../../types";
+import type { PanelSlotRect } from "./PanelCard.types";
 import { COLOR } from "../../../colors";
 
 let _panelBodyGrad: FillGradient | null = null;
@@ -62,25 +63,59 @@ export function drawPanelBody(
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 }
 
+// Sıcaklık barı yuvası (nötr): çizim modunda ve Base story'de kullanılır.
+export function drawPanelBarSlot(
+  g: Graphics,
+  pos: RectPosition,
+  cfg: { step: number },
+  slotOverride?: PanelSlotRect,
+): void {
+  const { step } = cfg;
+  const { x, y, width: w, height: h } = pos;
+  const slot = slotOverride ?? {
+    x: x + step * 0.2,
+    y: y + step * 2.2,
+    width: w - step * 0.4,
+    height: h - step * 3.2,
+  };
+
+  g.roundRect(slot.x, slot.y, slot.width, slot.height, step * 0.15);
+  g.fill({ color: COLOR.gradScreen, alpha: 0.7 });
+  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.borderStroke, alpha: 0.6 });
+}
+
 export function drawPanelTemp(
   g: Graphics,
   pos: RectPosition,
   panelTemp: number,
   cfg: { step: number },
+  slotOverride?: PanelSlotRect,
 ): void {
   const { step } = cfg;
   const { x, y, width: w, height: h } = pos;
   const color = tempColor(panelTemp);
 
-  const innerPad = step * 0.2;
-  const innerH = h - step * 3.2;
-  const innerY = y + step * 2.2;
+  const slot = slotOverride ?? {
+    x: x + step * 0.2,
+    y: y + step * 2.2,
+    width: w - step * 0.4,
+    height: h - step * 3.2,
+  };
+  const pad = slotOverride ? step * 0.06 : step * 0.2;
+  const innerH = slot.height - pad * 2;
+  const innerY = slot.y + pad;
 
   const tempNorm = Math.min(1, Math.max(0, panelTemp / 50));
   const fillH = innerH * tempNorm;
   const fillY = innerY + (innerH - fillH);
 
-  g.roundRect(x + innerPad, fillY, w - innerPad * 2, Math.max(fillH, step * 0.3), step * 0.15);
+  g.roundRect(slot.x + pad, fillY, slot.width - pad * 2, Math.max(fillH, step * 0.3), step * 0.1);
   g.fill(panelTempGrad(color));
   g.stroke({ width: Math.max(0.5, step * 0.02), color, alpha: 0.4 });
+
+  // Parlak üst kenar
+  if (fillH > step * 0.4) {
+    g.roundRect(slot.x + pad, fillY - step * 0.03, slot.width - pad * 2, step * 0.06, step * 0.03);
+    g.fill({ color: color, alpha: 0.9 });
+  }
 }

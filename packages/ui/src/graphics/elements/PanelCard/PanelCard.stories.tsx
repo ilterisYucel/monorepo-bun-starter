@@ -3,7 +3,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { PanelCard } from "@gd-monorepo/ui";
 import { createMockRectPosition } from "../../../__stories__/mocks/factories";
-import { drawPanelBody } from "./PanelCard.drawers";
+import { drawPanelBody, drawPanelBarSlot } from "./PanelCard.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -24,7 +24,10 @@ export const Base = () => (
       <pixiGraphics
         draw={(g) => {
           g.clear();
-          drawPanelBody(g, { x: 6, y: 6, width: 60, height: 100 }, config);
+          const baseStep = { step: 15 };
+          const basePos = { x: 6, y: 6, width: 60, height: 100 };
+          drawPanelBody(g, basePos, baseStep);
+          drawPanelBarSlot(g, basePos, baseStep, { x: 9, y: 39, width: 54, height: 52 });
         }}
       />
     </Application>

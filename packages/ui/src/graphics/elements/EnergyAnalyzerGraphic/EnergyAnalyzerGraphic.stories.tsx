@@ -2,7 +2,7 @@ import React from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { EnergyAnalyzerGraphic } from "./EnergyAnalyzerGraphic";
-import { drawEABody } from "./EnergyAnalyzerGraphic.drawers";
+import { drawEABody, drawLCDScreen } from "./EnergyAnalyzerGraphic.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -22,6 +22,7 @@ export const Base = () => (
         draw={(g) => {
           g.clear();
           drawEABody(g, 4, 4, 300, 380, { step: 20 });
+          drawLCDScreen(g, 7, 14, 294, 197.6, 20);
         }}
       />
     </Application>

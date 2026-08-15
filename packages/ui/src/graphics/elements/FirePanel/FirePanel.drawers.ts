@@ -78,6 +78,48 @@ export function drawFirePanelChassis(
   g.fill({ color: COLOR.gradScreen, alpha: 0.3 });
 }
 
+// Nötr soket çizimi: boş lamba + anahtar yuvaları (Base story + çizim modu).
+export function drawFirePanelSockets(
+  g: Graphics,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  cfg: FirePanelConfig,
+): void {
+  const { step } = cfg;
+  const lampRadius = Math.max(3, step * 0.22);
+  const lampGap = step * 0.5;
+  const lampsPerRow = 3;
+  const totalLampW = lampsPerRow * lampRadius * 2 + (lampsPerRow - 1) * lampGap;
+  const lampStartX = x + (w - totalLampW) / 2;
+  const lampY1 = y + h * 0.15;
+  const lampY2 = y + h * 0.30;
+
+  for (let i = 0; i < LAMP_DEFS.length; i++) {
+    const col = i < 3 ? i : i - 3;
+    const cy = i < 3 ? lampY1 : lampY2;
+    const cx = lampStartX + col * (lampRadius * 2 + lampGap) + lampRadius;
+    g.circle(cx, cy, lampRadius);
+    g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
+    g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.borderStroke, alpha: 0.5 });
+  }
+
+  const keyW = step * 1.2;
+  const keyH = step * 0.8;
+  const keyGap = step * 0.3;
+  const totalKeyW = KEY_DEFS.length * keyW + (KEY_DEFS.length - 1) * keyGap;
+  const keyStartX = x + (w - totalKeyW) / 2;
+  const keyY = y + h * 0.46;
+
+  for (let i = 0; i < KEY_DEFS.length; i++) {
+    const kx = keyStartX + i * (keyW + keyGap);
+    g.roundRect(kx, keyY, keyW, keyH, step * 0.08);
+    g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
+    g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.borderStroke, alpha: 0.4 });
+  }
+}
+
 export function drawPanelBody(
   g: Graphics,
   x: number,

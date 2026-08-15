@@ -1,8 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { FirePanelProps } from "./FirePanel.types";
 import {
   drawPanelBody,
+  drawFirePanelSockets,
   drawLamp,
   drawKeySwitch,
   drawLabelBox,
@@ -10,6 +11,7 @@ import {
   KEY_DEFS,
 } from "./FirePanel.drawers";
 import type { LampDef } from "./FirePanel.drawers";
+import { FIREPANEL_META } from "./firepanel-meta";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
 import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { COLOR } from "../../../colors";
@@ -24,64 +26,109 @@ export const FirePanel: React.FC<FirePanelProps> = ({
     [x, y, w, h, data, config],
   );
 
+  const drawSockets = useCallback(
+    (g: GraphicsType) => { g.clear(); drawFirePanelSockets(g, x, y, w, h, config); },
+    [x, y, w, h, config],
+  );
+
   const bodyTexture = useSpriteTexture("firepanel");
   const margin = 4;
 
+  // Lamba/anahtar kümeleri: sprite modunda AI çıktısından ölçülmüş meta,
+  // değilse tasarım geometrisi. Kümeler gövdeye oran; w/h ile ölçeklenir.
+  const clusters = useMemo(() => {
+    if (bodyTexture && FIREPANEL_META.measured) {
+      const lamp = FIREPANEL_META.lampCluster;
+      const key = FIREPANEL_META.keyCluster;
+      return {
+        lamp: { x: x + lamp.x * w, y: y + lamp.y * h, width: lamp.width * w, height: lamp.height * h },
+        key: { x: x + key.x * w, y: y + key.y * h, width: key.width * w, height: key.height * h },
+      };
+    }
+    return null;
+  }, [bodyTexture, x, y, w, h]);
+
+  // Küme tabanlı lamba/anahtar geometrisi
+  const lampGeo = useMemo(() => {
+    if (clusters) {
+      const c = clusters.lamp;
+      return {
+        radius: Math.min(c.width * 0.095, c.height * 0.087),
+        cx: (i: number) => c.x + ((i % 3) + 0.5) * (c.width / 3),
+        cy: (i: number) => c.y + (i < 3 ? 0.25 : 0.75) * c.height,
+      };
+    }
+    return null;
+  }, [clusters]);
+
+  const keyGeo = useMemo(() => {
+    if (clusters) {
+      const c = clusters.key;
+      return {
+        w: c.width / KEY_DEFS.length * 0.84,
+        h: c.height,
+        x: (i: number) => c.x + i * (c.width / KEY_DEFS.length) + (c.width / KEY_DEFS.length - (c.width / KEY_DEFS.length) * 0.84) / 2,
+        y: c.y,
+      };
+    }
+    return null;
+  }, [clusters]);
+
   const gLampsRef = usePixiTickerEffect(
     (g, time) => {
-      const lampRadius = Math.max(3, step * 0.22);
+      const pulse = (Math.sin(time * 6.0) + 1) / 2;
+      const d = data as unknown as Record<string, boolean>;
+
+      const lampRadius = lampGeo ? lampGeo.radius : Math.max(3, step * 0.22);
       const lampGap = step * 0.5;
-      const lampsPerRow = 3;
-      const totalLampW = lampsPerRow * lampRadius * 2 + (lampsPerRow - 1) * lampGap;
+      const totalLampW = 3 * lampRadius * 2 + 2 * lampGap;
       const lampStartX = x + (w - totalLampW) / 2;
       const lampY1 = y + h * 0.15;
       const lampY2 = y + h * 0.30;
-      const pulse = (Math.sin(time * 6.0) + 1) / 2;
-      const d = data as unknown as Record<string, boolean>;
 
       for (let i = 0; i < LAMP_DEFS.length; i++) {
         const def = LAMP_DEFS[i]!;
         const active = !!d[def.key];
         const col = i < 3 ? i : i - 3;
-        const cy = i < 3 ? lampY1 : lampY2;
-        const cx = lampStartX + col * (lampRadius * 2 + lampGap) + lampRadius;
+        const cx = lampGeo ? lampGeo.cx(i) : lampStartX + col * (lampRadius * 2 + lampGap) + lampRadius;
+        const cy = lampGeo ? lampGeo.cy(i) : i < 3 ? lampY1 : lampY2;
         drawLamp(g, cx, cy, lampRadius, active, def.colorActive, def.colorGlow, pulse, step);
       }
     },
-    [data, x, y, w, h, config],
+    [data, x, y, w, h, config, lampGeo],
   );
 
   const drawKeys = useCallback(
     (g: GraphicsType) => {
-      const keyW = step * 1.2;
-      const keyH = step * 0.8;
+      const keyW = keyGeo ? keyGeo.w : step * 1.2;
+      const keyH = keyGeo ? keyGeo.h : step * 0.8;
       const keyGap = step * 0.3;
       const totalKeyW = KEY_DEFS.length * keyW + (KEY_DEFS.length - 1) * keyGap;
       const keyStartX = x + (w - totalKeyW) / 2;
-      const keyY = y + h * 0.46;
+      const keyY = keyGeo ? keyGeo.y : y + h * 0.46;
       const modeActive = data.modeAuto;
 
       for (let i = 0; i < KEY_DEFS.length; i++) {
         const isActive = i === 3 ? modeActive : false;
-        drawKeySwitch(g, keyStartX + i * (keyW + keyGap), keyY, keyW, keyH, isActive, step);
+        const kx = keyGeo ? keyGeo.x(i) : keyStartX + i * (keyW + keyGap);
+        drawKeySwitch(g, kx, keyY, keyW, keyH, isActive, step);
       }
     },
-    [data, x, y, w, h, config],
+    [data, x, y, w, h, config, keyGeo],
   );
 
   const titleFs = Math.max(7, step * 0.22);
   const labelFs = Math.max(6, step * 0.15);
   const smallFs = Math.max(5, step * 0.13);
 
-  const lampRadius = Math.max(3, step * 0.22);
+  const lampRadius = lampGeo ? lampGeo.radius : Math.max(3, step * 0.22);
   const lampGap = step * 0.5;
-  const lampsPerRow = 3;
-  const totalLampW = lampsPerRow * lampRadius * 2 + (lampsPerRow - 1) * lampGap;
+  const totalLampW = 3 * lampRadius * 2 + 2 * lampGap;
   const lampStartX = x + (w - totalLampW) / 2;
-  const lampY1 = y + h * 0.15;
-  const lampY2 = y + h * 0.30;
-  const labelY1 = lampY1 + lampRadius + step * 0.08;
-  const labelY2 = lampY2 + lampRadius + step * 0.08;
+  const lampY1 = lampGeo ? lampGeo.cy(0) - lampGeo.radius : y + h * 0.15;
+  const lampY2 = lampGeo ? lampGeo.cy(3) - lampGeo.radius : y + h * 0.30;
+  const labelY1 = lampY1 + lampRadius * 2 + step * 0.08;
+  const labelY2 = lampY2 + lampRadius * 2 + step * 0.08;
 
   const modeStatus = data.modeAuto ? "AUTO" : "MANUAL";
   const modeColor = data.modeAuto ? COLOR.info : COLOR.warning;
@@ -99,7 +146,10 @@ export const FirePanel: React.FC<FirePanelProps> = ({
           height={h + margin * 2}
         />
       ) : (
-        <pixiGraphics draw={drawBody} />
+        <>
+          <pixiGraphics draw={drawBody} />
+          <pixiGraphics draw={drawSockets} />
+        </>
       )}
       <pixiGraphics draw={(g: GraphicsType) => { gLampsRef.current = g; }} />
       <pixiGraphics draw={drawKeys} />
@@ -122,7 +172,7 @@ export const FirePanel: React.FC<FirePanelProps> = ({
         const col = i < 3 ? i : i - 3;
         const cy = i < 3 ? lampY1 : lampY2;
         const ly = i < 3 ? labelY1 : labelY2;
-        const cx = lampStartX + col * (lampRadius * 2 + lampGap) + lampRadius;
+        const cx = lampGeo ? lampGeo.cx(i) : lampStartX + col * (lampRadius * 2 + lampGap) + lampRadius;
         const active = !!d[def.key];
         return (
           <pixiContainer key={def.key}>
@@ -144,13 +194,13 @@ export const FirePanel: React.FC<FirePanelProps> = ({
       })}
 
       {KEY_DEFS.map((kd: { label: string; sublabel: string }, i: number) => {
-        const keyW = step * 1.2;
+        const keyW = keyGeo ? keyGeo.w : step * 1.2;
         const keyGap = step * 0.3;
         const totalKeyW = KEY_DEFS.length * keyW + (KEY_DEFS.length - 1) * keyGap;
         const keyStartX = x + (w - totalKeyW) / 2;
-        const keyY = y + h * 0.46;
-        const keyH = step * 0.8;
-        const kx = keyStartX + i * (keyW + keyGap);
+        const keyY = keyGeo ? keyGeo.y : y + h * 0.46;
+        const keyH = keyGeo ? keyGeo.h : step * 0.8;
+        const kx = keyGeo ? keyGeo.x(i) : keyStartX + i * (keyW + keyGap);
         return (
           <pixiContainer key={kd.label}>
             <pixiGraphics

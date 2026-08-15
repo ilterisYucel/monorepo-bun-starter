@@ -627,10 +627,12 @@ bun tools/check-sprite.mjs                   # piksel bazlı kalite kapısı (bo
 - Frame'ler yakalama DPR'ına göredir (şu an 2x). Kablo (`Cable`) özel durum: tek segment texture'ı her path segmenti için döndürülüp uzatılır (pabuç marjı 12px).
 
 ### Tümleşik pencere/dolgu metrikleri (RackCell paterni)
-- **Amaç:** Dinamik içerik (text/dolgu) sprite içindeki AI çizimi yuvalara yazılır.
-- **Akış:** Base story'ye nötr pencere/tüp çizimleri eklenir → `sprite:gen` → `sprite:measure` (recessed koyu bölge tespiti: luma − yerel ortalama < −25; pencere adayları x-bandı filtresi + satır yürüyüşü + pitch ekstrapolasyonu; tüp = dar uzun dikey bölge) → `rackcell-meta.ts` (`RACKCELL_META`, gövdeye ORAN değerleri, `measured` bayrağı).
-- **Tüketim:** Element sprite modunda `RACKCELL_META`'yı gerçek rackWidth/rackHeight ile ölçekler; text'ler ölçülen pencere merkezlerine, dolgu ölçülen tüpe yazılır. `measured=false` ise tasarım geometrisi kullanılır.
+- **Amaç:** Dinamik içerik (text/dolgu/lamba) sprite içindeki AI çizimi yuvalara yazılır.
+- **Akış:** Base story'ye nötr yuva çizimleri eklenir → `sprite:gen` → ölçüm → `*-meta.ts` (`*_META`, gövdeye ORAN değerleri, `measured` bayrağı).
+- **Ölçüm araçları:** `tools/measure-rackmeta.mjs` (rackcell: pencere sütunu + tüp; recessed bileşen tespiti + satır yürüyüşü + pitch ekstrapolasyonu) ve `tools/measure-meta.mjs` (genel: panelcard barSlot, roomcard tempSlot, energyanalyzer lcd, firepanel lamp/key kümeleri; yerel kontrast maskesi + persentil bbox, cluster başına `polarity: "dark"|"light"` — AI yuvayı koyu veya parlak çizebilir; bölge gövde içine kırpılır).
+- **Tüketim:** Element sprite modunda `*_META`'yı gerçek width/height ile ölçekler; text/dolgu/lamba ölçülen yuvalara yazılır. `measured=false` ise tasarım geometrisi kullanılır.
 - **Kural:** AI her üretimde yerleşimi ±10-30px kaydırabilir; meta tespiti bu kaymayı emer. Ölçüm sonrası storybook'ta görsel onay şarttır.
+
 
 
 ## What's missing

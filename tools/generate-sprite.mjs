@@ -28,7 +28,9 @@ const ELEMENTS = {
   rackcell: {
     ref: "base",
     describe:
-      "a vertical battery rack with visible battery module rows, terminal blocks at top and bottom, and six recessed rectangular display windows arranged vertically in the middle of the body (empty dark glass, no text inside), mounted in a dark energy storage cabinet",
+      "a vertical battery storage rack unit. Repaint ONLY the surfaces — do NOT redesign, do NOT rearrange, do NOT resize, do NOT move any element. " +
+      "Keep the exact structure of the reference: the rounded body outline, the two terminal nubs at top and bottom, the six identical rectangular display windows in the left-center column at their exact positions and sizes with the same gaps, and the narrow vertical fill tube on the right at its exact position. " +
+      "Do not add battery module grids, do not add extra panels, do not add objects. Only upgrade the material look (dark metal, polished plastic, thin dark outline).",
     removeBg: true,
   },
   cable: {
@@ -52,7 +54,7 @@ const ELEMENTS = {
   roomcard: {
     ref: "base",
     describe:
-      "a rectangular equipment room cabinet card with a slight isometric interior view, ventilation details",
+      "a rectangular equipment room cabinet card. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline, the narrow vertical recessed slot on the left edge (empty dark glass) and the wide recessed slot at the bottom (empty dark glass). Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   hvacunit: {
@@ -64,19 +66,19 @@ const ELEMENTS = {
   panelcard: {
     ref: "base",
     describe:
-      "a slim wall-mount electrical panel enclosure with recessed LED indicator row sockets and a small display window",
+      "a slim wall-mount electrical panel enclosure. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular slot in the lower area (empty dark glass). Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   firepanel: {
     ref: "base",
     describe:
-      "an industrial fire alarm control panel with empty status lamp sockets, key switches and blank label strips",
+      "an industrial fire alarm control panel. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline, six small round empty lamp sockets arranged in two rows of three near the upper-middle, four small rectangular key sockets in one row below them, and the blank label strip at the top. Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   energyanalyzergraphic: {
     ref: "base",
     describe:
-      "an industrial energy analyzer unit with a dark blank LCD screen socket and four measurement line sockets",
+      "an industrial energy analyzer unit. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular LCD screen socket in the middle (empty dark glass). Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   grid: {

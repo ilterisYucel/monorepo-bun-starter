@@ -2,7 +2,7 @@ import React from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { FirePanel } from "./FirePanel";
-import { drawFirePanelChassis } from "./FirePanel.drawers";
+import { drawFirePanelChassis, drawFirePanelSockets } from "./FirePanel.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -22,6 +22,7 @@ export const Base = () => (
         draw={(g) => {
           g.clear();
           drawFirePanelChassis(g, 4, 4, 380, 280, { step: 20 });
+          drawFirePanelSockets(g, 4, 4, 380, 280, { step: 20 });
         }}
       />
     </Application>

@@ -1,7 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { EnergyAnalyzerGraphicProps } from "./EnergyAnalyzerGraphic.types";
 import { drawEABody, drawLCDScreen, drawLabelBox, ROW_LABELS } from "./EnergyAnalyzerGraphic.drawers";
+import { ENERGYANALYZER_META } from "./energyanalyzer-meta";
 import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { hudTextStyle } from "../../hud";
 import { COLOR } from "../../../colors";
@@ -19,10 +20,24 @@ export const EnergyAnalyzerGraphic: React.FC<EnergyAnalyzerGraphicProps> = ({
   const bodyTexture = useSpriteTexture("energyanalyzergraphic");
   const margin = 4;
 
-  const lcdX = x + step * 0.15;
-  const lcdY = y + step * 0.5;
-  const lcdW = w - step * 0.3;
-  const lcdH = h * 0.52;
+  const lcdRect = useMemo(() => {
+    if (bodyTexture && ENERGYANALYZER_META.measured) {
+      const m = ENERGYANALYZER_META.lcd;
+      return {
+        x: x + m.x * w,
+        y: y + m.y * h,
+        width: m.width * w,
+        height: m.height * h,
+      };
+    }
+    return {
+      x: x + step * 0.15,
+      y: y + step * 0.5,
+      width: w - step * 0.3,
+      height: h * 0.52,
+    };
+  }, [bodyTexture, x, y, w, h, step]);
+  const { x: lcdX, y: lcdY, width: lcdW, height: lcdH } = lcdRect;
 
   // Sprite modunda LCD camı sprite'ta gömülü; yalnızca okunabilirlik için
   // hafif karartma + çerçeve çizilir. Çizim modunda scanline'lı cam korunur.
