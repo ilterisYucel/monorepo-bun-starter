@@ -19,12 +19,13 @@ const BODY_H = 380;
 const FRAME = { x: 40, y: 12 }; // sprites-spec rackcell frame (texture px)
 const SCALE = 2;
 const DESIGN_WINDOWS = [0, 1, 2, 3, 4, 5].map((row) => ({
-  x: 0.42 * BODY_W - (0.55 * BODY_W) / 2,
+  x: 0.40 * BODY_W - (0.52 * BODY_W) / 2,
   y: 35 + row * 46,
-  width: 0.55 * BODY_W,
+  width: 0.52 * BODY_W,
   height: 38,
 }));
-const DESIGN_TUBE = { x: BODY_W - 35, y: 35, width: 22, height: BODY_H - 85 };
+// Batarya hücre kolonu: 8 hücre (0.33s yükseklik, 0.06s aralık)
+const DESIGN_COLUMN = { x: 90, y: 37, width: 20, height: 306 };
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
@@ -104,7 +105,7 @@ const components = await page.evaluate(async ({ data, w, h }) => {
           }
         }
       }
-      if (count > 250) comps.push({ minX, maxX, minY, maxY, count });
+      if (count > 100) comps.push({ minX, maxX, minY, maxY, count });
     }
   }
   comps.sort((a, b) => b.count - a.count);
@@ -169,43 +170,113 @@ for (let row = 0; row < 6; row++) {
   });
 }
 
-// Tüp: dar (30-70) ve uzun (h>150), x>180
-let tubeComp = components
-  .filter((c) => c.w >= 30 && c.w <= 70 && c.h > 150 && c.x > 180)
-  .sort((a, b) => b.h - a.h)[0];
+// Hücre kolonu: sağ banttaki (x>=195) küçük-orta boyutlu recessed bileşenlerin
+// union bbox'ı (hücre yuvaları). AI hücreleri koyu VEYA parlak çizebilir —
+// iki kutup da denenir, en az 4 hücre bulunan kazanır.
+const cellCandidatesDark = components
+  .filter((c) => c.x >= 195 && c.w >= 20 && c.w <= 70 && c.h >= 15 && c.h <= 90)
+  .sort((a, b) => a.y - b.y);
 
-// Aynı x bandında üst üste duran tüp segmentlerini birleştir
-if (tubeComp) {
-  const related = components.filter(
-    (c) => Math.abs(c.x - tubeComp.x) < 25 && c.h > 40 && c !== tubeComp,
-  );
-  const top = Math.min(tubeComp.y, ...related.map((c) => c.y));
-  const bottom = Math.max(tubeComp.y + tubeComp.h, ...related.map((c) => c.y + c.h));
-  tubeComp = { ...tubeComp, y: top, h: bottom - top };
+// Parlak kutuplu hücre tespiti (sağ bant, luma - local > +18):
+// persentil bbox (hücreler ayrı bileşen üretmese de sütunu kaplar)
+const lightCellBbox = await page.evaluate(async ({ data, w, h }) => {
+  const lum = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    lum[i] = 0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2];
+  }
+  const R = 12;
+  const integral = new Float32Array((w + 1) * (h + 1));
+  for (let y = 1; y <= h; y++) {
+    for (let x = 1; x <= w; x++) {
+      integral[y * (w + 1) + x] =
+        lum[(y - 1) * w + (x - 1)] +
+        integral[(y - 1) * (w + 1) + x] +
+        integral[y * (w + 1) + x - 1] -
+        integral[(y - 1) * (w + 1) + x - 1];
+    }
+  }
+  const xs = [];
+  const ys = [];
+  for (let y = 12; y < 828 && y < h; y++) {
+    for (let x = 195; x < 296 && x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (data[i + 3] <= 40) continue;
+      const x1 = Math.max(0, x - R), x2 = Math.min(w - 1, x + R);
+      const y1 = Math.max(0, y - R), y2 = Math.min(h - 1, y + R);
+      const area = (x2 - x1 + 1) * (y2 - y1 + 1);
+      const sum =
+        integral[(y2 + 1) * (w + 1) + x2 + 1] -
+        integral[y1 * (w + 1) + x2 + 1] -
+        integral[(y2 + 1) * (w + 1) + x1] +
+        integral[y1 * (w + 1) + x1];
+      const local = sum / area;
+      if (lum[y * w + x] - local > 18) {
+        xs.push(x);
+        ys.push(y);
+      }
+    }
+  }
+  if (xs.length < 400) return null;
+  xs.sort((a, b) => a - b);
+  ys.sort((a, b) => a - b);
+  return {
+    x: xs[Math.floor(xs.length * 0.12)],
+    y: ys[Math.floor(ys.length * 0.12)],
+    w: xs[Math.floor(xs.length * 0.88)] - xs[Math.floor(xs.length * 0.12)],
+    h: ys[Math.floor(ys.length * 0.88)] - ys[Math.floor(ys.length * 0.12)],
+    px: xs.length,
+  };
+}, { data: ai.data, w: ai.w, h: ai.h });
+
+const cellCandidatesLight = lightCellBbox ? [lightCellBbox] : [];
+
+function columnFromCandidates(cands) {
+  if (cands.length < 4) return null;
+  const top = cands[0].y;
+  const bottom = cands[cands.length - 1].y + cands[cands.length - 1].h;
+  const left = Math.min(...cands.map((c) => c.x));
+  const right = Math.max(...cands.map((c) => c.x + c.w));
+  return { x: left, y: top, w: right - left, h: bottom - top };
 }
 
-const tubeOk = tubeComp && tubeComp.h > 300;
+// Parlak bbox'ı tasarım kolonuna ±%25 kırp (aykırı parlak bölgeleri dışlar)
+function clampLightBbox(b) {
+  if (!b) return null;
+  const dx = 40 + 220; // tasarım kolon x başlangıcı (tex): FRAME.x + 90*2
+  const dy = 12 + 37 * 2; // FRAME.y + 37*2
+  const dw = 40; // 20*2
+  const dh = 612; // 306*2
+  const cw = Math.min(Math.max(b.w, dw * 0.75), dw * 1.25);
+  const ch = Math.min(Math.max(b.h, dh * 0.75), dh * 1.25);
+  const cx = Math.min(Math.max(b.x, dx - dw * 0.3), dx + dw * 0.3);
+  const cy = Math.min(Math.max(b.y, dy - dh * 0.2), dy + dh * 0.2);
+  return { x: cx, y: cy, w: cw, h: ch };
+}
+
+let columnComp = columnFromCandidates(cellCandidatesDark) ?? clampLightBbox(lightCellBbox);
+
+const columnOk = columnComp && columnComp.h > 500;
 const windowsOk = detectedWindows.length >= 3;
 
-const tubeMeta = tubeOk
+const columnMeta = columnOk
   ? {
-      x: (tubeComp.x - FRAME.x) / SCALE,
-      y: (tubeComp.y - FRAME.y) / SCALE,
-      width: tubeComp.w / SCALE,
-      height: tubeComp.h / SCALE,
+      x: (columnComp.x - FRAME.x) / SCALE,
+      y: (columnComp.y - FRAME.y) / SCALE,
+      width: columnComp.w / SCALE,
+      height: columnComp.h / SCALE,
     }
-  : DESIGN_TUBE;
+  : DESIGN_COLUMN;
 
 const winMeta = windowsOk ? detectedWindows : DESIGN_WINDOWS;
-const measured = windowsOk && tubeOk;
+const measured = windowsOk && columnOk;
 
-console.log(`[measure] pencere tespit: ${detectedWindows.length}/6, tüp: ${tubeOk ? "OK" : "yok"}`);
+console.log(`[measure] pencere tespit: ${detectedWindows.length}/6, hücre kolonu: ${columnOk ? "OK" : "yok"}`);
 if (windowsOk) {
   detectedWindows.forEach((wrect, i) =>
     console.log(`  w${i + 1}: (${wrect.x.toFixed(1)}, ${wrect.y.toFixed(1)}, ${wrect.width.toFixed(1)}, ${wrect.height.toFixed(1)})`),
   );
 }
-console.log(`  tüp: (${tubeMeta.x.toFixed(1)}, ${tubeMeta.y.toFixed(1)}, ${tubeMeta.width.toFixed(1)}, ${tubeMeta.height.toFixed(1)})`);
+console.log(`  kolon: (${columnMeta.x.toFixed(1)}, ${columnMeta.y.toFixed(1)}, ${columnMeta.width.toFixed(1)}, ${columnMeta.height.toFixed(1)})`);
 
 const frac = (r) => ({
   x: r.x / BODY_W,
@@ -214,9 +285,9 @@ const frac = (r) => ({
   height: r.height / BODY_H,
 });
 const winFrac = winMeta.map(frac);
-const tubeFrac = frac(tubeMeta);
+const columnFrac = frac(columnMeta);
 
-const source = `// RackCell sprite meta: AI çıktısındaki pencere/tüp konumları.
+const source = `// RackCell sprite meta: AI çıktısındaki pencere/hücre kolonu konumları.
 // tools/measure-rackmeta.mjs tarafından üretilir (recessed bölge tespiti).
 // Değerler gövde boyutlarına (120x380 referans) ORAN olarak saklanır.
 // measured=${measured} (false ise tasarım fallback geometrisi)
@@ -238,7 +309,7 @@ export const RACKCELL_META: RackCellMeta = {
   windows: [
 ${winFrac.map((r) => `    { x: ${r.x.toFixed(5)}, y: ${r.y.toFixed(5)}, width: ${r.width.toFixed(5)}, height: ${r.height.toFixed(5)} },`).join("\n")}
   ],
-  tube: { x: ${tubeFrac.x.toFixed(5)}, y: ${tubeFrac.y.toFixed(5)}, width: ${tubeFrac.width.toFixed(5)}, height: ${tubeFrac.height.toFixed(5)} },
+  tube: { x: ${columnFrac.x.toFixed(5)}, y: ${columnFrac.y.toFixed(5)}, width: ${columnFrac.width.toFixed(5)}, height: ${columnFrac.height.toFixed(5)} },
 };
 `;
 

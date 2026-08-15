@@ -5,11 +5,11 @@ import {
   drawRackBody,
   drawRackGlow,
   drawRackTerminals,
-  drawRackTubeHousing,
-  drawRackTubeFill,
+  drawRackCellStackHousing,
+  drawRackCellsFill,
   drawRackWindowBorders,
   rackWindowRects,
-  rackTubeRect,
+  rackCellColumnRect,
 } from "./RackCell.drawers";
 import { RACKCELL_META } from "./rackcell-meta";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
@@ -30,8 +30,8 @@ export const RackCell: React.FC<RackCellProps> = ({
     [rack, config],
   );
 
-  const drawTubeHousing = useCallback(
-    (g: GraphicsType) => { g.clear(); drawRackTubeHousing(g, config); },
+  const drawCellHousing = useCallback(
+    (g: GraphicsType) => { g.clear(); drawRackCellStackHousing(g, config); },
     [config],
   );
 
@@ -65,7 +65,7 @@ export const RackCell: React.FC<RackCellProps> = ({
     return rackWindowRects(config);
   }, [bodyTexture, w, h, config]);
 
-  const tube = useMemo(() => {
+  const cellColumn = useMemo(() => {
     const src = bodyTexture && RACKCELL_META.measured ? RACKCELL_META.tube : null;
     if (src) {
       return {
@@ -75,15 +75,15 @@ export const RackCell: React.FC<RackCellProps> = ({
         height: src.height * h,
       };
     }
-    return rackTubeRect(config);
+    return rackCellColumnRect(config);
   }, [bodyTexture, w, h, config]);
 
-  const drawTubeFill = useCallback(
+  const drawCellsFill = useCallback(
     (g: GraphicsType) => {
       g.clear();
-      drawRackTubeFill(g, rack?.soc ?? 0, flowDirection, config, bodyTexture ? tube : undefined);
+      drawRackCellsFill(g, rack?.soc ?? 0, flowDirection, config, bodyTexture ? cellColumn : undefined);
     },
-    [rack, config, flowDirection, bodyTexture, tube],
+    [rack, config, flowDirection, bodyTexture, cellColumn],
   );
 
   const drawWindowBorders = useCallback(
@@ -138,12 +138,12 @@ export const RackCell: React.FC<RackCellProps> = ({
       {bodyTexture ? (
         <>
           <pixiGraphics draw={drawWindowBorders} />
-          <pixiGraphics draw={drawTubeFill} />
+          <pixiGraphics draw={drawCellsFill} />
         </>
       ) : (
         <>
-          <pixiGraphics draw={drawTubeHousing} />
-          <pixiGraphics draw={drawTubeFill} />
+          <pixiGraphics draw={drawCellHousing} />
+          <pixiGraphics draw={drawCellsFill} />
           <pixiGraphics draw={drawTerminals} />
         </>
       )}

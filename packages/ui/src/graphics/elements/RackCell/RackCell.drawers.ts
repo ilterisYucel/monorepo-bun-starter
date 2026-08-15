@@ -40,7 +40,7 @@ function rackFillGrad(glow: number, base: number): FillGradient {
 
 // ── Geometri (sprite tasarımıyla birebir) ────────────────────────────────────
 // Gövde 120x380 (step=100 referansında). Pencereler sol-orta blokta,
-// dolgu tüpü gövde sağında. Tüm değerler step/rackWidth/rackHeight türevidir.
+// batarya hücre kolonu gövde sağında. Tüm değerler step/rackWidth/rackHeight türevidir.
 
 export interface RackCellRect {
   x: number;
@@ -51,9 +51,9 @@ export interface RackCellRect {
 
 export function rackWindowRects(cfg: RackCellConfig): RackCellRect[] {
   const { rackWidth: w, step } = cfg;
-  const boxW = w * 0.55;
+  const boxW = w * 0.52;
   const boxH = step * 0.38;
-  const boxCX = w * 0.42;
+  const boxCX = w * 0.40;
   const gap = step * 0.08;
   const startY = step * 0.35;
   const rects: RackCellRect[] = [];
@@ -68,17 +68,67 @@ export function rackWindowRects(cfg: RackCellConfig): RackCellRect[] {
   return rects;
 }
 
-export function rackTubeRect(cfg: RackCellConfig): RackCellRect {
+const CELL_COUNT = 8;
+
+export function rackCellColumnRect(cfg: RackCellConfig): RackCellRect {
   const { rackWidth: w, rackHeight: h, step } = cfg;
+  const cellH = step * 0.33;
+  const gap = step * 0.06;
+  const total = CELL_COUNT * cellH + (CELL_COUNT - 1) * gap;
   return {
-    x: w - step * 0.35,
-    y: step * 0.35,
-    width: step * 0.22,
-    height: h - step * 0.85,
+    x: w - step * 0.30,
+    y: (h - total) / 2,
+    width: step * 0.20,
+    height: total,
   };
 }
 
+// Hücre rect'leri (üstten alta): [0] = en üst, [7] = en alt
+export function rackCellRects(cfg: RackCellConfig): RackCellRect[] {
+  const col = rackCellColumnRect(cfg);
+  const cellH = cfg.step * 0.33;
+  const gap = cfg.step * 0.06;
+  const rects: RackCellRect[] = [];
+  for (let i = 0; i < CELL_COUNT; i++) {
+    rects.push({
+      x: col.x,
+      y: col.y + i * (cellH + gap),
+      width: col.width,
+      height: cellH,
+    });
+  }
+  return rects;
+}
+
 // ── Gövde ────────────────────────────────────────────────────────────────────
+
+// Üretim referansı için DÜZ (gradyansız) gövde: pencere/hücre yuvaları her
+// satırda yüksek kontrastla görünür — ölçüm tespitini güvenilir kılar.
+// Yalnızca Base story yakalamasında kullanılır; üretim çizimi drawRackBody'dir.
+export function drawRackBaseBody(g: Graphics, cfg: RackCellConfig): void {
+  const { rackWidth: w, rackHeight: h, step } = cfg;
+  const r = w * 0.42;
+
+  const so = step * 0.08;
+  g.roundRect(so, so, w, h, r);
+  g.fill({ color: COLOR.shadow, alpha: 0.25 });
+
+  g.roundRect(0, 0, w, h, r);
+  g.fill({ color: COLOR.gradBodyTop });
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
+
+  const nubW = w * 0.25;
+  const nubH = step * 0.14;
+  const nubR = step * 0.05;
+
+  g.roundRect(w / 2 - nubW / 2, -nubH, nubW, nubH + 1, nubR);
+  g.fill(COLOR.terminal);
+  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.terminal });
+
+  g.roundRect(w / 2 - nubW / 2, h, nubW, nubH + 1, nubR);
+  g.fill(COLOR.terminal);
+  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.terminal });
+}
 
 export function drawRackBody(g: Graphics, cfg: RackCellConfig): void {
   const { rackWidth: w, rackHeight: h, step } = cfg;
@@ -105,40 +155,31 @@ export function drawRackBody(g: Graphics, cfg: RackCellConfig): void {
   g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.terminal });
 }
 
-// ── Dolgu tüpü (sağ) ─────────────────────────────────────────────────────────
+// ── Batarya hücre kolonu (sağ) ───────────────────────────────────────────────
 
-export function drawRackTubeHousing(
+export function drawRackCellStackHousing(
   g: Graphics,
   cfg: RackCellConfig,
 ): void {
   const { step } = cfg;
-  const tube = rackTubeRect(cfg);
-  const r = step * 0.1;
+  const cells = rackCellRects(cfg);
+  const r = step * 0.05;
 
-  g.roundRect(tube.x, tube.y, tube.width, tube.height, r);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.6 });
-  g.stroke({ width: Math.max(0.6, step * 0.02), color: COLOR.borderStroke, alpha: 0.7 });
-
-  // Çentikler: 0/25/50/75/100
-  const innerTop = tube.y + step * 0.08;
-  const innerH = tube.height - step * 0.16;
-  for (let i = 0; i <= 4; i++) {
-    const ty = innerTop + (innerH * i) / 4;
-    g.moveTo(tube.x - step * 0.04, ty);
-    g.lineTo(tube.x + step * 0.06, ty);
-    g.stroke({ width: Math.max(0.4, step * 0.012), color: COLOR.borderStroke, alpha: 0.6 });
+  for (const cell of cells) {
+    g.roundRect(cell.x, cell.y, cell.width, cell.height, r);
+    g.fill({ color: COLOR.gradScreen, alpha: 0.6 });
+    g.stroke({ width: Math.max(0.6, step * 0.02), color: COLOR.borderStroke, alpha: 0.7 });
   }
 }
 
-export function drawRackTubeFill(
+export function drawRackCellsFill(
   g: Graphics,
   soc: number,
   flowDirection: string,
   cfg: RackCellConfig,
-  tubeOverride?: RackCellRect,
+  columnOverride?: RackCellRect,
 ): void {
   const { step } = cfg;
-  const tube = tubeOverride ?? rackTubeRect(cfg);
   const pct = Math.min(1, Math.max(0, soc / 100));
   if (pct <= 0) return;
 
@@ -148,22 +189,35 @@ export function drawRackTubeFill(
   else if (flowDirection === "Discharge") { base = COLOR.warning; glow = COLOR.warningGlow; }
   else { base = COLOR.idle; glow = COLOR.textMuted; }
 
-  const pad = step * 0.03;
-  const innerTop = tube.y + step * 0.06;
-  const innerH = tube.height - step * 0.12;
-  const fillH = innerH * pct;
-  const fy = innerTop + (innerH - fillH);
+  // ölçülen kolon verilmişse hücreler oradan türetilir
+  const cells = columnOverride
+    ? Array.from({ length: CELL_COUNT }, (_, i) => ({
+        x: columnOverride.x,
+        y: columnOverride.y + i * (columnOverride.height / CELL_COUNT),
+        width: columnOverride.width,
+        height: columnOverride.height / CELL_COUNT,
+      }))
+    : rackCellRects(cfg);
 
+  const lit = Math.round(pct * CELL_COUNT);
+  const pad = step * 0.02;
   const fillGrad = rackFillGrad(glow, base);
-  g.roundRect(tube.x + pad, fy, tube.width - pad * 2, fillH, step * 0.06);
-  g.fill({ fill: fillGrad, alpha: 0.8 });
 
-  const capH = Math.max(step * 0.04, fillH * 0.05);
-  g.roundRect(tube.x + pad * 0.6, fy - capH, tube.width - pad * 1.2, capH * 2, capH);
-  g.fill({ color: glow, alpha: 0.9 });
+  // alttan yukarı hücreleri doldur
+  for (let i = 0; i < lit; i++) {
+    const cell = cells[CELL_COUNT - 1 - i];
+    if (!cell) break;
+    const gap = step * 0.02;
+    const hh = cell.height - gap * 2;
+    if (hh <= 0) continue;
 
-  g.roundRect(tube.x + pad, fy - capH * 0.6, tube.width - pad * 2, capH * 3.2, capH);
-  g.fill({ color: glow, alpha: 0.18 });
+    g.roundRect(cell.x + pad, cell.y + gap, cell.width - pad * 2, hh, step * 0.04);
+    g.fill({ fill: fillGrad, alpha: 0.85 });
+
+    // üst yüzey parlaması
+    g.roundRect(cell.x + pad, cell.y + gap, cell.width - pad * 2, Math.min(step * 0.05, hh * 0.35), step * 0.03);
+    g.fill({ color: glow, alpha: 0.9 });
+  }
 }
 
 // ── Durum glow ───────────────────────────────────────────────────────────────
@@ -228,13 +282,13 @@ export function drawRackWindows(
 
   for (const rect of rects) {
     g.roundRect(rect.x, rect.y, rect.width, rect.height, boxR);
-    g.fill({ color: COLOR.gradScreen, alpha: 0.85 });
-    g.stroke({ width: Math.max(0.4, step * 0.015), color: COLOR.borderStroke, alpha: 0.6 });
+    g.fill({ color: COLOR.textNearBlack });
+    g.stroke({ width: Math.max(0.8, step * 0.02), color: COLOR.borderStroke, alpha: 0.9 });
   }
 }
 
-// Sprite modunda: pencereler sprite'ta; kod yalnızca durum renkli
-// ince kenar çizgilerini (dolgu yok) ölçülen rect'lerin içine çizer.
+// Sprite modunda: pencereler sprite'ta; kod durum renkli ince kenar çizgileri
+// ve okunabilirlik için hafif koyu cam dolgu çizer (ölçülen rect'lerde).
 export function drawRackWindowBorders(
   g: Graphics,
   rack: Rack,
@@ -258,6 +312,7 @@ export function drawRackWindowBorders(
   rects.forEach((rect, row) => {
     if (!rect) return;
     g.roundRect(rect.x, rect.y, rect.width, rect.height, boxR);
+    g.fill({ color: COLOR.gradScreen, alpha: 0.55 });
     g.stroke({ width: Math.max(0.6, step * 0.02), color: borders[row]!, alpha: borderAlphas[row]! });
   });
 }

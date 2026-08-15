@@ -23,21 +23,17 @@ const path = [
   { x: 560, y: 140 },
 ];
 
-// Sprite üretimi için nötr baz: düz yatay segment + uç pabuçları, şeffaf zemin.
+// Sprite üretimi için nötr baz: ince düz yatay kablo segmenti (pabuçsuz), şeffaf zemin.
 export const Base = () => (
   <div style={{ width: 212, height: 48 }}>
     <Application width={212} height={48} backgroundAlpha={0} antialias={false} resolution={1}>
       <pixiGraphics
         draw={(g) => {
           g.clear();
-          g.setStrokeStyle({ width: 6, color: COLOR.cable, cap: "round", join: "round" });
-          g.moveTo(12, 24);
-          g.lineTo(200, 24);
+          g.setStrokeStyle({ width: 4, color: COLOR.cable, cap: "round", join: "round" });
+          g.moveTo(6, 24);
+          g.lineTo(206, 24);
           g.stroke();
-          g.circle(12, 24, 6);
-          g.fill(COLOR.terminal);
-          g.circle(200, 24, 6);
-          g.fill(COLOR.terminal);
         }}
       />
     </Application>
