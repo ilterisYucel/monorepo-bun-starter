@@ -3,7 +3,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { RackCell } from "@gd-monorepo/ui";
 import { createMockRack, createMockRackCellConfig } from "../../../__stories__/mocks/factories";
-import { drawRackBody, drawRackWindows } from "./RackCell.drawers";
+import { drawRackBody, drawRackWindows, drawRackTubeHousing } from "./RackCell.drawers";
 import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
 import { SPRITE_ASSETS } from "../../textures";
 
@@ -19,14 +19,17 @@ export default meta;
 const config = createMockRackCellConfig(100);
 const wrapper = { width: 160, height: 420, background: "#0f0f1a" } as const;
 
-// Sprite üretimi için nötr baz: gövde + 6 boş display penceresi, şeffaf zemin.
-// AI pencereleri sprite gövdesine gömer; kod text'leri aynı koordinatlara yazar.
+// Sprite üretimi için nötr baz: gövde + 6 boş display penceresi (sol-orta)
+// + sağda boş dolgu tüpü (çentikli), şeffaf zemin.
+// AI pencereleri/tüpü sprite gövdesine gömer; kod text/dolgu'yu
+// ölçülen konumlara yazar.
 export const Base = () => (
   <div style={{ width: 160, height: 420 }}>
     <Application width={160} height={420} backgroundAlpha={0} antialias={false} resolution={1}>
       <pixiContainer x={20} y={20}>
         <pixiGraphics draw={(g) => { g.clear(); drawRackBody(g, config); }} />
         <pixiGraphics draw={(g) => { g.clear(); drawRackWindows(g, config); }} />
+        <pixiGraphics draw={(g) => { g.clear(); drawRackTubeHousing(g, config); }} />
       </pixiContainer>
     </Application>
   </div>

@@ -1,13 +1,17 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { RackCellProps } from "./RackCell.types";
 import {
   drawRackBody,
-  drawRackFill,
   drawRackGlow,
   drawRackTerminals,
+  drawRackTubeHousing,
+  drawRackTubeFill,
   drawRackWindowBorders,
+  rackWindowRects,
+  rackTubeRect,
 } from "./RackCell.drawers";
+import { RACKCELL_META } from "./rackcell-meta";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
 import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { hudTextStyle } from "../../hud";
@@ -26,9 +30,9 @@ export const RackCell: React.FC<RackCellProps> = ({
     [rack, config],
   );
 
-  const drawFill = useCallback(
-    (g: GraphicsType) => { g.clear(); drawRackFill(g, rack, config, flowDirection); },
-    [rack, config, flowDirection],
+  const drawTubeHousing = useCallback(
+    (g: GraphicsType) => { g.clear(); drawRackTubeHousing(g, config); },
+    [config],
   );
 
   const gGlowRef = usePixiTickerEffect(
@@ -41,15 +45,51 @@ export const RackCell: React.FC<RackCellProps> = ({
   }, [onClick, rack, x, y]);
 
   const { step, rackWidth: w, rackHeight: h } = config;
-  const boxH = step * 0.38;
-  const boxCX = w / 2;
-  const gap = step * 0.08;
-  const startY = step * 0.35;
-  const boxCY = (row: number) => startY + row * (boxH + gap) + boxH / 2;
-
   const bodyTexture = useSpriteTexture("rackcell");
   const nubH = step * 0.14;
   const shadowOffset = step * 0.08;
+
+  // Pencere/tüp rect'leri: sprite modunda AI çıktısından ölçülmüş meta,
+  // değilse tasarım geometrisi. Meta gövdeye oran olduğu için gerçek
+  // rackWidth/rackHeight ile ölçeklenir.
+  const windows = useMemo(() => {
+    const src = bodyTexture && RACKCELL_META.measured ? RACKCELL_META.windows : null;
+    if (src) {
+      return src.map((rect) => ({
+        x: rect.x * w,
+        y: rect.y * h,
+        width: rect.width * w,
+        height: rect.height * h,
+      }));
+    }
+    return rackWindowRects(config);
+  }, [bodyTexture, w, h, config]);
+
+  const tube = useMemo(() => {
+    const src = bodyTexture && RACKCELL_META.measured ? RACKCELL_META.tube : null;
+    if (src) {
+      return {
+        x: src.x * w,
+        y: src.y * h,
+        width: src.width * w,
+        height: src.height * h,
+      };
+    }
+    return rackTubeRect(config);
+  }, [bodyTexture, w, h, config]);
+
+  const drawTubeFill = useCallback(
+    (g: GraphicsType) => {
+      g.clear();
+      drawRackTubeFill(g, rack?.soc ?? 0, flowDirection, config, bodyTexture ? tube : undefined);
+    },
+    [rack, config, flowDirection, bodyTexture, tube],
+  );
+
+  const drawWindowBorders = useCallback(
+    (g: GraphicsType) => { g.clear(); drawRackWindowBorders(g, rack, config, windows); },
+    [rack, config, windows],
+  );
 
   const statusOnline = rack.status === "online";
   const statusColor = statusOnline ? COLOR.success : COLOR.error;
@@ -69,6 +109,17 @@ export const RackCell: React.FC<RackCellProps> = ({
   const styleVolt = hudTextStyle({ size: textFs, color: COLOR.textVoltage });
   const styleAmp = hudTextStyle({ size: textFs, color: COLOR.warningGlow });
 
+  const texts = [
+    { text: `R${String(rack?.id ?? 0).padStart(2, "0")}`, style: styleId },
+    { text: statusOnline ? "ONLINE" : "OFFLINE", style: styleStatus },
+    { text: chargeLabel, style: styleCharge },
+    { text: `${(rack?.soc ?? 0).toFixed(1)}%`, style: styleSoc },
+    { text: `${rack.voltage?.toFixed(1) ?? "0.0"}V`, style: styleVolt },
+    { text: `${rack.current?.toFixed(1) ?? "0.0"}A`, style: styleAmp },
+  ];
+
+  const centerY = (rect: { y: number; height: number }) => rect.y + rect.height / 2;
+
   return (
     <pixiContainer x={x} y={y} cursor="pointer" eventMode="static" onClick={handleClick}>
       {bodyTexture ? (
@@ -83,27 +134,34 @@ export const RackCell: React.FC<RackCellProps> = ({
         <pixiGraphics draw={drawBody} />
       )}
       <pixiGraphics draw={(g: GraphicsType) => { gGlowRef.current = g; }} />
-      <pixiGraphics draw={drawFill} />
+
       {bodyTexture ? (
-        <pixiGraphics
-          draw={(g: GraphicsType) => { g.clear(); drawRackWindowBorders(g, rack, config); }}
-        />
+        <>
+          <pixiGraphics draw={drawWindowBorders} />
+          <pixiGraphics draw={drawTubeFill} />
+        </>
       ) : (
-        <pixiGraphics draw={drawTerminals} />
+        <>
+          <pixiGraphics draw={drawTubeHousing} />
+          <pixiGraphics draw={drawTubeFill} />
+          <pixiGraphics draw={drawTerminals} />
+        </>
       )}
 
-      <pixiText text={`R${String(rack?.id ?? 0).padStart(2, "0")}`} x={boxCX} y={boxCY(0)} anchor={0.5}
-        style={styleId} />
-      <pixiText text={statusOnline ? "ONLINE" : "OFFLINE"} x={boxCX} y={boxCY(1)} anchor={0.5}
-        style={styleStatus} />
-      <pixiText text={chargeLabel} x={boxCX} y={boxCY(2)} anchor={0.5}
-        style={styleCharge} />
-      <pixiText text={`${(rack?.soc ?? 0).toFixed(1)}%`} x={boxCX} y={boxCY(3)} anchor={0.5}
-        style={styleSoc} />
-      <pixiText text={`${rack.voltage?.toFixed(1) ?? "0.0"}V`} x={boxCX} y={boxCY(4)} anchor={0.5}
-        style={styleVolt} />
-      <pixiText text={`${rack.current?.toFixed(1) ?? "0.0"}A`} x={boxCX} y={boxCY(5)} anchor={0.5}
-        style={styleAmp} />
+      {texts.map((t, row) => {
+        const rect = windows[row];
+        if (!rect) return null;
+        return (
+          <pixiText
+            key={row}
+            text={t.text}
+            x={rect.x + rect.width / 2}
+            y={centerY(rect)}
+            anchor={0.5}
+            style={t.style}
+          />
+        );
+      })}
     </pixiContainer>
   );
 };

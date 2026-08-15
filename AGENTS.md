@@ -604,6 +604,7 @@ bun run sprite:refs                          # Storybook'tan referans PNG yakala
 bun run sprite:refs -- --reset-sprites       # src/assets sprite'larını placeholder'a döndürür
 bun run sprite:gen rackcell                  # fal.ai ile sprite üretir (FAL_KEY gerekli)
 bun run sprite:gen --all [--skip-removal]
+bun run sprite:measure                       # rackcell pencere/tüp ölçümü -> rackcell-meta.ts
 bun tools/check-sprite.mjs                   # piksel bazlı kalite kapısı (boyut/şeffaflık/nötr renk)
 ```
 `capture` refs/<element>/base.png'i her zaman tazeler; `src/assets/sprites/<element>/base.png`'i yalnızca dosya yoksa yazar — AI çıktılarını ezmez.
@@ -624,6 +625,13 @@ bun tools/check-sprite.mjs                   # piksel bazlı kalite kapısı (bo
 - **Üretim modeli:** `fal-ai/nano-banana/edit` (giriş referansını temel alır) + `fal-ai/birefnet/v2` arka plan temizliği. Model çözünürlük değiştirirse generate script içerik bbox'ını kırpıp `sprites-spec.mjs` frame'ine normalize eder.
 - Element'e sprite eklemek için: chassis fonksiyonu (drawers) → Base story (transparent `backgroundAlpha={0}` + `backgrounds: { default: "transparent" }`) → `sprites-spec.mjs` girdisi → `SPRITE_ASSETS` meta (frame/scale) → elementte `useSpriteTexture` + fallback ternary.
 - Frame'ler yakalama DPR'ına göredir (şu an 2x). Kablo (`Cable`) özel durum: tek segment texture'ı her path segmenti için döndürülüp uzatılır (pabuç marjı 12px).
+
+### Tümleşik pencere/dolgu metrikleri (RackCell paterni)
+- **Amaç:** Dinamik içerik (text/dolgu) sprite içindeki AI çizimi yuvalara yazılır.
+- **Akış:** Base story'ye nötr pencere/tüp çizimleri eklenir → `sprite:gen` → `sprite:measure` (recessed koyu bölge tespiti: luma − yerel ortalama < −25; pencere adayları x-bandı filtresi + satır yürüyüşü + pitch ekstrapolasyonu; tüp = dar uzun dikey bölge) → `rackcell-meta.ts` (`RACKCELL_META`, gövdeye ORAN değerleri, `measured` bayrağı).
+- **Tüketim:** Element sprite modunda `RACKCELL_META`'yı gerçek rackWidth/rackHeight ile ölçekler; text'ler ölçülen pencere merkezlerine, dolgu ölçülen tüpe yazılır. `measured=false` ise tasarım geometrisi kullanılır.
+- **Kural:** AI her üretimde yerleşimi ±10-30px kaydırabilir; meta tespiti bu kaymayı emer. Ölçüm sonrası storybook'ta görsel onay şarttır.
+
 
 ## What's missing
 - No PR-level unit-test CI workflow (`.github/workflows/` has `e2e.yml`, `perf.yml`, `sonar.yml`, `storybook.yml`, but no `test.yml`).
