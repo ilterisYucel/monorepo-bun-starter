@@ -1,7 +1,8 @@
 // Sprite yuva/ekran konumu ölçümü (genel): AI çıktısındaki recessed yuvaların
 // rect'lerini tasarım bölgesi + yerel kontrast maskesi + persentil bbox ile bulur.
-// Kullanım: bun tools/measure-meta.mjs <element>  (panelcard|roomcard|energyanalyzergraphic|firepanel)
+// Kullanım: bun tools/measure-meta.mjs <element>  (panelcard|roomcard|energyanalyzergraphic|firepanel|circuitbreaker|dcoutput)
 // Çıktı: elementin *-meta.ts dosyası (gövdeye ORAN, measured bayrağı)
+// Cluster `files` destekler: varyant başına ayrı dosya -> ayrı meta anahtarı.
 import { chromium } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -66,7 +67,28 @@ const ELEMENTS = {
     bodyW: 80,
     bodyH: 21,
     clusters: [
-      { key: "display", design: { x: 0.25, y: 0.2143, w: 0.5, h: 0.5714 }, minPx: 20, polarity: "light", relLight: 12 },
+      {
+        key: "display",
+        design: { x: 0.25, y: 0.2143, w: 0.5, h: 0.5714 },
+        minPx: 20,
+        polarity: "light",
+        relLight: 12,
+        files: [
+          { file: "base-close.png", key: "displayClosed" },
+          { file: "base-open.png", key: "displayOpen" },
+        ],
+      },
+    ],
+  },
+  dcoutput: {
+    metaOut: "packages/ui/src/graphics/elements/DCOutput/dcoutput-meta.ts",
+    exportName: "DCOUTPUT_META",
+    interfaceName: "DCOutputMeta",
+    margin: 0,
+    bodyW: 100,
+    bodyH: 112,
+    clusters: [
+      { key: "display", design: { x: 0.22, y: 0.75, w: 0.56, h: 0.1429 }, minPx: 60, polarity: "dark", absDark: 45 },
     ],
   },
 };
@@ -87,18 +109,36 @@ if (!spec) {
 const browser = await chromium.launch();
 const page = await browser.newPage();
 
-const ai = await page.evaluate(async (dataUrl) => {
-  const img = new Image();
-  img.src = "data:image/png;base64," + dataUrl;
-  await img.decode();
-  const c = document.createElement("canvas");
-  c.width = img.naturalWidth;
-  c.height = img.naturalHeight;
-  const ctx = c.getContext("2d", { willReadFrequently: true });
-  ctx.drawImage(img, 0, 0);
-  const d = ctx.getImageData(0, 0, c.width, c.height);
-  return { data: Array.from(d.data), w: d.width, h: d.height };
-}, (await readFile(path.join(SPRITES_DIR, name, "base.png"))).toString("base64"));
+// Ölçüm listesi: (cluster, dosya, meta anahtarı)
+const measurements = [];
+for (const cluster of cfg.clusters) {
+  if (cluster.files) {
+    for (const f of cluster.files) measurements.push({ cluster, file: f.file, key: f.key });
+  } else {
+    measurements.push({ cluster, file: "base.png", key: cluster.key });
+  }
+}
+
+async function loadImage(file) {
+  return await page.evaluate(async (dataUrl) => {
+    const img = new Image();
+    img.src = "data:image/png;base64," + dataUrl;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(0, 0, c.width, c.height);
+    return { data: Array.from(d.data), w: d.width, h: d.height };
+  }, (await readFile(path.join(SPRITES_DIR, name, file))).toString("base64"));
+}
+
+const imageCache = new Map();
+async function getImage(file) {
+  if (!imageCache.has(file)) imageCache.set(file, await loadImage(file));
+  return imageCache.get(file);
+}
 
 const SCALE = 2;
 const bodyOriginX = cfg.margin * SCALE;
@@ -107,13 +147,14 @@ const bodyOriginY = cfg.margin * SCALE;
 const results = {};
 let allOk = true;
 
-for (const cluster of cfg.clusters) {
+for (const { cluster, file, key } of measurements) {
+  const ai = await getImage(file);
   const d = cluster.design;
   const rx = bodyOriginX + d.x * cfg.bodyW * SCALE;
   const ry = bodyOriginY + d.y * cfg.bodyH * SCALE;
   const rw = d.w * cfg.bodyW * SCALE;
   const rh = d.h * cfg.bodyH * SCALE;
-  // arama bölgesi: %35 şişirme (en az 8px), gövde içine kırp (kenar kontaminasyonu önlenir)
+  // arama bölgesi: %35 şişirme (en az 8px), gövde içine kırp
   const inflate = Math.max(8, Math.round(Math.min(rw, rh) * 0.35));
   const interiorInset = 12;
   const bodyX0 = bodyOriginX + interiorInset;
@@ -200,7 +241,6 @@ for (const cluster of cfg.clusters) {
       width: (p95x - p5x) / SCALE / cfg.bodyW,
       height: (p95y - p5y) / SCALE / cfg.bodyH,
     };
-    // akıl dışı değerleri reddet
     if (
       measuredRect.width <= 0 || measuredRect.height <= 0 ||
       measuredRect.width > d.w * 2.2 || measuredRect.height > d.h * 2.2
@@ -210,14 +250,14 @@ for (const cluster of cfg.clusters) {
   }
 
   if (measuredRect) {
-    results[cluster.key] = measuredRect;
+    results[key] = measuredRect;
     console.log(
-      `[measure] ${name}/${cluster.key}: px=${xs.length} -> (${measuredRect.x.toFixed(4)}, ${measuredRect.y.toFixed(4)}, ${measuredRect.width.toFixed(4)}, ${measuredRect.height.toFixed(4)}) OK`,
+      `[measure] ${name}/${key}: px=${xs.length} -> (${measuredRect.x.toFixed(4)}, ${measuredRect.y.toFixed(4)}, ${measuredRect.width.toFixed(4)}, ${measuredRect.height.toFixed(4)}) OK`,
     );
   } else {
-    results[cluster.key] = d;
+    results[key] = d;
     allOk = false;
-    console.log(`[measure] ${name}/${cluster.key}: tespit edilemedi (px=${xs.length}) — tasarım fallback`);
+    console.log(`[measure] ${name}/${key}: tespit edilemedi (px=${xs.length}) — tasarım fallback`);
   }
 }
 
@@ -228,12 +268,12 @@ let source = `// ${cfg.interfaceName} sprite meta: AI çıktısındaki yuva konu
 source += `// tools/measure-meta.mjs tarafından üretilir (recessed bölge tespiti).\n`;
 source += `// Değerler gövde boyutlarına ORAN olarak saklanır.\n`;
 source += `export interface ${cfg.interfaceName} {\n  measured: boolean;\n`;
-for (const cluster of cfg.clusters) {
-  source += `  ${cluster.key}: { x: number; y: number; width: number; height: number };\n`;
+for (const key of Object.keys(results)) {
+  source += `  ${key}: { x: number; y: number; width: number; height: number };\n`;
 }
 source += `}\n\nexport const ${cfg.exportName}: ${cfg.interfaceName} = {\n  measured: ${measured},\n`;
-for (const cluster of cfg.clusters) {
-  source += `  ${cluster.key}: ${fmt(results[cluster.key])},\n`;
+for (const [key, value] of Object.entries(results)) {
+  source += `  ${key}: ${fmt(value)},\n`;
 }
 source += `};\n`;
 

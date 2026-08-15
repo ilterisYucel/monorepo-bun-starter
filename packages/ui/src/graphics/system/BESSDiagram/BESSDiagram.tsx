@@ -6,13 +6,13 @@ import { SPRITE_ASSETS } from "../../textures";
 
 import type { BESSDiagramProps, BESSConfig } from "./BESSDiagram.types";
 import { calculateBESSConfig, getBSCLayout } from "./BESSDiagram.utils";
-import { drawBusBar, drawContainerFrame } from "./BESSDiagram.drawers";
+import { drawContainerFrame } from "./BESSDiagram.drawers";
 import { useWebGLDetect, usePixiResize } from "../../deprecated/BSCGraphic/BSCGraphic.hooks";
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { COLOR } from "../../../colors";
 
-import { RackCell, CircuitBreaker, DCOutput, RoomCard, HvacUnit, PanelCard, FirePanel, EnergyAnalyzerGraphic, GridSymbol } from "../../elements";
-import type { RackCellConfig } from "../../elements/RackCell/RackCell.types";
+import { RoomCard, HvacUnit, PanelCard, FirePanel, EnergyAnalyzerGraphic, GridSymbol, Cable } from "../../elements";
+import { BSCUnitRow } from "../shared/BSCUnitRow";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -103,11 +103,7 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
     return bscLayouts.map((layout) => calcBSCPositions(config, layout));
   }, [config, bscLayouts]);
 
-  const rackCellConfig: RackCellConfig | null = config
-    ? { step: config.step, rackWidth: config.rackWidth, rackHeight: config.rackHeight }
-    : null;
-
-  if (!config || !rackCellConfig) {
+  if (!config) {
     return (
       <div ref={containerRef} style={{ width: "100%", height: typeof height === "number" ? height : 1200, display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280" }}>
         Yukleniyor...
@@ -286,43 +282,6 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
 
             return (
               <pixiContainer key={`bsc-${bIdx}`}>
-                <pixiGraphics
-                  draw={(g) => {
-                    g.clear();
-                    const thickness = Math.max(2.5, s * 0.08);
-                    const cableColor = COLOR.cable;
-
-                    drawBusBar(g, pos.rackXs[0]!, pos.topBusY, pos.convergenceX - pos.rackXs[0]! + s * 0.6, Math.max(1.5, s * 0.06));
-                    drawBusBar(g, pos.rackXs[0]!, pos.bottomBusY, pos.convergenceX - pos.rackXs[0]! + s * 0.6, Math.max(1.5, s * 0.06));
-
-                    for (const rx of pos.rackXs) {
-                      const rc = rx + config.rackWidth / 2;
-                      g.moveTo(rc, pos.topBusY);
-                      g.lineTo(rc, layout.startY);
-                      g.stroke({ width: Math.max(1.5, s * 0.05), color: cableColor });
-                      g.moveTo(rc, layout.startY + config.rackHeight);
-                      g.lineTo(rc, pos.bottomBusY);
-                      g.stroke({ width: Math.max(1.5, s * 0.05), color: cableColor });
-                    }
-
-                    const midX = pos.convergenceX;
-                    g.moveTo(pos.convergenceX, pos.topBusY);
-                    g.lineTo(midX, pos.centerY - s * 0.12);
-                    g.stroke({ width: Math.max(1.5, s * 0.06), color: cableColor });
-                    g.moveTo(pos.convergenceX, pos.bottomBusY);
-                    g.lineTo(midX, pos.centerY + s * 0.12);
-                    g.stroke({ width: Math.max(1.5, s * 0.06), color: cableColor });
-                    g.moveTo(midX, pos.centerY - s * 0.12);
-                    g.lineTo(pos.cbStartX, pos.centerY);
-                    g.lineTo(midX, pos.centerY + s * 0.12);
-                    g.stroke({ width: Math.max(1.5, s * 0.06), color: cableColor });
-
-                    g.moveTo(pos.dcX + config.dcRadius, pos.dcY);
-                    g.lineTo(config.rightBusX, pos.dcY);
-                    g.stroke({ width: thickness, color: cableColor });
-                  }}
-                />
-
                 <pixiText
                   text={"+"} x={pos.rackXs[0]! + 4} y={pos.topBusY} anchor={0.5}
                   style={{ fontSize: Math.max(9, s * 0.28), fill: COLOR.success, fontFamily: "monospace", fontWeight: "bold" }}
@@ -332,57 +291,51 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
                   style={{ fontSize: Math.max(9, s * 0.28), fill: COLOR.warning, fontFamily: "monospace", fontWeight: "bold" }}
                 />
 
-                {unit.racks.map((rack: any, ri: number) => (
-                  <RackCell key={ri} rack={rack} x={pos.rackXs[ri]!} y={layout.startY}
-                    config={rackCellConfig} flowDirection={flowDirection} />
-                ))}
-
-                <CircuitBreaker
-                  config={{ step: s }}
+                <BSCUnitRow
+                  unit={{
+                    deviceId: unit.deviceId,
+                    racks: unit.racks,
+                    breakerStatus: unit.breakerStatus,
+                    breakerPosition: unit.breakerPosition,
+                    dcOutput: unit.dcOutput,
+                  }}
                   positions={{
-                    racks: pos.rackXs.map((rx, i) => ({ id: i + 1, x: rx, y: 0 })),
+                    rackXs: pos.rackXs,
+                    rackY: layout.startY,
+                    rackWidth: config.rackWidth,
+                    rackHeight: config.rackHeight,
                     topBusY: pos.topBusY,
                     bottomBusY: pos.bottomBusY,
-                    convergence: { x: pos.convergenceX, topY: pos.topBusY, bottomY: pos.bottomBusY },
-                    circuitBreaker: { startX: pos.cbStartX, endX: pos.cbEndX, y: pos.centerY, gapSize: s * 0.18 },
-                    output: { x: pos.dcX, y: pos.centerY, radius: config.dcRadius },
+                    convergenceX: pos.convergenceX,
+                    cbStartX: pos.cbStartX,
+                    cbEndX: pos.cbEndX,
+                    dcX: pos.dcX,
+                    dcRadius: config.dcRadius,
+                    centerY: pos.centerY,
+                    step: s,
                   }}
-                  breakerStatus={(unit as any).breakerStatus ?? "online"}
-                  breakerPosition={(unit as any).breakerPosition ?? "close"}
-                />
-
-                <DCOutput
-                  config={{ step: s }}
-                  output={{ x: pos.dcX, y: pos.centerY, radius: config.dcRadius }}
-                  dcOutput={unit.dcOutput}
+                  flowDirection={flowDirection}
+                  busEndX={config.rightBusX}
                 />
               </pixiContainer>
             );
           })}
 
           {/* ════════════ SAĞ SÜTUN: BUS → EA → ŞEBEKE ════════════ */}
-          <pixiGraphics
-            draw={(g) => {
-              g.clear();
-              const cableColor = COLOR.cable;
-              const thickness = Math.max(2.5, s * 0.08);
-
-              const busX = config.rightBusX;
-              g.moveTo(busX, dcTopY);
-              g.lineTo(busX, dcBottomY);
-              g.stroke({ width: thickness, color: cableColor });
-
-              const eaCenterY = config.eaY + config.eaHeight / 2;
-              g.moveTo(busX, eaCenterY);
-              g.lineTo(config.eaStartX, eaCenterY);
-              g.stroke({ width: thickness, color: cableColor });
-
-              const eaRightX = config.eaStartX + config.eaWidth;
-              const gridCenterY = config.gridY + config.gridHeight / 2;
-              g.moveTo(eaRightX, eaCenterY);
-              g.lineTo(config.gridStartX, gridCenterY);
-              g.stroke({ width: thickness, color: cableColor });
-            }}
+          <Cable
+            path={[{ x: config.rightBusX, y: dcTopY }, { x: config.rightBusX, y: dcBottomY }]}
+            flowDirection={flowDirection.toLowerCase() as "charge" | "discharge" | "idle"}
+            step={s}
+          />
+          <Cable
+            path={[{ x: config.rightBusX, y: config.eaY + config.eaHeight / 2 }, { x: config.eaStartX, y: config.eaY + config.eaHeight / 2 }]}
+            flowDirection={flowDirection.toLowerCase() as "charge" | "discharge" | "idle"}
+            step={s}
+          />
+          <Cable
+            path={[{ x: config.eaStartX + config.eaWidth, y: config.eaY + config.eaHeight / 2 }, { x: config.gridStartX, y: config.gridY + config.gridHeight / 2 }]}
+            flowDirection={flowDirection.toLowerCase() as "charge" | "discharge" | "idle"}
+            step={s}
           />
 
           <EnergyAnalyzerGraphic

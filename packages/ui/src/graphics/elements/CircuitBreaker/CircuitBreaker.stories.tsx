@@ -34,10 +34,26 @@ const basePositions = {
   bottomBusY: 37.5,
 };
 
-export const Base = () => (
+export const BaseClose = () => (
   <div style={{ width: 104, height: 45 }}>
     <Application width={104} height={45} backgroundAlpha={0} antialias={false} resolution={1}>
       <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, config, basePositions); }} />
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          // kapalı konumdaki nötr lever (yatay, gri)
+          g.setStrokeStyle({ width: 4, color: COLOR.textMuted, cap: "round" });
+          g.moveTo(15, 22.5);
+          g.lineTo(56, 22.5);
+          g.stroke();
+          g.moveTo(56, 20.5);
+          g.lineTo(64, 24.5);
+          g.stroke();
+          g.moveTo(64, 22.5);
+          g.lineTo(89, 22.5);
+          g.stroke();
+        }}
+      />
       <pixiGraphics
         draw={(g) => {
           g.clear();
@@ -49,7 +65,40 @@ export const Base = () => (
     </Application>
   </div>
 );
-Base.parameters = { backgrounds: { default: "transparent" } };
+BaseClose.parameters = { backgrounds: { default: "transparent" } };
+
+export const BaseOpen = () => (
+  <div style={{ width: 104, height: 45 }}>
+    <Application width={104} height={45} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, config, basePositions); }} />
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          // açık konumdaki nötr lever (dikey, gri)
+          g.setStrokeStyle({ width: 4, color: COLOR.textMuted, cap: "round" });
+          g.moveTo(15, 22.5);
+          g.lineTo(56, 22.5);
+          g.stroke();
+          g.moveTo(60, 17.5);
+          g.lineTo(60, 27.5);
+          g.stroke();
+          g.moveTo(64, 22.5);
+          g.lineTo(89, 22.5);
+          g.stroke();
+        }}
+      />
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          g.roundRect(32, 16.5, 40, 12, 2);
+          g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
+          g.stroke({ width: 1, color: COLOR.borderStroke, alpha: 0.6 });
+        }}
+      />
+    </Application>
+  </div>
+);
+BaseOpen.parameters = { backgrounds: { default: "transparent" } };
 
 
 export const SpriteMode = () => (

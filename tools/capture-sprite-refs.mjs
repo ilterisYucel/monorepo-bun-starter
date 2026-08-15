@@ -110,23 +110,31 @@ async function main() {
   }
 
   for (const element of SPRITE_BASES) {
-    const titleId = SPRITE_SPECS[element].titleId ?? element;
-    const url = `${base}/iframe.html?id=graphics-${titleId}--base&viewMode=story`;
-    console.log(`[capture] sprite base: ${element} <- ${url}`);
-    await page.goto(url, { waitUntil: "networkidle" });
-    await page.waitForTimeout(800);
-    const canvas = page.locator("canvas").first();
-    const buf = await canvas.screenshot({ omitBackground: true });
-    // refs her zaman tazelenir (AI üretim girdisi)
-    await mkdir(path.join(OUT_DIR, element), { recursive: true });
-    await writeFile(path.join(OUT_DIR, element, "base.png"), buf);
-    // src/assets yalnızca dosya yoksa yazılır — AI sprite'ları ezmez.
-    // Zorla placeholder'a dönmek için: --reset-sprites
-    const dst = path.join(SPRITES_DIR, element, "base.png");
-    const exists = await access(dst).then(() => true).catch(() => false);
-    if (!exists || process.argv.includes("--reset-sprites")) {
-      await mkdir(path.join(SPRITES_DIR, element), { recursive: true });
-      await writeFile(dst, buf);
+    const spec = SPRITE_SPECS[element];
+    const titleId = spec.titleId ?? element;
+    // varyantlı elementlerde yalnızca varyantlar yakalanır (base story yok)
+    const files = spec.variants
+      ? spec.variants.map((v) => `base-${v}.png`)
+      : ["base.png"];
+    for (const file of files) {
+      const story = file.replace(".png", "");
+      const url = `${base}/iframe.html?id=graphics-${titleId}--${story}&viewMode=story`;
+      console.log(`[capture] sprite base: ${element}/${file} <- ${url}`);
+      await page.goto(url, { waitUntil: "networkidle" });
+      await page.waitForTimeout(800);
+      const canvas = page.locator("canvas").first();
+      const buf = await canvas.screenshot({ omitBackground: true });
+      // refs her zaman tazelenir (AI üretim girdisi)
+      await mkdir(path.join(OUT_DIR, element), { recursive: true });
+      await writeFile(path.join(OUT_DIR, element, file), buf);
+      // src/assets yalnızca dosya yoksa yazılır — AI sprite'ları ezmez.
+      // Zorla placeholder'a dönmek için: --reset-sprites
+      const dst = path.join(SPRITES_DIR, element, file);
+      const exists = await access(dst).then(() => true).catch(() => false);
+      if (!exists || process.argv.includes("--reset-sprites")) {
+        await mkdir(path.join(SPRITES_DIR, element), { recursive: true });
+        await writeFile(dst, buf);
+      }
     }
   }
 

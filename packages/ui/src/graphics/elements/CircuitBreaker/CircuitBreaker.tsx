@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { CircuitBreakerProps } from "./CircuitBreaker.types";
-import { drawBreakerBody, drawBreakerLever, drawBreakerPulse } from "./CircuitBreaker.drawers";
+import { drawBreakerBody, drawBreakerPulse } from "./CircuitBreaker.drawers";
 import { CIRCUITBREAKER_META } from "./circuitbreaker-meta";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
 import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
@@ -23,14 +23,6 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
     [config, positions, breakerStatus, breakerPosition],
   );
 
-  const drawLever = useCallback(
-    (g: GraphicsType) => {
-      g.clear();
-      drawBreakerLever(g, config, positions, breakerStatus, breakerPosition);
-    },
-    [config, positions, breakerStatus, breakerPosition],
-  );
-
   const gPulseRef = usePixiTickerEffect(
     (g, time) => { drawBreakerPulse(g, config, positions, breakerStatus, breakerPosition, time); },
     [config, positions, breakerStatus, breakerPosition],
@@ -47,7 +39,9 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
   const by = centerY - config.step * 0.5;
   const bh = config.step * 1.0;
 
-  const chassisTexture = useSpriteTexture("circuitbreaker");
+  const chassisTexture = useSpriteTexture(
+    breakerPosition === "close" ? "circuitbreaker-close" : "circuitbreaker-open",
+  );
   const chassisX = lineStartX - config.step * 0.1;
   const chassisY = centerY - config.step * 0.35;
   const chassisW = cb.endX - lineStartX + config.step * 0.2;
@@ -59,16 +53,19 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
 
   const display = useMemo(() => {
     if (!chassisTexture) return null;
+    const design = { x: 0.25, y: 0.2143, width: 0.5, height: 0.5714 };
     const m = CIRCUITBREAKER_META.measured
-      ? CIRCUITBREAKER_META.display
-      : { x: 0.25, y: 0.2143, width: 0.5, height: 0.5714 };
+      ? breakerPosition === "close"
+        ? CIRCUITBREAKER_META.displayClosed
+        : CIRCUITBREAKER_META.displayOpen
+      : design;
     return {
       x: chassisX + m.x * chassisW,
       y: chassisY + m.y * chassisH,
       width: m.width * chassisW,
       height: m.height * chassisH,
     };
-  }, [chassisTexture, chassisX, chassisY, chassisW, chassisH]);
+  }, [chassisTexture, chassisX, chassisY, chassisW, chassisH, breakerPosition]);
 
   const statusColor = breakerStatus === "online" ? COLOR.success : COLOR.error;
   const posColor = breakerPosition === "close" ? COLOR.success : COLOR.warning;
@@ -87,7 +84,6 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
             width={chassisW + marginX * 2}
             height={chassisH + marginY * 2}
           />
-          <pixiGraphics draw={drawLever} />
           {display && (
             <>
               <pixiText

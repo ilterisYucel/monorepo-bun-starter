@@ -12,10 +12,11 @@ export const SPRITE_SPECS = {
     canvas: { width: 208, height: 90 },
     frame: { x: 0, y: 0, width: 208, height: 90 },
     margin: 8,
+    variants: ["close", "open"],
   },
   dcoutput: {
-    canvas: { width: 200, height: 200 },
-    frame: { x: 36, y: 36, width: 128, height: 128 },
+    canvas: { width: 200, height: 224 },
+    frame: { x: 0, y: 0, width: 200, height: 224 },
     margin: 8,
   },
   roomcard: {

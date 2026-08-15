@@ -39,10 +39,20 @@ const ELEMENTS = {
       "a short straight horizontal industrial power cable segment with a clean insulated metallic conduit and neat round terminal lugs at both ends, flat 2D front view",
     removeBg: true,
   },
-  circuitbreaker: {
-    ref: "base",
+  "circuitbreaker-close": {
+    ref: "base-close",
+    specKey: "circuitbreaker",
+    out: "circuitbreaker/base-close.png",
     describe:
-      "a front-facing flat 2D industrial DC circuit breaker module with a rotary lever socket in the middle-left and a small rectangular dark glass display window in the middle-right, compact electrical panel unit",
+      "a front-facing flat 2D industrial DC circuit breaker module with a closed horizontal rotary lever in the middle-left and a small rectangular dark glass display window in the middle-right, compact electrical panel unit. Keep the lever exactly in the closed horizontal position of the reference.",
+    removeBg: true,
+  },
+  "circuitbreaker-open": {
+    ref: "base-open",
+    specKey: "circuitbreaker",
+    out: "circuitbreaker/base-open.png",
+    describe:
+      "a front-facing flat 2D industrial DC circuit breaker module with an open vertical rotary lever in the middle-left and a small rectangular dark glass display window in the middle-right, compact electrical panel unit. Keep the lever exactly in the open vertical position of the reference.",
     removeBg: true,
   },
   dcoutput: {
@@ -129,8 +139,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // -> içerik bbox (+margin) kırp -> frame boyutuna yeniden boyutlandır
 // -> beklenen canvas'a frame konumuna yapıştır.
 // Böylece SPRITE_ASSETS frame metaları model çıktısından bağımsız geçerli kalır.
-async function normalize(buffer, element, page) {
-  const spec = SPRITE_SPECS[element];
+async function normalize(buffer, specKey, page) {
+  const spec = SPRITE_SPECS[specKey];
   if (!spec) return buffer;
 
   const outB64 = await page.evaluate(async ({ b64, cw, ch, fx, fy, fw, fh, margin }) => {
@@ -190,14 +200,16 @@ async function normalize(buffer, element, page) {
 }
 
 async function generateOne(element, page) {
-  const spec = ELEMENTS[element];
-  if (!spec) {
+  const specEl = ELEMENTS[element];
+  if (!specEl) {
     console.error(`[gen] bilinmeyen element: ${element}`);
     return false;
   }
-  const refPath = path.join(REFS_DIR, element, `${spec.ref}.png`);
-  const outDir = path.join(OUT_DIR, element);
-  const outPath = path.join(outDir, "base.png");
+  const spec = specEl;
+  const specKey = spec.specKey ?? element;
+  const refPath = path.join(REFS_DIR, specKey, `${spec.ref}.png`);
+  const outPath = path.join(OUT_DIR, spec.out ?? `${specKey}/base.png`);
+  const outDir = path.dirname(outPath);
 
   let refSize;
   try {
@@ -248,7 +260,7 @@ async function generateOne(element, page) {
   const res = await fetch(imageUrl);
   let buffer = Buffer.from(await res.arrayBuffer());
 
-  const normalized = await normalize(buffer, element, page);
+  const normalized = await normalize(buffer, specKey, page);
   buffer = normalized;
 
   await mkdir(outDir, { recursive: true });

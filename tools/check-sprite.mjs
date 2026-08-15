@@ -14,6 +14,19 @@ const EXPECTED = Object.fromEntries(
   Object.entries(SPRITE_SPECS).map(([k, s]) => [k, [s.canvas.width, s.canvas.height]]),
 );
 
+// Hedef dosyalar: varyantlı elementlerde yalnızca varyantlar, değilse base.png
+const targets = [];
+for (const [element, spec] of Object.entries(SPRITE_SPECS)) {
+  const files = spec.variants
+    ? spec.variants.map((v) => `base-${v}.png`)
+    : ["base.png"];
+  for (const file of files) targets.push({ element, file, dims: [spec.canvas.width, spec.canvas.height] });
+}
+const names = process.argv.slice(2).filter((a) => a in EXPECTED || a.includes("-"));
+const selected = targets.filter((t) =>
+  names.length === 0 || names.includes(t.element) || names.includes(`${t.element}-${t.file.replace(".png", "")}`.replace("-base", "")),
+);
+
 // Nötr baz kuralı: sprite içinde bulunmaması gereken durum renkleri
 const FORBIDDEN = {
   success: [16, 185, 129],
@@ -25,15 +38,13 @@ const FORBIDDEN = {
   info: [59, 130, 246],
 };
 
-const names = process.argv.slice(2).filter((a) => a in EXPECTED);
-const targets = names.length ? names : Object.keys(EXPECTED);
-
 const browser = await chromium.launch();
 const page = await browser.newPage();
 let failed = 0;
 
-for (const element of targets) {
-  const file = path.join(SPRITES_DIR, element, "base.png");
+for (const target of selected) {
+  const element = target.element;
+  const file = path.join(SPRITES_DIR, element, target.file);
   const dataUrl = "data:image/png;base64," + (await readFile(file)).toString("base64");
   const stats = await page.evaluate(async ([el, f, forb]) => {
     const img = new Image();
@@ -73,7 +84,7 @@ for (const element of targets) {
     return { width, height, opaque, opaqueRatio: opaque / (width * height), minX, maxX, minY, maxY, corners, hits };
   }, [element, dataUrl, FORBIDDEN]);
 
-  const [ew, eh] = EXPECTED[element];
+  const [ew, eh] = target.dims;
   const issues = [];
   if (stats.width !== ew || stats.height !== eh) issues.push(`boyut ${stats.width}x${stats.height} != beklenen ${ew}x${eh}`);
   if (stats.corners.some((a) => a > 16)) issues.push(`köşe pikselleri şeffaf değil: ${stats.corners.join(",")}`);
@@ -82,7 +93,7 @@ for (const element of targets) {
   const sigForbidden = Object.entries(stats.hits).filter(([, n]) => n > stats.opaque * 0.03);
   if (sigForbidden.length) issues.push(`durum renkleri mevcut: ${sigForbidden.map(([k, n]) => `${k}=${n}px`).join(", ")}`);
 
-  console.log(`[check] ${element}: ${stats.width}x${stats.height}, opak=%${(stats.opaqueRatio * 100).toFixed(1)}, bbox=(${stats.minX},${stats.minY})-(${stats.maxX},${stats.maxY}), köşeA=${stats.corners.join(",")}`);
+  console.log(`[check] ${element}/${target.file}: ${stats.width}x${stats.height}, opak=%${(stats.opaqueRatio * 100).toFixed(1)}, bbox=(${stats.minX},${stats.minY})-(${stats.maxX},${stats.maxY}), köşeA=${stats.corners.join(",")}`);
   if (issues.length) {
     failed++;
     for (const issue of issues) console.log(`  ! ${issue}`);

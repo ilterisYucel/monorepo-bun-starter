@@ -14,20 +14,15 @@ import { useWebGLDetect, usePixiResize } from "../../deprecated/BSCGraphic/BSCGr
 import { usePixiZoom } from "../../../hooks/usePixiZoom";
 import { SCADA_ICONS } from "../../../icons";
 import { COLOR, COLORS } from "../../../colors";
-import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
+import { SpriteTextureProvider, useSpriteTexture } from "../../../core/SpriteTextureProvider";
 import { SPRITE_ASSETS } from "../../textures";
 import type { Rack } from "../../../types";
 import type { ChargeStatus } from "@gd-monorepo/shared-types";
-import type { RackCellConfig } from "../../elements/RackCell/RackCell.types";
 import {
-  RackCell,
   RackInfoPopover,
-  CableBus,
-  CircuitBreaker,
-  DCOutput,
-  Cable,
 } from "../../elements";
-import type { Point2D } from "../../types";
+import { BSCUnitRow } from "../shared/BSCUnitRow";
+import type { BSCUnitRowPositions } from "../shared/BSCUnitRow";
 
 import * as S from "./BSC.styles";
 
@@ -73,9 +68,9 @@ const BSCV2Canvas: React.FC<{
   const [breakerPosition, setBreakerPosition] = useState(unit.breakerPosition ?? "close");
   const [popoverData, setPopoverData] = useState<{ rack: Rack; x: number; y: number } | null>(null);
 
-  const rackCellConfig: RackCellConfig | null = config
-    ? { step: config.step, rackWidth: config.rackWidth, rackHeight: config.rackHeight }
-    : null;
+  const cbCloseTex = useSpriteTexture("circuitbreaker-close");
+  const cbOpenTex = useSpriteTexture("circuitbreaker-open");
+  const dcSpriteTex = useSpriteTexture("dcoutput");
 
   const { dimensions } = usePixiResize(containerRef, "100%");
 
@@ -130,14 +125,6 @@ const BSCV2Canvas: React.FC<{
     };
   }, []);
 
-  const handleBreakerClick = useCallback(() => {
-    if (!onBreakerToggle) return;
-    if (breakerStatus === "offline") return;
-    const newPos = breakerPosition === "close" ? "open" : "close";
-    setBreakerPosition(newPos);
-    onBreakerToggle(newPos);
-  }, [breakerStatus, breakerPosition, onBreakerToggle]);
-
   const zoom = usePixiZoom({ enabled: zoomEnabled });
 
   const combinedOnInit = useCallback(
@@ -155,6 +142,8 @@ const BSCV2Canvas: React.FC<{
     const { racks: rackPositions, circuitBreaker: cb, convergence: cv, output, topBusY, bottomBusY } = positions;
     const fs = Math.max(9, step * 0.2);
     const smallFs = Math.max(7, step * 0.17);
+    const cbSpriteMode = !!(cbCloseTex || cbOpenTex);
+    const dcSpriteMode = !!dcSpriteTex;
 
     return (
       <>
@@ -164,8 +153,8 @@ const BSCV2Canvas: React.FC<{
         <pixiText key="bus-minus" text="-" x={rackPositions[0]!.x - step * 0.3} y={bottomBusY} anchor={0.5}
           style={{ fontSize: Math.max(15, step * 0.4), fill: COLOR.warning, fontFamily: "monospace", fontWeight: "bold" }} />
 
-        {/* Breaker labels */}
-        {(() => {
+        {/* Breaker labels (sprite modunda CB ekranı gösterir — çizim etiketleri gizlenir) */}
+        {!cbSpriteMode && (() => {
           const cbCenterX = (cv.x + step * 0.2 + cb.endX) / 2;
           const cbCenterY = (topBusY + bottomBusY) / 2;
           const boxW = step * 1.4;
@@ -205,7 +194,7 @@ const BSCV2Canvas: React.FC<{
             <>
               <pixiText key="out-label" text="DC" x={dcX} y={output.y - output.radius - step * 0.25} anchor={0.5}
                 style={{ fontSize: fs, fill: COLOR.textWhite, fontFamily: "monospace", fontWeight: "bold" }} />
-              {unit.dcOutput && (
+              {unit.dcOutput && !dcSpriteMode && (
                 <>
                   <pixiGraphics
                     key="dc-box"
@@ -229,28 +218,27 @@ const BSCV2Canvas: React.FC<{
         })()}
       </>
     );
-  }, [config, positions, breakerStatus, breakerPosition, unit.dcOutput]);
+  }, [config, positions, breakerStatus, breakerPosition, unit.dcOutput, cbCloseTex, cbOpenTex, dcSpriteTex]);
 
-  const cableBusPositions = useMemo(() => {
+  const rowPositions: BSCUnitRowPositions | null = useMemo(() => {
     if (!config || !positions) return null;
+    const centerY = (positions.topBusY + positions.bottomBusY) / 2;
     return {
-      racks: positions.racks,
+      rackXs: positions.racks.map((r) => r.x),
+      rackY: positions.racks[0]?.y ?? 0,
+      rackWidth: config.rackWidth,
+      rackHeight: config.rackHeight,
       topBusY: positions.topBusY,
       bottomBusY: positions.bottomBusY,
       convergenceX: positions.convergence.x,
-      cbLeftMid: { x: positions.convergence.x + config.step * 0.2, y: (positions.topBusY + positions.bottomBusY) / 2 },
+      cbStartX: positions.convergence.x + config.step * 0.1,
+      cbEndX: positions.circuitBreaker.endX,
+      dcX: positions.output.x + config.step * 0.5,
+      dcRadius: positions.output.radius,
+      centerY,
+      step: config.step,
     };
-  }, [positions, config]);
-
-  const cbOutputPath: Point2D[] | null = useMemo(() => {
-    if (!config || !positions) return null;
-    const centerY = (positions.topBusY + positions.bottomBusY) / 2;
-    const dcGapX = positions.output.x + config.step * 0.5 - positions.output.radius;
-    return [
-      { x: positions.circuitBreaker.endX, y: centerY },
-      { x: dcGapX, y: centerY },
-    ];
-  }, [positions, config]);
+  }, [config, positions]);
 
   if (!config || !positions) {
     return (
@@ -261,10 +249,7 @@ const BSCV2Canvas: React.FC<{
   }
 
   const headerFontSize = Math.max(13, config.step * 0.36);
-  const cableBusPos = cableBusPositions!;
-  const cbOutPath = cbOutputPath!;
-  const dcGap = config.step * 0.5;
-  const dcX = positions.output.x + dcGap;
+  const dcX = positions.output.x + config.step * 0.5;
 
   return (
     <S.CanvasWrap
@@ -295,51 +280,23 @@ const BSCV2Canvas: React.FC<{
           style={{ fontSize: headerFontSize, fill: COLOR.textPrimary, fontFamily: "monospace", fontWeight: "bold" }}
         />
 
-        {/* Cables */}
-        <CableBus config={config} positions={cableBusPos} flowDirection={flowDirection.toLowerCase() as "charge" | "discharge" | "idle"} />
-
-        {/* CB → DC output cable */}
-        <Cable
-          path={cbOutPath}
-          flowDirection={flowDirection.toLowerCase() as "charge" | "discharge" | "idle"}
-          step={config.step}
-        />
-
-        {/* Rack cells */}
-        {positions.racks.map((pos, i) => (
-          <RackCell
-            key={unit.racks[i]?.id ?? pos.id}
-            rack={unit.racks[i]!}
-            x={pos.x}
-            y={pos.y}
-            config={rackCellConfig!}
-            flowDirection={flowDirection}
-            onClick={(rack, position) => {
-              const rect = canvasRef.current?.getBoundingClientRect();
-              setPopoverData({
-                rack,
-                x: position.x + (rect?.left ?? 0),
-                y: position.y + (rect?.top ?? 0),
-              });
-              onRackClick?.(rack.id);
-            }}
-          />
-        ))}
-
-        {/* Breaker */}
-        <CircuitBreaker
-          config={config}
-          positions={positions}
-          breakerStatus={breakerStatus}
-          breakerPosition={breakerPosition}
-          onClick={onBreakerToggle ? handleBreakerClick : undefined}
-        />
-
-        {/* DC Output */}
-        <DCOutput
-          config={config}
-          output={{ ...positions.output, x: dcX }}
-          dcOutput={unit.dcOutput}
+        {/* Rack satırı: rack'ler + kablolar + kesici + DC çıkış */}
+        <BSCUnitRow
+          unit={{ ...unit, breakerStatus, breakerPosition }}
+          positions={rowPositions!}
+          flowDirection={flowDirection}
+          onRackClick={(rackId, position) => {
+            const rect = canvasRef.current?.getBoundingClientRect();
+            const rack = unit.racks.find((r) => r.id === rackId);
+            if (!rack) return;
+            setPopoverData({
+              rack,
+              x: (position?.x ?? 0) + (rect?.left ?? 0),
+              y: (position?.y ?? 0) + (rect?.top ?? 0),
+            });
+            onRackClick?.(rackId);
+          }}
+          onBreakerToggle={onBreakerToggle ? (pos) => { setBreakerPosition(pos); onBreakerToggle?.(pos); } : undefined}
         />
 
         {/* Labels */}

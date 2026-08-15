@@ -6,6 +6,7 @@ import { createMockOutputPosition } from "../../../__stories__/mocks/factories";
 import { drawOutputChassis } from "./DCOutput.drawers";
 import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
 import { SPRITE_ASSETS } from "../../textures";
+import { COLOR } from "../../../colors";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -21,9 +22,22 @@ const output = createMockOutputPosition(50, 50, 30);
 const wrapper = { width: 120, height: 120, background: "#0f0f1a" } as const;
 
 export const Base = () => (
-  <div style={{ width: 100, height: 100 }}>
-    <Application width={100} height={100} backgroundAlpha={0} antialias={false} resolution={1}>
-      <pixiGraphics draw={(g) => { g.clear(); drawOutputChassis(g, config, output); }} />
+  <div style={{ width: 100, height: 112 }}>
+    <Application width={100} height={112} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          drawOutputChassis(g, config, { x: 50, y: 46, radius: 30 });
+        }}
+      />
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          g.roundRect(22, 84, 56, 16, 3);
+          g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
+          g.stroke({ width: 1, color: COLOR.borderStroke, alpha: 0.6 });
+        }}
+      />
     </Application>
   </div>
 );

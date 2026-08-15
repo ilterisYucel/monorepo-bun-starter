@@ -10,7 +10,8 @@ export interface SpriteAssetMeta {
 }
 
 import rackcellUrl from "../assets/sprites/rackcell/base.png";
-import circuitbreakerUrl from "../assets/sprites/circuitbreaker/base.png";
+import circuitbreakerCloseUrl from "../assets/sprites/circuitbreaker/base-close.png";
+import circuitbreakerOpenUrl from "../assets/sprites/circuitbreaker/base-open.png";
 import dcoutputUrl from "../assets/sprites/dcoutput/base.png";
 import roomcardUrl from "../assets/sprites/roomcard/base.png";
 import hvacunitUrl from "../assets/sprites/hvacunit/base.png";
@@ -28,19 +29,25 @@ export const SPRITE_ASSETS: Readonly<Record<string, SpriteAssetMeta>> = {
     // Canvas 160x420 @2x, gövde (0,0,120,380) + nub (14) + gölge (8)
     frame: { x: 40, y: 12, width: 256, height: 816 },
   },
-  circuitbreaker: {
-    key: "circuitbreaker",
-    url: circuitbreakerUrl,
+  "circuitbreaker-close": {
+    key: "circuitbreaker-close",
+    url: circuitbreakerCloseUrl,
     scale: 2,
     // Canvas 104x45 @2x; chassis (12,12,80,21) + ekran yuvası — frame tam canvas
+    frame: { x: 0, y: 0, width: 208, height: 90 },
+  },
+  "circuitbreaker-open": {
+    key: "circuitbreaker-open",
+    url: circuitbreakerOpenUrl,
+    scale: 2,
     frame: { x: 0, y: 0, width: 208, height: 90 },
   },
   dcoutput: {
     key: "dcoutput",
     url: dcoutputUrl,
     scale: 2,
-    // Canvas 100x100 @2x; daire (50,50,r30) + 2px marj
-    frame: { x: 36, y: 36, width: 128, height: 128 },
+    // Canvas 100x112 @2x; daire (50,46,r30) + altta ekran yuvası (22,84,56,16)
+    frame: { x: 0, y: 0, width: 200, height: 224 },
   },
   roomcard: {
     key: "roomcard",
