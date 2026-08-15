@@ -16,10 +16,10 @@ export function calculateBESSConfig(
   const topCardEaW = step * 4.0;
   const topCardFireW = step * 3.0;
 
-  const eaWidth = step * 5.0;
-  const eaHeight = step * 1.8;
-  const gridWidth = step * 1.8;
-  const gridHeight = step * 0.7;
+  const eaWidth = step * 3.5;
+  const eaHeight = step * 1.5;
+  const gridWidth = step * 1.4;
+  const gridHeight = step * 0.6;
 
   const rackWidth = 1.9 * step;
   const rackHeight = step * 3.6;
@@ -30,7 +30,7 @@ export function calculateBESSConfig(
   const bscStartX = step * 0.25;
   const bscStartY = PAD + summaryBarHeight + step * 1.0;
 
-  const bscTotalWidth = RACK_COUNT * (rackWidth + rackGap) - rackGap + step * 0.65 + cbLength + dcRadius * 2 + step * 1.2 + step * 0.5;
+  const bscTotalWidth = RACK_COUNT * (rackWidth + rackGap) - rackGap + step * 0.65 + cbLength + dcRadius * 2 + step * 1.2 + step * 0.6;
 
   const rightBusX = bscStartX + bscTotalWidth + 6;
 
