@@ -75,14 +75,14 @@ export const DCOutput: React.FC<DCOutputProps> = ({ config, output, dcOutput }) 
             <>
               <pixiText
                 text={voltText}
-                x={display.x + display.width * 0.3}
+                x={display.x + display.width * 0.22}
                 y={display.y + display.height * 0.7}
                 anchor={0.5}
                 style={styleVolt}
               />
               <pixiText
                 text={ampText}
-                x={display.x + display.width * 0.75}
+                x={display.x + display.width * 0.8}
                 y={display.y + display.height * 0.7}
                 anchor={0.5}
                 style={styleAmp}
