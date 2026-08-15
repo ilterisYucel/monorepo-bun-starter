@@ -167,8 +167,8 @@ export function drawRackCellStackHousing(
 
   for (const cell of cells) {
     g.roundRect(cell.x, cell.y, cell.width, cell.height, r);
-    g.fill({ color: COLOR.gradScreen, alpha: 0.6 });
-    g.stroke({ width: Math.max(0.6, step * 0.02), color: COLOR.borderStroke, alpha: 0.7 });
+    g.fill({ color: COLOR.textNearBlack });
+    g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke, alpha: 0.9 });
   }
 }
 

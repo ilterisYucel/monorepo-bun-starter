@@ -53,7 +53,7 @@ export const RackCell: React.FC<RackCellProps> = ({
   // değilse tasarım geometrisi. Meta gövdeye oran olduğu için gerçek
   // rackWidth/rackHeight ile ölçeklenir.
   const windows = useMemo(() => {
-    const src = bodyTexture && RACKCELL_META.measured ? RACKCELL_META.windows : null;
+    const src = bodyTexture && RACKCELL_META.windowsMeasured ? RACKCELL_META.windows : null;
     if (src) {
       return src.map((rect) => ({
         x: rect.x * w,
@@ -66,7 +66,7 @@ export const RackCell: React.FC<RackCellProps> = ({
   }, [bodyTexture, w, h, config]);
 
   const cellColumn = useMemo(() => {
-    const src = bodyTexture && RACKCELL_META.measured ? RACKCELL_META.tube : null;
+    const src = bodyTexture && RACKCELL_META.columnMeasured ? RACKCELL_META.tube : null;
     if (src) {
       return {
         x: src.x * w,

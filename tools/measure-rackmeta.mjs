@@ -114,151 +114,124 @@ const components = await page.evaluate(async ({ data, w, h }) => {
 
 console.log("[measure] recessed bölgeler:", components.length);
 
-// Pencere adayları: genişlik 80-160, yükseklik 50-110, x 70-230 (gövde sol-orta bandı)
-const winCandidates = components
-  .filter((c) => c.w >= 80 && c.w <= 160 && c.h >= 50 && c.h <= 110 && c.x >= 70 && c.x <= 230)
-  .sort((a, b) => a.y - b.y);
-
-// Üst üste binen adayları tekilleştir
-const unique = [];
-for (const c of winCandidates) {
-  const near = unique.find((u) => Math.abs(u.y - c.y) < 40 && Math.abs(u.x - c.x) < 40);
-  if (near) {
-    near.x = Math.min(near.x, c.x);
-    near.y = Math.min(near.y, c.y);
-    near.w = Math.max(near.w, c.w);
-    near.h = Math.max(near.h, c.h);
-  } else {
-    unique.push({ ...c });
-  }
-}
-
-// Satır yürüyüşü: ilk aday referans sütunu kurar (x ±25, pitch 30-80);
-// boşluk varsa ekstrapole edilir, kalan satırlar son pitch ile uzatılır.
-const rows = [];
-let pitch = null;
-for (const c of unique) {
-  if (rows.length === 0) {
-    rows.push(c);
-    continue;
-  }
-  const first = rows[0];
-  const last = rows[rows.length - 1];
-  if (Math.abs(c.x - first.x) > 25) continue;
-  const gap = c.y - last.y;
-  if (gap >= 30 && gap <= 110) {
-    rows.push(c);
-    if (pitch === null || rows.length === 2) pitch = gap;
-    else pitch = Math.round((pitch + gap) / 2);
-  }
-}
-while (rows.length < 6 && pitch !== null) {
-  const last = rows[rows.length - 1];
-  rows.push({ x: last.x, y: last.y + pitch, w: last.w, h: last.h });
-}
-
-const detectedWindows = [];
-const refW = rows.length ? rows[Math.floor(rows.length / 2)] : null;
-for (let row = 0; row < 6; row++) {
-  const c = rows[row];
-  if (!c) break;
-  detectedWindows.push({
-    x: (c.x - FRAME.x) / SCALE,
-    y: (c.y - FRAME.y) / SCALE,
-    width: c.w / SCALE,
-    height: c.h / SCALE,
-  });
-}
-
-// Hücre kolonu: sağ banttaki (x>=195) küçük-orta boyutlu recessed bileşenlerin
-// union bbox'ı (hücre yuvaları). AI hücreleri koyu VEYA parlak çizebilir —
-// iki kutup da denenir, en az 4 hücre bulunan kazanır.
-const cellCandidatesDark = components
-  .filter((c) => c.x >= 195 && c.w >= 20 && c.w <= 70 && c.h >= 15 && c.h <= 90)
-  .sort((a, b) => a.y - b.y);
-
-// Parlak kutuplu hücre tespiti (sağ bant, luma - local > +18):
-// persentil bbox (hücreler ayrı bileşen üretmese de sütunu kaplar)
-const lightCellBbox = await page.evaluate(async ({ data, w, h }) => {
-  const lum = new Float32Array(w * h);
-  for (let i = 0; i < w * h; i++) {
-    lum[i] = 0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2];
-  }
-  const R = 12;
-  const integral = new Float32Array((w + 1) * (h + 1));
-  for (let y = 1; y <= h; y++) {
-    for (let x = 1; x <= w; x++) {
-      integral[y * (w + 1) + x] =
-        lum[(y - 1) * w + (x - 1)] +
-        integral[(y - 1) * (w + 1) + x] +
-        integral[y * (w + 1) + x - 1] -
-        integral[(y - 1) * (w + 1) + x - 1];
+// Pencere tespiti (KUTUPTAN BAĞIMSIZ): her satırda x-profili medyanından
+// >25 sapan ardışık aralık = pencere camı (koyu VEYA parlak fark etmez).
+const windowRectsTex = await page.evaluate(async ({ data, w, h }) => {
+  const luma = (x, y) => { const i = (y * w + x) * 4; return 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]; };
+  const rects = [];
+  for (let r = 0; r < 6; r++) {
+    const y0 = 12 + 2 * (35 + r * 46);
+    const y1 = y0 + 76;
+    // x profili (60..215, adım 2): satır bandında ortalama luma
+    const profile = [];
+    for (let x = 60; x <= 215; x += 2) {
+      let sum = 0, n = 0;
+      for (let y = y0; y < y1; y += 2) {
+        const a = data[(y * w + x) * 4 + 3];
+        if (a < 40) continue;
+        sum += luma(x, y);
+        n++;
+      }
+      profile.push({ x, l: n ? sum / n : -1 });
     }
-  }
-  const xs = [];
-  const ys = [];
-  for (let y = 12; y < 828 && y < h; y++) {
-    for (let x = 195; x < 296 && x < w; x++) {
-      const i = (y * w + x) * 4;
-      if (data[i + 3] <= 40) continue;
-      const x1 = Math.max(0, x - R), x2 = Math.min(w - 1, x + R);
-      const y1 = Math.max(0, y - R), y2 = Math.min(h - 1, y + R);
-      const area = (x2 - x1 + 1) * (y2 - y1 + 1);
-      const sum =
-        integral[(y2 + 1) * (w + 1) + x2 + 1] -
-        integral[y1 * (w + 1) + x2 + 1] -
-        integral[(y2 + 1) * (w + 1) + x1] +
-        integral[y1 * (w + 1) + x1];
-      const local = sum / area;
-      if (lum[y * w + x] - local > 18) {
-        xs.push(x);
-        ys.push(y);
+    const vals = profile.filter((p) => p.l >= 0).map((p) => p.l).sort((a, b) => a - b);
+    if (vals.length < 10) continue;
+    const median = vals[Math.floor(vals.length / 2)];
+    // medyandan >25 sapan en uzun ardışık koşu
+    let best = null;
+    let runStart = -1;
+    for (let i = 0; i <= profile.length; i++) {
+      const outlier = i < profile.length && profile[i].l >= 0 && Math.abs(profile[i].l - median) > 25;
+      if (outlier && runStart < 0) runStart = profile[i].x;
+      if (!outlier && runStart >= 0) {
+        const runEnd = profile[i - 1].x;
+        const runW = runEnd - runStart;
+        if (runW >= 80 && runW <= 170 && (!best || runW > best.w)) best = { x: runStart, w: runW };
+        runStart = -1;
       }
     }
+    if (best) rects.push({ x: best.x, y: y0 - 6, w: best.w, h: 76 + 12, row: r });
   }
-  if (xs.length < 400) return null;
-  xs.sort((a, b) => a - b);
-  ys.sort((a, b) => a - b);
+  return rects;
+}, { data: ai.data, w: ai.w, h: ai.h });
+
+const detectedWindows = windowRectsTex.map((rect) => ({
+  x: (rect.x - FRAME.x) / SCALE,
+  y: (rect.y - FRAME.y) / SCALE,
+  width: rect.w / SCALE,
+  height: rect.h / SCALE,
+}));
+
+console.log(`[measure] pencere tespit: ${detectedWindows.length}/6`);
+
+// Hücre kolonu tespiti: sağ bantta (tex x 215..285) mutlak koyu maske
+// (luma < 45) ile yuva satırları bulunur — ardışık koyu satır koşuları
+// (yükseklik 50-90 tex) yuvalardır. En az 5 yuva gerekir.
+const socketColumn = await page.evaluate(async ({ data, w, h }) => {
+  const luma = (x, y) => { const i = (y * w + x) * 4; return 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]; };
+  // her satır için koyu oran (x 225..270 — yuva kolonu bandı)
+  const rowDark = [];
+  for (let y = 60; y <= 740; y += 2) {
+    let dark = 0, tot = 0;
+    for (let x = 225; x <= 270; x += 2) {
+      const a = data[(y * w + x) * 4 + 3];
+      if (a < 40) continue;
+      tot++;
+      if (luma(x, y) < 45) dark++;
+    }
+    rowDark.push({ y, r: tot ? dark / tot : 0 });
+  }
+  // koyu koşular (r >= 0.8)
+  const runs = [];
+  let start = -1;
+  for (let i = 0; i < rowDark.length; i++) {
+    const isDark = rowDark[i].r >= 0.8;
+    if (isDark && start < 0) start = rowDark[i].y;
+    if (!isDark && start >= 0) {
+      const hh = rowDark[i - 1].y - start;
+      if (hh >= 50 && hh <= 90) runs.push({ y: start, h: hh });
+      start = -1;
+    }
+  }
+  if (start >= 0) {
+    const hh = rowDark[rowDark.length - 1].y - start;
+    if (hh >= 50 && hh <= 90) runs.push({ y: start, h: hh });
+  }
+  if (runs.length < 5) return null;
+  // her koşunun ORTA satırlarında koyu x aralığı (bezelleri dışlar);
+  // yuva genişliği = medyan aralık
+  const runRanges = [];
+  for (const run of runs) {
+    const midY = run.y + Math.floor(run.h / 2);
+    let minX = 999, maxX = -1;
+    for (let y = midY - 4; y <= midY + 4; y += 2) {
+      for (let x = 215; x <= 285; x += 2) {
+        const a = data[(y * w + x) * 4 + 3];
+        if (a >= 40 && luma(x, y) < 45) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+        }
+      }
+    }
+    if (minX < 999) runRanges.push({ minX, maxX });
+  }
+  const mins = runRanges.map((r) => r.minX).sort((a, b) => a - b);
+  const maxs = runRanges.map((r) => r.maxX).sort((a, b) => a - b);
   return {
-    x: xs[Math.floor(xs.length * 0.12)],
-    y: ys[Math.floor(ys.length * 0.12)],
-    w: xs[Math.floor(xs.length * 0.88)] - xs[Math.floor(xs.length * 0.12)],
-    h: ys[Math.floor(ys.length * 0.88)] - ys[Math.floor(ys.length * 0.12)],
-    px: xs.length,
+    x: mins[Math.floor(mins.length / 2)],
+    y: runs[0].y,
+    w: maxs[Math.floor(maxs.length / 2)] - mins[Math.floor(mins.length / 2)] + 1,
+    h: runs[runs.length - 1].y + runs[runs.length - 1].h - runs[0].y,
+    runs: runs.length,
   };
 }, { data: ai.data, w: ai.w, h: ai.h });
 
-const cellCandidatesLight = lightCellBbox ? [lightCellBbox] : [];
+let columnComp = socketColumn;
 
-function columnFromCandidates(cands) {
-  if (cands.length < 4) return null;
-  const top = cands[0].y;
-  const bottom = cands[cands.length - 1].y + cands[cands.length - 1].h;
-  const left = Math.min(...cands.map((c) => c.x));
-  const right = Math.max(...cands.map((c) => c.x + c.w));
-  return { x: left, y: top, w: right - left, h: bottom - top };
-}
+const columnMeasured = columnComp && columnComp.h > 500;
+const windowsMeasured = detectedWindows.length >= 3;
 
-// Parlak bbox'ı tasarım kolonuna ±%25 kırp (aykırı parlak bölgeleri dışlar)
-function clampLightBbox(b) {
-  if (!b) return null;
-  const dx = 40 + 220; // tasarım kolon x başlangıcı (tex): FRAME.x + 90*2
-  const dy = 12 + 37 * 2; // FRAME.y + 37*2
-  const dw = 40; // 20*2
-  const dh = 612; // 306*2
-  const cw = Math.min(Math.max(b.w, dw * 0.75), dw * 1.25);
-  const ch = Math.min(Math.max(b.h, dh * 0.75), dh * 1.25);
-  const cx = Math.min(Math.max(b.x, dx - dw * 0.3), dx + dw * 0.3);
-  const cy = Math.min(Math.max(b.y, dy - dh * 0.2), dy + dh * 0.2);
-  return { x: cx, y: cy, w: cw, h: ch };
-}
-
-let columnComp = columnFromCandidates(cellCandidatesDark) ?? clampLightBbox(lightCellBbox);
-
-const columnOk = columnComp && columnComp.h > 500;
-const windowsOk = detectedWindows.length >= 3;
-
-const columnMeta = columnOk
+const columnMeta = columnMeasured
   ? {
       x: (columnComp.x - FRAME.x) / SCALE,
       y: (columnComp.y - FRAME.y) / SCALE,
@@ -267,11 +240,10 @@ const columnMeta = columnOk
     }
   : DESIGN_COLUMN;
 
-const winMeta = windowsOk ? detectedWindows : DESIGN_WINDOWS;
-const measured = windowsOk && columnOk;
+const winMeta = windowsMeasured ? detectedWindows : DESIGN_WINDOWS;
 
-console.log(`[measure] pencere tespit: ${detectedWindows.length}/6, hücre kolonu: ${columnOk ? "OK" : "yok"}`);
-if (windowsOk) {
+console.log(`[measure] pencere tespit: ${detectedWindows.length}/6, hücre kolonu: ${columnMeasured ? "OK" : "yok"}`);
+if (windowsMeasured) {
   detectedWindows.forEach((wrect, i) =>
     console.log(`  w${i + 1}: (${wrect.x.toFixed(1)}, ${wrect.y.toFixed(1)}, ${wrect.width.toFixed(1)}, ${wrect.height.toFixed(1)})`),
   );
@@ -288,9 +260,9 @@ const winFrac = winMeta.map(frac);
 const columnFrac = frac(columnMeta);
 
 const source = `// RackCell sprite meta: AI çıktısındaki pencere/hücre kolonu konumları.
-// tools/measure-rackmeta.mjs tarafından üretilir (recessed bölge tespiti).
+// tools/measure-rackmeta.mjs tarafından üretilir.
 // Değerler gövde boyutlarına (120x380 referans) ORAN olarak saklanır.
-// measured=${measured} (false ise tasarım fallback geometrisi)
+// windowsMeasured=${windowsMeasured}, columnMeasured=${columnMeasured}
 export interface RackCellWindowMeta {
   x: number;
   y: number;
@@ -299,13 +271,15 @@ export interface RackCellWindowMeta {
 }
 
 export interface RackCellMeta {
-  measured: boolean;
+  windowsMeasured: boolean;
+  columnMeasured: boolean;
   windows: RackCellWindowMeta[];
   tube: RackCellWindowMeta;
 }
 
 export const RACKCELL_META: RackCellMeta = {
-  measured: ${measured},
+  windowsMeasured: ${windowsMeasured},
+  columnMeasured: ${columnMeasured},
   windows: [
 ${winFrac.map((r) => `    { x: ${r.x.toFixed(5)}, y: ${r.y.toFixed(5)}, width: ${r.width.toFixed(5)}, height: ${r.height.toFixed(5)} },`).join("\n")}
   ],
@@ -314,6 +288,6 @@ ${winFrac.map((r) => `    { x: ${r.x.toFixed(5)}, y: ${r.y.toFixed(5)}, width: $
 `;
 
 await writeFile(META_TS, source);
-console.log(`[measure] ${measured ? "ölçüm başarılı" : "tespit yetersiz — tasarım fallback'i"} -> ${path.relative(REPO_ROOT, META_TS)}`);
+console.log(`[measure] pencere=${windowsMeasured ? "ölçüldü" : "tasarım"}, kolon=${columnMeasured ? "ölçüldü" : "tasarım"} -> ${path.relative(REPO_ROOT, META_TS)}`);
 await browser.close();
-process.exit(measured ? 0 : 1);
+process.exit(windowsMeasured && columnMeasured ? 0 : 1);

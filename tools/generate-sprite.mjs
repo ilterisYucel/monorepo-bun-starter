@@ -29,8 +29,8 @@ const ELEMENTS = {
     ref: "base",
     describe:
       "a vertical battery storage rack unit. Repaint ONLY the surfaces — do NOT redesign, do NOT rearrange, do NOT resize, do NOT move any element. " +
-      "Keep the exact structure of the reference: the rounded flat body outline, the two terminal nubs at top and bottom, the six identical rectangular display windows in the left-center column at their exact positions and sizes with the same gaps (empty BLACK glass, clearly darker than the body panel), and the column of eight small empty rectangular battery cell sockets stacked vertically on the right side at its exact position (empty dark glass). " +
-      "Do not add water tanks, do not add liquid tubes, do not add extra panels, do not add objects. Style it as stacked battery modules. Only upgrade the material look (dark metal, polished plastic, thin dark outline).",
+      "Keep the exact structure of the reference: the rounded flat body outline, the two terminal nubs at top and bottom, the six identical rectangular display windows in the left-center column at their exact positions and sizes with the same gaps (empty BLACK glass, clearly darker than the body panel), and the column of eight NARROW BLACK rectangular battery cell sockets stacked vertically on the right side at its exact position — each socket width only 17 percent of the body width, with clear visible gaps between the sockets. " +
+      "Do not add water tanks, do not add liquid tubes, do not add extra panels, do not merge the sockets into one wide column. Style it as stacked battery modules. Only upgrade the material look (dark metal, polished plastic, thin dark outline).",
     removeBg: true,
   },
   cable: {
