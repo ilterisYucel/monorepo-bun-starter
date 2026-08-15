@@ -30,7 +30,7 @@ export function calculateBESSConfig(
   const bscStartX = step * 0.25;
   const bscStartY = PAD + summaryBarHeight + step * 1.0;
 
-  const bscTotalWidth = RACK_COUNT * (rackWidth + rackGap) - rackGap + step * 0.65 + cbLength + dcRadius * 2 + step * 0.5;
+  const bscTotalWidth = RACK_COUNT * (rackWidth + rackGap) - rackGap + step * 0.65 + cbLength + dcRadius * 2 + step * 1.2;
 
   const rightBusX = bscStartX + bscTotalWidth + 6;
 

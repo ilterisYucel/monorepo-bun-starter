@@ -189,7 +189,7 @@ const BSCV2Canvas: React.FC<{
 
         {/* DC Output labels */}
         {(() => {
-          const dcX = output.x + step * 0.5;
+          const dcX = output.x + step * 1.1;
           return (
             <>
               <pixiText key="out-label" text="DC" x={dcX} y={output.y - output.radius - step * 0.25} anchor={0.5}
@@ -233,7 +233,7 @@ const BSCV2Canvas: React.FC<{
       convergenceX: positions.convergence.x,
       cbStartX: positions.convergence.x + config.step * 0.1,
       cbEndX: positions.circuitBreaker.endX,
-      dcX: positions.output.x + config.step * 0.5,
+      dcX: positions.output.x + config.step * 1.1,
       dcRadius: positions.output.radius,
       centerY,
       step: config.step,
@@ -249,7 +249,7 @@ const BSCV2Canvas: React.FC<{
   }
 
   const headerFontSize = Math.max(13, config.step * 0.36);
-  const dcX = positions.output.x + config.step * 0.5;
+  const dcX = positions.output.x + config.step * 1.1;
 
   return (
     <S.CanvasWrap

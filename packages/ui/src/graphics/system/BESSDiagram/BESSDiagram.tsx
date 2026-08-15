@@ -47,7 +47,7 @@ function calcBSCPositions(config: BESSConfig, layout: ReturnType<typeof getBSCLa
   const convergenceX = lastRackRight + step * 0.4;
   const cbStartX = convergenceX + step * 0.25;
   const cbEndX = cbStartX + cbLength;
-  const dcX = cbEndX + dcRadius + step * 0.5;
+  const dcX = cbEndX + dcRadius + step * 1.2;
 
   return { rackXs, topBusY, bottomBusY, centerY, convergenceX, cbStartX, cbEndX, dcX, dcY: centerY };
 }
