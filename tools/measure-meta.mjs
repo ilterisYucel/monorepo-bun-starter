@@ -21,7 +21,7 @@ const ELEMENTS = {
     bodyW: 60,
     bodyH: 100,
     clusters: [
-      { key: "barSlot", design: { x: 0.05, y: 0.33, w: 0.9, h: 0.52 }, minPx: 150, polarity: "dark" },
+      { key: "barSlot", design: { x: 0.05, y: 0.33, w: 0.9, h: 0.52 }, minPx: 150, polarity: "dark", absDark: 45 },
     ],
   },
   roomcard: {
@@ -32,7 +32,7 @@ const ELEMENTS = {
     bodyW: 120,
     bodyH: 180,
     clusters: [
-      { key: "tempSlot", design: { x: 0.015, y: 0.0167, w: 0.1125, h: 0.5167 }, minPx: 120, polarity: "dark" },
+      { key: "tempSlot", design: { x: 0.015, y: 0.0167, w: 0.1125, h: 0.5167 }, minPx: 120, polarity: "dark", absDark: 45 },
     ],
   },
   energyanalyzergraphic: {
@@ -56,6 +56,17 @@ const ELEMENTS = {
     clusters: [
       { key: "lampCluster", design: { x: 0.4389, y: 0.1343, w: 0.1221, h: 0.1814 }, minPx: 30, polarity: "light" },
       { key: "keyCluster", design: { x: 0.35, y: 0.46, w: 0.3, h: 0.0571 }, minPx: 30, polarity: "light" },
+    ],
+  },
+  circuitbreaker: {
+    metaOut: "packages/ui/src/graphics/elements/CircuitBreaker/circuitbreaker-meta.ts",
+    exportName: "CIRCUITBREAKER_META",
+    interfaceName: "CircuitBreakerMeta",
+    margin: 12,
+    bodyW: 80,
+    bodyH: 21,
+    clusters: [
+      { key: "display", design: { x: 0.25, y: 0.2143, w: 0.5, h: 0.5714 }, minPx: 20, polarity: "light", relLight: 12 },
     ],
   },
 };
@@ -115,7 +126,9 @@ for (const cluster of cfg.clusters) {
   const y1 = Math.min(bodyY1, Math.round(ry + rh + inflate));
 
   const polarity = cluster.polarity ?? "dark";
-  const mask = await page.evaluate(async ({ data, w, x0, y0, x1, y1, R, polarity }) => {
+  const absDark = cluster.absDark ?? null;
+  const relLight = cluster.relLight ?? 20;
+  const mask = await page.evaluate(async ({ data, w, x0, y0, x1, y1, R, polarity, absDark, relLight }) => {
     const lum = new Float32Array(w * (y1 - y0));
     for (let y = y0; y < y1; y++) {
       for (let x = x0; x < x1; x++) {
@@ -147,13 +160,19 @@ for (const cluster of cfg.clusters) {
           integral[(Y2 - y0 + 1) * (w + 1) + X1] +
           integral[(Y1 - y0) * (w + 1) + X1];
         const local = sum / area;
-        const contrast = lum[(y - y0) * w + (x - x0)] - local;
-        const hit = polarity === "dark" ? contrast < -22 : contrast > 20;
+        const lumaVal = lum[(y - y0) * w + (x - x0)];
+        const contrast = lumaVal - local;
+        let hit;
+        if (polarity === "dark") {
+          hit = contrast < -22 || (absDark !== null && lumaVal < absDark);
+        } else {
+          hit = contrast > relLight;
+        }
         if (hit) out[(y - y0) * w + (x - x0)] = 1;
       }
     }
     return out;
-  }, { data: ai.data, w: ai.w, x0, y0, x1, y1, R: 10, polarity });
+  }, { data: ai.data, w: ai.w, x0, y0, x1, y1, R: 10, polarity, absDark, relLight });
 
   // persentil bbox (%5-%95)
   const xs = [];

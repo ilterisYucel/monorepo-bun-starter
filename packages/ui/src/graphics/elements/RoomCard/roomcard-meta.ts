@@ -8,5 +8,5 @@ export interface RoomCardMeta {
 
 export const ROOMCARD_META: RoomCardMeta = {
   measured: true,
-  tempSlot: { x: 0.05000, y: 0.07500, width: 0.01250, height: 0.43611 },
+  tempSlot: { x: 0.05000, y: 0.05556, width: 0.07500, height: 0.44444 },
 };

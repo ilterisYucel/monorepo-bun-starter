@@ -629,7 +629,8 @@ bun tools/check-sprite.mjs                   # piksel bazlı kalite kapısı (bo
 ### Tümleşik pencere/dolgu metrikleri (RackCell paterni)
 - **Amaç:** Dinamik içerik (text/dolgu/lamba) sprite içindeki AI çizimi yuvalara yazılır.
 - **Akış:** Base story'ye nötr yuva çizimleri eklenir → `sprite:gen` → ölçüm → `*-meta.ts` (`*_META`, gövdeye ORAN değerleri, `measured` bayrağı).
-- **Ölçüm araçları:** `tools/measure-rackmeta.mjs` (rackcell: pencere sütunu + tüp; recessed bileşen tespiti + satır yürüyüşü + pitch ekstrapolasyonu) ve `tools/measure-meta.mjs` (genel: panelcard barSlot, roomcard tempSlot, energyanalyzer lcd, firepanel lamp/key kümeleri; yerel kontrast maskesi + persentil bbox, cluster başına `polarity: "dark"|"light"` — AI yuvayı koyu veya parlak çizebilir; bölge gövde içine kırpılır).
+- **Ölçüm araçları:** `tools/measure-rackmeta.mjs` (rackcell: pencere sütunu + tüp; recessed bileşen tespiti + satır yürüyüşü + pitch ekstrapolasyonu) ve `tools/measure-meta.mjs` (genel: panelcard barSlot, roomcard tempSlot, energyanalyzer lcd, firepanel lamp/key kümeleri, circuitbreaker display; yerel kontrast maskesi + persentil bbox, cluster başına `polarity: "dark"|"light"` — AI yuvayı koyu veya parlak çizebilir; `absDark`/`relLight` eşikleri; bölge gövde içine kırpılır).
+- **Stil:** Aktif stil **düz 2D front-facing HMI**'dır (prompt'ta perspective/izometrik yasak). Eski izometrik çıktılar `packages/ui/assets/sprites/archive/` altında saklanır (aktif değil).
 - **Tüketim:** Element sprite modunda `*_META`'yı gerçek width/height ile ölçekler; text/dolgu/lamba ölçülen yuvalara yazılır. `measured=false` ise tasarım geometrisi kullanılır.
 - **Kural:** AI her üretimde yerleşimi ±10-30px kaydırabilir; meta tespiti bu kaymayı emer. Ölçüm sonrası storybook'ta görsel onay şarttır.
 

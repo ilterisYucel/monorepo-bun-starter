@@ -8,5 +8,5 @@ export interface EnergyAnalyzerMeta {
 
 export const ENERGYANALYZER_META: EnergyAnalyzerMeta = {
   measured: true,
-  lcd: { x: 0.10333, y: 0.07368, width: 0.86000, height: 0.60132 },
+  lcd: { x: 0.02667, y: 0.01974, width: 0.94667, height: 0.65395 },
 };

@@ -9,8 +9,8 @@ export const SPRITE_SPECS = {
     margin: 10,
   },
   circuitbreaker: {
-    canvas: { width: 320, height: 200 },
-    frame: { x: 86, y: 99, width: 160, height: 42 },
+    canvas: { width: 208, height: 90 },
+    frame: { x: 0, y: 0, width: 208, height: 90 },
     margin: 8,
   },
   dcoutput: {

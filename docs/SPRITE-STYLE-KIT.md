@@ -10,15 +10,15 @@
 
 | Alan | Kural |
 |:-----|:------|
-| Perspektif | İzometrik, hafif 3B derinlik (2.5D). Mevcut flat yerleşim geometrisi korunur; sprite'lar dikdörtgen alanlara sığar. |
+| Perspektif | **Düz 2D, önden görünüm.** Perspektif/izometrik derinlik YASAK — flat front-facing HMI panel estetiği. |
 | Zemin | Koyu endüstriyel UI: `#0f0f1a` arka planla uyumlu, kart yüzeyi `#1a1a2e`. |
-| Işık | Tek ışık yönü: sol-üstten. Yumuşak gölgeler, parlak kenar vurguları (bevel). |
+| Işık | Tek ışık yönü: sol-üstten. Yumuşak bevel kenarlar, dikey yumuşak gradyanlar. |
 | Aksan renkleri | Token paletiyle birebir: success `#10b981`, warning `#f59e0b`, error `#ef4444`, idle `#6b7280`, info `#3b82f6`. |
 | Durum renkleri | **Üretilmez.** Baz sprite'lar nötr (beyaz/gri gövde, koyu çerçeve) üretilir; durum renkleri kod tarafında tint/overlay ile verilir. |
-| Stil dili | Yumuşak plastik-metal karışımı, hafif neon iç aydınlatma, ince koyu kontur (1-2px). Foto-gerçekçilik DEĞİL; temiz game-UI estetiği. |
+| Stil dili | Yumuşak plastik-metal karışımı, koyu cam display pencereleri, ince koyu kontur (1-2px). Foto-gerçekçilik DEĞİL; temiz game-UI estetiği. |
 | Arka plan | **Tamamen şeffaf** (transparent PNG). Hiçbir zemin/gölge dışa taşmaz. |
-| Çözünürlük | Element hizalama kutusunun 2x'i (DPR 2). Örn. RackCell kutusu 120×380 → 240×760 çıktı. |
-| Yazı | Sprite içine **metin üretilmez**. Tüm etiketler (SOC%, V, A, R01...) kod tarafında `pixiText` ile konur. |
+| Çözünürlük | Element hizalama kutusunun 2x'i (DPR 2). |
+| Yazı | Sprite içine **metin üretilmez**. Tüm etiketler kod tarafında `pixiText` ile ölçülen yuvalara konur. |
 
 ## 2. Renk eşleme (referans için)
 
@@ -81,9 +81,9 @@
 
 ## 4. Prompt şablonu (img2img)
 
-> Convert this flat technical drawing of a {ELEMENT_DESCRIPTION} into a polished 2.5D isometric game-UI sprite. Keep the exact layout, proportions and bounding box of the reference. Style: clean industrial battery energy storage system interface, soft plastic-metal hybrid body, subtle neon inner glow, thin dark outline, smooth bevel highlights, single light source from top-left, dark UI color scheme compatible with a #0f0f1a background. Neutral color body (gray/white panels, dark frame) — NO status colors (no green/orange/red). No text, no labels, no icons inside the sprite. Isolated on fully transparent background. Crisp vector-like edges, high detail, 2x resolution.
+> Repaint this flat technical drawing into a polished flat 2D game-UI sprite. Keep the exact shape, size, position, silhouette and bounding box of the drawn object — do not resize, do not move, do not add extra objects. Style: clean industrial battery energy storage system HMI panel, strictly flat 2D front-facing view, NO perspective, NO isometric depth, NO 3D. Soft bevel edges, subtle vertical gradients, dark glass display windows, thin dark outline, single light source from top-left, dark UI color scheme compatible with a #0f0f1a background. Monochrome neutral color body (gray/white panels, dark frame) — NO status colors (no green/orange/red). No text, no labels, no icons inside the sprite. Isolated on fully transparent background. Crisp vector-like edges, high detail.
 
-**Negatif prompt:** `photorealistic, text, watermark, logo, background, floor, shadow outside object, perspective distortion, warped layout, green light, red light, orange light`
+**Negatif prompt:** `photorealistic, isometric, 3D, perspective, depth, text, watermark, logo, background, floor, shadow outside object, perspective distortion, warped layout, green light, red light, orange light, blue light, colored glow, status LEDs`
 
 ## 5. Kalite kontrol kriterleri
 

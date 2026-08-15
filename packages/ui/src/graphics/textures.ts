@@ -32,8 +32,8 @@ export const SPRITE_ASSETS: Readonly<Record<string, SpriteAssetMeta>> = {
     key: "circuitbreaker",
     url: circuitbreakerUrl,
     scale: 2,
-    // Canvas 160x100 @2x; story positions ile chassis rect (43, 49.5, 80, 21)
-    frame: { x: 86, y: 99, width: 160, height: 42 },
+    // Canvas 104x45 @2x; chassis (12,12,80,21) + ekran yuvası — frame tam canvas
+    frame: { x: 0, y: 0, width: 208, height: 90 },
   },
   dcoutput: {
     key: "dcoutput",

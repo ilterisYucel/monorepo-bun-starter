@@ -1,9 +1,11 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import type { Graphics as GraphicsType } from "pixi.js";
 import type { CircuitBreakerProps } from "./CircuitBreaker.types";
 import { drawBreakerBody, drawBreakerLever, drawBreakerPulse } from "./CircuitBreaker.drawers";
+import { CIRCUITBREAKER_META } from "./circuitbreaker-meta";
 import { usePixiTickerEffect } from "../../hooks/usePixiTickerEffect";
 import { useSpriteTexture } from "../../../core/SpriteTextureProvider";
+import { hudTextStyle } from "../../hud";
 import { COLOR } from "../../../colors";
 
 export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
@@ -51,18 +53,59 @@ export const CircuitBreaker: React.FC<CircuitBreakerProps> = ({
   const chassisW = cb.endX - lineStartX + config.step * 0.2;
   const chassisH = config.step * 0.7;
 
+  // Sprite canvas: chassis 80x21 @ (12,12) — marjlar chassis ile orantılı ölçeklenir
+  const marginX = chassisW * 0.15;
+  const marginY = chassisH * (12 / 21);
+
+  const display = useMemo(() => {
+    if (!chassisTexture) return null;
+    const m = CIRCUITBREAKER_META.measured
+      ? CIRCUITBREAKER_META.display
+      : { x: 0.25, y: 0.2143, width: 0.5, height: 0.5714 };
+    return {
+      x: chassisX + m.x * chassisW,
+      y: chassisY + m.y * chassisH,
+      width: m.width * chassisW,
+      height: m.height * chassisH,
+    };
+  }, [chassisTexture, chassisX, chassisY, chassisW, chassisH]);
+
+  const statusColor = breakerStatus === "online" ? COLOR.success : COLOR.error;
+  const posColor = breakerPosition === "close" ? COLOR.success : COLOR.warning;
+  const displayFs = display ? Math.max(5, display.height * 0.36) : 7;
+  const styleStatus = hudTextStyle({ size: displayFs, color: statusColor, bold: true, glow: true });
+  const stylePos = hudTextStyle({ size: displayFs, color: posColor, bold: true, glow: true });
+
   return (
     <pixiContainer cursor={onClick ? "pointer" : "none"} eventMode={onClick ? "static" : "none"} onClick={onClick}>
       {chassisTexture ? (
         <>
           <pixiSprite
             texture={chassisTexture}
-            x={chassisX}
-            y={chassisY}
-            width={chassisW}
-            height={chassisH}
+            x={chassisX - marginX}
+            y={chassisY - marginY}
+            width={chassisW + marginX * 2}
+            height={chassisH + marginY * 2}
           />
           <pixiGraphics draw={drawLever} />
+          {display && (
+            <>
+              <pixiText
+                text={breakerStatus === "online" ? "ONLINE" : "OFFLINE"}
+                x={display.x + display.width / 2}
+                y={display.y + display.height * 0.28}
+                anchor={0.5}
+                style={styleStatus}
+              />
+              <pixiText
+                text={breakerPosition === "close" ? "CLOSED" : "OPEN"}
+                x={display.x + display.width / 2}
+                y={display.y + display.height * 0.72}
+                anchor={0.5}
+                style={stylePos}
+              />
+            </>
+          )}
         </>
       ) : (
         <pixiGraphics draw={drawBody} />

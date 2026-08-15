@@ -36,19 +36,19 @@ const ELEMENTS = {
   cable: {
     ref: "base",
     describe:
-      "a short straight horizontal industrial power cable segment with an insulated metallic conduit and round terminal lugs at both ends",
+      "a short straight horizontal industrial power cable segment with a clean insulated metallic conduit and neat round terminal lugs at both ends, flat 2D front view",
     removeBg: true,
   },
   circuitbreaker: {
     ref: "base",
     describe:
-      "an industrial DC circuit breaker module with a rotary lever socket, compact electrical panel unit",
+      "a front-facing flat 2D industrial DC circuit breaker module with a rotary lever socket in the middle-left and a small rectangular dark glass display window in the middle-right, compact electrical panel unit",
     removeBg: true,
   },
   dcoutput: {
     ref: "base",
     describe:
-      "a round industrial DC output power connector head with insulated housing and terminal studs",
+      "a round industrial DC output power connector head with insulated housing and terminal studs, flat 2D front view",
     removeBg: true,
   },
   roomcard: {
@@ -60,25 +60,25 @@ const ELEMENTS = {
   hvacunit: {
     ref: "base",
     describe:
-      "a compact industrial HVAC cooling unit with fan grille and control panel, wall-mount form factor",
+      "a compact flat 2D front-facing industrial HVAC unit with fan grille and small control panel, wall-mount form factor",
     removeBg: true,
   },
   panelcard: {
     ref: "base",
     describe:
-      "a slim wall-mount electrical panel enclosure. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular slot in the lower area (empty dark glass). Do not add objects. Only upgrade the material look.",
+      "a slim flat 2D front-facing wall-mount electrical panel enclosure. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular slot in the lower area (empty dark glass). Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   firepanel: {
     ref: "base",
     describe:
-      "an industrial fire alarm control panel. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline, six small round empty lamp sockets arranged in two rows of three near the upper-middle, four small rectangular key sockets in one row below them, and the blank label strip at the top. Do not add objects. Only upgrade the material look.",
+      "a flat 2D front-facing industrial fire alarm control panel. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline, six small round empty lamp sockets arranged in two rows of three near the upper-middle, four small rectangular key sockets in one row below them, and the blank label strip at the top. Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   energyanalyzergraphic: {
     ref: "base",
     describe:
-      "an industrial energy analyzer unit. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular LCD screen socket in the middle (empty dark glass). Do not add objects. Only upgrade the material look.",
+      "a flat 2D front-facing industrial energy analyzer unit. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular LCD screen socket in the middle (empty dark glass). Do not add objects. Only upgrade the material look.",
     removeBg: true,
   },
   grid: {
@@ -90,10 +90,11 @@ const ELEMENTS = {
 };
 
 const BASE_PROMPT =
-  "Repaint this flat technical drawing into a polished 2.5D isometric game-UI sprite. " +
+  "Repaint this flat technical drawing into a polished flat 2D game-UI sprite. " +
   "Keep the exact shape, size, position, silhouette and bounding box of the drawn object — do not resize, do not move, do not add extra objects. " +
-  "Style: clean industrial battery energy storage system interface, soft plastic-metal hybrid body, " +
-  "thin dark outline, smooth bevel highlights, single light source from top-left, " +
+  "Style: clean industrial battery energy storage system HMI panel, strictly flat 2D front-facing view, " +
+  "NO perspective, NO isometric depth, NO 3D. Soft bevel edges, subtle vertical gradients, dark glass display windows, " +
+  "thin dark outline, single light source from top-left, " +
   "dark UI color scheme compatible with a #0f0f1a background. " +
   "Monochrome neutral color body: dark-gray/silver metal and dark panels only — " +
   "absolutely NO green, NO orange, NO red, NO blue lights, NO colored glow, NO colored LEDs, NO status lights. " +
@@ -101,7 +102,7 @@ const BASE_PROMPT =
   "Keep the background fully transparent black-and-white alpha only. Crisp vector-like edges, high detail.";
 
 const NEGATIVE =
-  "photorealistic, text, letters, watermark, logo, background, floor, drop shadow outside the object, " +
+  "photorealistic, isometric, 3D, perspective, depth, text, letters, watermark, logo, background, floor, drop shadow outside the object, " +
   "perspective distortion, warped layout, resized object, green light, red light, orange light, blue light, " +
   "colored glow, status LEDs, energy bar, filling indicator";
 
