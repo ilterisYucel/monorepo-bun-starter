@@ -596,7 +596,7 @@ When touching any file with hardcoded hex colors:
 
 ## Sprite pipeline (AI sprite üretimi — pixi çizimleri → sprite)
 
-Pixi `pixiGraphics` çizimlerini AI üretimi (fal.ai img2img) sprite'larla değiştirme altyapısı. Stil kuralları ve prompt şablonu: **`docs/SPRITE-STYLE-KIT.md`** (authoritative).
+Pixi `pixiGraphics` çizimlerini AI üretimi (fal.ai img2img) sprite'larla değiştirme altyapısı. **Üretim nasıl yapılır:** `docs/SPRITE-URETIMI.md` (pratik iş akışı). Stil kuralları ve prompt şablonu: **`docs/SPRITE-STYLE-KIT.md`** (authoritative).
 
 ### Komutlar
 ```bash
