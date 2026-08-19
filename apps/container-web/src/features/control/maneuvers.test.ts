@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MANEUVERS } from "./maneuvers";
+import { MANEUVERS, HIDDEN_MANEUVER_NAMES } from "./maneuvers";
 
 describe("MANEUVERS", () => {
   it("has 18 entries", () => {
@@ -93,5 +93,30 @@ describe("MANEUVER_CONTROLS", () => {
     // Verify the module exports controls
     const mod = await import("./maneuvers");
     expect(mod.MANEUVER_CONTROLS).toBeDefined();
+  });
+});
+
+describe("HIDDEN_MANEUVER_NAMES", () => {
+  it("keeps hidden maneuvers in config", () => {
+    for (const name of HIDDEN_MANEUVER_NAMES) {
+      expect(MANEUVERS[name], `${name} must stay in MANEUVERS`).toBeDefined();
+    }
+  });
+
+  it("does not hide FL-01, FL-03, FL-04, FL-10 and switch cards", () => {
+    const visible = [
+      "fl01_start",
+      "fl03_emergency_stop",
+      "fl04_calibration_charge",
+      "fl04_calibration_discharge",
+      "fl05_tms_cooling_force",
+      "fl05_tms_heating_force",
+      "fl10_maintenance_shutdown",
+      "fl_dc_breaker_close",
+      "fl_contactor_close",
+    ];
+    for (const name of visible) {
+      expect(HIDDEN_MANEUVER_NAMES.has(name), `${name} must stay visible`).toBe(false);
+    }
   });
 });

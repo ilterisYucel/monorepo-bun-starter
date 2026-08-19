@@ -19,10 +19,14 @@ Bu doküman, PixiJS çizimlerini fal.ai ile üretilen sprite'larla değiştirme 
 | `bun run sprite:refs` | Storybook'u (statik build) kullanarak referans PNG'lerini yakalar: `assets/sprites/refs/<element>/<story>.png` + `base.png` (veya varyantlar). `src/assets` sprite'larını **ezmez** (sadece dosya yoksa yazar) | Yeni element ekledikten sonra; referans yenilemek istediğinde |
 | `bun run sprite:refs -- --reset-sprites` | `src/assets/sprites/*/base.png`'i placeholder (mevcut çizimin nötr render'ı) olarak sıfırlar | AI çıktılarından vazgeçip çizim görünümüne dönmek için |
 | `bun run sprite:gen <element>` | fal.ai ile üretir: referans → nano-banana/edit (img2img) → BiRefNet arka plan temizliği → bbox normalizasyonu → `src/assets/sprites/<element>/base.png` | Sprite üretmek/yeniden üretmek |
+| `bun run sprite:gen <element> --theme legacy` | Aynı üretim, eski (legacy) prompt setiyle — üretim zincirini eski stile döndürür | Eski görünüme üretim bazında dönüş |
+| `bun run sprite:theme backup` | Aktif sprite'ları + ölçülen meta dosyalarını `assets/sprites/archive/legacy/`'e yedekler | Yeni temaya geçmeden önce (bir kez) |
+| `bun run sprite:theme restore` | archive/legacy'deki sprite'ları ve meta'ları aktif konuma geri kopyalar | Eski görünüme dosya bazında tam dönüş |
+| `bun run sprite:theme status` | Aktif ve yedek sprite setlerini listeler | Durum kontrolü |
 | `bun run sprite:gen --all` | Tüm elementleri sırayla üretir | Toplu üretim |
 | `bun tools/check-sprite.mjs [element]` | Kalite kapısı: boyut, şeffaf köşeler, nötr renk kuralı, içerik bbox | Her üretimden sonra |
-| `bun run sprite:measure` | RackCell: pencere/tüp konumlarını AI çıktısından ölçer → `rackcell-meta.ts` | RackCell üretiminden sonra |
-| `bun tools/measure-meta.mjs <element>` | Diğer elementlerin yuva/ekran konumlarını ölçer → `<element>-meta.ts` | panelcard, roomcard, energyanalyzergraphic, firepanel, circuitbreaker, dcoutput üretiminden sonra |
+| `bun run sprite:measure` | RackCell: plaka stack + etiket bandını AI çıktısından ölçer → `rackcell-meta.ts` | RackCell üretiminden sonra |
+| `bun tools/measure-meta.mjs <element>` | Diğer elementlerin yuva/ekran konumlarını ölçer → `<element>-meta.ts` | panelcard, roomcard, firepanel üretiminden sonra |
 
 ---
 
@@ -179,18 +183,37 @@ bun nx run ui:storybook      # görsel onay (ZORUNLU — ölçüm hizalı mı, s
 - **img2img referansı:** Durumlu story değil, nötr `Base` story yakalaması.
 - **Kablolar:** Ham `pixiGraphics` kablo çizimi YASAK — `Cable` bileşeni (sprite segment) kullanılır. Rack satırı `BSCUnitRow`'da tek yerdedir.
 
+## 5b. Tema sistemi (electrical / legacy)
+
+`tools/generate-sprite.mjs` promptları gömülü değildir; `tools/sprites-prompts/<tema>.mjs` dosyalarından gelir (`--theme <tema>` flag'i, varsayılan `electrical`).
+
+| Tema dosyası | Stil |
+|:-------------|:-----|
+| `tools/sprites-prompts/electrical.mjs` | **Aktif:** tek hat şeması / elektrik devre elemanı sembol estetiği (EPLAN, AutoCAD Electrical, ETAP tarzı temiz teknik çizim) |
+| `tools/sprites-prompts/legacy.mjs` | Eski oyun-UI stili — birebir korunur, DEĞİŞTİRMEYİN |
+
+**Tema değiştirme:**
+
+1. **Üretim bazında:** `FAL_KEY=... bun run sprite:gen <element> --theme legacy` — yalnızca prompt seti değişir.
+2. **Dosya bazında (anında dönüş):** `bun run sprite:theme restore` — archive/legacy'deki sprite'ları + ölçülen `*-meta.ts` dosyalarını aktif konuma kopyalar. Meta dosyaları sprite'larla birlikte taşınır çünkü AI her üretimde yuvaları ±10-30px kaydırabilir; meta seti temaya özgüdür.
+3. Yeni temaya geçmeden önce **bir kez** `bun run sprite:theme backup` çalıştırın — mevcut sprite seti (varyantlar dahil) ve meta'lar `packages/ui/assets/sprites/archive/legacy/` altına kopyalanır ve commit'lenir.
+
+**Not:** Referans PNG'ler (`refs/`) ve `sprites-spec.mjs` tema-bağımsızdır — her iki tema aynı nötr chassis referanslarını kullanır, yalnızca yüzey/üslup değişir.
+
 ## 6. Dosya haritası
 
 | Yol | İçerik |
 |:----|:-------|
 | `tools/capture-sprite-refs.mjs` | Referans yakalama (storybook statik + omitBackground) |
-| `tools/generate-sprite.mjs` | fal.ai üretim (ELEMENTS prompt tablosu) |
+| `tools/generate-sprite.mjs` | fal.ai üretim (`--theme <tema>` flag'i, promptları tema dosyasından alır) |
+| `tools/sprites-prompts/<tema>.mjs` | Tema prompt setleri: `electrical` (varsayılan) + `legacy` |
+| `tools/swap-sprite-theme.mjs` | Tema takası: sprite + meta setlerini backup/restore eder |
 | `tools/sprites-spec.mjs` | Canvas/frame/margin/varyant spesifikasyonları |
 | `tools/check-sprite.mjs` | Kalite kapısı (boyut/şeffaflık/nötr renk) |
 | `tools/measure-rackmeta.mjs` | RackCell pencere/tüp ölçümü |
 | `tools/measure-meta.mjs` | Genel yuva/ekran ölçümü (polarity/absDark/relLight/varyant) |
 | `packages/ui/assets/sprites/refs/` | Referans PNG'ler (capture üretir, commit'lenir) |
-| `packages/ui/assets/sprites/archive/` | Eski sprite çıktıları (aktif değil) |
+| `packages/ui/assets/sprites/archive/` | Eski sprite çıktıları + `legacy/` tema yedeği (sprite + meta) |
 | `packages/ui/src/assets/sprites/<element>/` | Uygulamanın yüklediği sprite'lar (`base.png`, varyantlar) |
 | `packages/ui/src/graphics/textures.ts` | `SPRITE_ASSETS` manifesti (url + frame + scale) |
 | `packages/ui/src/core/SpriteTextureProvider/` | `Assets.load` + `useSpriteTexture` |

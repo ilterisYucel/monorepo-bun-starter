@@ -1,21 +1,23 @@
 {
-  "clientId": "EPIAS-CLIENT-ID-BURAYA",
+  "username": "kullanici@firma.com.tr",
+  "password": "EPIAS-PAROLA-BURAYA",
+  "casUrl": "https://giris.epias.com.tr/cas/v1/tickets",
   "baseUrl": "https://seffaflik.epias.com.tr/electricity-service/v1",
   "intervalMs": 3600000,
   "series": [
     {
-      "name": "MCP",
-      "path": "/markets/dam/data/mcp",
+      "name": "PTF",
+      "path": "/v1/markets/dam/data/mcp",
       "unit": "TRY/MWh",
       "dateField": "date",
       "valueField": "price"
     },
     {
       "name": "SMF",
-      "path": "/markets/smp/data/smp",
+      "path": "/v1/markets/bpm/data/system-marginal-price",
       "unit": "TRY/MWh",
       "dateField": "date",
-      "valueField": "price"
+      "valueField": "systemMarginalPrice"
     }
   ]
 }

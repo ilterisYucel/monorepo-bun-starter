@@ -2,7 +2,7 @@
 
 > **Hedef Kitle:** Yazılım ekibi  
 > **Amaç:** Plugin SDK'nın tasarım kararlarını, kontratlarını, entegrasyon servisinin çalışma modelini ve müşteri plugin geliştirme sürecini tek kaynaktan anlatmak.  
-> **Durum:** Uygulanmış (Faz 1–4). EPIAŞ doküman incelemesi ve web-service bağlantısı sıradadır.
+> **Durum:** Uygulanmış (Faz 1–4). Faz 5 (web-service + UI) sıradadır. EPİAŞ veri analizi ve erişim durumu: [docs/EPIAS-VERI-ANALIZI.md](./EPIAS-VERI-ANALIZI.md).
 
 ---
 
@@ -63,6 +63,13 @@ packages/plugin-sdk/                    # @gd-monorepo/plugin-sdk — domain-agn
   src/loader.ts         # PluginLoader — kaynaklari tarar, registry'ye kaydeder
   src/sdk-version.ts    # SemVerRange (">=" ve "<" operatorleri)
   src/sdk.ts            # SDK_VERSION = "1.0.0"
+  src/http/             # domain-bagimsiz HttpClient (baseUrl, header, timeout, retry)
+
+packages/epias-client/                  # @gd-monorepo/epias-client — EPIAS'a ozgu istemci (kutuphane)
+  src/ticket-store.ts   # EpiasTicketStore — paylasilan TGT dosya onbellegi (throttle korumasi)
+  src/client.ts         # EpiasClient — TGT header + 401 yenileme + tipli yardimcilar
+  src/endpoints.ts      # EPIAS_ENDPOINTS — dogrulanmis endpoint sabitleri
+  src/date.ts           # toEpiasIso — +03:00 tarih bicimlendirme
 
 packages/shared-types/src/
   integration-plugin.ts # ScheduleSpec, FetchWindow, MarketDataPoint, IIntegrationPlugin
@@ -79,9 +86,8 @@ services/integration-service/
   deployment/Dockerfile.dev
 
 packages/plugins/epias-market-prices/   # ornek plugin (workspace paketi)
-  src/http-gateway.ts   # HttpGateway (testlerde mock) + FetchHttpGateway
-  src/plugin.ts         # EpiasMarketPricesPlugin
-  src/index.ts          # named export "plugin" ornegi (StaticPluginSource icin)
+  src/plugin.ts         # EpiasMarketPricesPlugin (EpiasClient kullanir, auth bilmez)
+  src/index.ts          # sinif disa acilir; ornek run.ts'de EpiasTicketStore ile kurulur
 
 deployment/customer-plugins/            # musteri pluginleri icin mount edilen dizin (.gitkeep)
 ```
@@ -90,7 +96,7 @@ deployment/customer-plugins/            # musteri pluginleri icin mount edilen d
 
 ```
 EPIAŞ API
-   │  (plugin.fetch — HTTP, X-IBM-Client-Id)
+   │  (plugin.fetch — HTTP, CAS TGT)
    ▼
 EpiasMarketPricesPlugin  ──►  normalize MarketDataPoint[]  ──►  ExternalSeriesWriter
    ▲                                                                   │
@@ -282,13 +288,15 @@ CREATE TABLE IF NOT EXISTS external_series (
 
 ```json
 {
-  "clientId": "EPIAS-CLIENT-ID-BURAYA",
+  "username": "kullanici@firma.com.tr",
+  "password": "EPIAS-PAROLA-BURAYA",
+  "casUrl": "https://giris.epias.com.tr/cas/v1/tickets",
   "baseUrl": "https://seffaflik.epias.com.tr/electricity-service/v1",
   "intervalMs": 3600000,
   "series": [
-    { "name": "MCP", "path": "/markets/dam/data/mcp", "unit": "TRY/MWh",
+    { "name": "PTF", "path": "/v1/markets/dam/data/mcp", "unit": "TRY/MWh",
       "dateField": "date", "valueField": "price" },
-    { "name": "SMF", "path": "/markets/smp/data/smp", "unit": "TRY/MWh",
+    { "name": "SMF", "path": "/v1/markets/bpm/data/system-marginal-price", "unit": "TRY/MWh",
       "dateField": "date", "valueField": "price" }
   ]
 }
@@ -296,11 +304,29 @@ CREATE TABLE IF NOT EXISTS external_series (
 
 ### 6.2 Davranış
 
-- **Auth:** `X-IBM-Client-Id` header'ı (v1 gateway). v2/OAuth2 ihtiyacı doküman incelemesinde netleşecek — `HttpGateway` soyutlaması bunun için ayrıldı.
-- **Seri eşleme config'den:** endpoint yolları, tarih/değer alan adları config'de — EPIAŞ dokümanı teyit edilene kadar varsayılan kod sabiti yok.
+- **Auth:** CAS TGT — `POST {casUrl}` (username/password, form-encoded) → HTTP 201 ile TGT döner → her istekte `TGT` header'ı. TGT ömrü dokümanda 2 saat (topluluk pratiği 8 saate kadar — ölçülüp sabitlenecek). Sık TGT üretimi throttle'a takılabildiğinden tek TGT önbelleğe alınır, süresi dolunca yenilenir. Eski `X-IBM-Client-Id` modeli kaldırılmıştır; canlı sistemde TGT'siz istek `401 AUTH002` ile reddedilir (Ağustos 2026'da doğrulandı). TGT akışı tamamen `EpiasClient` içindedir — plugin'de auth kodu yoktur.
+- **Seri eşleme config'den:** endpoint yolları, tarih/değer alan adları config'de — Faz 4 incelemesiyle teyit edildi (bkz. `docs/EPIAS-VERI-ANALIZI.md` veri kataloğu).
+- **Zaman dilimi:** Tüm tarihler ISO-8601, Türkiye saati (`+03:00`; eski verilerde DST `+02:00`). İstek tarihleri `toEpiasIso()` ile +03:00'a çevrilir; `toPoint` gelen string'in kendi offset'ini korur.
 - **Cursor:** `state["lastFetchTo"]` — pencere verilmezse cursor'dan devam; ilk çalışmada son 24 saat; bozuk satırlar (geçersiz tarih/değer) sessizce atlanır.
-- **Config doğrulama:** `activate` sırasında manuel — `clientId`/`baseUrl`/`series` eksikse throw → plugin atlanır, servis çalışmaya devam eder.
-- **Testler mock `HttpGateway` ile** — gerçek API'ye bağımlılık yok.
+- **Config doğrulama:** `activate` sırasında manuel — `username`/`password`/`casUrl`/`baseUrl`/`series` eksikse throw → plugin atlanır, servis çalışmaya devam eder.
+- **Testler stub `fetch` ile** — gerçek API'ye bağımlılık yok; TGT önbelleği gerçek temp dosyada test edilir.
+
+### 6.3 İstemci Katmanlaşması (client layering)
+
+```
+plugin-sdk/src/http/HttpClient     # domain-bagimsiz: baseUrl, header, timeout, retry, JSON
+        ▲
+epias-client/EpiasClient           # TGT enjeksiyonu + 401'de bilet yenileme + EPIAS tarih
+                                   # formatlari + tipli yardimcilar (ptf(), smf(), ...)
+epias-client/EpiasTicketStore      # paylasilan dosya onbellegi — tum EPIAS plugin'leri
+                                   # AYNI store'u kullanir (tek TGT, throttle korumasi)
+        ▲
+plugins/epias-market-prices        # yalnizca seri eşleme + normalize — auth bilmez
+```
+
+- `EpiasTicketStore` `integration-service/run.ts`'de **bir kez** oluşturulur ve plugin constructor'ına enjekte edilir (state injection — rule 9).
+- `EpiasClient` plugin'in `activate()`'inde config'deki kullanıcı adı/parola ile kurulur — manuel bilet adımı yoktur.
+- İleride başka taşıma katmanları (SOAP, socket) gerektiğinde aynı kalıpta `plugin-sdk/src/<protokol>/` altına eklenir; plugin'ler kaynağa uygun client'ı seçer.
 
 ---
 
@@ -356,7 +382,7 @@ export const plugin = {
 ### 7.4 Workspace Plugin'i (kendi geliştirdiklerimiz)
 
 1. `packages/plugins/<yeni-plugin>/` altında paket aç (package.json, tsconfig, project.json, vitest.config.ts — `epias-market-prices`'ı kopyala).
-2. `src/index.ts` içinde named export `plugin` örneği.
+2. `src/index.ts` içinde named export `plugin` örneği (basit plugin). Paylaşılan bağımlılık gerekiyorsa (`EpiasTicketStore` gibi) sınıf dışa açılır, örnek `run.ts`'de `main()` içinde kurulur — örnek: `epias-market-prices` + `EpiasTicketStore`.
 3. `integration-service/run.ts`'de `StaticPluginSource` listesine ekle.
 4. `integration-service/package.json`'a bağımlılık ekle, `bun install`.
 
@@ -369,7 +395,7 @@ export const plugin = {
 `deployment/docker-compose.boss.dev.yml` içinde `integration-service` servisi:
 
 - **Env:** `INTEGRATION_PLUGIN_DIR=/app/customer-plugins`, `INTEGRATION_CONFIG_DIR=/app/config/plugins`, `INTEGRATION_STATE_DIR=/app/data/plugins` + Redis/Postgres bağlantıları.
-- **Volume'lar:** service src, plugin-sdk src, epias plugin src (HMR benzeri dev deneyimi), `services/integration-service/config` → `/app/config`, `deployment/customer-plugins` → `/app/customer-plugins`, state için named volume.
+- **Volume'lar:** service src, plugin-sdk src, epias-client src, epias plugin src (HMR benzeri dev deneyimi), `services/integration-service/config` → `/app/config`, `deployment/customer-plugins` → `/app/customer-plugins`, state için named volume.
 - Redis + TimescaleDB healthcheck'e bağımlı.
 - `Dockerfile.dev` web-service pattern'iyle aynı (oven/bun + `bun --watch run.ts`).
 
@@ -380,7 +406,7 @@ bun run dev:boss-stack          # tum boss stack (integration-service dahil)
 nx run integration-service:dev  # sadece servis (yerel Redis/Postgres gerekir)
 ```
 
-EPIAŞ plugin'ini aktif etmek için: `config/plugins/epias-market-prices.example.json` → `epias-market-prices.json` yapıp `clientId` gir. Config olmadan servis açılır, plugin aktivasyonu atlanır (warn log).
+EPIAŞ plugin'ini aktif etmek için: `config/plugins/epias-market-prices.example.json` → `epias-market-prices.json` yapıp `username`/`password` gir (CAS TGT akışı plugin içinde, `casUrl` üzerinden). Config olmadan servis açılır, plugin aktivasyonu atlanır (warn log).
 
 ---
 
@@ -388,16 +414,18 @@ EPIAŞ plugin'ini aktif etmek için: `config/plugins/epias-market-prices.example
 
 | Paket | Test | Kapsam |
 |---|---|---|
-| `plugin-sdk` | 18 | SemVerRange, registry (çakışma/SDK uyumu/deactivate/health), loader (statik + dizin kaynağı, dinamik import, eksik manifest, çift kayıt), context factory + state store |
-| `epias-market-prices` | 6 | manifest/schedule, satır→MarketDataPoint eşleme, cursor devamı, geçersiz config, bozuk satır atlama, activate öncesi fetch hatası |
+| `plugin-sdk` | 25 | SemVerRange, registry (çakışma/SDK uyumu/deactivate/health), loader (statik + dizin kaynağı, dinamik import, eksik manifest, çift kayıt), context factory + state store, HttpClient (URL/header, JSON/form govde, 5xx retry, 4xx HttpError, ag hatasi retry) |
+| `epias-client` | 13 | TicketStore (ilk bilet, yeniden kullanım, süre dolumu, dosya kalıcılığı, es zamanlı tek CAS çağrısı, invalidate, CAS hatası), EpiasClient (TGT header, +03:00 tarih formatı, 401'de bilet yenileme + tekrar, tipli ptf/smf yardımcıları), toEpiasIso |
+| `epias-market-prices` | 7 | manifest/schedule, satır→MarketDataPoint eşleme (TGT header + +03:00 tarih doğrulaması), cursor devamı, iki fetch'te tek TGT (throttle koruması), geçersiz config, bozuk satır atlama, activate öncesi fetch hatası |
 | `integration-service` | 13 | start (interval/cron/manual, kind atlama), worker fetch+yazım, `runPlugin`, stop/health, ExternalSeriesWriter (init SQL, upsert parametreleri, query eşleme) |
 
-**Mock stratejisi:** `IMessageQueue`, `ISqlDatabase`, `HttpGateway`, `PluginConfigSource` fake implementasyonlarıyla; harici bağımlılık (Redis, DB, EPIAŞ) testlerde yok. Runtime dinamik import gerçek temp dizin + `.js` modülüyle test edilir (Bun'da doğrulandı).
+**Mock stratejisi:** `IMessageQueue`, `ISqlDatabase`, `PluginConfigSource` fake implementasyonlarıyla; harici bağımlılık (Redis, DB, EPIAŞ) testlerde yok — HTTP katmanı stub `fetch` ile, TGT önbelleği gerçek temp dosyada test edilir. Runtime dinamik import gerçek temp dizin + `.js` modülüyle test edilir (Bun'da doğrulandı).
 
 **Doğrulama komutları:**
 
 ```bash
 bunx nx run plugin-sdk:test
+bunx nx run epias-client:test
 bunx nx run epias-market-prices:test
 bunx nx run integration-service:test
 ```
@@ -415,7 +443,7 @@ Regresyon: mevcut servis testleri (device-service 8, data-service 11, web-servic
 | Faz 1 — Plugin SDK | ✅ Tamamlandı | |
 | Faz 2 — Entegrasyon kontratı | ✅ Tamamlandı | `shared-types` + `FETCH_EXTERNAL` |
 | Faz 3 — Integration service | ✅ Tamamlandı | Docker dev stack'e bağlı |
-| Faz 4 — EPIAŞ doküman incelemesi | ⏳ Sırada | `seffaflik.epias.com.tr` geliştirme ortamından erişilemedi (timeout/geo-block) — endpoint yolları ve auth (v1 `X-IBM-Client-Id` vs yeni OAuth2 gateway) teyit edilecek; muhtemel `epias-client` ortak katmanı |
+| Faz 4 — EPIAŞ doküman incelemesi | ✅ Tamamlandı | 584 sayfa teknik doküman + canlı API testi + kayıt süreci incelendi; sonuçlar `docs/EPIAS-VERI-ANALIZI.md`'de (enerji ekibi onayına sunuldu). Teyit edilenler: endpoint yolları, auth = **CAS TGT** (`X-IBM-Client-Id` değil), tarihler ISO-8601 +03:00 (TR, eski verilerde DST), erişim açık/ücretsiz (self-service kayıt: `kayit.epias.com.tr`), API'de geo-block yok. **Uygulandı:** `plugin-sdk`'ya domain-bagimsiz `HttpClient` + yeni `epias-client` paketi (`EpiasTicketStore` dosya önbelleği + `EpiasClient` TGT akışı + tipli yardımcılar) + plugin TGT'ye geçirildi (bkz. §6.3). |
 | Faz 5 — web-service + UI | ⏳ | `GET /api/integrations/series` endpoint'i (`ExternalSeriesWriter.query`'i kullanacak), boss web'de `TelemetryProvider` benzeri provider + mevcut chart bileşenleri |
 | Faz 6 — Management servisi | ⏳ | Aynı `PluginLoader` + `kind: "management"` kontratı (trigger plugin → event bus → manevra emit; interlock servis core'unda) |
 
@@ -427,5 +455,5 @@ Regresyon: mevcut servis testleri (device-service 8, data-service 11, web-servic
 ### 10.3 Açık Riskler
 
 - **Dinamik import + Bun + Docker:** lokalde doğrulandı (vitest + temp dizin); container içinde `customer-plugins` volume'üyle uçtan uca denenmedi.
-- **EPIAŞ erişimi:** geliştirme ortamından API'ye ulaşılamıyor — doküman incelemesi ve gerçek uç nokta testleri için erişim/iş birliği gerekli.
-- **Zaman dilimi:** EPIAŞ tarih alanları TR saatiyle gelebilir; `toPoint` şu an `new Date()` parse'ı kullanır, offset'siz tarih string'lerinde UTC varsayımı riski doküman incelemesinde netleştirilecek.
+- **EPIAŞ erişimi:** Ağustos 2026'da canlı API testi yapıldı — erişilebilir (geo-block yok), TGT'siz istek `401 AUTH002` döndü (TGT zorunlu). Kalan belirsizlikler: TGT ömrü (doküman 2 saat, topluluk pratiği 8 saat), TGT yenileme throttle'ı, kayıt formu onay süresi ve IP bazlı kısıt olup olmadığı. Gerçek uç nokta testleri için kayıt (kullanıcı adı/şifre) gerekli.
+- **Zaman dilimi:** Netleşti — tüm tarihler ISO-8601, Türkiye saati (`+03:00`); eski verilerde DST dönemleri `+02:00` offset'li. `toPoint` UTC'ye çevirirken DST farkını korumalı (bkz. `docs/EPIAS-VERI-ANALIZI.md` §9).

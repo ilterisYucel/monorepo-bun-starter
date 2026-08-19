@@ -6,7 +6,6 @@ import { createMockOutputPosition } from "../../../__stories__/mocks/factories";
 import { drawOutputChassis } from "./DCOutput.drawers";
 import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
 import { SPRITE_ASSETS } from "../../textures";
-import { COLOR } from "../../../colors";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -28,14 +27,6 @@ export const Base = () => (
         draw={(g) => {
           g.clear();
           drawOutputChassis(g, config, { x: 50, y: 46, radius: 30 });
-        }}
-      />
-      <pixiGraphics
-        draw={(g) => {
-          g.clear();
-          g.roundRect(22, 84, 56, 16, 3);
-          g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
-          g.stroke({ width: 1, color: COLOR.borderStroke, alpha: 0.6 });
         }}
       />
     </Application>

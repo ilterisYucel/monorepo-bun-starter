@@ -5,8 +5,7 @@ import { useFieldTelemetryProvider } from "../features/field-charts/hooks/useFie
 import { useFieldAggregateProvider } from "../features/field-charts/hooks/useFieldAggregateProvider";
 
 export const FieldChartsPage: React.FC = () => {
-  const { t, locale } = useTranslation();
-  const loc = locale();
+  const { t } = useTranslation();
   const { fieldId } = useParams<{ fieldId: string }>();
   const containerProvider = useFieldTelemetryProvider(fieldId ?? "");
   const totalPowerProvider = useFieldAggregateProvider("TotalPower");
@@ -29,7 +28,6 @@ export const FieldChartsPage: React.FC = () => {
                 title={`${t("charts.fieldAggregate")} — ${t("charts.totalPower")}`}
                 yAxisLabel="kW"
                 height={chartHeight}
-                locale={loc}
               />
             ),
           },
@@ -43,7 +41,6 @@ export const FieldChartsPage: React.FC = () => {
                 title={`${t("charts.fieldAggregate")} — ${t("charts.avgSocChart")}`}
                 yAxisLabel="%"
                 height={chartHeight}
-                locale={loc}
               />
             ),
           },
@@ -57,7 +54,6 @@ export const FieldChartsPage: React.FC = () => {
                 title={t("container.telemetryTitle")}
                 yAxisLabel={t("chart.yAxisLabel")}
                 height={chartHeight}
-                locale={loc}
                 tagFilters={[
                   { tagKey: "container_id", label: t("container.title") },
                 ]}

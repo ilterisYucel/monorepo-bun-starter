@@ -16,6 +16,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@gd-monorepo/epias-client": "*",
     "@gd-monorepo/plugin-sdk": "*",
     "@gd-monorepo/shared-types": "*"
   },

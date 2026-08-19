@@ -1,22 +1,6 @@
-import { Graphics, FillGradient } from "pixi.js";
+import { Graphics } from "pixi.js";
 import { COLOR } from "../../../colors";
 import type { RectPosition, HvacData } from "../../types";
-
-let _hvacBodyGrad: FillGradient | null = null;
-
-function hvacBodyGrad(): FillGradient {
-  _hvacBodyGrad ??= new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradMid },
-      { offset: 1, color: COLOR.gradBodyBot },
-    ],
-    textureSpace: "local",
-  });
-  return _hvacBodyGrad;
-}
 
 export function drawHvacChassis(
   g: Graphics,
@@ -27,12 +11,12 @@ export function drawHvacChassis(
   const { x, y, width: w, height: h } = pos;
   const r = step * 0.15;
 
+  // PANELSIZ: yalnız ince çerçeve + fan ızgarası outline — durum renkleri kodda.
   g.roundRect(x, y, w, h, r);
-  g.fill(hvacBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 
-  g.roundRect(x + step * 0.08, y + step * 0.08, w - step * 0.16, h - step * 0.16, r * 0.5);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.25 });
+  g.circle(x + w / 2, y + h / 2, Math.min(w, h) * 0.32);
+  g.stroke({ width: Math.max(0.5, step * 0.025), color: COLOR.borderStroke, alpha: 0.7 });
 }
 
 export function drawHvacStatus(
@@ -73,13 +57,14 @@ export function drawHvacBody(
 
   const isOnline = hvac.status === "online";
   const borderColor = isOnline ? COLOR.success : COLOR.error;
+  const modeColor = hvac.status === "online" ? (hvac.mode === "cooling" ? COLOR.info : hvac.mode === "warming" ? COLOR.warning : COLOR.idle) : COLOR.idle;
 
+  // PANELSIZ: yalnız outline — gövde dolgusu yok, durum renkleri çerçevede.
   g.roundRect(x, y, w, h, r);
-  g.fill(hvacBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: borderColor });
 
-  g.roundRect(x + step * 0.08, y + step * 0.08, w - step * 0.16, h - step * 0.16, r * 0.5);
-  g.fill({ color: hvac.status === "online" ? (hvac.mode === "cooling" ? COLOR.info : hvac.mode === "warming" ? COLOR.warning : COLOR.idle) : COLOR.idle, alpha: 0.25 });
+  g.circle(x + w / 2, y + h / 2, Math.min(w, h) * 0.32);
+  g.stroke({ width: Math.max(0.5, step * 0.025), color: modeColor, alpha: 0.8 });
 
   const dotR = Math.max(2, step * 0.06);
   g.circle(x + w - dotR * 2, y + dotR * 2, dotR);

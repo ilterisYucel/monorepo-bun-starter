@@ -1,8 +1,7 @@
 import React, { useCallback } from "react";
 import styled from "@emotion/styled";
 import { COLORS, SCADA_ICONS } from "@gd-monorepo/ui";
-import { DEVICE_LIBRARY } from "@gd-monorepo/device-library";
-import type { ProtocolType } from "@gd-monorepo/device-library";
+import type { ProtocolType } from "../device-catalog";
 import { useEditorStore } from "../stores/editorStore";
 import { ModbusConfigForm } from "./ModbusConfigForm";
 
@@ -169,8 +168,6 @@ export const PropertyPanel: React.FC = () => {
       </Panel>
     );
   }
-
-  const def = DEVICE_LIBRARY[selectedNode.data.deviceType];
 
   return (
     <Panel>

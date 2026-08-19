@@ -70,12 +70,9 @@ export function drawFirePanelChassis(
   const { step } = cfg;
   const r = step * 0.2;
 
+  // PANELSIZ: yalnız ince çerçeve — lamba/anahtar yuvaları kod tarafında.
   g.roundRect(x, y, w, h, r);
-  g.fill(panelBodyGrad());
-  g.stroke({ width: Math.max(1, step * 0.05), color: COLOR.borderStroke, alpha: 0.5 });
-
-  g.roundRect(x + step * 0.06, y + step * 0.06, w - step * 0.12, h - step * 0.12, r * 0.8);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.3 });
+  g.stroke({ width: Math.max(1, step * 0.05), color: COLOR.borderStroke, alpha: 0.7 });
 }
 
 // Nötr soket çizimi: boş lamba + anahtar yuvaları (Base story + çizim modu).

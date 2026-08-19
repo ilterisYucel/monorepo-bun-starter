@@ -10,7 +10,9 @@
         "command": "bun run run.ts",
         "cwd": "services/integration-service"
       },
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test": {
       "executor": "nx:run-commands",
@@ -27,5 +29,12 @@
       }
     }
   },
-  "implicitDependencies": ["core", "shared-types", "shared-utils", "plugin-sdk", "epias-market-prices"]
+  "implicitDependencies": [
+    "core",
+    "shared-types",
+    "shared-utils",
+    "plugin-sdk",
+    "epias-client",
+    "epias-market-prices"
+  ]
 }

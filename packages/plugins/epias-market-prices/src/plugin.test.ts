@@ -1,22 +1,29 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import type { PluginContext } from "@gd-monorepo/plugin-sdk";
-import type { HttpGateway } from "./http-gateway";
+import type { FetchLike } from "@gd-monorepo/plugin-sdk";
+import { EpiasTicketStore } from "@gd-monorepo/epias-client";
 import { EpiasMarketPricesPlugin } from "./plugin";
 
-interface FakeGatewayCall {
-  url: string;
-  headers: Record<string, string>;
+const CAS_URL = "https://cas.test/cas/v1/tickets";
+
+function apiResponse(status: number, body: unknown): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as Response;
 }
 
-class FakeGateway implements HttpGateway {
-  calls: FakeGatewayCall[] = [];
-  constructor(private readonly responder: (path: string) => Record<string, unknown>[]) {}
-
-  async getJson<T>(url: string, headers: Record<string, string>): Promise<T> {
-    this.calls.push({ url, headers });
-    const path = new URL(url).pathname;
-    return this.responder(path) as T;
-  }
+function casResponse(ticket: string): Response {
+  return {
+    ok: true,
+    status: 201,
+    text: async () => ticket,
+  } as Response;
 }
 
 class MemoryStateStore {
@@ -39,11 +46,13 @@ function makeContext(): PluginContext {
   return {
     logger: { info: () => {}, warn: () => {}, error: () => {} },
     config: {
-      clientId: "test-client-id",
-      baseUrl: "https://example.epias/api/v1",
+      username: "kullanici@firma.com.tr",
+      password: "parola",
+      casUrl: CAS_URL,
+      baseUrl: "https://seffaflik.test/electricity-service/v1",
       series: [
-        { name: "MCP", path: "/markets/dam/data/mcp", unit: "TRY/MWh", dateField: "date", valueField: "price" },
-        { name: "SMF", path: "/markets/smp/data/smp", unit: "TRY/MWh", dateField: "date", valueField: "price" },
+        { name: "PTF", path: "/v1/markets/dam/data/mcp", unit: "TRY/MWh", dateField: "date", valueField: "price" },
+        { name: "SMF", path: "/v1/markets/bpm/data/system-marginal-price", unit: "TRY/MWh", dateField: "date", valueField: "systemMarginalPrice" },
       ],
     },
     pluginDir: "/plugins/epias-market-prices",
@@ -51,9 +60,61 @@ function makeContext(): PluginContext {
   };
 }
 
+interface ApiCall {
+  url: string;
+  body?: string;
+  tgt: string;
+}
+
 describe("EpiasMarketPricesPlugin", () => {
+  let dir: string;
+  let fetchFn: ReturnType<typeof vi.fn>;
+  let apiCalls: ApiCall[];
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "epias-plugin-"));
+    apiCalls = [];
+    fetchFn = vi.fn<FetchLike>(async (url: string, init?: RequestInit) => {
+      if (url === CAS_URL) {
+        return casResponse("TGT-test-1");
+      }
+      apiCalls.push({
+        url,
+        body: init?.body as string | undefined,
+        tgt: ((init?.headers ?? {}) as Record<string, string>)["TGT"] ?? "",
+      });
+      if (url.includes("/mcp")) {
+        return apiResponse(200, {
+          items: [{ date: "2026-08-14T10:00:00+03:00", hour: "10", price: 1900.5 }],
+        });
+      }
+      return apiResponse(200, {
+        items: [{ date: "2026-08-14T11:00:00+03:00", hour: "11", systemMarginalPrice: 1950.0 }],
+      });
+    });
+    vi.stubGlobal("fetch", fetchFn);
+  });
+
+  afterEach(async () => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  function makePlugin(): EpiasMarketPricesPlugin {
+    return new EpiasMarketPricesPlugin(
+      new EpiasTicketStore({
+        filePath: join(dir, "tickets.json"),
+        casUrl: CAS_URL,
+        ttlMs: 60_000,
+        renewBeforeMs: 0,
+        fetchFn,
+      }),
+    );
+  }
+
   it("manifest ve schedule dondurur", async () => {
-    const plugin = new EpiasMarketPricesPlugin(new FakeGateway(() => []));
+    const plugin = makePlugin();
     await plugin.activate(makeContext());
 
     expect(plugin.manifest().name).toBe("epias-market-prices");
@@ -61,14 +122,8 @@ describe("EpiasMarketPricesPlugin", () => {
     expect(plugin.schedule()).toEqual({ mode: "interval", everyMs: 3600000 });
   });
 
-  it("fetch — satirlari MarketDataPoint'e cevirir ve cursor yazar", async () => {
-    const gateway = new FakeGateway((path) => {
-      if (path.includes("mcp")) {
-        return [{ date: "2026-08-14T10:00:00+03:00", price: 1900.5 }];
-      }
-      return [{ date: "2026-08-14T11:00:00+03:00", price: 1950.0 }];
-    });
-    const plugin = new EpiasMarketPricesPlugin(gateway);
+  it("fetch — satirlari MarketDataPoint'e cevirir, TGT header ekler ve cursor yazar", async () => {
+    const plugin = makePlugin();
     const context = makeContext();
     await plugin.activate(context);
 
@@ -80,48 +135,81 @@ describe("EpiasMarketPricesPlugin", () => {
     expect(points).toHaveLength(2);
     expect(points[0]).toMatchObject({
       source: "epias",
-      series: "MCP",
+      series: "PTF",
       value: 1900.5,
       unit: "TRY/MWh",
     });
     expect(points[1]?.series).toBe("SMF");
     expect(points[1]?.timestamp).toBe("2026-08-14T08:00:00.000Z");
 
-    expect(gateway.calls[0]?.headers["X-IBM-Client-Id"]).toBe("test-client-id");
+    expect(apiCalls).toHaveLength(2);
+    expect(apiCalls.every((c) => c.tgt === "TGT-test-1")).toBe(true);
+    const mcpCall = apiCalls.find((c) => c.url.includes("/mcp"));
+    const mcpBody = JSON.parse(mcpCall?.body ?? "{}");
+    expect(mcpBody.startDate).toBe("2026-08-14T03:00:00+03:00");
+    expect(mcpBody.endDate).toBe("2026-08-15T02:59:59+03:00");
+
     expect(await context.state.read("lastFetchTo")).toBe("2026-08-14T23:59:59Z");
   });
 
   it("fetch — pencere verilmezse cursor'dan devam eder", async () => {
-    const gateway = new FakeGateway(() => []);
-    const plugin = new EpiasMarketPricesPlugin(gateway);
+    const plugin = makePlugin();
     const context = makeContext();
     await context.state.write("lastFetchTo", "2026-08-14T05:00:00.000Z");
     await plugin.activate(context);
 
     await plugin.fetch(context);
 
-    expect(gateway.calls[0]?.url).toContain("startDate=2026-08-14T05%3A00%3A00.000Z");
+    const mcpCall = apiCalls.find((c) => c.url.includes("/mcp"));
+    const mcpBody = JSON.parse(mcpCall?.body ?? "{}");
+    expect(mcpBody.startDate).toBe("2026-08-14T08:00:00+03:00");
   });
 
-  it("gecersiz konfigurasyonda activate firlatir", async () => {
-    const plugin = new EpiasMarketPricesPlugin(new FakeGateway(() => []));
-    const context = makeContext();
-    context.config = { clientId: "", baseUrl: "", series: [] };
-
-    await expect(plugin.activate(context)).rejects.toThrow(/clientId/i);
-  });
-
-  it("bozuk satirlari sessizce atlar", async () => {
-    const gateway = new FakeGateway(() => [
-      { date: "gecersiz-tarih", price: 10 },
-      { date: "2026-08-14T10:00:00+03:00", price: "sayi-degil" },
-      { date: "2026-08-14T12:00:00+03:00", price: 42 },
-    ]);
-    const plugin = new EpiasMarketPricesPlugin(gateway);
+  it("iki fetch ayni TGT'yi kullanir — CAS'e tek istek atilir", async () => {
+    const plugin = makePlugin();
     const context = makeContext();
     await plugin.activate(context);
 
-    // 2 seri (MCP, SMF) × 3 satir — her seriden yalnizca 1 gecerli satir kalir
+    await plugin.fetch(context);
+    await plugin.fetch(context);
+
+    const casCalls = fetchFn.mock.calls.filter(([url]) => url === CAS_URL);
+    expect(casCalls).toHaveLength(1);
+    expect(apiCalls.length).toBe(4);
+  });
+
+  it("gecersiz konfigurasyonda activate firlatir", async () => {
+    const plugin = makePlugin();
+    const context = makeContext();
+    context.config = { username: "", password: "", casUrl: "", baseUrl: "", series: [] };
+
+    await expect(plugin.activate(context)).rejects.toThrow(/username/i);
+  });
+
+  it("bozuk satirlari sessizce atlar", async () => {
+    fetchFn = vi.fn<FetchLike>(async (url: string, init?: RequestInit) => {
+      if (url === CAS_URL) {
+        return casResponse("TGT-test-1");
+      }
+      apiCalls.push({
+        url,
+        body: init?.body as string | undefined,
+        tgt: ((init?.headers ?? {}) as Record<string, string>)["TGT"] ?? "",
+      });
+      return apiResponse(200, {
+        items: [
+          { date: "gecersiz-tarih", price: 10, systemMarginalPrice: 10 },
+          { date: "2026-08-14T10:00:00+03:00", price: "sayi-degil", systemMarginalPrice: "sayi-degil" },
+          { date: "2026-08-14T12:00:00+03:00", price: 42, systemMarginalPrice: 42 },
+        ],
+      });
+    });
+    vi.stubGlobal("fetch", fetchFn);
+    const plugin = makePlugin();
+    const context = makeContext();
+    await plugin.activate(context);
+
+    // 2 seri (PTF, SMF) × 3 satir — her seriden yalnizca 1 gecerli satir kalir
     const points = await plugin.fetch(context);
 
     expect(points).toHaveLength(2);
@@ -129,7 +217,7 @@ describe("EpiasMarketPricesPlugin", () => {
   });
 
   it("activate'ten once fetch firlatir", async () => {
-    const plugin = new EpiasMarketPricesPlugin(new FakeGateway(() => []));
+    const plugin = makePlugin();
     await expect(plugin.fetch(makeContext())).rejects.toThrow(/activate/i);
   });
 });

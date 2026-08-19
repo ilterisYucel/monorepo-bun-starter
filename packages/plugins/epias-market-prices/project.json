@@ -26,5 +26,9 @@
       }
     }
   },
-  "implicitDependencies": ["shared-types", "plugin-sdk"]
+  "implicitDependencies": [
+    "shared-types",
+    "plugin-sdk",
+    "epias-client"
+  ]
 }

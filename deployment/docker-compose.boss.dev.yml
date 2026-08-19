@@ -153,6 +153,7 @@ services:
       - ../services/integration-service/config:/app/config
       - ../deployment/customer-plugins:/app/customer-plugins
       - ../packages/plugin-sdk/src:/app/packages/plugin-sdk/src
+      - ../packages/epias-client/src:/app/packages/epias-client/src
       - ../packages/plugins/epias-market-prices/src:/app/packages/plugins/epias-market-prices/src
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src

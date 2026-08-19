@@ -3,22 +3,7 @@ import type { RectPosition } from "../../types";
 import type { PanelSlotRect } from "./PanelCard.types";
 import { COLOR } from "../../../colors";
 
-let _panelBodyGrad: FillGradient | null = null;
-const _panelTempGrads = new Map<number, FillGradient>();
-
-function panelBodyGrad(): FillGradient {
-  _panelBodyGrad ??= new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradPanelTop },
-      { offset: 1, color: COLOR.bgPanel },
-    ],
-    textureSpace: "local",
-  });
-  return _panelBodyGrad;
-}
+let _panelTempGrads = new Map<number, FillGradient>();
 
 function panelTempGrad(color: number): FillGradient {
   if (!_panelTempGrads.has(color)) {
@@ -55,15 +40,13 @@ export function drawPanelBody(
   const { x, y, width: w, height: h } = pos;
   const r = step * 0.3;
 
-  g.roundRect(x + step * 0.06, y + step * 0.1, w, h, r);
-  g.fill({ color: COLOR.shadow, alpha: 0.2 });
-
+  // PANELSIZ: yalnız ince çerçeve — sıcaklık barı yuvası kod tarafında.
   g.roundRect(x, y, w, h, r);
-  g.fill(panelBodyGrad());
   g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.borderStroke });
 }
 
 // Sıcaklık barı yuvası (nötr): çizim modunda ve Base story'de kullanılır.
+// Termometre SOL ÜSTTE — oda kartındaki widget ile aynı geometri.
 export function drawPanelBarSlot(
   g: Graphics,
   pos: RectPosition,
@@ -73,15 +56,29 @@ export function drawPanelBarSlot(
   const { step } = cfg;
   const { x, y, width: w, height: h } = pos;
   const slot = slotOverride ?? {
-    x: x + step * 0.2,
-    y: y + step * 2.2,
-    width: w - step * 0.4,
-    height: h - step * 3.2,
+    x: x + step * 0.1,
+    y: y + step * 0.12,
+    width: step * 0.5,
+    height: step * 1.6,
   };
 
   g.roundRect(slot.x, slot.y, slot.width, slot.height, step * 0.15);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.7 });
-  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.borderStroke, alpha: 0.6 });
+  g.fill({ color: COLOR.gradScreen, alpha: 0.35 });
+  g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke, alpha: 0.8 });
+}
+
+// Termometre yuva çerçevesi (sprite modu): sol üstte görünür tüp.
+export function drawPanelTempBorder(
+  g: Graphics,
+  pos: RectPosition,
+  cfg: { step: number },
+): void {
+  const { step } = cfg;
+  const { x, y } = pos;
+
+  g.roundRect(x + step * 0.1, y + step * 0.12, step * 0.5, step * 1.6, step * 0.15);
+  g.fill({ color: COLOR.gradScreen, alpha: 0.35 });
+  g.stroke({ width: Math.max(1, step * 0.03), color: COLOR.borderStroke, alpha: 0.8 });
 }
 
 export function drawPanelTemp(
@@ -96,12 +93,12 @@ export function drawPanelTemp(
   const color = tempColor(panelTemp);
 
   const slot = slotOverride ?? {
-    x: x + step * 0.2,
-    y: y + step * 2.2,
-    width: w - step * 0.4,
-    height: h - step * 3.2,
+    x: x + step * 0.1,
+    y: y + step * 0.12,
+    width: step * 0.5,
+    height: step * 1.6,
   };
-  const pad = slotOverride ? step * 0.06 : step * 0.2;
+  const pad = slotOverride ? step * 0.06 : step * 0.1;
   const innerH = slot.height - pad * 2;
   const innerY = slot.y + pad;
 

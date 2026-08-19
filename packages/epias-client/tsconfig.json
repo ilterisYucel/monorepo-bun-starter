@@ -9,8 +9,5 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../shared-types" },
-    { "path": "../ui" }
-  ]
+  "references": [{ "path": "../plugin-sdk" }]
 }

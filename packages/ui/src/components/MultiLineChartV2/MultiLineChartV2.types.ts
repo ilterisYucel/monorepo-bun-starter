@@ -18,8 +18,6 @@ export interface MultiLineChartV2Props {
   height?: number;
   colors?: string[];
   showLegend?: boolean;
-  /** Alt istatistik tablosu (Son/Min/Max/Ort) gösterilsin mi? Varsayılan: true */
-  showStats?: boolean;
   isLoading?: boolean;
   annotations?: LogEntry[];
   labels?: MultiLineChartLabels;

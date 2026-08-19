@@ -17,9 +17,11 @@ import {
   StaticPluginSource,
 } from "@gd-monorepo/plugin-sdk";
 import type { PluginContext } from "@gd-monorepo/plugin-sdk";
-import { plugin as epiasMarketPrices } from "@gd-monorepo/epias-market-prices";
+import { EpiasTicketStore } from "@gd-monorepo/epias-client";
+import { EpiasMarketPricesPlugin } from "@gd-monorepo/epias-market-prices";
 import { IntegrationService } from "./src/integration-service";
 import { ExternalSeriesWriter } from "./src/external-series-writer";
+import { join } from "node:path";
 
 async function main() {
   console.log("[run] Integration Service baslatiliyor...");
@@ -52,16 +54,21 @@ async function main() {
   await writer.init();
 
   // Plugin yukleme: statik (workspace paketleri) + runtime dizin (musteri pluginleri)
+  // Tum EPIAS plugin'leri ayni TGT onbellegini paylasir — throttle korumasi.
+  const stateDir = config.get<string>("integration.stateDir");
+  const ticketStore = new EpiasTicketStore({
+    filePath: join(stateDir, "epias-tickets.json"),
+  });
   const registry = new PluginRegistry<PluginContext>();
   const loader = new PluginLoader(registry, [
-    new StaticPluginSource([epiasMarketPrices]),
+    new StaticPluginSource([new EpiasMarketPricesPlugin(ticketStore)]),
     new DirectoryPluginSource(config.get<string>("integration.pluginDir")),
   ]);
   await loader.load();
 
   const contextFactory = new PluginContextFactory(
     new JsonFilePluginConfigSource(config.get<string>("integration.configDir")),
-    config.get<string>("integration.stateDir"),
+    stateDir,
   );
 
   const service = new IntegrationService(registry, contextFactory, mq, writer);

@@ -20,7 +20,6 @@ export const TR_DICT = {
   "common.offline": "Çevrimdışı",
   "common.loading": "Yükleniyor...",
   "common.noData": "Henüz veri yok",
-  "common.waitingData": "Veri bekleniyor...",
   "common.detail": "Detay Göster",
   "common.cancel": "İptal",
   "common.save": "Kaydet",
@@ -68,7 +67,6 @@ export const TR_DICT = {
   "chart.control.categoryDetail": "Diğer Metrikler",
   "chart.control.searchPlaceholder": "Metrik ara...",
   "chart.control.noResults": "Sonuç bulunamadı",
-  "chart.control.stats": "İstatistikler",
 
   "chart.subtitle.points": "{count} nokta",
   "chart.subtitle.interval": "~{label} aralık",

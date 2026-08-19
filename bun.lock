@@ -125,7 +125,6 @@
       "dependencies": {
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
-        "@gd-monorepo/device-library": "*",
         "@gd-monorepo/shared-types": "*",
         "@gd-monorepo/ui": "*",
         "@xyflow/react": "^12.0.0",
@@ -244,12 +243,11 @@
         "@gd-monorepo/shared-types": "*",
       },
     },
-    "packages/device-library": {
-      "name": "@gd-monorepo/device-library",
-      "version": "0.1.0",
+    "packages/epias-client": {
+      "name": "@gd-monorepo/epias-client",
+      "version": "1.0.0",
       "dependencies": {
-        "@gd-monorepo/shared-types": "*",
-        "@gd-monorepo/ui": "*",
+        "@gd-monorepo/plugin-sdk": "*",
       },
       "devDependencies": {
         "typescript": "^5.4.0",
@@ -279,6 +277,7 @@
       "name": "@gd-monorepo/epias-market-prices",
       "version": "1.0.0",
       "dependencies": {
+        "@gd-monorepo/epias-client": "*",
         "@gd-monorepo/plugin-sdk": "*",
         "@gd-monorepo/shared-types": "*",
       },
@@ -404,6 +403,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@gd-monorepo/core": "*",
+        "@gd-monorepo/epias-client": "*",
         "@gd-monorepo/epias-market-prices": "*",
         "@gd-monorepo/plugin-sdk": "*",
         "@gd-monorepo/shared-types": "*",
@@ -866,11 +866,11 @@
 
     "@gd-monorepo/demo-backend": ["@gd-monorepo/demo-backend@workspace:apps/demo-backend"],
 
-    "@gd-monorepo/device-library": ["@gd-monorepo/device-library@workspace:packages/device-library"],
-
     "@gd-monorepo/device-service": ["@gd-monorepo/device-service@workspace:services/device-service"],
 
     "@gd-monorepo/editor": ["@gd-monorepo/editor@workspace:apps/editor"],
+
+    "@gd-monorepo/epias-client": ["@gd-monorepo/epias-client@workspace:packages/epias-client"],
 
     "@gd-monorepo/epias-market-prices": ["@gd-monorepo/epias-market-prices@workspace:packages/plugins/epias-market-prices"],
 

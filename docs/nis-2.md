@@ -19,7 +19,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 | Backend Servisler | Node.js (services/) | Geliştirme süreci devam ediyor |
 | Desktop Uygulama | Electron/Container (apps/desktop, apps/container-desktop) | Geliştirme süreci devam ediyor |
 | Web Frontend | React (apps/container-web, apps/field, apps/superadmin) | Geliştirme süreci devam ediyor |
-| Paylaşılan Paketler | core, shared-types, shared-utils, ui, device-library | Mevcut |
+| Paylaşılan Paketler | core, shared-types, shared-utils, ui | Mevcut |
 | Kod Kalitesi | SonarQube | Entegre |
 | OWASP Standartları | Kod seviyesinde uygulandı | Uygulandı |
 | Test Çerçevesi | Vitest | Mevcut |

@@ -29,7 +29,7 @@ export const EnergyAnalyzerPage: React.FC = () => {
     all: t("common.all"), none: t("common.none"), selected: t("common.selected"),
     systemEvents: t("chart.control.systemEvents"), userActions: t("chart.control.userActions"),
     correctedEvents: t("chart.control.correctedEvents"),
-    loadFailed: t("error.loadFailed"), loading: t("common.loading"), waitingData: t("common.waitingData"), noData: t("common.noData"), stats: t("chart.control.stats"),
+    loadFailed: t("error.loadFailed"), loading: t("common.loading"), noData: t("common.noData"),
     pointsUnit: t("chart.subtitle.points"), intervalPrefix: "~",
     seconds: t("chart.unit.seconds"), minutes: t("chart.unit.minutes"),
     hours: t("chart.unit.hours"), days: t("chart.unit.days"),

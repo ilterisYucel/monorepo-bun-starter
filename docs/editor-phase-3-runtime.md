@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-08-19):** Bu doküman geçersizdir — yerine geçen mimari ve uygulama planı: [EDITOR-MIMARISI.md](./EDITOR-MIMARISI.md). Önerilen yeni platform paketi (`runtime-engine`) iptal edildi: runtime mevcut `core` + `device-service`/`data-service`/`web-service` bileşimidir, editörde yeniden icat edilmez. Tarihsel kayıt olarak korunur.
+
 # Phase 3: Runtime Engine
 
 ## Package: `packages/runtime-engine/`

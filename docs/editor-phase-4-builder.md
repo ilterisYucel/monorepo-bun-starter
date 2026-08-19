@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-08-19):** Bu doküman geçersizdir — yerine geçen mimari ve uygulama planı: [EDITOR-MIMARISI.md](./EDITOR-MIMARISI.md). Önerilen yeni platform paketi (`app-builder`) iptal edildi: export/builder pipeline'ı `apps/editor` içinde bir feature olarak yaşar. Tarihsel kayıt olarak korunur.
+
 # Phase 4: Application Builder
 
 ## Package: `packages/app-builder/`

@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
       "@gd-monorepo/plugin-sdk": resolve(workspaceRoot, "packages/plugin-sdk/src"),
+      "@gd-monorepo/epias-client": resolve(workspaceRoot, "packages/epias-client/src"),
     },
   },
   test: {

@@ -510,7 +510,7 @@ Hedef: Grafana benzeri, surukle-birak ile SCADA ekranlari ve tek hat semalari ol
 
 | # | Eksik | Onem | Aciklama |
 |:--|:------|:-----|:---------|
-| E1 | **Alarm Evaluation Engine** | 🔴 Kritik | `device-library`'de `AlarmRuleDefinition`'lar tanimli ama degerlendiren bir motor yok. `"SOC < 20"` gibi kosullar calistirilmiyor. |
+| E1 | **Alarm Evaluation Engine** | 🔴 Kritik | Editor device-catalog'unda `AlarmRuleDefinition`'lar tanimli ama degerlendiren bir motor yok. `"SOC < 20"` gibi kosullar calistirilmiyor. |
 | E2 | **Alarm Dashboard UI** | 🟠 Yuksek | Aktif alarm listesi, alarm detayi, acknowledge islemi yok. |
 | E3 | **Alarm Escalation / Notification** | 🟡 Orta | E-posta, SMS, webhook bildirimleri yok. |
 | E4 | **Alarm History** | 🟡 Orta | Gecmis alarm kaydi ve analizi yok. |
@@ -581,8 +581,8 @@ NEW PACKAGES (onerilen):
 
 EXPAND EXISTING:
 ├── apps/editor/               # Screen builder modu, widget DnD, register map editor, maneuver builder
+├── apps/editor/src/features/editor/device-catalog/  # 20+ yeni cihaz tipi, cihaz basina gorsel sablon (config-driven katalog)
 ├── packages/ui/src/graphics/  # 3B pipeline (Three.js), config-driven device renderer, yeni cihaz grafikleri
-├── packages/device-library/   # 20+ yeni cihaz tipi, cihaz basina gorsel sablon
 ├── packages/core/             # Gercek CANbus, MQTT, OPC-UA adaptorleri
 
 NEW TYPES (shared-types):

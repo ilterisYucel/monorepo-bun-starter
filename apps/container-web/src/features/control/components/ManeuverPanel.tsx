@@ -4,7 +4,7 @@ import type { StepResult, ManeuverCardLabels } from "@gd-monorepo/ui";
 import toast from "react-hot-toast";
 import { controlApi } from "../services/controlApi";
 import { useLogProvider } from "../../../hooks/useLogProvider";
-import { MANEUVERS, MANEUVER_CONTROLS } from "../maneuvers";
+import { MANEUVERS, MANEUVER_CONTROLS, HIDDEN_MANEUVER_NAMES } from "../maneuvers";
 import * as S from "./ManeuverPanel.styles";
 
 interface CardState {
@@ -172,7 +172,7 @@ export const ManeuverPanel: React.FC = () => {
 
   return (
     <S.ManeuverGrid>
-      {Object.entries(MANEUVERS).filter(([name]) => name !== "fl_bsc_power" && name !== "fl_idle").map(([name, m]) => {
+      {Object.entries(MANEUVERS).filter(([name]) => !HIDDEN_MANEUVER_NAMES.has(name)).map(([name, m]) => {
         const s = states[name];
         const ctrl = MANEUVER_CONTROLS[name];
         return (

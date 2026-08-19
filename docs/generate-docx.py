@@ -7,6 +7,7 @@ from docx.shared import Inches, Pt, Cm, RGBColor, Emu
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.section import WD_ORIENT
+from docx.opc.constants import RELATIONSHIP_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import parse_xml, OxmlElement
 
@@ -134,7 +135,8 @@ def extract_headings():
 
 
 def add_toc_page(doc, headings):
-    """Build TOC page with clickable hyperlinks to content bookmarks."""
+    """Build a real Word TOC field page. Cached entries are visible immediately;
+    Word refreshes page numbers on open (dirty field) or on F9."""
     # Top spacing
     for _ in range(4):
         p = doc.add_paragraph()
@@ -153,7 +155,24 @@ def add_toc_page(doc, headings):
     p = doc.add_paragraph()
     p.paragraph_format.space_after = Pt(4)
 
-    # Build hyperlinked TOC entries
+    # TOC field begin
+    toc_p = doc.add_paragraph()
+    r = toc_p.add_run()
+    fld = OxmlElement('w:fldChar')
+    fld.set(qn('w:fldCharType'), 'begin')
+    fld.set(qn('w:dirty'), 'true')
+    r._element.append(fld)
+    r = toc_p.add_run()
+    instr = OxmlElement('w:instrText')
+    instr.set(qn('xml:space'), 'preserve')
+    instr.text = ' TOC \\o "1-3" \\h \\z \\u '
+    r._element.append(instr)
+    r = toc_p.add_run()
+    fld = OxmlElement('w:fldChar')
+    fld.set(qn('w:fldCharType'), 'separate')
+    r._element.append(fld)
+
+    # Cached entries (one paragraph per entry, Word style)
     idx = 0
     for level, text in headings:
         if level == 1:
@@ -162,48 +181,85 @@ def add_toc_page(doc, headings):
         anchor = f"_Toc{idx}"
         idx += 1
 
-        p = doc.add_paragraph()
-        p.paragraph_format.space_after = Pt(2)
-        p.paragraph_format.line_spacing = 1.4
+        entry_p = doc.add_paragraph()
+        entry_p.paragraph_format.space_after = Pt(2)
+        entry_p.paragraph_format.line_spacing = 1.4
 
         if level == 2:
-            p.paragraph_format.left_indent = Cm(0)
-            p.paragraph_format.space_before = Pt(8)
-            font_size = Pt(12)
+            entry_p.paragraph_format.space_before = Pt(8)
+            half_pts = 24
+            bold = True
         else:
-            p.paragraph_format.left_indent = Cm(1.2)
-            p.paragraph_format.space_before = Pt(2)
-            font_size = Pt(11)
+            entry_p.paragraph_format.left_indent = Cm(1.2)
+            entry_p.paragraph_format.space_before = Pt(2)
+            half_pts = 22
+            bold = False
 
-        # Create run with hyperlink styling
-        hyperlink = OxmlElement('w:hyperlink')
-        hyperlink.set(qn('w:anchor'), anchor)
-        hyperlink.set(qn('w:history'), '1')
+        hl = OxmlElement('w:hyperlink')
+        hl.set(qn('w:anchor'), anchor)
+        hl.set(qn('w:history'), '1')
 
+        # Visible entry text run
         run_elem = OxmlElement('w:r')
         rPr = OxmlElement('w:rPr')
-
         rStyle = OxmlElement('w:rStyle')
         rStyle.set(qn('w:val'), 'Hyperlink')
         rPr.append(rStyle)
-
         sz = OxmlElement('w:sz')
-        sz.set(qn('w:val'), str(int(font_size.pt * 2)))  # half-points
+        sz.set(qn('w:val'), str(half_pts))
         rPr.append(sz)
-
-        if level == 2:
-            b = OxmlElement('w:b')
-            rPr.append(b)
-
+        if bold:
+            rPr.append(OxmlElement('w:b'))
         run_elem.append(rPr)
-
         t = OxmlElement('w:t')
-        t.text = text
         t.set(qn('xml:space'), 'preserve')
+        t.text = text
         run_elem.append(t)
+        hl.append(run_elem)
 
-        hyperlink.append(run_elem)
-        p._element.append(hyperlink)
+        # Hidden tab run
+        tab_r = OxmlElement('w:r')
+        tab_rPr = OxmlElement('w:rPr')
+        tab_rPr.append(OxmlElement('w:webHidden'))
+        tab_r.append(tab_rPr)
+        tab_r.append(OxmlElement('w:tab'))
+        hl.append(tab_r)
+
+        # PAGEREF field (page number), cached value
+        for kind, payload in (
+            ("begin", None),
+            ("instr", f" PAGEREF {anchor} \\h "),
+            ("separate", None),
+            ("text", "3"),
+            ("end", None),
+        ):
+            fr = OxmlElement('w:r')
+            frPr = OxmlElement('w:rPr')
+            frPr.append(OxmlElement('w:webHidden'))
+            fr.append(frPr)
+            if kind == "instr":
+                it = OxmlElement('w:instrText')
+                it.set(qn('xml:space'), 'preserve')
+                it.text = payload
+                fr.append(it)
+            elif kind == "text":
+                wt = OxmlElement('w:t')
+                wt.text = payload
+                fr.append(wt)
+            else:
+                fc = OxmlElement('w:fldChar')
+                fc.set(qn('w:fldCharType'), kind)
+                fr.append(fc)
+            hl.append(fr)
+
+        entry_p._element.append(hl)
+
+    # TOC field end
+    end_p = doc.add_paragraph()
+    r = end_p.add_run()
+    fld = OxmlElement('w:fldChar')
+    fld.set(qn('w:fldCharType'), 'end')
+    r._element.append(fld)
 
     # Page break after TOC
     doc.add_page_break()
@@ -222,6 +278,35 @@ def add_heading_bookmark(paragraph, bookmark_name, bookmark_id):
     paragraph._element.append(end)
 
 
+LINK_RE = re.compile(r'(\[[^\]]*\]\([^)\s]+\)|https?://[^\s]+)')
+
+
+def add_hyperlink_run(paragraph, url, text, font_size=None, bold=False):
+    """Add a clickable external hyperlink run to a paragraph."""
+    r_id = paragraph.part.relate_to(url, RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+    hl = OxmlElement('w:hyperlink')
+    hl.set(qn('r:id'), r_id)
+    hl.set(qn('w:history'), '1')
+    r = OxmlElement('w:r')
+    rPr = OxmlElement('w:rPr')
+    rStyle = OxmlElement('w:rStyle')
+    rStyle.set(qn('w:val'), 'Hyperlink')
+    rPr.append(rStyle)
+    if font_size is not None:
+        sz = OxmlElement('w:sz')
+        sz.set(qn('w:val'), str(int(font_size.pt * 2)))
+        rPr.append(sz)
+    if bold:
+        rPr.append(OxmlElement('w:b'))
+    r.append(rPr)
+    t = OxmlElement('w:t')
+    t.set(qn('xml:space'), 'preserve')
+    t.text = text
+    r.append(t)
+    hl.append(r)
+    paragraph._element.append(hl)
+
+
 def add_styled_paragraph(doc, text, bold=False, italic=False, size=None, alignment=None, space_before=None, space_after=None):
     """Add a paragraph with optional styling."""
     p = doc.add_paragraph()
@@ -232,10 +317,17 @@ def add_styled_paragraph(doc, text, bold=False, italic=False, size=None, alignme
     if space_after is not None:
         p.paragraph_format.space_after = space_after
 
-    # Parse inline formatting: **bold**, *italic*, `code`
-    parts = re.split(r'(\*\*.*?\*\*|\*.*?\*|`.*?`)', text)
+    # Parse inline formatting: **bold**, *italic*, `code`, [text](url), raw URLs
+    parts = re.split(r'(\*\*.*?\*\*|\*.*?\*|`.*?`|\[[^\]]*\]\([^)\s]+\)|https?://[^\s]+)', text)
     for part in parts:
-        if part.startswith('**') and part.endswith('**'):
+        if not part:
+            continue
+        link_match = re.match(r'^\[(.*?)\]\((https?://[^)\s]+)\)$', part)
+        if link_match:
+            add_hyperlink_run(p, link_match.group(2), link_match.group(1), size or FONT_SIZE, bold)
+        elif part.startswith('http'):
+            add_hyperlink_run(p, part.rstrip('.,;:'), part.rstrip('.,;:'), size or FONT_SIZE, bold)
+        elif part.startswith('**') and part.endswith('**'):
             run = p.add_run(part[2:-2])
             run.bold = True
             run.font.name = FONT_NAME
@@ -289,6 +381,7 @@ def add_table_from_md(doc, lines, start_idx):
 
     # Header row
     for col_idx, cell_text in enumerate(header):
+        cell_text = cell_text.replace('`', '')
         cell = table.rows[0].cells[col_idx]
         cell.text = ""
         p = cell.paragraphs[0]
@@ -305,6 +398,7 @@ def add_table_from_md(doc, lines, start_idx):
     for row_idx, row_data in enumerate(body):
         for col_idx, cell_text in enumerate(row_data):
             if col_idx < num_cols:
+                cell_text = cell_text.replace('`', '')
                 cell = table.rows[row_idx + 1].cells[col_idx]
                 cell.text = ""
                 p = cell.paragraphs[0]
@@ -468,10 +562,17 @@ def parse_and_build(doc, toc_index):
 
 def _add_inline_runs(paragraph, text, font_size):
     """Parse inline formatting and add runs to a paragraph."""
-    # Handle **bold** and *italic* and `code`
-    parts = re.split(r'(\*\*.*?\*\*|\*.*?\*|`.*?`)', text)
+    # Handle **bold** and *italic* and `code` and links
+    parts = re.split(r'(\*\*.*?\*\*|\*.*?\*|`.*?`|\[[^\]]*\]\([^)\s]+\)|https?://[^\s]+)', text)
     for part in parts:
-        if part.startswith('**') and part.endswith('**'):
+        if not part:
+            continue
+        link_match = re.match(r'^\[(.*?)\]\((https?://[^)\s]+)\)$', part)
+        if link_match:
+            add_hyperlink_run(paragraph, link_match.group(2), link_match.group(1), font_size)
+        elif part.startswith('http'):
+            add_hyperlink_run(paragraph, part.rstrip('.,;:'), part.rstrip('.,;:'), font_size)
+        elif part.startswith('**') and part.endswith('**'):
             run = paragraph.add_run(part[2:-2])
             run.bold = True
             run.font.name = FONT_NAME
@@ -502,6 +603,7 @@ def main():
     parser.add_argument("--title", help="Cover page title (use \\n for line break)")
     parser.add_argument("--subtitle", help="Cover page subtitle")
     parser.add_argument("--date-line", help="Cover page date/version line")
+    parser.add_argument("--compact", action="store_true", help="Tighter spacing (one-pager mode)")
     args = parser.parse_args()
 
     if args.input:
@@ -510,9 +612,9 @@ def main():
         OUTPUT_PATH = os.path.abspath(args.output)
     if args.title:
         COVER_TITLE = args.title.replace("\\n", "\n")
-    if args.subtitle:
+    if args.subtitle is not None:
         COVER_SUBTITLE = args.subtitle
-    if args.date_line:
+    if args.date_line is not None:
         COVER_DATE = args.date_line
 
     doc = Document()
@@ -521,8 +623,8 @@ def main():
     style = doc.styles['Normal']
     style.font.name = FONT_NAME
     style.font.size = FONT_SIZE
-    style.paragraph_format.space_after = Pt(6)
-    style.paragraph_format.line_spacing = 1.15
+    style.paragraph_format.space_after = Pt(4 if args.compact else 6)
+    style.paragraph_format.line_spacing = 1.05 if args.compact else 1.15
 
     # Set heading styles
     for i in range(1, 4):
@@ -531,8 +633,12 @@ def main():
         hs.font.color.rgb = RGBColor(0, 0, 0)
         sizes = {1: Pt(18), 2: Pt(15), 3: Pt(13)}
         hs.font.size = sizes.get(i, Pt(12))
-        hs.paragraph_format.space_before = Pt(18 if i == 1 else 12)
-        hs.paragraph_format.space_after = Pt(8)
+        if args.compact:
+            hs.paragraph_format.space_before = Pt(10 if i == 1 else 6)
+            hs.paragraph_format.space_after = Pt(4)
+        else:
+            hs.paragraph_format.space_before = Pt(18 if i == 1 else 12)
+            hs.paragraph_format.space_after = Pt(8)
 
     # Set list styles
     for list_style_name in ['List Bullet', 'List Number']:
@@ -540,6 +646,8 @@ def main():
             ls = doc.styles[list_style_name]
             ls.font.name = FONT_NAME
             ls.font.size = FONT_SIZE
+            if args.compact:
+                ls.paragraph_format.space_after = Pt(2)
         except KeyError:
             pass
 

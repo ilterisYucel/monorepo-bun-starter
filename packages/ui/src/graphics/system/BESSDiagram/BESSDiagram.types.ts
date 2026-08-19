@@ -61,6 +61,7 @@ export interface BESSConfig {
   dcRadius: number;
   hvacStartY: number;
   roomWidth: number;
+  roomGap: number;
   roomHeight: number;
   fireStartX: number;
   fireY: number;

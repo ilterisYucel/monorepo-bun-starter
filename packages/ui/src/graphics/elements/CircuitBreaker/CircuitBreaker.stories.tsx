@@ -5,7 +5,6 @@ import { CircuitBreaker } from "@gd-monorepo/ui";
 import { drawBreakerChassis } from "./CircuitBreaker.drawers";
 import { SpriteTextureProvider } from "../../../core/SpriteTextureProvider";
 import { SPRITE_ASSETS } from "../../textures";
-import { COLOR } from "../../../colors";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -25,76 +24,72 @@ const positions = {
 };
 const wrapper = { width: 200, height: 160, background: "#0f0f1a" } as const;
 
-// Nötr baz: sabit geometri (chassis 80x21 @ (12,12)) + ortada koyu ekran yuvası.
-// AI ekranı sprite'a gömer; kod verileri ölçülen yuvaya yazar.
+// Nötr baz (varyantlı): kesici şema sembolü — sol/sağ terminal noktaları +
+// İÇ İÇE 2 KARE outline + nötr bıçak (kapalı/açık konumda). AI kutuları ve
+// bıçağı sprite'a gömer; durum metinleri kodda kalır.
+// Sembol kutusu (logical): 60x70 — sprites-spec frame ile birebir.
 const basePositions = {
-  circuitBreaker: { endX: 89, gapSize: 8 },
-  convergence: { x: 9 },
-  topBusY: 7.5,
-  bottomBusY: 37.5,
+  circuitBreaker: { endX: 80, gapSize: 8 },
+  convergence: { x: 0 },
+  topBusY: 0,
+  bottomBusY: 70,
+};
+
+// Kalın capture katmanı: iç içe 2 kare (AI kutuları düşürmesin diye belirgin)
+const drawThickSquares = (g: import("pixi.js").Graphics) => {
+  g.clear();
+  g.rect(20, 0, 60, 70);
+  g.stroke({ width: 10, color: 0x4a4a5a });
+  g.rect(33.2, 15.4, 33.6, 39.2);
+  g.stroke({ width: 6, color: 0x4a4a5a });
+};
+
+const drawNeutralBlade = (g: import("pixi.js").Graphics, position: "close" | "open") => {
+  g.setStrokeStyle({ width: 6, color: 0x4a4a5a, cap: "round" });
+  if (position === "close") {
+    g.moveTo(24, 35);
+    g.lineTo(40, 35);
+    g.stroke();
+    g.moveTo(40, 31);
+    g.lineTo(50, 39);
+    g.stroke();
+    g.moveTo(50, 35);
+    g.lineTo(66, 35);
+    g.stroke();
+  } else {
+    g.moveTo(24, 35);
+    g.lineTo(40, 35);
+    g.stroke();
+    g.moveTo(45, 27);
+    g.lineTo(45, 43);
+    g.stroke();
+    g.moveTo(50, 35);
+    g.lineTo(66, 35);
+    g.stroke();
+  }
 };
 
 export const BaseClose = () => (
-  <div style={{ width: 104, height: 45 }}>
-    <Application width={104} height={45} backgroundAlpha={0} antialias={false} resolution={1}>
-      <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, config, basePositions); }} />
-      <pixiGraphics
-        draw={(g) => {
-          g.clear();
-          // kapalı konumdaki nötr lever (yatay, gri)
-          g.setStrokeStyle({ width: 4, color: COLOR.textMuted, cap: "round" });
-          g.moveTo(15, 22.5);
-          g.lineTo(56, 22.5);
-          g.stroke();
-          g.moveTo(56, 20.5);
-          g.lineTo(64, 24.5);
-          g.stroke();
-          g.moveTo(64, 22.5);
-          g.lineTo(89, 22.5);
-          g.stroke();
-        }}
-      />
-      <pixiGraphics
-        draw={(g) => {
-          g.clear();
-          g.roundRect(32, 16.5, 40, 12, 2);
-          g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
-          g.stroke({ width: 1, color: COLOR.borderStroke, alpha: 0.6 });
-        }}
-      />
+  <div style={{ width: 120, height: 110 }}>
+    <Application width={120} height={110} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiContainer x={20} y={20}>
+        <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, { step: 100 }, basePositions); }} />
+        <pixiGraphics draw={drawThickSquares} />
+        <pixiGraphics draw={(g) => drawNeutralBlade(g, "close")} />
+      </pixiContainer>
     </Application>
   </div>
 );
 BaseClose.parameters = { backgrounds: { default: "transparent" } };
 
 export const BaseOpen = () => (
-  <div style={{ width: 104, height: 45 }}>
-    <Application width={104} height={45} backgroundAlpha={0} antialias={false} resolution={1}>
-      <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, config, basePositions); }} />
-      <pixiGraphics
-        draw={(g) => {
-          g.clear();
-          // açık konumdaki nötr lever (dikey, gri)
-          g.setStrokeStyle({ width: 4, color: COLOR.textMuted, cap: "round" });
-          g.moveTo(15, 22.5);
-          g.lineTo(56, 22.5);
-          g.stroke();
-          g.moveTo(60, 17.5);
-          g.lineTo(60, 27.5);
-          g.stroke();
-          g.moveTo(64, 22.5);
-          g.lineTo(89, 22.5);
-          g.stroke();
-        }}
-      />
-      <pixiGraphics
-        draw={(g) => {
-          g.clear();
-          g.roundRect(32, 16.5, 40, 12, 2);
-          g.fill({ color: COLOR.gradScreen, alpha: 0.9 });
-          g.stroke({ width: 1, color: COLOR.borderStroke, alpha: 0.6 });
-        }}
-      />
+  <div style={{ width: 120, height: 110 }}>
+    <Application width={120} height={110} backgroundAlpha={0} antialias={false} resolution={1}>
+      <pixiContainer x={20} y={20}>
+        <pixiGraphics draw={(g) => { g.clear(); drawBreakerChassis(g, { step: 100 }, basePositions); }} />
+        <pixiGraphics draw={drawThickSquares} />
+        <pixiGraphics draw={(g) => drawNeutralBlade(g, "open")} />
+      </pixiContainer>
     </Application>
   </div>
 );

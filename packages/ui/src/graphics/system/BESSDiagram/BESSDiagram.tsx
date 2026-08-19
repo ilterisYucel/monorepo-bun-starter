@@ -368,7 +368,7 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
               {hvacRooms.map((room, ri) => {
                 const hs = config.hStep;
                 const hStartX = hs * 0.5;
-                const roomStartX = hStartX + ri * config.roomWidth;
+                const roomStartX = hStartX + ri * (config.roomWidth + config.roomGap);
                 const ry = config.hvacStartY + hs * 0.8;
                 const rh = config.roomHeight;
                 const rw = config.roomWidth;
@@ -400,7 +400,7 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
 
               <PanelCard
                 pos={{
-                  x: hs * 0.5 + hvacRooms.length * config.roomWidth + config.panelGap,
+                  x: hs * 0.5 + hvacRooms.length * (config.roomWidth + config.roomGap) + config.panelGap,
                   y: config.hvacStartY + hs * 0.8,
                   width: config.panelWidth,
                   height: config.roomHeight,
@@ -410,7 +410,7 @@ export const BESSDiagram: React.FC<BESSDiagramProps> = React.memo(function BESSD
 
               <FirePanel
                 data={firePanel}
-                x={hs * 0.5 + hvacRooms.length * config.roomWidth + config.panelGap + config.panelWidth + hs * 0.6}
+                x={hs * 0.5 + hvacRooms.length * (config.roomWidth + config.roomGap) + config.panelGap + config.panelWidth + hs * 0.6}
                 y={config.hvacStartY + hs * 0.8}
                 width={config.fireWidth}
                 height={config.fireHeight}

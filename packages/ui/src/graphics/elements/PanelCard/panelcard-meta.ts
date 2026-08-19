@@ -8,5 +8,5 @@ export interface PanelCardMeta {
 
 export const PANELCARD_META: PanelCardMeta = {
   measured: true,
-  barSlot: { x: 0.14167, y: 0.33500, width: 0.72500, height: 0.51000 },
+  barSlot: { x: 0.13333, y: 0.31500, width: 0.72500, height: 0.55500 },
 };

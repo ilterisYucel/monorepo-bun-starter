@@ -1,43 +1,12 @@
-import { Graphics, FillGradient } from "pixi.js";
+import { Graphics } from "pixi.js";
 import { COLOR } from "../../../colors";
-import type { EnergyAnalyzerData, EnergyAnalyzerGraphicConfig } from "./EnergyAnalyzerGraphic.types";
 
-let _eaBodyGrad: FillGradient | null = null;
-
-function eaBodyGrad(): FillGradient {
-  _eaBodyGrad ??= new FillGradient({
-    type: "linear",
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    colorStops: [
-      { offset: 0, color: COLOR.gradPanelTop },
-      { offset: 1, color: COLOR.gradBodyBot },
-    ],
-    textureSpace: "local",
-  });
-  return _eaBodyGrad;
-}
-
-export function drawEABody(
-  g: Graphics,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  cfg: EnergyAnalyzerGraphicConfig,
-): void {
-  const { step } = cfg;
-  const r = step * 0.2;
-
-  g.roundRect(x, y, w, h, r);
-  g.fill(eaBodyGrad());
-  g.stroke({ width: Math.max(1, step * 0.05), color: COLOR.borderStroke, alpha: 0.5 });
-
-  g.roundRect(x + step * 0.06, y + step * 0.06, w - step * 0.12, h - step * 0.12, r * 0.8);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.3 });
-}
-
-export function drawLCDScreen(
+// Enerji analizörü şema sembolü: PANELSIZ İÇ İÇE 2 KUTU (dış + iç dikdörtgen
+// outline, içleri transparent) + üst/alt belirgin terminal nubları (polarite).
+// Yatay devre kabloları dış kutunun sol/sağ kenarlarına dokunur.
+// Sembol kutusu (logical): 300x206 — sprites-spec frame ile birebir.
+// Çizgi rengi kablo grisi (COLOR.cable) — sprite ve kablolar tek ton.
+export function drawEABox(
   g: Graphics,
   x: number,
   y: number,
@@ -45,41 +14,60 @@ export function drawLCDScreen(
   h: number,
   step: number,
 ): void {
-  const r = step * 0.08;
+  const cx = x + w / 2;
+  const cy = y + h / 2;
 
-  g.roundRect(x, y, w, h, r);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.95 });
-  g.stroke({ width: Math.max(0.5, step * 0.025), color: COLOR.borderStroke, alpha: 0.5 });
+  const boxR = step * 0.08;
+  g.roundRect(x, y, w, h, boxR);
+  g.stroke({ width: Math.max(1, step * 0.04), color: COLOR.cable });
 
-  const scanlineCount = Math.floor(h / (step * 0.08));
-  for (let i = 0; i < scanlineCount; i++) {
-    const sy = y + i * step * 0.08;
-    g.rect(x + step * 0.05, sy, w - step * 0.1, step * 0.02);
-    g.fill({ color: COLOR.textWhite, alpha: 0.02 });
-  }
+  const innerW = w * 0.64;
+  const innerH = h * 0.46;
+  g.roundRect(cx - innerW / 2, cy - innerH / 2, innerW, innerH, boxR * 0.6);
+  g.stroke({ width: Math.max(0.8, step * 0.03), color: COLOR.cable });
+
+  const stubW = Math.max(8, step * 0.22);
+  const stubH = Math.max(10, step * 0.5);
+
+  g.roundRect(cx - stubW / 2, cy - innerH / 2 - stubH - step * 0.1, stubW, stubH, stubW * 0.3);
+  g.fill(COLOR.cable);
+  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.cable });
+
+  g.roundRect(cx - stubW / 2, cy + innerH / 2 + step * 0.1, stubW, stubH, stubW * 0.3);
+  g.fill(COLOR.cable);
+  g.stroke({ width: Math.max(0.5, step * 0.02), color: COLOR.cable });
 }
 
-export function drawLabelBox(
+// Kadranlı ölçü aleti işareti: daire + ibre (çapraz iğne) + skala çentikleri.
+// Kod çizilir (sprite'a metin/ince detay koyulmaz) — kablo grisi tonunda.
+export function drawEADial(
   g: Graphics,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  borderColor: number,
-  borderAlpha: number,
+  cx: number,
+  cy: number,
+  r: number,
   step: number,
 ): void {
-  const r = step * 0.05;
-  g.roundRect(x, y, w, h, r);
-  g.fill({ color: COLOR.gradScreen, alpha: 0.85 });
-  g.stroke({ width: Math.max(0.3, step * 0.012), color: borderColor, alpha: borderAlpha });
+  g.circle(cx, cy, r);
+  g.stroke({ width: Math.max(0.8, step * 0.03), color: COLOR.cable });
+
+  // ibre: merkezden sağ-üst 45° çapraz iğne
+  const needleLen = r * 0.78;
+  const ang = -Math.PI / 4;
+  g.setStrokeStyle({ width: Math.max(1, step * 0.035), color: COLOR.cable, cap: "round" });
+  g.moveTo(cx, cy);
+  g.lineTo(cx + Math.cos(ang) * needleLen, cy + Math.sin(ang) * needleLen);
+  g.stroke();
+
+  // skala çentikleri: sol, sağ, alt (daire iç yüzeyinde kısa çizgiler)
+  const tickLen = r * 0.18;
+  g.setStrokeStyle({ width: Math.max(0.8, step * 0.025), color: COLOR.cable, cap: "round" });
+  g.moveTo(cx - r * 0.9, cy);
+  g.lineTo(cx - r * 0.9 + tickLen, cy);
+  g.stroke();
+  g.moveTo(cx + r * 0.9 - tickLen, cy);
+  g.lineTo(cx + r * 0.9, cy);
+  g.stroke();
+  g.moveTo(cx, cy + r * 0.9 - tickLen);
+  g.lineTo(cx, cy + r * 0.9);
+  g.stroke();
 }
-
-const ROW_LABELS = [
-  { label: "V", unit: "V" },
-  { label: "I", unit: "A" },
-  { label: "P", unit: "kW" },
-  { label: "E", unit: "kWh" },
-] as const;
-
-export { ROW_LABELS };

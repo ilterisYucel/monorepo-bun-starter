@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-08-19):** Bu doküman geçersizdir — yerine geçen mimari ve uygulama planı: [EDITOR-MIMARISI.md](./EDITOR-MIMARISI.md). Önerilen yeni platform paketi (`config-engine`) iptal edildi: editör mantığı `apps/editor` içinde yaşar, validasyon `shared-types` şemalarını kullanır. Tarihsel kayıt olarak korunur.
+
 # Phase 2: Configuration Engine
 
 ## Package: `packages/config-engine/`

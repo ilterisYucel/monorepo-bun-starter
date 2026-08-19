@@ -33,6 +33,7 @@
     "test:perf": "k6 run deployment/k6/*.js",
     "sprite:refs": "bun tools/capture-sprite-refs.mjs",
     "sprite:gen": "bun tools/generate-sprite.mjs",
+    "sprite:theme": "bun tools/swap-sprite-theme.mjs",
     "sprite:measure": "bun tools/measure-rackmeta.mjs",
     "graph": "nx graph",
     "clean": "nx run-many --target=clean"

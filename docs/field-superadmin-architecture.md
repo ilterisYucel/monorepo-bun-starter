@@ -36,6 +36,8 @@ Three-tier federated architecture. Each tier owns its database independently. Co
 
 **Key principle:** Container data is never duplicated at the field level. Field queries containers on demand for charts and detail views. Containers push only the latest telemetry snapshot via WebSocket for live gauges.
 
+**Remote UI access (2026-08-19):** The same outbound container→field WebSocket is made duplex and carries a multiplexed HTTP/WS tunnel. Field users open the full container-web UI inside an iframe at `/containers/:containerId/ui`. Full protocol, session/audit model and implementation phases: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
+
 ---
 
 ## App 1: `apps/field` (Full Stack — Field Operator)
@@ -85,6 +87,22 @@ export interface IContainerProxy {
 
   // API endpoint health check for a container
   health(containerId: string): Promise<boolean>;
+
+  // Remote UI sessions (2026-08-19 — session tunnel over the same WS)
+  openSession(containerId: string, user: SessionUser): Promise<SessionTicket>;
+  closeSession(containerId: string, sessionId: string): void;
+}
+
+export interface SessionUser {
+  id: string;
+  username: string;
+  role: Role; // field role — mapped to container role by the container
+}
+
+export interface SessionTicket {
+  sessionId: string;
+  token: string;       // container-signed short-lived JWT (opaque to field)
+  expiresInSec: number;
 }
 
 export interface ContainerObserver {
@@ -92,6 +110,28 @@ export interface ContainerObserver {
   onConnectionChange(containerId: string, state: ConnectionState): void;
 }
 ```
+
+#### Container Remote UI — Session Tunnel (2026-08-19)
+
+The duplex `/ws/container` channel carries an HTTP/WS tunnel. Field UI opens the container SPA in an iframe:
+
+```mermaid
+sequenceDiagram
+  participant U as Field UI
+  participant F as field web-service
+  participant C as Container (FieldConnector)
+
+  U->>F: POST /api/fields/:fid/containers/:cid/session (JWT)
+  F->>C: {type:"open-session", sessionId, user{role}}
+  C->>F: {type:"open-session-ack", token}   %% container-signed JWT
+  F-->>U: Set-Cookie: container_session; Path=/containers/:cid/ui
+  U->>F: iframe GET /containers/:cid/ui/**
+  F->>C: {type:"stream-open", streamId, method, path}
+  C->>F: binary stream frames + FIN
+  F-->>U: streamed response (SPA, /api, /ws)
+```
+
+Key properties: single outbound connection per container (discovery preserved); container web-service signs session JWTs with its own secret (no secret sharing); field stores `session_audit` rows; RBAC mapping field `admin`/`teknik` → container `admin`, `boss` → `guest`; path allowlist blocks `/api/auth/login` inside the tunnel. Full spec: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
 
 #### REST Endpoints (extended in web-service)
 
@@ -108,6 +148,9 @@ export interface ContainerObserver {
 | `PUT` | `/api/fields/:fieldId` | Update field (admin) |
 | `DELETE` | `/api/fields/:fieldId` | Delete field (admin) |
 | `POST` | `/api/fields/:fieldId/commands/execute-multi` | Execute multi-container maneuvers |
+| `POST` | `/api/fields/:fieldId/containers/:containerId/register` | Register container service token + URL in field registry (admin) |
+| `POST` | `/api/fields/:fieldId/containers/:containerId/session` | Open remote UI session (302 + `container_session` cookie) |
+| `GET` | `/containers/:containerId/ui/*` | Reverse-proxied container SPA + API + WS through the tunnel |
 
 #### Field DB (TimescaleDB)
 
@@ -331,9 +374,11 @@ Field frontend: user opens chart with 3 containers, 24h range
         fetch("http://container-2/api/data/bsc-2/downsampled?..."),
         fetch("http://container-3/api/data/bsc-3/downsampled?..."),
       ])
-  → Merge results, tag each with containerId
-  → Return to frontend → TelemetryChart renders multi-series
+   → Merge results, tag each with containerId
+   → Return to frontend → TelemetryChart renders multi-series
 ```
+
+> 2026-08-19: `fetchAllHistorical` transport moves to the session tunnel (registry URL + service token) — the self-reported `containerUrl` in `register` is no longer trusted (SSRF). Transport details: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
 
 **PPC Status (container → field connection):**
 ```
@@ -652,6 +697,13 @@ packages/core/src/container-proxy/
 └── README.md
 ```
 
+```
+packages/core/src/tunnel/      # NEW (2026-08-19)
+├── index.ts                   # Barrel exports
+├── types.ts                   # Control message union + stream types
+└── frame-codec.ts             # Binary stream frame encode/decode (9-byte header)
+```
+
 ### `packages/ui` — New Components
 
 #### `PlayCanvasViewer`
@@ -898,6 +950,10 @@ Green dot + "Bağlı" when connected. Red dot + "Bağlantı Yok" when disconnect
 | 8.6 | Docker Compose for field stack | 8.4 |
 | 8.7 | Configure device-service for field equipment | — |
 | 8.8 | Integration test: field ↔ container data flow | 8.5, 8.6 |
+
+### Phase 9+: Remote UI Tunnel (2026-08-19)
+
+Security baseline → FieldConnector → session tunnel → container-web subpath support → field UI iframe → NIS-2 closure. Detailed task breakdown with acceptance criteria: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (Faz 1–6).
 
 ---
 

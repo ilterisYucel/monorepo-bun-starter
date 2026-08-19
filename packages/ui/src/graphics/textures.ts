@@ -26,28 +26,28 @@ export const SPRITE_ASSETS: Readonly<Record<string, SpriteAssetMeta>> = {
     key: "rackcell",
     url: rackcellUrl,
     scale: 2,
-    // Canvas 160x420 @2x, gövde (0,0,120,380) + nub (14) + gölge (8)
-    frame: { x: 40, y: 12, width: 256, height: 816 },
+    // PANELSIZ sembol: nublar + iletken + plakalar (logical 16..104 x -14..394)
+    frame: { x: 72, y: 12, width: 154, height: 816 },
   },
   "circuitbreaker-close": {
     key: "circuitbreaker-close",
     url: circuitbreakerCloseUrl,
     scale: 2,
-    // Canvas 104x45 @2x; chassis (12,12,80,21) + ekran yuvası — frame tam canvas
-    frame: { x: 0, y: 0, width: 208, height: 90 },
+    // Sembol: iç içe 2 kare + terminaller + kapalı bıçak (içerik 60x70 logical)
+    frame: { x: 80, y: 40, width: 120, height: 140 },
   },
   "circuitbreaker-open": {
     key: "circuitbreaker-open",
     url: circuitbreakerOpenUrl,
     scale: 2,
-    frame: { x: 0, y: 0, width: 208, height: 90 },
+    frame: { x: 80, y: 40, width: 120, height: 140 },
   },
   dcoutput: {
     key: "dcoutput",
     url: dcoutputUrl,
     scale: 2,
-    // Canvas 100x112 @2x; daire (50,46,r30) + altta ekran yuvası (22,84,56,16)
-    frame: { x: 0, y: 0, width: 200, height: 224 },
+    // Yalnız daire outline (60x60 logical)
+    frame: { x: 40, y: 32, width: 120, height: 120 },
   },
   roomcard: {
     key: "roomcard",
@@ -77,7 +77,8 @@ export const SPRITE_ASSETS: Readonly<Record<string, SpriteAssetMeta>> = {
     key: "energyanalyzergraphic",
     url: energyanalyzerUrl,
     scale: 2,
-    frame: { x: 0, y: 0, width: 616, height: 776 },
+    // Kutu sembolü: kutu + çember + polarite nubları (300x206 logical)
+    frame: { x: 8, y: 8, width: 600, height: 412 },
   },
   cable: {
     key: "cable",

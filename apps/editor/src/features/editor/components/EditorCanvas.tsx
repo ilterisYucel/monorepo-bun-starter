@@ -13,7 +13,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { COLORS, SCADA_ICONS } from "@gd-monorepo/ui";
-import { DEVICE_LIBRARY, type DeviceType } from "@gd-monorepo/device-library";
+import { DEVICE_LIBRARY, type DeviceType } from "../device-catalog";
 import { useEditorStore } from "../stores/editorStore";
 import type { DeviceNode } from "../types/editor";
 

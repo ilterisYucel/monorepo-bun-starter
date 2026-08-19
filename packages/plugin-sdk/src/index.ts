@@ -5,4 +5,5 @@ export * from "./registry";
 export * from "./sources";
 export * from "./loader";
 export * from "./sdk-version";
+export * from "./http";
 export { SDK_VERSION } from "./sdk";

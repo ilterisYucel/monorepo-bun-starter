@@ -3,7 +3,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { RoomCard } from "@gd-monorepo/ui";
 import { createMockRoomData } from "../../../__stories__/mocks/factories";
-import { drawRoomChassis, drawRoomBarSlot } from "./RoomCard.drawers";
+import { drawRoomChassis } from "./RoomCard.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -30,8 +30,8 @@ export const Base = () => (
       <pixiGraphics
         draw={(g) => {
           g.clear();
+          // Frame-only: AI yalnızca çerçeveyi üretsin — termometre kod tarafında
           drawRoomChassis(g, { ...roomPos, x: 5, y: 5 }, config);
-          drawRoomBarSlot(g, { ...roomPos, x: 5, y: 5 }, config, { x: 6.8, y: 8, width: 13.5, height: 93 });
         }}
       />
     </Application>

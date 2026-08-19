@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@gd-monorepo/core": "*",
+    "@gd-monorepo/epias-client": "*",
     "@gd-monorepo/epias-market-prices": "*",
     "@gd-monorepo/plugin-sdk": "*",
     "@gd-monorepo/shared-types": "*",

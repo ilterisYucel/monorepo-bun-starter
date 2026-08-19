@@ -1,6 +1,7 @@
 # Konteyner-Field Mimari Değerlendirmesi
 
 Tarih: 2026-08-13
+Güncelleme: 2026-08-19 — uzaktan konteyner UI erişimi kararı (bkz. [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md))
 Kapsam: Container-level (RevPi) ve Field-level uygulama katmanları, servisler, compose stack'leri.
 
 ## Hedef Mimari
@@ -16,7 +17,7 @@ Kapsam: Container-level (RevPi) ve Field-level uygulama katmanları, servisler, 
 - PCS'ler **field-level app'in device-service'i** tarafından poll edilir (site ağı üzerinden, Modbus).
 - Komut yolu: **Field UI → field web-service → BullMQ → field device-service → Modbus → PCS → konteyner**. PCS'e `charge` komutu verilir; PCS konteyneri şarj/deşarj durumuna getirir. Konteyner içindeki BSC'ye doğrudan charge/discharge **gönderilmez**.
 - Konteyner içi cihazlar (BSC, HVAC, CB, DC-Output) **container-level device-service** tarafından poll edilir — field ile karıştırılmamalıdır.
-- Sonuç: PCS komutları container→field WS kanalından geçmez. Container→field WS yalnızca telemetri + PPC durumu taşır.
+- Sonuç: PCS komutları container→field WS kanalından geçmez. Container→field WS telemetri + PPC durumu taşır; **2026-08-19 kararıyla** aynı kanal üzerinde uzaktan UI erişimi için HTTP/WS tünel akışları da taşınır (bkz. [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)).
 
 ## Bağlantı Modeli: NAT, Outbound vs Inbound, PCS Eşleştirme
 
@@ -45,7 +46,7 @@ Kritik sonuç: **dışarıdan içeriye bağlantı kurulamaz** (port yönlendirme
 
 1. **Register**: Konteyner field'a bağlanınca kendini tanıtır: `{type:"register", containerId:"container-1", containerUrl:...}` — `container-ws-routes.ts` bunu `ContainerProxy.registerContainer()`'a verir.
 2. **Field kayıt defteri**: Field DB'sinde `field_containers` tablosu var (`field_id, container_id, container_url, layout`). Ek olarak **PCS eşleme tablosu** gerekir: `pcs_id → container_id` (kurulumda bir kez kaydedilir: "PCS-1, container-1'i kontrol ediyor"). Register'daki `containerId` bu eşlemeden `pcs_id`'yi çözer.
-3. **Kimlik doğrulama**: Her konteynere kurulumda verilen API key/servis token'ı register mesajında gider; field doğrular (bugün yok, kritik).
+3. **Kimlik doğrulama**: Her konteynere kurulumda verilen API key/servis token'ı WS upgrade header'ında gider; field kayıt defterindeki `token_hash` ile doğrular (bugün yok, kritik — Faz 1'de uygulanacak).
 
 **PPC = WS durumu.** `ContainerProxy.connectionStatus()` container başına `connected/idle/error` tutar; WS kopunca `close` event'i ile anında güncellenir.
 
@@ -62,7 +63,7 @@ Bugün mock'tan gelen `connected` alanı, gerçekte bu endpoint'in `connectionSt
 
 **Eksik parçalar:**
 
-- FieldConnector istemcisi (container tarafı): outbound WS + register + reconnect/backoff + PPC durumunu kendi UI'ına sunma.
+- FieldConnector istemcisi (container tarafı): outbound WS + register + reconnect/backoff + PPC durumunu kendi UI'ına sunma + HTTP/WS tünel istemcisi (duplex stream multiplex — bkz. [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)).
 - Register auth (servis token'ı).
 - `pcs_id → container_id` eşleme tablosu + endpoint.
 - Heartbeat/last_seen: WS kopuklukta "yarı ölü" bağlantıları ayırt etme (`ContainerProxy` sweep'i var ama last_seen bazlı stale işaretleme yok).
@@ -73,6 +74,14 @@ Bugün mock'tan gelen `connected` alanı, gerçekte bu endpoint'in `connectionSt
 Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, outbound-only gateway, supervision tier'ları). Ancak uygulama durumu tamamlanmış değil — PPC bağlantısını ve field'dan yönetimi bloklayan kritik boşluklar var.
 
 İlgili: [DEVICE-SERVICE-TRANSPORT-MIMARISI.md](./DEVICE-SERVICE-TRANSPORT-MIMARISI.md) — device-service taşıma katmanı (Strategy + Adapter, `transport.kind` config modeli, simülatör altyapısı).
+
+## Uzaktan Konteyner UI Erişimi (2026-08-19 kararı)
+
+**İhtiyaç:** Sahalar genellikle personelsizdir; konteyner ekranlarının tek tek yerinde kontrolü mümkün değildir. Operatör, field uygulamasından konteyner UI'larına güvenli şekilde ulaşmalıdır.
+
+**Karar:** Mevcut outbound WS kanalı duplex yapılır; üzerinde multiplexed HTTP/WS tüneli çalışır. Field UI, konteyner kartından özet sayfaya, oradan "Tam Ekran" ile iframe'e gider (`/containers/:cid/ui`). Konteyner backend/frontend'i yerinde kalır, keşif (outbound-only) modeli korunur. VPN (kendi WireGuard sunucusu) yalnızca insan→field katmanında; konteynerler VPN'e girmez. Konteyner içi cihaz komutları, oturumlu uzak UI üzerinden container API'siyle yürütülür (rol eşlemesi: field admin/teknik → container admin).
+
+**Kararlar, protokol, fazlar ve NIS-2 eşlemesi:** [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)
 
 ## Bloklayıcı Eksiklikler
 
@@ -88,12 +97,12 @@ Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, out
 ## Mantık / Tasarım Hataları
 
 7. **Service-to-service auth yok.** `/ws/container` doğrulamasız; `ContainerProxy.historical()` JWT'siz HTTP. Dışarıya açık field'a sahte container kaydı mümkün.
-8. **Field→Container komut kanalı tanımsız.** PCS komutları WS'ten geçmez (field device-service → Modbus). Ancak container içi cihazlara field'dan komut gerekecekse duplex WS/long-poll açık karar olarak duruyor.
+8. **Field→Container komut kanalı tanımsızdı.** PCS komutları WS'ten geçmez (field device-service → Modbus). 2026-08-19'da uzaktan erişim tüneli kararıyla çözüldü: konteyner içi cihaz komutları oturumlu uzak UI üzerinden container API'siyle yürütülür (rol eşlemesi: admin/teknik → admin). Programatik (UI'sız) field→container komut frame'i gereksinimi açık kalıyor.
 9. **Redis kalıcılığı kapalı** (`--save "" --appendonly no`, `allkeys-lru` 64MB). Güç kesintisi = kayıp BullMQ job (komut/telemetri); `allkeys-lru` bellek baskısında pending job evict eder.
 10. **RevPi kaynak profiliyle uyumsuz prod ayarları**: `shared_buffers=4GB`, `effective_cache_size=12GB` (`docker-compose.container.yml`).
 11. **Sırlar sabit**: `JWT_SECRET` compose içinde; seed kullanıcılar `admin/admin123` kodda (`web-service/src/config/default.ts`).
 12. **Image pinleme yok** (`timescale/timescaledb:latest-pg14`).
-13. **PPC semantiği belirsiz**: field header'da agrega (`onlineContainers > 0`), container'da beslenmiyor. Per-container mı global mı netleşmeli. Not: enerji endüstrisinde "PPC" = Power Plant Controller; adlandırma çakışması riski.
+13. **PPC semantiği belirsiz**: field header'da agrega (`onlineContainers > 0`), container'da beslenmiyor. Per-container mı global mı netleşmeli. Not: enerji endüstrisinde "PPC" = Power Plant Controller; adlandırma çakışması riski. **2026-08-19:** Kullanıcı arayüzünde "Field Bağlantısı" etiketi kullanılacak; kod tarafında PPC kısaltması kalabilir.
 14. **Field veri stratejisi tanımsız**: `ContainerProxy` sadece `latest` RAM'de tutar; field Timescale'ine hiçbir şey yazılmaz.
 15. **NTP/zaman senkronizasyonu yok** — dağıtık zaman serisi ve `last_seen` mantığı için gerekli.
 
@@ -102,7 +111,8 @@ Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, out
 | Konu | Durum |
 |------|-------|
 | Field veri stratejisi | **Karar verildi**: Proxy + hafif aggregate. Canlı telemetri RAM'de, geçmiş veri istek üzerine container'dan; field DB'ye yalnızca alan bazlı aggregate/summary yazılır. |
-| Field→Container komut kanalı | **Daraltıldı**: PCS komutları field device-service → Modbus → PCS üzerinden gider (WS gerekmez). Container→field WS yalnızca telemetri + PPC. Container içi cihazlara field'dan komut gerekecekse duplex WS yine değerlendirilecek (evdeki PC). |
+| Field→Container komut kanalı | **Daraltıldı**: PCS komutları field device-service → Modbus → PCS üzerinden gider. Konteyner içi cihaz komutları uzaktan erişim tünelindeki oturum üzerinden container API'siyle yürütülür (2026-08-19). Programatik UI'sız komut frame'i açık kalıyor. |
+| Konteyner UI uzaktan erişim | **Karar verildi (2026-08-19)**: Outbound WS duplex yapılır; üzerinde multiplexed HTTP/WS tüneli. Field UI iframe ile `/containers/:cid/ui` açar. VPN (kendi WireGuard) yalnızca insan→field; konteynerler VPN'e girmez. Detay: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) |
 | Management ayrı servis mi | **Açık karar**. Şu an web-service içinde. |
 
 ## Güçlü Yönler
@@ -114,13 +124,15 @@ Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, out
 
 ## Yol Haritası
 
-1. **FieldConnector** (container tarafı): field'a outbound WS + `register {containerId, containerUrl}`, reconnect + backoff, PPC durumunu UI'a sunar. Duplex komut protokolü.
+1. **FieldConnector** (container tarafı): field'a outbound WS + `register {containerId, containerUrl}`, reconnect + backoff, PPC durumunu UI'a sunar + HTTP/WS tünel istemcisi. (Faz 2–3)
 2. Service-to-service auth (API key / servis tokeni; `/ws/container` ve historical fetch doğrulaması).
-3. Field'a device-service + data-service eklenmesi (PCS tanımı `device-library`'de hazır).
+3. Field'a device-service + data-service eklenmesi (PCS tanımı device-service config'lerinde ve simülatörlerde hazır).
 4. Redis AOF + `noeviction`.
 5. Field UI'ın mock'tan gerçek API'a bağlanması.
 6. Sırların ortamdan çıkarılması, seed kullanıcıların üretimde zorunlu değişimi.
 7. RevPi profiline göre PG ayarları, image pinleme, NTP, SD-card wear (log rotasyonu).
+8. **Uzaktan erişim tüneli**: session gateway, stream multiplex, container-web subpath uyumu (hash router + relative base), field UI "Tam Ekran" iframe. Detay: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
+9. NIS-2 kapanışı: MFA (TOTP), session audit, NTP, image pinleme, bildirim prosedürü.
 
 ## Bugün Yapılan Field Ön Yüz Değişiklikleri
 

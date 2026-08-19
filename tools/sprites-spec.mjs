@@ -5,18 +5,21 @@
 export const SPRITE_SPECS = {
   rackcell: {
     canvas: { width: 320, height: 840 },
-    frame: { x: 40, y: 12, width: 256, height: 816 },
+    // PANELSIZ batarya sembolü: nublar + iletken + plakalar (logical 16..104 x -14..394)
+    frame: { x: 72, y: 12, width: 154, height: 816 },
     margin: 10,
   },
   circuitbreaker: {
-    canvas: { width: 208, height: 90 },
-    frame: { x: 0, y: 0, width: 208, height: 90 },
+    canvas: { width: 240, height: 220 },
+    // Sembol içerik kutusu: canvas (40,20,60,70) @2 — iç içe kareler + terminaller
+    frame: { x: 80, y: 40, width: 120, height: 140 },
     margin: 8,
     variants: ["close", "open"],
   },
   dcoutput: {
     canvas: { width: 200, height: 224 },
-    frame: { x: 0, y: 0, width: 200, height: 224 },
+    // Yalnız daire outline: canvas (20,16,60,60) @2
+    frame: { x: 40, y: 32, width: 120, height: 120 },
     margin: 8,
   },
   roomcard: {
@@ -40,8 +43,9 @@ export const SPRITE_SPECS = {
     margin: 10,
   },
   energyanalyzergraphic: {
-    canvas: { width: 616, height: 776 },
-    frame: { x: 0, y: 0, width: 616, height: 776 },
+    canvas: { width: 616, height: 428 },
+    // Kutu sembolü: canvas (4,4,300,206) @2 — kutu + çember + polarite nubları
+    frame: { x: 8, y: 8, width: 600, height: 412 },
     margin: 10,
   },
   cable: {

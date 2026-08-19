@@ -26,9 +26,24 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 
 ## Testing
 - **`TESTING.md` is the authoritative testing reference** — layers, file naming, mocking rules, coverage targets, and commands. Read it before writing or running any test.
-- Unit/component/integration: Vitest workspace (`vitest.workspace.ts`, 14 projects).
+- Unit/component/integration: Vitest workspace (`vitest.workspace.ts`).
 - E2E: Playwright (`e2e/`). Perf: k6 (`deployment/k6/`). Both via root scripts.
 - Mocking rules: external deps (redis, pg, bullmq) via `vi.mock()` + root-level `__mocks__/`; `@gd-monorepo/*` internal packages are never mocked.
+
+### TDD (MANDATORY for new code)
+
+**Yeni modüller** (Faz 0-6 dahil her yeni sınıf/modül/fonksiyon) katı TDD ile geliştirilir:
+
+```
+interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasyon (yeşil) → refactor
+```
+
+- **JSDoc önce:** Test yazılmadan önce davranış sözleşmesi JSDoc ile yazılır: state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler.
+- **Test sonra:** `*.test.ts` sözleşmeyi sabitler ve kırmızı verir; implementasyon testi yeşile çevirir. Test yoksa implementasyon başlamaz.
+- **Legacy karakterizasyon testleri:** Değiştirilecek testsiz modüllerde (örn. `rbac.ts`, `field-routes.ts`, `ws-routes.ts`, `bullmq-adapter.ts`) önce **mevcut davranış** testle sabitlenir — bug/delik dahil — sonra değişiklik yapılır.
+- **Kapılar:** Yeni kodda ≥%70 satır (SonarCloud kapısı); **güvenlik-kritik modüllerde ≥%90 branch**: rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu.
+- **Kural: testsiz PR merge edilmez.**
+- **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
 
 ## Monorepo structure
 - **Bun** is the package manager. Workspaces: `apps/*` + `packages/**` + `services/*`.
@@ -39,7 +54,7 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 
 | Layer | What | Physical location | Examples |
 |:------|:-----|:------------------|:---------|
-| **Platform (engine)** | Reusable libraries — imported, never deployed | `packages/` | core, plugin-sdk, plugins/*, shared-types, shared-utils, simulators, device-library, ui |
+| **Platform (engine)** | Reusable libraries — imported, never deployed | `packages/` | core, plugin-sdk, plugins/*, shared-types, shared-utils, simulators, ui |
 | **Capabilities** | Deployable, config-driven parts — runnable alone but not a product; composed into products via config | `services/` (backend) + `apps/` (frontend/desktop) | web-service, data-service, device-service, integration-service \| field, superadmin, container-web, desktop, editor |
 | **Products** | Assembled composition of capabilities + configs | `deployment/` (compose files + configs) | field stack, boss stack, container stack, customer variants |
 
@@ -51,14 +66,15 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 ```
 shared-types (leaf, no deps)
   → shared-utils, core, simulators, plugin-sdk
-    → plugins/epias-market-prices, ui
-      → demo-backend (depends on core, shared-types, simulators)
-      → web-service (depends on core, shared-types)
-      → data-service (depends on core, shared-types)
-      → device-service (depends on core, shared-types, simulators)
-      → integration-service (depends on core, plugin-sdk, plugins/*)
-      → web (depends on shared-types, shared-utils, ui)
-      → desktop (depends on shared-types, shared-utils)
+    → epias-client (depends on plugin-sdk)
+      → plugins/epias-market-prices (depends on epias-client), ui
+        → demo-backend (depends on core, shared-types, simulators)
+        → web-service (depends on core, shared-types)
+        → data-service (depends on core, shared-types)
+        → device-service (depends on core, shared-types, simulators)
+        → integration-service (depends on core, plugin-sdk, plugins/*)
+        → web (depends on shared-types, shared-utils, ui)
+        → desktop (depends on shared-types, shared-utils)
 ```
 
 ### Package ownership
@@ -67,7 +83,8 @@ shared-types (leaf, no deps)
 | `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth, integration contracts) |
 | `shared-utils` | ConfigLoader, env sources, config definitions                          |
 | `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
-| `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader (see `docs/PLUGIN-MIMARISI.md`) |
+| `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/PLUGIN-MIMARISI.md`) |
+| `epias-client` | EPIAŞ HTTP client: CAS TGT yaşam döngüsü (`EpiasTicketStore` — dosya önbelleği), `EpiasClient` (TGT header + EPIAŞ tarih formatı + tipli yardımcılar), endpoint sabitleri. Plugin değil — kütüphane; EPIAŞ plugin'leri paylaşır |
 | `plugins/*`    | Built-in plugin packages (e.g. `epias-market-prices`) — loaded via StaticPluginSource |
 | `simulators`   | BSC/HVAC/XRack/CB/DC-Output device simulators — register-accurate                 |
 | `ui`           | Shared React components (PixiJS graphics, Recharts, Emotion)         |

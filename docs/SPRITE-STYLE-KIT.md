@@ -33,11 +33,10 @@
 
 ## 3. Element başına üretim spesifikasyonu
 
-### RackCell (battery rack)
-- **Referans:** `refs/rackcell/online-charging.png` (tek referans yeter — durumlar nötr baz üzerine kod ile)
-- **Üretim:** 1 nötr baz sprite (rack gövdesi, pil modülleri seviyeleri görünür, terminaller üstte/altta).
-- **9-slice:** Gövde dikey olarak uzayabilir olmalı (üst kapak / orta gövde / alt kapak). Orta bölge pil modülü dokusu tekrar eder.
-- **Kod katmanları (kalır):** fill overlay (SOC seviye), glow (ticker), terminaller, 6 etiket satırı.
+### RackCell (battery rack — batarya devre sembolü)
+- **Referans:** `refs/rackcell/base.png` (nötr chassis: üst/alt terminal, 6 plaka çifti uzun/kısa dönüşümlü, alt etiket bandı)
+- **Üretim:** 1 nötr baz sprite (sembol gövdesi, plaka çiftleri görünür, etiket bandı BOŞ koyu).
+- **Kod katmanları (kalır):** durum glow, etiket satırları (R01 / durum / şarj / SOC% / V / A — omurganın iki yanında yüzer, sağlı sollu). SOC dolgusu yok; seviye yalnızca etikette.
 
 ### Cable / CableBus (kablolar, bus bar)
 - **Üretim:** 1 kablo segment dokusu (kısa düz parça, yatay) + 1 bağlantı ucu (terminal pabucu). Doku yatayda tekrarlanabilir (tile) olmalı.

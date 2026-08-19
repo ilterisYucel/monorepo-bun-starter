@@ -61,6 +61,30 @@
 └────────────────────────────────────────────────────────┘
 ```
 
+### Current Coverage Reality (2026-08-19)
+
+Yukarıdaki sayılar hedeftir. Gerçek envanter (backend yoğun katmanlar):
+
+| Paket/Servis | Test dosyası | Test sayısı | Verdict |
+|---|---|---|---|
+| shared-types | 5 | 59 | En iyi — Result + tüm zod şemaları |
+| core | 3 | 42 | Decoder iyi; **messaging/redis/modbus client'ları 0 test**; TimescaleDBAdapter 615 satır → 2 test |
+| shared-utils | **0** | **0** | **`test` script'i exit 1 veriyor — ConfigLoader/sources/units/definitions tamamen testsiz** |
+| simulators | 6 | 49 | 5/8 aile testli; **BSC (737 satır), XRack, EnergyAnalyzer + 8 Modbus adapter'ı 0 test** |
+| plugin-sdk | 5 | 25 | İyi; timeout/abort eksik |
+| epias-client | 2 | 13 | Ticket store iyi; 8/9 endpoint metodu testsiz |
+| plugins/epias-market-prices | 1 | 7 | Fetch akışı iyi; health/deactivate/parseSeries eksik |
+| editor | 1 | 4 | device-catalog smoke + registry invariant'leri (device-library migrasyonu sonrası) |
+| web-service | 3 | 24 | Auth use-case'leri iyi; **RBAC middleware, ws-routes auth, command-routes, container-proxy, realtime-manager, field-poller, token-adapter (gerçek jose), user-repository (gerçek SQL), awilix container, non-auth route'ların tamamı 0 test** |
+| device-service | 4 | 19 | Loader/factory/scheduler/tagger iyi; **device-service.ts orchestrator + executeCommand validation döngüsü 0 test** |
+| data-service | 1 | 11 | Tek sınıf tam; failure propagation eksik |
+| integration-service | 2 | 15 | İyi; error branch'leri eksik |
+| demo-backend | 1 | 1 | Smoke only — legacy |
+
+**Test borcu sırası (AGENTS.md TDD kuralı):** (1) dokunulacaklar: rbac, field-routes, ws-routes, bullmq-adapter, device-service.ts, container-proxy (Faz 0-3 değişikliklerinden önce karakterizasyon testleri), (2) güvenlik/altyapı kritik: token-adapter, command-routes, TimescaleDBAdapter, modbus client'ları, (3) geri kalan: BSC/XRack simülatörleri, demo-backend.
+
+**Aksiyon:** `packages/shared-utils` test hedefi düzeltilecek (exit 1 → gerçek testler) — Faz 0 T0.5 ConfigLoader entegrasyonundan ÖNCE.
+
 ### Layer 1: Unit Tests
 
 **Runner:** Vitest | **Target:** Fast (<5s per project) | **Mock strategy:** In-memory stubs
@@ -79,8 +103,7 @@
 | `ui` | Utilities, transports, hooks | `hexToNumber()`, `WebSocketTransport` state machine, `useRealtimeTelemetry()` |
 | `web` | Zustand stores, maneuver transforms | `LogStore.add()` deduplicates; maneuver transform splits power across devices |
 | `desktop` | Main process utilities | Crash handler, auto-updater logic |
-| `editor` | Config editor logic | JSON schema validation, graph node operations |
-| `device-library` | Device definitions | Registry lookup, device type resolution |
+| `editor` | Config editor logic | JSON schema validation, graph node operations, device-catalog registry |
 | `eslint-plugin-energy` | ESLint rule logic | Custom rule detects forbidden patterns |
 
 ### Layer 2: Component Tests
@@ -264,4 +287,50 @@ Key differences:
 - [x] Quality gate enforces coverage on new code
 - [x] E2E tests cover critical user paths
 - [x] Performance baselines established
-- [x] All 15 projects have `test` Nx target
+- [x] All workspace projects have `test` Nx target
+- [ ] `shared-utils` test script fixed (currently exits 1 — no test files)
+
+---
+
+## 8. TDD Workflow (MANDATORY)
+
+### 8.1 Döngü
+
+```
+interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasyon (yeşil) → refactor
+```
+
+1. **JSDoc kontratı:** Davranış sözleşmesi kod yazılmadan yazılır — state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler. Test dosyasının başına bu kontrat referans olarak konur.
+2. **Kırmızı test:** `*.test.ts` sözleşmeyi sabitler; implementasyon yokken kırmızı verir.
+3. **Minimal implementasyon:** Yalnızca testi yeşile çevirecek kod; spekülasyon yok.
+4. **Refactor:** Elegant Object + DI kurallarına uygun temizlik; testler yeşil kalmalı.
+
+### 8.2 Legacy karakterizasyon testleri
+
+Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — bug/delik dahil — sonra değişiklik yapılır. Kapsam (Faz 0-3 değişiklik listesi): `rbac.ts`, `field-routes.ts`, `ws-routes.ts`, `bullmq-adapter.ts`, `container-proxy.ts`, `device-service.ts`, `data-service.ts`, `token-adapter.ts`, `command-routes.ts`.
+
+### 8.3 Kapılar
+
+| Kapsam | Kapı |
+|---|---|
+| Yeni kod | ≥%70 satır (SonarCloud) |
+| Güvenlik-kritik modüller | ≥%90 branch — rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu |
+| PR | Testsiz PR merge edilmez |
+
+### 8.4 Test yazım kuralları
+
+- Testler davranışı sabitler, implementasyonu değil — public API'den test et.
+- Edge-case listesi JSDoc kontratından türetilir: sıfır değerler, sınır değerleri, boş girdiler, hata kategorileri.
+- Zaman tabanlı davranışlar (backoff, TTL, tick) `vi.useFakeTimers` ile deterministik test edilir.
+- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
+
+### 8.5 Yol haritası eşlemesi (test-önce görevler)
+
+| Faz | Test-önce görevler |
+|---|---|
+| Faz 0 | `Result`/`DomainError` kontratları, TamperLogger pipeline (imza, zincir, drop politikası), sink'ler, frame codec öncesi shared-utils düzeltmesi |
+| Faz 1 | RBAC/fieldIds/komut validasyonu karakterizasyon testleri → değişiklik |
+| Faz 2 | BullMQAdapter `JobType → JobsOptions` retry haritası testleri → FieldConnector (backoff, heartbeat) |
+| Faz 3 | Tunnel frame codec round-trip + fuzz → session-gateway akışları |
+| Faz 4-5 | `session-auth` (storage izolasyonu), iframe akışı hook'ları |
+| Faz 6 | MFA akışı, rate-limit kuralları |

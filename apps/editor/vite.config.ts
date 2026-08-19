@@ -16,10 +16,6 @@ export default defineConfig({
         "../../packages/shared-utils/src",
       ),
       "@gd-monorepo/ui": path.resolve(__dirname, "../../packages/ui/src"),
-      "@gd-monorepo/device-library": path.resolve(
-        __dirname,
-        "../../packages/device-library/src",
-      ),
     },
   },
   server: {
@@ -38,7 +34,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom", "@xyflow/react"],
-    exclude: ["@gd-monorepo/ui", "@gd-monorepo/device-library"],
+    exclude: ["@gd-monorepo/ui"],
     force: true,
   },
   build: {

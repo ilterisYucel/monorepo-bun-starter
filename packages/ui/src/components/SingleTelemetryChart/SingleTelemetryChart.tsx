@@ -17,36 +17,12 @@ const DEFAULT_TR: TelemetryChartLabels = {
   systemEvents: "Sistem Olayları", userActions: "Kullanıcı Hareketleri",
   correctedEvents: "Düzeltilmiş Olaylar",   loadFailed: "Veri yüklenirken hata oluştu",
   loading: "Yükleniyor...",
-  waitingData: "Veri bekleniyor...",
   noData: "Henüz veri yok...",
-  stats: "İstatistikler",
   pointsUnit: "nokta", intervalPrefix: "~",
   seconds: "sn", minutes: "dk", hours: "sa", days: "g",
   onlyEssential: "Sadece Temel", onlyDetail: "Sadece Detay",
   categoryEssential: "Temel Metrikler", categoryDetail: "Diğer Metrikler",
   searchPlaceholder: "Metrik ara...", noResults: "Sonuç bulunamadı",
-};
-
-const DEFAULT_EN: TelemetryChartLabels = {
-  range1m: "Last 1 Minute", range1h: "Last 1 Hour", range1d: "Last 1 Day",
-  range1w: "Last 1 Week", range1M: "Last 1 Month", range3M: "Last 3 Months",
-  range6M: "Last 6 Months", range1y: "Last 1 Year",
-  rangeCustom: "Custom Range", rangeFrom: "From", rangeTo: "To",
-  pointsLow: "60 (Low)", pointsStandard: "120 (Standard)",
-  pointsHigh: "240 (High)", pointsMax: "500 (Ultra)",
-  timeRange: "Time Range", points: "Points", metric: "Metric",
-  all: "All", none: "None", selected: "{count} selected",
-  systemEvents: "System Events", userActions: "User Actions",
-  correctedEvents: "Corrected Events", loadFailed: "Failed to load data",
-  loading: "Loading...",
-  waitingData: "Waiting for data...",
-  noData: "No data yet...",
-  stats: "Statistics",
-  pointsUnit: "points", intervalPrefix: "~",
-  seconds: "s", minutes: "min", hours: "h", days: "d",
-  onlyEssential: "Essential Only", onlyDetail: "Detail Only",
-  categoryEssential: "Essential Metrics", categoryDetail: "Other Metrics",
-  searchPlaceholder: "Search metrics...", noResults: "No results",
 };
 
 const LEGEND_TR: MultiLineChartLabels = {
@@ -116,15 +92,14 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
   provider, telemetryNames, title, yAxisLabel, height = 320, colors,
   showLegend = true, tagFilters, eventAnnotations,
   labels: rawLabels, locale: rawLocale = "tr",
-  defaultMetric, defaultTagSelections, defaultShowStats = true,
+  defaultMetric, defaultTagSelections,
 }) => {
-  const L = rawLabels ?? (rawLocale.startsWith("en") ? DEFAULT_EN : DEFAULT_TR);
+  const L = rawLabels ?? DEFAULT_TR;
   const locale = rawLocale;
   const { data: telemetries, isLoading, isError, error, range, points, setRange, setPoints, customFrom, customTo, setCustomRange } = provider;
 
   // Single metric select
   const [selectedMetric, setSelectedMetric] = useState<string>(defaultMetric ?? telemetryNames[0] ?? "");
-  const [showStats, setShowStats] = useState(defaultShowStats);
 
   // Multi tag select
   const [selectedTags, setSelectedTags] = useState<Record<string, string[]>>(defaultTagSelections ?? {});
@@ -142,22 +117,6 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
   const [showSystemEvents, setShowSystemEvents] = useState(false);
   const [showUserEvents, setShowUserEvents] = useState(false);
   const [showFixed, setShowFixed] = useState(false);
-
-  // telemetryNames asenkron geldiğinde seçim boş kalmasın:
-  // seçim boşsa veya artık listede yoksa ilk ismi benimse.
-  const prevNamesRef = useRef<string[]>(telemetryNames);
-  useEffect(() => {
-    const prevNames = prevNamesRef.current;
-    prevNamesRef.current = telemetryNames;
-    if (prevNames === telemetryNames) return;
-
-    setSelectedMetric((prev) => {
-      if (!prev || !telemetryNames.includes(prev)) {
-        return telemetryNames[0] ?? "";
-      }
-      return prev;
-    });
-  }, [telemetryNames]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -280,18 +239,11 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
             <S.HeaderTitle>{title}</S.HeaderTitle>
             {subtitle && <S.HeaderSubtitle>{subtitle}</S.HeaderSubtitle>}
           </S.HeaderTitleGroup>
-          {(eventAnnotations || showLegend) && (
+          {eventAnnotations && (
             <S.HeaderAnnotations>
-              {eventAnnotations && (
-                <>
-                  <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showSystemEvents} onChange={() => setShowSystemEvents((v) => !v)} />{L.systemEvents}</S.HeaderAnnotationGroup>
-                  <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showUserEvents} onChange={() => setShowUserEvents((v) => !v)} />{L.userActions}</S.HeaderAnnotationGroup>
-                  <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showFixed} onChange={() => setShowFixed((v) => !v)} />{L.correctedEvents}</S.HeaderAnnotationGroup>
-                </>
-              )}
-              {showLegend && (
-                <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showStats} onChange={() => setShowStats((v) => !v)} />{L.stats}</S.HeaderAnnotationGroup>
-              )}
+              <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showSystemEvents} onChange={() => setShowSystemEvents((v) => !v)} />{L.systemEvents}</S.HeaderAnnotationGroup>
+              <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showUserEvents} onChange={() => setShowUserEvents((v) => !v)} />{L.userActions}</S.HeaderAnnotationGroup>
+              <S.HeaderAnnotationGroup><S.Checkbox type="checkbox" checked={showFixed} onChange={() => setShowFixed((v) => !v)} />{L.correctedEvents}</S.HeaderAnnotationGroup>
             </S.HeaderAnnotations>
           )}
         </S.HeaderRow>
@@ -384,29 +336,25 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
         </S.Controls>
       </S.Header>
 
-      {isLoading ? (
+      {isLoading || telemetries.length === 0 ? (
         <S.SkeletonWrapper>
           <S.Skeleton style={{ width: "100%", height: `${height}px` }} />
           <S.LoadingOverlay>
             <S.LoadingRing />
             <S.LoadingText>
-              <span>{L.loading}</span>
-              <S.LoadingDot>.</S.LoadingDot>
-              <S.LoadingDot>.</S.LoadingDot>
-              <S.LoadingDot>.</S.LoadingDot>
+              <span>{isLoading ? L.loading : L.noData}</span>
+              {isLoading && (
+                <>
+                  <S.LoadingDot>.</S.LoadingDot>
+                  <S.LoadingDot>.</S.LoadingDot>
+                  <S.LoadingDot>.</S.LoadingDot>
+                </>
+              )}
             </S.LoadingText>
           </S.LoadingOverlay>
         </S.SkeletonWrapper>
-      ) : telemetries.length === 0 ? (
-        <S.DataScanWrapper>
-          <S.DataScanGhost style={{ height: `${height}px` }}>
-            <S.DataScanGrid />
-            <S.DataScanLine />
-            <S.DataScanText>{L.waitingData}</S.DataScanText>
-          </S.DataScanGhost>
-        </S.DataScanWrapper>
       ) : (
-        <MultiLineChartV2 data={chartData} yAxisLabel={yAxisLabel} height={height} colors={colors} showLegend={showLegend} showStats={showStats} annotations={filteredAnnotations} labels={LEGEND_TR} locale={locale} />
+        <MultiLineChartV2 data={chartData} yAxisLabel={yAxisLabel} height={height} colors={colors} showLegend={showLegend} annotations={filteredAnnotations} labels={LEGEND_TR} locale={locale} />
       )}
     </S.Container>
   );

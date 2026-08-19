@@ -39,6 +39,19 @@ const hvacCool = () =>
 const hvacHeat = () =>
   HVAC_IDS.map((id) => ({ deviceId: id, command: "force_heat" }));
 
+export const HIDDEN_MANEUVER_NAMES: ReadonlySet<string> = new Set([
+  "fl_bsc_power",
+  "fl_idle",
+  "fl02_aux_loss",
+  "fl05_tms_block_charge",
+  "fl06_charge",
+  "fl06_discharge",
+  "fl07_door_open",
+  "fl08_dc_fault",
+  "fl09_comm_loss",
+  "fl11_ground_fault",
+]);
+
 export const MANEUVERS: Record<string, ManeuverConfig> = {
   fl_bsc_power: {
     name: "fl_bsc_power",

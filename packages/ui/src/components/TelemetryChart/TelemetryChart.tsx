@@ -33,9 +33,7 @@ const DEFAULT_TR: TelemetryChartLabels = {
   correctedEvents: "Düzeltilmiş Olaylar",
   loadFailed: "Veri yüklenirken hata oluştu",
   loading: "Yükleniyor...",
-  waitingData: "Veri bekleniyor...",
   noData: "Henüz veri yok...",
-  stats: "İstatistikler",
   pointsUnit: "nokta",
   intervalPrefix: "~",
   seconds: "sn",
@@ -48,50 +46,6 @@ const DEFAULT_TR: TelemetryChartLabels = {
   categoryDetail: "Diğer Metrikler",
   searchPlaceholder: "Metrik ara...",
   noResults: "Sonuç bulunamadı",
-};
-
-const DEFAULT_EN: TelemetryChartLabels = {
-  range1m: "Last 1 Minute",
-  range1h: "Last 1 Hour",
-  range1d: "Last 1 Day",
-  range1w: "Last 1 Week",
-  range1M: "Last 1 Month",
-  range3M: "Last 3 Months",
-  range6M: "Last 6 Months",
-  range1y: "Last 1 Year",
-  rangeCustom: "Custom Range",
-  rangeFrom: "From",
-  rangeTo: "To",
-  pointsLow: "60 (Low)",
-  pointsStandard: "120 (Standard)",
-  pointsHigh: "240 (High)",
-  pointsMax: "500 (Ultra)",
-  timeRange: "Time Range",
-  points: "Points",
-  metric: "Metric",
-  all: "All",
-  none: "None",
-  selected: "{count} selected",
-  systemEvents: "System Events",
-  userActions: "User Actions",
-  correctedEvents: "Corrected Events",
-  loadFailed: "Failed to load data",
-  loading: "Loading...",
-  waitingData: "Waiting for data...",
-  noData: "No data yet...",
-  stats: "Statistics",
-  pointsUnit: "points",
-  intervalPrefix: "~",
-  seconds: "s",
-  minutes: "min",
-  hours: "h",
-  days: "d",
-  onlyEssential: "Essential Only",
-  onlyDetail: "Detail Only",
-  categoryEssential: "Essential Metrics",
-  categoryDetail: "Other Metrics",
-  searchPlaceholder: "Search metrics...",
-  noResults: "No results",
 };
 
 const LEGEND_TR: MultiLineChartLabels = {
@@ -205,9 +159,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   eventAnnotations,
   labels: rawLabels,
   locale: rawLocale = "tr",
-  defaultShowStats = true,
 }) => {
-  const L = rawLabels ?? (rawLocale.startsWith("en") ? DEFAULT_EN : DEFAULT_TR);
+  const L = rawLabels ?? DEFAULT_TR;
   const locale = rawLocale;
   const {
     data: telemetries,
@@ -227,7 +180,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(
     telemetryNames,
   );
-  const [showStats, setShowStats] = useState(defaultShowStats);
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [rangeOpen, setRangeOpen] = useState(false);
   const [pointsOpen, setPointsOpen] = useState(false);
@@ -263,26 +215,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   }, []);
 
   const allMetricsSelected = selectedMetrics.length === telemetryNames.length;
-
-  // telemetryNames asenkron geldiğinde (useTelemetryNames) seçim boş kalmasın:
-  // seçim boşsa veya önceki listenin tamamı seçiliyse yeni listeyi benimse;
-  // kullanıcı seçimi varsa yalnızca hâlâ mevcut olan isimleri koru.
-  const prevNamesRef = useRef<string[]>(telemetryNames);
-  useEffect(() => {
-    const prevNames = prevNamesRef.current;
-    prevNamesRef.current = telemetryNames;
-    if (prevNames === telemetryNames) return;
-
-    setSelectedMetrics((prev) => {
-      if (prev.length === 0) return telemetryNames;
-      const wasAll =
-        prev.length === prevNames.length &&
-        prevNames.every((n) => prev.includes(n));
-      if (wasAll) return telemetryNames;
-      const valid = telemetryNames.filter((n) => prev.includes(n));
-      return valid.length > 0 ? valid : telemetryNames;
-    });
-  }, [telemetryNames]);
 
   const toggleAllMetrics = () => {
     setSelectedMetrics(allMetricsSelected ? [] : [...telemetryNames]);
@@ -394,46 +326,32 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             <S.HeaderTitle>{title}</S.HeaderTitle>
             {subtitle && <S.HeaderSubtitle>{subtitle}</S.HeaderSubtitle>}
           </S.HeaderTitleGroup>
-          {(eventAnnotations || showLegend) && (
+          {eventAnnotations && (
             <S.HeaderAnnotations>
-              {eventAnnotations && (
-                <>
-                  <S.HeaderAnnotationGroup>
-                    <S.Checkbox
-                      type="checkbox"
-                      checked={showSystemEvents}
-                      onChange={() => setShowSystemEvents((v) => !v)}
-                    />
-                    {L.systemEvents}
-                  </S.HeaderAnnotationGroup>
-                  <S.HeaderAnnotationGroup>
-                    <S.Checkbox
-                      type="checkbox"
-                      checked={showUserEvents}
-                      onChange={() => setShowUserEvents((v) => !v)}
-                    />
-                    {L.userActions}
-                  </S.HeaderAnnotationGroup>
-                  <S.HeaderAnnotationGroup>
-                    <S.Checkbox
-                      type="checkbox"
-                      checked={showFixed}
-                      onChange={() => setShowFixed((v) => !v)}
-                    />
-                    {L.correctedEvents}
-                  </S.HeaderAnnotationGroup>
-                </>
-              )}
-              {showLegend && (
-                <S.HeaderAnnotationGroup>
-                  <S.Checkbox
-                    type="checkbox"
-                    checked={showStats}
-                    onChange={() => setShowStats((v) => !v)}
-                  />
-                  {L.stats}
-                </S.HeaderAnnotationGroup>
-              )}
+              <S.HeaderAnnotationGroup>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showSystemEvents}
+                  onChange={() => setShowSystemEvents((v) => !v)}
+                />
+                {L.systemEvents}
+              </S.HeaderAnnotationGroup>
+              <S.HeaderAnnotationGroup>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showUserEvents}
+                  onChange={() => setShowUserEvents((v) => !v)}
+                />
+                {L.userActions}
+              </S.HeaderAnnotationGroup>
+              <S.HeaderAnnotationGroup>
+                <S.Checkbox
+                  type="checkbox"
+                  checked={showFixed}
+                  onChange={() => setShowFixed((v) => !v)}
+                />
+                {L.correctedEvents}
+              </S.HeaderAnnotationGroup>
             </S.HeaderAnnotations>
           )}
         </S.HeaderRow>
@@ -684,14 +602,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </S.LoadingText>
           </S.LoadingOverlay>
         </S.SkeletonWrapper>
-      ) : chartData.length === 0 ? (
-        <S.DataScanWrapper>
-          <S.DataScanGhost style={{ height: `${height}px` }}>
-            <S.DataScanGrid />
-            <S.DataScanLine />
-            <S.DataScanText>{L.waitingData}</S.DataScanText>
-          </S.DataScanGhost>
-        </S.DataScanWrapper>
       ) : (
         <MultiLineChartV2
           data={chartData}
@@ -699,7 +609,6 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           height={height}
           colors={colors}
           showLegend={showLegend}
-          showStats={showStats}
           annotations={filteredAnnotations}
           labels={LEGEND_TR}
           locale={locale}

@@ -17,7 +17,7 @@ export function calculateBESSConfig(
   const topCardFireW = step * 3.0;
 
   const eaWidth = step * 3.5;
-  const eaHeight = step * 1.5;
+  const eaHeight = step * 4.8;
   const gridWidth = step * 1.4;
   const gridHeight = step * 0.6;
 
@@ -53,6 +53,7 @@ export function calculateBESSConfig(
   const hPanelGap = step * 0.6;
   const hStartX = step * 0.5;
   const roomWidth = step * 2.8;
+  const roomGap = step * 0.3;
   const roomHeight = step * 3.8;
 
   const fireStartX = PAD;
@@ -85,6 +86,7 @@ export function calculateBESSConfig(
     dcRadius,
     hvacStartY,
     roomWidth,
+    roomGap,
     roomHeight,
     panelWidth: hPanelWidth,
     panelGap: hPanelGap,

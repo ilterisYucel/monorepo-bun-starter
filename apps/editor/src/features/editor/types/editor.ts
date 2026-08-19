@@ -1,4 +1,4 @@
-import type { DeviceType, ProtocolType, DefaultRegister } from "@gd-monorepo/device-library";
+import type { DeviceType, ProtocolType, DefaultRegister } from "../device-catalog";
 import type { Node, Edge } from "@xyflow/react";
 
 export interface DeviceInstanceConfig {

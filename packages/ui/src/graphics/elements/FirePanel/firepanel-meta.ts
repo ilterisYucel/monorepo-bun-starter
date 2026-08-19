@@ -8,7 +8,7 @@ export interface FirePanelMeta {
 }
 
 export const FIREPANEL_META: FirePanelMeta = {
-  measured: true,
-  lampCluster: { x: 0.40658, y: 0.09107, width: 0.18553, height: 0.26607 },
-  keyCluster: { x: 0.34474, y: 0.44286, width: 0.30921, height: 0.09107 },
+  measured: false,
+  lampCluster: { x: 0.51579, y: 0.35714, width: 0.08289, height: 0.01429 },
+  keyCluster: { x: 0.35000, y: 0.46000, width: 0.30000, height: 0.05710 },
 };

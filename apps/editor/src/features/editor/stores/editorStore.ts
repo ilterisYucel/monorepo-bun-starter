@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { addEdge, applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
 import type { NodeChange, EdgeChange, Connection, XYPosition } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
-import type { DeviceType } from "@gd-monorepo/device-library";
+import type { DeviceType } from "../device-catalog";
 import type { DeviceNode, DeviceNodeData, EditorSnapshot } from "../types/editor";
 
 const MAX_UNDO = 50;

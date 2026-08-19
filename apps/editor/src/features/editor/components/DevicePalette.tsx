@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import styled from "@emotion/styled";
 import { SCADA_ICONS, COLORS } from "@gd-monorepo/ui";
-import { DEVICE_LIBRARY, DEVICE_TYPES, type DeviceType } from "@gd-monorepo/device-library";
+import { DEVICE_LIBRARY, DEVICE_TYPES, type DeviceType } from "../device-catalog";
 
 const Container = styled.div`
   width: 220px;

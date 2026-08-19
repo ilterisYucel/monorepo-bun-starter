@@ -59,38 +59,6 @@ const ELEMENTS = {
       { key: "keyCluster", design: { x: 0.35, y: 0.46, w: 0.3, h: 0.0571 }, minPx: 30, polarity: "light" },
     ],
   },
-  circuitbreaker: {
-    metaOut: "packages/ui/src/graphics/elements/CircuitBreaker/circuitbreaker-meta.ts",
-    exportName: "CIRCUITBREAKER_META",
-    interfaceName: "CircuitBreakerMeta",
-    margin: 12,
-    bodyW: 80,
-    bodyH: 21,
-    clusters: [
-      {
-        key: "display",
-        design: { x: 0.25, y: 0.2143, w: 0.5, h: 0.5714 },
-        minPx: 20,
-        polarity: "light",
-        relLight: 12,
-        files: [
-          { file: "base-close.png", key: "displayClosed" },
-          { file: "base-open.png", key: "displayOpen" },
-        ],
-      },
-    ],
-  },
-  dcoutput: {
-    metaOut: "packages/ui/src/graphics/elements/DCOutput/dcoutput-meta.ts",
-    exportName: "DCOUTPUT_META",
-    interfaceName: "DCOutputMeta",
-    margin: 0,
-    bodyW: 100,
-    bodyH: 112,
-    clusters: [
-      { key: "display", design: { x: 0.22, y: 0.75, w: 0.56, h: 0.1429 }, minPx: 60, polarity: "dark", absDark: 45 },
-    ],
-  },
 };
 
 const name = process.argv[2];
@@ -255,7 +223,7 @@ for (const { cluster, file, key } of measurements) {
       `[measure] ${name}/${key}: px=${xs.length} -> (${measuredRect.x.toFixed(4)}, ${measuredRect.y.toFixed(4)}, ${measuredRect.width.toFixed(4)}, ${measuredRect.height.toFixed(4)}) OK`,
     );
   } else {
-    results[key] = d;
+    results[key] = { x: d.x, y: d.y, width: d.w, height: d.h };
     allOk = false;
     console.log(`[measure] ${name}/${key}: tespit edilemedi (px=${xs.length}) — tasarım fallback`);
   }

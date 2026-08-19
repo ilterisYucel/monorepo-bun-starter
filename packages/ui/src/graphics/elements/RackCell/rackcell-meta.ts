@@ -1,31 +1,19 @@
-// RackCell sprite meta: AI çıktısındaki pencere/hücre kolonu konumları.
+// RackCell sprite meta: AI çıktısındaki batarya plaka stack'i.
 // tools/measure-rackmeta.mjs tarafından üretilir.
-// Değerler gövde boyutlarına (120x380 referans) ORAN olarak saklanır.
-// windowsMeasured=false, columnMeasured=true
-export interface RackCellWindowMeta {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+// Değerler gövde yüksekliğine (380 referans) ORAN olarak saklanır.
+// platesMeasured=true
+export interface RackCellPlateStackMeta {
+  top: number;
+  bottom: number;
+  count: number;
 }
 
 export interface RackCellMeta {
-  windowsMeasured: boolean;
-  columnMeasured: boolean;
-  windows: RackCellWindowMeta[];
-  tube: RackCellWindowMeta;
+  platesMeasured: boolean;
+  plateStack: RackCellPlateStackMeta;
 }
 
 export const RACKCELL_META: RackCellMeta = {
-  windowsMeasured: false,
-  columnMeasured: true,
-  windows: [
-    { x: 0.14000, y: 0.09211, width: 0.52000, height: 0.10000 },
-    { x: 0.14000, y: 0.21316, width: 0.52000, height: 0.10000 },
-    { x: 0.14000, y: 0.33421, width: 0.52000, height: 0.10000 },
-    { x: 0.14000, y: 0.45526, width: 0.52000, height: 0.10000 },
-    { x: 0.14000, y: 0.57632, width: 0.52000, height: 0.10000 },
-    { x: 0.14000, y: 0.69737, width: 0.52000, height: 0.10000 },
-  ],
-  tube: { x: 0.76250, y: 0.13684, width: 0.23750, height: 0.79737 },
+  platesMeasured: true,
+  plateStack: { top: 0.13421, bottom: 0.61316, count: 12 },
 };

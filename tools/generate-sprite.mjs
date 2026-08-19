@@ -1,8 +1,12 @@
 // AI sprite üretim pipeline (Faz 1)
 // Kullanım:
 //   FAL_KEY=... bun tools/generate-sprite.mjs rackcell
+//   FAL_KEY=... bun tools/generate-sprite.mjs rackcell --theme legacy
 //   FAL_KEY=... bun tools/generate-sprite.mjs --all
 //   FAL_KEY=... bun tools/generate-sprite.mjs cable --skip-removal
+//
+// Tema: promptlar tools/sprites-prompts/<tema>.mjs dosyalarından gelir.
+// Varsayılan tema "electrical"tir; eski stile dönmek için --theme legacy.
 //
 // Akış: referans PNG -> fal.ai storage upload -> nano-banana/edit (img2img,
 // giriş çözünürlüğünü korur) -> BiRefNet arka plan temizleme
@@ -10,7 +14,7 @@
 // Çıktı doğrudan uygulamanın yüklediği dosyanın üzerine yazılır:
 // mevcut çizim referanslı placeholder yerine AI sprite'ı devreye girer.
 import { fal } from "@fal-ai/client";
-import { mkdir, writeFile, readFile, stat } from "node:fs/promises";
+import { mkdir, writeFile, readFile, stat, readdir } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,111 +24,37 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..");
 const REFS_DIR = path.join(REPO_ROOT, "packages/ui/assets/sprites/refs");
 const OUT_DIR = path.join(REPO_ROOT, "packages/ui/src/assets/sprites");
+const THEMES_DIR = path.join(__dirname, "sprites-prompts");
 
-// Element -> (img2img referans story, prompt açıklaması)
-// Referans: nötr Base story yakalaması (refs/<element>/base.png) — durum renkleri içermez.
-// Prompt'lar docs/SPRITE-STYLE-KIT.md bölüm 3 ile birebir tutulur.
-const ELEMENTS = {
-  rackcell: {
-    ref: "base",
-    describe:
-      "a vertical battery storage rack unit. Repaint ONLY the surfaces — do NOT redesign, do NOT rearrange, do NOT resize, do NOT move any element. " +
-      "Keep the exact structure of the reference: the rounded flat body outline, the two terminal nubs at top and bottom, the six identical rectangular display windows in the left-center column at their exact positions and sizes with the same gaps (empty BLACK glass, clearly darker than the body panel), and the column of eight NARROW BLACK rectangular battery cell sockets stacked vertically on the right side at its exact position — each socket width only 17 percent of the body width, with clear visible gaps between the sockets. " +
-      "Do not add water tanks, do not add liquid tubes, do not add extra panels, do not merge the sockets into one wide column. Style it as stacked battery modules. Only upgrade the material look (dark metal, polished plastic, thin dark outline).",
-    removeBg: true,
-  },
-  cable: {
-    ref: "base",
-    describe:
-      "a THIN straight horizontal insulated power cable line, thickness only about 6 percent of the image height, uniform thin width along its whole length, flat 2D front view. NO connectors, NO lugs, NO fittings, NO conduit, NO pipe — just a thin plain cable line.",
-    removeBg: true,
-  },
-  "circuitbreaker-close": {
-    ref: "base-close",
-    specKey: "circuitbreaker",
-    out: "circuitbreaker/base-close.png",
-    describe:
-      "a front-facing flat 2D industrial DC circuit breaker module with a closed horizontal rotary lever in the middle-left and a small rectangular dark glass display window in the middle-right, compact electrical panel unit. Keep the lever exactly in the closed horizontal position of the reference.",
-    removeBg: true,
-  },
-  "circuitbreaker-open": {
-    ref: "base-open",
-    specKey: "circuitbreaker",
-    out: "circuitbreaker/base-open.png",
-    describe:
-      "a front-facing flat 2D industrial DC circuit breaker module with an open vertical rotary lever in the middle-left and a small rectangular dark glass display window in the middle-right, compact electrical panel unit. Keep the lever exactly in the open vertical position of the reference.",
-    removeBg: true,
-  },
-  dcoutput: {
-    ref: "base",
-    describe:
-      "a round industrial DC output power connector head with insulated housing and terminal studs, flat 2D front view",
-    removeBg: true,
-  },
-  roomcard: {
-    ref: "base",
-    describe:
-      "a rectangular equipment room cabinet card. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline, the narrow vertical recessed slot on the left edge (empty dark glass) and the wide recessed slot at the bottom (empty dark glass). Do not add objects. Only upgrade the material look.",
-    removeBg: true,
-  },
-  hvacunit: {
-    ref: "base",
-    describe:
-      "a compact flat 2D front-facing industrial HVAC unit with fan grille and small control panel, wall-mount form factor",
-    removeBg: true,
-  },
-  panelcard: {
-    ref: "base",
-    describe:
-      "a slim flat 2D front-facing wall-mount electrical panel enclosure. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular slot in the lower area (empty dark glass). Do not add objects. Only upgrade the material look.",
-    removeBg: true,
-  },
-  firepanel: {
-    ref: "base",
-    describe:
-      "a flat 2D front-facing industrial fire alarm control panel. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline, six small round empty lamp sockets arranged in two rows of three near the upper-middle, four small rectangular key sockets in one row below them, and the blank label strip at the top. Do not add objects. Only upgrade the material look.",
-    removeBg: true,
-  },
-  energyanalyzergraphic: {
-    ref: "base",
-    describe:
-      "a flat 2D front-facing industrial energy analyzer unit. Repaint ONLY the surfaces — do NOT redesign, do NOT move any element. Keep the exact structure of the reference: the body outline and the large recessed rectangular LCD screen socket in the middle (empty dark glass). Do not add objects. Only upgrade the material look.",
-    removeBg: true,
-  },
-  grid: {
-    ref: "base",
-    describe:
-      "a compact grid connection symbol card: dark panel with a smooth sine wave power line inside and two terminal blocks, electrical grid icon",
-    removeBg: true,
-  },
-};
-
-const BASE_PROMPT =
-  "Repaint this flat technical drawing into a polished flat 2D game-UI sprite. " +
-  "Keep the exact shape, size, position, silhouette and bounding box of the drawn object — do not resize, do not move, do not add extra objects. " +
-  "Style: clean industrial battery energy storage system HMI panel, strictly flat 2D front-facing view, " +
-  "NO perspective, NO isometric depth, NO 3D. Soft bevel edges, subtle vertical gradients, dark glass display windows, " +
-  "thin dark outline, single light source from top-left, " +
-  "dark UI color scheme compatible with a #0f0f1a background. " +
-  "Monochrome neutral color body: dark-gray/silver metal and dark panels only — " +
-  "absolutely NO green, NO orange, NO red, NO blue lights, NO colored glow, NO colored LEDs, NO status lights. " +
-  "No text, no letters, no labels, no icons, no logos inside the sprite. " +
-  "Keep the background fully transparent black-and-white alpha only. Crisp vector-like edges, high detail.";
-
-const NEGATIVE =
-  "photorealistic, isometric, 3D, perspective, depth, text, letters, watermark, logo, background, floor, drop shadow outside the object, " +
-  "perspective distortion, warped layout, resized object, green light, red light, orange light, blue light, " +
-  "colored glow, status LEDs, energy bar, filling indicator";
+const DEFAULT_THEME = "electrical";
 
 const args = process.argv.slice(2);
+const themeFlagIdx = args.indexOf("--theme");
+const themeName = themeFlagIdx >= 0 ? args[themeFlagIdx + 1] : DEFAULT_THEME;
+if (!themeName || themeName.startsWith("--")) {
+  console.error("Kullanım hatası: --theme bir tema adı gerektirir (electrical | legacy)");
+  process.exit(1);
+}
+
+const availableThemes = (await readdir(THEMES_DIR)).filter((f) => f.endsWith(".mjs")).map((f) => f.replace(/\.mjs$/, ""));
+if (!availableThemes.includes(themeName)) {
+  console.error(`[gen] bilinmeyen tema: ${themeName} — mevcut: ${availableThemes.join(", ")}`);
+  process.exit(1);
+}
+
+// Tema dosyası: { BASE_PROMPT, NEGATIVE, ELEMENTS } export eder.
+const { BASE_PROMPT, NEGATIVE, ELEMENTS } = await import(
+  `./sprites-prompts/${themeName}.mjs`
+);
+
 const skipRemoval = args.includes("--skip-removal");
 const names = args.includes("--all")
   ? Object.keys(ELEMENTS)
-  : args.filter((a) => !a.startsWith("--"));
+  : args.filter((a) => !a.startsWith("--") && a !== themeName);
 
 if (names.length === 0) {
-  console.error("Kullanım: bun tools/generate-sprite.mjs <element> [--all] [--skip-removal]");
-  console.error(`Elementler: ${Object.keys(ELEMENTS).join(", ")}`);
+  console.error("Kullanım: bun tools/generate-sprite.mjs <element> [--all] [--skip-removal] [--theme <tema>]");
+  console.error(`Tema: ${themeName} — Elementler: ${Object.keys(ELEMENTS).join(", ")}`);
   process.exit(1);
 }
 
@@ -193,7 +123,7 @@ async function normalize(buffer, specKey, page) {
   });
 
   if (!outB64) {
-    console.error(`[gen] ${element}: normalizasyon başarısız (içerik bulunamadı)`);
+    console.error(`[gen] ${specKey}: normalizasyon başarısız (içerik bulunamadı)`);
     return buffer;
   }
   return Buffer.from(outB64.split(",")[1], "base64");
@@ -273,8 +203,13 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 let failed = 0;
 for (const name of names) {
-  const ok = await generateOne(name, page);
-  if (!ok) failed++;
+  try {
+    const ok = await generateOne(name, page);
+    if (!ok) failed++;
+  } catch (err) {
+    console.error(`[gen] ${name}: hata — ${err?.message ?? err}`);
+    failed++;
+  }
   await sleep(1500);
 }
 await browser.close();

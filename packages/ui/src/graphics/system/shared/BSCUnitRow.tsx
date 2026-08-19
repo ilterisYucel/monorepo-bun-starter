@@ -62,12 +62,13 @@ export const BSCUnitRow: React.FC<BSCUnitRowProps> = ({
     const items: Array<{ key: string; path: Point2D[] }> = [];
     items.push({ key: "top-bus", path: [{ x: p.rackXs[0]!, y: p.topBusY }, { x: p.convergenceX, y: p.topBusY }] });
     items.push({ key: "bot-bus", path: [{ x: p.rackXs[0]!, y: p.bottomBusY }, { x: p.convergenceX, y: p.bottomBusY }] });
+    const cbLineX = p.convergenceX + p.step * 0.2;
     items.push({
       key: "conv-top",
       path: [
         { x: p.convergenceX, y: p.topBusY },
         { x: p.convergenceX, y: p.centerY },
-        { x: p.cbStartX, y: p.centerY },
+        { x: cbLineX, y: p.centerY },
       ],
     });
     items.push({
@@ -75,7 +76,7 @@ export const BSCUnitRow: React.FC<BSCUnitRowProps> = ({
       path: [
         { x: p.convergenceX, y: p.bottomBusY },
         { x: p.convergenceX, y: p.centerY },
-        { x: p.cbStartX, y: p.centerY },
+        { x: cbLineX, y: p.centerY },
       ],
     });
     for (const rx of p.rackXs) {

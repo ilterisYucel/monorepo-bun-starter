@@ -8,8 +8,10 @@ const workspaceRoot = resolve(__dirname, "../..");
 export default defineConfig({
   resolve: {
     alias: {
-      "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
-      "@gd-monorepo/shared-utils": resolve(workspaceRoot, "packages/shared-utils/src"),
+      "@gd-monorepo/plugin-sdk": resolve(
+        workspaceRoot,
+        "packages/plugin-sdk/src",
+      ),
     },
   },
   test: {
@@ -20,10 +22,6 @@ export default defineConfig({
       reporter: ["text", "lcov"],
       reportsDirectory: "./coverage",
       include: ["src/**/*.ts"],
-    },
-    reporters: ["default", "junit"],
-    outputFile: {
-      junit: "./test-results/junit.xml",
     },
   },
 });

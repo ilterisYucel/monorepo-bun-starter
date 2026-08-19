@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import styled from "@emotion/styled";
 import { COLORS } from "@gd-monorepo/ui";
-import type { DeviceType } from "@gd-monorepo/device-library";
+import type { DeviceType } from "../features/editor/device-catalog";
 import { useEditorStore } from "../features/editor/stores/editorStore";
 
 const Layout = styled.div`

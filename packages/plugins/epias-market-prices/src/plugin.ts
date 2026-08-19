@@ -1,16 +1,17 @@
 import type { PluginContext } from "@gd-monorepo/plugin-sdk";
+import { EpiasClient, toEpiasIso } from "@gd-monorepo/epias-client";
+import type { EpiasTicketStore } from "@gd-monorepo/epias-client";
 import type {
   FetchWindow,
   IIntegrationPlugin,
   MarketDataPoint,
   ScheduleSpec,
 } from "@gd-monorepo/shared-types";
-import type { HttpGateway } from "./http-gateway";
 
 /**
  * EPIAS uc noktasi icin seri esleme tanimi (config dosyasindan gelir).
- * EPIAS dokuman incelemesi tamamlanana kadar endpoint yollari
- * config'den yonetilir — dokumanla birlikte varsayilanlar guncellenecek.
+ * Yollar EPIAS teknik dokumanindan teyit edilmistir; ornek config'de
+ * guncel yollar bulunur (bkz. config/plugins/epias-market-prices.example.json).
  */
 interface SeriesMapping {
   name: string;
@@ -21,7 +22,9 @@ interface SeriesMapping {
 }
 
 interface EpiasPluginConfig {
-  clientId: string;
+  username: string;
+  password: string;
+  casUrl: string;
   baseUrl: string;
   intervalMs?: number;
   series: SeriesMapping[];
@@ -31,6 +34,10 @@ interface EpiasResponseRow {
   [field: string]: string | number;
 }
 
+interface EpiasResponseEnvelope {
+  items?: EpiasResponseRow[];
+}
+
 const DEFAULT_INTERVAL_MS = 60 * 60 * 1000;
 const FIRST_RUN_WINDOW_MS = 24 * 60 * 60 * 1000;
 const CURSOR_KEY = "lastFetchTo";
@@ -38,23 +45,34 @@ const CURSOR_KEY = "lastFetchTo";
 /**
  * EPIAS piyasa fiyatlari plugin'i.
  *
+ * Auth tamamen {@link EpiasClient} icindedir: config'deki kullanici
+ * adi/parola ile CAS uzerinden TGT otomatik alinir, onbelleklenir ve
+ * suresi dolunca yenilenir — manuel bilet adimi yoktur.
+ *
+ * TGT onbellegi ({@link EpiasTicketStore}) servis tarafindan olusturulup
+ * kurucuya enjekte edilir; tum EPIAS plugin'leri ayni onbellegi paylasir
+ * (throttle korumasi).
+ *
  * Config: `<configDir>/epias-market-prices.json`
  * ```json
  * {
- *   "clientId": "...",
+ *   "username": "kullanici@firma.com.tr",
+ *   "password": "...",
+ *   "casUrl": "https://giris.epias.com.tr/cas/v1/tickets",
  *   "baseUrl": "https://seffaflik.epias.com.tr/electricity-service/v1",
  *   "intervalMs": 3600000,
  *   "series": [
- *     { "name": "MCP", "path": "/markets/dam/data/mcp", "unit": "TRY/MWh", "dateField": "date", "valueField": "price" }
+ *     { "name": "PTF", "path": "/v1/markets/dam/data/mcp", "unit": "TRY/MWh", "dateField": "date", "valueField": "price" }
  *   ]
  * }
  * ```
  */
 export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
   private config: EpiasPluginConfig | undefined;
+  private client: EpiasClient | undefined;
   private lastSuccessAt: string | undefined;
 
-  constructor(private readonly gateway: HttpGateway) {}
+  constructor(private readonly ticketStore: EpiasTicketStore) {}
 
   manifest() {
     return {
@@ -62,13 +80,20 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
       version: "1.0.0",
       kind: "integration" as const,
       sdkVersion: ">=1.0.0 <2.0.0",
-      description: "EPIAS piyasa fiyatlari (MCP/SMF) toplar",
+      description: "EPIAS piyasa fiyatlari (PTF/SMF) toplar",
     };
   }
 
   async activate(context: PluginContext): Promise<void> {
     const config = this.parseConfig(context.config);
     this.config = config;
+    this.client = new EpiasClient({
+      username: config.username,
+      password: config.password,
+      casUrl: config.casUrl,
+      baseUrl: config.baseUrl,
+      ticketStore: this.ticketStore,
+    });
     context.logger.info(
       `aktive edildi — ${config.series.map((s) => s.name).join(", ")} (${config.baseUrl})`,
     );
@@ -76,6 +101,7 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
 
   async deactivate(): Promise<void> {
     this.config = undefined;
+    this.client = undefined;
   }
 
   health() {
@@ -96,7 +122,7 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
     context: PluginContext,
     window?: FetchWindow,
   ): Promise<MarketDataPoint[]> {
-    if (!this.config) {
+    if (!this.config || !this.client) {
       throw new Error(
         "[EpiasMarketPricesPlugin] fetch, activate'ten once cagrilamaz",
       );
@@ -109,18 +135,23 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
       lastTo ??
       new Date(Date.now() - FIRST_RUN_WINDOW_MS).toISOString();
 
-    const headers = { "X-IBM-Client-Id": this.config.clientId };
+    const startDate = toEpiasIso(new Date(from));
+    const endDate = toEpiasIso(new Date(to));
+
     const rows = await Promise.all(
       this.config.series.map(async (series) => {
-        const url = `${this.config!.baseUrl}${series.path}?startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}`;
-        const payload = await this.gateway.getJson<EpiasResponseRow[]>(url, headers);
-        return { series, payload };
+        const payload = await this.client!.fetchJson<EpiasResponseEnvelope | EpiasResponseRow[]>(
+          series.path,
+          { startDate, endDate },
+        );
+        const items = Array.isArray(payload) ? payload : (payload.items ?? []);
+        return { series, items };
       }),
     );
 
     const points: MarketDataPoint[] = [];
-    for (const { series, payload } of rows) {
-      for (const row of payload) {
+    for (const { series, items } of rows) {
+      for (const row of items) {
         const point = this.toPoint(series, row);
         if (point) {
           points.push(point);
@@ -138,10 +169,22 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
   }
 
   private parseConfig(raw: Record<string, unknown>): EpiasPluginConfig {
-    const clientId = raw["clientId"];
-    if (typeof clientId !== "string" || clientId.length === 0) {
+    const username = raw["username"];
+    if (typeof username !== "string" || username.length === 0) {
       throw new Error(
-        "[EpiasMarketPricesPlugin] Konfigurasyonda gecerli 'clientId' bulunamadi",
+        "[EpiasMarketPricesPlugin] Konfigurasyonda gecerli 'username' bulunamadi",
+      );
+    }
+    const password = raw["password"];
+    if (typeof password !== "string" || password.length === 0) {
+      throw new Error(
+        "[EpiasMarketPricesPlugin] Konfigurasyonda gecerli 'password' bulunamadi",
+      );
+    }
+    const casUrl = raw["casUrl"];
+    if (typeof casUrl !== "string" || casUrl.length === 0) {
+      throw new Error(
+        "[EpiasMarketPricesPlugin] Konfigurasyonda gecerli 'casUrl' bulunamadi",
       );
     }
     const baseUrl = raw["baseUrl"];
@@ -160,7 +203,9 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
 
     const intervalMs = raw["intervalMs"];
     return {
-      clientId,
+      username,
+      password,
+      casUrl,
       baseUrl,
       intervalMs:
         typeof intervalMs === "number" && intervalMs > 0

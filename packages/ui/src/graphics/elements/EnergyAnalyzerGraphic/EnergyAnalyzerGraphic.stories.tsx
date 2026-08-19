@@ -2,7 +2,7 @@ import React from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text, Sprite } from "pixi.js";
 import { EnergyAnalyzerGraphic } from "./EnergyAnalyzerGraphic";
-import { drawEABody, drawLCDScreen } from "./EnergyAnalyzerGraphic.drawers";
+import { drawEABox } from "./EnergyAnalyzerGraphic.drawers";
 
 extend({ Container, Graphics, Text, Sprite });
 
@@ -16,13 +16,23 @@ export default meta;
 const wrapper = { width: 340, height: 420, background: "#0f0f1a" } as const;
 
 export const Base = () => (
-  <div style={{ width: 308, height: 388 }}>
-    <Application width={308} height={388} backgroundAlpha={0} antialias={false} resolution={1}>
+  <div style={{ width: 308, height: 214 }}>
+    <Application width={308} height={214} backgroundAlpha={0} antialias={false} resolution={1}>
       <pixiGraphics
         draw={(g) => {
           g.clear();
-          drawEABody(g, 4, 4, 300, 380, { step: 20 });
-          drawLCDScreen(g, 7, 14, 294, 197.6, 20);
+          drawEABox(g, 4, 4, 300, 206, 20);
+        }}
+      />
+      <pixiGraphics
+        draw={(g) => {
+          g.clear();
+          // AI üretim referansı için KALIN iç içe 2 kutu — kutular dominant eleman,
+          // AI'ın düşürmemesi için belirgin çizilir
+          g.roundRect(4, 4, 300, 206, 1.6);
+          g.stroke({ width: 16, color: 0x4a4a5a });
+          g.roundRect(58, 60, 192, 88, 1);
+          g.stroke({ width: 9, color: 0x4a4a5a });
         }}
       />
     </Application>
