@@ -6,9 +6,15 @@ import type {
   OutputPosition,
   RoomTemperature,
 } from "../../graphics/types";
-import type { LogEntry } from "@gd-monorepo/shared-types";
+import type { LogEntry, TelemetryData, ManeuverConfig } from "@gd-monorepo/shared-types";
 import type { LogProvider } from "../../interfaces/log-provider";
+import type { TelemetryProvider } from "../../interfaces/telemetry-provider";
 import type { ChartDataPoint } from "../../types/chart";
+import type { EnergyAnalyzerSummary } from "../../components/EnergyAnalyzerCard/EnergyAnalyzerCard.types";
+import type { FirePanelState } from "../../components/FirePanelCard/FirePanelCard.types";
+import type { Container3DState } from "../../components/PlayCanvasViewer/PlayCanvasViewer.types";
+import type { MockTelemetryDef } from "../../transports/MockTransport";
+import type { InputField, StepResult } from "../../components/ManeuverCard/ManeuverCard.types";
 
 let _logIdCounter = 0;
 
@@ -133,4 +139,174 @@ export function createMockTMSSystemRoom(
     ],
     ...overrides,
   } as RoomData;
+}
+
+export function createMockTelemetryData(
+  names: string[],
+  deviceId = "bsc-1",
+): TelemetryData[] {
+  const now = new Date().toISOString();
+  return names.map((name, i) => ({
+    name,
+    value: Math.round((48 + i * 2.5 + (i % 3)) * 10) / 10,
+    unit: name === "Temperature" ? "°C" : name === "Power" ? "kW" : "V",
+    timestamp: now,
+    deviceId,
+    tags: { canonical: name.toLowerCase() },
+  }));
+}
+
+export function createMockTelemetryProvider(
+  data: TelemetryData[],
+  overrides?: Partial<TelemetryProvider>,
+): TelemetryProvider {
+  return {
+    data,
+    isLoading: false,
+    isError: false,
+    error: null,
+    selectedName: "all",
+    range: "1h",
+    points: 120,
+    refetch: () => {},
+    setRange: () => {},
+    setCustomRange: () => {},
+    setPoints: () => {},
+    setSelectedName: () => {},
+    ...overrides,
+  };
+}
+
+export function createMockEnergyAnalyzerSummary(
+  deviceId = "energy-1",
+): EnergyAnalyzerSummary {
+  const phase = {
+    voltageLN: 231.2,
+    voltageLL: 400.5,
+    current: 12.4,
+    activePower: 4.2,
+    reactivePower: 1.1,
+    apparentPower: 4.35,
+    powerFactor: 0.97,
+    thdCurrent: 2.1,
+  };
+  return {
+    deviceId,
+    frequency: 50.02,
+    activeEnergyDelivered: 1240.5,
+    neutralCurrent: 0.8,
+    demandPowerPresent: 38.1,
+    demandPowerPeak: 52.3,
+    demandCurrentPresent: 95.2,
+    reactiveEnergyDelivered: 210.4,
+    reactiveEnergyReceived: 18.6,
+    apparentEnergy: 1258.1,
+    activeEnergyReceived: 96.3,
+    phaseA: { ...phase },
+    phaseB: { ...phase, current: 11.9, activePower: 4.0 },
+    phaseC: { ...phase, current: 13.1, activePower: 4.5 },
+  };
+}
+
+export function createMockFirePanelState(
+  overrides?: Partial<FirePanelState>,
+): FirePanelState {
+  return {
+    fault: false,
+    fire: false,
+    firstStage: false,
+    secondStage: false,
+    discharged: false,
+    extract: false,
+    modeAuto: true,
+    hold: false,
+    abort: false,
+    reset: false,
+    localFire: false,
+    ...overrides,
+  };
+}
+
+export function createMockManeuverConfig(
+  overrides?: Partial<ManeuverConfig>,
+): ManeuverConfig {
+  return {
+    name: "charge_all",
+    label: "Tüm BSC'leri Şarj Et",
+    description: "Sahadaki tüm BSC'leri şarj moduna alır",
+    mode: "parallel",
+    steps: [
+      { deviceId: "bsc-1", command: "charge" },
+      { deviceId: "bsc-2", command: "charge" },
+      { deviceId: "bsc-3", command: "charge" },
+    ],
+    rollbackSteps: [{ deviceId: "bsc-1", command: "stop" }],
+    onFailure: "continue",
+    ...overrides,
+  };
+}
+
+export function createMockManeuverInputs(): InputField[] {
+  return [
+    {
+      name: "powerKw",
+      label: "Toplam Güç",
+      unit: "kW",
+      min: 0,
+      max: 3568,
+      step: 1,
+      default: 1500,
+      description: "BSC'lere dağıtılacak toplam güç",
+    },
+    {
+      name: "durationMin",
+      label: "Süre",
+      unit: "dk",
+      min: 1,
+      max: 480,
+      step: 1,
+      default: 60,
+    },
+  ];
+}
+
+export function createMockStepResults(success = true): StepResult[] {
+  return [
+    { deviceId: "bsc-1", command: "charge", success },
+    { deviceId: "bsc-2", command: "charge", success, reason: success ? undefined : "Cihaz offline" },
+    { deviceId: "bsc-3", command: "charge", success },
+  ];
+}
+
+export function createMockContainer3DStates(): Container3DState[] {
+  return [
+    {
+      id: "container-1",
+      label: "Konteyner 1",
+      position: [0, 0, 0],
+      status: "online",
+      telemetry: { soc: 82, power: 420, temperature: 27 },
+    },
+    {
+      id: "container-2",
+      label: "Konteyner 2",
+      position: [6, 0, 0],
+      status: "warning",
+      telemetry: { soc: 55, power: -180, temperature: 34 },
+    },
+    {
+      id: "container-3",
+      label: "Konteyner 3",
+      position: [12, 0, 0],
+      status: "offline",
+    },
+  ];
+}
+
+export function createMockTransportDefs(): MockTelemetryDef[] {
+  return [
+    { name: "Voltage", unit: "V", min: 46, max: 52 },
+    { name: "Current", unit: "A", min: -20, max: 20 },
+    { name: "Temperature", unit: "°C", min: 22, max: 40 },
+  ];
 }

@@ -3,7 +3,7 @@ import { MultiLineChart } from "./MultiLineChart";
 import { createMockChartData, createMockLogEntry } from "../../__stories__/mocks/factories";
 
 const meta: Meta<typeof MultiLineChart> = {
-  title: "Components/MultiLineChart",
+  title: "Components/Deprecated/MultiLineChart",
   component: MultiLineChart,
   tags: ["autodocs"],
   argTypes: {

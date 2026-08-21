@@ -26,6 +26,7 @@ const preview: Preview = {
       values: [
         { name: "dark", value: "#0f0f1a" },
         { name: "card", value: "#1a1a2e" },
+        { name: "transparent", value: "transparent" },
       ],
     },
   },
