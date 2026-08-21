@@ -1,0 +1,1 @@
+import"./SpriteTextureProvider-BakM72x0.js";
