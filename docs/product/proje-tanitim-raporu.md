@@ -341,7 +341,7 @@ Ayni prensip; veritabani (TimescaleDB, InfluxDB), mesaj kuyrugu (BullMQ, RabbitM
 Sistemin guvenlik katmani, dunya capinda en yaygin kabul goren web uygulamasi guvenlik standardi olan **OWASP Top 10** kriterlerine uygun olarak insa edilmistir. Bu kapsamda uygulanan onlemler:
 
 - **Kimlik dogrulama ve yetki kontrolu:** Tum API erisimleri JWT (JSON Web Token) tabanli kimlik dogrulamadan gecirilir. Uc kullanici rolu (Admin, Teknik, Misafir) ile rol tabanli erisim kontrolu (RBAC) uygulanmistir. Yetkisiz islemler daha islenmeden reddedilir.
-- **Guvenli sifre yonetimi:** Sifreler endustri standardi `bcrypt` algoritmasi ile ozetlenir. Veritabaninda hicbir zaman acik metin halinde saklanmaz.
+- **Guvenli sifre yonetimi:** Sifreler endustri standardi `Bun.password` (Argon2id) algoritmasi ile ozetlenir. Veritabaninda hicbir zaman acik metin halinde saklanmaz.
 - **Girdi dogrulama (Input Validation):** Kullanicidan gelen tum veriler (giris bilgileri, komut parametreleri, sorgu filtreleri) Zod semalari ile dogrulanir. Gecersiz veya kotu amacli girdiler sistemin ic katmanlarina ulasmadan reddedilir.
 - **Guvenli iletisim:** WebSocket baglantilari token bazli kimlik dogrulamadan gecirilir; baglanti omru izlenir ve kopuk baglantilar otomatik temizlenir.
 - **Yetki eskalasyonu onleme:** Her kullanici yalnizca rolunun izin verdigi islemleri gerceklestirebilir. Admin islemleri (kullanici ekleme/silme) sadece admin rolune sahip kullanicilara aciktir.

@@ -5,7 +5,7 @@ Confluence benzeri, self-hosted doküman/wiki altyapısı. İlk faz kapsamı: EM
 ## Kurulum
 
 ```bash
-bun run wiki:up        # wiki (8090) + postgres (5435) başlatır
+bun run wiki:up        # wiki (8090) + postgres (5436) başlatır
 # İlk açılış: http://localhost:8090
 #   - Admin hesabı oluştur (e-posta + parola)
 #   - Admin > API Access > yeni API key üret (import için)
