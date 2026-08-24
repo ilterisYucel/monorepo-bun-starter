@@ -1,0 +1,29 @@
+# Wiki.js config.yml şablonu (opsiyonel)
+#
+# Bu dosya compose tarafından mount EDİLMEZ — DB ayarları
+# docker-compose.wiki.yml içindeki env değişkenleriyle verilir.
+# config.yml mount edilirse env DB değişkenleri YOK SAYILIR;
+# bu durumda DB bilgilerini de bu dosyaya taşımak gerekir.
+#
+# Kullanım (isteğe bağlı):
+#   volumes:
+#     - ./wiki/config.yml:/wiki/config.yml:ro
+
+port: 3000
+bindIP: 0.0.0.0
+db:
+  type: postgres
+  host: wiki-db
+  port: 5432
+  user: wikijs
+  pass: wikijs
+  db: wiki
+ssl:
+  enabled: false
+logLevel: info
+# Arayüz dili: Türkçe (topluluk çevirisi). Yüklü değilse admin panelden
+# Admin > Genel > Yerelleştirme altından "tr" seçilir.
+lang: tr
+uploads:
+  maxImageFileSize: 10
+  maxOtherFileSize: 50

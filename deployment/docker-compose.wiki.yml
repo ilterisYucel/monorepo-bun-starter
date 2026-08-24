@@ -1,0 +1,63 @@
+name: wiki-stack
+
+services:
+  wiki:
+    image: ghcr.io/requarks/wiki:2
+    container_name: wiki
+    depends_on:
+      wiki-db:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: wiki-db
+      DB_PORT: 5432
+      DB_USER: wikijs
+      DB_PASS: wikijs
+      DB_NAME: wiki
+    ports:
+      - "8090:3000"
+    volumes:
+      - wiki-data:/wiki/data
+    networks:
+      - wiki-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  wiki-db:
+    image: postgres:16-alpine
+    container_name: wiki-db
+    environment:
+      POSTGRES_USER: wikijs
+      POSTGRES_PASSWORD: wikijs
+      POSTGRES_DB: wiki
+    ports:
+      - "5435:5432"
+    volumes:
+      - wiki-db-data:/var/lib/postgresql/data
+    networks:
+      - wiki-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wikijs -d wiki"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  wiki-network:
+    driver: bridge
+
+volumes:
+  wiki-data:
+  wiki-db-data:

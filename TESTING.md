@@ -12,6 +12,7 @@
 | **IEC 62351** | Power system security | Authentication, TLS encryption, RBAC, key management |
 | **IEC 61508** | Functional safety (SIL) | Fault injection, failure mode analysis, redundancy verification |
 | **IEC 62443** | Industrial network security | Network segmentation, intrusion detection, patch management |
+| **OWASP ASVS 4.0** | Application security verification | **Level 2 hedef** — kategori → test/check eşlemesi: `docs/standards/owasp-asvs-level2.md` |
 | **ISO/IEC 25010** | Software quality model | 8 quality characteristics (see below) |
 | **ISO/IEC 29119** | Software testing | Test processes, documentation, design techniques |
 
@@ -24,7 +25,7 @@
 | **Compatibility** | Playwright cross-browser E2E, Modbus protocol conformance tests |
 | **Usability** | Storybook visual tests, component interaction tests |
 | **Reliability** | Fault injection (connection drop, Redis failure), reconnect logic tests |
-| **Security** | Auth bypass tests, input validation, JWT token tests, RBAC verification |
+| **Security** | Auth bypass tests, input validation, JWT token tests, RBAC verification (ASVS L2: V2/V3/V4/V5/V13 — bkz. `docs/standards/owasp-asvs-level2.md`) |
 | **Maintainability** | Code coverage (SonarCloud), no code smells, consistent patterns |
 | **Portability** | Docker-based CI, platform-agnostic Bun runtime |
 
@@ -322,7 +323,7 @@ Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — 
 - Testler davranışı sabitler, implementasyonu değil — public API'den test et.
 - Edge-case listesi JSDoc kontratından türetilir: sıfır değerler, sınır değerleri, boş girdiler, hata kategorileri.
 - Zaman tabanlı davranışlar (backoff, TTL, tick) `vi.useFakeTimers` ile deterministik test edilir.
-- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
+- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
 
 ### 8.5 Yol haritası eşlemesi (test-önce görevler)
 

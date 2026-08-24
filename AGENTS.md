@@ -42,6 +42,7 @@ interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasy
 - **Test sonra:** `*.test.ts` sözleşmeyi sabitler ve kırmızı verir; implementasyon testi yeşile çevirir. Test yoksa implementasyon başlamaz.
 - **Legacy karakterizasyon testleri:** Değiştirilecek testsiz modüllerde (örn. `rbac.ts`, `field-routes.ts`, `ws-routes.ts`, `bullmq-adapter.ts`) önce **mevcut davranış** testle sabitlenir — bug/delik dahil — sonra değişiklik yapılır.
 - **Kapılar:** Yeni kodda ≥%70 satır (SonarCloud kapısı); **güvenlik-kritik modüllerde ≥%90 branch**: rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu.
+- **Güvenlik hedef standardı:** OWASP ASVS **Level 2** — kategori → check eşleme matrisi, SAST'in doğrulayamadıkları ve release kontrol listesi: `docs/standards/owasp-asvs-level2.md`.
 - **Kural: testsiz PR merge edilmez.**
 - **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
 
@@ -83,7 +84,7 @@ shared-types (leaf, no deps)
 | `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth, integration contracts) |
 | `shared-utils` | ConfigLoader, env sources, config definitions                          |
 | `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
-| `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/PLUGIN-MIMARISI.md`) |
+| `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/architecture/PLUGIN-MIMARISI.md`) |
 | `epias-client` | EPIAŞ HTTP client: CAS TGT yaşam döngüsü (`EpiasTicketStore` — dosya önbelleği), `EpiasClient` (TGT header + EPIAŞ tarih formatı + tipli yardımcılar), endpoint sabitleri. Plugin değil — kütüphane; EPIAŞ plugin'leri paylaşır |
 | `plugins/*`    | Built-in plugin packages (e.g. `epias-market-prices`) — loaded via StaticPluginSource |
 | `simulators`   | BSC/HVAC/XRack/CB/DC-Output device simulators — register-accurate                 |
@@ -613,7 +614,7 @@ When touching any file with hardcoded hex colors:
 
 ## Sprite pipeline (AI sprite üretimi — pixi çizimleri → sprite)
 
-Pixi `pixiGraphics` çizimlerini AI üretimi (fal.ai img2img) sprite'larla değiştirme altyapısı. **Üretim nasıl yapılır:** `docs/SPRITE-URETIMI.md` (pratik iş akışı). Stil kuralları ve prompt şablonu: **`docs/SPRITE-STYLE-KIT.md`** (authoritative).
+Pixi `pixiGraphics` çizimlerini AI üretimi (fal.ai img2img) sprite'larla değiştirme altyapısı. **Üretim nasıl yapılır:** `docs/process/SPRITE-URETIMI.md` (pratik iş akışı). Stil kuralları ve prompt şablonu: **`docs/process/SPRITE-STYLE-KIT.md`** (authoritative).
 
 ### Komutlar
 ```bash
