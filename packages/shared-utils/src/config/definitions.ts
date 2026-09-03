@@ -15,12 +15,8 @@
  */
 
 import { validateOrThrow } from "@gd-monorepo/shared-types";
-import {
-  authConfigSchema,
-  serverConfigSchema,
-  redisConfigSchema,
-  postgresConfigSchema,
-} from "@gd-monorepo/shared-types";
+import { authConfigSchema, serverConfigSchema, redisConfigSchema, postgresConfigSchema } from "@gd-monorepo/shared-types";
+import type { ServiceTier } from "@gd-monorepo/shared-types";
 import type { ConfigDefinition } from "./types";
 
 // =============================================================================
@@ -81,6 +77,156 @@ export const authRefreshTokenExpirySeconds: ConfigDefinition<number> = {
   validate: (v) =>
     validateOrThrow(authConfigSchema.shape.refreshTokenExpirySeconds, Number(v), "auth.refreshTokenExpirySeconds"),
   description: "Refresh token gecerlilik suresi (saniye). Varsayilan: 7 gun.",
+};
+
+// =============================================================================
+// Auth — MFA (Faz 6 T6.1)
+// =============================================================================
+
+export const authMfaTokenExpirySeconds: ConfigDefinition<number> = {
+  key: "auth.mfaTokenExpirySeconds",
+  env: "AUTH_MFA_TOKEN_EXPIRY_SECONDS",
+  filePath: "auth.mfaTokenExpirySeconds",
+  default: 120,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isFinite(num) || num <= 0) {
+      throw new Error(`Gecersiz AUTH_MFA_TOKEN_EXPIRY_SECONDS: ${v}`);
+    }
+    return num;
+  },
+  description:
+    "MFA giris ara-adim token suresi (saniye). Varsayilan: 2 dakika (Faz 6 T6.1).",
+};
+
+export const authMfaRequiredRoles: ConfigDefinition<string> = {
+  key: "auth.mfaRequiredRoles",
+  env: "AUTH_MFA_REQUIRED_ROLES",
+  filePath: "auth.mfaRequiredRoles",
+  default: "admin,teknik",
+  validate: (v) => {
+    const roles = String(v)
+      .split(",")
+      .map((r) => r.trim())
+      .filter((r) => r.length > 0);
+    const allowed = ["admin", "teknik", "guest", "boss", "developer"];
+    for (const role of roles) {
+      if (!allowed.includes(role)) {
+        throw new Error(`Gecersiz AUTH_MFA_REQUIRED_ROLES degeri: "${role}"`);
+      }
+    }
+    return String(v);
+  },
+  description:
+    "MFA kaydi zorunlu roller (virgullu). Container tier'da varsayilan bos (Faz 6 T6.1).",
+};
+
+export const authMfaEnabled: ConfigDefinition<boolean> = {
+  key: "auth.mfaEnabled",
+  env: "MFA_ENABLED",
+  filePath: "auth.mfaEnabled",
+  default: true,
+  validate: (v) => v === true || v === "true" || v === "1",
+  description:
+    "MFA zorunlulugu ac/kapa anahtari (debug/gecici kurulumlar icin; URETIMDE true — Faz 6 T6.1)",
+};
+
+// =============================================================================
+// Auth — giris kilidi (Faz 6 T6.6)
+// =============================================================================
+
+export const authLoginMaxFailures: ConfigDefinition<number> = {
+  key: "auth.loginMaxFailures",
+  env: "AUTH_LOGIN_MAX_FAILURES",
+  filePath: "auth.loginMaxFailures",
+  default: 5,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 1) {
+      throw new Error(`Gecersiz AUTH_LOGIN_MAX_FAILURES: ${v}`);
+    }
+    return num;
+  },
+  description: "Hesap kilidi icin gerekli basarisiz giris sayisi (Faz 6 T6.6).",
+};
+
+export const authLoginWindowSeconds: ConfigDefinition<number> = {
+  key: "auth.loginWindowSeconds",
+  env: "AUTH_LOGIN_WINDOW_SECONDS",
+  filePath: "auth.loginWindowSeconds",
+  default: 900,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 60) {
+      throw new Error(`Gecersiz AUTH_LOGIN_WINDOW_SECONDS: ${v}`);
+    }
+    return num;
+  },
+  description: "Basarisiz giris sayaci penceresi (saniye) (Faz 6 T6.6).",
+};
+
+export const authLoginLockSeconds: ConfigDefinition<number> = {
+  key: "auth.loginLockSeconds",
+  env: "AUTH_LOGIN_LOCK_SECONDS",
+  filePath: "auth.loginLockSeconds",
+  default: 900,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 60) {
+      throw new Error(`Gecersiz AUTH_LOGIN_LOCK_SECONDS: ${v}`);
+    }
+    return num;
+  },
+  description: "Hesap kilit suresi (saniye) (Faz 6 T6.6).",
+};
+
+// =============================================================================
+// Auth — TOTP deneme kilidi (2026-08-30 T1.6 — ASVS V3.5.2)
+// =============================================================================
+
+export const authTotpMaxFailures: ConfigDefinition<number> = {
+  key: "auth.totpMaxFailures",
+  env: "AUTH_TOTP_MAX_FAILURES",
+  filePath: "auth.totpMaxFailures",
+  default: 5,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 1) {
+      throw new Error(`Gecersiz AUTH_TOTP_MAX_FAILURES: ${v}`);
+    }
+    return num;
+  },
+  description: "TOTP kod denemesi kilidi icin gerekli basarisiz deneme sayisi.",
+};
+
+export const authTotpWindowSeconds: ConfigDefinition<number> = {
+  key: "auth.totpWindowSeconds",
+  env: "AUTH_TOTP_WINDOW_SECONDS",
+  filePath: "auth.totpWindowSeconds",
+  default: 300,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 60) {
+      throw new Error(`Gecersiz AUTH_TOTP_WINDOW_SECONDS: ${v}`);
+    }
+    return num;
+  },
+  description: "TOTP basarisiz deneme sayaci penceresi (saniye).",
+};
+
+export const authTotpLockSeconds: ConfigDefinition<number> = {
+  key: "auth.totpLockSeconds",
+  env: "AUTH_TOTP_LOCK_SECONDS",
+  filePath: "auth.totpLockSeconds",
+  default: 300,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 60) {
+      throw new Error(`Gecersiz AUTH_TOTP_LOCK_SECONDS: ${v}`);
+    }
+    return num;
+  },
+  description: "TOTP deneme kilit suresi (saniye).",
 };
 
 // =============================================================================
@@ -332,7 +478,7 @@ export const timescalePoolSize: ConfigDefinition<number> = {
 // Servis (tier, config dizini, polling ayarlari)
 // =============================================================================
 
-export const serviceTier: ConfigDefinition<"container" | "field" | "boss"> = {
+export const serviceTier: ConfigDefinition<ServiceTier> = {
   key: "service.tier",
   env: "SERVICE_TIER",
   filePath: "service.tier",
@@ -342,7 +488,7 @@ export const serviceTier: ConfigDefinition<"container" | "field" | "boss"> = {
     if (s !== "container" && s !== "field" && s !== "boss") {
       throw new Error(`Gecersiz SERVICE_TIER: "${v}". Beklenen: container | field | boss`);
     }
-    return s as "container" | "field" | "boss";
+    return s as ServiceTier;
   },
   restartOnChange: true,
   description: "Servis seviyesi: container, field veya boss",
@@ -354,6 +500,198 @@ export const deviceConfigDir: ConfigDefinition<string> = {
   filePath: "device.configDir",
   default: "./config",
   description: "Cihaz konfigürasyon dosyalarinin bulundugu dizin",
+};
+
+// =============================================================================
+// Log altyapısı (TamperLogger — Faz 0 T0.5/T0.6)
+// =============================================================================
+
+export const logLevel: ConfigDefinition<string> = {
+  key: "log.level",
+  env: "LOG_LEVEL",
+  filePath: "log.level",
+  default: "info",
+  validate: (v) => {
+    const s = String(v).toLowerCase();
+    if (!["debug", "info", "warn", "error", "fatal"].includes(s)) {
+      throw new Error(`Gecersiz LOG_LEVEL: "${v}". Beklenen: debug | info | warn | error | fatal`);
+    }
+    return s;
+  },
+  description: "TamperLogger minimum app kategorisi seviyesi",
+};
+
+export const logSigningKeyPath: ConfigDefinition<string> = {
+  key: "log.signingKeyPath",
+  env: "LOG_SIGNING_KEY_PATH",
+  filePath: "log.signingKeyPath",
+  default: "/etc/gd-pms/log-signing.key",
+  description: "TamperLogger HMAC imza anahtarinin dosya yolu (materyal degil)",
+};
+
+export const logFilePath: ConfigDefinition<string | undefined> = {
+  key: "log.filePath",
+  env: "LOG_FILE_PATH",
+  filePath: "log.filePath",
+  default: undefined,
+  description: "FileSink cikti dosyasi — yoksa tier varsayilani kullanilir",
+};
+
+// =============================================================================
+// Log — SIEM / bildirim sink'leri (Faz 6 T6.2 + T6.7)
+// =============================================================================
+
+export const logExtraSinks: ConfigDefinition<string> = {
+  key: "log.extraSinks",
+  env: "LOG_EXTRA_SINKS",
+  filePath: "log.extraSinks",
+  default: "",
+  validate: (v) => {
+    const allowed = ["syslog", "webhook", "smtp", "sms"];
+    for (const kind of String(v).split(",")) {
+      const trimmed = kind.trim();
+      if (trimmed.length > 0 && !allowed.includes(trimmed)) {
+        throw new Error(`Gecersiz LOG_EXTRA_SINKS degeri: "${kind}"`);
+      }
+    }
+    return String(v);
+  },
+  description:
+    "Ek sink listesi (virgullu): syslog, webhook, smtp, sms (Faz 6 T6.2/T6.7).",
+};
+
+export const logSyslogProtocol: ConfigDefinition<string> = {
+  key: "log.syslogProtocol",
+  env: "LOG_SYSLOG_PROTOCOL",
+  filePath: "log.syslogProtocol",
+  default: "udp",
+  validate: (v) => {
+    if (v !== "udp" && v !== "tcp") {
+      throw new Error(`Gecersiz LOG_SYSLOG_PROTOCOL: ${v}`);
+    }
+    return v;
+  },
+  description: "SyslogSink tasima protokolu: udp | tcp (Faz 6 T6.2).",
+};
+
+export const logSyslogHost: ConfigDefinition<string> = {
+  key: "log.syslogHost",
+  env: "LOG_SYSLOG_HOST",
+  filePath: "log.syslogHost",
+  default: "",
+  description: "Syslog sunucusu adresi — bos ise sink kurulmaz (Faz 6 T6.2).",
+};
+
+export const logSyslogPort: ConfigDefinition<number> = {
+  key: "log.syslogPort",
+  env: "LOG_SYSLOG_PORT",
+  filePath: "log.syslogPort",
+  default: 514,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 1 || num > 65535) {
+      throw new Error(`Gecersiz LOG_SYSLOG_PORT: ${v}`);
+    }
+    return num;
+  },
+  description: "Syslog portu (Faz 6 T6.2).",
+};
+
+export const logWebhookUrl: ConfigDefinition<string> = {
+  key: "log.webhookUrl",
+  env: "LOG_WEBHOOK_URL",
+  filePath: "log.webhookUrl",
+  default: "",
+  description: "SIEM webhook URL'si — bos ise sink kurulmaz (Faz 6 T6.2).",
+};
+
+export const logWebhookSecret: ConfigDefinition<string> = {
+  key: "log.webhookSecret",
+  env: "LOG_WEBHOOK_SECRET",
+  filePath: "log.webhookSecret",
+  default: "",
+  description: "Webhook HMAC-SHA256 imza anahtari (Faz 6 T6.2).",
+};
+
+export const logSmtpHost: ConfigDefinition<string> = {
+  key: "log.smtpHost",
+  env: "LOG_SMTP_HOST",
+  filePath: "log.smtpHost",
+  default: "",
+  description: "SMTP sunucusu — bos ise mail bildirimi kurulmaz (Faz 6 T6.7).",
+};
+
+export const logSmtpPort: ConfigDefinition<number> = {
+  key: "log.smtpPort",
+  env: "LOG_SMTP_PORT",
+  filePath: "log.smtpPort",
+  default: 587,
+  validate: (v) => {
+    const num = Number(v);
+    if (!Number.isInteger(num) || num < 1 || num > 65535) {
+      throw new Error(`Gecersiz LOG_SMTP_PORT: ${v}`);
+    }
+    return num;
+  },
+  description: "SMTP portu (Faz 6 T6.7).",
+};
+
+export const logSmtpUser: ConfigDefinition<string> = {
+  key: "log.smtpUser",
+  env: "LOG_SMTP_USER",
+  filePath: "log.smtpUser",
+  default: "",
+  description: "SMTP kullanici adi (Faz 6 T6.7).",
+};
+
+export const logSmtpPass: ConfigDefinition<string> = {
+  key: "log.smtpPass",
+  env: "LOG_SMTP_PASS",
+  filePath: "log.smtpPass",
+  default: "",
+  description: "SMTP sifresi (Faz 6 T6.7).",
+};
+
+export const logSmtpFrom: ConfigDefinition<string> = {
+  key: "log.smtpFrom",
+  env: "LOG_SMTP_FROM",
+  filePath: "log.smtpFrom",
+  default: "",
+  description: "Bildirim maili gonderen adresi (Faz 6 T6.7).",
+};
+
+export const logSmtpTo: ConfigDefinition<string> = {
+  key: "log.smtpTo",
+  env: "LOG_SMTP_TO",
+  filePath: "log.smtpTo",
+  default: "",
+  description: "Bildirim alicilari (virgullu) (Faz 6 T6.7).",
+};
+
+export const logSmsUrl: ConfigDefinition<string> = {
+  key: "log.smsUrl",
+  env: "LOG_SMS_URL",
+  filePath: "log.smsUrl",
+  default: "",
+  description: "SMS saglayici HTTP ucu — bos ise SMS kurulmaz (Faz 6 T6.7).",
+};
+
+export const logSmsPhones: ConfigDefinition<string> = {
+  key: "log.smsPhones",
+  env: "LOG_SMS_PHONES",
+  filePath: "log.smsPhones",
+  default: "",
+  description: "SMS alicilari (virgullu, E.164) (Faz 6 T6.7).",
+};
+
+export const logSmsTemplate: ConfigDefinition<string> = {
+  key: "log.smsTemplate",
+  env: "LOG_SMS_TEMPLATE",
+  filePath: "log.smsTemplate",
+  default:
+    '{"to":"{{phone}}","text":"[{{eventCode}}] {{message}}"}',
+  description:
+    "SMS istek govdesi sablonu ({{phone}}/{{eventCode}}/{{message}}/{{ts}}) (Faz 6 T6.7).",
 };
 
 export const siteContainerId: ConfigDefinition<string | undefined> = {
@@ -370,6 +708,59 @@ export const siteFieldId: ConfigDefinition<string | undefined> = {
   filePath: "site.fieldId",
   default: undefined,
   description: "Field-level app kimligi — telemetry tag'lerine field_id olarak eklenir",
+};
+
+// =============================================================================
+// FieldConnector (Faz 2 — container → field outbound WS)
+// =============================================================================
+
+export const fieldConnectEnabled: ConfigDefinition<boolean> = {
+  key: "fieldConnect.enabled",
+  env: "FIELD_CONNECT_ENABLED",
+  filePath: "fieldConnect.enabled",
+  default: false,
+  validate: (v) => v === true || v === "true" || v === "1",
+  description: "FieldConnector'u etkinlestirir (yalnizca container tier) — Faz 2 T2.3",
+};
+
+export const fieldConnectWsUrl: ConfigDefinition<string | undefined> = {
+  key: "fieldConnect.wsUrl",
+  env: "FIELD_WS_URL",
+  filePath: "fieldConnect.wsUrl",
+  default: undefined,
+  description:
+    "Field WS URL listesi — virgulle ayrilmis, sirayla denenir (ana + yedek). DNS adi tercih edilir (tasarim 6.1)",
+};
+
+export const fieldConnectToken: ConfigDefinition<string | undefined> = {
+  key: "fieldConnect.token",
+  env: "CONTAINER_TOKEN",
+  filePath: "fieldConnect.token",
+  default: undefined,
+  secret: true,
+  description:
+    "Konteyner service token'i — field registry token_hash'i ile eslesir (tasarim 3.2)",
+};
+
+// =============================================================================
+// TunnelClient loopback upstream'leri (Faz 3 — container tier)
+// =============================================================================
+
+export const tunnelApiUpstream: ConfigDefinition<string> = {
+  key: "tunnel.apiUpstream",
+  env: "TUNNEL_API_UPSTREAM",
+  filePath: "tunnel.apiUpstream",
+  default: "http://web-service:5001",
+  description:
+    "Tunel /api/* ve /ws/* upstream'i (container tier web-service loopback)",
+};
+
+export const tunnelStaticUpstream: ConfigDefinition<string> = {
+  key: "tunnel.staticUpstream",
+  env: "TUNNEL_STATIC_UPSTREAM",
+  filePath: "tunnel.staticUpstream",
+  default: "http://web:80",
+  description: "Tunel SPA/assets upstream'i (container nginx loopback)",
 };
 
 export const servicePollIntervalMs: ConfigDefinition<number> = {
@@ -488,6 +879,15 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   authJwtSecret,
   authAccessTokenExpirySeconds,
   authRefreshTokenExpirySeconds,
+  authMfaTokenExpirySeconds,
+  authMfaRequiredRoles,
+  authMfaEnabled,
+  authLoginMaxFailures,
+  authLoginWindowSeconds,
+  authLoginLockSeconds,
+  authTotpMaxFailures,
+  authTotpWindowSeconds,
+  authTotpLockSeconds,
 
   // Redis
   redisHost,
@@ -524,6 +924,26 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   workerConcurrency,
   managementIntervalMs,
 
+  // Log altyapısı (TamperLogger)
+  logLevel,
+  logSigningKeyPath,
+  logFilePath,
+  logExtraSinks,
+  logSyslogProtocol,
+  logSyslogHost,
+  logSyslogPort,
+  logWebhookUrl,
+  logWebhookSecret,
+  logSmtpHost,
+  logSmtpPort,
+  logSmtpUser,
+  logSmtpPass,
+  logSmtpFrom,
+  logSmtpTo,
+  logSmsUrl,
+  logSmsPhones,
+  logSmsTemplate,
+
   // Integration Service
   integrationPluginDir,
   integrationConfigDir,
@@ -532,6 +952,15 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   // Site kimligi (telemetry tag'leri: container_id / field_id)
   siteContainerId,
   siteFieldId,
+
+  // FieldConnector (Faz 2)
+  fieldConnectEnabled,
+  fieldConnectWsUrl,
+  fieldConnectToken,
+
+  // TunnelClient upstream'leri (Faz 3)
+  tunnelApiUpstream,
+  tunnelStaticUpstream,
 
   // i18n
   i18nDefaultLocale,

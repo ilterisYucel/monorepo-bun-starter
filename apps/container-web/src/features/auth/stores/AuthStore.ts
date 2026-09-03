@@ -1,7 +1,8 @@
 // apps/web/src/features/auth/stores/AuthStore.ts
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { apiClient } from "../../../lib/api-client";
+import { isTunnelMode } from "../../../lib/api-base";
 import type { User } from "../types/user";
 
 export interface AuthState {
@@ -10,9 +11,15 @@ export interface AuthState {
   isAdmin: boolean;
   isTeknik: boolean;
   isGuest: boolean;
+  /** 2026-08-30 — developer: guest benzeri salt-okunur (monitoring fazına hazır). */
+  isDeveloper: boolean;
   login: (username: string, password: string) => Promise<void>;
   loginAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
+  /** Faz 1 T1.6 — zorunlu şifre değişimi (yeni token'larla oturumu tazeler). */
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  /** Faz 4 T4.4 — tünel oturumu: cookie'den hydrate edilen kullanıcıyı uygular. */
+  applySession: (user: User) => void;
 }
 
 const GUEST_USERNAME = "guest";
@@ -35,6 +42,7 @@ async function doLogin(
     isAdmin: user.role === "admin",
     isTeknik: user.role === "teknik",
     isGuest: user.role === "guest",
+    isDeveloper: user.role === "developer",
   });
 }
 
@@ -46,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
       isAdmin: false,
       isTeknik: false,
       isGuest: false,
+      isDeveloper: false,
 
       login: async (username: string, password: string) => {
         await doLogin(username, password, set);
@@ -73,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
           isAdmin: false,
           isTeknik: false,
           isGuest: false,
+          isDeveloper: false,
         });
 
         // re-login as guest so API calls keep working
@@ -82,7 +92,48 @@ export const useAuthStore = create<AuthState>()(
           // backend not ready
         }
       },
+
+      changePassword: async (oldPassword: string, newPassword: string) => {
+        const res = await apiClient.post("/auth/change-password", {
+          oldPassword,
+          newPassword,
+        });
+        const { accessToken, refreshToken, user } = res.data;
+
+        localStorage.setItem("auth-token", accessToken);
+        localStorage.setItem("auth-refresh-token", refreshToken);
+
+        set({
+          user,
+          isAuthenticated: true,
+          isAdmin: user.role === "admin",
+          isTeknik: user.role === "teknik",
+          isGuest: user.role === "guest",
+        });
+      },
+
+      // Faz 4 T4.4 — tünel modunda cookie tek doğruluk kaynağıdır:
+      // localStorage'a YAZILMAZ (kırılganlık #1 — field'ın auth-storage'ı
+      // aynı origin'de; çakışma yasak).
+      applySession: (user: User) => {
+        set({
+          user,
+          isAuthenticated: true,
+          isAdmin: user.role === "admin",
+          isTeknik: user.role === "teknik",
+          isGuest: user.role === "guest",
+          isDeveloper: user.role === "developer",
+        });
+      },
     }),
-    { name: "auth-storage" },
+    {
+      name: "auth-storage",
+      // Tünel modunda persist no-op — localStorage izolasyonu (§5.4)
+      storage: createJSONStorage(() =>
+        isTunnelMode()
+          ? { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+          : localStorage,
+      ),
+    },
   ),
 );

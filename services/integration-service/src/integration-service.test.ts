@@ -13,11 +13,7 @@ import {
   PluginContextFactory,
   PluginRegistry,
 } from "@gd-monorepo/plugin-sdk";
-import type {
-  FetchWindow,
-  IIntegrationPlugin,
-  MarketDataPoint,
-} from "@gd-monorepo/shared-types";
+import type { FetchWindow, IIntegrationPlugin, MarketDataPoint } from "@gd-monorepo/shared-types";
 import { IntegrationService } from "./integration-service";
 import { ExternalSeriesWriter } from "./external-series-writer";
 
@@ -58,10 +54,10 @@ class FakeQueue implements IMessageQueue {
   async close(): Promise<void> {
     this.closed = true;
   }
-  async getQueueStatus(): Promise<QueueStatus[]> {
+  async queueStatus(): Promise<QueueStatus[]> {
     return [];
   }
-  async getQueueStats(_type: JobType): Promise<QueueStatus | null> {
+  async queueStats(_type: JobType): Promise<QueueStatus | null> {
     return null;
   }
   async health(): Promise<boolean> {
@@ -298,5 +294,87 @@ describe("IntegrationService", () => {
     expect(queue.closed).toBe(true);
     expect(writer.closed).toBe(true);
     expect(await service.health()).toBe(false);
+  });
+
+  it("2026-08-30 (T3): worker — bilinmeyen plugin job'ı YOK SAYILIR (kademeli bozulma)", async () => {
+    const { service, queue, writer } = await makeService();
+    await service.start();
+
+    const processor = queue.workers.get("FETCH_EXTERNAL")!;
+    await processor({
+      jobId: "x",
+      type: "FETCH_EXTERNAL",
+      deviceId: "yok",
+      pluginName: "bilinmeyen",
+      timestamp: "t",
+      window: { from: "f" },
+    });
+
+    expect(writer.written).toHaveLength(0);
+  });
+
+  it("2026-08-30 (T3): worker — plugin fetch HATASI job'ı düşürür, yazım YAPILMAZ (hata akışı yukarı fırlar)", async () => {
+    const { service, queue, writer } = await makeService({
+      plugins: [
+        makeIntegrationPlugin("epias", {
+          fetched: () => {
+            throw new Error("network down");
+          },
+        }),
+      ],
+    });
+    await service.start();
+
+    const processor = queue.workers.get("FETCH_EXTERNAL")!;
+    await expect(
+      processor({
+        jobId: "x",
+        type: "FETCH_EXTERNAL",
+        deviceId: "epias",
+        pluginName: "epias",
+        timestamp: "t",
+        window: { from: "f" },
+      }),
+    ).rejects.toThrow("network down");
+    expect(writer.written).toHaveLength(0);
+  });
+
+  it("2026-08-30 (T3): worker — boş fetch sonucu BOŞ listeyle yazıma gider (writer no-op'tur)", async () => {
+    const { service, queue, writer } = await makeService({
+      plugins: [
+        makeIntegrationPlugin("epias", { fetched: () => [] }),
+      ],
+    });
+    await service.start();
+
+    const processor = queue.workers.get("FETCH_EXTERNAL")!;
+    await processor({
+      jobId: "x",
+      type: "FETCH_EXTERNAL",
+      deviceId: "epias",
+      pluginName: "epias",
+      timestamp: "t",
+      window: { from: "f" },
+    });
+
+    // Mevcut davranış: write() her zaman çağrılır; boş listede writer
+    // no-op yapar (bkz. external-series-writer.test.ts "boş liste").
+    expect(writer.written).toHaveLength(1);
+    expect(writer.written[0]).toEqual([]);
+  });
+
+  it("2026-08-30 (T3): runPlugin — fetch hatası çağırana fırlar (yutulmaz)", async () => {
+    const { service } = await makeService({
+      plugins: [
+        makeIntegrationPlugin("epias", {
+          fetched: () => {
+            throw new Error("api down");
+          },
+        }),
+      ],
+    });
+    await service.start();
+
+    await expect(service.runPlugin("epias")).rejects.toThrow("api down");
   });
 });

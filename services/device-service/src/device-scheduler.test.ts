@@ -12,8 +12,8 @@ function mockQueue(overrides?: Partial<IMessageQueue>): IMessageQueue {
     registerWorker: vi.fn(),
     registerWorkerFor: vi.fn(),
     close: vi.fn(),
-    getQueueStatus: vi.fn(),
-    getQueueStats: vi.fn(),
+    queueStatus: vi.fn(),
+    queueStats: vi.fn(),
     health: vi.fn(),
     ...overrides,
   };

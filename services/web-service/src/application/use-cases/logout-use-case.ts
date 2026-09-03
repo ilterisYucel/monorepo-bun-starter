@@ -1,11 +1,11 @@
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { Result } from "@gd-monorepo/shared-types";
+import { Result } from "@gd-monorepo/result";
 
 export class LogoutUseCase {
   constructor(private readonly users: IUserRepository) {}
 
-  async execute(userId: string): Promise<Result<void>> {
+  async execute(userId: string): Promise<Result<void, string>> {
     await this.users.clearRefreshToken(userId);
-    return Result.ok(undefined);
+    return Result.okVoid();
   }
 }

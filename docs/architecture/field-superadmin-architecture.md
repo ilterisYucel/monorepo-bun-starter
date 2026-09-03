@@ -980,7 +980,6 @@ Security baseline → FieldConnector → session tunnel → container-web subpat
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "react-hot-toast": "^2.6.0",
-    "recharts": "^3.8.1",
     "@playcanvas/react": "^latest",
     "@gd-monorepo/shared-types": "*",
     "@gd-monorepo/shared-utils": "*",

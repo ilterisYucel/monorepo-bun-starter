@@ -45,6 +45,7 @@ interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasy
 - **Güvenlik hedef standardı:** OWASP ASVS **Level 2** — kategori → check eşleme matrisi, SAST'in doğrulayamadıkları ve release kontrol listesi: `docs/standards/owasp-asvs-level2.md`.
 - **Kural: testsiz PR merge edilmez.**
 - **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
+- **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur: satır referanslı değişiklik kaydı, nedeni, testler + geçme durumu, sisteme etkisi, kabul kriteri kanıtları ve gözle kontrol maddeleri. Faz kapanmadan önce genel durum özeti ve `review_date` güncellenir.
 
 ## Monorepo structure
 - **Bun** is the package manager. Workspaces: `apps/*` + `packages/**` + `services/*`.
@@ -55,27 +56,30 @@ interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasy
 
 | Layer | What | Physical location | Examples |
 |:------|:-----|:------------------|:---------|
-| **Platform (engine)** | Reusable libraries — imported, never deployed | `packages/` | core, plugin-sdk, plugins/*, shared-types, shared-utils, simulators, ui |
+| **Platform (engine)** | Reusable libraries — imported, never deployed | `packages/` | core, platform/*, plugin-sdk, plugins/*, shared-types, shared-utils, simulators, ui |
 | **Capabilities** | Deployable, config-driven parts — runnable alone but not a product; composed into products via config | `services/` (backend) + `apps/` (frontend/desktop) | web-service, data-service, device-service, integration-service \| field, superadmin, container-web, desktop, editor |
 | **Products** | Assembled composition of capabilities + configs | `deployment/` (compose files + configs) | field stack, boss stack, container stack, customer variants |
 
+- **`packages/core` JENERİKTİR** — başka şirkette başka projede yeniden kullanılabilir olmalı. GD-PMS'ye özgü kod (`JobType` kuyrukları, tier defaults, konteyner uzaktan erişim sözleşmeleri) `packages/platform/*`'da yaşar. Bağımlılık yönü: `core → platform` YASAK; `platform/* → core` serbest. Ayrıntı: `docs/roadmap/platform-paket-yapisi.md`.
 - Services are **not** products — a product is the configured composition (e.g. field product = device-service + data-service + web-service + field app + compose + device configs + `SERVICE_TIER=field`).
 - Low-code/no-code evolution: the editor generates the **product layer** (compose compositions + configs); capabilities stay generic; customer-specific behavior belongs in product configs/plugins — never in the platform.
 - `packages/` = import-only. If something has a `run.ts`/Dockerfile and gets deployed, it belongs in `services/` or `apps/`.
 
 ### Build order (implicit from Nx `^build`)
 ```
-shared-types (leaf, no deps)
-  → shared-utils, core, simulators, plugin-sdk
-    → epias-client (depends on plugin-sdk)
-      → plugins/epias-market-prices (depends on epias-client), ui
-        → demo-backend (depends on core, shared-types, simulators)
-        → web-service (depends on core, shared-types)
-        → data-service (depends on core, shared-types)
-        → device-service (depends on core, shared-types, simulators)
-        → integration-service (depends on core, plugin-sdk, plugins/*)
-        → web (depends on shared-types, shared-utils, ui)
-        → desktop (depends on shared-types, shared-utils)
+shared-types, result (leaf, no deps)
+  → shared-utils, core, tamper-logger, simulators, plugin-sdk, ws-tunnel (depends on result)
+    → platform/messaging, platform/container-access (depend on core, shared-types, ws-tunnel)
+    → platform/logging (depends on shared-types, tamper-logger)
+      → epias-client (depends on plugin-sdk)
+        → plugins/epias-market-prices (depends on epias-client), ui
+          → demo-backend (depends on core, platform/*, tamper-logger, shared-types, simulators)
+          → web-service (depends on core, platform/*, tamper-logger, shared-types, ws-tunnel)
+          → data-service (depends on core, platform/*, tamper-logger, shared-types)
+          → device-service (depends on core, platform/*, tamper-logger, shared-types, simulators)
+          → integration-service (depends on core, platform/*, plugin-sdk, plugins/*)
+          → web (depends on shared-types, shared-utils, ui)
+          → desktop (depends on shared-types, shared-utils)
 ```
 
 ### Package ownership
@@ -83,7 +87,13 @@ shared-types (leaf, no deps)
 | :---------------| :---------------------------------------------------------------------|
 | `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth, integration contracts) |
 | `shared-utils` | ConfigLoader, env sources, config definitions                          |
-| `core`         | Backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, BullMQ |
+| `core`         | **JENERİK** backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, SQL adapters, RedisConnection, **generic** `BullMQAdapter`/`BullMQQueue` — GD-PMS kavramı İÇERMEZ |
+| `result`       | **JENERİK** yaprak paket: `Result<T,E>` (Railway — ok/err, map, andThen, match, `okVoid`) + `DomainError` ailesi (kind → 4xx/5xx eşlemesi). Tüm paketler/servisler buradan import eder (2026-09-01: core/errors + ws-tunnel kopyası + shared-types basit Result birleşti) |
+| `tamper-logger` | **JENERİK** tamper-evident log kütüphanesi (ayrı ürün): `TamperLogger` (HMAC zinciri, fail-closed audit/security), sink'ler (console/file/timescale/syslog/webhook/smtp/sms), `verifyChain`, signing key. eventCode SERBEST string — sözlük `eventCodeValidator` ile enjekte edilir |
+| `platform/messaging` | `PlatformMessageQueue` (IMessageQueue implementasyonu) + `QUEUE_NAMES` + `JOB_RETRY_OPTIONS` — JobType'ı bilen TEK yer |
+| `ws-tunnel` | **JENERİK** çoklanmış WebSocket tüneli (ayrı ürün — tamper-logger deseni): `FrameCodec` (9 bayt başlık), kontrol mesaj protokolü (`protocol/messages.ts`), `FieldConnector` (durum makinesi + backoff), `TunnelClient` (stream multiplex + kredi + WS köprüsü), `ContainerSessionStore/Server` (konteyner oturumu — `ITokenSigner` enjeksiyonu), `ContainerSessionGateway`/`FieldSessionStore`/`TunnelProxy` (field tarafı — `IFieldChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu), jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` (types.ts), paket içi loopback demo (`src/demo/` + `examples/loopback-demo.mjs`). Bağımlılık: yalnızca `ws` + `zod` — TAM BAĞIMSIZ. Domain adapter'leri monorepo'da: `ContainerProxyFieldChannel`, `FastifyStreamSink`, `JoseTokenSigner`, `SessionAudit`, `SessionUserMap` |
+| `platform/container-access` | Konteyner uzaktan erişim sözleşmeleri: `IContainerProxy`/`ContainerObserver` (tunnel frame codec/tipler 2026-09-01'de `@gd-monorepo/ws-tunnel`'a taşındı) |
+| `platform/logging` | `TIER_LOGGER_DEFAULTS` + `loggerConfigForTier` (container/field/boss tier varsayılanları) + GD-PMS olay sözlüğü (`LOG_EVENT_CODES`/`isLogEventCode`) |
 | `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/architecture/PLUGIN-MIMARISI.md`) |
 | `epias-client` | EPIAŞ HTTP client: CAS TGT yaşam döngüsü (`EpiasTicketStore` — dosya önbelleği), `EpiasClient` (TGT header + EPIAŞ tarih formatı + tipli yardımcılar), endpoint sabitleri. Plugin değil — kütüphane; EPIAŞ plugin'leri paylaşır |
 | `plugins/*`    | Built-in plugin packages (e.g. `epias-market-prices`) — loaded via StaticPluginSource |
@@ -255,6 +265,36 @@ The following optimizations were applied across the codebase to prevent Chrome S
 - **Config'lerde `device_id`/`container_id`/`field_id` tag'i yazmak YASAKTIR** — bu tag'lerin tek sahibi device-service `TelemetryTagger`'dır (`services/device-service/src/telemetry-tagger.ts`). Config yalnızca kendi alanına ait tag'leri (`rack_id`, `aggregation` vb.) taşır.
 - **Canonical metric attr:** Config telemetry/bitfield girişine opsiyonel `"canonical"` alanı verilebilir (**serbest string** — örn: `soc`, `soh`, `voltage`, `battery_ready`). Değer, cihaz servisi tarafından `tags.canonical` olarak taşınır. **Konvansiyon:** canonical değeri = UI alan adı; frontend generic eşleme yapar (`if (canonical in target) target[canonical] = value` — tek istisnalar `battery_ready`→bool status ve `charge_power`/`discharge_power`→işaretli `power_kw`). Canonical verilmezse davranış değişmez (name ile gösterim). Enum/sabit liste YOKTUR — yeni canonical isim kullanmak için kod değişmez.
 - **TODO:** `canonical` ileride tags yerine ayrı bir `TelemetryData` alanına taşınacak (DB kolonu + adapter eşleme + frontend kontratı ile birlikte).
+
+## Cihaz alarm sözleşmesi (MANDATORY — Faz 0 eki)
+
+- **Tek kaynak — config kuralı:** Alarm tanımları YALNIZCA device config'teki üst seviye `alarms` bölümündedir: `{ telemetry: <ad>, severity: "error"|"warning"|"info", description?, activeLow? }`. Alarm adı = telemetri adı. Config dışında (kod, tag, enum) alarm kaynağı YOKTUR.
+- **Cihaz tipinden bağımsız:** Değerlendirme yalnızca device-service'te, standart `TelemetryData[]` akışı üzerinde yapılır (`AlarmTransitionDetector` + `alarmSamples`). `IDevice` alarm API'si taşımaz (ISP). Modbus, CANbus, MQTT, simülatör — hepsi aynı yoldan geçer; telemetri üretmek yeterlidir.
+- **Dedup (geçiş-odaklı):** `device_alarm` logu YALNIZCA yükselen kenarda basılır (aktifken saniyelik poll'lar sessizdir); düşen kenarda `device_alarm_cleared`; koşul bitip yeniden başlarsa YENİ oluşum = yeniden tek log. Aynı isimli birden fazla telemetri satırı (örn. rack başına) OR ile birleşir.
+- **Kalıcılık — 3 katman:** (1) `device_alarms` durum tablosu (tek satır/(device_id, alarm_name), yalnızca geçişlerde UPSERT; `resolved/resolved_by/resolved_at` TEIAŞ işareti), (2) geçiş logları TamperLogger'dan imzalı (geçmiş = `log_events`, `verify-log.mjs` ile denetlenebilir), (3) telemetri alarm metadata'sı TAŞIMAZ.
+- **Resolve akışı:** `POST /api/unified/alarms/resolve` — admin/teknik; audit `alarm_resolved` (fail-closed — audit yazılamazsa çözme reddedilir); aktif olmayan alarm 409. Teknisyen bit=1'ken "çözüldü" işaretlese bile yeni log basılmaz (loglama fiziksel kenara bağlıdır; resolved satır meta verisidir).
+- **Restart:** device-service `start()` bayat aktif satırları kapatır + dedup state'ini sıfırlar (aktif koşul yeniden yükselen kenar sayılır).
+
+## FieldConnector sözleşmesi (MANDATORY — Faz 2)
+
+- **Tek outbound WS (tasarım R4/R5):** Konteyner→field yalnızca `FIELD_WS_URL`'e outbound WSS; inbound TCP/HTTP YOKTUR. Kontrol mesajları + (Faz 3) tünel stream'leri AYNI kanaldan geçer.
+- **Durum makinesi (tasarım §6):** `offline → connecting → registered → connected ↔ backoff`. Geçişler: register-ack ok → ilk heartbeat → connected; hata/401/register-timeout → backoff (`exp(2^n·1s)+jitter`, tavan 60 sn — `ReconnectDelay`); `stop()` → offline. Soket olaylarında `generation` koruması (bayat soket olayları yok sayılır).
+- **Bootstrap config (env):** `FIELD_CONNECT_ENABLED` (default false), `FIELD_WS_URL` (virgüllü liste — ana+yedek), `CONTAINER_TOKEN` (secret, redacted), `CONTAINER_ID`. Etkinse eksik env → **fail-fast açılış reddi** (`fieldConnectorConfig`). Yalnızca container tier'da geçerli.
+- **Operational config (canlı):** `register-ack.config` / `config-update` frame'leri → zod (`fieldOperationalConfigSchema`, bilinmeyen anahtar strip) → geçerliyse heartbeat/telemetry aralıkları **restart'sız** uygulanır; geçersiz → `field_config_rejected` + eski config korunur. Field tarafı: `ContainerProxy.pushConfigUpdate()` (DB saklama Faz 3/6 — DOGRULAMA S5).
+- **Liveness:** client her heartbeat'te ping atar; 60 sn pong yoksa bağlantı yarı-ölü → kapat + backoff. Field tarafı: heartbeat → `lastSeenAt`; son liveness işaretinden tam 45 sn sonra `"stale"` (per-entry zamanlayıcı); WS kapanırsa `"idle"` (kayıt + son telemetri korunur — §12.4).
+- **Telemetri push:** `RealtimeSnapshotSource` = devices tablosu (`status='online'`) + RealtimeManager ring buffer başı; (deviceId,name) başına en yeni; hata → boş dizi (kademeli bozulma).
+- **Test:** field-connector branch kapısı ≥%90 (şu an %100); zaman davranışları `vi.useFakeTimers` ile; K2.1 gerçek-WS integration spec'i (`field-connector.spec.ts`) + `bun tools/field-connector-demo.mjs` gözle demosu.
+
+## Tünel sözleşmesi (MANDATORY — Faz 3)
+
+- **Tek kanal:** Tünel stream'leri FieldConnector'ın AYNI WS kanalından geçer; ayrı bağlantı YOKTUR. Text frame = kontrol mesajı, binary frame = akış verisi.
+- **Binary frame (§4.2):** 9 bayt başlık (streamId u32 BE + seq u32 BE + flags); flags `FIN 0x01 | RST 0x02 | WS_OP 0x04`; WS_OP varken yüksek 4 bit opcode. Codec `packages/ws-tunnel/src/codec/frame-codec.ts` (2026-09-01'de ayrı jenerik pakete taşındı) — `decode` **asla throw etmez** (`Result<_,FrameDecodeError>`); encode programcı hatasında throw eder. `seq` her iki tarafça AYRI sayaçtır.
+- **Stream yaşam döngüsü:** streamId'yi FIELD atar (monoton). Akış: `stream-open` → `stream-open-ack {statusCode, headers}` → BINARY gövde (≤64 KiB parça) → `FIN`; hata → `RST`; iki taraf da `stream-close` gönderebilir. HTTP akışlarında `stream-window` kredisi zorunludur (kredi yoksa gövde DURUR — deadlock yok: idle sweep kapatır).
+- **Yönlendirme (konteyner):** `/api/*` + `/ws/*` → `TUNNEL_API_UPSTREAM`; diğer her şey → `TUNNEL_STATIC_UPSTREAM` (nginx SPA). WS köprüsü aynı upstream'in `ws://` türevine bağlanır.
+- **Oturum (§5.4-§5.7):** `open-session` → konteyner KENDİ secret'iyle JWT üretir (`ITokenSigner` sözleşmesi; monorepo `JoseTokenSigner` implementasyonu `type:"container-session"` etiketi basar — access token'la karışmaz) → `open-session-ack`; cookie `container_session` **Path-scoped** `/containers/<cid>/ui`, HttpOnly. Field tarafı cookie'yi `FieldSessionStore`'a eşler; konteyner tarafı `ContainerSessionStore`'a. Kullanıcı konteyner DB'sine ASLA yazılmaz. Rol eşlemesi field'da: admin/teknik→admin, boss→guest, guest→oturum YOK.
+- **Allowlist (field, §5.6):** `/api/*`, `/ws/*`, `/assets/*`, `/favicon*`, `/`; YASAKLILAR: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/users`. Limitler: 1 etkileşimli oturum/konteyner, 16 eşzamanlı stream, pencere 256 KiB, TTL 4 sa, idle 15 dk.
+- **Audit fail-closed:** `SessionAudit.open` security logu yazılamazsa oturum AÇILMAZ; `session_audit` INSERT açılışta, UPDATE kapanışta.
+- **Test:** codec + session-gateway + tunnel-client + tunnel-proxy branch ≥%90 (şu an %92.5-100); uçtan uca `tunnel.spec.ts` (K3.1-K3.3) + `bun tools/tunnel-demo.mjs` gözle demosu.
 
 ## Device transport strategy (MANDATORY)
 
@@ -590,6 +630,7 @@ When touching any file with hardcoded hex colors:
 ## Docker / deployment
 - Compose files: `deployment/docker-compose.{field,boss,container}*.yml` (prod + dev) — the **product layer**.
 - Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
+- **Env convention (MANDATORY):** tier başına ayrı env dosyası — `deployment/.env.field`, `.env.container`, `.env.boss` (üçü de gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/.env.<tier>` ile geçer (script'ler `package.json`'da hazır). Commit'lenen şablonlar: `.env.<tier>.example` (sır yok; kopyalanıp doldurulur). Tier dosyalarına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `.env.container`'da; field token'ı register API'siyle hash olarak DB'de tutar).
 - Backend Dockerfiles: `services/*/deployment/` (prod) + `Dockerfile.dev` (hot-reload).
 - Web Dockerfiles: `apps/container-web/deployment/`.
 - Customer plugins: `deployment/customer-plugins/` (mounted into integration-service at runtime).

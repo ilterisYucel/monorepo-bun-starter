@@ -4,7 +4,7 @@ name: container-stack
 
 services:
   timescaledb:
-    image: timescale/timescaledb:latest-pg14
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
     container_name: container-timescaledb
     command:
       - -cshared_buffers=4GB
@@ -35,7 +35,7 @@ services:
         max-file: "3"
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
     container_name: container-redis
     command: >
       redis-server
@@ -126,7 +126,7 @@ services:
       NODE_ENV: production
       PORT: 5001
       HOST: 0.0.0.0
-      JWT_SECRET: dev-secret-change-in-production
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       POSTGRES_HOST: timescaledb
@@ -138,6 +138,13 @@ services:
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
+      # Faz 2 T2.3: FieldConnector bootstrap config (kapali varsayilan).
+      # Etkinlestirmek icin FIELD_CONNECT_ENABLED=true + FIELD_WS_URL +
+      # CONTAINER_TOKEN zorunludur (eksikse fail-fast).
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-false}
+      FIELD_WS_URL: ${FIELD_WS_URL:-}
+      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
     ports:
       - "5001:5001"
     depends_on:

@@ -2,6 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Global, css } from "@emotion/react";
 import { App } from "./app/App";
+import { installClientLogging } from "./lib/client-logger";
+import { hydrateSessionAuth } from "./features/auth/session-auth";
+
+installClientLogging();
 
 const globalStyles = css`
   :root {
@@ -116,6 +120,11 @@ const globalStyles = css`
     background: var(--code-bg);
   }
 `;
+
+// Faz 4 T4.4: tünel modunda (container_session cookie'si) render'dan ÖNCE
+// oturum hydrate edilir — login ekranı hiç görünmez (K4.2). Normal modda
+// no-op (cookie yok).
+await hydrateSessionAuth();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

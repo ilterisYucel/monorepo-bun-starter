@@ -13,9 +13,11 @@ export async function deviceRoutes(
         "SELECT id, name, protocol, status, type, rack_count, manufacturer, model, poll_interval_ms, connection, last_seen, created_at FROM devices ORDER BY created_at",
       );
       return reply.send({ devices: rows });
-    } catch (error) {
-      console.error("[DeviceRoutes] devices hata:", error);
-      return reply.status(500).send({ error: "Internal server error" });
+    } catch {
+      // Faz 5.1 B3: field tier'da devices tablosu yoktur (field stack'inde
+      // device-service yok — cihazlar konteyner snapshot'ından gelir).
+      // 500 yerine boş liste (kademeli bozulma).
+      return reply.send({ devices: [] });
     }
   });
 }

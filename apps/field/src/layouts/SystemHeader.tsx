@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { SCADA_ICONS, COLORS, useTranslation } from "@gd-monorepo/ui";
 import { useContainerData } from "../features/containers/hooks/useContainerData";
+import { derivePcsRows } from "../features/dashboard/deriveDashboard";
 import * as S from "./SystemHeader.styles";
 
 interface SystemHeaderProps {
@@ -24,8 +25,11 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({ fieldId = "—" }) =
 
   const onlineContainers = containers.filter((c) => c.connected).length;
   const totalContainers = containers.length;
-  const pcsOnline = onlineContainers;
-  const pcsTotal = totalContainers;
+  // Konteyner başına TEK PCS (2026-08-30): PCS sayacı snapshot PCS'lerinden
+  // türetilir (konteyner sayısına eşitlenmiş varsayım yok).
+  const pcsRows = derivePcsRows(containers);
+  const pcsOnline = pcsRows.filter((p) => p.connected).length;
+  const pcsTotal = pcsRows.length;
 
   return (
     <S.Bar>
@@ -40,7 +44,7 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({ fieldId = "—" }) =
         </S.Box>
         <S.Box>
           <PcsIcon size={16} />
-          <S.Label>PCS {pcsOnline}/{pcsTotal}</S.Label>
+          <S.Label>{t("common.pcs")} {pcsOnline}/{pcsTotal}</S.Label>
         </S.Box>
         <S.Box>
           <ClockIcon size={16} />

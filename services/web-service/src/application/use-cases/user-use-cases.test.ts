@@ -38,15 +38,15 @@ describe("DeleteUserUseCase", () => {
   it("deletes user when id is different from current user", async () => {
     const uc = new useCaseModule.DeleteUserUseCase(repo);
     const result = await uc.execute("user-2", "user-1");
-    expect(result.isSuccess).toBe(true);
+    expect(result.isOk()).toBe(true);
     expect(repo.delete).toHaveBeenCalledWith("user-2");
   });
 
   it("fails when trying to delete self", async () => {
     const uc = new useCaseModule.DeleteUserUseCase(repo);
     const result = await uc.execute("user-1", "user-1");
-    expect(result.isSuccess).toBe(false);
-    expect(result.error).toBe("Kendinizi silemezsiniz");
+    expect(result.isOk()).toBe(false);
+    expect(result.error()).toBe("Kendinizi silemezsiniz");
     expect(repo.delete).not.toHaveBeenCalled();
   });
 });
@@ -73,8 +73,8 @@ describe("CreateUserUseCase", () => {
       name: "New User",
     });
 
-    expect(result.isSuccess).toBe(true);
-    expect(result.value?.username).toBe("newuser");
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()?.username).toBe("newuser");
     expect(hasher.hash).toHaveBeenCalledWith("secret123");
     expect(repo.create).toHaveBeenCalledWith(
       "newuser",
@@ -103,7 +103,7 @@ describe("CreateUserUseCase", () => {
       name: "X",
     });
 
-    expect(result.isSuccess).toBe(false);
-    expect(result.error).toBe("Bu kullanici adi zaten kullaniliyor");
+    expect(result.isOk()).toBe(false);
+    expect(result.error()).toBe("Bu kullanici adi zaten kullaniliyor");
   });
 });

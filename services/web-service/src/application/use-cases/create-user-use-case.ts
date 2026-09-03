@@ -1,7 +1,7 @@
 import type { CreateUserRequest, User } from "@gd-monorepo/shared-types";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher";
-import { Result } from "@gd-monorepo/shared-types";
+import { Result } from "@gd-monorepo/result";
 
 export class CreateUserUseCase {
   constructor(
@@ -9,9 +9,9 @@ export class CreateUserUseCase {
     private readonly hasher: IPasswordHasher,
   ) {}
 
-  async execute(req: CreateUserRequest): Promise<Result<User>> {
+  async execute(req: CreateUserRequest): Promise<Result<User, string>> {
     const existing = await this.users.findByUsername(req.username);
-    if (existing) return Result.fail("Bu kullanici adi zaten kullaniliyor");
+    if (existing) return Result.err("Bu kullanici adi zaten kullaniliyor");
 
     const hash = await this.hasher.hash(req.password);
     const user = await this.users.create(req.username, hash, req.role, req.name);

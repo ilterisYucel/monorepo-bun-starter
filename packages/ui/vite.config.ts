@@ -24,14 +24,12 @@ export default defineConfig({
         "react",
         "react-dom",
         "react/jsx-runtime",
-        "recharts",
         "@gd-monorepo/shared-types",
       ],
       output: {
         globals: {
           react: "React",
           "react-dom": "ReactDOM",
-          recharts: "recharts",
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith(".css")) {

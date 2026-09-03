@@ -4,6 +4,7 @@ import { MainLayout } from "../layouts/MainLayout";
 import { LayoutWrapperV2 } from "../layouts/MainLayoutV2";
 import type { PageTypeV2 } from "../layouts/SidebarV2.types";
 import { LoginPage } from "../pages/LoginPage";
+import { ChangePasswordPage } from "../pages/ChangePasswordPage";
 import { DashboardPage } from "../pages/DashBoardPage";
 import { DashboardPageV2 } from "../pages/DashBoardPageV2";
 import { RacksPage } from "../pages/RacksPage";
@@ -30,6 +31,12 @@ const PrivateRoute: React.FC<{
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Faz 1 T1.6: zorunlu şifre değişimi tamamlanmadan uygulama açılmaz.
+  // 2026-08-30: guest İSTİSNADIR (otomatik misafir girişi — bkz. field).
+  if (user?.mustChangePassword && user.role !== "guest") {
+    return <Navigate to="/change-password" replace />;
   }
 
   if (roles && user && !roles.includes(user.role)) {
@@ -66,6 +73,10 @@ export const routes: RouteObject[] = [
     path: "/login",
     element: <LoginPage />,
   },
+  {
+    path: "/change-password",
+    element: <ChangePasswordPage />,
+  },
   // ═══════════════════════════════════════════════════════════════════
   // V2 ROUTES — Aktif
   // ═══════════════════════════════════════════════════════════════════
@@ -96,7 +107,7 @@ export const routes: RouteObject[] = [
   {
     path: "/bsc",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="bsc">
           <BscPage />
         </LayoutWrapperV2Component>
@@ -106,7 +117,7 @@ export const routes: RouteObject[] = [
   {
     path: "/fire",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="fire">
           <FirePanelPage />
         </LayoutWrapperV2Component>
@@ -116,7 +127,7 @@ export const routes: RouteObject[] = [
   {
     path: "/energy-analyzer",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="energy-analyzer">
           <EnergyAnalyzerPage />
         </LayoutWrapperV2Component>
@@ -126,7 +137,7 @@ export const routes: RouteObject[] = [
   {
     path: "/hvac",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="hvac">
           <HvacPage />
         </LayoutWrapperV2Component>
@@ -146,7 +157,7 @@ export const routes: RouteObject[] = [
   {
     path: "/system-charts",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="system-charts">
           <SystemChartsPage />
         </LayoutWrapperV2Component>
@@ -156,7 +167,7 @@ export const routes: RouteObject[] = [
   {
     path: "/events",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="events">
           <EventsPage />
         </LayoutWrapperV2Component>
@@ -166,7 +177,7 @@ export const routes: RouteObject[] = [
   {
     path: "/reports",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="reports">
           <ReportsPage />
         </LayoutWrapperV2Component>
@@ -176,7 +187,7 @@ export const routes: RouteObject[] = [
   {
     path: "/analytics",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="analytics">
           <AnalyticsPage />
         </LayoutWrapperV2Component>
@@ -186,7 +197,7 @@ export const routes: RouteObject[] = [
   {
     path: "/devices",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapperV2Component pageType="devices">
           <DevicesPage />
         </LayoutWrapperV2Component>
@@ -216,7 +227,7 @@ export const routes: RouteObject[] = [
   {
     path: "/racks",
     element: (
-      <PrivateRoute roles={["admin", "teknik"]}>
+      <PrivateRoute roles={["admin", "teknik", "boss"]}>
         <LayoutWrapper pageType="racks">
           <RacksPage />
         </LayoutWrapper>

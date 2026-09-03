@@ -85,8 +85,9 @@ const ErrorText = styled.p`
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
   teknik: "Teknik",
+  boss: "Patron",
+  developer: "Geliştirici",
   guest: "Misafir",
-  boss: "Yönetici",
 };
 
 interface UserListProps {

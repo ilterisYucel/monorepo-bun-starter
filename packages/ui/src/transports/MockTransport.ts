@@ -1,10 +1,4 @@
-import type {
-  ITelemetryTransport,
-  ConnectParams,
-  TelemetryObserver,
-  ConnectionState,
-  TelemetryData,
-} from "@gd-monorepo/shared-types";
+import type { ITelemetryTransport, ConnectParams, TelemetryObserver, ConnectionState, TelemetryData } from "@gd-monorepo/shared-types";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);

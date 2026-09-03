@@ -4,6 +4,7 @@ import { SidebarV2 } from "./SidebarV2";
 import type { PageTypeV2 } from "./SidebarV2.types";
 import { SystemHeader } from "./SystemHeader";
 import { useChargeStatus } from "../hooks/useChargeStatus";
+import { useFieldConnection } from "../hooks/useFieldConnection";
 import { useHvacData } from "../features/hvac";
 import { useEnergyAnalyzerData } from "../features/energy-analyzer";
 import * as S from "./MainLayout.styles";
@@ -22,6 +23,7 @@ export const MainLayoutV2: React.FC<MainLayoutV2Props> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { chargeStatus } = useChargeStatus();
+  const { fieldConnected } = useFieldConnection();
   const { averages: hvacAvg } = useHvacData();
   const { summaries: eaSummaries } = useEnergyAnalyzerData();
   const totalActivePower = useMemo(
@@ -70,6 +72,7 @@ export const MainLayoutV2: React.FC<MainLayoutV2Props> = ({
       <S.MainContent sidebarCollapsed $sidebarWidth={80}>
         <SystemHeader
           flowDirection={chargeStatus}
+          ppcConnected={fieldConnected}
           powerConsumption={totalActivePower}
           ambientTemp={hvacAvg.avgCurrentTemp || undefined}
           ambientHumidity={hvacAvg.avgReturnHumidity || undefined}

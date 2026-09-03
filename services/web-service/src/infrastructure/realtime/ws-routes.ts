@@ -1,15 +1,18 @@
 import type { FastifyInstance } from "fastify";
 import type { RealtimeManager } from "./realtime-manager";
 import type { ITokenService } from "../../domain/services/ITokenService";
+import type { ContainerSessionStore } from "@gd-monorepo/ws-tunnel";
 
 export async function telemetryWsRoutes(
   fastify: FastifyInstance,
   options: {
     realtime: RealtimeManager;
     tokens: ITokenService;
+    /** Faz 3 (container tier): tünel oturum token'larını da kabul eder. */
+    sessionStore?: ContainerSessionStore;
   },
 ): Promise<void> {
-  const { realtime, tokens } = options;
+  const { realtime, tokens, sessionStore } = options;
 
   fastify.get(
     "/ws/telemetry",
@@ -22,9 +25,17 @@ export async function telemetryWsRoutes(
         }
         try {
           await tokens.verifyAccess(queryToken);
+          return;
         } catch {
-          return reply.status(401).send({ error: "Gecersiz veya suresi dolmus token" });
+          // Faz 3: access token değilse tünel oturum token'ı denenir
         }
+        if (sessionStore) {
+          const sessionUser = await sessionStore.authenticate(queryToken);
+          if (sessionUser) return;
+        }
+        return reply
+          .status(401)
+          .send({ error: "Gecersiz veya suresi dolmus token" });
       },
     },
     (socket, _request) => {

@@ -1,10 +1,5 @@
 import type { IMessageQueue } from "@gd-monorepo/core";
-import type {
-  ReadDeviceJob,
-  ManagementJob,
-  TelemetryData,
-  ServiceConfigFile,
-} from "@gd-monorepo/shared-types";
+import type { ReadDeviceJob, ManagementJob, TelemetryData, ServiceConfigFile } from "@gd-monorepo/shared-types";
 
 const DEFAULT_POLL_INTERVAL_MS = 5000;
 const DEFAULT_MANAGEMENT_INTERVAL_MS = 10000;

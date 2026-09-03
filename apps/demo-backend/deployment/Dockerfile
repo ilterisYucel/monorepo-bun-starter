@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ COPY packages/ packages/
 RUN bunx nx build demo-backend
 
 # Stage 2: Production
-FROM oven/bun:latest AS runner
+FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS runner
 
 WORKDIR /app
 

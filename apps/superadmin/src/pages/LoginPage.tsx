@@ -7,11 +7,16 @@ export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, isAuthenticated, user } = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   if (isAuthenticated) {
+    // Faz 1 T1.6: seed kullanıcıları ilk girişte şifre değiştirmek zorunda
+    if (user?.mustChangePassword) {
+      navigate("/change-password", { replace: true });
+      return null;
+    }
     navigate("/dashboard", { replace: true });
     return null;
   }

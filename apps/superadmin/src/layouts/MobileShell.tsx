@@ -11,6 +11,11 @@ export const MobileShell: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
+  // Faz 1 T1.6: zorunlu şifre değişimi tamamlanmadan uygulama açılmaz
+  if (user?.mustChangePassword) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: COLORS.bgApp }}>
       <header

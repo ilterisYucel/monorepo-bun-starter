@@ -11,6 +11,7 @@ export default defineConfig({
       "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
       "@gd-monorepo/shared-utils": resolve(workspaceRoot, "packages/shared-utils/src"),
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
+      "@gd-monorepo/platform-messaging": resolve(workspaceRoot, "packages/platform/messaging/src"),
       "@gd-monorepo/plugin-sdk": resolve(workspaceRoot, "packages/plugin-sdk/src"),
       "@gd-monorepo/epias-market-prices": resolve(
         workspaceRoot,

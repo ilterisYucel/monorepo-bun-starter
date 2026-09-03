@@ -1,8 +1,11 @@
-import { buildContainer } from "./config/container";
+import { buildContainer, buildTamperLogger } from "./config/container";
 import type { ServerDependencies } from "./presentation/server";
-import { deviceConfigDir, serviceTier } from "./config/default";
+import { deviceConfigDir, serviceTier, siteFieldConfig } from "./config/default";
+import { ensureSiteField } from "./infrastructure/persistence/site-field-seed";
 import type { ConfigLoader } from "@gd-monorepo/shared-utils";
+import { asValue } from "awilix";
 import type { ISqlDatabase, ITimeseriesDatabase } from "@gd-monorepo/core";
+
 
 async function retry<T>(
   label: string,
@@ -30,17 +33,40 @@ export async function main() {
   const container = buildContainer();
   const c = container.cradle as Record<string, unknown>;
 
+  // Loggere bağlı OLMAYAN kaynaklar önce çözümlenir
   const config = c.config as ConfigLoader;
+  const tier = serviceTier(config);
+  // Field tier: FIELD_ID fail-fast kontrolü en başta (bağlantı kurulmadan).
+  const siteField = siteFieldConfig(config, tier);
   const postgres = c.postgres as ISqlDatabase;
   const timescale = c.timescale as ITimeseriesDatabase;
   const userRepo = c.userRepo as any;
   const server = c.server as any;
   const seed = c.seed as any;
   const serverCfg = c.serverCfg as any;
+  const authCfg = c.authCfg as any;
   const realtime = c.realtime as any;
   const redis = c.redis as any;
   const mvManager = c.mvManager as any;
   const mq = c.mq as any;
+  const requestContext = c.requestContext as any;
+
+  await retry("Postgres baglantisi", () => postgres.connect());
+  await retry("Redis baglantisi", () => redis.connect());
+  await userRepo.initialize(seed);
+
+  // TamperLogger bootstrap — awilix v11 async factory'leri await'lemediği için
+  // logger burada kurulur ve asValue ile kaydedilir (bkz. container.ts notu).
+  const logger = await buildTamperLogger(config, postgres);
+  container.register({ logger: asValue(logger) });
+
+  const sessionStore = c.containerSessionStore as any;
+  const containerSessionServer = c.containerSessionServer as any;
+  const tunnelClient = c.tunnelClient as any;
+  const sessionGateway = c.sessionGateway as any;
+  const tunnelProxy = c.tunnelProxy as any;
+  const sessionAudit = c.sessionAudit as any;
+  const telemetryQueryResponder = c.telemetryQueryResponder as any;
 
   const deps: ServerDependencies = {
     serverConfig: serverCfg,
@@ -51,21 +77,27 @@ export async function main() {
     loginUseCase: c.loginUseCase as any,
     refreshTokenUseCase: c.refreshTokenUseCase as any,
     logoutUseCase: c.logoutUseCase as any,
+    changePasswordUseCase: c.changePasswordUseCase as any,
     createUserUseCase: c.createUserUseCase as any,
     updateUserUseCase: c.updateUserUseCase as any,
     deleteUserUseCase: c.deleteUserUseCase as any,
     listUsersUseCase: c.listUsersUseCase as any,
+    mfaLoginUseCase: c.mfaLoginUseCase as any,
+    mfaEnrollUseCase: c.mfaEnrollUseCase as any,
+    mfaRequiredRoles: authCfg.mfaRequiredRoles,
     realtime,
     containerProxy: c.containerProxy as any,
     fieldPoller: c.fieldPoller as any,
+    fieldConnector: c.fieldConnector as any,
+    sessionStore,
+    sessionGateway,
+    tunnelProxy,
     mvManager,
     mq,
     configDir: deviceConfigDir(config),
+    logger,
+    requestContext,
   };
-
-  await retry("Postgres baglantisi", () => postgres.connect());
-  await retry("Redis baglantisi", () => redis.connect());
-  await userRepo.initialize(seed);
 
   // Mevcut tüm cihazlar için retention, chunk ve compress ayarlarını uygula.
   // Bu çağrı, TimescaleDB'nin hypertable'larına add_retention_policy,
@@ -92,12 +124,19 @@ export async function main() {
     stopping = true;
     console.log(`[run] ${signal} alindi, kapatiliyor...`);
     await server.stop();
+    if (containerSessionServer) containerSessionServer.stop();
+    if (tunnelClient) tunnelClient.stop();
+    if (telemetryQueryResponder) telemetryQueryResponder.stop();
     if (deps.containerProxy) await deps.containerProxy.stop();
+    if (deps.sessionGateway) deps.sessionGateway.stop();
+    if (deps.tunnelProxy) deps.tunnelProxy.stop();
     if (deps.fieldPoller) deps.fieldPoller.stop();
+    if (deps.fieldConnector) await deps.fieldConnector.stop();
     await mq.close();
     await timescale.close();
     await postgres.disconnect();
     await redis.disconnect();
+    await logger.close();
     process.exit(0);
   };
 
@@ -105,6 +144,14 @@ export async function main() {
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   await server.start(deps);
+
+  // Field tier: env'deki FIELD_ID için saha satırını seed et (ON CONFLICT
+  // DO NOTHING) — elle POST /api/fields gerekmez. ensureSchema, server.start
+  // sırasında fieldRoutes kaydıyla çalıştığı için tablo garantilidir.
+  if (siteField) {
+    await ensureSiteField(postgres, siteField);
+    console.log(`[run] Saha kaydi hazir (${siteField.fieldId}).`);
+  }
 
   try {
     await mq.registerWorkerFor("WS_BROADCAST", async (job: any) => {
@@ -133,10 +180,36 @@ export async function main() {
 
   if (deps.containerProxy) {
     await deps.containerProxy.start();
+    // Faz 3 (field tier): session_audit şeması + gateway/tunnel observer'ları
+    if (sessionAudit) {
+      await sessionAudit.ensureSchema();
+    }
+    if (deps.sessionGateway) {
+      deps.sessionGateway.initialize();
+    }
+    if (deps.tunnelProxy) {
+      deps.tunnelProxy.initialize();
+    }
   }
   if (deps.fieldPoller) {
     await deps.fieldPoller.start();
   }
+  // Faz 2: FieldConnector sunucu dinlemeye başladıktan sonra bağlanır —
+  // register ack'i beklemez; kendi backoff döngüsünü yönetir.
+  if (deps.fieldConnector) {
+    await deps.fieldConnector.start();
+    // Faz 3 (container tier): tünel + oturum katmanları kanala abone olur
+    if (tunnelClient) {
+      tunnelClient.attach(deps.fieldConnector);
+    }
+    if (containerSessionServer) {
+      containerSessionServer.start();
+    }
+    // Faz 5.1 B2: telemetry-query yanıtlayıcısı
+    if (telemetryQueryResponder) {
+      telemetryQueryResponder.start();
+    }
+  }
 
-  console.log(`[run] Hazir (tier: ${serviceTier(config)}).`);
+  console.log(`[run] Hazir (tier: ${tier}).`);
 }

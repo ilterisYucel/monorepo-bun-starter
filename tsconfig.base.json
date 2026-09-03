@@ -29,6 +29,7 @@
     // ===== MONOREPO PATHS AYARLARI =====
     "paths": {
       "@gd-monorepo/shared-types": ["./packages/shared-types/src"],
+      "@gd-monorepo/result": ["./packages/result/src"],
       "@gd-monorepo/shared-utils": ["./packages/shared-utils/src"],
       "@gd-monorepo/core": ["./packages/core/src"],
       "@gd-monorepo/container-web": ["./apps/container-web/src"],
@@ -39,7 +40,12 @@
       "@gd-monorepo/field": ["./apps/field/src"],
       "@gd-monorepo/superadmin": ["./apps/superadmin/src"],
       "@gd-monorepo/plugin-sdk": ["./packages/plugin-sdk/src"],
-      "@gd-monorepo/epias-market-prices": ["./packages/plugins/epias-market-prices/src"]
+      "@gd-monorepo/epias-market-prices": ["./packages/plugins/epias-market-prices/src"],
+      "@gd-monorepo/platform-messaging": ["./packages/platform/messaging/src"],
+      "@gd-monorepo/platform-container-access": ["./packages/platform/container-access/src"],
+      "@gd-monorepo/platform-logging": ["./packages/platform/logging/src"],
+      "@gd-monorepo/tamper-logger": ["./packages/tamper-logger/src"],
+      "@gd-monorepo/ws-tunnel": ["./packages/ws-tunnel/src"]
     }
   },
   "exclude": ["node_modules", "dist", "out", "release", "**/dist", "**/out"]

@@ -42,6 +42,7 @@ import {
   TbWind,
   TbCircuitSwitchOpen,
   TbOutlet,
+  TbListDetails,
 } from "react-icons/tb";
 import type { ScadaIconName } from "./types";
 
@@ -92,4 +93,5 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   circuitBreaker:    TbCircuitSwitchOpen,
   dcOutput:          TbOutlet,
   scadaChart:        TbChartAreaLine,
+  details:           TbListDetails,
 };

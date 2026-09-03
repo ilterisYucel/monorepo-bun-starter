@@ -46,4 +46,5 @@ export type ScadaIconName =
   | "hvacUnit"
   | "circuitBreaker"
   | "dcOutput"
-  | "scadaChart";
+  | "scadaChart"
+  | "details";

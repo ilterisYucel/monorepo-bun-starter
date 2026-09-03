@@ -36,13 +36,11 @@ describe("DeviceConfigLoader", () => {
       const loader = new DeviceConfigLoader(CONFIG_DIR);
       const { devices } = loader.load();
 
+      // 2026-09-02: konteyner başına TEK PCS — yalnızca pcs-1.json kaldı.
       const pcs1 = devices.find((d) => d.deviceId === "PCS-1")!;
-      const pcs2 = devices.find((d) => d.deviceId === "PCS-2")!;
       const v1 = pcs1.telemetry.find((t) => t.name === "AC Voltage AB") as ModbusTelemetryData | undefined;
-      const v2 = pcs2.telemetry.find((t) => t.name === "AC Voltage AB") as ModbusTelemetryData | undefined;
 
       expect(v1?.registerAddress).toBe(5000);
-      expect(v2?.registerAddress).toBe(5300);
     });
   });
 });

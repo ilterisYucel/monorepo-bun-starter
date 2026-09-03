@@ -1,3 +1,5 @@
+import type { GaugeTheme } from "../TelemetryGauge";
+
 export interface DeviceGaugeItem {
   value: number;
   label: string;
@@ -16,4 +18,6 @@ export interface DeviceGaugesProps {
   variant?: "linear" | "circular";
   width?: number | string;
   gap?: number;
+  /** Renk teması — tüm alt gauge'lere uygulanır (varsayılan: info) */
+  theme?: GaugeTheme;
 }

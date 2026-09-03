@@ -7,19 +7,23 @@ export const Shell = styled.div`
   background: ${COLORS.bgApp};
 `;
 
-export const SidebarWrapper = styled.aside<{ $collapsed: boolean }>`
-  width: ${({ $collapsed }) => ($collapsed ? "70px" : "260px")};
-  min-width: ${({ $collapsed }) => ($collapsed ? "70px" : "260px")};
+export const SidebarWrapper = styled.aside`
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
   background: linear-gradient(180deg, ${COLORS.bgApp} 0%, ${COLORS.bgCard} 100%);
   border-right: 1px solid ${COLORS.borderDefault};
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
+  z-index: 100;
   overflow-x: hidden;
 `;
 
 export const MainArea = styled.div`
   flex: 1;
+  margin-left: 80px;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -31,19 +35,13 @@ export const Content = styled.main`
   overflow-y: auto;
 `;
 
-export const SidebarLogo = styled.div<{ $collapsed: boolean }>`
+export const SidebarLogo = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
+  justify-content: center;
+  padding: 24px 0;
   border-bottom: 1px solid ${COLORS.borderDefault};
   margin-top: 8px;
-  ${({ $collapsed }) =>
-    $collapsed &&
-    `
-    justify-content: center;
-    padding: 24px 0;
-  `}
 `;
 
 export const LogoIcon = styled.div`
@@ -53,50 +51,31 @@ export const LogoIcon = styled.div`
   color: ${COLORS.info};
 `;
 
-export const LogoText = styled.span`
-  font-size: 18px;
-  font-weight: 600;
-  color: ${COLORS.textPrimary};
-  white-space: nowrap;
-`;
-
-export const SidebarSection = styled.div`
-  padding: 12px 16px;
-  border-bottom: 1px solid ${COLORS.borderDefault};
-`;
-
-export const SidebarTitle = styled.div`
-  font-size: 10px;
-  font-weight: 700;
-  color: ${COLORS.textMuted};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-`;
-
 export const SidebarNav = styled.nav`
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 16px 12px;
+  padding: 12px 8px;
+  overflow: hidden;
 `;
 
-export const NavItem = styled.button<{ $active: boolean; $collapsed: boolean }>`
+export const NavItem = styled.button<{ $active: boolean }>`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: ${({ $collapsed }) => ($collapsed ? "12px" : "12px 16px")};
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 4px;
+  width: 64px;
+  min-height: 56px;
   background: ${({ $active }) => ($active ? COLORS.info : "transparent")};
   border: none;
   border-radius: 10px;
   color: ${({ $active }) => ($active ? "white" : COLORS.textMuted)};
-  font-size: 15px;
   cursor: pointer;
   transition: all 0.2s;
-  width: 100%;
-  text-align: left;
-  justify-content: ${({ $collapsed }) => ($collapsed ? "center" : "flex-start")};
+  margin: 0 auto;
 
   &:hover {
     background: ${({ $active }) => ($active ? COLORS.info : COLORS.borderDefault)};
@@ -112,100 +91,41 @@ export const NavIcon = styled.span`
   justify-content: center;
 `;
 
-export const NavLabel = styled.span`
+export const NavLabel = styled.span<{ $active: boolean }>`
+  font-size: 10px;
   white-space: nowrap;
-`;
-
-export const ContainerItem = styled.button<{ $connected: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 16px;
-  background: transparent;
-  border: none;
-  color: ${({ $connected }) => ($connected ? COLORS.textPrimary : COLORS.textMuted)};
-  font-size: 12px;
-  cursor: pointer;
-
-  &:hover {
-    color: ${COLORS.textWhite};
-  }
-`;
-
-export const ConnectionDot = styled.span<{ $connected: boolean }>`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: ${({ $connected }) => ($connected ? COLORS.success : COLORS.error)};
-  flex-shrink: 0;
-`;
-
-export const ToggleSeparator = styled.div`
-  height: 1px;
-  background: ${COLORS.borderDefault};
-  margin: 0 16px;
-`;
-
-export const ToggleContainer = styled.div<{ $collapsed: boolean }>`
-  display: flex;
-  justify-content: ${({ $collapsed }) => ($collapsed ? "center" : "flex-end")};
-  padding: 12px 16px;
-`;
-
-export const SidebarToggle = styled.button<{ $collapsed: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: transparent;
-  border: 1px solid ${COLORS.borderDefault};
-  color: ${COLORS.textMuted};
-  cursor: pointer;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${COLORS.borderDefault};
-    color: ${COLORS.textPrimary};
-    border-color: ${COLORS.info};
-  }
-
-  svg {
-    width: 14px;
-    height: 14px;
-    transition: transform 0.3s ease;
-    transform: ${({ $collapsed }) => ($collapsed ? "rotate(0deg)" : "rotate(180deg)")};
-  }
-`;
-
-export const ToggleLabel = styled.span`
-  white-space: nowrap;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: ${({ $active }) => ($active ? COLORS.textPrimary : COLORS.textMuted)};
+  line-height: 1.2;
 `;
 
 export const SidebarFooter = styled.div`
-  padding: 16px;
+  padding: 12px 8px;
   border-top: 1px solid ${COLORS.borderDefault};
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  align-items: center;
 `;
 
-export const EmergencyStopBtn = styled.button<{ $collapsed: boolean }>`
+export const EmergencyStopBtn = styled.button`
   background: ${COLORS.error};
   border: none;
   color: white;
   padding: 10px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: ${({ $collapsed }) => ($collapsed ? "16px" : "14px")};
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 48px;
+  height: 48px;
 
   &:hover {
     background: ${COLORS.errorHover};
@@ -213,58 +133,31 @@ export const EmergencyStopBtn = styled.button<{ $collapsed: boolean }>`
   }
 `;
 
-export const UserProfileDetails = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: ${COLORS.textPrimary};
-`;
-
-export const UserProfileAvatar = styled.div`
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  color: ${COLORS.textMuted};
-`;
-
-export const UserProfileName = styled.span`
-  color: ${COLORS.textPrimary};
-  font-size: 13px;
-  font-weight: 500;
-`;
-
-export const UserRoleBadge = styled.span<{ $role: "admin" | "teknik" | "boss" }>`
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  background: ${({ $role }) =>
-    $role === "admin" ? COLORS.infoAlpha12 : $role === "boss" ? COLORS.successAlpha12 : COLORS.warningAlpha12};
-  color: ${({ $role }) =>
-    $role === "admin" ? COLORS.info : $role === "boss" ? COLORS.success : COLORS.warning};
-`;
-
-export const LogoutBtn = styled.button<{ $collapsed: boolean }>`
-  padding: ${({ $collapsed }) => ($collapsed ? "10px" : "8px 12px")};
+export const FooterBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  width: 48px;
+  height: 48px;
+  background: none;
+  border: none;
   border-radius: 8px;
-  border: 1px solid ${COLORS.borderDefault};
-  background: transparent;
   color: ${COLORS.textMuted};
   cursor: pointer;
-  font-size: 13px;
-  transition: all 0.15s;
+  transition: all 0.2s;
 
   &:hover {
-    border-color: ${COLORS.errorStroke};
-    color: ${COLORS.error};
+    background: ${COLORS.bgHover};
+    color: ${COLORS.textLight};
   }
 `;
 
-export const LogoutText = styled.span`
-  white-space: nowrap;
+export const UserBadge = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  color: ${COLORS.textMuted};
 `;

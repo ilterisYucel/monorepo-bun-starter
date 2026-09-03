@@ -2,7 +2,7 @@
 
 /**
  * Chart veri noktası tipi
- * MultiLineChart ve TelemetryChart tarafından kullanılır
+ * MultiLineChartV2 ve TelemetryChart tarafından kullanılır
  */
 export interface ChartDataPoint {
   timestamp: string;

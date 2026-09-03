@@ -208,11 +208,11 @@ export interface IMessageQueue {
    *
    * @example
    * ```typescript
-   * const status = await messageQueue.getQueueStatus();
+   * const status = await messageQueue.queueStatus();
    * console.log('READ_DEVICE waiting:', status.find(s => s.name === 'READ_DEVICE')?.waiting);
    * ```
    */
-  getQueueStatus(): Promise<QueueStatus[]>;
+  queueStatus(): Promise<QueueStatus[]>;
 
   /**
    * Belirli bir queue tipinin istatistiklerini getirir
@@ -222,13 +222,13 @@ export interface IMessageQueue {
    *
    * @example
    * ```typescript
-   * const readStats = await messageQueue.getQueueStats('READ_DEVICE');
+   * const readStats = await messageQueue.queueStats('READ_DEVICE');
    * if (readStats) {
    *   console.log('Waiting: ${readStats.waiting}, Active: ${readStats.active}');
    * }
    * ```
    */
-  getQueueStats(type: JobType): Promise<QueueStatus | null>;
+  queueStats(type: JobType): Promise<QueueStatus | null>;
 
   /**
    * Message Queue sisteminin sağlık durumunu kontrol eder

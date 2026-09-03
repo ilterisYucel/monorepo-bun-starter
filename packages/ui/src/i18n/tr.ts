@@ -33,7 +33,8 @@ export const TR_DICT = {
   "common.role.admin": "Admin",
   "common.role.teknik": "Teknik",
   "common.role.guest": "Misafir",
-  "common.role.boss": "Yönetici",
+  "common.role.boss": "Patron",
+  "common.role.developer": "Geliştirici",
 
   // =========================================================================
   // Grafik

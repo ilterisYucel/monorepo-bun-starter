@@ -1,12 +1,6 @@
 // packages/core/src/modbus/device.ts
 
-import type {
-  TelemetryData,
-  ModbusTelemetryData,
-  ByteOrder,
-  BitfieldConfig,
-  IDevice,
-} from "@gd-monorepo/shared-types";
+import type { TelemetryData, ModbusTelemetryData, ByteOrder, BitfieldConfig, IDevice } from "@gd-monorepo/shared-types";
 import type { IModbusTransport } from "./transport/interface";
 import { ModbusClientTransport } from "./transport/modbus-client-transport";
 import { ModbusTcpClient } from "./client";
@@ -35,14 +29,55 @@ export interface ModbusDeviceConfig {
   parallelWrite?: boolean;
 }
 
+/** writeAtomic planlanan tek bir yazma işlemi (ham register değerleriyle). */
+interface PlannedWrite {
+  tableType: "HOLDING_REGISTER" | "COIL";
+  address: number;
+  registers: number[];
+}
+
+/**
+ * ModbusDevice — Modbus cihaz soyutlaması (IDevice, ISP uyumlu).
+ *
+ * Sözleşme:
+ * - read(): her zaman cihazın TÜM telemetrisini döner — register telemetrileri
+ *   (tip sırası: HOLDING, INPUT, COIL, DISCRETE) + bitfield çıktıları. Çağırana
+ *   alt küme verilirse yalnızca o girdiler okunur; bitfield'lar yine eklenir.
+ *   Okuma tip içinde ADRESE göre sıralanır (batch maksimizasyonu); priority
+ *   okumada kullanılmaz.
+ * - write()/writeAtomic(): priority YALNIZCA yazma sırası içindir (0 en yüksek
+ *   — bazı cihazlarda x'i yazmadan önce y'yi yazmak gerekebilir).
+ * - writeAtomic: önce ham register backup'ı (COIL → readCoils, HOLDING →
+ *   readHoldingRegisters, paralel) → planlanan yazılar sırayla → hata olursa
+ *   yazılanlar ham backup'la geri yüklenir; ORİJİNAL hata yeniden fırlatılır;
+ *   rollback'in kendi hatası yutulur (konsola yazılır).
+ *
+ * Hata kategorileri (beklenen — throw):
+ * - `reconnect cooldown active` — kopuk bağlantıda 10 sn içinde ikinci deneme.
+ * - `Batch too large: N registers > max 125` — okuma/yazma grubu limit aşımı.
+ * - Config doğrulama hatası (constructor): bitfield bit aralığı 0-31,
+ *   bitEnd >= bitStart, registerType yalnızca HOLDING_REGISTER/INPUT_REGISTER.
+ * - `Not connected` — taşıma katmanından yükselir.
+ *
+ * Limitler:
+ * - Tek Modbus isteği ≤ 125 register.
+ * - Bitfield alanı ≤ 32 bit (en fazla 2 register okunur).
+ * - Yazma yalnızca HOLDING_REGISTER + COIL tiplerine yapılır; INPUT/DISCRETE
+ *   girdileri sessizce atlanır.
+ *
+ * Yan etkiler: tüm I/O transport üzerinden. `parallelRead: false` /
+ * `parallelWrite: true` config bayrakları paralellik kapağıdır.
+ */
 export class ModbusDevice implements IDevice {
-  private config: ModbusDeviceConfig;
+  private readonly config: ModbusDeviceConfig;
 
   get id(): string { return this.config.id; }
   private readonly transport: IModbusTransport;
   private readonly MAX_REGISTERS_PER_REQUEST = 125;
   private lastReconnectAttempt: number = 0;
   private readonly reconnectCooldownMs: number = 10000;
+  /** İsim → aynı isimli config girdileri (constructor'da bir kez kurulur). */
+  private readonly telemetryIndex: Map<string, ModbusTelemetryData[]>;
 
   constructor(
     config: ModbusDeviceConfig,
@@ -59,6 +94,8 @@ export class ModbusDevice implements IDevice {
           timeout: config.connection.timeout,
         }),
       );
+    this.validateBitfieldConfigs(config.bitfieldConfigs);
+    this.telemetryIndex = this.buildTelemetryIndex(config.telemetryList);
   }
 
   private async ensureConnected(): Promise<void> {
@@ -72,10 +109,12 @@ export class ModbusDevice implements IDevice {
     await this.transport.reconnect();
   }
 
+  /** Cihaza bağlanır (taşıma katmanı üzerinden). */
   async connect(): Promise<void> {
     await this.transport.connect();
   }
 
+  /** Cihaz bağlantısını kapatır (taşıma katmanı üzerinden). */
   async disconnect(): Promise<void> {
     await this.transport.disconnect();
   }
@@ -84,63 +123,80 @@ export class ModbusDevice implements IDevice {
   // PUBLIC API - TelemetryData[] girdi/çıktı
   // ============================================
 
+  /**
+   * Cihazın telemetrisini okur.
+   *
+   * - `telemetries` boşsa config'teki TÜM register telemetrileri okunur.
+   * - Verilen alt küme config'te yoksa o girdiler yok sayılır.
+   * - Bitfield çıktıları her durumda sonuçlara EKLENİR (ISP: bitfield okuması
+   *   cihazın kendi stratejisidir).
+   * - Sonuç sırası: HOLDING, INPUT, COIL, DISCRETE (her biri adres sıralı),
+   *   ardından bitfield çıktıları.
+   */
   async read(telemetries?: TelemetryData[]): Promise<TelemetryData[]> {
     await this.ensureConnected();
     let itemsToRead = telemetries;
     if (!itemsToRead || itemsToRead.length === 0) {
-      itemsToRead = this.config.telemetryList.map((t) => ({
-        name: t.name,
-        description: t.description,
-        value: 0,
-        unit: t.unit,
-        timestamp: new Date().toISOString(),
-        deviceId: this.config.id,
-        tags: t.tags,
-      }));
+      itemsToRead = this.config.telemetryList;
     }
 
     const modbusTelemetries = this.toModbusTelemetryList(itemsToRead);
-    if (modbusTelemetries.length === 0) return [];
 
-    const sorted = this.sortByPriority(modbusTelemetries);
-
-    const holdingList = sorted.filter(
-      (t) => t.registerTableType === "HOLDING_REGISTER",
+    const holdingList = this.sortByAddress(
+      modbusTelemetries.filter(
+        (t) => t.registerTableType === "HOLDING_REGISTER",
+      ),
     );
-    const inputList = sorted.filter(
-      (t) => t.registerTableType === "INPUT_REGISTER",
+    const inputList = this.sortByAddress(
+      modbusTelemetries.filter(
+        (t) => t.registerTableType === "INPUT_REGISTER",
+      ),
     );
-    const coilList = sorted.filter((t) => t.registerTableType === "COIL");
-    const discreteList = sorted.filter(
-      (t) => t.registerTableType === "DISCRETE_INPUT",
+    const coilList = this.sortByAddress(
+      modbusTelemetries.filter((t) => t.registerTableType === "COIL"),
+    );
+    const discreteList = this.sortByAddress(
+      modbusTelemetries.filter(
+        (t) => t.registerTableType === "DISCRETE_INPUT",
+      ),
     );
 
-    const results: TelemetryData[] = [];
+    const timestamp = new Date().toISOString();
 
-    if (holdingList.length > 0) {
-      const holdingResults = await this._readBatchByType(
-        holdingList,
-        "HOLDING",
-      );
-      results.push(...holdingResults);
-    }
-    if (inputList.length > 0) {
-      const inputResults = await this._readBatchByType(inputList, "INPUT");
-      results.push(...inputResults);
-    }
-    if (coilList.length > 0) {
-      const coilResults = await this._readCoilBatch(coilList);
-      results.push(...coilResults);
-    }
-    if (discreteList.length > 0) {
-      const discreteResults = await this._readDiscreteBatch(discreteList);
-      results.push(...discreteResults);
-    }
+    const [
+      holdingResults,
+      inputResults,
+      coilResults,
+      discreteResults,
+      bitfieldResults,
+    ] = await Promise.all([
+      holdingList.length > 0
+        ? this._readBatchByType(holdingList, "HOLDING", timestamp)
+        : Promise.resolve([] as TelemetryData[]),
+      inputList.length > 0
+        ? this._readBatchByType(inputList, "INPUT", timestamp)
+        : Promise.resolve([] as TelemetryData[]),
+      coilList.length > 0
+        ? this._readCoilBatch(coilList, timestamp)
+        : Promise.resolve([] as TelemetryData[]),
+      discreteList.length > 0
+        ? this._readDiscreteBatch(discreteList, timestamp)
+        : Promise.resolve([] as TelemetryData[]),
+      // ISP (Faz 0 eki): bitfield okuması cihazın KENDİ stratejisidir —
+      // read() her zaman cihazın TÜM telemetrisini döner.
+      this.readBitfieldTelemetry(),
+    ]);
 
-    return results;
+    return [
+      ...holdingResults,
+      ...inputResults,
+      ...coilResults,
+      ...discreteResults,
+      ...bitfieldResults,
+    ];
   }
 
-  async readBitfields(): Promise<TelemetryData[]> {
+  private async readBitfieldTelemetry(): Promise<TelemetryData[]> {
     const configs = this.config.bitfieldConfigs;
     if (!configs || configs.length === 0) return [];
 
@@ -151,53 +207,87 @@ export class ModbusDevice implements IDevice {
       byAddress.get(key)!.push(cfg);
     }
 
-    const results: TelemetryData[] = [];
     const now = new Date().toISOString();
 
-    for (const [, group] of byAddress) {
-      const first = group[0]!;
-      const maxEndBit = Math.max(...group.flatMap(c => c.fields.map((f: { bitEnd: number }) => f.bitEnd)));
-      const registerCount = maxEndBit >= 16 ? 2 : 1;
+    const groupResults = await Promise.all(
+      [...byAddress.values()].map((group) =>
+        this.readBitfieldGroup(group, now),
+      ),
+    );
+    return groupResults.flat();
+  }
 
-      let rawValues: number[];
-      rawValues = first.registerType === "HOLDING_REGISTER"
-        ? await this.transport.readHoldingRegisters(first.registerAddress, registerCount)
-        : await this.transport.readInputRegisters(first.registerAddress, registerCount);
+  private async readBitfieldGroup(
+    group: BitfieldConfig[],
+    now: string,
+  ): Promise<TelemetryData[]> {
+    const first = group[0]!;
+    const maxEndBit = Math.max(
+      ...group.flatMap((c) => c.fields.map((f) => f.bitEnd)),
+    );
+    const registerCount = maxEndBit >= 16 ? 2 : 1;
 
-      const combined = (rawValues[0] ?? 0) | ((rawValues[1] ?? 0) << 16);
+    const rawValues =
+      first.registerType === "HOLDING_REGISTER"
+        ? await this.transport.readHoldingRegisters(
+            first.registerAddress,
+            registerCount,
+          )
+        : await this.transport.readInputRegisters(
+            first.registerAddress,
+            registerCount,
+          );
 
-      for (const cfg of group) {
-        for (const field of cfg.fields) {
-          const mask = ((1 << (field.bitEnd - field.bitStart + 1)) - 1) << field.bitStart;
-          const raw = (combined & mask) >>> field.bitStart;
-          const scale = field.scale ?? 1;
-          const offset = field.offset ?? 0;
-          const value = raw * scale + offset;
+    const combined =
+      (rawValues[0] ?? 0) | ((rawValues[1] ?? 0) << 16);
 
-          const configTags: Record<string, string> = {
-            dataTag: field.dataTag,
-            ...(field.canonical ? { canonical: field.canonical } : {}),
-            ...(cfg.tags ?? {}),
-            ...(field.tags ?? {}),
-          };
+    const results: TelemetryData[] = [];
+    for (const cfg of group) {
+      for (const field of cfg.fields) {
+        const width = field.bitEnd - field.bitStart + 1;
+        const mask =
+          width === 32
+            ? 0xFFFFFFFF
+            : ((1 << width) - 1) << field.bitStart;
+        const raw =
+          width === 32
+            ? combined >>> 0
+            : (combined & mask) >>> field.bitStart;
+        const scale = field.scale ?? 1;
+        const offset = field.offset ?? 0;
+        const value = raw * scale + offset;
 
-          results.push({
-            name: field.name,
-            description: field.description,
-            value,
-            unit: field.unit,
-            timestamp: now,
-            deviceId: this.config.id,
-            tags: configTags,
-            ...(field.logType ? { logType: field.logType } : {}),
-          });
-        }
+        const configTags: Record<string, string> = {
+          dataTag: field.dataTag,
+          ...(field.canonical ? { canonical: field.canonical } : undefined),
+          ...(cfg.tags ?? undefined),
+          ...(field.tags ?? undefined),
+        };
+
+        results.push({
+          name: field.name,
+          description: field.description,
+          value,
+          unit: field.unit,
+          timestamp: now,
+          deviceId: this.config.id,
+          tags: configTags,
+        });
       }
     }
 
     return results;
   }
 
+  /**
+   * Telemetrileri cihaza yazar.
+   *
+   * - Yalnızca HOLDING_REGISTER + COIL girdileri yazılır; diğer tipler
+   *   sessizce atlanır.
+   * - Grup sırası priority'ye göredir (0 en yüksek) — bazı cihazlarda
+   *   yazma sırası önemlidir.
+   * - Boş girdi veya config'te olmayan isimler no-op'tur.
+   */
   async write(telemetries: TelemetryData[]): Promise<void> {
     if (telemetries.length === 0) return;
 
@@ -215,13 +305,26 @@ export class ModbusDevice implements IDevice {
       await this._writeBatchByType(holdingList);
     }
     if (coilList.length > 0) {
-      for (const telemetry of coilList) {
-        const rawValue = ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
-        await this.transport.writeCoils(telemetry.registerAddress, [rawValue !== 0]);
-      }
+      await coilList.reduce(async (chain, telemetry) => {
+        await chain;
+        const rawValue =
+          ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
+        await this.transport.writeCoils(
+          telemetry.registerAddress,
+          [rawValue !== 0],
+        );
+      }, Promise.resolve());
     }
   }
 
+  /**
+   * Transactional yazma (TEİAŞ #22).
+   *
+   * - Önce planlanan TÜM yazıların ham backup'ı paralel okunur.
+   * - Yazma plan sırasıyla yapılır; herhangi birinde hata olursa yazılanlar
+   *   ham backup değerleriyle (decode/encode olmadan) geri yüklenir.
+   * - Rollback sırasında oluşan hata yutulur; ORİJİNAL yazma hatası fırlar.
+   */
   async writeAtomic(telemetries: TelemetryData[]): Promise<void> {
     if (telemetries.length === 0) return;
 
@@ -237,155 +340,111 @@ export class ModbusDevice implements IDevice {
 
     if (writableList.length === 0) return;
 
+    const coilList = writableList.filter(
+      (t) => t.registerTableType === "COIL",
+    );
+    const holdingList = writableList.filter(
+      (t) => t.registerTableType === "HOLDING_REGISTER",
+    );
+
     // ============================================
-    // 1. Backup: Mevcut değerleri oku
+    // 1. Plan: yazma sırası korunur (önce COIL'ler, sonra HOLDING grupları)
     // ============================================
 
-    const groups = this.groupByAddress(writableList);
-    const backups: Map<number, number> = new Map();
-
-    for (const group of groups) {
-      const startAddress = group[0]!.registerAddress;
-      const lastTelemetry = group[group.length - 1]!;
-      const endAddress =
-        lastTelemetry.registerAddress +
-        BinaryPayloadDecoder.getRegisterCount(lastTelemetry.registerDataType) -
-        1;
-      const totalRegisters = endAddress - startAddress + 1;
-
-      let registers: number[];
-      registers = await this.transport.readHoldingRegisters(
-        startAddress,
-        totalRegisters,
-      );
-
-      let offset = 0;
-      for (const telemetry of group) {
-        const count = BinaryPayloadDecoder.getRegisterCount(
-          telemetry.registerDataType,
-        );
-        const rawValue = this._decodeRegisters(
-          registers.slice(offset, offset + count),
-          telemetry,
-        );
-        const value = rawValue * telemetry.scale + telemetry.offset;
-        backups.set(telemetry.registerAddress, value);
-        offset += count;
-      }
+    const planned: PlannedWrite[] = [];
+    for (const telemetry of coilList) {
+      const rawValue =
+        ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
+      planned.push({
+        tableType: "COIL",
+        address: telemetry.registerAddress,
+        registers: [rawValue !== 0 ? 1 : 0],
+      });
+    }
+    for (const group of this.groupByAddress(holdingList)) {
+      const encoded = this.encodeGroup(group);
+      planned.push({
+        tableType: "HOLDING_REGISTER",
+        address: encoded.address,
+        registers: encoded.registers,
+      });
     }
 
     // ============================================
-    // 2. Yazma işlemi
+    // 2. Backup: ham register'lar paralel okunur
     // ============================================
 
-    const writtenAddresses: number[] = [];
+    const backups = new Map<number, number[]>();
+    await Promise.all(
+      planned.map(async (write, index) => {
+        if (write.tableType === "HOLDING_REGISTER") {
+          const registers = await this.transport.readHoldingRegisters(
+            write.address,
+            write.registers.length,
+          );
+          backups.set(index, registers);
+        } else {
+          const values = await this.transport.readCoils(write.address, 1);
+          backups.set(index, [values[0] ? 1 : 0]);
+        }
+      }),
+    );
+
+    // ============================================
+    // 3. Yazma işlemi
+    // ============================================
+
+    const executed: number[] = [];
 
     try {
-      // COIL'leri yaz
-      const coilList = writableList.filter(
-        (t) => t.registerTableType === "COIL",
-      );
-      for (const telemetry of coilList) {
-        const rawValue =
-          ((telemetry.value as number) - telemetry.offset) / telemetry.scale;
-        await this.transport.writeCoils(telemetry.registerAddress, [rawValue !== 0]);
-        writtenAddresses.push(telemetry.registerAddress);
-      }
-
-      // HOLDING_REGISTER'ları yaz
-      const holdingList = writableList.filter(
-        (t) => t.registerTableType === "HOLDING_REGISTER",
-      );
-
-      if (holdingList.length > 0) {
-        const holdingGroups = this.groupByAddress(holdingList);
-        for (const group of holdingGroups) {
-          const result = await this._encodeAndWrite(group);
-          writtenAddresses.push(...result.writtenAddresses);
+      for (const [index, write] of planned.entries()) {
+        if (write.tableType === "COIL") {
+          await this.transport.writeCoils(
+            write.address,
+            [write.registers[0] === 1],
+          );
+        } else {
+          await this.transport.writeHoldingRegisters(
+            write.address,
+            write.registers,
+          );
         }
+        executed.push(index);
       }
     } catch (error) {
       // ============================================
-      // 3. Rollback
+      // 4. Rollback: yazılanlar ham backup ile geri yüklenir
       // ============================================
       console.error(
         "[ModbusDevice] Atomic write failed, rolling back...",
         error,
       );
 
-      // Build address-to-telemetry map for O(1) rollback lookup
-      const writableByAddress = new Map<number, ModbusTelemetryData>();
-      for (const t of writableList) {
-        const count = BinaryPayloadDecoder.getRegisterCount(t.registerDataType);
-        for (let offset = 0; offset < count; offset++) {
-          writableByAddress.set(t.registerAddress + offset, t);
-        }
-      }
-
-      for (const address of writtenAddresses) {
-        const oldValue = backups.get(address);
-        if (oldValue !== undefined) {
-          try {
-            const originalTelemetry = writableByAddress.get(address);
-            if (originalTelemetry) {
-              const rawValue =
-                (oldValue - originalTelemetry.offset) / originalTelemetry.scale;
-              const registerCount = BinaryPayloadDecoder.getRegisterCount(
-                originalTelemetry.registerDataType,
-              );
-              const buffer = Buffer.alloc(registerCount * 2);
-
-              switch (originalTelemetry.registerDataType) {
-                case "UINT16":
-                  buffer.writeUInt16BE(rawValue, 0);
-                  break;
-                case "INT16":
-                  buffer.writeInt16BE(rawValue, 0);
-                  break;
-                case "UINT32":
-                  buffer.writeUInt32BE(rawValue, 0);
-                  break;
-                case "INT32":
-                  buffer.writeInt32BE(rawValue, 0);
-                  break;
-                case "FLOAT32":
-                  buffer.writeFloatBE(rawValue, 0);
-                  break;
-                case "FLOAT64":
-                  buffer.writeDoubleBE(rawValue, 0);
-                  break;
-                default:
-                  buffer.writeUInt16BE(rawValue, 0);
-              }
-
-              this.applyByteOrderToBuffer(buffer, originalTelemetry.byteOrder);
-
-              const registerValues: number[] = [];
-              for (let i = 0; i < buffer.length; i += 2) {
-                registerValues.push(buffer.readUInt16BE(i));
-              }
-
-              if (originalTelemetry.registerTableType === "HOLDING_REGISTER") {
-                await this.transport.writeHoldingRegisters(
-                  originalTelemetry.registerAddress,
-                  registerValues,
-                );
-              } else if (originalTelemetry.registerTableType === "COIL") {
-                const boolValue = rawValue !== 0;
-                await this.transport.writeCoils(
-                  originalTelemetry.registerAddress,
-                  [boolValue],
-                );
-              }
-            }
-          } catch (rollbackError) {
-            console.error(
-              `[ModbusDevice] Rollback failed for address ${address}:`,
-              rollbackError,
+      await executed.reduce(async (chain, index) => {
+        await chain;
+        const write = planned[index]!;
+        const raw = backups.get(index);
+        if (raw === undefined) return;
+        try {
+          if (write.tableType === "COIL") {
+            await this.transport.writeCoils(
+              write.address,
+              [raw[0] === 1],
+            );
+          } else {
+            await this.transport.writeHoldingRegisters(
+              write.address,
+              raw,
             );
           }
+        } catch (rollbackError) {
+          console.error(
+            `[ModbusDevice] Rollback failed for address ${write.address}:`,
+            rollbackError,
+          );
         }
-      }
+      }, Promise.resolve());
+
       throw error;
     }
   }
@@ -397,32 +456,34 @@ export class ModbusDevice implements IDevice {
   private async _readBatchByType(
     telemetries: ModbusTelemetryData[],
     type: "HOLDING" | "INPUT",
+    timestamp: string,
   ): Promise<TelemetryData[]> {
     const groups = this.groupByAddress(telemetries);
 
     if (this.config.parallelRead !== false) {
       const groupResults = await Promise.all(
-        groups.map((group) => this._readGroupByType(group, type)),
+        groups.map((group) => this._readGroupByType(group, type, timestamp)),
       );
       return groupResults.flat();
-    } else {
-      const results: TelemetryData[] = [];
-      for (const group of groups) {
-        const batchResults = await this._readGroupByType(group, type);
-        results.push(...batchResults);
-      }
-      return results;
     }
+
+    const results: TelemetryData[] = [];
+    await groups.reduce(async (chain, group) => {
+      await chain;
+      results.push(...(await this._readGroupByType(group, type, timestamp)));
+    }, Promise.resolve());
+    return results;
   }
 
   private async _readGroupByType(
     telemetries: ModbusTelemetryData[],
     type: "HOLDING" | "INPUT",
+    timestamp: string,
   ): Promise<TelemetryData[]> {
     if (telemetries.length === 0) return [];
 
     const startAddress = telemetries[0]!.registerAddress;
-    const lastTelemetry = telemetries[telemetries.length - 1]!;
+    const lastTelemetry = telemetries.at(-1)!;
     const endAddress =
       lastTelemetry.registerAddress +
       BinaryPayloadDecoder.getRegisterCount(lastTelemetry.registerDataType) -
@@ -435,8 +496,7 @@ export class ModbusDevice implements IDevice {
       );
     }
 
-    let registers: number[];
-    registers =
+    const registers =
       type === "HOLDING"
         ? await this.transport.readHoldingRegisters(
             startAddress,
@@ -456,7 +516,7 @@ export class ModbusDevice implements IDevice {
         telemetry,
       );
       const value = rawValue * telemetry.scale + telemetry.offset;
-      results.push(this._toTelemetryData(telemetry, value));
+      results.push(this._toTelemetryData(telemetry, value, timestamp));
       offset += count;
     }
 
@@ -465,29 +525,34 @@ export class ModbusDevice implements IDevice {
 
   private async _readCoilBatch(
     telemetries: ModbusTelemetryData[],
+    timestamp: string,
   ): Promise<TelemetryData[]> {
-    const results: TelemetryData[] = [];
-    for (const telemetry of telemetries) {
-      const values = await this.transport.readCoils(telemetry.registerAddress, 1);
-      const value = values[0] ?? false;
-      results.push(this._toTelemetryData(telemetry, value ? 1 : 0));
-    }
-    return results;
+    return Promise.all(
+      telemetries.map(async (telemetry) => {
+        const values = await this.transport.readCoils(
+          telemetry.registerAddress,
+          1,
+        );
+        const value = values[0] ?? false;
+        return this._toTelemetryData(telemetry, value ? 1 : 0, timestamp);
+      }),
+    );
   }
 
   private async _readDiscreteBatch(
     telemetries: ModbusTelemetryData[],
+    timestamp: string,
   ): Promise<TelemetryData[]> {
-    const results: TelemetryData[] = [];
-    for (const telemetry of telemetries) {
-      const values = await this.transport.readDiscreteInputs(
-        telemetry.registerAddress,
-        1,
-      );
-      const value = values[0] ?? false;
-      results.push(this._toTelemetryData(telemetry, value ? 1 : 0));
-    }
-    return results;
+    return Promise.all(
+      telemetries.map(async (telemetry) => {
+        const values = await this.transport.readDiscreteInputs(
+          telemetry.registerAddress,
+          1,
+        );
+        const value = values[0] ?? false;
+        return this._toTelemetryData(telemetry, value ? 1 : 0, timestamp);
+      }),
+    );
   }
 
   private async _writeBatchByType(
@@ -496,32 +561,24 @@ export class ModbusDevice implements IDevice {
     const groups = this.groupByAddress(telemetries);
 
     if (this.config.parallelWrite === true) {
-      await Promise.all(groups.map((group) => this._writeGroup(group)));
+      await Promise.all(groups.map((group) => this.writeHoldingGroup(group)));
     } else {
-      for (const group of groups) {
-        await this._writeGroup(group);
-      }
+      await groups.reduce(async (chain, group) => {
+        await chain;
+        await this.writeHoldingGroup(group);
+      }, Promise.resolve());
     }
-  }
-
-  private async _writeGroup(telemetries: ModbusTelemetryData[]): Promise<void> {
-    if (telemetries.length === 0) return;
-    await this._encodeAndWrite(telemetries);
   }
 
   // ============================================
   // CORE ENCODE/DECODE METHODS
   // ============================================
 
-  private async _encodeAndWrite(
+  /** Grubu ham register dizisine kodlar; 125 register limitini denetler. */
+  private encodeGroup(
     telemetries: ModbusTelemetryData[],
-  ): Promise<{ writtenAddresses: number[]; registerValues: number[] }> {
-    if (telemetries.length === 0) {
-      return { writtenAddresses: [], registerValues: [] };
-    }
-
+  ): { address: number; registers: number[] } {
     const registerValues: number[] = [];
-    const writtenAddresses: number[] = [];
 
     for (const telemetry of telemetries) {
       const rawValue =
@@ -531,44 +588,63 @@ export class ModbusDevice implements IDevice {
       );
 
       const buffer = Buffer.alloc(registerCount * 2);
-
-      switch (telemetry.registerDataType) {
-        case "UINT16":
-          buffer.writeUInt16BE(rawValue, 0);
-          break;
-        case "INT16":
-          buffer.writeInt16BE(rawValue, 0);
-          break;
-        case "UINT32":
-          buffer.writeUInt32BE(rawValue, 0);
-          break;
-        case "INT32":
-          buffer.writeInt32BE(rawValue, 0);
-          break;
-        case "FLOAT32":
-          buffer.writeFloatBE(rawValue, 0);
-          break;
-        case "FLOAT64":
-          buffer.writeDoubleBE(rawValue, 0);
-          break;
-        default:
-          buffer.writeUInt16BE(rawValue, 0);
-      }
-
+      this.writeEncodedValue(buffer, telemetry.registerDataType, rawValue);
       this.applyByteOrderToBuffer(buffer, telemetry.byteOrder);
 
       for (let i = 0; i < buffer.length; i += 2) {
-        const registerValue = buffer.readUInt16BE(i);
-        registerValues.push(registerValue);
-        writtenAddresses.push(telemetry.registerAddress + i / 2);
+        registerValues.push(buffer.readUInt16BE(i));
       }
     }
 
-    const startAddress = telemetries[0]!.registerAddress;
+    if (registerValues.length > this.MAX_REGISTERS_PER_REQUEST) {
+      throw new Error(
+        `Batch too large: ${registerValues.length} registers > max ${this.MAX_REGISTERS_PER_REQUEST}`,
+      );
+    }
 
-    await this.transport.writeHoldingRegisters(startAddress, registerValues);
+    return {
+      address: telemetries[0]!.registerAddress,
+      registers: registerValues,
+    };
+  }
 
-    return { writtenAddresses, registerValues };
+  /** Tam sayı tipleri için raw değeri yuvarlar (float bölüm kaymasını önler). */
+  private writeEncodedValue(
+    buffer: Buffer,
+    registerDataType: ModbusTelemetryData["registerDataType"],
+    rawValue: number,
+  ): void {
+    switch (registerDataType) {
+      case "UINT16":
+        buffer.writeUInt16BE(Math.round(rawValue), 0);
+        break;
+      case "INT16":
+        buffer.writeInt16BE(Math.round(rawValue), 0);
+        break;
+      case "UINT32":
+        buffer.writeUInt32BE(Math.round(rawValue), 0);
+        break;
+      case "INT32":
+        buffer.writeInt32BE(Math.round(rawValue), 0);
+        break;
+      case "FLOAT32":
+        buffer.writeFloatBE(rawValue, 0);
+        break;
+      case "FLOAT64":
+        buffer.writeDoubleBE(rawValue, 0);
+        break;
+      default:
+        buffer.writeUInt16BE(Math.round(rawValue), 0);
+    }
+  }
+
+  /** Bir HOLDING grubunu kodlar ve yazar (limit denetimi dahil). */
+  private async writeHoldingGroup(
+    telemetries: ModbusTelemetryData[],
+  ): Promise<void> {
+    if (telemetries.length === 0) return;
+    const { address, registers } = this.encodeGroup(telemetries);
+    await this.transport.writeHoldingRegisters(address, registers);
   }
 
   private applyByteOrderToBuffer(buffer: Buffer, byteOrder: ByteOrder): void {
@@ -637,39 +713,64 @@ export class ModbusDevice implements IDevice {
   // HELPER METHODS
   // ============================================
 
+  /**
+   * Config telemetrilerini isim indeksler (constructor'da bir kez).
+   * Aynı isimli girdiler (farklı tag'lerle) aynı kovada toplanır; arama
+   * O(1) hash + k aday arasında tag eşleştirmesine düşer (O(n·k)).
+   */
+  private buildTelemetryIndex(
+    telemetryList: ModbusTelemetryData[],
+  ): Map<string, ModbusTelemetryData[]> {
+    const index = new Map<string, ModbusTelemetryData[]>();
+    for (const entry of telemetryList) {
+      const bucket = index.get(entry.name);
+      if (bucket) {
+        bucket.push(entry);
+      } else {
+        index.set(entry.name, [entry]);
+      }
+    }
+    return index;
+  }
+
   private toModbusTelemetryList(
     telemetries: TelemetryData[],
   ): ModbusTelemetryData[] {
-    return telemetries
-      .map((t) => {
-        const found = this.config.telemetryList.find((mt) => {
-          if (mt.name !== t.name) return false;
+    const result: ModbusTelemetryData[] = [];
+    for (const t of telemetries) {
+      const candidates = this.telemetryIndex.get(t.name);
+      if (!candidates || candidates.length === 0) {
+        console.warn(`[ModbusDevice] No config found for: ${t.name}`, t.tags);
+        continue;
+      }
 
-          const mtTags = mt.tags;
-          const tTags = t.tags;
+      const tTags = t.tags;
+      const hasTags = !!tTags && Object.keys(tTags).length > 0;
 
-          if (!tTags || Object.keys(tTags).length === 0) {
-            return true;
-          }
+      const found = hasTags
+        ? candidates.find((mt) => {
+            const mtTags = mt.tags;
+            if (!mtTags) return false;
+            return Object.keys(tTags).every(
+              (key) => mtTags[key] === tTags[key],
+            );
+          })
+        : candidates[0];
 
-          if (!mtTags) return false;
+      if (!found) {
+        console.warn(`[ModbusDevice] No config found for: ${t.name}`, t.tags);
+        continue;
+      }
 
-          return Object.keys(tTags).every((key) => mtTags[key] === tTags[key]);
-        });
-
-        if (!found) {
-          console.warn(`[ModbusDevice] No config found for: ${t.name}`, t.tags);
-          return null;
-        }
-
-        return {
-          ...found,
-          value: t.value ?? found.value,
-        };
-      })
-      .filter((mt): mt is ModbusTelemetryData => mt !== null);
+      result.push({
+        ...found,
+        value: t.value ?? found.value,
+      });
+    }
+    return result;
   }
 
+  /** Yazma sıralaması — priority azalan (0 en yüksek öncelik). */
   private sortByPriority(
     telemetries: ModbusTelemetryData[],
   ): ModbusTelemetryData[] {
@@ -678,6 +779,15 @@ export class ModbusDevice implements IDevice {
       const priorityB = b.priority ?? 0;
       return priorityB - priorityA;
     });
+  }
+
+  /** Okuma sıralaması — adres artan (batch maksimizasyonu için). */
+  private sortByAddress(
+    telemetries: ModbusTelemetryData[],
+  ): ModbusTelemetryData[] {
+    return [...telemetries].sort(
+      (a, b) => a.registerAddress - b.registerAddress,
+    );
   }
 
   private groupByAddress(
@@ -692,7 +802,7 @@ export class ModbusDevice implements IDevice {
         continue;
       }
 
-      const lastTelemetry = currentGroup[currentGroup.length - 1]!;
+      const lastTelemetry = currentGroup.at(-1)!;
       const lastEndAddress =
         lastTelemetry.registerAddress +
         BinaryPayloadDecoder.getRegisterCount(lastTelemetry.registerDataType);
@@ -716,15 +826,44 @@ export class ModbusDevice implements IDevice {
   private _toTelemetryData(
     telemetry: ModbusTelemetryData,
     value: number,
+    timestamp: string,
   ): TelemetryData {
     return {
       name: telemetry.name,
       description: telemetry.description,
       value,
       unit: telemetry.unit,
-      timestamp: new Date().toISOString(),
+      timestamp,
       deviceId: this.config.id,
       tags: telemetry.tags,
     } as TelemetryData;
+  }
+
+  /** Bitfield config'lerini doğrular — geçersiz config fail-fast hata üretir. */
+  private validateBitfieldConfigs(configs?: BitfieldConfig[]): void {
+    if (!configs) return;
+    for (const cfg of configs) {
+      if (
+        cfg.registerType !== "HOLDING_REGISTER" &&
+        cfg.registerType !== "INPUT_REGISTER"
+      ) {
+        throw new Error(
+          `[ModbusDevice] ${this.config.id}: bitfield registerType desteklenmiyor: ${cfg.registerType} (yalnızca HOLDING_REGISTER/INPUT_REGISTER)`,
+        );
+      }
+      for (const field of cfg.fields) {
+        const valid =
+          Number.isInteger(field.bitStart) &&
+          Number.isInteger(field.bitEnd) &&
+          field.bitStart >= 0 &&
+          field.bitEnd <= 31 &&
+          field.bitEnd >= field.bitStart;
+        if (!valid) {
+          throw new Error(
+            `[ModbusDevice] ${this.config.id}: bitfield bit aralığı geçersiz (${field.name}: bitStart=${field.bitStart}, bitEnd=${field.bitEnd}; beklenen 0-31 ve bitEnd >= bitStart)`,
+          );
+        }
+      }
+    }
   }
 }

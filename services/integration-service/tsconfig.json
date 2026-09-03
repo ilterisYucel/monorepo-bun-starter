@@ -13,6 +13,7 @@
     { "path": "../../packages/shared-types" },
     { "path": "../../packages/shared-utils" },
     { "path": "../../packages/core" },
+    { "path": "../../packages/platform/messaging" },
     { "path": "../../packages/plugin-sdk" },
     { "path": "../../packages/plugins/epias-market-prices" }
   ]

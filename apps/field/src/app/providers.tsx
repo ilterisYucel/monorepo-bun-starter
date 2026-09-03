@@ -2,29 +2,19 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import React, { Component, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 import { RouterProvider } from "react-router-dom";
-import { COLORS, TR_DICT, EN_DICT, TranslationProvider } from "@gd-monorepo/ui";
+import { COLORS, TR_DICT, EN_DICT, TranslationProvider, useTranslation } from "@gd-monorepo/ui";
 import { queryClient } from "../lib/query-client";
 import { router } from "./router";
 import { FIELD_TR_DICT } from "../i18n/tr";
 import { FIELD_EN_DICT } from "../i18n/en";
-
-const STORAGE_KEY = "field-settings";
-
-function readLocale(): string {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.locale === "tr" || parsed.locale === "en") return parsed.locale;
-    }
-  } catch { /* ignore */ }
-  return "tr";
-}
+import { useSettingsStore } from "../features/settings/stores/settingsStore";
 
 const TranslationWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const locale = readLocale();
+  // 2026-08-30: dil tercihi settingsStore'dan okunur (persist: "field-settings")
+  // — değişiklik SettingsPage üzerinden yapılır.
+  const locale = useSettingsStore((s) => s.locale);
   const dicts = useMemo(
     () => ({ tr: TR_DICT, en: EN_DICT }),
     [],
@@ -37,6 +27,22 @@ const TranslationWrapper: React.FC<{ children: React.ReactNode }> = ({
     <TranslationProvider dictionaries={dicts} defaultLocale={locale} extraKeys={extraKeys}>
       {children}
     </TranslationProvider>
+  );
+};
+
+const ErrorFallback: React.FC<{ error: Error | null }> = ({ error }) => {
+  const { t } = useTranslation();
+  return (
+    <div style={{ padding: "2rem", color: COLORS.error }}>
+      <h2>{t("common.errorTitle")}</h2>
+      <pre>{error?.message}</pre>
+      <button
+        onClick={() => window.location.reload()}
+        style={{ marginTop: "1rem", padding: "8px 16px" }}
+      >
+        {t("common.reload")}
+      </button>
+    </div>
   );
 };
 
@@ -55,30 +61,20 @@ class ErrorBoundary extends Component<
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div style={{ padding: "2rem", color: COLORS.error }}>
-          <h2>Bir hata olustu</h2>
-          <pre>{this.state.error?.message}</pre>
-          <button
-            onClick={() => window.location.reload()}
-            style={{ marginTop: "1rem", padding: "8px 16px" }}
-          >
-            Yeniden Yukle
-          </button>
-        </div>
-      );
+      return <ErrorFallback error={this.state.error} />;
     }
     return this.props.children;
   }
 }
 
 export const AppProviders: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TranslationWrapper>
+  <QueryClientProvider client={queryClient}>
+    <TranslationWrapper>
+      <ErrorBoundary>
         <RouterProvider router={router} />
-      </TranslationWrapper>
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-    </QueryClientProvider>
-  </ErrorBoundary>
+        {children}
+      </ErrorBoundary>
+    </TranslationWrapper>
+    <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+  </QueryClientProvider>
 );

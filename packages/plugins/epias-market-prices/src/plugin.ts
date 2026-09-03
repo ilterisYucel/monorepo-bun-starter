@@ -1,12 +1,7 @@
 import type { PluginContext } from "@gd-monorepo/plugin-sdk";
 import { EpiasClient, toEpiasIso } from "@gd-monorepo/epias-client";
 import type { EpiasTicketStore } from "@gd-monorepo/epias-client";
-import type {
-  FetchWindow,
-  IIntegrationPlugin,
-  MarketDataPoint,
-  ScheduleSpec,
-} from "@gd-monorepo/shared-types";
+import type { FetchWindow, IIntegrationPlugin, MarketDataPoint, ScheduleSpec } from "@gd-monorepo/shared-types";
 
 /**
  * EPIAS uc noktasi icin seri esleme tanimi (config dosyasindan gelir).

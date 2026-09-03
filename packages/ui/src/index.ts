@@ -27,3 +27,6 @@ export * from "./transports"
 
 // i18n
 export * from "./i18n"
+
+// Logging (ClientLogger — Faz 0 T0.8)
+export * from "./logging"

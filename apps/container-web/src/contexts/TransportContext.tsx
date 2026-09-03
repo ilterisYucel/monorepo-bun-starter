@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useMemo, useEffect, useRef } from "react";
 import { WebSocketTransport, HttpPollingTransport } from "@gd-monorepo/ui";
 import type { ITelemetryTransport } from "@gd-monorepo/shared-types";
+import { apiBaseUrl, wsUrl } from "../lib/api-base";
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:5001/ws/telemetry";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+// Faz 4 T4.3: build-time WS/API gömme kaldırıldı — adresler window.location'dan
+// türetilir (tünel modunda Path-scoped cookie ile otomatik taşınır).
+const WS_URL = wsUrl();
+const API_URL = apiBaseUrl();
 
 interface TransportMap {
   ws: ITelemetryTransport;

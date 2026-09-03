@@ -19,9 +19,9 @@ const ALLOWED_AGGREGATE_FNS = new Set(["AVG", "SUM", "MIN", "MAX", "COUNT", "FIR
 export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private readonly pool: Pool;
   private readonly config: TimescaleDBConfig;
-  private tableCache: Set<string> = new Set();
-  private tableLocks: Map<string, Promise<void>> = new Map();
-  private nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
+  private readonly tableCache: Set<string> = new Set();
+  private readonly tableLocks: Map<string, Promise<void>> = new Map();
+  private readonly nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
 
   constructor(config: TimescaleDBConfig, pool?: Pool) {
     this.config = config;
@@ -320,7 +320,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const result = await this.pool.query(sql, params);
     return result.rows.map((row) => ({
       bucket: row.bucket,
-      value: parseFloat(row.value),
+      value: Number.parseFloat(row.value),
     }));
   }
 
@@ -545,7 +545,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
           telemetries.push({
             name: name,
             description: `Downsampled (${bucketInterval} buckets) - ${name}`,
-            value: parseFloat(parseFloat(avgValue).toFixed(4)),
+            value: Number.parseFloat(Number.parseFloat(avgValue).toFixed(4)),
             unit: unit,
             timestamp: bucketTimestamp,
             deviceId: deviceId,

@@ -3,12 +3,7 @@
 import { ModbusRTUClient as JSModbusRTUClient } from "jsmodbus";
 import { SerialPort } from "serialport";
 import type { IModbusClient } from "./interface";
-
-const randomFloat = (): number => {
-  const buf = new Uint32Array(1);
-  crypto.getRandomValues(buf);
-  return buf[0]! / 0xFFFFFFFF;
-};
+import { randomFloat } from "./utils";
 
 export interface ModbusRtuConfig {
   path: string;
@@ -26,7 +21,6 @@ export class ModbusRtuClient implements IModbusClient {
   private readonly config: Required<ModbusRtuConfig>;
   private connected: boolean = false;
   private reconnectAttempts: number = 0;
-  private readonly maxReconnectAttempts: number = 5;
   private readonly reconnectBaseDelayMs: number = 1000;
 
   constructor(config: ModbusRtuConfig) {

@@ -30,6 +30,7 @@ const ROLE_KEY: Record<string, string> = {
   teknik: "common.role.teknik",
   guest: "common.role.guest",
   boss: "common.role.boss",
+  developer: "common.role.developer",
 };
 
 const menuItemsV2: Array<{ id: PageTypeV2; icon: React.FC<{ size: number }> }> = [
@@ -112,9 +113,16 @@ export const SidebarV2: React.FC<SidebarV2Props> = ({
   const SettingsIcon = SCADA_ICONS.settings;
 
   const visibleMenu =
-    !isAuthenticated || user?.role === "guest"
-      ? menuItemsV2.filter((item) => item.id === "dashboard")
-      : menuItemsV2;
+    !isAuthenticated || user?.role === "guest" || user?.role === "developer"
+      ? menuItemsV2.filter(
+          (item) => item.id === "dashboard" || item.id === "scada",
+        )
+      : user?.role === "boss"
+        ? menuItemsV2.filter((item) => item.id !== "control")
+        : menuItemsV2;
+
+  const canEmergency =
+    user?.role === "admin" || user?.role === "teknik";
 
   return (
     <S.SidebarContainer>
@@ -174,13 +182,15 @@ export const SidebarV2: React.FC<SidebarV2Props> = ({
               <SettingsIcon size={20} />
             </S.FooterBtn>
 
-            <S.EmergencyStopBtn
-              onClick={handleEmergencyStop}
-              disabled={emergencyLoading}
-              title={t("nav.emergency.button")}
-            >
-              <EmergencyIcon size={20} />
-            </S.EmergencyStopBtn>
+            {canEmergency && (
+              <S.EmergencyStopBtn
+                onClick={handleEmergencyStop}
+                disabled={emergencyLoading}
+                title={t("nav.emergency.button")}
+              >
+                <EmergencyIcon size={20} />
+              </S.EmergencyStopBtn>
+            )}
 
             <S.FooterBtn onClick={() => void logout()} title={t("auth.logout")}>
               <SCADA_ICONS.logout size={20} />

@@ -1,11 +1,53 @@
-import {
-  RedisConnection,
-  BullMQAdapter,
-  TimescaleDBAdapter,
-  PostgresAdapter,
-} from "@gd-monorepo/core";
+import { RedisConnection, TimescaleDBAdapter, PostgresAdapter } from "@gd-monorepo/core";
+import { TamperLogger, ConsoleSink, FileSink, TimescaleSink, resolveSigningKey, LOG_EVENTS_DDL } from "@gd-monorepo/tamper-logger";
+
+import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
+import { loggerConfigForTier, isLogEventCode } from "@gd-monorepo/platform-logging";
+import { ServiceTier } from "@gd-monorepo/core";
+import type { ILogSink } from "@gd-monorepo/tamper-logger";
+
+import type { LogLevel } from "@gd-monorepo/tamper-logger";
+
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { DataService } from "./src/data-service";
+
+/** ConfigLoader'dan TamperLogger üretir; field/boss tier'da timescale sink ekler. */
+async function buildLogger(
+  config: ConfigLoader,
+  postgres: PostgresAdapter,
+): Promise<TamperLogger> {
+  const tier = config.get<ServiceTier>("service.tier");
+  const filePath = config.get<string | undefined>("log.filePath");
+  const cfg = loggerConfigForTier(tier, {
+    level: config.get<LogLevel>("log.level"),
+    signingKeyPath: config.get<string>("log.signingKeyPath"),
+    ...(filePath !== undefined ? { filePath } : {}),
+  });
+  const signingKey = await resolveSigningKey(
+    cfg.signingKeyPath,
+    process.env.LOG_SIGNING_KEY,
+  );
+  const sinks: ILogSink[] = [];
+  if (cfg.sinks.includes("console")) sinks.push(new ConsoleSink());
+  if (cfg.sinks.includes("file") && cfg.filePath !== undefined) {
+    sinks.push(new FileSink({ path: cfg.filePath }));
+  }
+  if (cfg.sinks.includes("timescale")) {
+    await postgres.execute(LOG_EVENTS_DDL);
+    sinks.push(new TimescaleSink({ executor: postgres }));
+  }
+  return new TamperLogger({
+    signingKey,
+    service: "data-service",
+    sinks,
+    level: cfg.level,
+    redactionKeys: cfg.redactionKeys,
+    batchSize: cfg.batchSize,
+    batchIntervalMs: cfg.batchIntervalMs,
+    ringBufferSize: cfg.ringBufferSize,
+    eventCodeValidator: isLogEventCode,
+  });
+}
 
 async function main() {
   console.log("[run] Data Service baslatiliyor...");
@@ -24,7 +66,7 @@ async function main() {
     password: config.get<string | undefined>("redis.password"),
     db: config.get<number | undefined>("redis.db"),
   });
-  const mq = new BullMQAdapter(redis);
+  const mq = new PlatformMessageQueue(redis);
 
   // TimescaleDB
   const timescale = new TimescaleDBAdapter({
@@ -74,7 +116,7 @@ async function main() {
     console.error("[run] Log temizleme basarisiz:", err);
   }
 
-  const service = new DataService(mq, timescale, postgres);
+  const service = new DataService(mq, timescale, postgres, await buildLogger(config, postgres));
 
   let stopping = false;
   const shutdown = async (signal: string) => {

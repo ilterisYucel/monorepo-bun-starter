@@ -10,23 +10,24 @@ export interface RedisConfig {
 }
 
 export class RedisConnection {
-  private client: RedisClientType;
-  private config: RedisConfig;
+  private readonly redisClient: RedisClientType;
+  private readonly config: RedisConfig;
   private isConnected: boolean = false;
 
   constructor(config: RedisConfig) {
     this.config = config;
-    const url = `redis://${config.password ? `:${config.password}@` : ""}${config.host}:${config.port}`;
-    this.client = createClient({ url, database: config.db ?? 0 });
+    const credentials = config.password ? `:${config.password}@` : "";
+    const url = `redis://${credentials}${config.host}:${config.port}`;
+    this.redisClient = createClient({ url, database: config.db ?? 0 });
 
-    this.client.on("error", (err) => {
+    this.redisClient.on("error", (err) => {
       console.error("[Redis] Connection error:", err);
     });
   }
 
   async connect(): Promise<void> {
     if (!this.isConnected) {
-      await this.client.connect();
+      await this.redisClient.connect();
       this.isConnected = true;
       console.log("[Redis] Connected");
     }
@@ -34,17 +35,17 @@ export class RedisConnection {
 
   async disconnect(): Promise<void> {
     if (this.isConnected) {
-      await this.client.quit();
+      await this.redisClient.quit();
       this.isConnected = false;
       console.log("[Redis] Disconnected");
     }
   }
 
-  getClient(): RedisClientType {
-    return this.client;
+  client(): RedisClientType {
+    return this.redisClient;
   }
 
-  getConnectionConfig(): {
+  connectionConfig(): {
     host: string;
     port: number;
     password?: string;
@@ -59,12 +60,12 @@ export class RedisConnection {
   }
 
   isReady(): boolean {
-    return this.isConnected && this.client.isReady;
+    return this.isConnected && this.redisClient.isReady;
   }
 
   async ping(): Promise<boolean> {
     try {
-      const pong = await this.client.ping();
+      const pong = await this.redisClient.ping();
       return pong === "PONG";
     } catch {
       return false;

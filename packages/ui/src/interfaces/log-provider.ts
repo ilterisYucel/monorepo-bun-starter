@@ -13,6 +13,12 @@ export interface LogProvider {
   logs: LogEntry[];
   addLog: (entry: Omit<LogEntry, "id" | "timestamp">) => void;
   clearLogs: () => void;
+  /**
+   * Cihaz alarmını çözüldü işaretle (Faz 0 eki) — yalnızca `alarm` metadata'sı
+   * taşıyan satırlarda LogTerminal tarafından çağrılır. API erişimi
+   * provider implementasyonundadır (UI paketi HTTP bilmez).
+   */
+  resolveAlarm?: (entry: LogEntry) => void;
 }
 
 /**

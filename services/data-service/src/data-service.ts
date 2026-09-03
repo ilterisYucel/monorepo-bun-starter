@@ -1,5 +1,10 @@
 import type { IMessageQueue, ITimeseriesDatabase } from "@gd-monorepo/core";
+
 import type { ISqlDatabase } from "@gd-monorepo/core";
+import { TamperLogger } from "@gd-monorepo/tamper-logger";
+
+import { TransientError } from "@gd-monorepo/result";
+
 
 export class DataService {
   private running: boolean;
@@ -8,6 +13,7 @@ export class DataService {
     private readonly mq: IMessageQueue,
     private readonly timescale: ITimeseriesDatabase,
     private readonly sql: ISqlDatabase,
+    private readonly logger?: TamperLogger,
   ) {
     this.running = false;
   }
@@ -19,28 +25,40 @@ export class DataService {
       if (!this.running) return;
 
       if (job.type === "WRITE_TELEMETRY") {
-        await this.timescale.write(job.telemetries);
-
-        const logInserts = job.telemetries
-          .filter((td) => td.logType && td.value)
-          .map((td) =>
-            this.sql.execute(
-              `INSERT INTO system_logs (type, source, message, details)
-               VALUES ($1, $2, $3, $4)`,
-              [
-                td.logType!,
-                "system",
-                `${td.deviceId}: ${td.name}`,
-                `${td.description} | value=${td.value}`,
-              ],
-            ),
-          );
-
-        if (logInserts.length > 0) {
-          await Promise.allSettled(logInserts);
+        try {
+          await this.timescale.write(job.telemetries);
+        } catch (err) {
+          // Açık 2 kapanışı (T0.11): telemetri ≠ log — log sızıntısı kaldırıldı.
+          // Sınır logu onFailed'da (tek log noktası); burada yalnızca retry
+          // tetiklenir (WRITE_TELEMETRY attempts:5 + dead-letter).
+          throw new TransientError("telemetry_write_failed", "Telemetri yazma hatası", {
+            context: {
+              jobId: job.jobId,
+              deviceIds: [...new Set(job.telemetries.map((t) => t.deviceId))],
+            },
+            cause: err,
+          });
         }
       }
-    }, { concurrency: 10 });
+    }, {
+      concurrency: 10,
+      onFailed: async (job, err) => {
+        if (!this.logger) return;
+        await this.logger
+          .log({
+            level: "error",
+            category: "app",
+            eventCode: "telemetry_write_failed",
+            message: "WRITE_TELEMETRY denemeleri tükendi (dead-letter)",
+            context: {
+              jobId: job.jobId,
+              deviceIds: [...new Set(job.telemetries.map((t) => t.deviceId))],
+              error: String(err),
+            },
+          })
+          .catch(() => undefined);
+      },
+    });
 
     console.log("[DataService] WRITE_TELEMETRY worker baslatildi");
   }

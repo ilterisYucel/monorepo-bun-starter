@@ -6,13 +6,13 @@ const RING_BUFFER_MAX = 299;
 
 export class RealtimeManager {
   private connections: Map<string, Set<WebSocket>> = new Map();
-  private redisClient: ReturnType<RedisConnection["getClient"]>;
+  private redisClient: ReturnType<RedisConnection["client"]>;
   private sweepInterval?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly redis: RedisConnection,
   ) {
-    this.redisClient = redis.getClient();
+    this.redisClient = redis.client();
     this.startSweep();
   }
 
@@ -85,7 +85,11 @@ export class RealtimeManager {
     const serialized = dataList.map((d) => typeof d === "string" ? d : JSON.stringify(d));
 
     await this.redisClient.lPush(key, serialized);
-    await this.redisClient.lTrim(key, 0, RING_BUFFER_MAX);
+    // Faz 5.1 B1: trim, son partinin TÜM kayıtlarını koruyacak kadar geniş olmalı.
+    // RING_BUFFER_MAX'ta kesilince isim sayısı > 299 olan cihazlarda (BSC ≈ 960)
+    // listenin başındaki isimler (SOC/voltage/canonical) kayboluyordu — field
+    // snapshot'ı canonical'sız kalıp kartlarda yalnızca bağlantı durumu kalıyordu.
+    await this.redisClient.lTrim(key, 0, Math.max(RING_BUFFER_MAX, dataList.length));
     await this.redisClient.expire(key, 300);
   }
 

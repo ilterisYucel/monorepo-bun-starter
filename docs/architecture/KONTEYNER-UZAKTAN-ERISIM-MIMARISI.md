@@ -2,7 +2,7 @@
 status: active
 space: architecture
 tags: [mimari, tunel, oturum, guvenlik, container, field]
-review_date: 2026-08-24
+review_date: 2026-08-26
 ---
 
 # Konteyner Uzaktan Erişim Mimarisi (Remote Container UI)
@@ -322,7 +322,7 @@ Bir `.env` değişikliği 1000 km'lik saha ziyareti gerektirmemeli. Ayrım:
 | Katman | İçerik | Nasıl değişir |
 |--------|--------|---------------|
 | **Bootstrap config (minimal env)** | `SERVICE_TIER`, `FIELD_WS_URL`, `CONTAINER_TOKEN`, `FIELD_CONNECT_ENABLED` | `FIELD_WS_URL` bir **DNS adı** olmalı (`field.local`) — saha ağındaki DNS/yönlendirici yeniden işaretlenirse adres değişir, konteynere dokunulmaz. Ayrıca ana + yedek field URL listesi desteklenir (sırayla denenir). |
-| **Operational config (canlı)** | heartbeat aralığı, telemetry sıklığı, oturum limitleri, path allowlist, RBAC eşlemesi, log seviyesi | Field DB'de tutulur; `register-ack` içinde veya `config-update` frame'iyle bağlı container'a anında push edilir. Container memory'de uygular — **restart yok.** Değişiklik = field DB'de bir satır. |
+| **Operational config (canlı)** | heartbeat aralığı, telemetry sıklığı, oturum limitleri, path allowlist, RBAC eşlemesi, log seviyesi | Field DB'de tutulur; `register-ack` içinde veya `config-update` frame'iyle bağlı container'a anında push edilir. Container memory'de uygular — **restart yok.** Değişiklik = field DB'de bir satır. **Faz 2 durumu (2026-08-25):** container tarafı + `ContainerProxy.pushConfigUpdate` pass-through tamam; field DB saklaması + admin push endpoint'i Faz 3/6'ya ertelendi (bkz. DOGRULAMA S5) |
 | **Uç durum: servis restartı** | — | Tünel açıkken dar kapsamlı `POST /api/admin/system/restart` (imzalı + onaylı): komut **önce ACK gönderir, 2 sn sonra kapanır** — komutu taşıyan tünel ölmeden cevap döner. |
 | **İmaj güncelleme (OTA)** | — | Pull-tabanlı: container, field'daki registry'den yeni imaj sürümünü çeker ve kendini günceller (compose pull + up). |
 
@@ -519,7 +519,7 @@ Neden yanlış: log olayı telemetri olarak seyahat ediyor (Timescale hypertable
 
 | Servis | Log sınırı | Kategori | Ne loglanır (yalnızca bunlar) |
 |---|---|---|---|
-| **device-service** | `readDevice` sarmalayıcı + `executeCommand` + connect/upsert | `app` (error): Modbus timeout/CRC/register hatası → `TransientError`/`FatalError`; `audit`: komut yürütme (kim, hangi komut, sonuç); `security`: geçersiz komut isteği | Hata + durum değişimi (online/offline) + komut audit |
+| **device-service** | `readDevice` sarmalayıcı + `executeCommand` + connect/upsert + alarm değerlendirmesi | `app` (error): Modbus timeout/CRC/register hatası → `TransientError`/`FatalError`; `audit`: komut yürütme (kim, hangi komut, sonuç); `security`: geçersiz komut isteği; `app`: `device_alarm`/`device_alarm_cleared` (yükselen/düşen kenar — geçiş-odaklı) | Hata + durum değişimi (online/offline) + komut audit + alarm geçişleri |
 | **data-service** | BullMQ `onFailed` + `timescale.write` catch | `app` (error): yazma hatası, schema hatası — jobId + deviceId'ler bağlamda | **Başarılı yazımlar asla loglanmaz** |
 | **web-service** | `setErrorHandler` (T0.6) | tümü | İstek hataları, auth olayları, session audit |
 
@@ -672,6 +672,8 @@ Not: `devices.status='offline'` bugün yalnızca `stop()`'ta yazılıyor (`devic
 | T3.5 | Field nginx `/containers/` + Vite dev proxy | `apps/field/deployment/Dockerfile`, `vite.config.ts` |
 | T3.6 | Path allowlist + limitler + container-side `container_session` middleware | her iki servis |
 
+**Durum (2026-08-25):** T3.1-T3.6 tamamlandı ve KAPANDI — K3.1-K3.3 kanıtlı (bkz. [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) Faz 3 matrisi).
+
 **Kabul kriteri:** `curl` ile `/containers/:cid/ui/` HTML akar; iframe'de `/api` + `/ws` çalışır; audit satırı oluşur. **TDD:** frame codec round-trip + fuzz testleri implementasyondan ÖNCE yazılır (kırmızı → yeşil).
 
 ### Faz 4 — container-web subpath uyumu
@@ -682,9 +684,11 @@ Not: `devices.status='offline'` bugün yalnızca `stop()`'ta yazılıyor (`devic
 | T4.2 | Hash router (web + desktop ortak) | `router.tsx`, desktop `App.tsx` |
 | T4.3 | WS URL `window.location` türetimi | `TransportContext.tsx` |
 | T4.4 | `GET /api/auth/session` + tünel modu auth (**sessionStorage izolasyonu**, 401-refresh kapalı) | yeni `session-auth.ts`, auth routes |
-| T4.5 | PPC hook + `SystemHeader` besleme | `MainLayoutV2.tsx` |
+| T4.5 | PPC hook + `SystemHeader` besleme | `MainLayoutV2.tsx` — **Faz 2'de tamamlandı (2026-08-25, DOGRULAMA S4):** `useFieldConnection` + SystemHeader wiring + i18n etiketi; Faz 4'te kalan: tünel modunda (sessionStorage) davranış doğrulaması |
 
 **Kabul kriteri:** `/containers/:cid/ui/#/dashboard` iframe'de sorunsuz render; login ekranı görünmez; desktop CSP `connect-src` gözden geçirilir.
+
+**Durum (2026-08-25):** T4.1-T4.5 tamamlandı ve KAPANDI — K4.1-K4.3 kanıtlı (Playwright E2E + canlı dev çifti; bkz. [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) Faz 4 matrisi + S6-S10).
 
 ### Faz 5 — Field UI
 
@@ -698,19 +702,25 @@ Not: `devices.status='offline'` bugün yalnızca `stop()`'ta yazılıyor (`devic
 
 **Kabul kriteri:** E2E — kart→özet→tam ekran→konteynerde komut→audit kaydı.
 
+**Durum (2026-08-25):** T5.1-T5.5 tamamlandı ve KAPANDI — K5.1 canlı E2E ile kanıtlı (bkz. [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) Faz 5 matrisi).
+
 ### Faz 6 — NIS-2 kapanışı
 
-| # | Görev |
-|---|-------|
-| T6.1 | MFA (TOTP) field login |
-| T6.2 | SyslogSink + HttpWebhookSink — dış SIEM entegrasyonu (Faz 0 altyapısını kullanır) |
-| T6.3 | NTP (container) |
-| T6.4 | Image pinleme + CVE tarama |
-| T6.5 | Olay bildirim prosedürü dokümanı (24/72 saat) |
-| T6.6 | Çift arayüz (VPN + domain) modunda rate-limit, hesap kilidi, WAF |
-| T6.7 | `AlertNotifier` adapterleri (mail/sms) + cooldown kuralları |
-| T6.8 | Mini-SIEM (`services/log-service`) planlaması: kural motoru + alert + dashboard |
-| T6.9 | Bu dokümanların güncel tutulması |
+| # | Görev | Durum (2026-08-26) |
+|---|-------|---------------------|
+| T6.1 | MFA (TOTP) field login | ✅ `ITotpService` + `OtpLibTotpService` (otplib); login 2 adım (`mfaRequired` + `/api/auth/login/mfa`), kayıt akışı (`/api/auth/mfa/enroll|confirm|reset`), 10 tek kullanımlık kurtarma kodu (hash'li), rbac MFA enforcement (admin/teknik zorunlu; container tier kapalı), field UI (LoginForm 2. adım + MfaEnrollPage + guard) |
+| T6.2 | SyslogSink + HttpWebhookSink — dış SIEM entegrasyonu | ✅ `SyslogSink` (RFC 5424, UDP/TCP) + `HttpWebhookSink` (HMAC imzalı, retry); `LOG_EXTRA_SINKS`/`LOG_SYSLOG_*`/`LOG_WEBHOOK_*` config |
+| T6.3 | NTP (container) | ✅ [ntp-konfigurasyonu.md](../standards/ntp-konfigurasyonu.md) — host chrony + doğrulama prosedürü |
+| T6.4 | Image pinleme + CVE tarama | ✅ Tüm Dockerfile/compase imajları digest pinli; `tools/sbom-scan.mjs` (Trivy fs+image, 0 Critical/High kapısı) + `.github/workflows/security.yml` |
+| T6.5 | Olay bildirim prosedürü dokümanı (24/72 saat) | ✅ [olay-mudahale-proseduru.md](../standards/olay-mudahale-proseduru.md) |
+| T6.6 | Çift arayüz modunda rate-limit, hesap kilidi, WAF | ✅ Backend: `RedisLoginThrottle` (5/15 dk → 15 dk kilit, `login_locked` logu, 429); WAF → [waf-onerisi.md](../standards/waf-onerisi.md) (dokümantasyon — kullanıcı onaylı) |
+| T6.7 | `AlertNotifier` adapterleri (mail/sms) + cooldown kuralları | ✅ `SmtpNotifier` + `HttpSmsNotifier`; TamperLogger `alertRules` (eventCode listesi + cooldown); config `LOG_SMTP_*`/`LOG_SMS_*` |
+| T6.8 | Mini-SIEM planlaması | ✅ [MINI-SIEM-PLANI.md](./MINI-SIEM-PLANI.md) — LS-1..LS-4 fazlandırma |
+| T6.9 | Bu dokümanların güncel tutulması | ✅ MIMARISI + DOGRULAMA review_date'leri ve faz durumları güncellendi |
+
+**Kabul kriterleri:** K6.1-K6.6 (bkz. [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) Faz 6 matrisi) — MFA zorunluluğu, hesap kilidi, SIEM sink'leri, imaj pinleme, bildirim prosedürü, notifier adapterleri kanıtlı.
+
+**Durum (2026-08-26):** T6.1-T6.9 tamamlandı ve KAPANDI.
 
 ## 10. Dosya Haritası
 
@@ -720,15 +730,25 @@ Not: `devices.status='offline'` bugün yalnızca `stop()`'ta yazılıyor (`devic
 - `packages/shared-types/src/log.ts` (genişlet — LogEvent şeması; mevcut LogEntry korunur)
 - `packages/ui/src/logging/` (ClientLogger kontratı)
 - `tools/verify-log.mjs`
-- `packages/core/src/tunnel/{index.ts, types.ts, frame-codec.ts}`
-- `packages/shared-types/src/field-connector.ts` (kontrol mesaj tipleri + operational config)
-- `services/web-service/src/infrastructure/field-connector/{index.ts, field-connector.ts, tunnel-client.ts, session-store.ts}`
-- `services/web-service/src/infrastructure/container-session/{index.ts, session-gateway.ts, session-audit.ts}` (field tier)
-- `services/web-service/src/presentation/routes/session-routes.ts`
-- `apps/container-web/src/features/auth/session-auth.ts` + `hooks/useFieldConnection.ts`
+- `packages/core/src/tunnel/{index.ts, types.ts, frame-codec.ts}` — **Faz 3'te uygulandı (2026-08-25)**
+- `packages/shared-types/src/field-connector.ts` (kontrol mesaj tipleri + operational config) — **Faz 2'de uygulandı (2026-08-25)**
+- `services/web-service/src/infrastructure/field-connector/{index.ts, field-connector.ts, tunnel-client.ts, session-store.ts}` — **Faz 3'te tamamlandı: tunnel-client.ts + session-store.ts + container-session-server.ts eklendi**
+- `services/web-service/src/infrastructure/container-session/{index.ts, session-gateway.ts, session-audit.ts}` (field tier) — **Faz 3'te uygulandı + tunnel-proxy.ts + field-session-store.ts**
+- `services/web-service/src/presentation/routes/session-routes.ts` — **Faz 3'te uygulandı**
+- `apps/container-web/src/features/auth/session-auth.ts` + `hooks/useFieldConnection.ts` — **Faz 2: useFieldConnection uygulandı; session-auth Faz 4**
 - `apps/field/src/features/containers/components/ContainerFrame.tsx`
+- `services/web-service/src/presentation/routes/status-route.ts` + `tools/field-connector-demo.mjs` — **Faz 2 eki**
+- `tools/tunnel-demo.mjs` — **Faz 3 eki**
 
-**Değişen (kritik):** `container-ws-routes.ts`, `container-proxy.ts`, `token-adapter.ts`, `rbac.ts`, `field-routes.ts`, `config/container.ts` (awilix), `server.ts`, `deployment/docker-compose.{field,container}.yml`, `apps/field/deployment/Dockerfile`, `apps/container-web/vite.config.ts`, `apps/container-web/src/app/router.tsx`, `TransportContext.tsx`, `MainLayoutV2.tsx`, `SystemHeader.tsx`.
+**Faz 0 eki — cihaz alarm sistemi (uygulandı):**
+- `packages/shared-types/src/alarm.ts` (AlarmSeverity, DeviceAlarmRule, DeviceAlarmSample, DeviceAlarmState)
+- `services/device-service/src/alarm-transition-detector.ts` (saf `alarmSamples` + `AlarmTransitionDetector`)
+- `services/device-service/src/alarm-state-repository.ts` (`device_alarms` UPSERT'leri)
+- `services/web-service/src/presentation/routes/alarm-routes.ts` (GET /alarms + POST /alarms/resolve)
+- `apps/container-web/src/hooks/useAlarmProvider.ts` + `features/alarms/services/alarmsApi.ts`
+- `tools/alarm-demo.mjs` (gözle doğrulama demosu)
+
+**Değişen (kritik):** `container-ws-routes.ts`, `container-proxy.ts`, `token-adapter.ts`, `rbac.ts`, `field-routes.ts`, `config/container.ts` (awilix), `server.ts`, `deployment/docker-compose.{field,container}.yml`, `apps/field/deployment/Dockerfile`, `apps/container-web/vite.config.ts`, `apps/container-web/src/app/router.tsx`, `TransportContext.tsx`, `MainLayoutV2.tsx`, `SystemHeader.tsx`. **Faz 0 eki:** `device-interface.ts` (readBitfields kaldırıldı — ISP), `modbus/device.ts` (birleşik read), `schemas/device-config.ts` (alarms), `device-service.ts` (alarm orkestrasyonu), `ui LogTerminal/LogProvider/LogEntry` (kutucuk), device config JSON'ları (alarms[] migrasyonu), `simulators/src/bsc/bsc-config.ts` (severity temizliği).
 
 ## 11. Test Stratejisi
 
@@ -802,5 +822,6 @@ Not: `devices.status='offline'` bugün yalnızca `stop()`'ta yazılıyor (`devic
 | Tamper log | HMAC-SHA256 + `prevHash` zinciri; MVP sink: Console + Dosya + Timescale; Mail/SMS = `AlertNotifier` (sink değil) — bkz. Faz 0 |
 | Frontend log | Hata + kullanıcı etkileşimi, batch'li, rate-limit'li (`app` kategorisi) — bkz. Faz 0 |
 | Audit dayanıklılığı | `audit/security` fail-closed; `error` → drop + sayaç + health; `debug/info` → drop — bkz. Faz 0 |
+| Cihaz alarmları | Tek kaynak config `alarms[]` kuralı (telemetri adı ref'li, cihaz tipinden bağımsız); değerlendirme device-service'te geçiş-odaklı (dedup); `device_alarms` durum tablosu = imzalı logun türetilmiş projeksiyonu, geçmiş yalnızca `log_events`; TEIAŞ resolved işareti audit `alarm_resolved` (fail-closed). `IDevice.readBitfields` ISP ihlali kaldırıldı — bitfield okuması ModbusDevice'in kendi stratejisi (bkz. AGENTS.md "Cihaz alarm sözleşmesi") |
 | Sertifika | ISO sertifikası hedeflenmiyor; NIS-2 uyumu esas |
 | PPC etiketi | Kullanıcıda "Field Bağlantısı" |

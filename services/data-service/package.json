@@ -18,7 +18,8 @@
   "dependencies": {
     "@gd-monorepo/shared-types": "*",
     "@gd-monorepo/shared-utils": "*",
-    "@gd-monorepo/core": "*"
+    "@gd-monorepo/core": "*",
+    "@gd-monorepo/result": "*"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

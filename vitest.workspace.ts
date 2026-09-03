@@ -3,7 +3,13 @@ import { defineWorkspace } from "vitest/config";
 export default defineWorkspace([
   "packages/shared-types",
   "packages/shared-utils",
+  "packages/result",
   "packages/core",
+  "packages/tamper-logger",
+  "packages/ws-tunnel",
+  "packages/platform/messaging",
+  "packages/platform/container-access",
+  "packages/platform/logging",
   "packages/plugin-sdk",
   "packages/epias-client",
   "packages/plugins/epias-market-prices",
@@ -18,4 +24,8 @@ export default defineWorkspace([
   "apps/container-desktop",
   "apps/demo-backend",
   "apps/editor",
+  // 2026-08-30 (T6): saha uygulaması workspace'e eklendi — root test
+  // script'leri artık field/superadmin'i de koşar (önceden nx ile ayrı).
+  "apps/field",
+  "apps/superadmin",
 ]);

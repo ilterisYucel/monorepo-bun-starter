@@ -161,6 +161,26 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
                 </S.Icon>
                 <S.Message>{log.message}</S.Message>
                 {log.details && <S.Details>{log.details}</S.Details>}
+                {log.alarm && (
+                  <S.AlarmResolve
+                    title={
+                      log.alarm.resolved
+                        ? `Çözüldü: ${log.alarm.resolvedBy ?? "-"}`
+                        : "Çözüldü olarak işaretle"
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      data-testid={`alarm-resolve-${log.alarm.alarmName}`}
+                      checked={log.alarm.resolved}
+                      disabled={log.alarm.resolved || !provider.resolveAlarm}
+                      onChange={() => provider.resolveAlarm?.(log)}
+                    />
+                    {log.alarm.resolved && (
+                      <S.AlarmResolvedBy>{log.alarm.resolvedBy ?? ""}</S.AlarmResolvedBy>
+                    )}
+                  </S.AlarmResolve>
+                )}
               </EntryComponent>
             );
           })

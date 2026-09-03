@@ -1,5 +1,9 @@
 import type { ISqlDatabase } from "@gd-monorepo/core";
+
+import { LOG_EVENTS_DDL } from "@gd-monorepo/tamper-logger";
+
 import type { LogEntry, LogQueryParams } from "@gd-monorepo/shared-types";
+
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS system_logs (
@@ -15,11 +19,37 @@ const CREATE_TABLE = `
   CREATE INDEX IF NOT EXISTS idx_logs_type ON system_logs (type, timestamp DESC);
 `;
 
+/**
+ * UNION sorgusu: system_logs (geçiş — client olayları) ∪ log_events
+ * (TamperLogger çıktısı). Kolon isimleri dışta sabittir; filtreler dış
+ * sorguya uygulanır.
+ */
+const UNION_QUERY = `
+  SELECT * FROM (
+    SELECT id, timestamp, type, source, message, details FROM system_logs
+    UNION ALL
+    SELECT
+      NULL::uuid AS id,
+      ts AS timestamp,
+      CASE level
+        WHEN 'warn' THEN 'warning'
+        WHEN 'error' THEN 'error'
+        WHEN 'fatal' THEN 'error'
+        ELSE 'info'
+      END AS type,
+      'system' AS source,
+      message,
+      '[' || category || '/' || event_code || '] ' || coalesce(context::text, '{}') AS details
+    FROM log_events
+  ) combined
+`;
+
 export class LogRepository {
   constructor(private readonly db: ISqlDatabase) {}
 
   async initialize(): Promise<void> {
     await this.db.execute(CREATE_TABLE);
+    await this.db.execute(LOG_EVENTS_DDL);
     // Eski log kayıtlarını temizle (varsayılan: 30 günden eski)
     await this.deleteOlderThan(30);
   }
@@ -34,7 +64,7 @@ export class LogRepository {
    */
   async deleteOlderThan(days: number): Promise<void> {
     try {
-      const result = await this.db.execute(
+      await this.db.execute(
         `DELETE FROM system_logs WHERE timestamp < NOW() - INTERVAL '${days} days'`,
       );
       console.log(
@@ -81,7 +111,7 @@ export class LogRepository {
     const offset = params.offset ?? 0;
 
     return this.db.query<LogEntry>(
-      `SELECT * FROM system_logs ${where} ORDER BY timestamp DESC LIMIT $${i++} OFFSET $${i++}`,
+      `${UNION_QUERY} ${where} ORDER BY timestamp DESC LIMIT $${i++} OFFSET $${i++}`,
       [...values, limit, offset],
     );
   }

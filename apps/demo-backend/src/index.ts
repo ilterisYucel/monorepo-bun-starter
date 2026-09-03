@@ -1,8 +1,5 @@
-import {
-  RedisConnection,
-  BullMQAdapter,
-  TimescaleDBAdapter,
-} from "@gd-monorepo/core";
+import { RedisConnection, TimescaleDBAdapter } from "@gd-monorepo/core";
+import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { XRackManager } from "./infrastructure/xrack-manager";
 import { ModbusDevice } from "@gd-monorepo/core";
@@ -56,7 +53,7 @@ async function main() {
     db: config.get<number | undefined>("redis.db"),
   });
   await redis.connect();
-  const messageQueue = new BullMQAdapter(redis);
+  const messageQueue = new PlatformMessageQueue(redis);
 
   // 5. Job Handler
   const jobHandler = new DeviceJobHandler(modbusDevice, timescale);

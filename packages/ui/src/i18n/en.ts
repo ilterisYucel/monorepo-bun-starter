@@ -33,7 +33,8 @@ export const EN_DICT = {
   "common.role.admin": "Admin",
   "common.role.teknik": "Technical",
   "common.role.guest": "Guest",
-  "common.role.boss": "Manager",
+  "common.role.boss": "Boss",
+  "common.role.developer": "Developer",
 
   // =========================================================================
   // Chart

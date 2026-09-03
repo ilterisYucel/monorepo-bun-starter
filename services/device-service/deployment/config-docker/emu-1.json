@@ -14,7 +14,7 @@
   "transport": {
     "kind": "simulator",
     "type": "emu",
-    "pcsCount": 3
+    "pcsCount": 1
   },
   "telemetry": [
     {

@@ -1,6 +1,6 @@
 // packages/ui/src/core/TelemetryGauge/TelemetryGauge.tsx
 import React from "react";
-import type { TelemetryGaugeProps } from "./TelemetryGauge.types";
+import type { TelemetryGaugeProps, GaugeTheme } from "./TelemetryGauge.types";
 import * as S from "./TelemetryGauge.styles";
 import { COLORS } from "../../colors";
 
@@ -10,6 +10,42 @@ const ARC_START = 240;
 const ARC_SWEEP = 240;
 const ARC_RADIUS = 48;
 const ARC_WIDTH = 6;
+
+/**
+ * Tema paletleri — arc/bar/ikon tek kaynaktan beslenir (renk token sistemi).
+ * dark/mid/light: pct >= 80 → dark, >= 50 → mid, gerisi light.
+ */
+export const GAUGE_THEMES: Record<
+  GaugeTheme,
+  { dark: string; mid: string; light: string }
+> = {
+  info: { dark: COLORS.infoDark, mid: COLORS.info, light: COLORS.infoLight },
+  success: {
+    dark: COLORS.successHover,
+    mid: COLORS.success,
+    light: COLORS.successGlow,
+  },
+  warning: {
+    dark: COLORS.warningHover,
+    mid: COLORS.warning,
+    light: COLORS.warningGlow,
+  },
+  error: {
+    dark: COLORS.errorHover,
+    mid: COLORS.error,
+    light: COLORS.errorStroke,
+  },
+  purple: {
+    dark: COLORS.accentDark,
+    mid: COLORS.textPurple,
+    light: COLORS.accentLight,
+  },
+  temp: {
+    dark: COLORS.tempHot,
+    mid: COLORS.tempChilly,
+    light: COLORS.tempCold,
+  },
+};
 
 function gaugeArc(
   cx: number,
@@ -27,10 +63,11 @@ function gaugeArc(
   return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
 }
 
-function gaugeColor(pct: number): string {
-  if (pct >= 80) return COLORS.infoDark;
-  if (pct >= 50) return COLORS.info;
-  return COLORS.infoLight;
+function gaugeColor(pct: number, theme: GaugeTheme): string {
+  const palette = GAUGE_THEMES[theme];
+  if (pct >= 80) return palette.dark;
+  if (pct >= 50) return palette.mid;
+  return palette.light;
 }
 
 // ---------- Component ----------
@@ -42,11 +79,12 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
   label,
   unit: unitText,
   decimals = 1,
-  color = COLORS.info,
+  color,
   size = "medium",
   icon,
   variant = "linear",
   width,
+  theme = "info",
 }) => {
   const hasLimits = min !== undefined || max !== undefined;
   const effectiveMin = min ?? 0;
@@ -61,6 +99,8 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
       )
     : 0;
   const formattedValue = value.toFixed(decimals);
+  const palette = GAUGE_THEMES[theme];
+  const barColor = color ?? palette.mid;
 
   // ---------- Circular ----------
   if (variant === "circular") {
@@ -90,13 +130,17 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
             <path
               d={gaugeArc(50, 50, ARC_RADIUS, ARC_START, fillAngle)}
               fill="none"
-              stroke={gaugeColor(percentage)}
+              stroke={gaugeColor(percentage, theme)}
               strokeWidth={ARC_WIDTH}
               strokeLinecap="round"
             />
           </svg>
         )}
-        {icon && <S.CircularIcon size={size}>{icon}</S.CircularIcon>}
+        {icon && (
+          <S.CircularIcon size={size} style={{ color: palette.mid }}>
+            {icon}
+          </S.CircularIcon>
+        )}
         <S.CircularLabel size={size}>{label}</S.CircularLabel>
         <S.CircularValueRow>
           <S.CircularValueNum size={size}>{formattedValue}</S.CircularValueNum>
@@ -115,7 +159,7 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
   // ---------- Linear ----------
   return (
     <S.GaugeContainer size={size}>
-      {icon && <S.Icon>{icon}</S.Icon>}
+      {icon && <S.Icon style={{ color: palette.mid }}>{icon}</S.Icon>}
       <S.Label size={size}>{label}</S.Label>
       <S.ValueContainer>
         <S.ValueNumber size={size}>{formattedValue}</S.ValueNumber>
@@ -125,7 +169,7 @@ export const TelemetryGauge: React.FC<TelemetryGaugeProps> = ({
         <>
           <S.BarContainer>
             <S.BarFill
-              style={{ width: `${percentage}%`, background: color }}
+              style={{ width: `${percentage}%`, background: barColor }}
             />
           </S.BarContainer>
           <S.Limits>

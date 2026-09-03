@@ -23,6 +23,7 @@
   "references": [
     { "path": "../../packages/core" },
     { "path": "../../packages/shared-types" },
+    { "path": "../../packages/platform/messaging" },
     { "path": "../../packages/simulators" }
   ]
 }

@@ -4,11 +4,7 @@ import type {
   PluginContextFactory,
   PluginRegistry,
 } from "@gd-monorepo/plugin-sdk";
-import type {
-  FetchExternalJob,
-  FetchWindow,
-  IIntegrationPlugin,
-} from "@gd-monorepo/shared-types";
+import type { FetchExternalJob, FetchWindow, IIntegrationPlugin } from "@gd-monorepo/shared-types";
 import { ExternalSeriesWriter } from "./external-series-writer";
 
 const DEFAULT_INTERVAL_MS = 60 * 60 * 1000;

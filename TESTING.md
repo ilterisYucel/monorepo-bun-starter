@@ -62,29 +62,38 @@
 └────────────────────────────────────────────────────────┘
 ```
 
-### Current Coverage Reality (2026-08-19)
+### Current Coverage Reality (2026-08-30 — test-gelistirme-plani T1-T6 sonrası güncellendi)
 
 Yukarıdaki sayılar hedeftir. Gerçek envanter (backend yoğun katmanlar):
 
 | Paket/Servis | Test dosyası | Test sayısı | Verdict |
 |---|---|---|---|
-| shared-types | 5 | 59 | En iyi — Result + tüm zod şemaları |
-| core | 3 | 42 | Decoder iyi; **messaging/redis/modbus client'ları 0 test**; TimescaleDBAdapter 615 satır → 2 test |
-| shared-utils | **0** | **0** | **`test` script'i exit 1 veriyor — ConfigLoader/sources/units/definitions tamamen testsiz** |
-| simulators | 6 | 49 | 5/8 aile testli; **BSC (737 satır), XRack, EnergyAnalyzer + 8 Modbus adapter'ı 0 test** |
+| shared-types | 8 | 111 | En iyi — Result + tüm zod şemaları |
+| core | 23 | 223 | Logging/tamper/frame-codec/decoder tam; **ModbusDevice write/writeAtomic rollback + ModbusTcpClient/RTU + RedisConnection artık testli (T1.1/T3)**; TimescaleDBAdapter write/INSERT testli (downsampling perf'i hâlâ açık — S11) |
+| shared-utils | 2 | 17 | definitions + **ConfigLoader/sources/units testli (T3)** |
+| simulators | 7 | 54 | PCS/EMU/HVAC/CB/DC tam; **BSC temel karakterizasyon testli (T4)**; XRack/EnergyAnalyzer + Modbus adapter'ları hâlâ açık |
 | plugin-sdk | 5 | 25 | İyi; timeout/abort eksik |
 | epias-client | 2 | 13 | Ticket store iyi; 8/9 endpoint metodu testsiz |
 | plugins/epias-market-prices | 1 | 7 | Fetch akışı iyi; health/deactivate/parseSeries eksik |
-| editor | 1 | 4 | device-catalog smoke + registry invariant'leri (device-library migrasyonu sonrası) |
-| web-service | 3 | 24 | Auth use-case'leri iyi; **RBAC middleware, ws-routes auth, command-routes, container-proxy, realtime-manager, field-poller, token-adapter (gerçek jose), user-repository (gerçek SQL), awilix container, non-auth route'ların tamamı 0 test** |
-| device-service | 4 | 19 | Loader/factory/scheduler/tagger iyi; **device-service.ts orchestrator + executeCommand validation döngüsü 0 test** |
-| data-service | 1 | 11 | Tek sınıf tam; failure propagation eksik |
-| integration-service | 2 | 15 | İyi; error branch'leri eksik |
+| editor | 1 | 4 | device-catalog smoke + registry invariant'leri |
+| web-service | 47 | 569 | **RBAC (38), token-adapter güvenlik ekleri (16), ws-routes (7), TOTP throttle (5), bun-password-hasher (4), user-repository MFA (10) testli (T1)**; route/use-case/middleware katmanı tam |
+| device-service | 7 | 25 | Loader/factory/scheduler/tagger/alarm tam; **canonical tag testli (T3)** |
+| data-service | 1 | 11 | Tek sınıf tam; failure propagation kısmen |
+| integration-service | 2 | 17 | **error branch'leri + boş fetch + bilinmeyen plugin testli (T3)** |
+| field | 16 | 100 | **AuthStore otomatik guest, api-client 401-refresh interceptor, useContainerTelemetry/sparkline testli (T2)**; page katmanı açık |
+| container-web | 9 | 82 | **api-client interceptor (7), LogStore debounce (6), controlApi+transform (7), RealtimeContext (4) testli (T2)**; page/features katmanları açık |
+| ui | 10 | 66 | **WebSocket/HttpPolling transport'ları (13), TranslationProvider (5), RackCard (5) testli (T2/T4)**; kart komponentlerinin çoğu açık (Storybook var) |
+| superadmin | 1 | 3 | **Smoke testli (T4)** — sayfa katmanı açık |
+| container-desktop | 0 | 0 | Vitest config/setup hazırlandı (matchMedia + alias); renderer import'u vite:import-analysis alias sınırı nedeniyle AÇIK (plan notu) |
 | demo-backend | 1 | 1 | Smoke only — legacy |
 
-**Test borcu sırası (AGENTS.md TDD kuralı):** (1) dokunulacaklar: rbac, field-routes, ws-routes, bullmq-adapter, device-service.ts, container-proxy (Faz 0-3 değişikliklerinden önce karakterizasyon testleri), (2) güvenlik/altyapı kritik: token-adapter, command-routes, TimescaleDBAdapter, modbus client'ları, (3) geri kalan: BSC/XRack simülatörleri, demo-backend.
+**Toplam: 140 test dosyası / 1354 test** (root `bun run test:unit` — workspace'e field+superadmin eklendi, T6).
 
-**Aksiyon:** `packages/shared-utils` test hedefi düzeltilecek (exit 1 → gerçek testler) — Faz 0 T0.5 ConfigLoader entegrasyonundan ÖNCE.
+**Test borcu sırası (AGENTS.md TDD kuralı):** (1) dokunulacaklar (2) güvenlik/altyapı kritik — T1/T3 ile büyük ölçüde kapandı; kalan: simulators XRack/EnergyAnalyzer, ui kart komponentleri, container-web page/features, materialized-view-manager, awilix container smoke, (3) geri kalan.
+
+**NIS-2 kanıt fabrikası (T6):** `@nis2-security` etiketli testler `nx run <proj>:test-nis2` ile ayrı koşar (core 29 + web-service 49 test); CI `.github/workflows/test.yml` (unit + nis2-security işleri); Playwright `security` projesi (`e2e/security/*` — TOTP kilit 429, alarm uçları KE, otomatik guest).
+
+**Aksiyon:** `packages/shared-utils` test hedefi düzeltildi (T3) — ConfigLoader/sources/units/definitions testli.
 
 ### Layer 1: Unit Tests
 
@@ -331,7 +340,16 @@ Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — 
 |---|---|
 | Faz 0 | `Result`/`DomainError` kontratları, TamperLogger pipeline (imza, zincir, drop politikası), sink'ler, frame codec öncesi shared-utils düzeltmesi |
 | Faz 1 | RBAC/fieldIds/komut validasyonu karakterizasyon testleri → değişiklik |
-| Faz 2 | BullMQAdapter `JobType → JobsOptions` retry haritası testleri → FieldConnector (backoff, heartbeat) |
-| Faz 3 | Tunnel frame codec round-trip + fuzz → session-gateway akışları |
-| Faz 4-5 | `session-auth` (storage izolasyonu), iframe akışı hook'ları |
-| Faz 6 | MFA akışı, rate-limit kuralları |
+| Faz 2 | ✅ **Tamamlandı (2026-08-25):** BullMQAdapter `JobType → JobsOptions` retry haritası testleri (Faz 0 T0.12) + FieldConnector (register, backoff, heartbeat, liveness, stale, config-update) — integration spec'i gerçek WS ile K2.1 ölçümlü |
+| Faz 3 | ✅ **Tamamlandı (2026-08-25):** Tunnel frame codec round-trip + fuzz (kırmızı→yeşil, %96.4 branch) → session-gateway akışları (uçtan uca spec: K3.1-K3.3 gerçek WS ile) |
+| Faz 4-5 | ✅ **Faz 4+5 tamamlandı (2026-08-25):** Faz 4: `session-auth` (storage izolasyonu + hydrate), `api-base` URL türetimi, tünel E2E. Faz 5: gerçek veri hook'ları (summarizeContainer testli), ContainerFrame + session-end, mock temizliği, **K5.1 canlı E2E (kart→özet→tam ekran→komut→audit)** |
+| Faz 6 | ✅ **Tamamlandı (2026-08-26):** MFA akışı (TOTP RFC 6238 vektörleri + login-mfa/enroll/confirm/reset route'ları), rate-limit/hesap kilidi kuralları (RedisLoginThrottle — eşik/pencere/kilidi), SIEM sink'leri (RFC 5424 frame, webhook imza/retry), notifier adapterleri (SMTP/SMS) + TamperLogger alertRules (cooldown) |
+
+### 8.6 Faz kapanışı doğrulaması (MANDATORY)
+
+Her faz kapanışında [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](../docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) güncellenir:
+
+1. Matrisin tüm satırları doldurulur: değişen dosyalar (satır ref'li + commit hash), nedeni, testler, geçme durumu, sisteme etkisi.
+2. Kabul kriterleri teker teker kanıtla işaretlenir (test çıktısı, curl, DB kaydı, Playwright trace).
+3. Gözle kontrol maddeleri tamamlanmadan faz kapanmaz.
+4. Genel durum özeti + `review_date` güncellenir; sapma varsa doküman sapmaları bölümüne kaydedilir.

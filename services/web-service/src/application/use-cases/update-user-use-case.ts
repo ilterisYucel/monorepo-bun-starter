@@ -1,7 +1,7 @@
 import type { UpdateUserRequest, User, Role } from "@gd-monorepo/shared-types";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher";
-import { Result } from "@gd-monorepo/shared-types";
+import { Result } from "@gd-monorepo/result";
 
 export class UpdateUserUseCase {
   constructor(
@@ -9,9 +9,9 @@ export class UpdateUserUseCase {
     private readonly hasher: IPasswordHasher,
   ) {}
 
-  async execute(id: string, req: UpdateUserRequest): Promise<Result<User>> {
+  async execute(id: string, req: UpdateUserRequest): Promise<Result<User, string>> {
     const user = await this.users.findById(id);
-    if (!user) return Result.fail("Kullanici bulunamadi");
+    if (!user) return Result.err("Kullanici bulunamadi");
 
     const updates: {
       username?: string;

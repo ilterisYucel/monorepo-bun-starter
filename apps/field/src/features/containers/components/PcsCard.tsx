@@ -1,112 +1,200 @@
 import React from "react";
 import { COLORS, SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
-import type { MockPcs } from "../services/mockDataGenerator";
+import type { TelemetryData } from "@gd-monorepo/shared-types";
+import {
+  pcsState,
+  pcsTelemetryValue,
+} from "../hooks/pcsDerivation";
+import * as S from "./PcsCard.styles";
+
+/** PCS özeti — yapısal sözleşme (snapshot telemetrisinden türetilir). */
+export interface PcsSummary {
+  pcsId: string;
+  containerId: string;
+  containerName: string;
+  connected: boolean;
+  latestTelemetry: TelemetryData[];
+}
 
 const PcsIcon = SCADA_ICONS.powerPlug;
+const BatteryChargeIcon = SCADA_ICONS.batteryCharge;
+const BatteryDischargeIcon = SCADA_ICONS.batteryDischarge;
+const StatusIdleIcon = SCADA_ICONS.statusIdle;
+const DetailIcon = SCADA_ICONS.details;
+const SettingsIcon = SCADA_ICONS.settings;
 
-const Stat: React.FC<{ label: string; value: string; color?: string }> = ({ label, value, color }) => (
-  <div
-    style={{
-      background: COLORS.bgInput,
-      borderRadius: "8px",
-      padding: "8px 6px",
-      textAlign: "center",
-    }}
-  >
-    <div style={{ fontSize: "13px", fontWeight: 700, color: color ?? COLORS.textWhite }}>{value}</div>
-    <div style={{ fontSize: "10px", color: COLORS.textMuted, marginTop: "2px" }}>{label}</div>
-  </div>
-);
+const KIND_COLOR: Record<string, string> = {
+  offline: COLORS.error,
+  charging: COLORS.success,
+  discharging: COLORS.warning,
+  idle: COLORS.textMuted,
+};
 
-const Section: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div style={{ marginBottom: "10px" }}>
-    <div style={{ fontSize: "11px", fontWeight: 600, color: COLORS.textMuted, marginBottom: "6px" }}>{label}</div>
-    {children}
-  </div>
-);
+const KIND_ALPHA: Record<string, string> = {
+  offline: COLORS.errorAlpha12,
+  charging: COLORS.successAlpha12,
+  discharging: COLORS.warningAlpha12,
+  idle: COLORS.idleAlpha12,
+};
 
-export const PcsCard: React.FC<{ pcs: MockPcs }> = ({ pcs }) => {
+const KIND_ICON: Record<string, typeof BatteryChargeIcon> = {
+  offline: StatusIdleIcon,
+  charging: BatteryChargeIcon,
+  discharging: BatteryDischargeIcon,
+  idle: StatusIdleIcon,
+};
+
+/**
+ * PcsCard — konteyner başına TEK PCS kartı (2026-08-30, RackCard formatı):
+ *
+ * Başlık (pcsId + konteyner) ve iki rozet (bağlantı + şarj/deşarj durumu),
+ * büyük işaretli AC aktif güç metriği, düz 2 sütunlu detay grid'i (DC/AC/
+ * kullanılabilir/enerji — 2026-09-02 genişletmesi, bölüm başlıksız) ve
+ * opsiyonel Detay/Config aksiyonları. Ayrıntılı AC/DC/enerji bölümleri
+ * PcsDetailModal'da, kayıt/bağlantı meta bilgileri PcsConfigModal'da yaşar.
+ */
+export const PcsCard: React.FC<{
+  pcs: PcsSummary;
+  onDetailClick?: () => void;
+  onConfigClick?: () => void;
+}> = ({ pcs, onDetailClick, onConfigClick }) => {
   const { t } = useTranslation();
-  const val = (name: string): number =>
-    (pcs.latestTelemetry.find((x) => x.name === name)?.value as number) ?? 0;
-
-  const activePower = val("AC Active Power");
-  const stateColor = !pcs.connected
-    ? COLORS.error
-    : activePower < 0
+  const activePower = pcsTelemetryValue(pcs.latestTelemetry, "AC Active Power");
+  const state = pcsState(pcs.connected, activePower);
+  const stateColor = KIND_COLOR[state.kind];
+  const StatusIcon = KIND_ICON[state.kind];
+  const powerColor =
+    state.kind === "charging"
       ? COLORS.success
-      : activePower > 0
+      : state.kind === "discharging"
         ? COLORS.warning
-        : COLORS.idle;
-  const stateLabel = !pcs.connected
-    ? t("common.offline")
-    : activePower < 0
-      ? t("status.charging")
-      : activePower > 0
-        ? t("status.discharging")
-        : t("status.idleMode");
+        : COLORS.textMuted;
 
   return (
-    <div
-      style={{
-        background: COLORS.bgCard,
-        border: `1px solid ${COLORS.borderDefault}`,
-        borderRadius: "12px",
-        padding: "14px",
-        marginBottom: "16px",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+    <S.Card>
+      <S.Header>
         <PcsIcon size={16} color={stateColor} />
-        <span style={{ fontWeight: 600, fontSize: "14px", color: COLORS.textWhite }}>
-          {pcs.pcsId} — {pcs.containerName}
-        </span>
-        <span style={{ fontSize: "11px", color: stateColor, marginLeft: "auto" }}>{stateLabel}</span>
-      </div>
+        <S.Name>{pcs.pcsId}</S.Name>
+        <S.ContainerName>{pcs.containerName}</S.ContainerName>
+        <S.Badges>
+          <S.Badge
+            color={pcs.connected ? COLORS.success : COLORS.error}
+            alpha={pcs.connected ? COLORS.successAlpha12 : COLORS.errorAlpha12}
+          >
+            {pcs.connected ? t("common.online") : t("common.offline")}
+          </S.Badge>
+          <S.Badge color={stateColor} alpha={KIND_ALPHA[state.kind]}>
+            <StatusIcon size={12} />
+            {t(state.statusKey)}
+          </S.Badge>
+        </S.Badges>
+      </S.Header>
 
-      <Section label={t("pcs.acSection")}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "6px" }}>
-          <Stat label={t("pcs.voltageAB")} value={`${val("AC Voltage AB").toFixed(0)}V`} color={COLORS.textVoltage} />
-          <Stat label={t("pcs.voltageBC")} value={`${val("AC Voltage BC").toFixed(0)}V`} color={COLORS.textVoltage} />
-          <Stat label={t("pcs.voltageCA")} value={`${val("AC Voltage CA").toFixed(0)}V`} color={COLORS.textVoltage} />
-          <Stat label={t("pcs.frequency")} value={`${val("AC Frequency").toFixed(1)} Hz`} />
-          <Stat label={t("pcs.currentA")} value={`${val("Phase Current A").toFixed(1)}A`} />
-          <Stat label={t("pcs.currentB")} value={`${val("Phase Current B").toFixed(1)}A`} />
-          <Stat label={t("pcs.currentC")} value={`${val("Phase Current C").toFixed(1)}A`} />
-          <Stat label={t("pcs.activePower")} value={`${val("AC Active Power").toFixed(1)} kW`} color={COLORS.info} />
-          <Stat label={t("pcs.reactivePower")} value={`${val("AC Reactive Power").toFixed(1)} kvar`} />
-          <Stat label={t("pcs.apparentPower")} value={`${val("AC Apparent Power").toFixed(1)} kVA`} />
-          <Stat label="PF" value={val("Power Factor").toFixed(2)} />
-        </div>
-      </Section>
+      <S.MainMetric>
+        <S.MainValue color={powerColor}>
+          {activePower < 0 ? "−" : ""}
+          {Math.abs(activePower).toFixed(1)} kW
+        </S.MainValue>
+        <S.MainLabel>{t("pcs.activePower")}</S.MainLabel>
+      </S.MainMetric>
 
-      <Section label={t("pcs.dcSection")}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "6px" }}>
-          <Stat label={t("pcs.dcVoltage")} value={`${val("DC Voltage").toFixed(0)}V`} color={COLORS.textPurple} />
-          <Stat label={t("pcs.dcCurrent")} value={`${val("DC Current").toFixed(1)}A`} />
-          <Stat label={t("pcs.dcPower")} value={`${val("DC Power").toFixed(1)} kW`} color={COLORS.info} />
-          <Stat label={t("pcs.igbtTemp")} value={`${val("IGBT Temperature").toFixed(1)}°C`} color={COLORS.tempHot} />
-          <Stat label={t("pcs.cabinTemp")} value={`${val("Cabin Temperature").toFixed(1)}°C`} color={COLORS.tempChilly} />
-        </div>
-      </Section>
+      <S.DetailsGrid>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.dcVoltage")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "DC Voltage").toFixed(0)} V
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.dcCurrent")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "DC Current").toFixed(1)} A
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.dcPower")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "DC Power").toFixed(1)} kW
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.igbtTemp")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "IGBT Temperature").toFixed(1)} °C
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.cabinTemp")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Cabin Temperature").toFixed(1)} °C
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.voltageAB")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "AC Voltage AB").toFixed(0)} V
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.frequency")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "AC Frequency").toFixed(1)} Hz
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.powerFactor")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Power Factor").toFixed(2)}
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.currentA")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Phase Current A").toFixed(1)} A
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.availableCharge")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Available Charge Power").toFixed(0)} kW
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.availableDischarge")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Available Discharge Power").toFixed(0)} kW
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.totalChargeEnergy")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Total Charge Energy").toFixed(0)} kWh
+          </S.DetailValue>
+        </S.DetailItem>
+        <S.DetailItem>
+          <S.DetailLabel>{t("pcs.totalDischargeEnergy")}</S.DetailLabel>
+          <S.DetailValue>
+            {pcsTelemetryValue(pcs.latestTelemetry, "Total Discharge Energy").toFixed(0)} kWh
+          </S.DetailValue>
+        </S.DetailItem>
+      </S.DetailsGrid>
 
-      <Section label={t("pcs.availableSection")}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "6px" }}>
-          <Stat label={t("pcs.availableCharge")} value={`${val("Available Charge Power").toFixed(0)} kW`} color={COLORS.success} />
-          <Stat label={t("pcs.availableDischarge")} value={`${val("Available Discharge Power").toFixed(0)} kW`} color={COLORS.warning} />
-          <Stat label={t("pcs.availableIndReactive")} value={`${val("Available Inductive Reactive Power").toFixed(0)} kvar`} />
-          <Stat label={t("pcs.availableCapReactive")} value={`${val("Available Capacitive Reactive Power").toFixed(0)} kvar`} />
-        </div>
-      </Section>
-
-      <Section label={t("pcs.energySection")}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "6px" }}>
-          <Stat label={t("pcs.totalChargeEnergy")} value={`${val("Total Charge Energy").toFixed(0)} kWh`} color={COLORS.success} />
-          <Stat label={t("pcs.totalDischargeEnergy")} value={`${val("Total Discharge Energy").toFixed(0)} kWh`} color={COLORS.warning} />
-          <Stat label={t("pcs.dailyChargeEnergy")} value={`${val("Daily Charge Energy").toFixed(0)} kWh`} />
-          <Stat label={t("pcs.dailyDischargeEnergy")} value={`${val("Daily Discharge Energy").toFixed(0)} kWh`} />
-        </div>
-      </Section>
-    </div>
+      {(onDetailClick || onConfigClick) && (
+        <S.ButtonRow>
+          {onDetailClick && (
+            <S.ActionButton onClick={onDetailClick}>
+              <DetailIcon size={14} />
+              {t("pcs.detail")}
+            </S.ActionButton>
+          )}
+          {onConfigClick && (
+            <S.ActionButton onClick={onConfigClick}>
+              <SettingsIcon size={14} />
+              {t("pcs.config")}
+            </S.ActionButton>
+          )}
+        </S.ButtonRow>
+      )}
+    </S.Card>
   );
 };

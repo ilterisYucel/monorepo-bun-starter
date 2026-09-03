@@ -1,17 +1,17 @@
-import type {
-  IDevice,
-  ReadDeviceJob,
-  CommandDeviceJob,
-  TelemetryData,
-  ServiceConfigFile,
-} from "@gd-monorepo/shared-types";
+import type { IDevice, ReadDeviceJob, CommandDeviceJob, TelemetryData, ServiceConfigFile, DeviceAlarmRule } from "@gd-monorepo/shared-types";
+
 import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
+import { TamperLogger } from "@gd-monorepo/tamper-logger";
+
 import { PostgresAdapter } from "@gd-monorepo/core";
+
 import { DeviceConfigLoader } from "./config-loader";
 import { DeviceFactory } from "./device-factory";
 import { SimulatorRegistry } from "./simulator-registry";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
+import { AlarmTransitionDetector, alarmSamples } from "./alarm-transition-detector";
+import { AlarmStateRepository } from "./alarm-state-repository";
 
 interface DeviceEntry {
   device: IDevice;
@@ -23,6 +23,7 @@ interface DeviceEntry {
   type: string;
   rackCount?: number;
   configConnection: Record<string, unknown>;
+  alarms?: DeviceAlarmRule[];
 }
 
 const CREATE_DEVICES_TABLE = `
@@ -62,6 +63,11 @@ const UPSERT_DEVICE = `
 
 const SET_DEVICE_OFFLINE = `UPDATE devices SET status = 'offline', updated_at = NOW() WHERE id = $1`;
 
+const SET_DEVICE_ONLINE = `UPDATE devices SET status = 'online', last_seen = NOW(), updated_at = NOW() WHERE id = $1`;
+
+/** Sürekli okuma hatasında hatırlatma periyodu — spam önleme (86.4k log/gün). */
+const FAILURE_REMINDER_MS = 60_000;
+
 export class DeviceService {
   private readonly devices: Map<string, DeviceEntry>;
   private running: boolean;
@@ -70,6 +76,11 @@ export class DeviceService {
   private readonly simulators: SimulatorRegistry;
   private readonly sql: ISqlDatabase | undefined;
   private readonly taggers: Map<string, TelemetryTagger>;
+  private readonly logger: TamperLogger | undefined;
+  private readonly offlineSince: Map<string, number>;
+  private readonly lastReminderAt: Map<string, number>;
+  private readonly alarmDetector: AlarmTransitionDetector;
+  private readonly alarmRepository: AlarmStateRepository | undefined;
 
   constructor(
     devices: {
@@ -82,12 +93,14 @@ export class DeviceService {
       type: string;
       rackCount?: number;
       configConnection: Record<string, unknown>;
+      alarms?: DeviceAlarmRule[];
     }[],
     mq: IMessageQueue,
     scheduler: DeviceScheduler,
     simulators: SimulatorRegistry,
     sql?: ISqlDatabase,
     identity?: { containerId?: string; fieldId?: string },
+    logger?: TamperLogger,
   ) {
     this.devices = new Map();
     this.taggers = new Map();
@@ -96,6 +109,11 @@ export class DeviceService {
     this.scheduler = scheduler;
     this.simulators = simulators;
     this.sql = sql;
+    this.logger = logger;
+    this.offlineSince = new Map();
+    this.lastReminderAt = new Map();
+    this.alarmDetector = new AlarmTransitionDetector();
+    this.alarmRepository = sql ? new AlarmStateRepository(sql) : undefined;
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
@@ -110,6 +128,7 @@ export class DeviceService {
     configDir: string,
     mq: IMessageQueue,
     identity?: { containerId?: string; fieldId?: string },
+    logger?: TamperLogger,
   ): Promise<DeviceService> {
     const loader = new DeviceConfigLoader(configDir);
     const { service, devices: configs } = loader.load();
@@ -141,10 +160,19 @@ export class DeviceService {
         type,
         rackCount,
         configConnection: c.connection,
+        alarms: c.alarms,
       };
     });
 
-    return new DeviceService(deviceEntries, mq, scheduler, simulators, sql, identity);
+    return new DeviceService(
+      deviceEntries,
+      mq,
+      scheduler,
+      simulators,
+      sql,
+      identity,
+      logger,
+    );
   }
 
   private static async buildSqlAdapter(
@@ -222,6 +250,16 @@ export class DeviceService {
 
     await this.scheduler.scheduleManagement();
 
+    // Alarm durum tablosu (Faz 0 eki): DDL + restart sonrası bayat aktiflerin
+    // kapatılması + dedup state makinesinin sıfırlanması (yeni gözlem dönemi).
+    if (this.alarmRepository) {
+      await this.alarmRepository.initialize();
+      await this.alarmRepository.resetAll(entries.map((e) => e.device.id));
+    }
+    for (const entry of entries) {
+      this.alarmDetector.reset(entry.device.id);
+    }
+
     await this.mq.registerWorker(async (job) => {
       if (!this.running) return;
 
@@ -271,17 +309,174 @@ export class DeviceService {
   private async readDevice(job: ReadDeviceJob): Promise<void> {
     const entry = this.devices.get(job.deviceId);
     if (!entry) {
-      console.warn(
-        `[DeviceService] Bilinmeyen cihaz okuma istegi: ${job.deviceId}`,
+      await this.logOrWarn(
+        {
+          level: "warn",
+          category: "app",
+          eventCode: "request_rejected",
+          message: "Bilinmeyen cihaz okuma isteği",
+          context: { deviceId: job.deviceId },
+        },
+        `Bilinmeyen cihaz okuma istegi: ${job.deviceId}`,
       );
       return;
     }
 
-    const data: TelemetryData[] = await entry.device.read();
-    const bitfields = (await entry.device.readBitfields?.()) ?? [];
-    const allData = [...data, ...bitfields];
+    try {
+      // ISP (Faz 0 eki): cihaz kendi okuma stratejisinin sahibidir —
+      // read() register + bitfield dahil TÜM telemetriyi döner.
+      const data: TelemetryData[] = await entry.device.read();
 
-    await this.publish(job.deviceId, allData);
+      await this.publish(job.deviceId, data);
+      await this.markOnline(job.deviceId);
+      await this.evaluateAlarms(job.deviceId, data);
+    } catch (err) {
+      // Açık 1 kapanışı (T0.11): okuma hatası yutulmaz — geçiş-odaklı loglanır,
+      // cihaz offline işaretlenir, poll döngüsü devam eder (READ_DEVICE attempts:1).
+      await this.handleReadFailure(job.deviceId, err);
+    }
+  }
+
+  /**
+   * Cihaz alarm değerlendirmesi (Faz 0 eki) — config kuralları telemetri
+   * akışına uygulanır; yalnızca kenar geçişleri durum tablosuna + imzalı
+   * loga yazılır. SQL/log hataları poll'u KESİNLEMEZ (alarm = app olayı).
+   */
+  private async evaluateAlarms(
+    deviceId: string,
+    telemetry: TelemetryData[],
+  ): Promise<void> {
+    const entry = this.devices.get(deviceId);
+    if (!entry || !entry.alarms || entry.alarms.length === 0) return;
+
+    const samples = alarmSamples(entry.alarms, telemetry);
+    if (samples.length === 0) return;
+
+    const transitions = this.alarmDetector.detect(deviceId, samples);
+    if (transitions.length === 0) return;
+
+    for (const transition of transitions) {
+      try {
+        if (transition.kind === "set") {
+          await this.alarmRepository?.activate(deviceId, {
+            name: transition.name,
+            severity: transition.severity,
+            description: transition.description,
+          });
+          await this.logger?.log({
+            level: transition.severity === "warning" ? "warn" : transition.severity,
+            category: "app",
+            eventCode: "device_alarm",
+            message: `Cihaz alarmi aktif: ${transition.name}`,
+            context: {
+              deviceId,
+              alarm: transition.name,
+              severity: transition.severity,
+            },
+          });
+        } else {
+          await this.alarmRepository?.deactivate(deviceId, transition.name);
+          await this.logger?.log({
+            level: "info",
+            category: "app",
+            eventCode: "device_alarm_cleared",
+            message: `Cihaz alarmi kapandi: ${transition.name}`,
+            context: { deviceId, alarm: transition.name },
+          });
+        }
+      } catch {
+        // alarm durumu/лого best-effort — telemetri akışı etkilenmez
+      }
+    }
+  }
+
+  /** İlk hatada 1× error log + devices.status='offline'; sonrası 60 sn'de 1 debug. */
+  private async handleReadFailure(
+    deviceId: string,
+    err: unknown,
+  ): Promise<void> {
+    const first = !this.offlineSince.has(deviceId);
+    const now = Date.now();
+    this.offlineSince.set(deviceId, now);
+
+    if (this.logger) {
+      if (first) {
+        this.lastReminderAt.set(deviceId, now);
+        await this.logger.log({
+          level: "error",
+          category: "app",
+          eventCode: "modbus_read_failed",
+          message: "Modbus okuma hatası — cihaz offline işaretlendi",
+          context: { deviceId, error: String(err) },
+        });
+      } else {
+        const last = this.lastReminderAt.get(deviceId) ?? now;
+        if (now - last >= FAILURE_REMINDER_MS) {
+          this.lastReminderAt.set(deviceId, now);
+          await this.logger.log({
+            level: "debug",
+            category: "app",
+            eventCode: "modbus_read_failed",
+            message: "Cihaz okuması hâlâ başarısız",
+            context: { deviceId, error: String(err) },
+          });
+        }
+      }
+    }
+
+    if (first && this.sql) {
+      try {
+        await this.sql.execute(SET_DEVICE_OFFLINE, [deviceId]);
+      } catch {
+        // offline işareti best-effort — sonraki başarılı okuma düzeltir
+      }
+    }
+  }
+
+  /** offline→online geçişinde 1× info log + devices.status='online'. */
+  private async markOnline(deviceId: string): Promise<void> {
+    if (!this.offlineSince.has(deviceId)) return;
+    this.offlineSince.delete(deviceId);
+    this.lastReminderAt.delete(deviceId);
+
+    if (this.logger) {
+      await this.logger.log({
+        level: "info",
+        category: "app",
+        eventCode: "device_online",
+        message: "Cihaz tekrar çevrimiçi",
+        context: { deviceId },
+      });
+    }
+    if (this.sql) {
+      try {
+        await this.sql.execute(SET_DEVICE_ONLINE, [deviceId]);
+      } catch {
+        // best-effort
+      }
+    }
+  }
+
+  /** Logger varsa log'lar, yoksa console.warn (geriye uyumluluk). */
+  private async logOrWarn(
+    event: {
+      level: "warn" | "error";
+      category: "app";
+      eventCode: "request_rejected";
+      message: string;
+      context: Record<string, unknown>;
+    },
+    warnMessage: string,
+  ): Promise<void> {
+    if (this.logger) {
+      try {
+        await this.logger.log(event);
+        return;
+      } catch {
+        // app kategorisi fail-closed değildir
+      }
+    }
+    console.warn(`[DeviceService] ${warnMessage}`);
   }
 
   private async publish(deviceId: string, data: TelemetryData[]): Promise<void> {
@@ -294,7 +489,16 @@ export class DeviceService {
     const entry = this.devices.get(job.deviceId);
     if (!entry) {
       const msg = `Bilinmeyen cihaz: ${job.deviceId}`;
-      console.warn(`[DeviceService] ${msg}`);
+      await this.logOrWarn(
+        {
+          level: "warn",
+          category: "app",
+          eventCode: "request_rejected",
+          message: "Bilinmeyen cihaza komut isteği",
+          context: { deviceId: job.deviceId },
+        },
+        msg,
+      );
       return { success: false, reason: msg };
     }
 
@@ -308,17 +512,36 @@ export class DeviceService {
       }
     } catch (err) {
       const msg = `Write failed: ${String(err)}`;
-      console.error(`[DeviceService] ${msg}`);
+      // audit (fail-closed): komut reddi kaydı tutulamazsa job hata verir
+      await this.logCommand(job, false, String(err));
+      if (this.logger) {
+        await this.logger.log({
+          level: "error",
+          category: "app",
+          eventCode: "modbus_write_failed",
+          message: msg,
+          context: { deviceId: job.deviceId, error: String(err) },
+        });
+      } else {
+        console.error(`[DeviceService] ${msg}`);
+      }
       return { success: false, reason: msg };
     }
 
     try {
       const allData = await entry.device.read();
-      const bitfields = (await entry.device.readBitfields?.()) ?? [];
-      await this.publish(job.deviceId, [...allData, ...bitfields]);
+      await this.publish(job.deviceId, allData);
     } catch (err) {
-      console.error(`[DeviceService] Read+broadcast after command failed: ${String(err)}`);
+      await this.logger?.log({
+        level: "error",
+        category: "app",
+        eventCode: "modbus_read_failed",
+        message: "Komut sonrası okuma hatası",
+        context: { deviceId: job.deviceId, error: String(err) },
+      }).catch(() => undefined);
     }
+
+    await this.logCommand(job, true);
 
     const validate = job.validate;
     if (validate) {
@@ -344,5 +567,26 @@ export class DeviceService {
     }
 
     return { success: true };
+  }
+
+  /** Komut audit'i (T0.11) — kim/hangi komut/sonuç; audit fail-closed'dur. */
+  private async logCommand(
+    job: CommandDeviceJob,
+    success: boolean,
+    error?: string,
+  ): Promise<void> {
+    if (!this.logger) return;
+    await this.logger.log({
+      level: success ? "info" : "error",
+      category: "audit",
+      eventCode: success ? "command_executed" : "command_rejected",
+      message: success ? "Komut yürütüldü" : "Komut reddedildi",
+      context: {
+        deviceId: job.deviceId,
+        telemetryNames: job.telemetries.map((t) => t.name),
+        atomic: job.atomic ?? false,
+        ...(error !== undefined ? { error } : {}),
+      },
+    });
   }
 }

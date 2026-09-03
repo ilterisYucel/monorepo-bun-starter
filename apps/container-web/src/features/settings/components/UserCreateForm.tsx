@@ -84,8 +84,9 @@ const SuccessMsg = styled.span`
 const ROLES: { value: Role; label: string }[] = [
   { value: "admin", label: "Admin" },
   { value: "teknik", label: "Teknik" },
+  { value: "boss", label: "Patron" },
+  { value: "developer", label: "Geliştirici" },
   { value: "guest", label: "Misafir" },
-  { value: "boss", label: "Yönetici" },
 ];
 
 export const UserCreateForm: React.FC = () => {

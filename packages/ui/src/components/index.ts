@@ -1,5 +1,5 @@
-export * from "./MultiLineChart";
 export * from "./MultiLineChartV2";
+export * from "./Sparkline";
 export * from "./TelemetryChart";
 export * from "./SingleTelemetryChart";
 export * from "./LogTerminal";

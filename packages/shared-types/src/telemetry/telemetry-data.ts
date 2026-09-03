@@ -35,8 +35,6 @@ export interface BaseTelemetryData {
   deviceId: string;
   // rack_id, sensor_id, vs.
   tags?: Record<string, string>;
-  /** Bu telemetry değeri sistem log kaydı olarak da yazılsın mı? (bitfield alarm/warning/error için) */
-  logType?: "error" | "warning" | "info";
 }
 
 /**

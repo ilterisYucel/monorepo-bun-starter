@@ -121,7 +121,7 @@ export class SimulatorRegistry {
   createFromConfigs(configs: DeviceConfigFile[]): void {
     for (const config of configs) {
       const transport = config.transport;
-      if (!transport || transport.kind !== "simulator") continue;
+      if (transport?.kind !== "simulator") continue;
 
       const simType = transport.type ?? config.type;
       if (!simType) {

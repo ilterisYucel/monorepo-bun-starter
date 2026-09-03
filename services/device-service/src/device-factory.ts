@@ -1,11 +1,6 @@
 import { ModbusDevice, CANBusDevice, MQTTDevice, ModbusRtuClient, ModbusClientTransport } from "@gd-monorepo/core";
 import type { IModbusTransport } from "@gd-monorepo/core";
-import type {
-  IDevice,
-  ModbusTelemetryData,
-  DeviceConfigFile,
-  TelemetryConfigEntry,
-} from "@gd-monorepo/shared-types";
+import type { IDevice, ModbusTelemetryData, DeviceConfigFile, TelemetryConfigEntry } from "@gd-monorepo/shared-types";
 import type { SimulatorRegistry } from "./simulator-registry";
 import type { ModbusRtuConfig } from "@gd-monorepo/core";
 

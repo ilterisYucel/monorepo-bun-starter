@@ -3,12 +3,7 @@
 import net from "net";
 import { ModbusTCPClient as JSModbusClient } from "jsmodbus";
 import type { IModbusClient } from "./interface";
-
-const randomFloat = (): number => {
-  const buf = new Uint32Array(1);
-  crypto.getRandomValues(buf);
-  return buf[0]! / 0xFFFFFFFF;
-};
+import { randomFloat } from "./utils";
 
 export interface ModbusClientConfig {
   host: string;
@@ -20,10 +15,9 @@ export interface ModbusClientConfig {
 export class ModbusTcpClient implements IModbusClient {
   private socket: net.Socket | null = null;
   private client: JSModbusClient | null = null;
-  private config: ModbusClientConfig;
+  private readonly config: ModbusClientConfig;
   private connected: boolean = false;
   private reconnectAttempts: number = 0;
-  private readonly maxReconnectAttempts: number = 5;
   private readonly reconnectBaseDelayMs: number = 1000;
 
   constructor(config: ModbusClientConfig) {

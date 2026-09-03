@@ -1,56 +1,102 @@
-import { useMemo } from "react";
-import { mockContainers } from "../../containers/services/mockDataGenerator";
+import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { DeviceInfo } from "../types/device";
 
-interface DeviceRow {
-  id: string;
-  name: string;
-  type: string;
-  protocol: string;
-  status: "online" | "offline";
-  manufacturer: string;
-  model: string;
-  rack_count: number | null;
-  poll_interval_ms: number;
-  last_seen: string | null;
-  created_at: string;
+/** DeviceId öneki → cihaz tipi (field tier — config adlandırması). */
+const DEVICE_TYPE_BY_PREFIX: Array<[string, string]> = [
+  ["BSC-", "bsc"],
+  ["PCS-", "pcs"],
+  ["EMU-", "emu"],
+  ["CB-", "cb"],
+  ["DC-OUTPUT-", "dc-output"],
+  ["DC-", "dc-output"],
+  ["HVAC-", "hvac"],
+  ["PM5340-", "energy-analyzer"],
+];
+
+function deviceTypeOf(deviceId: string): string {
+  for (const [prefix, type] of DEVICE_TYPE_BY_PREFIX) {
+    if (deviceId.startsWith(prefix)) return type;
+  }
+  return "unknown";
 }
 
-// ponytail: PCS-N ↔ container-N eşlemesi mock için index tabanlı.
-// Gerçek backend'de field device-service kayıt defteri eşlemeyi verir.
-function containerIndexForPcs(pcsId: string): number {
-  const n = Number(pcsId.replace("PCS-", ""));
-  return Number.isNaN(n) ? 0 : Math.max(0, n - 1);
+/** Snapshot taşıyıcısı — FieldContainer/ContainerSummary yapısal uyumludur. */
+export interface SnapshotCarrier {
+  latestTelemetry: TelemetryData[];
 }
 
-export function useFieldDevices(pcsId: string) {
-  const containers = useMemo(() => mockContainers(), []);
-  const container = containers[containerIndexForPcs(pcsId)];
-
-  const devices: DeviceInfo[] = useMemo(() => {
-    if (!container) return [];
-
-    const now = ts();
-    const row: DeviceRow = {
-      id: pcsId,
-      name: `PCS — ${container.name}`,
-      type: "pcs",
-      protocol: "MODBUS",
-      status: container.connected ? "online" : "offline",
-      manufacturer: "Field",
-      model: "PCS-500",
-      rack_count: null,
-      poll_interval_ms: 2000,
-      last_seen: container.connected ? now : null,
-      created_at: "2024-01-01T00:00:00Z",
-    };
-
-    return [{ ...row, connection: null }];
-  }, [container, pcsId]);
-
-  return { devices, isLoading: false };
+/**
+ * Faz 5.1 B3 — field tier cihaz listesi: konteyner snapshot'ından türetilir.
+ *
+ * Field stack'inde `devices` tablosu YOKTUR (device-service konteynerdedir);
+ * cihaz satırları `/fields/:id/containers` yanıtındaki `latestTelemetry`
+ * snapshot'larından üretilir: benzersiz `deviceId` başına bir satır.
+ * 2026-09-02: Devices sayfası tünel listesini (gerçek isim/model/tip)
+ * tercih eder; bu fonksiyon KADEMELİ BOZULMA fallback'idir.
+ *
+ * Kısıtlar (sözleşme):
+ * - Snapshot yalnızca online cihazları taşır → satır durumu hep "online".
+ * - Cihaz adı/üretici/modeli snapshot'ta taşınmaz → `name` = deviceId,
+ *   `protocol` = "ws", diğer meta alanları null.
+ * - `last_seen` = cihazın snapshot'taki en yeni timestamp'i.
+ */
+export function deriveDevicesFromSnapshot(
+  containers: SnapshotCarrier[],
+): DeviceInfo[] {
+  const byId = new Map<string, DeviceInfo>();
+  for (const container of containers) {
+    for (const item of container.latestTelemetry) {
+      const deviceId = item.deviceId;
+      if (!deviceId) continue;
+      const existing = byId.get(deviceId);
+      if (existing) {
+        if (
+          item.timestamp &&
+          (!existing.last_seen || item.timestamp > existing.last_seen)
+        ) {
+          existing.last_seen = item.timestamp;
+        }
+        continue;
+      }
+      byId.set(deviceId, {
+        id: deviceId,
+        name: deviceId,
+        protocol: "ws",
+        type: deviceTypeOf(deviceId),
+        status: "online",
+        manufacturer: null,
+        model: null,
+        rack_count: null,
+        poll_interval_ms: null,
+        connection: null,
+        last_seen: item.timestamp ?? null,
+        created_at: "",
+      });
+    }
+  }
+  return [...byId.values()];
 }
 
-function ts(): string {
-  return new Date().toISOString();
+/**
+ * Faz 5.1 B3 — seçili cihazın anlık telemetrisi (Detay modalı beslemesi).
+ *
+ * Tüm konteyner snapshot'larından `deviceId` eşleşen satırlar toplanır;
+ * aynı (deviceId, name) çifti birden fazla kez varsa en yeni timestamp'li
+ * satır korunur (dedup — son değer kazanır).
+ */
+export function latestTelemetryForDevice(
+  containers: SnapshotCarrier[],
+  deviceId: string,
+): TelemetryData[] {
+  const byName = new Map<string, TelemetryData>();
+  for (const container of containers) {
+    for (const item of container.latestTelemetry) {
+      if (item.deviceId !== deviceId) continue;
+      const existing = byName.get(item.name);
+      if (!existing || (item.timestamp ?? "") >= (existing.timestamp ?? "")) {
+        byName.set(item.name, item);
+      }
+    }
+  }
+  return [...byName.values()];
 }

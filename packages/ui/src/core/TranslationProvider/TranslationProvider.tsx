@@ -125,7 +125,9 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({
       t,
       locale: localeGetter,
       setLocale,
-      availableLocales,
+      // 2026-08-30 (T4): ITranslationProvider kontratı availableLocales'i
+      // FONKSİYON olarak tanımlar — implementasyon dizi sunuyordu (tip borcu).
+      availableLocales: () => availableLocales,
     }),
     [dict, t, localeGetter, setLocale, availableLocales],
   );

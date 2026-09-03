@@ -10,6 +10,18 @@ export interface LogEntry {
   details?: string;
   fixed?: boolean;
   tags?: Record<string, string>;
+  /**
+   * Cihaz alarmı metadata'sı (Faz 0 eki) — yalnızca alarm terminalinden
+   * gelen satırlarda dolu. LogTerminal bu alanı taşıyan satırlarda
+   * "Çözüldü" kutucuğu render eder.
+   */
+  alarm?: {
+    deviceId: string;
+    alarmName: string;
+    resolved: boolean;
+    resolvedBy?: string;
+    resolvedAt?: string;
+  };
 }
 
 export interface LogQueryParams {

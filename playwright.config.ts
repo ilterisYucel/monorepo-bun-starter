@@ -25,6 +25,13 @@ export default defineConfig({
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
     },
+    {
+      // 2026-08-30 (T6.20 — nis-2.md Adım 14): güvenlik E2E'leri ayrı
+      // projede — CI'da yalnızca chromium ile koşar (kanıt fabrikası).
+      name: "security",
+      testMatch: /e2e\/security\/.*\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
   webServer: process.env.CI
     ? undefined

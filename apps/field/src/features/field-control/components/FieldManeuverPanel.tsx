@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import { ManeuverCard, useTranslation } from "@gd-monorepo/ui";
 import type { StepResult, ManeuverCardLabels } from "@gd-monorepo/ui";
 import type { CommandStep } from "@gd-monorepo/shared-types";
-import { FIELD_MANEUVERS } from "../maneuvers";
+import { buildFieldManeuvers } from "../maneuvers";
 import { mockContainers } from "../../containers/services/mockDataGenerator";
 
 interface CardState {
@@ -10,10 +10,29 @@ interface CardState {
   stepResults: StepResult[];
 }
 
-// PCS-N ↔ container-N (mock). Komut PCS'e gider, PCS konteyneri kontrol eder.
+/**
+ * Konteyner başına TEK PCS (2026-08-30): hedef PCS listesi mock konteyner
+ * snapshot'larından türetilir — sabit liste YOKTUR. Gerçek backend geldiğinde
+ * saha device-service kayıt defterine bağlanacak.
+ */
+function pcsIdsFromMock(): string[] {
+  return [
+    ...new Set(
+      mockContainers().flatMap((c) =>
+        c.latestTelemetry
+          .filter((x) => x.deviceId.startsWith("PCS-"))
+          .map((x) => x.deviceId),
+      ),
+    ),
+  ].sort();
+}
+
+// PCS deviceId → konteyner (mock): PCS'in bağlı olduğu konteyner, snapshot'ında
+// o deviceId'nin geçtiği konteynerdir.
 function containerForPcs(pcsId: string) {
-  const n = Number(pcsId.replace("PCS-", ""));
-  return Number.isNaN(n) ? undefined : mockContainers()[n - 1];
+  return mockContainers().find((c) =>
+    c.latestTelemetry.some((x) => x.deviceId === pcsId),
+  );
 }
 
 // ponytail: backend olmadığı için lokal simülasyon — PCS'in kontrol ettiği
@@ -44,6 +63,8 @@ export const FieldManeuverPanel: React.FC = () => {
   const [states, setStates] = useState<Record<string, CardState>>({});
   const { t } = useTranslation();
 
+  const maneuvers = useMemo(() => buildFieldManeuvers(pcsIdsFromMock()), []);
+
   const labels: ManeuverCardLabels = useMemo(
     () => ({
       inputs: t("maneuver.inputs"),
@@ -66,7 +87,7 @@ export const FieldManeuverPanel: React.FC = () => {
 
   const execute = useCallback(
     async (name: string) => {
-      const m = FIELD_MANEUVERS[name];
+      const m = maneuvers[name];
       if (!m) return;
 
       setStates((prev) => ({ ...prev, [name]: { status: "running", stepResults: [] } }));
@@ -79,7 +100,7 @@ export const FieldManeuverPanel: React.FC = () => {
         [name]: { status: allOk ? "success" : "failed", stepResults: results },
       }));
     },
-    [t],
+    [maneuvers, t],
   );
 
   return (
@@ -91,7 +112,7 @@ export const FieldManeuverPanel: React.FC = () => {
         alignItems: "start",
       }}
     >
-      {Object.entries(FIELD_MANEUVERS).map(([name, m]) => {
+      {Object.entries(maneuvers).map(([name, m]) => {
         const s = states[name];
         return (
           <ManeuverCard

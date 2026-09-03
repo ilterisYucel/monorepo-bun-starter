@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores/AuthStore";
+import { postLoginRoute } from "../../../lib/api-base";
 import * as S from "./LoginForm.styles";
 
 const LogoIcon = SCADA_ICONS.logo;
@@ -22,7 +24,9 @@ export const LoginForm: React.FC = () => {
 
     try {
       await login(username, password);
-      navigate("/dashboard");
+      // Faz 5.1 ek: must-change kullanıcı doğrudan şifre değişimine gider
+      // (dashboard'ta 403 round-trip'i yaşamadan).
+      navigate(postLoginRoute(useAuthStore.getState().user));
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data

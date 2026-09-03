@@ -151,8 +151,12 @@ export class BSCSimulator {
     writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE_ANTICIPATED, 0);
     writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE, 0);
     writeSint32(this.inputRegisters, SYSTEM_SUMMARY.DC_CURRENT, 0);
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
+    // 2026-09-02 (geçici): nominal şarj/deşarj limiti 500 kW — saha paneli
+    // BSC limit register'larını gösterir; komut yokken 0 görünmesin. Gerçek
+    // değer setpoint'ten gelince updateSystemRegisters/updatePerRackRegisters
+    // bu değerleri ezer (scale 0.001 → raw = kW × 1000).
+    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 500 * 1000);
+    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 500 * 1000);
 
     // Summary stats defaults
     for (const [k, addr] of Object.entries(SUMMARY_STATS)) {
@@ -383,8 +387,9 @@ export class BSCSimulator {
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, dischargeSetpoint * 10);
     } else {
-      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 0);
-      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 0);
+      // 2026-09-02 (geçici): komut yokken nominal 500 kW limit göster.
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, 500 * 1000);
+      writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, 500 * 1000);
     }
 
     // Summary stats
@@ -513,8 +518,9 @@ export class BSCSimulator {
         writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 0);
         writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, dischargeSp * 10);
       } else {
-        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 0);
-        writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 0);
+        // 2026-09-02 (geçici): komut yokken nominal 500 kW limit göster.
+        writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 500 * 1000);
+        writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 500 * 1000);
       }
 
       // Cell sum voltage (V * 10000)

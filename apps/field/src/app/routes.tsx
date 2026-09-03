@@ -1,19 +1,31 @@
 import type { RouteObject } from "react-router-dom";
 import { FieldShell } from "../layouts/FieldShell";
 import { LoginPage } from "../pages/LoginPage";
+import { ChangePasswordPage } from "../pages/ChangePasswordPage";
+import { MfaEnrollPage } from "../pages/MfaEnrollPage";
 import { FieldDashboardPage } from "../pages/FieldDashboardPage";
 import { ContainersPage } from "../pages/ContainersPage";
 import { ContainerDetailPage } from "../pages/ContainerDetailPage";
-import { FieldChartsPage } from "../pages/FieldChartsPage";
+import { FieldPcsPage } from "../pages/FieldPcsPage";
 import { FieldControlPage } from "../pages/FieldControlPage";
 import { FieldEventsPage } from "../pages/FieldEventsPage";
 import { FieldReportsPage } from "../pages/FieldReportsPage";
 import { FieldDevicesPage } from "../pages/FieldDevicesPage";
+import { SettingsPage } from "../pages/SettingsPage";
 
 export const routes: RouteObject[] = [
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/change-password",
+    element: <ChangePasswordPage />,
+  },
+  {
+    // Faz 6 T6.1 — TOTP kayıt akışı (zorunlu MFA)
+    path: "/mfa-enroll",
+    element: <MfaEnrollPage />,
   },
   {
     path: "/",
@@ -32,8 +44,8 @@ export const routes: RouteObject[] = [
         element: <ContainerDetailPage />,
       },
       {
-        path: "field/:fieldId/charts",
-        element: <FieldChartsPage />,
+        path: "field/:fieldId/pcs",
+        element: <FieldPcsPage />,
       },
       {
         path: "field/:fieldId/control",
@@ -50,6 +62,10 @@ export const routes: RouteObject[] = [
       {
         path: "field/:fieldId/devices",
         element: <FieldDevicesPage />,
+      },
+      {
+        path: "field/:fieldId/settings",
+        element: <SettingsPage />,
       },
     ],
   },

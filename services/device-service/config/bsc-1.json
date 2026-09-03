@@ -647,7 +647,7 @@
     {
       "name": "Max Pack Temp",
       "description": "Max Pack Temp",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30149,
       "registerTableType": "INPUT_REGISTER",
@@ -661,7 +661,7 @@
     {
       "name": "Avg Pack Temp",
       "description": "Avg Pack Temp",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30150,
       "registerTableType": "INPUT_REGISTER",
@@ -675,7 +675,7 @@
     {
       "name": "Min Pack Temp",
       "description": "Min Pack Temp",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30151,
       "registerTableType": "INPUT_REGISTER",
@@ -1275,7 +1275,7 @@
     {
       "name": "Rack Max Pack Temp R1",
       "description": "Rack Max Pack Temp (Rack 1)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30259,
       "registerTableType": "INPUT_REGISTER",
@@ -1291,7 +1291,7 @@
     {
       "name": "Rack Min Pack Temp R1",
       "description": "Rack Min Pack Temp (Rack 1)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30260,
       "registerTableType": "INPUT_REGISTER",
@@ -1307,7 +1307,7 @@
     {
       "name": "Rack Avg Pack Temp R1",
       "description": "Rack Avg Pack Temp (Rack 1)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30261,
       "registerTableType": "INPUT_REGISTER",
@@ -1356,7 +1356,7 @@
     {
       "name": "Rack Max Diff Temp R1",
       "description": "Rack Max Diff Temp (Rack 1)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30264,
       "registerTableType": "INPUT_REGISTER",
@@ -1372,7 +1372,7 @@
     {
       "name": "Rack Max Diff Temp Pack R1",
       "description": "Rack Max Diff Temp Pack (Rack 1)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30265,
       "registerTableType": "INPUT_REGISTER",
@@ -1938,7 +1938,7 @@
     {
       "name": "Rack Max Pack Temp R2",
       "description": "Rack Max Pack Temp (Rack 2)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30459,
       "registerTableType": "INPUT_REGISTER",
@@ -1954,7 +1954,7 @@
     {
       "name": "Rack Min Pack Temp R2",
       "description": "Rack Min Pack Temp (Rack 2)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30460,
       "registerTableType": "INPUT_REGISTER",
@@ -1970,7 +1970,7 @@
     {
       "name": "Rack Avg Pack Temp R2",
       "description": "Rack Avg Pack Temp (Rack 2)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30461,
       "registerTableType": "INPUT_REGISTER",
@@ -2019,7 +2019,7 @@
     {
       "name": "Rack Max Diff Temp R2",
       "description": "Rack Max Diff Temp (Rack 2)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30464,
       "registerTableType": "INPUT_REGISTER",
@@ -2035,7 +2035,7 @@
     {
       "name": "Rack Max Diff Temp Pack R2",
       "description": "Rack Max Diff Temp Pack (Rack 2)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30465,
       "registerTableType": "INPUT_REGISTER",
@@ -2601,7 +2601,7 @@
     {
       "name": "Rack Max Pack Temp R3",
       "description": "Rack Max Pack Temp (Rack 3)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30659,
       "registerTableType": "INPUT_REGISTER",
@@ -2617,7 +2617,7 @@
     {
       "name": "Rack Min Pack Temp R3",
       "description": "Rack Min Pack Temp (Rack 3)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30660,
       "registerTableType": "INPUT_REGISTER",
@@ -2633,7 +2633,7 @@
     {
       "name": "Rack Avg Pack Temp R3",
       "description": "Rack Avg Pack Temp (Rack 3)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30661,
       "registerTableType": "INPUT_REGISTER",
@@ -2682,7 +2682,7 @@
     {
       "name": "Rack Max Diff Temp R3",
       "description": "Rack Max Diff Temp (Rack 3)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30664,
       "registerTableType": "INPUT_REGISTER",
@@ -2698,7 +2698,7 @@
     {
       "name": "Rack Max Diff Temp Pack R3",
       "description": "Rack Max Diff Temp Pack (Rack 3)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30665,
       "registerTableType": "INPUT_REGISTER",
@@ -3264,7 +3264,7 @@
     {
       "name": "Rack Max Pack Temp R4",
       "description": "Rack Max Pack Temp (Rack 4)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30859,
       "registerTableType": "INPUT_REGISTER",
@@ -3280,7 +3280,7 @@
     {
       "name": "Rack Min Pack Temp R4",
       "description": "Rack Min Pack Temp (Rack 4)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30860,
       "registerTableType": "INPUT_REGISTER",
@@ -3296,7 +3296,7 @@
     {
       "name": "Rack Avg Pack Temp R4",
       "description": "Rack Avg Pack Temp (Rack 4)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30861,
       "registerTableType": "INPUT_REGISTER",
@@ -3345,7 +3345,7 @@
     {
       "name": "Rack Max Diff Temp R4",
       "description": "Rack Max Diff Temp (Rack 4)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30864,
       "registerTableType": "INPUT_REGISTER",
@@ -3361,7 +3361,7 @@
     {
       "name": "Rack Max Diff Temp Pack R4",
       "description": "Rack Max Diff Temp Pack (Rack 4)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30865,
       "registerTableType": "INPUT_REGISTER",
@@ -3927,7 +3927,7 @@
     {
       "name": "Rack Max Pack Temp R5",
       "description": "Rack Max Pack Temp (Rack 5)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31059,
       "registerTableType": "INPUT_REGISTER",
@@ -3943,7 +3943,7 @@
     {
       "name": "Rack Min Pack Temp R5",
       "description": "Rack Min Pack Temp (Rack 5)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31060,
       "registerTableType": "INPUT_REGISTER",
@@ -3959,7 +3959,7 @@
     {
       "name": "Rack Avg Pack Temp R5",
       "description": "Rack Avg Pack Temp (Rack 5)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31061,
       "registerTableType": "INPUT_REGISTER",
@@ -4008,7 +4008,7 @@
     {
       "name": "Rack Max Diff Temp R5",
       "description": "Rack Max Diff Temp (Rack 5)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31064,
       "registerTableType": "INPUT_REGISTER",
@@ -4024,7 +4024,7 @@
     {
       "name": "Rack Max Diff Temp Pack R5",
       "description": "Rack Max Diff Temp Pack (Rack 5)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31065,
       "registerTableType": "INPUT_REGISTER",
@@ -4590,7 +4590,7 @@
     {
       "name": "Rack Max Pack Temp R6",
       "description": "Rack Max Pack Temp (Rack 6)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31259,
       "registerTableType": "INPUT_REGISTER",
@@ -4606,7 +4606,7 @@
     {
       "name": "Rack Min Pack Temp R6",
       "description": "Rack Min Pack Temp (Rack 6)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31260,
       "registerTableType": "INPUT_REGISTER",
@@ -4622,7 +4622,7 @@
     {
       "name": "Rack Avg Pack Temp R6",
       "description": "Rack Avg Pack Temp (Rack 6)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31261,
       "registerTableType": "INPUT_REGISTER",
@@ -4671,7 +4671,7 @@
     {
       "name": "Rack Max Diff Temp R6",
       "description": "Rack Max Diff Temp (Rack 6)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31264,
       "registerTableType": "INPUT_REGISTER",
@@ -4687,7 +4687,7 @@
     {
       "name": "Rack Max Diff Temp Pack R6",
       "description": "Rack Max Diff Temp Pack (Rack 6)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31265,
       "registerTableType": "INPUT_REGISTER",
@@ -5253,7 +5253,7 @@
     {
       "name": "Rack Max Pack Temp R7",
       "description": "Rack Max Pack Temp (Rack 7)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31459,
       "registerTableType": "INPUT_REGISTER",
@@ -5269,7 +5269,7 @@
     {
       "name": "Rack Min Pack Temp R7",
       "description": "Rack Min Pack Temp (Rack 7)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31460,
       "registerTableType": "INPUT_REGISTER",
@@ -5285,7 +5285,7 @@
     {
       "name": "Rack Avg Pack Temp R7",
       "description": "Rack Avg Pack Temp (Rack 7)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31461,
       "registerTableType": "INPUT_REGISTER",
@@ -5334,7 +5334,7 @@
     {
       "name": "Rack Max Diff Temp R7",
       "description": "Rack Max Diff Temp (Rack 7)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31464,
       "registerTableType": "INPUT_REGISTER",
@@ -5350,7 +5350,7 @@
     {
       "name": "Rack Max Diff Temp Pack R7",
       "description": "Rack Max Diff Temp Pack (Rack 7)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31465,
       "registerTableType": "INPUT_REGISTER",
@@ -5916,7 +5916,7 @@
     {
       "name": "Rack Max Pack Temp R8",
       "description": "Rack Max Pack Temp (Rack 8)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31659,
       "registerTableType": "INPUT_REGISTER",
@@ -5932,7 +5932,7 @@
     {
       "name": "Rack Min Pack Temp R8",
       "description": "Rack Min Pack Temp (Rack 8)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31660,
       "registerTableType": "INPUT_REGISTER",
@@ -5948,7 +5948,7 @@
     {
       "name": "Rack Avg Pack Temp R8",
       "description": "Rack Avg Pack Temp (Rack 8)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31661,
       "registerTableType": "INPUT_REGISTER",
@@ -5997,7 +5997,7 @@
     {
       "name": "Rack Max Diff Temp R8",
       "description": "Rack Max Diff Temp (Rack 8)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31664,
       "registerTableType": "INPUT_REGISTER",
@@ -6013,7 +6013,7 @@
     {
       "name": "Rack Max Diff Temp Pack R8",
       "description": "Rack Max Diff Temp Pack (Rack 8)",
-      "unit": "\u00b0C",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 31665,
       "registerTableType": "INPUT_REGISTER",
@@ -6341,7 +6341,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6353,7 +6352,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6365,7 +6363,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -6376,8 +6373,7 @@
           "description": "Charge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -6387,8 +6383,7 @@
           "description": "PreVPC",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 11,
@@ -6398,8 +6393,7 @@
           "description": "VPC",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -6409,8 +6403,7 @@
           "description": "SPC",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 13,
@@ -6420,8 +6413,7 @@
           "description": "TPC",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ]
     },
@@ -6438,7 +6430,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6450,7 +6441,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6462,7 +6452,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -6474,7 +6463,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6486,7 +6474,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6498,7 +6485,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -6510,7 +6496,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6522,7 +6507,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6534,7 +6518,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -6546,7 +6529,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6558,7 +6540,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6570,7 +6551,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -6588,7 +6568,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6600,7 +6579,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6612,7 +6590,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -6630,7 +6607,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6642,7 +6618,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6654,7 +6629,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -6671,8 +6645,7 @@
           "description": "Reserved",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ]
     },
@@ -6689,7 +6662,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6701,7 +6673,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6713,7 +6684,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -6725,7 +6695,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6737,7 +6706,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6749,7 +6717,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -6767,7 +6734,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -6779,7 +6745,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -6791,7 +6756,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -6808,8 +6772,7 @@
           "description": "Reserved",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ]
     },
@@ -6825,8 +6788,7 @@
           "description": "Reserved",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ]
     },
@@ -6842,8 +6804,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -6854,7 +6815,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -6866,7 +6826,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -6877,8 +6836,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -6888,8 +6846,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -6899,8 +6856,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -6911,7 +6867,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -6922,8 +6877,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -6933,8 +6887,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -6953,8 +6906,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -6964,8 +6916,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -6975,8 +6926,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -6986,8 +6936,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -6997,8 +6946,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7008,8 +6956,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -7019,8 +6966,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7039,8 +6985,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -7051,7 +6996,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -7063,7 +7007,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -7074,8 +7017,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -7085,8 +7027,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -7096,8 +7037,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7108,7 +7048,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -7119,8 +7058,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7130,8 +7068,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7150,8 +7087,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -7161,8 +7097,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -7172,8 +7107,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -7183,8 +7117,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7194,8 +7127,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7205,8 +7137,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -7216,8 +7147,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7236,8 +7166,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -7248,7 +7177,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -7260,7 +7188,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -7271,8 +7198,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -7282,8 +7208,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -7293,8 +7218,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7305,7 +7229,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -7316,8 +7239,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7327,8 +7249,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7347,8 +7268,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -7358,8 +7278,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -7369,8 +7288,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -7380,8 +7298,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7391,8 +7308,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7402,8 +7318,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -7413,8 +7328,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7433,8 +7347,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -7445,7 +7358,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -7457,7 +7369,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -7468,8 +7379,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -7479,8 +7389,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -7490,8 +7399,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7502,7 +7410,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -7513,8 +7420,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7524,8 +7430,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7544,8 +7449,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -7555,8 +7459,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -7566,8 +7469,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -7577,8 +7479,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7588,8 +7489,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7599,8 +7499,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -7610,8 +7509,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7630,8 +7528,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -7642,7 +7539,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -7654,7 +7550,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -7665,8 +7560,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -7676,8 +7570,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -7687,8 +7580,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7699,7 +7591,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -7710,8 +7601,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7721,8 +7611,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7741,8 +7630,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -7752,8 +7640,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -7763,8 +7650,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -7774,8 +7660,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7785,8 +7670,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7796,8 +7680,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -7807,8 +7690,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7827,8 +7709,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -7839,7 +7720,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -7851,7 +7731,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -7862,8 +7741,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -7873,8 +7751,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -7884,8 +7761,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7896,7 +7772,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -7907,8 +7782,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7918,8 +7792,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -7938,8 +7811,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -7949,8 +7821,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -7960,8 +7831,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -7971,8 +7841,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -7982,8 +7851,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -7993,8 +7861,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -8004,8 +7871,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -8024,8 +7890,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -8036,7 +7901,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -8048,7 +7912,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -8059,8 +7922,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -8070,8 +7932,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -8081,8 +7942,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -8093,7 +7953,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -8104,8 +7963,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -8115,8 +7973,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -8135,8 +7992,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -8146,8 +8002,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -8157,8 +8012,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -8168,8 +8022,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -8179,8 +8032,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -8190,8 +8042,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -8201,8 +8052,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -8221,8 +8071,7 @@
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 1,
@@ -8233,7 +8082,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "warning"
         },
         {
@@ -8245,7 +8093,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "logType": "error"
         },
         {
@@ -8256,8 +8103,7 @@
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 5,
@@ -8267,8 +8113,7 @@
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 7,
@@ -8278,8 +8123,7 @@
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -8290,7 +8134,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "",
           "canonical": "battery_ready"
         },
         {
@@ -8301,8 +8144,7 @@
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -8312,8 +8154,7 @@
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -8332,8 +8173,7 @@
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 2,
@@ -8343,8 +8183,7 @@
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 4,
@@ -8354,8 +8193,7 @@
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 6,
@@ -8365,8 +8203,7 @@
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 8,
@@ -8376,8 +8213,7 @@
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 10,
@@ -8387,8 +8223,7 @@
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         },
         {
           "bitStart": 12,
@@ -8398,8 +8233,7 @@
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
-          "offset": 0,
-          "alarmLimit": ""
+          "offset": 0
         }
       ],
       "tags": {
@@ -8419,7 +8253,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8431,7 +8264,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8443,7 +8275,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8455,7 +8286,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8473,7 +8303,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8485,7 +8314,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8497,7 +8325,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8509,7 +8336,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8527,7 +8353,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8539,7 +8364,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8551,7 +8375,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8563,7 +8386,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8581,7 +8403,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8593,7 +8414,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8605,7 +8425,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8617,7 +8436,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8635,7 +8453,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8647,7 +8464,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8659,7 +8475,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8671,7 +8486,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8689,7 +8503,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8701,7 +8514,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8713,7 +8525,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8725,7 +8536,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8743,7 +8553,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8755,7 +8564,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8767,7 +8575,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8779,7 +8586,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8797,7 +8603,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8809,7 +8614,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8821,7 +8625,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8833,7 +8636,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8851,7 +8653,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8863,7 +8664,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8875,7 +8675,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8887,7 +8686,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -8905,7 +8703,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -8917,7 +8714,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -8929,7 +8725,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -8941,7 +8736,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9035,7 +8829,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9047,7 +8840,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9059,7 +8851,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9071,7 +8862,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9089,7 +8879,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9101,7 +8890,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9113,7 +8901,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9125,7 +8912,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9143,7 +8929,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9155,7 +8940,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9167,7 +8951,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9179,7 +8962,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9197,7 +8979,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9209,7 +8990,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9221,7 +9001,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9233,7 +9012,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9251,7 +9029,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9263,7 +9040,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9275,7 +9051,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9287,7 +9062,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9305,7 +9079,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9317,7 +9090,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9329,7 +9101,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9341,7 +9112,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9359,7 +9129,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9371,7 +9140,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9383,7 +9151,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9395,7 +9162,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9413,7 +9179,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9425,7 +9190,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9437,7 +9201,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9449,7 +9212,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9467,7 +9229,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9479,7 +9240,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9491,7 +9251,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9503,7 +9262,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9521,7 +9279,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9533,7 +9290,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9545,7 +9301,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9557,7 +9312,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9651,7 +9405,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9663,7 +9416,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9675,7 +9427,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9687,7 +9438,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9705,7 +9455,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9717,7 +9466,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9729,7 +9477,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9741,7 +9488,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9759,7 +9505,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9771,7 +9516,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9783,7 +9527,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9795,7 +9538,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9813,7 +9555,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9825,7 +9566,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9837,7 +9577,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9849,7 +9588,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9867,7 +9605,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9879,7 +9616,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9891,7 +9627,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9903,7 +9638,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9921,7 +9655,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9933,7 +9666,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9945,7 +9677,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -9957,7 +9688,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -9975,7 +9705,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -9987,7 +9716,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -9999,7 +9727,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10011,7 +9738,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10029,7 +9755,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10041,7 +9766,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10053,7 +9777,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10065,7 +9788,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10083,7 +9805,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10095,7 +9816,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10107,7 +9827,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10119,7 +9838,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10137,7 +9855,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10149,7 +9866,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10161,7 +9877,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10173,7 +9888,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10267,7 +9981,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10279,7 +9992,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10291,7 +10003,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10303,7 +10014,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10321,7 +10031,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10333,7 +10042,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10345,7 +10053,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10357,7 +10064,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10375,7 +10081,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10387,7 +10092,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10399,7 +10103,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10411,7 +10114,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10429,7 +10131,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10441,7 +10142,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10453,7 +10153,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10465,7 +10164,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10483,7 +10181,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10495,7 +10192,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10507,7 +10203,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10519,7 +10214,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10537,7 +10231,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10549,7 +10242,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10561,7 +10253,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10573,7 +10264,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10591,7 +10281,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10603,7 +10292,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10615,7 +10303,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10627,7 +10314,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10645,7 +10331,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10657,7 +10342,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10669,7 +10353,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10681,7 +10364,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10699,7 +10381,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10711,7 +10392,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10723,7 +10403,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10735,7 +10414,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10753,7 +10431,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10765,7 +10442,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10777,7 +10453,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10789,7 +10464,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10883,7 +10557,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10895,7 +10568,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10907,7 +10579,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10919,7 +10590,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10937,7 +10607,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -10949,7 +10618,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -10961,7 +10629,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -10973,7 +10640,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -10991,7 +10657,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11003,7 +10668,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11015,7 +10679,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11027,7 +10690,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11045,7 +10707,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11057,7 +10718,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11069,7 +10729,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11081,7 +10740,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11099,7 +10757,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11111,7 +10768,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11123,7 +10779,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11135,7 +10790,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11153,7 +10807,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11165,7 +10818,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11177,7 +10829,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11189,7 +10840,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11207,7 +10857,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11219,7 +10868,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11231,7 +10879,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11243,7 +10890,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11261,7 +10907,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11273,7 +10918,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11285,7 +10929,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11297,7 +10940,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11315,7 +10957,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11327,7 +10968,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11339,7 +10979,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11351,7 +10990,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11369,7 +11007,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11381,7 +11018,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11393,7 +11029,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11405,7 +11040,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11499,7 +11133,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11511,7 +11144,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11523,7 +11155,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11535,7 +11166,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11553,7 +11183,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11565,7 +11194,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11577,7 +11205,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11589,7 +11216,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11607,7 +11233,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11619,7 +11244,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11631,7 +11255,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11643,7 +11266,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11661,7 +11283,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11673,7 +11294,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11685,7 +11305,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11697,7 +11316,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11715,7 +11333,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11727,7 +11344,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11739,7 +11355,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11751,7 +11366,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11769,7 +11383,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11781,7 +11394,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11793,7 +11405,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11805,7 +11416,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11823,7 +11433,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11835,7 +11444,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11847,7 +11455,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11859,7 +11466,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11877,7 +11483,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11889,7 +11494,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11901,7 +11505,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11913,7 +11516,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11931,7 +11533,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11943,7 +11544,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -11955,7 +11555,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -11967,7 +11566,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -11985,7 +11583,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -11997,7 +11594,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12009,7 +11605,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12021,7 +11616,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12115,7 +11709,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12127,7 +11720,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12139,7 +11731,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12151,7 +11742,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12169,7 +11759,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12181,7 +11770,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12193,7 +11781,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12205,7 +11792,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12223,7 +11809,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12235,7 +11820,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12247,7 +11831,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12259,7 +11842,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12277,7 +11859,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12289,7 +11870,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12301,7 +11881,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12313,7 +11892,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12331,7 +11909,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12343,7 +11920,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12355,7 +11931,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12367,7 +11942,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12385,7 +11959,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12397,7 +11970,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12409,7 +11981,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12421,7 +11992,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12439,7 +12009,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12451,7 +12020,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12463,7 +12031,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12475,7 +12042,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12493,7 +12059,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12505,7 +12070,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12517,7 +12081,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12529,7 +12092,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12547,7 +12109,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12559,7 +12120,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12571,7 +12131,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12583,7 +12142,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12601,7 +12159,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12613,7 +12170,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12625,7 +12181,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12637,7 +12192,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12731,7 +12285,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12743,7 +12296,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12755,7 +12307,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12767,7 +12318,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12785,7 +12335,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12797,7 +12346,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12809,7 +12357,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12821,7 +12368,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12839,7 +12385,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12851,7 +12396,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12863,7 +12407,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12875,7 +12418,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12893,7 +12435,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12905,7 +12446,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12917,7 +12457,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12929,7 +12468,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -12947,7 +12485,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -12959,7 +12496,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -12971,7 +12507,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -12983,7 +12518,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -13001,7 +12535,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -13013,7 +12546,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -13025,7 +12557,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -13037,7 +12568,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -13055,7 +12585,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -13067,7 +12596,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -13079,7 +12607,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -13091,7 +12618,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -13109,7 +12635,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -13121,7 +12646,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -13133,7 +12657,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -13145,7 +12668,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -13163,7 +12685,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -13175,7 +12696,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -13187,7 +12707,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -13199,7 +12718,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -13217,7 +12735,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Alarm",
           "logType": "error"
         },
         {
@@ -13229,7 +12746,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Warning",
           "logType": "warning"
         },
         {
@@ -13241,7 +12757,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -13253,7 +12768,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -13357,7 +12871,7 @@
       }
     },
     "start": {
-      "label": "Ba\u015flat (Start)",
+      "label": "Başlat (Start)",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13395,7 +12909,7 @@
       }
     },
     "open_contactors": {
-      "label": "Kontakt\u00f6rleri A\u00e7",
+      "label": "Kontaktörleri Aç",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13414,7 +12928,7 @@
       }
     },
     "close_contactors": {
-      "label": "Kontakt\u00f6rleri Kapat",
+      "label": "Kontaktörleri Kapat",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13433,7 +12947,7 @@
       }
     },
     "enter_manual": {
-      "label": "Manuel Moda Ge\u00e7",
+      "label": "Manuel Moda Geç",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13452,7 +12966,7 @@
       }
     },
     "exit_manual": {
-      "label": "Manuel Moddan \u00c7\u0131k",
+      "label": "Manuel Moddan Çık",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13471,7 +12985,7 @@
       }
     },
     "event_clear": {
-      "label": "Ar\u0131za Temizle (Event Clear)",
+      "label": "Arıza Temizle (Event Clear)",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13490,7 +13004,7 @@
       }
     },
     "reset": {
-      "label": "S\u0131f\u0131rla (Reset)",
+      "label": "Sıfırla (Reset)",
       "telemetries": [
         {
           "name": "Command Request",
@@ -13515,5 +13029,357 @@
     "type": "bsc",
     "rackCount": 8
   },
-  "rackCount": 8
+  "rackCount": 8,
+  "alarms": [
+    {
+      "telemetry": "BSC Alarm",
+      "severity": "error",
+      "description": "BSC Alarm"
+    },
+    {
+      "telemetry": "BSC Warning",
+      "severity": "warning",
+      "description": "BSC Warning"
+    },
+    {
+      "telemetry": "BSC Fault",
+      "severity": "error",
+      "description": "BSC Fault"
+    },
+    {
+      "telemetry": "Controller LOC Alarm",
+      "severity": "error",
+      "description": "Controller LOC Alarm"
+    },
+    {
+      "telemetry": "Controller LOC Warning",
+      "severity": "warning",
+      "description": "Controller LOC Warning"
+    },
+    {
+      "telemetry": "Controller LOC Fault",
+      "severity": "error",
+      "description": "Controller LOC Fault"
+    },
+    {
+      "telemetry": "Under SOC Alarm",
+      "severity": "error",
+      "description": "Under SOC Alarm"
+    },
+    {
+      "telemetry": "Under SOC Warning",
+      "severity": "warning",
+      "description": "Under SOC Warning"
+    },
+    {
+      "telemetry": "Under SOC Fault",
+      "severity": "error",
+      "description": "Under SOC Fault"
+    },
+    {
+      "telemetry": "Over SOC Alarm",
+      "severity": "error",
+      "description": "Over SOC Alarm"
+    },
+    {
+      "telemetry": "Over SOC Warning",
+      "severity": "warning",
+      "description": "Over SOC Warning"
+    },
+    {
+      "telemetry": "Over SOC Fault",
+      "severity": "error",
+      "description": "Over SOC Fault"
+    },
+    {
+      "telemetry": "Over Discharge Power Alarm",
+      "severity": "error",
+      "description": "Over Discharge Power Alarm"
+    },
+    {
+      "telemetry": "Over Discharge Power Warning",
+      "severity": "warning",
+      "description": "Over Discharge Power Warning"
+    },
+    {
+      "telemetry": "Over Discharge Power Fault",
+      "severity": "error",
+      "description": "Over Discharge Power Fault"
+    },
+    {
+      "telemetry": "Over Charge Power Alarm",
+      "severity": "error",
+      "description": "Over Charge Power Alarm"
+    },
+    {
+      "telemetry": "Over Charge Power Warning",
+      "severity": "warning",
+      "description": "Over Charge Power Warning"
+    },
+    {
+      "telemetry": "Over Charge Power Fault",
+      "severity": "error",
+      "description": "Over Charge Power Fault"
+    },
+    {
+      "telemetry": "SLF (System Logging Failure) Alarm",
+      "severity": "error",
+      "description": "SLF (System Logging Failure) Alarm"
+    },
+    {
+      "telemetry": "SLF (System Logging Failure) Warning",
+      "severity": "warning",
+      "description": "SLF (System Logging Failure) Warning"
+    },
+    {
+      "telemetry": "SLF (System Logging Failure) Fault",
+      "severity": "error",
+      "description": "SLF (System Logging Failure) Fault"
+    },
+    {
+      "telemetry": "MFRD (Multiple Fault Rack) Alarm",
+      "severity": "error",
+      "description": "MFRD (Multiple Fault Rack) Alarm"
+    },
+    {
+      "telemetry": "MFRD (Multiple Fault Rack) Warning",
+      "severity": "warning",
+      "description": "MFRD (Multiple Fault Rack) Warning"
+    },
+    {
+      "telemetry": "MFRD (Multiple Fault Rack) Fault",
+      "severity": "error",
+      "description": "MFRD (Multiple Fault Rack) Fault"
+    },
+    {
+      "telemetry": "Over Offline Rack Alarm",
+      "severity": "error",
+      "description": "Over Offline Rack Alarm"
+    },
+    {
+      "telemetry": "Over Offline Rack Warning",
+      "severity": "warning",
+      "description": "Over Offline Rack Warning"
+    },
+    {
+      "telemetry": "Over Offline Rack Fault",
+      "severity": "error",
+      "description": "Over Offline Rack Fault"
+    },
+    {
+      "telemetry": "RBMS SW Version Mismatch Alarm",
+      "severity": "error",
+      "description": "RBMS SW Version Mismatch Alarm"
+    },
+    {
+      "telemetry": "RBMS SW Version Mismatch Warning",
+      "severity": "warning",
+      "description": "RBMS SW Version Mismatch Warning"
+    },
+    {
+      "telemetry": "RBMS SW Version Mismatch Fault",
+      "severity": "error",
+      "description": "RBMS SW Version Mismatch Fault"
+    },
+    {
+      "telemetry": "Rack Deviation Voltage Alarm",
+      "severity": "error",
+      "description": "Rack Deviation Voltage Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Deviation Voltage Warning",
+      "severity": "warning",
+      "description": "Rack Deviation Voltage Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Deviation Voltage Fault1",
+      "severity": "error",
+      "description": "Rack Deviation Voltage Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Deviation Voltage Fault2",
+      "severity": "error",
+      "description": "Rack Deviation Voltage Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Current Alarm",
+      "severity": "error",
+      "description": "Rack Over Charge Current Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Current Warning",
+      "severity": "warning",
+      "description": "Rack Over Charge Current Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Current Fault1",
+      "severity": "error",
+      "description": "Rack Over Charge Current Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Current Fault2",
+      "severity": "error",
+      "description": "Rack Over Charge Current Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Under Temperature Alarm",
+      "severity": "error",
+      "description": "Under Temperature Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Under Temperature Warning",
+      "severity": "warning",
+      "description": "Under Temperature Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Under Temperature Fault1",
+      "severity": "error",
+      "description": "Under Temperature Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Under Temperature Fault2",
+      "severity": "error",
+      "description": "Under Temperature Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Power Alarm",
+      "severity": "error",
+      "description": "Rack Over Charge Power Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Power Warning",
+      "severity": "warning",
+      "description": "Rack Over Charge Power Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Power Fault1",
+      "severity": "error",
+      "description": "Rack Over Charge Power Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack Over Charge Power Fault2",
+      "severity": "error",
+      "description": "Rack Over Charge Power Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Under SOH Alarm",
+      "severity": "error",
+      "description": "Under SOH Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Under SOH Warning",
+      "severity": "warning",
+      "description": "Under SOH Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Under SOH Fault1",
+      "severity": "error",
+      "description": "Under SOH Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Under SOH Fault2",
+      "severity": "error",
+      "description": "Under SOH Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack-BSC LOC by Rack Alarm",
+      "severity": "error",
+      "description": "Rack-BSC LOC by Rack Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Rack-BSC LOC by Rack Warning",
+      "severity": "warning",
+      "description": "Rack-BSC LOC by Rack Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Rack-BSC LOC by Rack Fault1",
+      "severity": "error",
+      "description": "Rack-BSC LOC by Rack Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Rack-BSC LOC by Rack Fault2",
+      "severity": "error",
+      "description": "Rack-BSC LOC by Rack Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Contactor Open Failure Alarm",
+      "severity": "error",
+      "description": "Contactor Open Failure Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Contactor Open Failure Warning",
+      "severity": "warning",
+      "description": "Contactor Open Failure Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Contactor Open Failure Fault1",
+      "severity": "error",
+      "description": "Contactor Open Failure Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Contactor Open Failure Fault2",
+      "severity": "error",
+      "description": "Contactor Open Failure Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "Vaux 3.3V Error Alarm",
+      "severity": "error",
+      "description": "Vaux 3.3V Error Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "Vaux 3.3V Error Warning",
+      "severity": "warning",
+      "description": "Vaux 3.3V Error Warning (Rack 1)"
+    },
+    {
+      "telemetry": "Vaux 3.3V Error Fault1",
+      "severity": "error",
+      "description": "Vaux 3.3V Error Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "Vaux 3.3V Error Fault2",
+      "severity": "error",
+      "description": "Vaux 3.3V Error Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "SBC 5V Error Alarm",
+      "severity": "error",
+      "description": "SBC 5V Error Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "SBC 5V Error Warning",
+      "severity": "warning",
+      "description": "SBC 5V Error Warning (Rack 1)"
+    },
+    {
+      "telemetry": "SBC 5V Error Fault1",
+      "severity": "error",
+      "description": "SBC 5V Error Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "SBC 5V Error Fault2",
+      "severity": "error",
+      "description": "SBC 5V Error Fault2 (Rack 1)"
+    },
+    {
+      "telemetry": "MC Open Over Count Alarm",
+      "severity": "error",
+      "description": "MC Open Over Count Alarm (Rack 1)"
+    },
+    {
+      "telemetry": "MC Open Over Count Warning",
+      "severity": "warning",
+      "description": "MC Open Over Count Warning (Rack 1)"
+    },
+    {
+      "telemetry": "MC Open Over Count Fault1",
+      "severity": "error",
+      "description": "MC Open Over Count Fault1 (Rack 1)"
+    },
+    {
+      "telemetry": "MC Open Over Count Fault2",
+      "severity": "error",
+      "description": "MC Open Over Count Fault2 (Rack 1)"
+    }
+  ]
 }

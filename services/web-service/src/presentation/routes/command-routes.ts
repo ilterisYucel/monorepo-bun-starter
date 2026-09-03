@@ -1,7 +1,10 @@
 import { z } from "zod";
 import type { FastifyInstance } from "fastify";
 import type { IMessageQueue } from "@gd-monorepo/core";
+import { TamperLogger } from "@gd-monorepo/tamper-logger";
+
 import type { CommandConfig, TelemetryData } from "@gd-monorepo/shared-types";
+
 import { loadDeviceConfig } from "../../infrastructure/config-loader";
 
 const telemetryEntrySchema = z.object({
@@ -83,9 +86,9 @@ function buildJob(
 
 export async function makeCommandRoutes(
   fastify: FastifyInstance,
-  options: { mq: IMessageQueue; configDir: string },
+  options: { mq: IMessageQueue; configDir: string; logger?: TamperLogger },
 ) {
-  const { mq, configDir } = options;
+  const { mq, configDir, logger } = options;
 
   fastify.post("/execute", async (request, reply) => {
     const body = commandStepSchema.parse(request.body);
@@ -193,9 +196,9 @@ export async function makeCommandRoutes(
             },
             { delay: durationSeconds * 1000 },
           );
-          console.log(`[CommandRoutes] Zamanli stop planlandi: ${deviceId}, ${durationSeconds}s`);
+          await logTimerSchedule(deviceId, durationSeconds, true);
         } catch (err) {
-          console.warn(`[CommandRoutes] Zamanli stop planlanamadi: ${deviceId}`, err);
+          await logTimerSchedule(deviceId, durationSeconds, false, err);
         }
       }
 
@@ -205,12 +208,16 @@ export async function makeCommandRoutes(
     let results: Array<{ deviceId: string; command?: string; success: boolean; reason?: string }>;
 
     if (mode === "sequential") {
+      // Sıralı yürütme: reduce ile promise zinciri — for...of + await YASAK
+      // (AGENTS async-loop kuralı); onFailure=stop kalan adımları atlar.
       results = [];
-      for (const step of commands) {
+      await commands.reduce(async (prev, step) => {
+        await prev;
+        const stopped = results.some((r) => !r.success) && onFailure === "stop";
+        if (stopped) return;
         const r = await executeStep(step);
         results.push(r);
-        if (!r.success && onFailure === "stop") break;
-      }
+      }, Promise.resolve());
     } else {
       const settled = await Promise.allSettled(commands.map(executeStep));
       results = settled.map((r, i) =>
@@ -221,6 +228,45 @@ export async function makeCommandRoutes(
     const allOk = results.every((r) => r.success);
     return reply.status(allOk ? 200 : 422).send({ results, mode });
   });
+
+  /**
+   * Zamanlı stop planlama audit'i (T0.11) — logger yoksa console bilgi
+   * çıktısı (geriye uyumluluk). Audit fail-closed değildir: komut zaten
+   * yürütülmüş durumdadır; planlama best-effort'tur.
+   */
+  async function logTimerSchedule(
+    deviceId: string,
+    timerSeconds: number,
+    success: boolean,
+    err?: unknown,
+  ): Promise<void> {
+    if (!logger) {
+      if (success) {
+        console.log(`[CommandRoutes] Zamanli stop planlandi: ${deviceId}, ${timerSeconds}s`);
+      } else {
+        console.warn(`[CommandRoutes] Zamanli stop planlanamadi: ${deviceId}`, err);
+      }
+      return;
+    }
+    try {
+      await logger.log({
+        level: success ? "info" : "error",
+        category: "audit",
+        eventCode: success ? "command_executed" : "command_rejected",
+        message: success
+          ? "Zamanlı durdurma planlandı"
+          : "Zamanlı durdurma planlanamadı",
+        context: {
+          deviceId,
+          timerSeconds,
+          phase: "schedule",
+          ...(err !== undefined ? { error: String(err) } : {}),
+        },
+      });
+    } catch {
+      // audit başarısız olsa da komut akışı bozulmaz
+    }
+  }
 
   fastify.get("/:deviceId/commands", async (request, reply) => {
     const { deviceId } = request.params as { deviceId: string };

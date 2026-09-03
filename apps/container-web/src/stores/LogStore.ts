@@ -1,6 +1,6 @@
 // apps/web/src/stores/LogStore.ts
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { LogEntry, LogProvider } from "@gd-monorepo/ui";
 import { logsApi } from "../features/logs/services/logsApi";
 
@@ -102,6 +102,12 @@ export const useLogStore = create<StoreState>()(
         }
       },
     }),
-    { name: "log-storage", storage: debouncedStorage },
+    {
+      name: "log-storage",
+      // 2026-08-30 (T2): zustand v5'te ham storage objesi JSON sarmalamaz —
+      // ham obje yazımı localStorage'a "[object Object]" bırakıyordu
+      // (hydrate de kırık). createJSONStorage sarması şart.
+      storage: createJSONStorage(() => debouncedStorage),
+    },
   ),
 );

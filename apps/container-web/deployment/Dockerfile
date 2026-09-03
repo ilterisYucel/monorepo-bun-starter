@@ -1,4 +1,4 @@
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS builder
 
 # 🔥 ARTIK VITE_API_URL'E GEREK YOK!
 WORKDIR /app
@@ -8,7 +8,7 @@ RUN bun install
 WORKDIR /app/apps/container-web
 RUN bun run build
 
-FROM nginx:alpine
+FROM nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
 
 # Build output'u kopyala
 COPY --from=builder /app/apps/container-web/dist /usr/share/nginx/html

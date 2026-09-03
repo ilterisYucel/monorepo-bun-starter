@@ -9,7 +9,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
+      "@gd-monorepo/result": resolve(workspaceRoot, "packages/result/src"),
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
+      "@gd-monorepo/platform-messaging": resolve(workspaceRoot, "packages/platform/messaging/src"),
+      "@gd-monorepo/platform-logging": resolve(workspaceRoot, "packages/platform/logging/src"),
+      "@gd-monorepo/tamper-logger": resolve(workspaceRoot, "packages/tamper-logger/src"),
+      "@gd-monorepo/platform-container-access": resolve(workspaceRoot, "packages/platform/container-access/src"),
+      "@gd-monorepo/ws-tunnel": resolve(workspaceRoot, "packages/ws-tunnel/src"),
     },
   },
   test: {

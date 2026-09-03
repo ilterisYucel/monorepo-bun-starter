@@ -11,6 +11,11 @@ export const EventsGrid = styled.div`
   gap: 24px;
   overflow-x: hidden;
 
+  /* Faz 0 eki: üçüncü terminal (Cihaz Alarmları) geniş satırda tek başına */
+  > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 20px;

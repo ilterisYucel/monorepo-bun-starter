@@ -1,7 +1,8 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance } from "fastify";
 import type { User, TelemetryData } from "@gd-monorepo/shared-types";
 import type { ContainerProxy } from "../../infrastructure/container-proxy/container-proxy";
 import type { ISqlDatabase } from "@gd-monorepo/core";
+import { sha256Hex } from "../../infrastructure/auth/service-token";
 
 interface FieldRow {
   id: string;
@@ -15,8 +16,14 @@ interface FieldRow {
 interface FieldContainerRow {
   field_id: string;
   container_id: string;
-  container_url: string;
-  layout: { x: number; y: number; z: number; rotation?: { x: number; y: number; z: number }; scale?: number };
+  container_url: string | null;
+  layout: {
+    x: number;
+    y: number;
+    z: number;
+    rotation?: { x: number; y: number; z: number };
+    scale?: number;
+  };
 }
 
 async function ensureSchema(db: ISqlDatabase): Promise<void> {
@@ -36,10 +43,16 @@ async function ensureSchema(db: ISqlDatabase): Promise<void> {
       field_id UUID REFERENCES fields(id) ON DELETE CASCADE,
       container_id TEXT NOT NULL,
       container_url TEXT,
+      token_hash TEXT,
       layout JSONB DEFAULT '{"x":0,"y":0,"z":0}',
       PRIMARY KEY (field_id, container_id)
     )
   `);
+
+  // Faz 1 T1.1: mevcut kurulumlar için token_hash kolonu migrasyonu
+  await db.execute(
+    "ALTER TABLE field_containers ADD COLUMN IF NOT EXISTS token_hash TEXT",
+  );
 }
 
 function getUserFieldIds(user: User): string[] {
@@ -48,8 +61,12 @@ function getUserFieldIds(user: User): string[] {
 
 function userCanAccessField(user: User, fieldId: string): boolean {
   if (user.role === "admin" || user.role === "boss") return true;
+  // 2026-08-30: guest/developer saha verisini salt-okunur görür (dashboard) —
+  // fieldIds kısıtı YALNIZ teknik içindir.
+  if (user.role === "guest" || user.role === "developer") return true;
   const fieldIds = getUserFieldIds(user);
-  return fieldIds.length === 0 || fieldIds.includes(fieldId);
+  // T1.3 tamiri: boş fieldIds = HİÇBİR saha (eski davranış: boş = tüm sahalar)
+  return fieldIds.includes(fieldId);
 }
 
 export async function fieldRoutes(
@@ -58,41 +75,11 @@ export async function fieldRoutes(
 ): Promise<void> {
   await ensureSchema(deps.db);
 
-  fastify.get("/", async (request, reply) => {
-    const user = (request as unknown as { user: User }).user;
-    const fieldIds = getUserFieldIds(user);
-
-    if (user.role === "admin" || user.role === "boss") {
-      const rows = await deps.db.query<FieldRow>("SELECT * FROM fields ORDER BY created_at ASC");
-      return reply.send(rows);
-    }
-
-    if (fieldIds.length === 0) return reply.send([]);
-
-    const rows = await deps.db.query<FieldRow>(
-      "SELECT * FROM fields WHERE id = ANY($1::uuid[]) ORDER BY created_at ASC",
-      [fieldIds],
-    );
-    return reply.send(rows);
-  });
-
-  fastify.get("/:fieldId", async (request, reply) => {
-    const { fieldId } = request.params as { fieldId: string };
-    const user = (request as unknown as { user: User }).user;
-    if (!userCanAccessField(user, fieldId)) {
-      return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
-    }
-
-    const field = await deps.db.queryOne<FieldRow>("SELECT * FROM fields WHERE id = $1", [fieldId]);
-    if (!field) return reply.status(404).send({ error: "Saha bulunamadi" });
-
-    const containers = await deps.db.query<FieldContainerRow>(
-      "SELECT * FROM field_containers WHERE field_id = $1",
-      [fieldId],
-    );
-
-    return reply.send({ ...field, containers });
-  });
+  // 2026-08-28: saha REGISTRY uçları (liste/oluştur/güncelle/sil) field
+  // stack'ten KALDIRILDI — tek saha modeli (FIELD_ID env + açılış seed'i).
+  // Çok saha yönetimi ileride ayrı bir boss uygulamasında yaşayacak.
+  // Burada yalnızca saha BAŞINA veri uçları vardır: summary / containers /
+  // telemetry + konteyner register'ı.
 
   fastify.get("/:fieldId/summary", async (request, reply) => {
     const { fieldId } = request.params as { fieldId: string };
@@ -101,7 +88,10 @@ export async function fieldRoutes(
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
     }
 
-    const field = await deps.db.queryOne<FieldRow>("SELECT * FROM fields WHERE id = $1", [fieldId]);
+    const field = await deps.db.queryOne<FieldRow>(
+      "SELECT * FROM fields WHERE id = $1",
+      [fieldId],
+    );
     if (!field) return reply.status(404).send({ error: "Saha bulunamadi" });
 
     const containers = await deps.db.query<FieldContainerRow>(
@@ -111,16 +101,24 @@ export async function fieldRoutes(
 
     const containerResults = await Promise.allSettled(
       containers.map(async (c) => {
-        const latest = deps.containerProxy ? deps.containerProxy.latestTelemetry(c.container_id) : [];
+        const latest = deps.containerProxy
+          ? deps.containerProxy.latestTelemetry(c.container_id)
+          : [];
         const connected = deps.containerProxy
-          ? (deps.containerProxy.connectionStatus().get(c.container_id) === "connected")
+          ? deps.containerProxy.connectionStatus().get(c.container_id) ===
+            "connected"
           : false;
+        // Faz 2 T2.4: gerçek son-heartbeat zamanı (önceden sahte now()).
+        const lastSeenAtMs = deps.containerProxy
+          ? deps.containerProxy.lastSeenAt(c.container_id)
+          : undefined;
 
         return {
           containerId: c.container_id,
-          containerUrl: c.container_url,
           connected,
-          lastSeenAt: new Date().toISOString(),
+          ...(lastSeenAtMs !== undefined
+            ? { lastSeenAt: new Date(lastSeenAtMs).toISOString() }
+            : {}),
           latestTelemetry: latest,
         };
       }),
@@ -146,13 +144,19 @@ export async function fieldRoutes(
 
     const fieldResults = await Promise.allSettled(
       rows.map(async (c) => {
-        const status = deps.containerProxy?.connectionStatus().get(c.container_id) ?? "idle";
+        const status =
+          deps.containerProxy?.connectionStatus().get(c.container_id) ?? "idle";
+        const lastSeenAtMs = deps.containerProxy?.lastSeenAt(c.container_id);
         return {
           containerId: c.container_id,
-          containerUrl: c.container_url,
           layout: c.layout,
           connectionStatus: status,
-          latestTelemetry: deps.containerProxy?.latestTelemetry(c.container_id) ?? [],
+          // Faz 2 T2.4: gerçek son-heartbeat zamanı
+          ...(lastSeenAtMs !== undefined
+            ? { lastSeenAt: new Date(lastSeenAtMs).toISOString() }
+            : {}),
+          latestTelemetry:
+            deps.containerProxy?.latestTelemetry(c.container_id) ?? [],
         };
       }),
     );
@@ -178,7 +182,9 @@ export async function fieldRoutes(
     const telemetry: Record<string, TelemetryData[]> = {};
     for (const c of containers) {
       if (deps.containerProxy) {
-        telemetry[c.container_id] = deps.containerProxy.latestTelemetry(c.container_id);
+        telemetry[c.container_id] = deps.containerProxy.latestTelemetry(
+          c.container_id,
+        );
       }
     }
 
@@ -212,18 +218,30 @@ export async function fieldRoutes(
       return reply.send({});
     }
 
-    const fromDate = query.from ? new Date(query.from) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const fromDate = query.from
+      ? new Date(query.from)
+      : new Date(Date.now() - 24 * 60 * 60 * 1000);
     const toDate = query.to ? new Date(query.to) : new Date();
-    const points = query.points ? parseInt(query.points, 10) : 120;
+    const points = query.points ? Number.parseInt(query.points, 10) : 120;
 
     const params = { from: fromDate, to: toDate, points };
-    const results = await deps.containerProxy.allHistorical(containerIds, params);
+    const results = await deps.containerProxy.allHistorical(
+      containerIds,
+      params,
+    );
     return reply.send(results);
   });
 
   fastify.get("/:fieldId/telemetry/:containerId", async (request, reply) => {
-    const { fieldId, containerId } = request.params as { fieldId: string; containerId: string };
-    const query = request.query as { from?: string; to?: string; points?: string };
+    const { fieldId, containerId } = request.params as {
+      fieldId: string;
+      containerId: string;
+    };
+    const query = request.query as {
+      from?: string;
+      to?: string;
+      points?: string;
+    };
 
     const user = (request as unknown as { user: User }).user;
     if (!userCanAccessField(user, fieldId)) {
@@ -234,90 +252,65 @@ export async function fieldRoutes(
       return reply.send([]);
     }
 
-    const fromDate = query.from ? new Date(query.from) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const fromDate = query.from
+      ? new Date(query.from)
+      : new Date(Date.now() - 24 * 60 * 60 * 1000);
     const toDate = query.to ? new Date(query.to) : new Date();
-    const points = query.points ? parseInt(query.points, 10) : 120;
+    const points = query.points ? Number.parseInt(query.points, 10) : 120;
 
-    const results = await deps.containerProxy.historical(containerId, { from: fromDate, to: toDate, points });
+    const results = await deps.containerProxy.historical(containerId, {
+      from: fromDate,
+      to: toDate,
+      points,
+    });
     return reply.send(results);
   });
 
-  fastify.post("/", async (request, reply) => {
-    const user = (request as unknown as { user: User }).user;
-    if (user.role !== "admin" && user.role !== "boss") {
-      return reply.status(403).send({ error: "Saha olusturma yetkiniz yok" });
-    }
+  fastify.post(
+    "/:fieldId/containers/:containerId/register",
+    async (request, reply) => {
+      const { fieldId, containerId } = request.params as {
+        fieldId: string;
+        containerId: string;
+      };
+      const user = (request as unknown as { user: User }).user;
+      if (user.role !== "admin" && user.role !== "boss") {
+        return reply
+          .status(403)
+          .send({ error: "Konteyner kayit yetkiniz yok" });
+      }
 
-    const { name, location, metadata } = request.body as {
-      name: string;
-      location?: { lat: number; lng: number };
-      metadata?: Record<string, unknown>;
-    };
+      // 2026-08-30: containerUrl ALANI KALDIRILDI — mimari sözleşme: field
+      // konteynere URL ile bağlanmaz; bağlantı konteynerden field'a outbound
+      // WSS'tir (FieldConnector). Eski kurulumlardaki kolon değeri artık
+      // güncellenmez (NULL kalır); payload'daki containerUrl yok sayılır.
+      const { token } = request.body as {
+        token?: string;
+      };
+      if (typeof token !== "string" || token.length < 32) {
+        return reply
+          .status(400)
+          .send({ error: "token en az 32 karakter olmali" });
+      }
 
-    const row = await deps.db.queryOne<FieldRow>(
-      `INSERT INTO fields (name, location, metadata) VALUES ($1, $2, $3) RETURNING *`,
-      [name, JSON.stringify(location ?? { lat: 0, lng: 0 }), JSON.stringify(metadata ?? {})],
-    );
+      const field = await deps.db.queryOne<{ id: string }>(
+        "SELECT id FROM fields WHERE id = $1",
+        [fieldId],
+      );
+      if (!field) {
+        return reply.status(404).send({ error: "Saha bulunamadi" });
+      }
 
-    return reply.status(201).send(row);
-  });
+      // Düz token DB'ye ASLA yazılmaz — yalnızca SHA-256 hash'i saklanır.
+      await deps.db.execute(
+        `INSERT INTO field_containers (field_id, container_id, token_hash)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (field_id, container_id) DO UPDATE
+       SET token_hash = EXCLUDED.token_hash`,
+        [fieldId, containerId, sha256Hex(token)],
+      );
 
-  fastify.put("/:fieldId", async (request, reply) => {
-    const { fieldId } = request.params as { fieldId: string };
-    const user = (request as unknown as { user: User }).user;
-    if (user.role !== "admin" && user.role !== "boss") {
-      return reply.status(403).send({ error: "Saha guncelleme yetkiniz yok" });
-    }
-
-    const { name, location, metadata } = request.body as {
-      name?: string;
-      location?: { lat: number; lng: number };
-      metadata?: Record<string, unknown>;
-    };
-
-    const sets: string[] = [];
-    const params: unknown[] = [];
-    let i = 1;
-
-    if (name !== undefined) {
-      sets.push(`name = $${i++}`);
-      params.push(name);
-    }
-    if (location !== undefined) {
-      sets.push(`location = $${i++}`);
-      params.push(JSON.stringify(location));
-    }
-    if (metadata !== undefined) {
-      sets.push(`metadata = $${i++}`);
-      params.push(JSON.stringify(metadata));
-    }
-
-    if (sets.length === 0) {
-      const existing = await deps.db.queryOne<FieldRow>("SELECT * FROM fields WHERE id = $1", [fieldId]);
-      if (!existing) return reply.status(404).send({ error: "Saha bulunamadi" });
-      return reply.send(existing);
-    }
-
-    sets.push(`updated_at = NOW()`);
-    params.push(fieldId);
-
-    const row = await deps.db.queryOne<FieldRow>(
-      `UPDATE fields SET ${sets.join(", ")} WHERE id = $${i} RETURNING *`,
-      params,
-    );
-
-    if (!row) return reply.status(404).send({ error: "Saha bulunamadi" });
-    return reply.send(row);
-  });
-
-  fastify.delete("/:fieldId", async (request, reply) => {
-    const { fieldId } = request.params as { fieldId: string };
-    const user = (request as unknown as { user: User }).user;
-    if (user.role !== "admin" && user.role !== "boss") {
-      return reply.status(403).send({ error: "Saha silme yetkiniz yok" });
-    }
-
-    await deps.db.execute("DELETE FROM fields WHERE id = $1", [fieldId]);
-    return reply.send({ success: true });
-  });
+      return reply.status(201).send({ registered: true, containerId });
+    },
+  );
 }

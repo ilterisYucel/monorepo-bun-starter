@@ -48,6 +48,10 @@ bun-debug.log*
 .env.*
 !.env.example
 !.env.sample
+# Tier sablonlari commit'lenir; gercek tier env'leri (.env.field/.env.container/.env.boss) gitignore'lu kalir
+!.env.field.example
+!.env.container.example
+!.env.boss.example
 
 # ============================================
 # OS FILES

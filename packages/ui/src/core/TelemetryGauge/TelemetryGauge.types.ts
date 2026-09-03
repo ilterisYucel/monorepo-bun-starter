@@ -2,6 +2,15 @@
 
 export type GaugeSizes = "small" | "medium" | "large";
 
+/** Gauge renk temaları — arc/bar/ikon tek paletten beslenir (2026-08-28). */
+export type GaugeTheme =
+  | "info"
+  | "success"
+  | "warning"
+  | "error"
+  | "purple"
+  | "temp";
+
 export interface TelemetryGaugeProps {
   /** Gauge değeri */
   value: number;
@@ -15,7 +24,7 @@ export interface TelemetryGaugeProps {
   unit: string;
   /** Değerin ondalık basamak sayısı */
   decimals?: number;
-  /** Gauge rengi (CSS değişkeni veya sabit renk) */
+  /** Gauge rengi (CSS değişkeni veya sabit renk) — linear BarFill; verilirse tema yerine geçer */
   color?: string;
   /** Arka plan rengi */
   backgroundColor?: string;
@@ -27,4 +36,6 @@ export interface TelemetryGaugeProps {
   variant?: "linear" | "circular";
   /** Piksel cinsinden genişlik — circular varyantta kare (circle) için kullanılır */
   width?: number;
+  /** Renk teması — arc/bar/ikon renklerini belirler (varsayılan: info) */
+  theme?: GaugeTheme;
 }

@@ -39,12 +39,18 @@ export const bitfieldFieldSchema = z.object({
   unit: z.string(),
   scale: z.number().optional(),
   offset: z.number().optional(),
-  alarmLimit: z.string().optional(),
-  logType: z.enum(["error", "warning", "info"]).optional(),
   tags: z.record(z.string()).optional(),
   canonical: z.string().optional(),
 }).refine((f) => f.bitStart <= f.bitEnd, {
   message: "bitStart bitEnd'den küçük veya eşit olmalı",
+});
+
+/** Cihaz alarm kuralı — telemetri adı referanslı, cihaz tipinden bağımsız. */
+export const deviceAlarmRuleSchema = z.object({
+  telemetry: z.string().min(1),
+  severity: z.enum(["error", "warning", "info"]),
+  description: z.string().optional(),
+  activeLow: z.boolean().optional(),
 });
 
 export const bitfieldConfigSchema = z.object({
@@ -65,6 +71,7 @@ export const deviceConfigFileSchema = z.object({
   connection: z.record(z.unknown()),
   telemetry: z.array(telemetryEntrySchema).min(1),
   bitfieldConfigs: z.array(bitfieldConfigSchema).optional(),
+  alarms: z.array(deviceAlarmRuleSchema).optional(),
   pollIntervalMs: z.number().int().positive().optional(),
   transport: deviceTransportConfigSchema.optional(),
 });

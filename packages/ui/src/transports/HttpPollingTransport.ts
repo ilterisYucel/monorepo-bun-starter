@@ -1,10 +1,4 @@
-import type {
-  ITelemetryTransport,
-  ConnectParams,
-  TelemetryObserver,
-  ConnectionState,
-  TelemetryData,
-} from "@gd-monorepo/shared-types";
+import type { ITelemetryTransport, ConnectParams, TelemetryObserver, ConnectionState, TelemetryData } from "@gd-monorepo/shared-types";
 
 export interface HttpPollingConfig {
   endpoint: string;

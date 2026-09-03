@@ -1,8 +1,5 @@
-import {
-  RedisConnection,
-  BullMQAdapter,
-  PostgresAdapter,
-} from "@gd-monorepo/core";
+import { RedisConnection, PostgresAdapter } from "@gd-monorepo/core";
+import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
 import {
   ConfigLoader,
   EnvSource,
@@ -38,7 +35,7 @@ async function main() {
     password: config.get<string | undefined>("redis.password"),
     db: config.get<number | undefined>("redis.db"),
   });
-  const mq = new BullMQAdapter(redis);
+  const mq = new PlatformMessageQueue(redis);
 
   // TimescaleDB — external_series tablosu icin
   const postgres = new PostgresAdapter({

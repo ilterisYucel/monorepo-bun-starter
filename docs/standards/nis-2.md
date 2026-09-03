@@ -30,6 +30,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 | Kod Kalitesi | SonarQube | Entegre |
 | OWASP Standartları | Kod seviyesinde uygulandı | Uygulandı |
 | OWASP ASVS | Level 2 doğrulama hedefi — [owasp-asvs-level2.md](./owasp-asvs-level2.md) | Hedef |
+| MFA Stratejisi | TOTP birincil; e-posta/SMS OTP red — [mfa-stratejisi.md](./mfa-stratejisi.md) | Uygulandı (Faz 6) |
 | Test Çerçevesi | Vitest | Mevcut |
 | E2E Test | Playwright | Mevcut |
 

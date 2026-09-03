@@ -155,6 +155,30 @@ export const Details = styled.div`
   border-left: 1px solid ${COLORS.borderDefault};
 `;
 
+/** Cihaz alarmı çözme kutucuğu (Faz 0 eki — TEIAŞ). */
+export const AlarmResolve = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+
+  input {
+    accent-color: ${COLORS.success};
+    cursor: pointer;
+  }
+
+  input:disabled {
+    cursor: default;
+  }
+`;
+
+/** Çözen kullanıcı etiketi. */
+export const AlarmResolvedBy = styled.span`
+  font-size: 10px;
+  color: ${COLORS.success};
+`;
+
 export const Footer = styled.div`
   flex-shrink: 0;
   display: flex;

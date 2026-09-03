@@ -26,10 +26,6 @@ export interface BitfieldField {
   scale?: number;
   /** Ham değer kayma (varsayılan: 0) */
   offset?: number;
-  /** Alarm seviyesi (opsiyonel) */
-  alarmLimit?: string;
-  /** Bu bitfield değeri sistem log kaydı olarak da yazılsın mı? */
-  logType?: "error" | "warning" | "info";
   /** TelemetryData.tags'a eklenecek etiketler (örn: { rack_id: "3" }) */
   tags?: Record<string, string>;
   /**

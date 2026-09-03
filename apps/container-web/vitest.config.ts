@@ -18,6 +18,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    globals: true,
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     setupFiles: ["./vitest.setup.ts"],
     coverage: {
@@ -29,6 +30,14 @@ export default defineConfig({
     reporters: ["default", "junit"],
     outputFile: {
       junit: "./test-results/junit.xml",
+    },
+    // @pixi/react (packages/ui barrel'ı) uzantısız derin import kullanır
+    // (react-reconciler/constants) — externalized modüllerde node ESM çözümü
+    // exports map'siz bunu reddeder. Inline edilince Vite çözer (field ile aynı).
+    server: {
+      deps: {
+        inline: ["@pixi/react"],
+      },
     },
   },
 });

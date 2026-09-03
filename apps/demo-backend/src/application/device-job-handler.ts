@@ -2,12 +2,7 @@
 
 import { ModbusDevice } from "@gd-monorepo/core";
 import { TimescaleDBAdapter } from "@gd-monorepo/core";
-import type {
-  DeviceJob,
-  ReadDeviceJob,
-  WriteTelemetryJob,
-  CommandDeviceJob,
-} from "@gd-monorepo/shared-types";
+import type { DeviceJob, ReadDeviceJob, WriteTelemetryJob, CommandDeviceJob } from "@gd-monorepo/shared-types";
 
 export class DeviceJobHandler {
   constructor(

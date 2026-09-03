@@ -35,13 +35,16 @@
   "dependencies": {
     "bullmq": "^5.76.8",
     "jsmodbus": "^4.0.10",
+    "nodemailer": "^9.0.5",
     "p-limit": "^7.3.0",
     "pg": "^8.11.3",
     "redis": "^4.6.13",
     "serialport": "^13.0.0",
-    "ws": "^8.0.0"
+    "ws": "^8.0.0",
+    "@gd-monorepo/result": "*"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.10.9",
     "@types/ws": "^8.0.0",
     "typescript": "^5.4.0",

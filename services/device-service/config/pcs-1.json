@@ -2038,7 +2038,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2050,7 +2049,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2062,7 +2060,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2074,7 +2071,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2086,7 +2082,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2098,7 +2093,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2110,7 +2104,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2122,7 +2115,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2134,7 +2126,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2146,7 +2137,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2158,7 +2148,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2170,7 +2159,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2182,7 +2170,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2194,7 +2181,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2206,7 +2192,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2218,7 +2203,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         }
       ]
@@ -2236,7 +2220,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2248,7 +2231,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2260,7 +2242,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2272,7 +2253,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2284,7 +2264,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2296,7 +2275,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2308,7 +2286,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2320,7 +2297,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2332,7 +2308,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2344,7 +2319,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2356,7 +2330,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -2374,7 +2347,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "warning"
         },
         {
@@ -2386,7 +2358,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2398,7 +2369,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2410,7 +2380,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2422,7 +2391,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2434,7 +2402,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         },
         {
@@ -2446,7 +2413,6 @@
           "unit": "-",
           "scale": 1,
           "offset": 0,
-          "alarmLimit": "Fault",
           "logType": "error"
         }
       ]
@@ -2562,5 +2528,177 @@
       ],
       "timeoutMs": 3000
     }
-  }
+  },
+  "alarms": [
+    {
+      "telemetry": "AC Under Voltage",
+      "severity": "error",
+      "description": "AC Under Voltage"
+    },
+    {
+      "telemetry": "AC Over Voltage",
+      "severity": "error",
+      "description": "AC Over Voltage"
+    },
+    {
+      "telemetry": "AC Under Frequency",
+      "severity": "error",
+      "description": "AC Under Frequency"
+    },
+    {
+      "telemetry": "AC Over Frequency",
+      "severity": "error",
+      "description": "AC Over Frequency"
+    },
+    {
+      "telemetry": "AC Voltage Imbalance",
+      "severity": "error",
+      "description": "AC Voltage Imbalance"
+    },
+    {
+      "telemetry": "AC Current Imbalance",
+      "severity": "error",
+      "description": "AC Current Imbalance"
+    },
+    {
+      "telemetry": "LVRT",
+      "severity": "error",
+      "description": "LVRT"
+    },
+    {
+      "telemetry": "HVRT",
+      "severity": "error",
+      "description": "HVRT"
+    },
+    {
+      "telemetry": "Phase Sequence Reversed",
+      "severity": "error",
+      "description": "Phase Sequence Reversed"
+    },
+    {
+      "telemetry": "Phase Missing",
+      "severity": "error",
+      "description": "Phase Missing"
+    },
+    {
+      "telemetry": "AC Voltage Abnormal",
+      "severity": "error",
+      "description": "AC Voltage Abnormal"
+    },
+    {
+      "telemetry": "AC Frequency Abnormal",
+      "severity": "error",
+      "description": "AC Frequency Abnormal"
+    },
+    {
+      "telemetry": "Anti Island",
+      "severity": "error",
+      "description": "Anti Island"
+    },
+    {
+      "telemetry": "AC Short Circuit",
+      "severity": "error",
+      "description": "AC Short Circuit"
+    },
+    {
+      "telemetry": "AC Current Abnormal",
+      "severity": "error",
+      "description": "AC Current Abnormal"
+    },
+    {
+      "telemetry": "Harmonic Out Of Limit",
+      "severity": "error",
+      "description": "Harmonic Out Of Limit"
+    },
+    {
+      "telemetry": "Phase Locking Out",
+      "severity": "error",
+      "description": "Phase Locking Out"
+    },
+    {
+      "telemetry": "AC Voltage To Ground Abnormal",
+      "severity": "error",
+      "description": "AC Voltage To Ground Abnormal"
+    },
+    {
+      "telemetry": "Leakage Current Abnormal",
+      "severity": "error",
+      "description": "Leakage Current Abnormal"
+    },
+    {
+      "telemetry": "DC Component Abnormal",
+      "severity": "error",
+      "description": "DC Component Abnormal"
+    },
+    {
+      "telemetry": "AC Overcurrent",
+      "severity": "error",
+      "description": "AC Overcurrent"
+    },
+    {
+      "telemetry": "AC Power Abnormal",
+      "severity": "error",
+      "description": "AC Power Abnormal"
+    },
+    {
+      "telemetry": "Precharge Fault",
+      "severity": "error",
+      "description": "Precharge Fault"
+    },
+    {
+      "telemetry": "Reverse Current Pre Protection",
+      "severity": "error",
+      "description": "Reverse Current Pre Protection"
+    },
+    {
+      "telemetry": "Inductance Voltage High",
+      "severity": "error",
+      "description": "Inductance Voltage High"
+    },
+    {
+      "telemetry": "Inductance Temperature High",
+      "severity": "error",
+      "description": "Inductance Temperature High"
+    },
+    {
+      "telemetry": "10Min Overvoltage",
+      "severity": "error",
+      "description": "10Min Overvoltage"
+    },
+    {
+      "telemetry": "Battery Low Voltage",
+      "severity": "error",
+      "description": "Battery Low Voltage"
+    },
+    {
+      "telemetry": "Battery Over Voltage",
+      "severity": "error",
+      "description": "Battery Over Voltage"
+    },
+    {
+      "telemetry": "Battery Inverse",
+      "severity": "error",
+      "description": "Battery Inverse"
+    },
+    {
+      "telemetry": "Battery Over Current",
+      "severity": "error",
+      "description": "Battery Over Current"
+    },
+    {
+      "telemetry": "Insulation Resistance Abnormal",
+      "severity": "error",
+      "description": "Insulation Resistance Abnormal"
+    },
+    {
+      "telemetry": "Battery Ground Voltage Abnormal",
+      "severity": "error",
+      "description": "Battery Ground Voltage Abnormal"
+    },
+    {
+      "telemetry": "Battery Fuse Break",
+      "severity": "error",
+      "description": "Battery Fuse Break"
+    }
+  ]
 }

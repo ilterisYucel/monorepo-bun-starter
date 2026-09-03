@@ -353,7 +353,7 @@ class DeviceService {
 // ===== web-service tarafinda =====
 // main() icinde:
 
-const subscriber = redis.getClient().duplicate();
+const subscriber = redis.client().duplicate();
 await subscriber.connect();
 await subscriber.subscribe("realtime:push", (message) => {
   const { deviceId, data } = JSON.parse(message);

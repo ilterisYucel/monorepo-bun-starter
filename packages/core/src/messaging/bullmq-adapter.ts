@@ -1,322 +1,119 @@
 // packages/core/src/messaging/bullmq-adapter.ts
 
-import { Queue, Worker, Job, QueueEvents } from "bullmq";
-import type { DeviceJob, JobType, JobResult } from "@gd-monorepo/shared-types";
-import type { IMessageQueue, QueueStatus, WorkerOptions } from "./interface";
+import { Queue, QueueEvents, Worker, type JobsOptions } from "bullmq";
+import type { QueueStatus } from "./interface";
 import type { RedisConnection } from "./redis";
-import type { JobsOptions, RepeatOptions } from "bullmq";
+import {
+  BullMQQueue,
+  type RedisConnectionInfo,
+} from "./bullmq-queue";
 
-const DEFAULT_JOB_OPTIONS: JobsOptions = {
-  attempts: 3,
-  backoff: { type: "exponential", delay: 1000 },
-  removeOnComplete: 100,
-  removeOnFail: 50,
-};
+/** `openQueue` çağrısı başına kuyruk açılış seçenekleri. */
+export interface OpenQueueOptions {
+  /** Kuyruğun varsayılan job seçenekleri (retry politikası vb.). */
+  retryOptions?: JobsOptions;
+}
 
-export const QUEUE_NAMES: Record<JobType, string> = {
-  READ_DEVICE: "queue_read_device",
-  WRITE_TELEMETRY: "queue_write_telemetry",
-  COMMAND_DEVICE: "queue_command_device",
-  MANAGEMENT: "queue_management",
-  WS_BROADCAST: "queue_ws_broadcast",
-  FETCH_EXTERNAL: "queue_fetch_external",
-};
-
-export class BullMQAdapter implements IMessageQueue {
-  private queues: Map<JobType, Queue> = new Map();
-  private workers: Map<JobType, Worker> = new Map();
-  private queueEvents: Map<JobType, QueueEvents> = new Map();
-  private connection: RedisConnection;
+/**
+ * BullMQAdapter — BullMQ'nun JENERİK sarmalayıcısı (proje-bağımsız).
+ *
+ * Sözleşme:
+ * - Hiçbir sistem/domain kavramı (JobType, kuyruk adları, retry politikaları)
+ *   bu sınıfta BULUNMAZ — kuyruklar adla açılır (`openQueue`), sistem
+ *   katmanı adları ve politikaları dışarıdan verir.
+ * - Kuyruklar LAZY açılır ve önbelleklenir; aynı ad tek Queue örneği döner.
+ * - Worker'lar facade üzerinden kurulur ve adapter'da izlenir — `close()`
+ *   tümünü toplu kapatır.
+ * - `queueStatus()`: açık TÜM kuyrukların sayaçları (name = kuyruk adı).
+ * - `health()`: yalnızca redis ping'i (sistem katmanı ek denetimler ekler).
+ * - `close()`: tüm worker + QueueEvents + Queue kaynaklarını kapatır.
+ */
+export class BullMQAdapter {
+  private readonly queues: Map<string, BullMQQueue> = new Map();
+  private readonly workers: Map<string, Worker[]> = new Map();
+  private readonly connection: RedisConnection;
 
   constructor(connection: RedisConnection) {
     this.connection = connection;
   }
 
-  private getRedisConnection() {
-    // Örnekteki gibi connection bilgilerini al
-    const config = this.connection.getConnectionConfig();
-    return {
-      host: config.host || "localhost",
-      port: config.port || 6379,
-      password: config.password,
-      db: config.db,
-    };
-  }
+  /**
+   * Adı verilen kuyruğu açar (factory — lazy + önbellekli).
+   * Queue + QueueEvents kurulur; retry seçenekleri `opts.retryOptions` ile
+   * verilir (verilmezse boş).
+   */
+  async openQueue(
+    name: string,
+    options: OpenQueueOptions = {},
+  ): Promise<BullMQQueue> {
+    const existing = this.queues.get(name);
+    if (existing) return existing;
 
-  private async getQueue(type: JobType): Promise<Queue> {
-    if (!this.queues.has(type)) {
-      const queue = new Queue(QUEUE_NAMES[type], {
-        connection: this.getRedisConnection(),
-        defaultJobOptions: DEFAULT_JOB_OPTIONS,
-      });
-      this.queues.set(type, queue);
-      await this.setupQueueEvents(type);
-    }
-    return this.queues.get(type)!;
-  }
-
-  private async setupQueueEvents(type: JobType): Promise<void> {
-    const queueEvents = new QueueEvents(QUEUE_NAMES[type], {
-      connection: this.getRedisConnection(),
+    const connection = this.redisConnection();
+    const queue = new Queue(name, {
+      connection,
+      defaultJobOptions: options.retryOptions ?? {},
     });
-
-    queueEvents.on("waiting", ({ jobId }) => {
-      // console.log(`[BullMQ] Job waiting: ${type}`, { jobId });
-    });
-
-    queueEvents.on("active", ({ jobId }) => {
-      // console.log(`[BullMQ] Job active: ${type}`, { jobId });
-    });
-
-    queueEvents.on("completed", ({ jobId }) => {
-      // console.log(`[BullMQ] Job completed: ${type}`, { jobId });
-    });
+    const queueEvents = new QueueEvents(name, { connection });
 
     queueEvents.on("failed", ({ jobId, failedReason }) => {
-      console.error(`[BullMQ] Job failed: ${type}`, {
+      console.error(`[BullMQ] Job failed: ${name}`, {
         jobId,
         reason: failedReason,
       });
     });
 
-    this.queueEvents.set(type, queueEvents);
-  }
-
-  async addJob(job: DeviceJob, opts?: { delay?: number }): Promise<void> {
-    const queue = await this.getQueue(job.type);
-    await queue.add(job.type, job, {
-      jobId: job.jobId,
-      priority: job.priority ?? 10,
-      ...(opts?.delay ? { delay: opts.delay } : {}),
-    });
-  }
-
-  async executeAndWait(jobData: DeviceJob, timeoutMs: number): Promise<JobResult> {
-    const queue = await this.getQueue(jobData.type);
-    const job = await queue.add(jobData.type, jobData, {
-      jobId: jobData.jobId,
-      priority: jobData.priority ?? 10,
-    });
-
-    const events = this.queueEvents.get(jobData.type);
-    if (!events) {
-      console.error(`[BullMQ] executeAndWait: no QueueEvents for ${jobData.type} — job may not be consumed`);
-      return { success: false, reason: `no QueueEvents for ${jobData.type}` };
-    }
-
-    try {
-      const result = await job.waitUntilFinished(events, timeoutMs);
-      if (result && typeof result === "object") return result as JobResult;
-      return { success: true };
-    } catch (err) {
-      return { success: false, reason: String(err) };
-    }
-  }
-
-  async addRepeatableJob(
-    name: string,
-    job: DeviceJob,
-    pattern: string,
-  ): Promise<void> {
-    const queue = await this.getQueue(job.type);
-    const repeatOptions: RepeatOptions = { pattern };
-
-    await queue.add(name, job, {
-      repeat: repeatOptions,
-      jobId: `${job.type}-${job.deviceId}-${name}`,
-    });
-  }
-
-  async addRepeatableJobEvery(
-    name: string,
-    job: DeviceJob,
-    everyMs: number,
-    startDate?: Date,
-  ): Promise<void> {
-    const queue = await this.getQueue(job.type);
-    const repeatOptions: RepeatOptions = { every: everyMs };
-    if (startDate) {
-      repeatOptions.startDate = startDate;
-    }
-
-    await queue.add(name, job, {
-      repeat: repeatOptions,
-      jobId: `${job.type}-${job.deviceId}-${name}`,
-    });
-  }
-
-  async registerWorkerFor(
-    type: JobType,
-    processor: (job: DeviceJob) => Promise<unknown>,
-    options?: WorkerOptions,
-  ): Promise<void> {
-    const worker = new Worker(
-      QUEUE_NAMES[type],
-      async (bullJob: Job) => {
-        const jobData = bullJob.data as DeviceJob;
-        return await processor(jobData);
-      },
-      {
-        connection: this.getRedisConnection(),
-        concurrency: options?.concurrency ?? 5,
-      },
+    const facade = new BullMQQueue(
+      name,
+      { connection, trackWorker: this.trackWorker.bind(this) },
+      queue,
+      queueEvents,
     );
-
-    if (options?.onCompleted) {
-      worker.on("completed", (bullJob) => {
-        const jobData = bullJob.data as DeviceJob;
-        options.onCompleted!(jobData);
-      });
-    }
-
-    if (options?.onFailed) {
-      worker.on("failed", (bullJob, err) => {
-        if (bullJob) {
-          const jobData = bullJob.data as DeviceJob;
-          options.onFailed!(jobData, err);
-        }
-      });
-    }
-
-    worker.on("error", (err) => {
-      console.error(`[BullMQ] Worker error for ${type}:`, err);
-    });
-
-    this.workers.set(type, worker);
+    this.queues.set(name, facade);
+    return facade;
   }
 
-  async registerWorker(
-    processor: (job: DeviceJob) => Promise<unknown>,
-    options?: WorkerOptions,
-  ): Promise<void> {
-    const jobTypes: JobType[] = [
-      "READ_DEVICE",
-      "WRITE_TELEMETRY",
-      "COMMAND_DEVICE",
-      "MANAGEMENT",
-      "WS_BROADCAST",
-      "FETCH_EXTERNAL",
-    ];
-
-    for (const type of jobTypes) {
-      const worker = new Worker(
-        QUEUE_NAMES[type],
-        async (bullJob: Job) => {
-          const jobData = bullJob.data as DeviceJob;
-          return await processor(jobData);
-        },
-        {
-          connection: this.getRedisConnection(),
-          concurrency: options?.concurrency ?? 5,
-        },
-      );
-
-      if (options?.onCompleted) {
-        worker.on("completed", (bullJob) => {
-          const jobData = bullJob.data as DeviceJob;
-          options.onCompleted!(jobData);
-        });
-      }
-
-      if (options?.onFailed) {
-        worker.on("failed", (bullJob, err) => {
-          if (bullJob) {
-            const jobData = bullJob.data as DeviceJob;
-            options.onFailed!(jobData, err);
-          }
-        });
-      }
-
-      worker.on("error", (err) => {
-        console.error(`[BullMQ] Worker error for ${type}:`, err);
-      });
-
-      this.workers.set(type, worker);
-    }
+  /** Açık tüm kuyrukların sayaçlarını döner (name = kuyruk adı). */
+  async queueStatus(): Promise<QueueStatus[]> {
+    return Promise.all([...this.queues.values()].map((q) => q.stats()));
   }
 
-  private countResults(
-    counts: PromiseSettledResult<number>[],
-  ): [number, number, number, number, number] {
-    const value = (index: number): number => {
-      const item = counts[index];
-      return item && item.status === "fulfilled" ? item.value : 0;
-    };
-    return [value(0), value(1), value(2), value(3), value(4)];
-  }
-
-  async getQueueStatus(): Promise<QueueStatus[]> {
-    const results = await Promise.all(
-      Array.from(this.queues).map(async ([type, queue]) => {
-        const counts = await Promise.allSettled([
-          queue.getWaitingCount(),
-          queue.getActiveCount(),
-          queue.getCompletedCount(),
-          queue.getFailedCount(),
-          queue.getDelayedCount(),
-        ]);
-        const [waiting, active, completed, failed, delayed] =
-          this.countResults(counts);
-
-        return {
-          name: type,
-          waiting,
-          active,
-          completed,
-          failed,
-          delayed,
-        };
-      }),
-    );
-
-    return results;
-  }
-
-  async getQueueStats(type: JobType): Promise<QueueStatus | null> {
-    const queue = this.queues.get(type);
-    if (!queue) return null;
-
-    const counts = await Promise.allSettled([
-      queue.getWaitingCount(),
-      queue.getActiveCount(),
-      queue.getCompletedCount(),
-      queue.getFailedCount(),
-      queue.getDelayedCount(),
-    ]);
-    const [waiting, active, completed, failed, delayed] =
-      this.countResults(counts);
-
-    return { name: type, waiting, active, completed, failed, delayed };
-  }
-
+  /**
+   * Sağlık kontrolü: yalnızca redis ping'i.
+   * Hata durumunda throw ETMEZ — false döner.
+   */
   async health(): Promise<boolean> {
     try {
-      const redisHealth = await this.connection.ping();
-      if (!redisHealth) return false;
-
-      const queue = this.queues.get("READ_DEVICE");
-      if (queue) {
-        const counts = await queue.getJobCounts();
-        return counts !== undefined;
-      }
-      return true;
+      return await this.connection.ping();
     } catch (error) {
       console.error("[BullMQ] Health check failed:", error);
       return false;
     }
   }
 
+  /** Tüm worker, QueueEvents ve Queue kaynaklarını kapatır. */
   async close(): Promise<void> {
     await Promise.all(
-      Array.from(this.workers.values()).map((w) => w.close()),
+      [...this.workers.values()].flat().map((w) => w.close()),
     );
+    await Promise.all([...this.queues.values()].map((q) => q.close()));
+  }
 
-    await Promise.all(
-      Array.from(this.queueEvents.values()).map((qe) => qe.close()),
-    );
+  /** Facade'ın kurduğu worker'ları toplu kapatma için izler. */
+  private trackWorker(queueName: string, worker: Worker): void {
+    const list = this.workers.get(queueName) ?? [];
+    list.push(worker);
+    this.workers.set(queueName, list);
+  }
 
-    await Promise.all(
-      Array.from(this.queues.values()).map((q) => q.close()),
-    );
+  /** Queue/Worker/QueueEvents için Redis bağlantı bilgisi. */
+  private redisConnection(): RedisConnectionInfo {
+    const config = this.connection.connectionConfig();
+    return {
+      host: config.host || "localhost",
+      port: config.port || 6379,
+      password: config.password,
+      db: config.db,
+    };
   }
 }

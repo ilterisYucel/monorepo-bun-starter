@@ -46,7 +46,6 @@ describe("bitfieldFieldSchema", () => {
       label1: "On",
       scale: 0.5,
       offset: 10,
-      logType: "warning",
       tags: { area: "rack1" },
     });
     expect(r.success).toBe(true);
@@ -56,9 +55,12 @@ describe("bitfieldFieldSchema", () => {
     }
   });
 
-  it("rejects invalid logType", () => {
-    const r = bitfieldFieldSchema.safeParse({ ...validField, logType: "fatal" });
-    expect(r.success).toBe(false);
+  it("logType artık şemada yok (T0.11) — bilinmeyen anahtar strip edilir", () => {
+    const r = bitfieldFieldSchema.safeParse({ ...validField, logType: "warning" });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect("logType" in r.data).toBe(false);
+    }
   });
 });
 
