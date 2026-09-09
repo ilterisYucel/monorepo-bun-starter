@@ -1,0 +1,1 @@
+import"./SpriteTextureProvider-0LMkCiiU.js";
