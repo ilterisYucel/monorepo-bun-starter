@@ -67,6 +67,46 @@ export const routes: RouteObject[] = [
         path: "field/:fieldId/settings",
         element: <SettingsPage />,
       },
+
+      // Boss Faz 3 — tünel rotaları: boss iframe'i /fields/<fid>/ui altında
+      // uygulamayı açar; alan parametre adı `fieldId` korunur (useParams
+      // uyumluluğu). Saha-içi navigasyonlar fieldRootPath ile bu önekte kalır.
+      {
+        path: "fields/:fieldId/ui",
+        element: <FieldDashboardPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/containers",
+        element: <ContainersPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/containers/:containerId",
+        element: <ContainerDetailPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/pcs",
+        element: <FieldPcsPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/control",
+        element: <FieldControlPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/events",
+        element: <FieldEventsPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/reports",
+        element: <FieldReportsPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/devices",
+        element: <FieldDevicesPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/settings",
+        element: <SettingsPage />,
+      },
     ],
   },
 ];

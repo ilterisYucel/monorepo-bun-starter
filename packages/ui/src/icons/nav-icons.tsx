@@ -23,6 +23,7 @@ import {
   TbHandStop,
   TbRefresh,
   TbTrash,
+  TbPencil,
   TbPlus,
   TbRepeat,
   TbClock,
@@ -33,6 +34,7 @@ import {
   TbCommand,
   TbSettings,
   TbZoomScan,
+  TbArrowsMaximize,
   TbBox,
   TbX,
   TbFireExtinguisher,
@@ -43,6 +45,9 @@ import {
   TbCircuitSwitchOpen,
   TbOutlet,
   TbListDetails,
+  TbMap2,
+  TbBell,
+  TbCoins,
 } from "react-icons/tb";
 import type { ScadaIconName } from "./types";
 
@@ -69,6 +74,7 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   stop:              TbHandStop,
   refresh:           TbRefresh,
   trash:             TbTrash,
+  edit:              TbPencil,
   add:               TbPlus,
   continuous:        TbRepeat,
   timer:             TbClock,
@@ -80,6 +86,7 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   sourceScheduler:   TbClock,
   sourceSystem:      TbSettings,
   zoomIn:            TbZoomScan,
+  expand:            TbArrowsMaximize,
   container:         TbBox,
   menu:              TbInfoCircle,
   close:             TbX,
@@ -94,4 +101,7 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   dcOutput:          TbOutlet,
   scadaChart:        TbChartAreaLine,
   details:           TbListDetails,
+  map:               TbMap2,
+  notification:      TbBell,
+  market:            TbCoins,
 };

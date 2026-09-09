@@ -26,7 +26,7 @@ export interface OpenSessionOutcome {
 /**
  * Kayıt girdisi — POST /fields/:fieldId/containers/:containerId/register (T1.2).
  * 2026-08-30: containerUrl ALANI KALDIRILDI — field konteynere URL ile
- * bağlanmaz; bağlantı konteynerden field'a outbound WSS'tir (FieldConnector).
+ * bağlanmaz; bağlantı konteynerden field'a outbound WSS'tir (TunnelConnector).
  */
 export interface RegisterContainerPayload {
   containerId: string;
@@ -35,7 +35,7 @@ export interface RegisterContainerPayload {
 
 /**
  * containersApi — konteyner listeleme/telemetri/oturum uçları (Faz 5 T5.1/T5.3).
- * Tüm uçlar field web-service'te yaşar; telemetri snapshot'ları FieldConnector
+ * Tüm uçlar field web-service'te yaşar; telemetri snapshot'ları TunnelConnector
  * push'undan (RealtimeSnapshotSource) gelir.
  */
 export const containersApi = {

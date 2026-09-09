@@ -30,6 +30,10 @@ const bunSocketCompat: Plugin = {
 
 export default defineConfig({
   plugins: [react(), bunSocketCompat],
+  // Boss Faz 3: tünel modunda (boss iframe'i /fields/:fid/ui) asset yolları
+  // mutlak çözülür — base env'den verilir (field dev compose:
+  // VITE_TUNNEL_BASE=/fields/<FIELD_ID>/ui/). Normal dev'de "/" kalır.
+  base: process.env.VITE_TUNNEL_BASE || "/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -44,6 +48,9 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     host: true,
+    // Boss Faz 3: uplink tünelinden gelen isteklerin Host başlığı stack-içi
+    // servis adıdır ("web") — dev Vite host doğrulaması buna izin verir.
+    allowedHosts: ["web", ".docker.internal"],
     proxy: {
       "/api": {
         target: process.env.VITE_FIELD_SERVICE_URL || "http://localhost:5002",

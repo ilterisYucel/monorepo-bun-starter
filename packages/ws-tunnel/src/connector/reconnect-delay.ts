@@ -78,7 +78,7 @@ export class ReconnectDelay {
 
   /** Başarılı bağlantıda çağrılır — bir sonraki kopuş tabandan başlar. */
   reset(): void {
-    // Durum yok — hesaplama attempt girdisine dayanır; FieldConnector sayaç
+    // Durum yok — hesaplama attempt girdisine dayanır; TunnelConnector sayaç
     // tutar ve reset sonrası attempt'ı 1'e döndürür.
   }
 }

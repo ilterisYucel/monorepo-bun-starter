@@ -91,7 +91,7 @@ shared-types, result (leaf, no deps)
 | `result`       | **JENERİK** yaprak paket: `Result<T,E>` (Railway — ok/err, map, andThen, match, `okVoid`) + `DomainError` ailesi (kind → 4xx/5xx eşlemesi). Tüm paketler/servisler buradan import eder (2026-09-01: core/errors + ws-tunnel kopyası + shared-types basit Result birleşti) |
 | `tamper-logger` | **JENERİK** tamper-evident log kütüphanesi (ayrı ürün): `TamperLogger` (HMAC zinciri, fail-closed audit/security), sink'ler (console/file/timescale/syslog/webhook/smtp/sms), `verifyChain`, signing key. eventCode SERBEST string — sözlük `eventCodeValidator` ile enjekte edilir |
 | `platform/messaging` | `PlatformMessageQueue` (IMessageQueue implementasyonu) + `QUEUE_NAMES` + `JOB_RETRY_OPTIONS` — JobType'ı bilen TEK yer |
-| `ws-tunnel` | **JENERİK** çoklanmış WebSocket tüneli (ayrı ürün — tamper-logger deseni): `FrameCodec` (9 bayt başlık), kontrol mesaj protokolü (`protocol/messages.ts`), `FieldConnector` (durum makinesi + backoff), `TunnelClient` (stream multiplex + kredi + WS köprüsü), `ContainerSessionStore/Server` (konteyner oturumu — `ITokenSigner` enjeksiyonu), `ContainerSessionGateway`/`FieldSessionStore`/`TunnelProxy` (field tarafı — `IFieldChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu), jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` (types.ts), paket içi loopback demo (`src/demo/` + `examples/loopback-demo.mjs`). Bağımlılık: yalnızca `ws` + `zod` — TAM BAĞIMSIZ. Domain adapter'leri monorepo'da: `ContainerProxyFieldChannel`, `FastifyStreamSink`, `JoseTokenSigner`, `SessionAudit`, `SessionUserMap` |
+| `ws-tunnel` | **JENERİK** çoklanmış WebSocket tüneli (ayrı ürün — tamper-logger deseni; **iki deployment: field→container + field→boss**): `FrameCodec` (9 bayt başlık), kontrol mesaj protokolü (`protocol/messages.ts`, v2: `peerId`+`peerType`; olay bildirimi: `EventMessage`), `TunnelConnector` (durum makinesi + backoff), `TunnelClient` (stream multiplex + kredi + WS köprüsü), `ClientSessionStore/Server` (client oturumu — `ITokenSigner` enjeksiyonu), `SessionGateway`/`HubSessionStore`/`TunnelProxy` (hub tarafı — `IHubChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu), jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` (types.ts), paket içi loopback demo (`src/demo/` + `examples/loopback-demo.mjs`). Bağımlılık: yalnızca `ws` + `zod` — TAM BAĞIMSIZ. Domain adapter'leri monorepo'da: `ContainerProxyFieldChannel`, `FastifyStreamSink`, `JoseTokenSigner`, `SessionAudit`, `SessionUserMap` |
 | `platform/container-access` | Konteyner uzaktan erişim sözleşmeleri: `IContainerProxy`/`ContainerObserver` (tunnel frame codec/tipler 2026-09-01'de `@gd-monorepo/ws-tunnel`'a taşındı) |
 | `platform/logging` | `TIER_LOGGER_DEFAULTS` + `loggerConfigForTier` (container/field/boss tier varsayılanları) + GD-PMS olay sözlüğü (`LOG_EVENT_CODES`/`isLogEventCode`) |
 | `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/architecture/PLUGIN-MIMARISI.md`) |
@@ -275,26 +275,27 @@ The following optimizations were applied across the codebase to prevent Chrome S
 - **Resolve akışı:** `POST /api/unified/alarms/resolve` — admin/teknik; audit `alarm_resolved` (fail-closed — audit yazılamazsa çözme reddedilir); aktif olmayan alarm 409. Teknisyen bit=1'ken "çözüldü" işaretlese bile yeni log basılmaz (loglama fiziksel kenara bağlıdır; resolved satır meta verisidir).
 - **Restart:** device-service `start()` bayat aktif satırları kapatır + dedup state'ini sıfırlar (aktif koşul yeniden yükselen kenar sayılır).
 
-## FieldConnector sözleşmesi (MANDATORY — Faz 2)
+## TunnelConnector sözleşmesi (MANDATORY — Faz 2)
 
-- **Tek outbound WS (tasarım R4/R5):** Konteyner→field yalnızca `FIELD_WS_URL`'e outbound WSS; inbound TCP/HTTP YOKTUR. Kontrol mesajları + (Faz 3) tünel stream'leri AYNI kanaldan geçer.
+- **Tek outbound WS (tasarım R4/R5):** Client→hub yalnızca `FIELD_WS_URL`'e outbound WSS; inbound TCP/HTTP YOKTUR. Kontrol mesajları + (Faz 3) tünel stream'leri AYNI kanaldan geçer.
 - **Durum makinesi (tasarım §6):** `offline → connecting → registered → connected ↔ backoff`. Geçişler: register-ack ok → ilk heartbeat → connected; hata/401/register-timeout → backoff (`exp(2^n·1s)+jitter`, tavan 60 sn — `ReconnectDelay`); `stop()` → offline. Soket olaylarında `generation` koruması (bayat soket olayları yok sayılır).
-- **Bootstrap config (env):** `FIELD_CONNECT_ENABLED` (default false), `FIELD_WS_URL` (virgüllü liste — ana+yedek), `CONTAINER_TOKEN` (secret, redacted), `CONTAINER_ID`. Etkinse eksik env → **fail-fast açılış reddi** (`fieldConnectorConfig`). Yalnızca container tier'da geçerli.
-- **Operational config (canlı):** `register-ack.config` / `config-update` frame'leri → zod (`fieldOperationalConfigSchema`, bilinmeyen anahtar strip) → geçerliyse heartbeat/telemetry aralıkları **restart'sız** uygulanır; geçersiz → `field_config_rejected` + eski config korunur. Field tarafı: `ContainerProxy.pushConfigUpdate()` (DB saklama Faz 3/6 — DOGRULAMA S5).
-- **Liveness:** client her heartbeat'te ping atar; 60 sn pong yoksa bağlantı yarı-ölü → kapat + backoff. Field tarafı: heartbeat → `lastSeenAt`; son liveness işaretinden tam 45 sn sonra `"stale"` (per-entry zamanlayıcı); WS kapanırsa `"idle"` (kayıt + son telemetri korunur — §12.4).
+- **Register (v2):** `{ type:"register", peerId, peerType:"container"|"field", protocolVersion:2 }` — nötr şema; **v2-ONLY** (v1 `containerId` desteği 2026-09-08'de kaldırıldı — fallback YOK). Bootstrap env (container tier): `FIELD_CONNECT_ENABLED` (default false), `FIELD_WS_URL` (virgüllü liste — ana+yedek), `CONTAINER_TOKEN` (secret, redacted), `CONTAINER_ID` (→ `peerId`). Etkinse eksik env → **fail-fast açılış reddi** (`fieldConnectorConfig`). Yalnızca container tier'da geçerli.
+- **Operational config (canlı):** `register-ack.config` / `config-update` frame'leri → zod (`tunnelOperationalConfigSchema`, bilinmeyen anahtar strip) → geçerliyse heartbeat/telemetry aralıkları **restart'sız** uygulanır; geçersiz → `field_config_rejected` + eski config korunur. Hub tarafı: `ContainerProxy.pushConfigUpdate()` (DB saklama Faz 3/6 — DOGRULAMA S5).
+- **Liveness:** client her heartbeat'te ping atar; 60 sn pong yoksa bağlantı yarı-ölü → kapat + backoff. Hub tarafı: heartbeat → `lastSeenAt`; son liveness işaretinden tam 45 sn sonra `"stale"` (per-entry zamanlayıcı); WS kapanırsa `"idle"` (kayıt + son telemetri korunur — §12.4).
 - **Telemetri push:** `RealtimeSnapshotSource` = devices tablosu (`status='online'`) + RealtimeManager ring buffer başı; (deviceId,name) başına en yeni; hata → boş dizi (kademeli bozulma).
-- **Test:** field-connector branch kapısı ≥%90 (şu an %100); zaman davranışları `vi.useFakeTimers` ile; K2.1 gerçek-WS integration spec'i (`field-connector.spec.ts`) + `bun tools/field-connector-demo.mjs` gözle demosu.
+- **Test:** tunnel-connector branch kapısı ≥%90 (şu an %100); zaman davranışları `vi.useFakeTimers` ile; K2.1 gerçek-WS integration spec'i (`tunnel-connector.spec.ts`) + `bun tools/field-connector-demo.mjs` gözle demosu.
 
 ## Tünel sözleşmesi (MANDATORY — Faz 3)
 
-- **Tek kanal:** Tünel stream'leri FieldConnector'ın AYNI WS kanalından geçer; ayrı bağlantı YOKTUR. Text frame = kontrol mesajı, binary frame = akış verisi.
+- **Tek kanal:** Tünel stream'leri TunnelConnector'ın AYNI WS kanalından geçer; ayrı bağlantı YOKTUR. Text frame = kontrol mesajı, binary frame = akış verisi.
 - **Binary frame (§4.2):** 9 bayt başlık (streamId u32 BE + seq u32 BE + flags); flags `FIN 0x01 | RST 0x02 | WS_OP 0x04`; WS_OP varken yüksek 4 bit opcode. Codec `packages/ws-tunnel/src/codec/frame-codec.ts` (2026-09-01'de ayrı jenerik pakete taşındı) — `decode` **asla throw etmez** (`Result<_,FrameDecodeError>`); encode programcı hatasında throw eder. `seq` her iki tarafça AYRI sayaçtır.
-- **Stream yaşam döngüsü:** streamId'yi FIELD atar (monoton). Akış: `stream-open` → `stream-open-ack {statusCode, headers}` → BINARY gövde (≤64 KiB parça) → `FIN`; hata → `RST`; iki taraf da `stream-close` gönderebilir. HTTP akışlarında `stream-window` kredisi zorunludur (kredi yoksa gövde DURUR — deadlock yok: idle sweep kapatır).
-- **Yönlendirme (konteyner):** `/api/*` + `/ws/*` → `TUNNEL_API_UPSTREAM`; diğer her şey → `TUNNEL_STATIC_UPSTREAM` (nginx SPA). WS köprüsü aynı upstream'in `ws://` türevine bağlanır.
-- **Oturum (§5.4-§5.7):** `open-session` → konteyner KENDİ secret'iyle JWT üretir (`ITokenSigner` sözleşmesi; monorepo `JoseTokenSigner` implementasyonu `type:"container-session"` etiketi basar — access token'la karışmaz) → `open-session-ack`; cookie `container_session` **Path-scoped** `/containers/<cid>/ui`, HttpOnly. Field tarafı cookie'yi `FieldSessionStore`'a eşler; konteyner tarafı `ContainerSessionStore`'a. Kullanıcı konteyner DB'sine ASLA yazılmaz. Rol eşlemesi field'da: admin/teknik→admin, boss→guest, guest→oturum YOK.
-- **Allowlist (field, §5.6):** `/api/*`, `/ws/*`, `/assets/*`, `/favicon*`, `/`; YASAKLILAR: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/users`. Limitler: 1 etkileşimli oturum/konteyner, 16 eşzamanlı stream, pencere 256 KiB, TTL 4 sa, idle 15 dk.
+- **Stream yaşam döngüsü:** streamId'yi HUB atar (monoton). Akış: `stream-open` → `stream-open-ack {statusCode, headers}` → BINARY gövde (≤64 KiB parça) → `FIN`; hata → `RST`; iki taraf da `stream-close` gönderebilir. HTTP akışlarında `stream-window` kredisi zorunludur (kredi yoksa gövde DURUR — deadlock yok: idle sweep kapatır).
+- **Yönlendirme (client):** `/api/*` + `/ws/*` → `TUNNEL_API_UPSTREAM`; diğer her şey → `TUNNEL_STATIC_UPSTREAM` (nginx SPA). WS köprüsü aynı upstream'in `ws://` türevine bağlanır.
+- **Oturum (§5.4-§5.7):** `open-session` → client KENDİ secret'iyle JWT üretir (`ITokenSigner` sözleşmesi; monorepo `JoseTokenSigner` implementasyonu `type:"container-session"` etiketi basar — access token'la karışmaz) → `open-session-ack`; cookie `container_session` **Path-scoped** `/containers/<cid>/ui`, HttpOnly. Hub tarafı cookie'yi `HubSessionStore`'a eşler; client tarafı `ClientSessionStore`'a. Kullanıcı client DB'sine ASLA yazılmaz. Rol eşlemesi hub'da: admin/teknik→admin, boss→guest, guest→oturum YOK.
+- **Allowlist (hub, §5.6):** `/api/*`, `/ws/*`, `/assets/*`, `/favicon*`, `/`; YASAKLILAR: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/users`. Limitler: 1 etkileşimli oturum/peer, 16 eşzamanlı stream, pencere 256 KiB, TTL 4 sa, idle 15 dk. Allowlist/cookie adı deployment-bazlı config'le enjekte edilir (`PathAllowlist`, `cookieName`).
 - **Audit fail-closed:** `SessionAudit.open` security logu yazılamazsa oturum AÇILMAZ; `session_audit` INSERT açılışta, UPDATE kapanışta.
 - **Test:** codec + session-gateway + tunnel-client + tunnel-proxy branch ≥%90 (şu an %92.5-100); uçtan uca `tunnel.spec.ts` (K3.1-K3.3) + `bun tools/tunnel-demo.mjs` gözle demosu.
+- **İkinci deployment (boss uplink):** Aynı paket field→boss topolojisinde de çalışır (`peerType:"field"`; boss'ta `SessionGateway`+`TunnelProxy`, field'da `TunnelConnector`) — ayrıntı: [BOSS-UYGULAMA-MIMARISI.md](docs/architecture/BOSS-UYGULAMA-MIMARISI.md) §7.4 + [WS-TUNNEL-URUN-TESCILI.md](docs/architecture/WS-TUNNEL-URUN-TESCILI.md).
 
 ## Device transport strategy (MANDATORY)
 
@@ -803,3 +804,16 @@ All code MUST adhere to the following object-oriented design principles derived 
 
 
 <!-- nx configuration end-->
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

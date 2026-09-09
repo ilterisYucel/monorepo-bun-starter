@@ -118,3 +118,12 @@ __pycache__/
 # tsc build artıkları (composite projelerde src içine yanlışlıkla emit olabilir)
 **/src/**/*.d.ts
 **/src/**/*.d.ts.map
+
+# ============================================
+# SECRETS — deployment/servis konfigürasyonları
+# ============================================
+deployment/.env.container
+deployment/.env.field
+deployment/.env.boss
+# EPİAŞ canlı kimlik bilgileri (example şablonu commit'lidir)
+services/integration-service/config/plugins/epias-market-prices.json

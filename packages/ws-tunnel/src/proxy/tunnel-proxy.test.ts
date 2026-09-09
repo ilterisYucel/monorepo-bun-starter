@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   TunnelProxy,
-  containerSessionCookie,
+  sessionCookieValue,
   isPathAllowed,
 } from "./tunnel-proxy";
-import { FieldSessionStore } from "./field-session-store";
+import { HubSessionStore } from "./hub-session-store";
 import { FrameCodec, FLAG_FIN, FLAG_RST, FLAG_WS_OP, WS_OPCODE } from "../codec";
-import type { IFieldChannel } from "../channel";
+import type { IHubChannel } from "../channel";
 import type { ILogger } from "../logger";
 import type { IStreamSink } from "./stream-sink";
-import type { FieldSession } from "./field-session-store";
+import type { HubSession } from "./hub-session-store";
 import type { TunnelUser } from "../types";
 
 /**
@@ -29,10 +29,10 @@ const user: TunnelUser = {
   role: "teknik",
 };
 
-function makeSession(): FieldSession {
+function makeSession(): HubSession {
   return {
     sessionId: "s-1",
-    containerId: "c-1",
+    peerId: "c-1",
     token: "container-jwt",
     user,
     containerRole: "admin",
@@ -64,7 +64,7 @@ function makeFakeChannel() {
       binarySubscribers.add(cb);
       return () => binarySubscribers.delete(cb);
     },
-  } as IFieldChannel;
+  } as IHubChannel;
   return {
     channel,
     sentControls,
@@ -96,19 +96,19 @@ function makeFakeSink() {
 const codec = new FrameCodec();
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe("containerSessionCookie", () => {
+describe("sessionCookieValue", () => {
   it("cookie başlığından değeri çözer", () => {
     expect(
-      containerSessionCookie("a=1; container_session=xyz; b=2"),
+      sessionCookieValue("a=1; container_session=xyz; b=2"),
     ).toBe("xyz");
   });
   it("yoksa undefined", () => {
-    expect(containerSessionCookie("a=1; b=2")).toBeUndefined();
-    expect(containerSessionCookie(undefined)).toBeUndefined();
+    expect(sessionCookieValue("a=1; b=2")).toBeUndefined();
+    expect(sessionCookieValue(undefined)).toBeUndefined();
   });
   it("bozuk parçalar atlanır", () => {
-    expect(containerSessionCookie("bare; container_session=abc")).toBe("abc");
-    expect(containerSessionCookie("bare")).toBeUndefined();
+    expect(sessionCookieValue("bare; container_session=abc")).toBe("abc");
+    expect(sessionCookieValue("bare")).toBeUndefined();
   });
 });
 
@@ -128,12 +128,12 @@ describe("isPathAllowed (§5.6)", () => {
 
 describe("TunnelProxy HTTP akışı (T3.3)", () => {
   let fake: ReturnType<typeof makeFakeChannel>;
-  let store: FieldSessionStore;
+  let store: HubSessionStore;
   let proxy: TunnelProxy;
 
   beforeEach(() => {
     fake = makeFakeChannel();
-    store = new FieldSessionStore();
+    store = new HubSessionStore();
     store.register(makeSession());
     proxy = new TunnelProxy(fake.channel, store, undefined);
     proxy.initialize();
@@ -442,12 +442,12 @@ describe("TunnelProxy HTTP akışı (T3.3)", () => {
 
 describe("TunnelProxy WS köprüsü (T3.3)", () => {
   let fake: ReturnType<typeof makeFakeChannel>;
-  let store: FieldSessionStore;
+  let store: HubSessionStore;
   let proxy: TunnelProxy;
 
   beforeEach(() => {
     fake = makeFakeChannel();
-    store = new FieldSessionStore();
+    store = new HubSessionStore();
     store.register(makeSession());
     proxy = new TunnelProxy(fake.channel, store, undefined);
     proxy.initialize();
@@ -512,7 +512,7 @@ describe("TunnelProxy WS köprüsü (T3.3)", () => {
     const streamId = await start;
     expect(streamId).toBe(sid);
 
-    proxy.sendWsToContainer(streamId, Buffer.from("subscribe"), false);
+    proxy.sendWsToPeer(streamId, Buffer.from("subscribe"), false);
     const frame = codec.decode(new Uint8Array(fake.sentBinary[0])).unwrap();
     expect(frame.flags & FLAG_WS_OP).toBe(FLAG_WS_OP);
     expect(frame.opcode).toBe(WS_OPCODE.Text);
@@ -599,13 +599,13 @@ describe("TunnelProxy WS köprüsü (T3.3)", () => {
     const sid = (fake.sentControls[0] as { streamId: number }).streamId;
     fake.emitControl({ type: "stream-open-ack", streamId: sid, statusCode: 101 });
     const streamId = await start;
-    proxy.sendWsToContainer(streamId!, Buffer.from([1, 2, 3]), true);
+    proxy.sendWsToPeer(streamId!, Buffer.from([1, 2, 3]), true);
     const frame = codec.decode(new Uint8Array(fake.sentBinary[0])).unwrap();
     expect(frame.opcode).toBe(WS_OPCODE.Binary);
   });
 
   it("bilinmeyen streamId'ye WS mesajı yok sayılır", () => {
-    expect(() => proxy.sendWsToContainer(999, Buffer.from("x"), false)).not.toThrow();
+    expect(() => proxy.sendWsToPeer(999, Buffer.from("x"), false)).not.toThrow();
     expect(() => proxy.closeWs(999, "x")).not.toThrow();
   });
 });

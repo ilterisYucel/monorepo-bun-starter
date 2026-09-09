@@ -1,13 +1,13 @@
 import styled from "@emotion/styled";
 import { COLORS } from "../../colors";
 
-export const MapWrapper = styled.div<{ $height: number | string }>`
+export const MapWrapper = styled.div<{ $height: number | string; $frameless?: boolean }>`
   width: 100%;
   height: ${({ $height }) =>
     typeof $height === "number" ? `${$height}px` : $height};
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid ${COLORS.borderDefault};
+  border: ${({ $frameless }) => ($frameless ? "none" : `1px solid ${COLORS.borderDefault}`)};
 
   .leaflet-container {
     background: ${COLORS.bgApp};
@@ -28,18 +28,20 @@ export const MapWrapper = styled.div<{ $height: number | string }>`
   }
 
   .leaflet-popup-content-wrapper {
-    background: ${COLORS.bgCard} !important;
+    background: transparent !important;
     color: ${COLORS.textPrimary} !important;
-    border-radius: 12px !important;
-    border: 1px solid ${COLORS.borderDefault} !important;
+    border-radius: 14px !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .leaflet-popup-tip {
-    background: ${COLORS.bgCard} !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   .leaflet-popup-content {
-    margin: 10px 14px !important;
+    margin: 6px !important;
     font-size: 12px !important;
     line-height: 1.6 !important;
   }
@@ -49,43 +51,29 @@ export const MapWrapper = styled.div<{ $height: number | string }>`
   }
 `;
 
-export const PopupTitle = styled.div`
-  font-weight: 700;
-  font-size: 13px;
-  margin-bottom: 6px;
-  color: ${COLORS.textWhite};
+export const PopupCard = styled.div`
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
-export const PopupRow = styled.div`
-  font-size: 11px;
-  color: ${COLORS.textMuted};
+export const DetailButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 6px;
-`;
+  justify-content: center;
+  width: 100%;
+  min-height: 30px;
+  margin-top: 10px;
+  background: ${COLORS.infoDark};
+  border: none;
+  border-radius: 8px;
+  color: ${COLORS.textWhite};
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
 
-export const PopupStatus = styled.span<{ $status: "online" | "warning" | "offline" }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 600;
-  color: ${({ $status }) =>
-    $status === "online"
-      ? COLORS.success
-      : $status === "warning"
-        ? COLORS.warning
-        : COLORS.error};
-`;
-
-export const PopupDot = styled.span<{ $status: "online" | "warning" | "offline" }>`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  background: ${({ $status }) =>
-    $status === "online"
-      ? COLORS.success
-      : $status === "warning"
-        ? COLORS.warning
-        : COLORS.error};
+  &:hover {
+    background: ${COLORS.infoHover};
+  }
 `;

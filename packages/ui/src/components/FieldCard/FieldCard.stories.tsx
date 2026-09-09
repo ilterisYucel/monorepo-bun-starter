@@ -1,10 +1,21 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FieldCard } from "./FieldCard";
+import { TranslationProvider } from "../../core/TranslationProvider";
+import { TR_DICT } from "../../i18n/tr";
+import { EN_DICT } from "../../i18n/en";
+
+const withTranslation = (Story: React.ComponentType) => (
+  <TranslationProvider dictionaries={{ tr: TR_DICT, en: EN_DICT }} defaultLocale="tr">
+    <Story />
+  </TranslationProvider>
+);
 
 const meta: Meta<typeof FieldCard> = {
   title: "Components/FieldCard",
   component: FieldCard,
   tags: ["autodocs"],
+  decorators: [withTranslation],
 };
 
 export default meta;

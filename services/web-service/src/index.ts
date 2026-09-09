@@ -67,6 +67,12 @@ export async function main() {
   const tunnelProxy = c.tunnelProxy as any;
   const sessionAudit = c.sessionAudit as any;
   const telemetryQueryResponder = c.telemetryQueryResponder as any;
+  const uplinkConnector = c.uplinkConnector as any;
+  const uplinkSessionServer = c.uplinkSessionServer as any;
+  const uplinkTunnelClient = c.uplinkTunnelClient as any;
+  const uplinkSessionStore = c.uplinkSessionStore as any;
+  const fieldTunnelPathAllowlist = c.fieldTunnelPathAllowlist as any;
+  const fieldSessionAudit = c.fieldSessionAudit as any;
 
   const deps: ServerDependencies = {
     serverConfig: serverCfg,
@@ -88,8 +94,17 @@ export async function main() {
     realtime,
     containerProxy: c.containerProxy as any,
     fieldPoller: c.fieldPoller as any,
+    marketSeries: c.marketSeries as any,
+    fieldRegistry: c.fieldRegistry as any,
+    fieldGateway: c.fieldGateway as any,
+    fieldTunnelProxy: c.fieldTunnelProxy as any,
+    wireGuard: c.wireGuard as any,
+    fieldEventCollector: c.fieldEventCollector as any,
+    uplinkEventRelay: c.uplinkEventRelay as any,
     fieldConnector: c.fieldConnector as any,
     sessionStore,
+    uplinkSessionStore,
+    fieldTunnelPathAllowlist,
     sessionGateway,
     tunnelProxy,
     mvManager,
@@ -103,19 +118,23 @@ export async function main() {
   // Bu çağrı, TimescaleDB'nin hypertable'larına add_retention_policy,
   // add_compression_policy ve set_chunk_time_interval komutlarını gönderir.
   // Eğer politikalar zaten varsa (if_not_exists => true) tekrar eklenmez.
-  try {
-    const devices = await postgres.query<{ id: string }>(
-      "SELECT id FROM devices",
-    );
-    console.log(
-      `[run] ${devices.length} cihaz icin retention kontrol ediliyor...`,
-    );
-    await Promise.allSettled(
-      devices.map((d) => timescale.runRetention(d.id)),
-    );
-    console.log("[run] Retention politikasi kontrolu tamamlandi.");
-  } catch (err) {
-    console.error("[run] Retention kontrolu basarisiz (devam ediliyor):", err);
+  // Yalnızca container tier'da cihazlar vardır — boss/field tier'da `devices`
+  // tablosu yoktur (boş hata gürültüsü çıkarmamak için tier guard).
+  if (tier === "container") {
+    try {
+      const devices = await postgres.query<{ id: string }>(
+        "SELECT id FROM devices",
+      );
+      console.log(
+        `[run] ${devices.length} cihaz icin retention kontrol ediliyor...`,
+      );
+      await Promise.allSettled(
+        devices.map((d) => timescale.runRetention(d.id)),
+      );
+      console.log("[run] Retention politikasi kontrolu tamamlandi.");
+    } catch (err) {
+      console.error("[run] Retention kontrolu basarisiz (devam ediliyor):", err);
+    }
   }
 
   let stopping = false;
@@ -132,6 +151,14 @@ export async function main() {
     if (deps.tunnelProxy) deps.tunnelProxy.stop();
     if (deps.fieldPoller) deps.fieldPoller.stop();
     if (deps.fieldConnector) await deps.fieldConnector.stop();
+    if (deps.fieldGateway) deps.fieldGateway.stop();
+    if (deps.fieldTunnelProxy) deps.fieldTunnelProxy.stop();
+    if (deps.fieldEventCollector) deps.fieldEventCollector.stop();
+    if (deps.uplinkEventRelay) deps.uplinkEventRelay.stop();
+    if (deps.fieldRegistry) await deps.fieldRegistry.stop();
+    if (uplinkConnector) await uplinkConnector.stop();
+    if (uplinkSessionServer) uplinkSessionServer.stop();
+    if (uplinkTunnelClient) uplinkTunnelClient.stop();
     await mq.close();
     await timescale.close();
     await postgres.disconnect();
@@ -194,7 +221,43 @@ export async function main() {
   if (deps.fieldPoller) {
     await deps.fieldPoller.start();
   }
-  // Faz 2: FieldConnector sunucu dinlemeye başladıktan sonra bağlanır —
+  if (deps.wireGuard) {
+    await deps.wireGuard.ensureSchema();
+  }
+  // Boss tier (Faz 3): field uplink kabulü — registry şeması + start;
+  // gateway/tunnel proxy observer'ları kanala abone olur.
+  if (deps.fieldRegistry) {
+    await deps.fieldRegistry.ensureSchema();
+    if (deps.fieldEventCollector) {
+      await deps.fieldEventCollector.ensureSchema();
+      deps.fieldEventCollector.attach(deps.fieldRegistry);
+    }
+    if (fieldSessionAudit) {
+      await fieldSessionAudit.ensureSchema();
+    }
+    await deps.fieldRegistry.start();
+    if (deps.fieldGateway) {
+      deps.fieldGateway.initialize();
+    }
+    if (deps.fieldTunnelProxy) {
+      deps.fieldTunnelProxy.initialize();
+    }
+  }
+  // Field tier (Faz 3): boss cloud'a outbound uplink — tünel + oturum
+  // katmanları aynı kanala abone olur.
+  if (uplinkConnector) {
+    await uplinkConnector.start();
+    if (deps.uplinkEventRelay) {
+      deps.uplinkEventRelay.start();
+    }
+    if (uplinkTunnelClient) {
+      uplinkTunnelClient.attach(uplinkConnector);
+    }
+    if (uplinkSessionServer) {
+      uplinkSessionServer.start();
+    }
+  }
+  // Faz 2: TunnelConnector sunucu dinlemeye başladıktan sonra bağlanır —
   // register ack'i beklemez; kendi backoff döngüsünü yönetir.
   if (deps.fieldConnector) {
     await deps.fieldConnector.start();

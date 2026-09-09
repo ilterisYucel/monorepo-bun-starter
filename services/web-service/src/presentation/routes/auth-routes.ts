@@ -30,7 +30,11 @@ export async function makeAuthRoutes(
       return reply.status(401).send({ error: "Oturum yok" });
     }
     const cookie = request.headers.cookie ?? "";
-    const tunnel = cookie.includes("container_session=");
+    // Konteyner tüneli (container_session) VE boss field tüneli (field_session)
+    // aynı hydrate sözleşmesini paylaşır.
+    const tunnel =
+      cookie.includes("container_session=") ||
+      cookie.includes("field_session=");
     return reply.send({ user, tunnel });
   });
 

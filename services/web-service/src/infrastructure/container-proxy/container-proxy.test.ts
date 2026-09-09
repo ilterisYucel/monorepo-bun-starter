@@ -354,7 +354,7 @@ describe("container-proxy karakterizasyon (değişmeyen davranışlar)", () => {
 
 /**
  * T2.4 — register-ack + heartbeat + lastSeenAt + stale sözleşmesi:
- * - Başarılı register `register-ack {status:"ok"}` gönderir (FieldConnector
+ * - Başarılı register `register-ack {status:"ok"}` gönderir (TunnelConnector
  *   bunu bekler — onsuz konteyner asla "connected" olamaz).
  * - Reddedilen register `register-ack {status:"rejected"}` + kapatma.
  * - Heartbeat `lastSeenAt`'i tazeler; 45 sn sessizlik → "stale" (tam 45 sn'de,

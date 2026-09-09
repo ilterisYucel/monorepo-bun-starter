@@ -78,6 +78,7 @@ export const FIELD_TR_DICT = {
   "frame.closeFullscreen": "Tam Ekrandan Çık",
   "frame.opening": "Oturum açılıyor...",
   "frame.openFailed": "Oturum açılamadı — konteyner bağlı mı kontrol edin",
+  "tunnel.sessionFailed": "Uzaktan görünüm oturumu açılamadı — boss tarafındaki saha oturumunu kontrol edin",
   "container.devices": "Cihazlar",
   "container.label": "Konteyner:",
   "container.register.title": "Konteyner Kaydet",

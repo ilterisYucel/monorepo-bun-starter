@@ -1,10 +1,21 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FieldMap } from "./FieldMap";
+import { TranslationProvider } from "../../core/TranslationProvider";
+import { TR_DICT } from "../../i18n/tr";
+import { EN_DICT } from "../../i18n/en";
+
+const withTranslation = (Story: React.ComponentType) => (
+  <TranslationProvider dictionaries={{ tr: TR_DICT, en: EN_DICT }} defaultLocale="tr">
+    <Story />
+  </TranslationProvider>
+);
 
 const meta: Meta<typeof FieldMap> = {
   title: "Components/FieldMap",
   component: FieldMap,
   tags: ["autodocs"],
+  decorators: [withTranslation],
 };
 
 export default meta;
@@ -50,6 +61,7 @@ export const Default: Story = {
   args: {
     fields,
     height: 420,
+    detailLabel: "Sahaya Git",
   },
 };
 

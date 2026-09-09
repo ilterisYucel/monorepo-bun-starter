@@ -257,6 +257,7 @@ describe("rbac Faz 3 (oturum auth + tünel yolları)", () => {
     app.get("/api/data/x", () => ({ ok: true }));
     app.post("/api/commands", () => ({ ok: true }));
     app.get("/containers/c-1/ui/", () => ({ ok: true }));
+    app.get("/fields/f-1/ui/", () => ({ ok: true }));
     return app;
   }
 
@@ -269,6 +270,43 @@ describe("rbac Faz 3 (oturum auth + tünel yolları)", () => {
       method: "GET",
       url: "/api/data/x",
       headers: { cookie: "container_session=xyz; a=1" },
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("sessionCookieName: field_session — boss field oturumu Bearer'sız erişir", async () => {
+    const app = Fastify();
+    app.addHook(
+      "onRequest",
+      createRbacHook(makeTokens(null), {
+        sessionCookieName: "field_session",
+        sessionAuthenticator: async () => makeUser("admin"),
+      }),
+    );
+    app.get("/api/data/x", () => ({ ok: true }));
+    await app.ready();
+
+    const ok = await app.inject({
+      method: "GET",
+      url: "/api/data/x",
+      headers: { cookie: "field_session=jwt-token" },
+    });
+    expect(ok.statusCode).toBe(200);
+
+    // Farklı cookie (container_session) tanınmaz → Bearer gerekir → 401.
+    const wrong = await app.inject({
+      method: "GET",
+      url: "/api/data/x",
+      headers: { cookie: "container_session=xyz" },
+    });
+    expect(wrong.statusCode).toBe(401);
+  });
+
+  it("field tünel yolları JWT'siz erişilir (cookie doğrulama route'ta — Boss Faz 3)", async () => {
+    const app = await buildSessionApp(makeTokens(null), undefined);
+    const res = await app.inject({
+      method: "GET",
+      url: "/fields/f-1/ui/",
     });
     expect(res.statusCode).toBe(200);
   });

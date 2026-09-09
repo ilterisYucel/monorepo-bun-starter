@@ -15,3 +15,5 @@ Thumbs.db
 .vscode
 .idea
 *.md
+# EPİAŞ canlı kimlik bilgileri imaja PİŞMEZ — runtime bind mount ile verilir
+services/integration-service/config/plugins/epias-market-prices.json

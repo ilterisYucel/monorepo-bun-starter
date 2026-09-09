@@ -92,6 +92,15 @@ services:
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
+      # Boss Faz 3: field uplink (opsiyonel — FIELD_UPLINK_ENABLED=false ise kapalı)
+      FIELD_UPLINK_ENABLED: ${FIELD_UPLINK_ENABLED:-false}
+      FIELD_UPLINK_WS_URL: ${FIELD_UPLINK_WS_URL:-ws://host.docker.internal:5003/ws/field}
+      FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}
+      # Boss'tan gelen field-app tünel akışlarının upstream'leri (loopback)
+      TUNNEL_FIELD_API_UPSTREAM: ${TUNNEL_FIELD_API_UPSTREAM:-http://web-service:5002}
+      TUNNEL_FIELD_STATIC_UPSTREAM: ${TUNNEL_FIELD_STATIC_UPSTREAM:-http://web:80}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "5002:5002"
     depends_on:

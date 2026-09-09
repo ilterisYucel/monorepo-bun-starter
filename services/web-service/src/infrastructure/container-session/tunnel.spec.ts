@@ -7,18 +7,18 @@ import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { ILogSink, LogEvent } from "@gd-monorepo/tamper-logger";
 
 import {
-  FieldConnector,
+  TunnelConnector,
   WsSocketClientFactory,
   ReconnectDelay,
-  ContainerSessionStore,
-  ContainerSessionServer,
+  ClientSessionStore,
+  ClientSessionServer,
   TunnelClient,
 } from "@gd-monorepo/ws-tunnel";
 import { JoseTokenSigner } from "../auth/jose-token-signer";
 import { ContainerProxy } from "../container-proxy/container-proxy";
 import {
-  FieldSessionStore,
-  ContainerSessionGateway,
+  HubSessionStore,
+  SessionGateway,
   TunnelProxy,
 } from "@gd-monorepo/ws-tunnel";
 import { SessionAudit } from "./session-audit";
@@ -30,7 +30,7 @@ import type { User } from "@gd-monorepo/shared-types";
 /**
  * Faz 3 uçtan uca integration — K3.1/K3.2/K3.3 kanıtı (gerçek WS):
  *
- * Container tarafı: FieldConnector (gerçek ws) + ContainerSessionStore/Server +
+ * Container tarafı: TunnelConnector (gerçek ws) + ClientSessionStore/Server +
  * TunnelClient; field tarafı: ContainerProxy (gerçek ws server) + Gateway +
  * TunnelProxy + SessionAudit. Arada TCP loopback üzerinden TEK WS kanalı.
  *
@@ -115,12 +115,12 @@ const waitFor = (cond: () => boolean, timeoutMs: number) =>
 describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
   let fieldWss: WebSocketServer;
   let fieldPort: number;
-  let containerConnector: FieldConnector;
-  let containerServer: ContainerSessionServer;
+  let containerConnector: TunnelConnector;
+  let containerServer: ClientSessionServer;
   let tunnelClient: TunnelClient;
   let fieldProxy: ContainerProxy;
-  let fieldStore: FieldSessionStore;
-  let gateway: ContainerSessionGateway;
+  let fieldStore: HubSessionStore;
+  let gateway: SessionGateway;
   let tunnelProxy: TunnelProxy;
   let logger: TamperLogger;
   let sink: MemorySink;
@@ -176,10 +176,10 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
       void fieldProxy.registerContainer(CONTAINER_ID, socket, TOKEN);
     });
 
-    fieldStore = new FieldSessionStore();
+    fieldStore = new HubSessionStore();
     const audit = new SessionAudit(fakeSql(auditInserts), logger);
     const gatewayChannel = new ContainerProxyFieldChannel(fieldProxy);
-    gateway = new ContainerSessionGateway(
+    gateway = new SessionGateway(
       gatewayChannel,
       fieldStore,
       audit,
@@ -191,15 +191,15 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
     tunnelProxy = new TunnelProxy(proxyChannel, fieldStore, logger);
     tunnelProxy.initialize();
 
-    // --- konteyner: FieldConnector + session + tunnel ---
-    const store = new ContainerSessionStore(
+    // --- konteyner: TunnelConnector + session + tunnel ---
+    const store = new ClientSessionStore(
       new JoseTokenSigner("container-secret-0123456789abcdef"),
     );
-    containerConnector = new FieldConnector(
+    containerConnector = new TunnelConnector(
       {
         wsUrls: [`ws://127.0.0.1:${fieldPort}`],
         token: TOKEN,
-        containerId: CONTAINER_ID,
+        peerId: CONTAINER_ID,
         heartbeatIntervalMs: 1000,
         telemetryIntervalMs: 1000,
         registerTimeoutMs: 2000,
@@ -209,7 +209,7 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
       { snapshot: async () => [] },
       new ReconnectDelay({ baseMs: 200, maxMs: 500, jitterSpanMs: 0, jitter: () => 0 }),
     );
-    containerServer = new ContainerSessionServer(containerConnector, store, logger);
+    containerServer = new ClientSessionServer(containerConnector, store, logger);
     containerServer.start();
     tunnelClient = TunnelClient.create({
       webServiceUrl: `http://127.0.0.1:${upstreamPort}`,
@@ -228,7 +228,7 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
     );
 
     void containerConnector.start();
-    await waitFor(() => containerConnector.fieldConnected(), 5000);
+    await waitFor(() => containerConnector.connected(), 5000);
   });
 
   afterEach(async () => {
@@ -244,17 +244,17 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
   it("K3.1: curl benzeri GET / → HTML akar (FIN ile biter)", async () => {
     const outcome = await gateway.openSession({
       fieldId: "f-1",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user,
     });
     expect(outcome.isOk()).toBe(true);
     const session = outcome.unwrap();
     fieldStore.register({
       sessionId: session.sessionId,
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       token: session.token,
       user,
-      containerRole: session.containerRole,
+      peerRole: session.peerRole,
       createdAt: 0,
       lastActivityAt: 0,
       bytesIn: 0,
@@ -277,16 +277,16 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
   it("K3.2: GET /api/data/latest → JSON akar", async () => {
     const outcome = await gateway.openSession({
       fieldId: "f-1",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user,
     });
     const session = outcome.unwrap();
     fieldStore.register({
       sessionId: session.sessionId,
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       token: session.token,
       user,
-      containerRole: session.containerRole,
+      peerRole: session.peerRole,
       createdAt: 0,
       lastActivityAt: 0,
       bytesIn: 0,
@@ -308,16 +308,16 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
   it("K3.2: /ws köprüsü çift yönlü WS_OP mesajı taşır", async () => {
     const outcome = await gateway.openSession({
       fieldId: "f-1",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user,
     });
     const session = outcome.unwrap();
     fieldStore.register({
       sessionId: session.sessionId,
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       token: session.token,
       user,
-      containerRole: session.containerRole,
+      peerRole: session.peerRole,
       createdAt: 0,
       lastActivityAt: 0,
       bytesIn: 0,
@@ -339,7 +339,7 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
     });
     expect(streamId).toBeDefined();
 
-    tunnelProxy.sendWsToContainer(streamId!, Buffer.from("subscribe"), false);
+    tunnelProxy.sendWsToPeer(streamId!, Buffer.from("subscribe"), false);
     await waitFor(() => browserReceived.length >= 1, 5000);
     expect(browserReceived[0]).toBe("subscribe");
   });
@@ -347,7 +347,7 @@ describe("Faz 3 uçtan uca tünel (K3.1-K3.3)", () => {
   it("K3.3: session_audit INSERT + session_open security logu", async () => {
     const outcome = await gateway.openSession({
       fieldId: "f-1",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user,
     });
     expect(outcome.isOk()).toBe(true);

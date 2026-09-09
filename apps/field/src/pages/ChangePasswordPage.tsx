@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
+import { fieldRootPath } from "../lib/api-base";
 import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
 /**
@@ -36,7 +37,7 @@ export const ChangePasswordPage: React.FC = () => {
         return;
       }
       const firstFieldId = user?.fieldIds?.[0] ?? "default-field";
-      navigate(`/field/${firstFieldId}`, { replace: true });
+      navigate(`${fieldRootPath(firstFieldId)}`, { replace: true });
     } catch {
       setError(t("auth.changePasswordError"));
     }

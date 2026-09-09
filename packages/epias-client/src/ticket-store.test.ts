@@ -43,6 +43,27 @@ describe("EpiasTicketStore", () => {
     expect(fetchFn).toHaveBeenCalledOnce();
   });
 
+  it("CAS HTML yanitindan TGT'yi ayiklar (canli form cevabi)", async () => {
+    const html =
+      '<html><body><form action="https://giris.epias.com.tr/cas/v1/tickets/TGT-1732003-vOGXpEdy--eU9JPhagtJk7TIsOaEEjbdUBlp4WxU8RpqiN0DKioE2JTfnzQDnXRIVPU-cas" method="POST">Service:<input type="text" name="service"></form></body></html>';
+    const fetchFn = vi.fn<FetchLike>(async () => casResponse(201, html));
+    const store = new EpiasTicketStore({ filePath, casUrl: CAS_URL, fetchFn });
+    const ticket = await store.ticket(USER, "parola");
+    expect(ticket).toBe(
+      "TGT-1732003-vOGXpEdy--eU9JPhagtJk7TIsOaEEjbdUBlp4WxU8RpqiN0DKioE2JTfnzQDnXRIVPU-cas",
+    );
+  });
+
+  it("TGT'siz HTML → hata firlatir (ticket cache'e girmez)", async () => {
+    const fetchFn = vi.fn<FetchLike>(async () =>
+      casResponse(201, "<html>bos</html>"),
+    );
+    const store = new EpiasTicketStore({ filePath, casUrl: CAS_URL, fetchFn });
+    await expect(store.ticket(USER, "parola")).rejects.toThrow(
+      "TGT bulunamadi",
+    );
+  });
+
   it("gecerli bilet varken CAS'e tekrar istek atmaz (throttle korumasi)", async () => {
     const fetchFn = vi.fn<FetchLike>(async () => casResponse(201, "TGT-1"));
     const store = new EpiasTicketStore({

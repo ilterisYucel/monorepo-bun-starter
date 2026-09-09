@@ -39,8 +39,8 @@ export interface ISocketClientFactory {
 }
 
 /**
- * ITunnelChannel — konteyner tarafı kanal (TEK outbound bağlantı).
- * FieldConnector bu sözleşmeyi uygular; TunnelClient `attach(channel)` ile
+ * ITunnelChannel — client tarafı kanal (TEK outbound bağlantı).
+ * TunnelConnector bu sözleşmeyi uygular; TunnelClient `attach(channel)` ile
  * tünel akışlarını aynı WS üzerinden çoklar.
  */
 export interface ITunnelChannel {
@@ -51,14 +51,15 @@ export interface ITunnelChannel {
 }
 
 /**
- * IFieldChannel — field tarafı kanal (konteyner başına containerId).
+ * IHubChannel — hub tarafı kanal (peer başına peerId).
  * Monorepo implementasyonu: `ContainerProxyFieldChannel` (ContainerProxy
  * adapter'i — sendControl/sendBinary/observer + bağlantı durumu).
+ * İkinci deployment (boss uplink) aynı sözleşmeyi field kayıtları için uygular.
  */
-export interface IFieldChannel {
-  sendControl(containerId: string, message: unknown): void;
-  sendBinary(containerId: string, data: Buffer): void;
-  onControlMessage(subscriber: (containerId: string, message: unknown) => void): () => void;
-  onBinaryFrame(subscriber: (containerId: string, data: Buffer) => void): () => void;
-  isConnected(containerId: string): boolean;
+export interface IHubChannel {
+  sendControl(peerId: string, message: unknown): void;
+  sendBinary(peerId: string, data: Buffer): void;
+  onControlMessage(subscriber: (peerId: string, message: unknown) => void): () => void;
+  onBinaryFrame(subscriber: (peerId: string, data: Buffer) => void): () => void;
+  isConnected(peerId: string): boolean;
 }

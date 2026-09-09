@@ -15,6 +15,8 @@ interface AdminFieldRow {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  /** Saha tipi (wind | solar | hydro | battery | general ...) — harita glifi. */
+  field_type: string | null;
 }
 
 export class FieldPoller {
@@ -60,6 +62,10 @@ export class FieldPoller {
         updated_at TIMESTAMPTZ DEFAULT now()
       )
     `);
+    // Saha tipi (harita glifi — rüzgar/güneş/HES/batarya/genel) sonradan eklendi.
+    await this.db.execute(
+      `ALTER TABLE admin_fields ADD COLUMN IF NOT EXISTS field_type TEXT`,
+    );
   }
 
   private async poll(): Promise<void> {
@@ -109,18 +115,22 @@ export class FieldPoller {
   }
 
   async registeredField(data: {
+    id?: string;
     name: string;
     location?: { lat: number; lng: number };
     apiUrl?: string;
+    fieldType?: string;
     metadata?: Record<string, unknown>;
   }): Promise<AdminFieldRow> {
     const row = await this.db.queryOne<AdminFieldRow>(
-      `INSERT INTO admin_fields (name, location, api_url, metadata)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
+      `INSERT INTO admin_fields (id, name, location, api_url, field_type, metadata)
+       VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6) RETURNING *`,
       [
+        data.id ?? null,
         data.name,
         JSON.stringify(data.location ?? { lat: 0, lng: 0 }),
         data.apiUrl ?? null,
+        data.fieldType ?? null,
         JSON.stringify(data.metadata ?? {}),
       ],
     );
@@ -139,7 +149,7 @@ export class FieldPoller {
     await this.db.execute("DELETE FROM admin_fields WHERE id = $1", [id]);
   }
 
-  async updateField(id: string, updates: { name?: string; location?: string; apiUrl?: string; metadata?: string }): Promise<AdminFieldRow> {
+  async updateField(id: string, updates: { name?: string; location?: string; apiUrl?: string; fieldType?: string; metadata?: string }): Promise<AdminFieldRow> {
     const sets: string[] = [];
     const params: unknown[] = [];
     let i = 1;
@@ -155,6 +165,10 @@ export class FieldPoller {
     if (updates.apiUrl !== undefined) {
       sets.push(`api_url = $${i++}`);
       params.push(updates.apiUrl);
+    }
+    if (updates.fieldType !== undefined) {
+      sets.push(`field_type = $${i++}`);
+      params.push(updates.fieldType);
     }
     if (updates.metadata !== undefined) {
       sets.push(`metadata = $${i++}`);

@@ -6,7 +6,7 @@ import type { AddressInfo } from "node:net";
 import { telemetryWsRoutes } from "./ws-routes";
 import type { RealtimeManager } from "./realtime-manager";
 import type { ITokenService } from "../../domain/services/ITokenService";
-import type { ContainerSessionStore } from "@gd-monorepo/ws-tunnel";
+import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
 import type { User } from "@gd-monorepo/shared-types";
 
 /**
@@ -50,12 +50,12 @@ function makeTokens(): ITokenService {
   };
 }
 
-function makeSessionStore(): ContainerSessionStore {
+function makeSessionStore(): ClientSessionStore {
   return {
     authenticate: vi.fn().mockImplementation(async (token: string) =>
       token === "gecerli-session" ? user : undefined,
     ),
-  } as unknown as ContainerSessionStore;
+  } as unknown as ClientSessionStore;
 }
 
 const servers: Array<{ close: () => Promise<void> }> = [];
@@ -63,7 +63,7 @@ const servers: Array<{ close: () => Promise<void> }> = [];
 async function startServer(options: {
   realtime: RealtimeManager;
   tokens: ITokenService;
-  sessionStore?: ContainerSessionStore;
+  sessionStore?: ClientSessionStore;
 }): Promise<number> {
   const app = Fastify();
   await app.register(websocket);

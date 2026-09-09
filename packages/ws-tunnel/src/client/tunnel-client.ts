@@ -119,7 +119,7 @@ export class TunnelClient {
     return new TunnelClient(config);
   }
 
-  /** FieldConnector kanalına abone olur (kontrol + binary). */
+  /** TunnelConnector kanalına abone olur (kontrol + binary). */
   attach(channel: ITunnelChannel): void {
     this.channel = channel;
     channel.onMessage((message) => this.handleControl(message));

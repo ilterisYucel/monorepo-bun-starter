@@ -14,6 +14,9 @@ interface SeriesMapping {
   unit: string;
   dateField: string;
   valueField: string;
+  /** Opsiyonel: EPİAŞ satırlarında saat ayrı alandadır (`date` + `hour`).
+   * Verilirse timestamp = date + (hour-1) saat (TR saati — saat 1 = 00:00). */
+  hourField?: string;
 }
 
 interface EpiasPluginConfig {
@@ -222,6 +225,7 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
     const dateField = record["dateField"];
     const valueField = record["valueField"];
     const unit = record["unit"];
+    const hourField = record["hourField"];
     if (
       typeof name !== "string" ||
       typeof path !== "string" ||
@@ -233,7 +237,12 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
         `[EpiasMarketPricesPlugin] series[${index}] name/path/dateField/valueField/unit (string) gerekli`,
       );
     }
-    return { name, path, unit, dateField, valueField };
+    if (hourField !== undefined && typeof hourField !== "string") {
+      throw new Error(
+        `[EpiasMarketPricesPlugin] series[${index}] hourField (string) olmali`,
+      );
+    }
+    return { name, path, unit, dateField, valueField, hourField };
   }
 
   private toPoint(
@@ -246,9 +255,26 @@ export class EpiasMarketPricesPlugin implements IIntegrationPlugin {
       return undefined;
     }
 
-    const timestamp = new Date(String(rawDate));
+    let timestamp = new Date(String(rawDate));
     if (Number.isNaN(timestamp.getTime())) {
       return undefined;
+    }
+    // hourField varsa saat ofseti eklenir (EPİAŞ saati): canlı yanıt `hour`
+    // "HH:MM" formatındadır ("00:00" → 00:00 TR; "24" → 23:59). `date` alanı
+    // TR gece yarısıdır — ofset sunucu TZ'den BAĞIMSIZ çalışır.
+    if (series.hourField !== undefined) {
+      const rawHour = String(row[series.hourField] ?? "");
+      const match = /^(\d{1,2})(?::(\d{2}))?$/.exec(rawHour);
+      if (!match) return undefined;
+      const hour = Number(match[1]);
+      if (hour < 0 || hour > 24) return undefined;
+      const offsetHours = hour === 24 ? 23 : hour;
+      const offsetMinutes = hour === 24 ? (match[2] ? Number(match[2]) : 59) : (match[2] ? Number(match[2]) : 0);
+      timestamp = new Date(
+        timestamp.getTime() +
+          offsetHours * 60 * 60 * 1000 +
+          offsetMinutes * 60 * 1000,
+      );
     }
     const value = Number(rawValue);
     if (Number.isNaN(value)) {

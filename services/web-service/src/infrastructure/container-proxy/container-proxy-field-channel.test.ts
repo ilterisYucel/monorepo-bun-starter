@@ -3,7 +3,7 @@ import { ContainerProxyFieldChannel } from "./container-proxy-field-channel";
 import type { ContainerProxy } from "./container-proxy";
 
 /**
- * ContainerProxyFieldChannel — ws-tunnel IFieldChannel adapter sözleşmesi:
+ * ContainerProxyFieldChannel — ws-tunnel IHubChannel adapter sözleşmesi:
  * sendControl/sendBinary ContainerProxy'ye delege; control/binary abonelikleri
  * observer üzerinden yayınlanır ve unsubscribe söker; isConnected yalnızca
  * "connected" için true.

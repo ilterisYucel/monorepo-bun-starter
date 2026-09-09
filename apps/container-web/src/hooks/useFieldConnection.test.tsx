@@ -6,7 +6,7 @@ import { apiClient } from "../lib/api-client";
 
 /**
  * T2.2 — useFieldConnection sözleşmesi:
- * - GET /api/status yanıtını `{ fieldConnected, state, lastHeartbeatAt }`'a eşler.
+ * - GET /api/status yanıtını `{ connected, state, lastHeartbeatAt }`'a eşler.
  * - 5 sn'de bir tazelenir (refetchInterval).
  * - Hata durumunda kapalı kabul edilir (`fieldConnected:false`, state "offline")
  *   — UI asla beyaz ekranda kalmaz.
@@ -41,7 +41,7 @@ describe("useFieldConnection (T2.2)", () => {
   it("bağlı durumu yansıtır", async () => {
     mockedGet.mockResolvedValue({
       data: {
-        fieldConnected: true,
+        connected: true,
         state: "connected",
         lastHeartbeatAt: "2026-08-25T10:00:00.000Z",
       },
@@ -60,7 +60,7 @@ describe("useFieldConnection (T2.2)", () => {
 
   it("bağlantı yoksa kapalı bildirir", async () => {
     mockedGet.mockResolvedValue({
-      data: { fieldConnected: false, state: "backoff" },
+      data: { connected: false, state: "backoff" },
     });
     const { result } = renderHook(() => useFieldConnection(), {
       wrapper: wrapper(),

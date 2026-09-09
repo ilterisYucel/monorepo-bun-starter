@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { TelemetryQueryResponder } from "./telemetry-query-responder";
-import type { FieldConnector } from "@gd-monorepo/ws-tunnel";
+import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
 import type { ITelemetrySeriesSource } from "./interfaces";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 
@@ -29,7 +29,7 @@ describe("TelemetryQueryResponder (Faz 5.1 B2)", () => {
       }),
     };
     return {
-      connector: connector as unknown as FieldConnector,
+      connector: connector as unknown as TunnelConnector,
       subscribers,
       sent,
       emit: (message: unknown) => {

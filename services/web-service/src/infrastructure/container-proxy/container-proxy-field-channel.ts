@@ -1,13 +1,13 @@
-import type { IFieldChannel } from "@gd-monorepo/ws-tunnel";
+import type { IHubChannel } from "@gd-monorepo/ws-tunnel";
 import type { ContainerProxy } from "./container-proxy";
 
 /**
- * ContainerProxyFieldChannel — ws-tunnel `IFieldChannel` sözleşmesinin
+ * ContainerProxyFieldChannel — ws-tunnel `IHubChannel` sözleşmesinin
  * ContainerProxy adapter'i (field tier): sendControl/sendBinary birebir delege
  * edilir; onControlMessage/onBinaryFrame observer üzerinden yayınlanır;
  * isConnected → `connectionStatus()` === "connected".
  */
-export class ContainerProxyFieldChannel implements IFieldChannel {
+export class ContainerProxyFieldChannel implements IHubChannel {
   constructor(private readonly proxy: ContainerProxy) {}
 
   sendControl(containerId: string, message: unknown): void {

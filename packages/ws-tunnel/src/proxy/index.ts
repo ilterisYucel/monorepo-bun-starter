@@ -1,11 +1,11 @@
-export { FieldSessionStore } from "./field-session-store";
-export type { FieldSession, FieldSessionStoreConfig } from "./field-session-store";
-export { ContainerSessionGateway, mapFieldRole } from "./session-gateway";
+export { HubSessionStore } from "./hub-session-store";
+export type { HubSession, HubSessionStoreConfig } from "./hub-session-store";
+export { SessionGateway, mapSessionRole } from "./session-gateway";
 export type {
-  ContainerSessionGatewayConfig,
+  SessionGatewayConfig,
   OpenSessionInput,
   OpenSessionOutcome,
 } from "./session-gateway";
-export { TunnelProxy, containerSessionCookie, isPathAllowed } from "./tunnel-proxy";
-export type { TunnelProxyConfig } from "./tunnel-proxy";
+export { TunnelProxy, sessionCookieValue, isPathAllowed, DEFAULT_PATH_ALLOWLIST } from "./tunnel-proxy";
+export type { TunnelProxyConfig, PathAllowlist } from "./tunnel-proxy";
 export type { IStreamSink } from "./stream-sink";

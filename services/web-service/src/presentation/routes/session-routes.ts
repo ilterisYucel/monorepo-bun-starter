@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import type { User } from "@gd-monorepo/shared-types";
-import { isPathAllowed, containerSessionCookie } from "@gd-monorepo/ws-tunnel";
+import { isPathAllowed, sessionCookieValue } from "@gd-monorepo/ws-tunnel";
 import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
-import type { ContainerSessionGateway } from "@gd-monorepo/ws-tunnel";
+import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
 import { FastifyStreamSink } from "../../infrastructure/container-session/fastify-stream-sink";
 import { toTunnelUser } from "../../infrastructure/container-session/session-user-map";
 
@@ -26,7 +26,7 @@ function forwardHeaders(headers: Record<string, string | string[] | undefined>):
  */
 function tunnelHeaders(request: FastifyRequest): Record<string, string> {
   const headers = forwardHeaders(request.headers);
-  const sessionToken = containerSessionCookie(request.headers.cookie);
+  const sessionToken = sessionCookieValue(request.headers.cookie);
   if (sessionToken) {
     headers.cookie = `container_session=${sessionToken}`;
   }
@@ -57,7 +57,7 @@ function statusForKind(kind: string): number {
  */
 export async function sessionOpenRoute(
   fastify: FastifyInstance,
-  deps: { gateway: ContainerSessionGateway },
+  deps: { gateway: SessionGateway },
 ): Promise<void> {
   fastify.post(
     "/:fieldId/containers/:containerId/session",
@@ -78,7 +78,7 @@ export async function sessionOpenRoute(
 
       const result = await deps.gateway.openSession({
         fieldId,
-        containerId,
+        peerId: containerId,
         user: toTunnelUser(user),
         remoteIp: request.ip,
       });
@@ -115,7 +115,7 @@ export async function sessionOpenRoute(
           .status(403)
           .send({ error: "Bu sahaya erisim izniniz yok" });
       }
-      const session = deps.gateway.sessionForContainer(containerId);
+      const session = deps.gateway.sessionForPeer(containerId);
       if (!session) {
         return reply.status(404).send({ error: "Acik oturum bulunamadi" });
       }
@@ -220,7 +220,7 @@ export async function tunnelRoutes(
           if (id === undefined) return;
           streamId = id;
           for (const message of pending.splice(0)) {
-            deps.tunnelProxy.sendWsToContainer(streamId, message.data, message.isBinary);
+            deps.tunnelProxy.sendWsToPeer(streamId, message.data, message.isBinary);
           }
         });
 
@@ -229,7 +229,7 @@ export async function tunnelRoutes(
         if (streamId === undefined) {
           pending.push({ data: buffer, isBinary });
         } else {
-          deps.tunnelProxy.sendWsToContainer(streamId, buffer, isBinary);
+          deps.tunnelProxy.sendWsToPeer(streamId, buffer, isBinary);
         }
       });
       socket.on("close", () => {

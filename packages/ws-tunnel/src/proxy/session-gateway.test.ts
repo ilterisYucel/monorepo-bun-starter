@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { ContainerSessionGateway, mapFieldRole } from "./session-gateway";
-import { FieldSessionStore } from "./field-session-store";
-import type { IFieldChannel } from "../channel";
+import { SessionGateway, mapSessionRole } from "./session-gateway";
+import { HubSessionStore } from "./hub-session-store";
+import type { IHubChannel } from "../channel";
 import type { IAuditSink } from "../audit";
 
 import type { TunnelUser } from "../types";
 
 
 /**
- * T3.3 — ContainerSessionGateway sözleşmesi (tasarım §5.4-§5.7):
+ * T3.3 — SessionGateway sözleşmesi (tasarım §5.4-§5.7):
  * - Rol eşlemesi (§5.5, 2026-08-30 BİREBİR): field rolü konteynere aynen
  *   taşınır (admin→admin, teknik→teknik, boss→boss, guest→guest,
  *   developer→developer); konteyner tarafı aynı rbac matrisiyle korur
@@ -30,7 +30,7 @@ function makeUser(overrides: Partial<TunnelUser> = {}): TunnelUser {
 }
 
 interface FakeChannel {
-  channel: IFieldChannel;
+  channel: IHubChannel;
   sentControls: unknown[];
   emitControl(message: unknown): void;
 }
@@ -49,7 +49,7 @@ function makeChannel(connected = true): FakeChannel {
       return () => subscribers.delete(cb);
     },
     onBinaryFrame: () => () => {},
-  } as IFieldChannel;
+  } as IHubChannel;
   return {
     channel,
     sentControls,
@@ -67,28 +67,28 @@ function makeAudit(fail = false) {
   return { audit: { open, close } as IAuditSink, open, close };
 }
 
-describe("mapFieldRole (§5.5 — 2026-08-30 birebir)", () => {
+describe("mapSessionRole (§5.5 — 2026-08-30 birebir)", () => {
   it("tüm roller aynen taşınır (birebir eşleme)", () => {
-    expect(mapFieldRole("admin")).toBe("admin");
-    expect(mapFieldRole("teknik")).toBe("teknik");
-    expect(mapFieldRole("boss")).toBe("boss");
-    expect(mapFieldRole("guest")).toBe("guest");
-    expect(mapFieldRole("developer")).toBe("developer");
+    expect(mapSessionRole("admin")).toBe("admin");
+    expect(mapSessionRole("teknik")).toBe("teknik");
+    expect(mapSessionRole("boss")).toBe("boss");
+    expect(mapSessionRole("guest")).toBe("guest");
+    expect(mapSessionRole("developer")).toBe("developer");
   });
 });
 
-describe("ContainerSessionGateway (T3.3)", () => {
+describe("SessionGateway (T3.3)", () => {
   let fake: FakeChannel;
-  let store: FieldSessionStore;
-  let gateway: ContainerSessionGateway;
+  let store: HubSessionStore;
+  let gateway: SessionGateway;
   let auditFake: ReturnType<typeof makeAudit>;
 
   beforeEach(() => {
     vi.useFakeTimers({ now: new Date(0) });
     fake = makeChannel();
-    store = new FieldSessionStore({ now: () => Date.now() });
+    store = new HubSessionStore({ now: () => Date.now() });
     auditFake = makeAudit();
-    gateway = new ContainerSessionGateway(
+    gateway = new SessionGateway(
       fake.channel,
       store,
       auditFake.audit,
@@ -106,7 +106,7 @@ describe("ContainerSessionGateway (T3.3)", () => {
   it("2026-08-30: guest oturum AÇABİLİR — konteyner rolü guest (birebir)", async () => {
     const pending = gateway.openSession({
       fieldId: "f-1",
-      containerId: "c-1",
+      peerId: "c-1",
       user: makeUser({ role: "guest" }),
     });
     await vi.advanceTimersByTimeAsync(0);
@@ -125,13 +125,13 @@ describe("ContainerSessionGateway (T3.3)", () => {
     const result = await pending;
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
-      expect(result.unwrap().containerRole).toBe("guest");
+      expect(result.unwrap().peerRole).toBe("guest");
     }
   });
 
   it("konteyner bağlı değilse 503 (TransientError)", async () => {
     const offline = makeChannel(false);
-    const offlineGateway = new ContainerSessionGateway(
+    const offlineGateway = new SessionGateway(
       offline.channel,
       store,
       auditFake.audit,
@@ -139,7 +139,7 @@ describe("ContainerSessionGateway (T3.3)", () => {
     );
     const result = await offlineGateway.openSession({
       fieldId: "f-1",
-      containerId: "c-1",
+      peerId: "c-1",
       user: makeUser(),
     });
     expect(result.isErr()).toBe(true);
@@ -168,7 +168,7 @@ describe("ContainerSessionGateway (T3.3)", () => {
   it("ack zaman aşımı → 503 (TransientError)", async () => {
     const result = gateway.openSession({
       fieldId: "f-1",
-      containerId: "c-1",
+      peerId: "c-1",
       user: makeUser(),
     });
     vi.advanceTimersByTime(1000);
@@ -179,7 +179,7 @@ describe("ContainerSessionGateway (T3.3)", () => {
 
   it("audit hatası → fail-closed (oturum açılmaz, FatalError)", async () => {
     const failing = makeAudit(true);
-    const failingGateway = new ContainerSessionGateway(
+    const failingGateway = new SessionGateway(
       fake.channel,
       store,
       failing.audit,
@@ -189,7 +189,7 @@ describe("ContainerSessionGateway (T3.3)", () => {
     failingGateway.initialize();
     const pending = failingGateway.openSession({
       fieldId: "f-1",
-      containerId: "c-1",
+      peerId: "c-1",
       user: makeUser(),
     });
     await vi.advanceTimersByTimeAsync(0);
@@ -241,26 +241,26 @@ describe("ContainerSessionGateway (T3.3)", () => {
     ).toBe(true);
   });
 
-  it("sessionForContainer acik oturumu konteyner kimligiyle bulur", async () => {
+  it("sessionForPeer acik oturumu konteyner kimligiyle bulur", async () => {
     const outcome = await openSession();
     const sessionId = outcome.unwrap().sessionId;
-    const found = gateway.sessionForContainer("c-1");
+    const found = gateway.sessionForPeer("c-1");
     expect(found?.sessionId).toBe(sessionId);
-    expect(gateway.sessionForContainer("yok")).toBeUndefined();
+    expect(gateway.sessionForPeer("yok")).toBeUndefined();
   });
 
   it("sessionByToken kayıtlı oturumu döner", async () => {
     const outcome = await openSession();
     const token = outcome.unwrap().token;
     const session = gateway.sessionByToken(token);
-    expect(session?.containerId).toBe("c-1");
+    expect(session?.peerId).toBe("c-1");
     expect(gateway.sessionByToken("yok")).toBeUndefined();
   });
 
   async function openSession() {
     const pending = gateway.openSession({
       fieldId: "f-1",
-      containerId: "c-1",
+      peerId: "c-1",
       user: makeUser(),
       remoteIp: "10.0.0.5",
     });
@@ -269,7 +269,7 @@ describe("ContainerSessionGateway (T3.3)", () => {
   }
 
   async function ackSession(
-    pending: ReturnType<ContainerSessionGateway["openSession"]>,
+    pending: ReturnType<SessionGateway["openSession"]>,
   ): Promise<void> {
     await vi.advanceTimersByTimeAsync(0);
     const open = fake.sentControls.findLast(

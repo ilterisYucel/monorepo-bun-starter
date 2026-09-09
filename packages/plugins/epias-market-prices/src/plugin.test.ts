@@ -122,8 +122,7 @@ describe("EpiasMarketPricesPlugin", () => {
     expect(plugin.schedule()).toEqual({ mode: "interval", everyMs: 3600000 });
   });
 
-  it("fetch — satirlari MarketDataPoint'e cevirir, TGT header ekler ve cursor yazar", async () => {
-    const plugin = makePlugin();
+  it("fetch — satirlari MarketDataPoint'e cevirir, TGT header ekler ve cursor yazar", async () => {    const plugin = makePlugin();
     const context = makeContext();
     await plugin.activate(context);
 
@@ -150,6 +149,43 @@ describe("EpiasMarketPricesPlugin", () => {
     expect(mcpBody.endDate).toBe("2026-08-15T02:59:59+03:00");
 
     expect(await context.state.read("lastFetchTo")).toBe("2026-08-14T23:59:59Z");
+  });
+
+  it("hourField verilirse timestamp = date + (hour-1) saat (TR saati)", async () => {
+    const plugin = makePlugin();
+    const context = makeContext();
+    (context.config.series[0] as Record<string, unknown>)["hourField"] = "hour";
+    await plugin.activate(context);
+
+    const points = await plugin.fetch(context, {
+      from: "2026-08-14T00:00:00Z",
+      to: "2026-08-14T23:59:59Z",
+    });
+
+    // mock mcp satiri: date "2026-08-14T10:00:00+03:00" (07:00Z) + hour "10"
+    // → offset 10 saat → 07:00Z + 10h = 17:00Z.
+    expect(points[0]?.timestamp).toBe("2026-08-14T17:00:00.000Z");
+  });
+
+  it("hourField gecersizse satir atlanir", async () => {
+    const plugin = makePlugin();
+    const context = makeContext();
+    (context.config.series[0] as Record<string, unknown>)["hourField"] = "hour";
+    fetchFn = vi.fn<FetchLike>(async (url: string, init?: RequestInit) => {
+      if (url === CAS_URL) return casResponse("TGT-test-1");
+      apiCalls.push({ url, body: init?.body as string, tgt: ((init?.headers ?? {}) as Record<string, string>)["TGT"] ?? "" });
+      return apiResponse(200, {
+        items: [{ date: "2026-08-14T10:00:00+03:00", hour: "99", price: 1900.5 }],
+      });
+    });
+    vi.stubGlobal("fetch", fetchFn);
+    await plugin.activate(context);
+
+    const points = await plugin.fetch(context, {
+      from: "2026-08-14T00:00:00Z",
+      to: "2026-08-14T23:59:59Z",
+    });
+    expect(points.filter((p) => p.series === "PTF")).toHaveLength(0);
   });
 
   it("fetch — pencere verilmezse cursor'dan devam eder", async () => {

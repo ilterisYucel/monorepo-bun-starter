@@ -16,6 +16,9 @@ import {
   serviceTier,
   logConfig,
   fieldConnectorConfig,
+  fieldUplinkConfig,
+  fieldTunnelPathAllowlist,
+  wireGuardConfig,
 } from "./default";
 import { resolveSigningKey } from "@gd-monorepo/tamper-logger";
 
@@ -24,14 +27,14 @@ import { isLogEventCode } from "@gd-monorepo/platform-logging";
 import type { LogEventCode } from "@gd-monorepo/platform-logging";
 
 import {
-  FieldConnector,
+  TunnelConnector,
   WsSocketClientFactory,
   ReconnectDelay,
-  ContainerSessionStore,
-  ContainerSessionServer,
+  ClientSessionStore,
+  ClientSessionServer,
   TunnelClient,
-  FieldSessionStore,
-  ContainerSessionGateway,
+  HubSessionStore,
+  SessionGateway,
   TunnelProxy,
 } from "@gd-monorepo/ws-tunnel";
 import {
@@ -79,6 +82,14 @@ import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
 import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
 import { FieldPoller } from "../infrastructure/field-poller";
+import { MarketSeries } from "../infrastructure/market/market-series";
+import { FieldRegistry } from "../infrastructure/field-uplink/field-registry";
+import { FieldUplinkChannel } from "../infrastructure/field-uplink/field-uplink-channel";
+import { FieldUplinkSnapshotSource } from "../infrastructure/field-uplink/field-uplink-snapshot-source";
+import { FieldSessionAudit } from "../infrastructure/field-uplink/field-session-audit";
+import { makeWireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
+import { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
+import { UplinkEventRelay } from "../infrastructure/field-uplink/uplink-event-relay";
 import { RequestContext } from "../presentation/middleware/request-context";
 import { WebServiceServer } from "../presentation/server";
 import type { ConfigLoader } from "@gd-monorepo/shared-utils";
@@ -195,7 +206,7 @@ export function buildContainer() {
       return undefined;
     }).singleton(),
 
-    // Faz 2 T2.3: FieldConnector — container tier + FIELD_CONNECT_ENABLED=true.
+    // Faz 2 T2.3: TunnelConnector — container tier + FIELD_CONNECT_ENABLED=true.
     // Bootstrap config fail-fast doğrulanır; kapalıysa kurulmaz (route "offline"
     // bildirir). Operational config register-ack/config-update ile canlı gelir.
     fieldConnector: asFunction(
@@ -204,7 +215,7 @@ export function buildContainer() {
         const cfg = fieldConnectorConfig(config, tier);
         if (!cfg) return undefined;
         const snapshotSource = new RealtimeSnapshotSource(postgres, realtime);
-        return new FieldConnector(
+        return new TunnelConnector(
           cfg,
           new WsSocketClientFactory(),
           snapshotSource,
@@ -224,7 +235,7 @@ export function buildContainer() {
       ({ config, authCfg, fieldConnector }) => {
         const tier = serviceTier(config);
         if (tier !== "container" || !fieldConnector) return undefined;
-        return new ContainerSessionStore(
+        return new ClientSessionStore(
           new JoseTokenSigner(authCfg.jwtSecret),
         );
       },
@@ -236,7 +247,7 @@ export function buildContainer() {
         const tier = serviceTier(config);
         if (!fieldConnector || !containerSessionStore) return undefined;
         void tier;
-        return new ContainerSessionServer(
+        return new ClientSessionServer(
           fieldConnector,
           containerSessionStore,
           logger,
@@ -275,7 +286,7 @@ export function buildContainer() {
     fieldSessionStore: asFunction(({ config }) => {
       const tier = serviceTier(config);
       if (tier !== "field") return undefined;
-      return new FieldSessionStore();
+      return new HubSessionStore();
     }).singleton(),
 
     sessionAudit: asFunction(({ config, postgres, logger }) => {
@@ -291,7 +302,7 @@ export function buildContainer() {
           return undefined;
         }
         const channel = new ContainerProxyFieldChannel(containerProxy);
-        return new ContainerSessionGateway(
+        return new SessionGateway(
           channel,
           fieldSessionStore,
           sessionAudit,
@@ -323,6 +334,156 @@ export function buildContainer() {
         const tier = serviceTier(config);
         if (tier === "boss") return new FieldPoller(postgres);
         return undefined;
+      },
+    ).singleton(),
+
+    // Boss tier: EPİAŞ piyasa serileri okuyucusu (external_series — Faz 2).
+    marketSeries: asFunction(
+      ({ postgres, config }) => {
+        const tier = serviceTier(config);
+        if (tier === "boss") return new MarketSeries(postgres);
+        return undefined;
+      },
+    ).singleton(),
+
+    // --- Faz 3: field uplink (BOSS-UYGULAMA-MIMARISI.md §7.4) ---
+
+    // Field tier: boss cloud'a outbound uplink (TunnelConnector, peerType:"field").
+    uplinkConnector: asFunction(
+      ({ config, containerProxy, logger }) => {
+        const tier = serviceTier(config);
+        const cfg = fieldUplinkConfig(config, tier);
+        if (!cfg || !containerProxy) return undefined;
+        return new TunnelConnector(
+          cfg,
+          new WsSocketClientFactory(),
+          new FieldUplinkSnapshotSource(containerProxy),
+          new ReconnectDelay({
+            baseMs: 1000,
+            maxMs: 60000,
+            jitterSpanMs: 1000,
+            jitter: Math.random,
+          }),
+          logger,
+        );
+      },
+    ).singleton(),
+
+    // Field tier: boss'tan gelen open-session/stream frame'lerini yanıtlar.
+    uplinkSessionStore: asFunction(
+      ({ config, authCfg, uplinkConnector }) => {
+        const tier = serviceTier(config);
+        if (tier !== "field" || !uplinkConnector) return undefined;
+        return new ClientSessionStore(
+          new JoseTokenSigner(authCfg.jwtSecret, "field-session"),
+        );
+      },
+    ).singleton(),
+
+    uplinkSessionServer: asFunction(
+      ({ uplinkConnector, uplinkSessionStore, logger }) => {
+        if (!uplinkConnector || !uplinkSessionStore) return undefined;
+        return new ClientSessionServer(uplinkConnector, uplinkSessionStore, logger);
+      },
+    ).singleton(),
+
+    uplinkTunnelClient: asFunction(
+      ({ config, uplinkConnector }) => {
+        const tier = serviceTier(config);
+        if (tier !== "field" || !uplinkConnector) return undefined;
+        return TunnelClient.create({
+          webServiceUrl: config.get<string>("uplink.apiUpstream"),
+          staticUrl: config.get<string>("uplink.staticUpstream"),
+        });
+      },
+    ).singleton(),
+
+    // Boss tier: field uplink kayıt defteri + kanal + oturum + tünel proxy.
+    fieldRegistry: asFunction(({ postgres, config }) => {
+      const tier = serviceTier(config);
+      if (tier === "boss") return new FieldRegistry(postgres);
+      return undefined;
+    }).singleton(),
+
+    fieldUplinkChannel: asFunction(({ fieldRegistry }) => {
+      if (!fieldRegistry) return undefined;
+      return new FieldUplinkChannel(fieldRegistry);
+    }).singleton(),
+
+    bossFieldSessionStore: asFunction(({ config }) => {
+      const tier = serviceTier(config);
+      if (tier === "boss") return new HubSessionStore();
+      return undefined;
+    }).singleton(),
+
+    fieldSessionAudit: asFunction(({ config, postgres, logger }) => {
+      const tier = serviceTier(config);
+      if (tier === "boss") return new FieldSessionAudit(postgres, logger);
+      return undefined;
+    }).singleton(),
+
+    fieldGateway: asFunction(
+      ({ fieldUplinkChannel, bossFieldSessionStore, fieldSessionAudit, logger }) => {
+        if (!fieldUplinkChannel || !bossFieldSessionStore || !fieldSessionAudit) {
+          return undefined;
+        }
+        return new SessionGateway(
+          fieldUplinkChannel,
+          bossFieldSessionStore,
+          fieldSessionAudit,
+          logger,
+        );
+      },
+    ).singleton(),
+
+    fieldTunnelProxy: asFunction(
+      ({ fieldUplinkChannel, bossFieldSessionStore, logger }) => {
+        if (!fieldUplinkChannel || !bossFieldSessionStore) return undefined;
+        return new TunnelProxy(fieldUplinkChannel, bossFieldSessionStore, logger, {
+          cookieName: "field_session",
+        });
+      },
+    ).singleton(),
+
+    // Boss tier: field-app tünel allowlist'i (FIELD_TUNNEL_ALLOWED_PREFIXES).
+    fieldTunnelPathAllowlist: asFunction(({ config }) => {
+      if (serviceTier(config) !== "boss") return undefined;
+      return fieldTunnelPathAllowlist(config);
+    }).singleton(),
+
+    // Boss tier: WireGuard yedek yol (Faz 4 — WG_CLIENT_PRIVATE_KEY varsa).
+    wireGuard: asFunction(({ config, postgres, logger }) => {
+      const tier = serviceTier(config);
+      if (tier !== "boss") return undefined;
+      const wgConfig = wireGuardConfig(config);
+      if (!wgConfig) return undefined;
+      return makeWireGuardConnection(postgres, wgConfig, logger);
+    }).singleton(),
+
+    // Boss tier: field olay toplayıcı (Faz 5 — alarm/audit aktarımı).
+    fieldEventCollector: asFunction(({ config, postgres, logger }) => {
+      const tier = serviceTier(config);
+      if (tier === "boss") {
+        return new FieldEventCollector(postgres, logger, {
+          demoSeed: config.get<boolean>("fieldEvents.demoSeed"),
+        });
+      }
+      return undefined;
+    }).singleton(),
+
+    // Field tier: log_events delta → uplink `event` frame'leri (Faz 5).
+    uplinkEventRelay: asFunction(
+      ({ config, uplinkConnector, postgres, logger }) => {
+        const tier = serviceTier(config);
+        if (tier !== "field" || !uplinkConnector) return undefined;
+        const fieldId = config.get<string | undefined>("site.fieldId");
+        if (!fieldId) return undefined;
+        return new UplinkEventRelay(
+          uplinkConnector,
+          postgres,
+          fieldId,
+          logger,
+        );
       },
     ).singleton(),
 

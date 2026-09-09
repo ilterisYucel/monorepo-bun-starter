@@ -3,7 +3,7 @@
  * loopback-demo.mjs — ws-tunnel paket içi gözle doğrulama demosu.
  *
  * Monorepo'ya hiç değmez (ContainerProxy/Fastify/PG YOKTUR):
- *   A. FieldConnector → FieldHarness register (paket içi field ucu).
+ *   A. TunnelConnector → FieldHarness register (paket içi field ucu).
  *   B. open-session → konteyner JWT → ack.
  *   C. Tünel HTTP: GET / → SPA HTML akar (FIN ile biter).
  *   D. Tünel HTTP: GET /api/data/latest → JSON akar.
@@ -17,14 +17,14 @@ import http from "node:http";
 import { WebSocketServer } from "ws";
 
 import {
-  FieldConnector,
+  TunnelConnector,
   WsSocketClientFactory,
   ReconnectDelay,
   TunnelClient,
-  ContainerSessionStore,
-  ContainerSessionServer,
-  FieldSessionStore,
-  ContainerSessionGateway,
+  ClientSessionStore,
+  ClientSessionServer,
+  HubSessionStore,
+  SessionGateway,
   TunnelProxy,
 } from "../src/index.ts";
 import { FieldHarness } from "../src/demo/field-harness.ts";
@@ -73,12 +73,12 @@ const base = `http://127.0.0.1:${upstreamPort}`;
 // --- field ucu (paket içi) ---
 const harness = new FieldHarness({ registerAckDelayMs: 5 });
 const fieldPort = await harness.start();
-const fieldStore = new FieldSessionStore();
+const fieldStore = new HubSessionStore();
 const audit = {
   open: async () => {},
   close: async () => {},
 };
-const gateway = new ContainerSessionGateway(harness, fieldStore, audit, undefined, {
+const gateway = new SessionGateway(harness, fieldStore, audit, undefined, {
   ackTimeoutMs: 3000,
 });
 gateway.initialize();
@@ -86,11 +86,11 @@ const tunnelProxy = new TunnelProxy(harness, fieldStore, undefined);
 tunnelProxy.initialize();
 
 // --- konteyner ucu ---
-const connector = new FieldConnector(
+const connector = new TunnelConnector(
   {
     wsUrls: [`ws://127.0.0.1:${fieldPort}/ws/container`],
     token: TOKEN,
-    containerId: CONTAINER_ID,
+    peerId: CONTAINER_ID,
     heartbeatIntervalMs: 200,
     telemetryIntervalMs: 200,
     registerTimeoutMs: 3000,
@@ -100,20 +100,20 @@ const connector = new FieldConnector(
   { snapshot: async () => [] },
   new ReconnectDelay({ baseMs: 50, maxMs: 200, jitterSpanMs: 0, jitter: () => 0 }),
 );
-const sessionStore = new ContainerSessionStore(
+const sessionStore = new ClientSessionStore(
   new JoseSignerForTests("container-secret-loopback-demo-012345678"),
 );
-const sessionServer = new ContainerSessionServer(connector, sessionStore, undefined);
+const sessionServer = new ClientSessionServer(connector, sessionStore, undefined);
 sessionServer.start();
 const tunnelClient = TunnelClient.create({ webServiceUrl: base, staticUrl: base });
 tunnelClient.attach(connector);
 
 await connector.start();
-check("A: konteyner field'a kaydoldu", await waitFor(() => connector.fieldConnected()), `state=${connector.state()}`);
+check("A: konteyner field'a kaydoldu", await waitFor(() => connector.connected()), `state=${connector.state()}`);
 
 const outcome = await gateway.openSession({
   fieldId: "f-demo",
-  containerId: CONTAINER_ID,
+  peerId: CONTAINER_ID,
   user: { id: "u-1", username: "operator", role: "teknik" },
 });
 check("B: open-session → konteyner JWT", outcome.isOk(), outcome.isOk() ? `expiresInSec=${outcome.unwrap().expiresInSec}` : "");
@@ -146,7 +146,7 @@ const browserSocket = { send: (d) => received.push(Buffer.from(d)), close: () =>
 const streamId = await tunnelProxy.startWsBridge({ session, path: "/ws/echo", browserSocket });
 check("E: /ws köprüsü açıldı (101)", streamId !== undefined, `streamId=${streamId}`);
 if (streamId !== undefined) {
-  tunnelProxy.sendWsToContainer(streamId, Buffer.from("subscribe"), false);
+  tunnelProxy.sendWsToPeer(streamId, Buffer.from("subscribe"), false);
   const echoed = await waitFor(() => received.length === 1);
   check("E: /ws çift yönlü mesaj", echoed, echoed ? received[0].toString() : "hata");
   tunnelProxy.closeWs(streamId, "demo-end");

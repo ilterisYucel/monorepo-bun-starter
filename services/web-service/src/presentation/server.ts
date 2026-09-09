@@ -47,14 +47,24 @@ import { containerWsRoutes } from "../infrastructure/container-proxy/container-w
 import { fieldRoutes } from "./routes/field-routes";
 import { sessionOpenRoute, tunnelRoutes } from "./routes/session-routes";
 import { adminRoutes } from "./routes/admin-routes";
+import { marketRoutes } from "./routes/market-routes";
+import type { MarketSeries } from "../infrastructure/market/market-series";
+import type { FieldRegistry } from "../infrastructure/field-uplink/field-registry";
+import { fieldUplinkWsRoutes } from "./routes/field-uplink-ws-routes";
+import { fieldSessionRoutes, fieldTunnelRoutes } from "./routes/field-session-routes";
+import { wireGuardRoutes } from "./routes/wireguard-routes";
+import type { WireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
+import { notificationRoutes } from "./routes/notification-routes";
+import type { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import type { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
 import type { FieldPoller } from "../infrastructure/field-poller";
-import type { FieldConnector } from "@gd-monorepo/ws-tunnel";
-import type { ContainerSessionStore } from "@gd-monorepo/ws-tunnel";
-import type { ContainerSessionGateway } from "@gd-monorepo/ws-tunnel";
+import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
+import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
+import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
 import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
-import { containerSessionCookie } from "@gd-monorepo/ws-tunnel";
+import type { PathAllowlist } from "@gd-monorepo/ws-tunnel";
+import { sessionCookieValue } from "@gd-monorepo/ws-tunnel";
 import { toWebUser } from "../infrastructure/container-session/session-user-map";
 import { MaterializedViewManager, type IMessageQueue } from "@gd-monorepo/core";
 
@@ -78,9 +88,19 @@ export interface ServerDependencies {
   realtime: RealtimeManager;
   containerProxy?: ContainerProxy;
   fieldPoller?: FieldPoller;
-  fieldConnector?: FieldConnector;
-  sessionStore?: ContainerSessionStore;
-  sessionGateway?: ContainerSessionGateway;
+  marketSeries?: MarketSeries;
+  fieldRegistry?: FieldRegistry;
+  fieldGateway?: SessionGateway;
+  fieldTunnelProxy?: TunnelProxy;
+  wireGuard?: WireGuardConnection;
+  fieldEventCollector?: FieldEventCollector;
+  fieldConnector?: TunnelConnector;
+  sessionStore?: ClientSessionStore;
+  /** Field tier: boss uplink oturumları (field_session cookie'si). */
+  uplinkSessionStore?: ClientSessionStore;
+  /** Boss tier: field app tünel allowlist'i (deployment config). */
+  fieldTunnelPathAllowlist?: PathAllowlist;
+  sessionGateway?: SessionGateway;
   tunnelProxy?: TunnelProxy;
   mvManager: MaterializedViewManager;
   mq: IMessageQueue;
@@ -170,31 +190,39 @@ export class WebServiceServer {
 
     // correlationId bağlamı rbac'ten ÖNCE kurulur — tüm kancalar aynı id'yi görür.
     this.app.addHook("onRequest", createRequestIdHook(deps.requestContext));
-    // Faz 3 (container tier): container_session cookie'si Bearer yerine geçer
+    // Faz 3 (container tier): container_session cookie'si Bearer yerine geçer.
+    // Boss Faz 3 (field tier): field_session cookie'si aynı model —
+    // boss'tan gelen saha uzaktan görünüm oturumu uplinkSessionStore'dan doğrulanır.
+    const sessionRbacOptions = deps.sessionStore
+      ? {
+          sessionAuthenticator: async (cookie: string | undefined) => {
+            const sessionUser = await deps.sessionStore!.authenticate(
+              sessionCookieValue(cookie) ?? "",
+            );
+            return sessionUser ? toWebUser(sessionUser) : undefined;
+          },
+        }
+      : deps.uplinkSessionStore
+        ? {
+            sessionCookieName: "field_session",
+            sessionAuthenticator: async (cookie: string | undefined) => {
+              const sessionUser = await deps.uplinkSessionStore!.authenticate(
+                sessionCookieValue(cookie, "field_session") ?? "",
+              );
+              return sessionUser ? toWebUser(sessionUser) : undefined;
+            },
+          }
+        : undefined;
     this.app.addHook(
       "onRequest",
-      createRbacHook(
-        deps.tokens,
-        deps.sessionStore
-          ? {
-              sessionAuthenticator: async (cookie) => {
-                const sessionUser = await deps.sessionStore!.authenticate(
-                  containerSessionCookie(cookie) ?? "",
-                );
-                if (!sessionUser) return undefined;
-                return toWebUser(sessionUser);
-              },
-            }
-          : undefined,
-        deps.mfaRequiredRoles,
-      ),
+      createRbacHook(deps.tokens, sessionRbacOptions, deps.mfaRequiredRoles),
     );
   }
 
   private async registerRoutes(deps: ServerDependencies): Promise<void> {
     this.app.get("/health", makeHealthRoute({ logger: deps.logger }));
 
-    // T2.2: FieldConnector PPC durumu — container UI "Field Bağlantısı" beslemesi
+    // T2.2: TunnelConnector PPC durumu — container UI "Field Bağlantısı" beslemesi
     this.app.get(
       "/api/status",
       makeStatusRoute({ fieldConnector: deps.fieldConnector }),
@@ -286,9 +314,74 @@ export class WebServiceServer {
     if (fieldPoller) {
       await this.app.register(
         async (fastify) => {
-          await adminRoutes(fastify, { fieldPoller });
+          await adminRoutes(fastify, {
+            fieldPoller,
+            registry: deps.fieldRegistry,
+          });
         },
         { prefix: "/api/admin/fields" },
+      );
+    }
+
+    // Boss tier: EPİAŞ piyasa verileri (external_series — Faz 2)
+    if (deps.marketSeries) {
+      await this.app.register(
+        async (fastify) => {
+          await marketRoutes(fastify, { market: deps.marketSeries! });
+        },
+        { prefix: "/api/market" },
+      );
+    }
+
+    // Boss tier: field uplink kabulü (Faz 3 — /ws/field, service token'lı)
+    if (deps.fieldRegistry) {
+      await this.app.register(async (fastify) => {
+        await fieldUplinkWsRoutes(fastify, { registry: deps.fieldRegistry! });
+      });
+    }
+
+    // Boss tier: field oturum açılışı (/api/fields/:fid/session)
+    if (deps.fieldGateway) {
+      await this.app.register(
+        async (fastify) => {
+          await fieldSessionRoutes(fastify, {
+            gateway: deps.fieldGateway!,
+            tunnelProxy: deps.fieldTunnelProxy!,
+          });
+        },
+        { prefix: "/api/fields" },
+      );
+    }
+
+    // Boss tier: field app tünel proxy'si (/fields/:fid/ui/* — cookie doğrulamalı)
+    if (deps.fieldTunnelProxy) {
+      await this.app.register(async (fastify) => {
+        await fieldTunnelRoutes(fastify, {
+          tunnelProxy: deps.fieldTunnelProxy!,
+          pathAllowlist: deps.fieldTunnelPathAllowlist,
+        });
+      });
+    }
+
+    // Boss tier: bildirim akışı (Faz 5 — alarm/audit aktarımı)
+    if (deps.fieldEventCollector) {
+      await this.app.register(
+        async (fastify) => {
+          await notificationRoutes(fastify, {
+            collector: deps.fieldEventCollector!,
+          });
+        },
+        { prefix: "/api/notifications" },
+      );
+    }
+
+    // Boss tier: WireGuard yedek yol (Faz 4)
+    if (deps.wireGuard) {
+      await this.app.register(
+        async (fastify) => {
+          await wireGuardRoutes(fastify, { wireGuard: deps.wireGuard! });
+        },
+        { prefix: "/api/admin/wireguard" },
       );
     }
 

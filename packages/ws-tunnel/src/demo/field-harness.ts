@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from "ws";
-import type { IFieldChannel } from "../channel";
+import type { IHubChannel } from "../channel";
 
 export interface FieldHarnessOptions {
   /** register-ack gecikmesi (ms) — gerçek ağ gecikmesini taklit eder. */
@@ -10,11 +10,11 @@ export interface FieldHarnessOptions {
  * FieldHarness — ws-tunnel'ın paket içi demo/örnek "field" ucu.
  *
  * Gerçek `ws` sunucusu; `register` frame'ine `register-ack` ile yanıt verir,
- * text kontrol mesajlarını ve binary frame'leri `IFieldChannel` üzerinden
+ * text kontrol mesajlarını ve binary frame'leri `IHubChannel` üzerinden
  * yayınlar. ContainerProxy/Fastify/PG bağımlılığı YOKTUR — paketin kendi
  * kendine yeterliliğinin kanıtı (README örneği + `loopback.spec.ts`).
  */
-export class FieldHarness implements IFieldChannel {
+export class FieldHarness implements IHubChannel {
   private wss?: WebSocketServer;
   private sockets = new Map<string, WebSocket>();
   private controlSubs = new Set<(cid: string, m: unknown) => void>();
@@ -46,7 +46,8 @@ export class FieldHarness implements IFieldChannel {
         }
         const type = (msg as { type?: unknown }).type;
         if (type === "register") {
-          containerId = (msg as { containerId?: string }).containerId;
+          const reg = msg as { peerId?: string };
+          containerId = reg.peerId;
           if (containerId === undefined) return;
           const ack = () => {
             if (ws.readyState !== WebSocket.OPEN) return;
@@ -85,38 +86,38 @@ export class FieldHarness implements IFieldChannel {
     });
   }
 
-  // --- IFieldChannel ---
+  // --- IHubChannel ---
 
-  sendControl(containerId: string, message: unknown): void {
-    const ws = this.sockets.get(containerId);
+  sendControl(peerId: string, message: unknown): void {
+    const ws = this.sockets.get(peerId);
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(message));
     }
   }
 
-  sendBinary(containerId: string, data: Buffer): void {
-    const ws = this.sockets.get(containerId);
+  sendBinary(peerId: string, data: Buffer): void {
+    const ws = this.sockets.get(peerId);
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(data);
     }
   }
 
   onControlMessage(
-    subscriber: (containerId: string, message: unknown) => void,
+    subscriber: (peerId: string, message: unknown) => void,
   ): () => void {
     this.controlSubs.add(subscriber);
     return () => this.controlSubs.delete(subscriber);
   }
 
   onBinaryFrame(
-    subscriber: (containerId: string, data: Buffer) => void,
+    subscriber: (peerId: string, data: Buffer) => void,
   ): () => void {
     this.binarySubs.add(subscriber);
     return () => this.binarySubs.delete(subscriber);
   }
 
-  isConnected(containerId: string): boolean {
-    const ws = this.sockets.get(containerId);
+  isConnected(peerId: string): boolean {
+    const ws = this.sockets.get(peerId);
     return ws !== undefined && ws.readyState === WebSocket.OPEN;
   }
 }

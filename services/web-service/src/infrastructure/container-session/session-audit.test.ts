@@ -40,8 +40,8 @@ describe("SessionAudit (T3.4)", () => {
       containerId: "c-1",
       sessionId: "s-1",
       username: "op",
-      fieldRole: "teknik",
-      containerRole: "teknik",
+      callerRole: "teknik",
+      peerRole: "teknik",
       remoteIp: "10.0.0.5",
     });
     expect(execute).toHaveBeenCalledWith(
@@ -65,8 +65,8 @@ describe("SessionAudit (T3.4)", () => {
         containerId: "c-1",
         sessionId: "s-2",
         username: "op",
-        fieldRole: "teknik",
-        containerRole: "teknik",
+        callerRole: "teknik",
+        peerRole: "teknik",
       }),
     ).rejects.toThrow("sink down");
   });

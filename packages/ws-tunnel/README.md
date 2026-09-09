@@ -6,18 +6,23 @@ kütüphanedir** (tamper-logger deseni; ayrıntı:
 `docs/architecture/KUTUPHANE-CIKARMA-PLANI.md`). Domain adapter'leri
 (Fastify/PG/ContainerProxy) tüketici projede yaşar.
 
+**İki deployment, tek paket (v2):** aynı jenerik paket hem
+**field→container** hem **field→boss** topolojisinde çalışır — register şeması
+nötr `peerId`+`peerType`, oturum/cookie/allowlist config'le enjekte edilir
+(ayrıntı: `docs/architecture/WS-TUNNEL-URUN-TESCILI.md`).
+
 ## İçerik
 
 | Modül | Görev |
 |---|---|
 | `codec` | Binary frame codec — 9 bayt başlık (streamId u32 BE + seq u32 BE + flags FIN/RST/WS_OP); `decode` asla throw etmez (`Result`) |
-| `protocol` | Kontrol mesaj tipleri + zod şemaları (register/ack, heartbeat, telemetry, stream-*, open-session/*) |
-| `connector` | `FieldConnector` — outbound WS istemcisi + durum makinesi + üstel backoff (`ReconnectDelay`) |
-| `channel` | `ISocketClient`/`WsSocketClient` (ws adapter), `ITunnelChannel` (konteyner ucu), `IFieldChannel` (field ucu — containerId'li) |
+| `protocol` | Kontrol mesaj tipleri + zod şemaları (register/ack — v2 `peerId`+`peerType`, heartbeat, telemetry, stream-*, open-session/*); `TUNNEL_PROTOCOL_VERSION = 2` |
+| `connector` | `TunnelConnector` — outbound WS istemcisi + durum makinesi + üstel backoff (`ReconnectDelay`) |
+| `channel` | `ISocketClient`/`WsSocketClient` (ws adapter), `ITunnelChannel` (client ucu), `IHubChannel` (hub ucu — peerId'li) |
 | `client` | `TunnelClient` — stream multiplex, kredi bazlı backpressure, çift upstream yönlendirme, WS köprüsü |
-| `session` | `ContainerSessionStore` + `ContainerSessionServer` — geçici oturum JWT'si (`ITokenSigner` enjeksiyonu) |
-| `proxy` | `ContainerSessionGateway` + `FieldSessionStore` + `TunnelProxy` — field tarafı oturum + HTTP/WS proxy (`IFieldChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu) |
-| `errors` / `logger` / `token` / `audit` / `snapshot` / `types` | Bağımsızlık sözleşmeleri — `Result`/`DomainError`, minimal `ILogger`, `ITokenSigner`, `IAuditSink`, `ISnapshotSource`, jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` |
+| `session` | `ClientSessionStore` + `ClientSessionServer` — geçici oturum JWT'si (`ITokenSigner` enjeksiyonu) |
+| `proxy` | `SessionGateway` + `HubSessionStore` + `TunnelProxy` — hub tarafı oturum + HTTP/WS proxy (`IHubChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu; cookieName + PathAllowlist config'i) |
+| `logger` / `token` / `audit` / `snapshot` / `types` | Bağımsızlık sözleşmeleri — minimal `ILogger`, `ITokenSigner`, `IAuditSink`, `ISnapshotSource`, jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` |
 
 ## Bağımlılıklar
 
@@ -31,10 +36,9 @@ devDependency — test yardımcısı; üretim kodu `ITokenSigner` enjeksiyonuyla
 bun packages/ws-tunnel/examples/loopback-demo.mjs
 ```
 
-Paket içi demo: `FieldHarness` (field ucu) ↔ `FieldConnector` + `TunnelClient`
-(konteyner ucu) ↔ `ContainerSessionGateway` + `TunnelProxy` — tek gerçek WS
-kanalında register → oturum → tünel HTTP → WS köprüsü. Aynı akış test olarak
-da çalışır:
+Paket içi demo: `FieldHarness` (hub ucu) ↔ `TunnelConnector` + `TunnelClient`
+(client ucu) ↔ `SessionGateway` + `TunnelProxy` — tek gerçek WS kanalında
+register → oturum → tünel HTTP → WS köprüsü. Aynı akış test olarak da çalışır:
 
 ```bash
 bun nx run ws-tunnel:test   # loopback.spec.ts dahil
@@ -49,14 +53,14 @@ bun nx run ws-tunnel:test   # loopback.spec.ts dahil
 ## Sözleşme özeti
 
 ```ts
-// Konteyner ucu: FieldConnector zaten ITunnelChannel'dır
+// Client ucu: TunnelConnector zaten ITunnelChannel'dır
 const client = TunnelClient.create({ webServiceUrl, staticUrl });
 client.attach(connector);
 
-// Field ucu: IFieldChannel adapter'i (ör. paket içi FieldHarness veya
+// Hub ucu: IHubChannel adapter'i (ör. paket içi FieldHarness veya
 // tüketicinin ContainerProxy sarmalayıcısı) + IStreamSink (tüketicinin
 // HTTP framework adapter'i) + IAuditSink + ITokenSigner enjekte edilir
-const gateway = new ContainerSessionGateway(channel, store, audit, logger);
+const gateway = new SessionGateway(channel, store, audit, logger);
 const proxy = new TunnelProxy(channel, store, logger);
 ```
 

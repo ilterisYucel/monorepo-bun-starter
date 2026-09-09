@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { apiClient } from "../../../lib/api-client";
+import { isTunnelMode } from "../../../lib/api-base";
 import type { Role, User } from "@gd-monorepo/shared-types";
 
 /**
@@ -47,6 +48,23 @@ export interface AuthState {
   logout: () => Promise<void>;
   /** Faz 1 T1.6 — zorunlu şifre değişimi (yeni token'larla oturumu tazeler). */
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  /**
+   * Boss Faz 3 — tünel oturumu: cookie'den hydrate edilen kullanıcıyı uygular
+   * (container-web session-auth deseni). localStorage'a YAZMAZ.
+   */
+  applySession: (user: User) => void;
+}
+
+/**
+ * Boss Faz 3 — token kalıcılığı tünel modunda NO-OP'tur:
+ * iframe boss origin'inde çalışır; boss uygulamasının localStorage anahtarları
+ * ("auth-token") ÇAKIŞIR — field oturum verisi boss'un üzerine yazamaz.
+ * Kimlik doğruluğu tünelde `field_session` cookie'sindedir (HttpOnly).
+ */
+function persistTokens(accessToken: string, refreshToken: string): void {
+  if (isTunnelMode()) return;
+  localStorage.setItem("auth-token", accessToken);
+  localStorage.setItem("auth-refresh-token", refreshToken);
 }
 
 function applySession(
@@ -58,8 +76,7 @@ function applySession(
   },
   set: (state: Partial<AuthState>) => void,
 ) {
-  localStorage.setItem("auth-token", data.accessToken);
-  localStorage.setItem("auth-refresh-token", data.refreshToken);
+  persistTokens(data.accessToken, data.refreshToken);
   set({
     user: data.user,
     isAuthenticated: true,
@@ -145,8 +162,10 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           // sunucu hatasi olsa bile temizle
         }
-        localStorage.removeItem("auth-token");
-        localStorage.removeItem("auth-refresh-token");
+        if (!isTunnelMode()) {
+          localStorage.removeItem("auth-token");
+          localStorage.removeItem("auth-refresh-token");
+        }
         set({
           user: null,
           isAuthenticated: false,
@@ -162,7 +181,11 @@ export const useAuthStore = create<AuthState>()(
 
         // 2026-08-30: çıkışta OTOMATİK guest girişi — API çağrıları çalışmaya
         // devam eder, kullanıcı dashboard'da kalır (manuel guest yok).
-        await get().loginAsGuest();
+        // Boss Faz 3 istisnası: tünel modunda guest'e düşmek YOKTUR — oturum
+        // cookie'si tek doğruluk kaynağıdır; hydrate başarısızsa guard ekranı.
+        if (!isTunnelMode()) {
+          await get().loginAsGuest();
+        }
       },
 
       changePassword: async (oldPassword: string, newPassword: string) => {
@@ -172,7 +195,32 @@ export const useAuthStore = create<AuthState>()(
         });
         applySession(res.data, set);
       },
+
+      // Boss Faz 3 — tünel hydrate'i (container-web applySession deseni):
+      // cookie doğruluk kaynağıdır; localStorage'a YAZILMAZ.
+      applySession: (user: User) => {
+        set({
+          user,
+          isAuthenticated: true,
+          isAdmin: user.role === "admin",
+          isTeknik: user.role === "teknik",
+          isBoss: user.role === "boss",
+          isGuest: user.role === "guest",
+          isDeveloper: user.role === "developer",
+          fieldIds: user.fieldIds ?? [],
+          mfaRequiredRoles: [],
+          pendingMfaToken: null,
+        });
+      },
     }),
-    { name: "field-auth-storage" },
+    {
+      name: "field-auth-storage",
+      // Boss Faz 3 — tünel modunda persist no-op (localStorage izolasyonu).
+      storage: createJSONStorage(() =>
+        isTunnelMode()
+          ? { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+          : localStorage,
+      ),
+    },
   ),
 );

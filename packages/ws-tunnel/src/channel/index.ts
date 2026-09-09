@@ -3,5 +3,5 @@ export type {
   ISocketClient,
   ISocketClientFactory,
   ITunnelChannel,
-  IFieldChannel,
+  IHubChannel,
 } from "./interface";

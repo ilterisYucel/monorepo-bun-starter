@@ -1,0 +1,1 @@
+{"nodes": [{"id": "_github_workflows_perf_yml_perf_workflow", "label": "Performance Tests Workflow (k6)", "file_type": "concept", "source_file": ".github/workflows/perf.yml", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}

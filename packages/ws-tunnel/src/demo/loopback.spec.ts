@@ -2,12 +2,12 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import http from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 
-import { FieldConnector } from "../connector";
+import { TunnelConnector } from "../connector";
 import { WsSocketClientFactory } from "../channel";
 import { ReconnectDelay } from "../connector";
 import { TunnelClient } from "../client";
-import { ContainerSessionStore, ContainerSessionServer } from "../session";
-import { FieldSessionStore, ContainerSessionGateway, TunnelProxy } from "../proxy";
+import { ClientSessionStore, ClientSessionServer } from "../session";
+import { HubSessionStore, SessionGateway, TunnelProxy } from "../proxy";
 import type { IStreamSink, IAuditSink } from "../";
 import { FieldHarness } from "./field-harness";
 import { JoseSignerForTests } from "../session/__test-helpers__/jose-signer";
@@ -15,7 +15,7 @@ import { JoseSignerForTests } from "../session/__test-helpers__/jose-signer";
 /**
  * Loopback uçtan uca — paketin KENDİ KENDİNE YETERLİLİK kanıtı.
  * Monorepo'ya hiç değmez: ContainerProxy/Fastify/PG YOKTUR; field tarafı
- * `FieldHarness` (paket içi), konteyner tarafı FieldConnector + TunnelClient,
+ * `FieldHarness` (paket içi), konteyner tarafı TunnelConnector + TunnelClient,
  * field tarafı Gateway + TunnelProxy aynı gerçek WS kanalında loopback.
  */
 const CONTAINER_ID = "container-loop";
@@ -90,9 +90,9 @@ async function startUpstream(): Promise<Upstream> {
 describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
   let harness: FieldHarness;
   let upstream: Upstream;
-  let connector: FieldConnector;
+  let connector: TunnelConnector;
   let tunnelClient: TunnelClient;
-  let gateway: ContainerSessionGateway;
+  let gateway: SessionGateway;
   let tunnelProxy: TunnelProxy;
 
   afterEach(async () => {
@@ -110,11 +110,11 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
     harness = new FieldHarness();
     const port = await harness.start();
 
-    connector = new FieldConnector(
+    connector = new TunnelConnector(
       {
         wsUrls: [`ws://127.0.0.1:${port}/ws/container`],
         token: TOKEN,
-        containerId: CONTAINER_ID,
+        peerId: CONTAINER_ID,
         heartbeatIntervalMs: 200,
         telemetryIntervalMs: 200,
         registerTimeoutMs: 3000,
@@ -125,17 +125,17 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
       new ReconnectDelay({ baseMs: 50, maxMs: 200, jitterSpanMs: 0, jitter: () => 0 }),
     );
 
-    const sessionStore = new ContainerSessionStore(
+    const sessionStore = new ClientSessionStore(
       new JoseSignerForTests("container-secret-loopback-0123456789"),
     );
-    const sessionServer = new ContainerSessionServer(connector, sessionStore, undefined);
+    const sessionServer = new ClientSessionServer(connector, sessionStore, undefined);
     sessionServer.start();
 
     tunnelClient = TunnelClient.create({ webServiceUrl: base, staticUrl: base });
     tunnelClient.attach(connector);
 
-    const fieldStore = new FieldSessionStore();
-    gateway = new ContainerSessionGateway(harness, fieldStore, audit, undefined, {
+    const fieldStore = new HubSessionStore();
+    gateway = new SessionGateway(harness, fieldStore, audit, undefined, {
       ackTimeoutMs: 3000,
     });
     gateway.initialize();
@@ -145,35 +145,35 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
     await connector.start();
   }
 
-  it("FieldConnector field'a kaydolur (register-ack → connected)", async () => {
+  it("TunnelConnector field'a kaydolur (register-ack → connected)", async () => {
     await setup();
-    expect(await waitFor(() => connector.fieldConnected())).toBe(true);
+    expect(await waitFor(() => connector.connected())).toBe(true);
     expect(connector.state()).toBe("connected");
   });
 
   it("open-session → ack + kayıt + audit", async () => {
     await setup();
-    expect(await waitFor(() => connector.fieldConnected())).toBe(true);
+    expect(await waitFor(() => connector.connected())).toBe(true);
     const result = await gateway.openSession({
       fieldId: "f-loop",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.unwrap().expiresInSec).toBe(4 * 60 * 60);
       expect(audit.open).toHaveBeenCalledWith(
-        expect.objectContaining({ containerId: CONTAINER_ID }),
+        expect.objectContaining({ peerId: CONTAINER_ID }),
       );
     }
   });
 
   it("GET / → SPA HTML akar (FIN ile biter)", async () => {
     await setup();
-    expect(await waitFor(() => connector.fieldConnected())).toBe(true);
+    expect(await waitFor(() => connector.connected())).toBe(true);
     const outcome = await gateway.openSession({
       fieldId: "f-loop",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
     expect(outcome.isOk()).toBe(true);
@@ -192,10 +192,10 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
 
   it("GET /api/data/latest → JSON akar (K3.2)", async () => {
     await setup();
-    expect(await waitFor(() => connector.fieldConnected())).toBe(true);
+    expect(await waitFor(() => connector.connected())).toBe(true);
     const outcome = await gateway.openSession({
       fieldId: "f-loop",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
     expect(outcome.isOk()).toBe(true);
@@ -213,10 +213,10 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
 
   it("/ws köprüsü çift yönlü WS_OP mesajı taşır", async () => {
     await setup();
-    expect(await waitFor(() => connector.fieldConnected())).toBe(true);
+    expect(await waitFor(() => connector.connected())).toBe(true);
     const outcome = await gateway.openSession({
       fieldId: "f-loop",
-      containerId: CONTAINER_ID,
+      peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
     expect(outcome.isOk()).toBe(true);
@@ -233,7 +233,7 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
       browserSocket,
     });
     expect(streamId).toBeDefined();
-    tunnelProxy.sendWsToContainer(streamId!, Buffer.from("subscribe"), false);
+    tunnelProxy.sendWsToPeer(streamId!, Buffer.from("subscribe"), false);
     expect(await waitFor(() => received.length === 1)).toBe(true);
     expect(received[0]?.toString()).toBe("subscribe");
     tunnelProxy.closeWs(streamId!, "test-end");

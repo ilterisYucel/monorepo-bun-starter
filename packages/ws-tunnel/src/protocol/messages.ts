@@ -8,11 +8,24 @@ import type { TunnelRole, TunnelTelemetryPoint } from "../types";
  * binary frame'leri = tünel akış verisi (`../codec`).
  */
 
-/** WS kontrol kanalı protokol sürümü — `register.protocolVersion` alanında taşınır. */
-export const FIELD_PROTOCOL_VERSION = 1;
+/**
+ * WS kontrol kanalı protokol sürümü — `register.protocolVersion` alanında taşınır.
+ * v2: register şeması nötr `peerId` + `peerType` taşır (v1: `containerId`).
+ */
+export const TUNNEL_PROTOCOL_VERSION = 2;
 
 /**
- * Konteyner bağlantı durumu — FIELD tarafı görünümü.
+ * Tünel uç noktası türü — aynı paketin iki farklı topolojide kullanımı:
+ * - `container`: konteyner, field'a bağlanır (ilk deployment)
+ * - `field`: field, boss'a bağlanır (uplink — ikinci deployment)
+ */
+export type TunnelPeerType = "container" | "field";
+
+/** Bilinen peer türleri — `register.peerType` doğrulaması için. */
+export const TUNNEL_PEER_TYPES: readonly TunnelPeerType[] = ["container", "field"];
+
+/**
+ * Peer bağlantı durumu — HUB tarafı görünümü.
  *
  * - `idle`: kayıtlı ama WS kapalı (son telemetri korunur, tasarım §12.4)
  * - `connected`: register tamam + heartbeat akıyor
@@ -22,12 +35,12 @@ export const FIELD_PROTOCOL_VERSION = 1;
  * Transport `ConnectionState`'ından AYRIDIR — tünel/telemetri transportu
  * "stale" kavramını bilmez.
  */
-export type ContainerConnectionState = "idle" | "connected" | "stale" | "error";
+export type PeerConnectionState = "idle" | "connected" | "stale" | "error";
 
-/** Verilen değer geçerli bir ContainerConnectionState mi? */
-export function isContainerConnectionState(
+/** Verilen değer geçerli bir PeerConnectionState mi? */
+export function isPeerConnectionState(
   value: unknown,
-): value is ContainerConnectionState {
+): value is PeerConnectionState {
   return (
     value === "idle" ||
     value === "connected" ||
@@ -37,7 +50,7 @@ export function isContainerConnectionState(
 }
 
 /**
- * FieldConnector durum makinesi (konteyner tarafı — tasarım §6 diyagramı):
+ * TunnelConnector durum makinesi (client tarafı — tasarım §6 diyagramı):
  *
  * ```
  * [*] --> offline
@@ -50,7 +63,7 @@ export function isContainerConnectionState(
  * connected --> [*]: stop()
  * ```
  */
-export type FieldConnectorState =
+export type TunnelConnectorState =
   | "offline"
   | "connecting"
   | "registered"
@@ -58,14 +71,14 @@ export type FieldConnectorState =
   | "backoff";
 
 /**
- * Operational config — field'dan `register-ack.config` veya `config-update`
- * frame'iyle canlı push edilir; konteyner restart'sız uygular (tasarım §6.1).
+ * Operational config — hub'dan `register-ack.config` veya `config-update`
+ * frame'iyle canlı push edilir; client restart'sız uygular (tasarım §6.1).
  *
- * ZORUNLU alan YOKTUR — gelen obje `DEFAULT_FIELD_OPERATIONAL_CONFIG` üzerine
+ * ZORUNLU alan YOKTUR — gelen obje `DEFAULT_TUNNEL_OPERATIONAL_CONFIG` üzerine
  * merge edilir. Bilinmeyen anahtarlar strip edilir (ileri uyumluluk: ileride
  * session limitleri, path allowlist, RBAC eşlemesi, log seviyesi eklenebilir).
  */
-export interface FieldOperationalConfig {
+export interface TunnelOperationalConfig {
   /** Heartbeat gönderim aralığı (ms). Bant: 1000-300000. Varsayılan: 15000. */
   heartbeatIntervalMs?: number;
   /** Telemetri snapshot push aralığı (ms). Bant: 1000-300000. Varsayılan: 15000. */
@@ -73,20 +86,21 @@ export interface FieldOperationalConfig {
 }
 
 /** Operational config zod şeması — bilinmeyen anahtarlar strip edilir. */
-export const fieldOperationalConfigSchema = z.object({
+export const tunnelOperationalConfigSchema = z.object({
   heartbeatIntervalMs: z.number().int().min(1000).max(300000).optional(),
   telemetryIntervalMs: z.number().int().min(1000).max(300000).optional(),
 });
 
 /** Varsayılan operational config — heartbeat 15 sn, telemetry 15 sn (tasarım §4.3). */
-export const DEFAULT_FIELD_OPERATIONAL_CONFIG: Readonly<Required<FieldOperationalConfig>> =
-  Object.freeze({
-    heartbeatIntervalMs: 15000,
-    telemetryIntervalMs: 15000,
-  });
+export const DEFAULT_TUNNEL_OPERATIONAL_CONFIG: Readonly<
+  Required<TunnelOperationalConfig>
+> = Object.freeze({
+  heartbeatIntervalMs: 15000,
+  telemetryIntervalMs: 15000,
+});
 
 /** Bilinen kontrol mesajı tipleri (§4.1 tablosu + telemetri sorgusu). */
-export const FIELD_MESSAGE_TYPES = [
+export const TUNNEL_MESSAGE_TYPES = [
   "register",
   "register-ack",
   "config-update",
@@ -102,39 +116,43 @@ export const FIELD_MESSAGE_TYPES = [
   "telemetry-query",
   "telemetry-result",
   "telemetry-query-error",
+  "event",
   "error",
 ] as const;
 
-/** C→F: İlk mesaj — service token'lı upgrade sonrası gönderilir. */
+/** Client→Hub: İlk mesaj — service token'lı upgrade sonrası gönderilir. */
 export interface RegisterMessage {
   type: "register";
-  containerId: string;
-  /** Bilgi amaçlıdır — field yalnızca registry'deki URL'i trust eder (SSRF). */
-  containerUrl?: string;
+  /** Peer kimliği — v2 nötr ad (konteyner: containerId, field: fieldId). */
+  peerId: string;
+  /** Peer türü — hub kayıt/doğrulama tarafını seçer. */
+  peerType: TunnelPeerType;
+  /** Bilgi amaçlıdır — hub yalnızca registry'deki URL'i trust eder (SSRF). */
+  peerUrl?: string;
   protocolVersion: number;
 }
 
-/** F→C: Doğrulama sonucu + opsiyonel operational config. */
+/** Hub→Client: Doğrulama sonucu + opsiyonel operational config. */
 export interface RegisterAckMessage {
   type: "register-ack";
   status: "ok" | "rejected";
   serverTime: string;
-  config?: FieldOperationalConfig;
+  config?: TunnelOperationalConfig;
 }
 
-/** F→C: Canlı operational config push — yeniden başlatma gerektirmez. */
+/** Hub→Client: Canlı operational config push — yeniden başlatma gerektirmez. */
 export interface ConfigUpdateMessage {
   type: "config-update";
-  config: FieldOperationalConfig;
+  config: TunnelOperationalConfig;
 }
 
-/** C→F: 15 sn'de bir; `ts` = gönderen saati (ms epoch). */
+/** Client→Hub: 15 sn'de bir; `ts` = gönderen saati (ms epoch). */
 export interface HeartbeatMessage {
   type: "heartbeat";
   ts: number;
 }
 
-/** C→F: En güncel telemetri snapshot'ı. */
+/** Client→Hub: En güncel telemetri snapshot'ı. */
 export interface TelemetryMessage {
   type: "telemetry";
   data: TunnelTelemetryPoint[];
@@ -148,17 +166,35 @@ export interface ErrorMessage {
 }
 
 /**
- * F→C: tarihsel (downsampled) telemetri serisi sorgusu — outbound-only model
- * (field konteynere HTTP açmaz; bkz. tasarım R4/R5). Yanıt `telemetry-result`
+ * Client→Hub: jenerik olay bildirimi (alarm/audit aktarımı — Boss Faz 5).
+ * Kaynak taraf (field/container) önemli geçiş olaylarını HUB'a push eder;
+ * hub kopyası bilgilendirme amaçlıdır — tamper-evidence otoritesi KAYNAK
+ * tarafının kendi log zincirinde kalır. `eventId` kaynakta benzersizdir ve
+ * hub'da dedupe anahtarıdır (kopukluk backlog'unda çift gönderim güvenli).
+ */
+export interface EventMessage {
+  type: "event";
+  eventId: string;
+  timestamp: string;
+  level: "info" | "warn" | "error";
+  category: "app" | "security";
+  eventCode: string;
+  message: string;
+  context?: Record<string, string>;
+}
+
+/**
+ * Hub→Client: tarihsel (downsampled) telemetri serisi sorgusu — outbound-only model
+ * (hub client'a HTTP açmaz; bkz. tasarım R4/R5). Yanıt `telemetry-result`
  * ile aynı kanaldan döner.
  *
- * `from`/`to` ISO-8601'dir (konteyner tarafında zod ile doğrulanır).
- * `deviceIds`/`names` opsiyoneldir — verilmezse konteyner çevrimiçi tüm
+ * `from`/`to` ISO-8601'dir (client tarafında zod ile doğrulanır).
+ * `deviceIds`/`names` opsiyoneldir — verilmezse client çevrimiçi tüm
  * cihazlarını sorgular.
  */
 export interface TelemetryQueryMessage {
   type: "telemetry-query";
-  /** İstek-yanıt eşleştirme kimliği (field tarafı üretir — benzersiz). */
+  /** İstek-yanıt eşleştirme kimliği (hub tarafı üretir — benzersiz). */
   queryId: string;
   /** Sorgu başlangıcı (ISO-8601). */
   from: string;
@@ -172,29 +208,29 @@ export interface TelemetryQueryMessage {
   names?: string[];
 }
 
-/** C→F: `telemetry-query` yanıtı — downsampled seri (boş olabilir). */
+/** Client→Hub: `telemetry-query` yanıtı — downsampled seri (boş olabilir). */
 export interface TelemetryResultMessage {
   type: "telemetry-result";
   queryId: string;
   data: TunnelTelemetryPoint[];
 }
 
-/** C→F: sorgu başarısız — field boş seri gösterir (kademeli bozulma). */
+/** Client→Hub: sorgu başarısız — hub boş seri gösterir (kademeli bozulma). */
 export interface TelemetryQueryErrorMessage {
   type: "telemetry-query-error";
   queryId: string;
   message: string;
 }
 
-/** Telemetri sorgu mesajları — FieldConnector kanalı üzerinden taşınır. */
+/** Telemetri sorgu mesajları — TunnelConnector kanalı üzerinden taşınır. */
 export type TelemetryQueryControlMessage =
   | TelemetryQueryMessage
   | TelemetryResultMessage
   | TelemetryQueryErrorMessage;
 
 /**
- * `telemetry-query` alım zod şeması — güvenilmez field girdisi doğrulanır
- * (konteyner tarafı; geçersiz sorgu `telemetry-query-error` ile reddedilir).
+ * `telemetry-query` alım zod şeması — güvenilmez hub girdisi doğrulanır
+ * (client tarafı; geçersiz sorgu `telemetry-query-error` ile reddedilir).
  */
 export const telemetryQuerySchema = z.object({
   queryId: z.string().min(1).max(128),
@@ -205,7 +241,7 @@ export const telemetryQuerySchema = z.object({
   names: z.array(z.string().min(1)).max(500).optional(),
 });
 
-/** F→C: oturum isteği — `user.role` field tarafında EŞLENMİŞ konteyner rolüdür (§5.5). */
+/** Hub→Client: oturum isteği — `user.role` hub tarafında EŞLENMİŞ client rolüdür (§5.5). */
 export interface OpenSessionMessage {
   type: "open-session";
   sessionId: string;
@@ -216,7 +252,7 @@ export interface OpenSessionMessage {
   };
 }
 
-/** C→F: kısa ömürlü konteyner JWT'si (kendi secret'i — §5.4). */
+/** Client→Hub: kısa ömürlü client JWT'si (kendi secret'i — §5.4). */
 export interface OpenSessionAckMessage {
   type: "open-session-ack";
   sessionId: string;
@@ -224,14 +260,14 @@ export interface OpenSessionAckMessage {
   expiresInSec: number;
 }
 
-/** F→C: oturumu kapat (iptal / TTL / field restart). */
+/** Hub→Client: oturumu kapat (iptal / TTL / hub restart). */
 export interface SessionEndMessage {
   type: "session-end";
   sessionId: string;
   reason: string;
 }
 
-/** F→C: yeni HTTP/WS akışı — `upgrade:"websocket"` ise WS köprüsü. */
+/** Hub→Client: yeni HTTP/WS akışı — `upgrade:"websocket"` ise WS köprüsü. */
 export interface StreamOpenMessage {
   type: "stream-open";
   streamId: number;
@@ -242,7 +278,7 @@ export interface StreamOpenMessage {
   upgrade?: "websocket";
 }
 
-/** C→F: yanıt başladı (HTTP durum kodu + başlıklar; WS için 101). */
+/** Client→Hub: yanıt başladı (HTTP durum kodu + başlıklar; WS için 101). */
 export interface StreamOpenAckMessage {
   type: "stream-open-ack";
   streamId: number;
@@ -264,8 +300,8 @@ export interface StreamCloseMessage {
   reason: string;
 }
 
-/** Tünel kontrol mesajları (kayıt/telemetri mesajlarıyla birlikte kanal sözleşmesi). */
-export type TunnelControlMessage =
+/** Oturum + akış mesajları (tünel alt kümesi). */
+export type SessionStreamMessage =
   | OpenSessionMessage
   | OpenSessionAckMessage
   | SessionEndMessage
@@ -275,22 +311,23 @@ export type TunnelControlMessage =
   | StreamCloseMessage;
 
 /** Kanal üzerindeki tüm kontrol mesajları. */
-export type FieldControlMessage =
+export type TunnelControlMessage =
   | RegisterMessage
   | RegisterAckMessage
   | ConfigUpdateMessage
   | HeartbeatMessage
   | TelemetryMessage
   | ErrorMessage
-  | TunnelControlMessage
+  | EventMessage
+  | SessionStreamMessage
   | TelemetryQueryControlMessage;
 
 /**
- * `GET /api/status` yanıt DTO'su (tasarım §6) — container UI "Field Bağlantısı"
+ * `GET /api/status` yanıt DTO'su (tasarım §6) — client UI "Hub Bağlantısı"
  * göstergesini besler. `lastHeartbeatAt` hiç gönderilmemişse undefined.
  */
-export interface FieldConnectionStatus {
-  fieldConnected: boolean;
-  state: FieldConnectorState;
+export interface TunnelConnectionStatus {
+  connected: boolean;
+  state: TunnelConnectorState;
   lastHeartbeatAt?: string;
 }

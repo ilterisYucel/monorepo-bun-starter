@@ -1,7 +1,7 @@
-export { ContainerSessionStore } from "./session-store";
+export { ClientSessionStore } from "./client-session-store";
 export type {
-  ContainerSessionUser,
-  ContainerSession,
-  ContainerSessionStoreConfig,
+  ClientSessionUser,
+  ClientSession,
+  ClientSessionStoreConfig,
 } from "./session-store";
-export { ContainerSessionServer } from "./container-session-server";
+export { ClientSessionServer } from "./client-session-server";

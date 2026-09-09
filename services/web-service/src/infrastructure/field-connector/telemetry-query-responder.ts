@@ -4,7 +4,7 @@ import type { LogEventCode } from "@gd-monorepo/platform-logging";
 
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
 
-import type { FieldConnector } from "@gd-monorepo/ws-tunnel";
+import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
 import type { ITelemetrySeriesSource } from "./interfaces";
 
 /**
@@ -15,14 +15,14 @@ import type { ITelemetrySeriesSource } from "./interfaces";
  *   girdisi asla TimescaleDB'ye ham ulaşmaz; geçersiz → `telemetry-query-error`.
  * - Sorgu `ITelemetrySeriesSource.series()` ile çalışır; hata → aynı error
  *   frame'i (kademeli bozulma — WS kanalı etkilenmez).
- * - Yanıtlar `FieldConnector.sendControl` ile AYNI outbound kanaldan gider
+ * - Yanıtlar `TunnelConnector.sendControl` ile AYNI outbound kanaldan gider
  *   (tasarım R4/R5: konteynere inbound HTTP yok).
  */
 export class TelemetryQueryResponder {
   private unsubscribe?: () => void;
 
   constructor(
-    private readonly connector: FieldConnector,
+    private readonly connector: TunnelConnector,
     private readonly source: ITelemetrySeriesSource,
     private readonly logger?: TamperLogger,
   ) {}

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
-import { authConfig, seedUsers, fieldConnectorConfig, siteFieldConfig, mfaRequiredRoles } from "./default";
+import { authConfig, seedUsers, fieldConnectorConfig, siteFieldConfig, mfaRequiredRoles, fieldTunnelPathAllowlist } from "./default";
 
 /**
  * default.ts T1.6 + T2.3 sözleşmesi:
@@ -30,7 +30,7 @@ function makeLoader(env: Record<string, string> = {}): ConfigLoader {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  for (const key of ["SERVICE_TIER", "JWT_SECRET", "SEED_ADMIN_PASSWORD", "SEED_BOSS_PASSWORD", "SEED_GUEST_PASSWORD", "FIELD_CONNECT_ENABLED", "FIELD_WS_URL", "CONTAINER_TOKEN", "CONTAINER_ID", "FIELD_ID", "FIELD_NAME", "MFA_ENABLED", "AUTH_MFA_REQUIRED_ROLES"]) {
+  for (const key of ["SERVICE_TIER", "JWT_SECRET", "SEED_ADMIN_PASSWORD", "SEED_BOSS_PASSWORD", "SEED_GUEST_PASSWORD", "FIELD_CONNECT_ENABLED", "FIELD_WS_URL", "CONTAINER_TOKEN", "CONTAINER_ID", "FIELD_ID", "FIELD_NAME", "MFA_ENABLED", "AUTH_MFA_REQUIRED_ROLES", "FIELD_TUNNEL_ALLOWED_PREFIXES"]) {
     delete process.env[key];
   }
 });
@@ -110,7 +110,8 @@ describe("fieldConnectorConfig (T2.3)", () => {
     expect(cfg).toBeDefined();
     expect(cfg?.wsUrls).toEqual(["ws://field-a:5002", "ws://field-b:5002"]);
     expect(cfg?.token).toBe("service-token-abcdef");
-    expect(cfg?.containerId).toBe("container-1");
+    expect(cfg?.peerId).toBe("container-1");
+    expect(cfg?.peerType).toBe("container");
     expect(cfg?.heartbeatIntervalMs).toBe(15000);
     expect(cfg?.telemetryIntervalMs).toBe(15000);
   });
@@ -234,5 +235,25 @@ describe("mfaRequiredRoles (MFA_ENABLED flag)", () => {
   it("container tier her zaman []", () => {
     const loader = makeLoader({ SERVICE_TIER: "container" });
     expect(mfaRequiredRoles(loader, "container")).toEqual([]);
+  });
+});
+
+describe("fieldTunnelPathAllowlist (Boss Faz 3 dev eki)", () => {
+  it("env boşsa undefined — §5.6 varsayılanları geçerli kalır", () => {
+    const loader = makeLoader({});
+    expect(fieldTunnelPathAllowlist(loader)).toBeUndefined();
+  });
+
+  it("virgüllü ek önekler §5.6 varsayılanlarına EKLENİR", () => {
+    const loader = makeLoader({
+      FIELD_TUNNEL_ALLOWED_PREFIXES: "/src/, /@vite/,/node_modules/",
+    });
+    const allowlist = fieldTunnelPathAllowlist(loader);
+    expect(allowlist?.allowedPrefixes).toContain("/");
+    expect(allowlist?.allowedPrefixes).toContain("/api/");
+    expect(allowlist?.allowedPrefixes).toContain("/src/");
+    expect(allowlist?.allowedPrefixes).toContain("/@vite/");
+    expect(allowlist?.allowedPrefixes).toContain("/node_modules/");
+    expect(allowlist?.blockedPrefixes).toContain("/api/auth/login");
   });
 });

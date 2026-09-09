@@ -1,15 +1,17 @@
 import type { Role, PostgresConfig } from "@gd-monorepo/shared-types";
 import type { LogLevel } from "@gd-monorepo/tamper-logger";
 
-import { DEFAULT_FIELD_OPERATIONAL_CONFIG } from "@gd-monorepo/ws-tunnel";
+import { DEFAULT_TUNNEL_OPERATIONAL_CONFIG, DEFAULT_PATH_ALLOWLIST } from "@gd-monorepo/ws-tunnel";
 
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { loggerConfigForTier } from "@gd-monorepo/platform-logging";
 import type { LoggerConfig } from "@gd-monorepo/platform-logging";
 import type { TimescaleDBConfig } from "@gd-monorepo/core";
 
-import type { FieldConnectorConfig } from "@gd-monorepo/ws-tunnel";
+import type { TunnelConnectorConfig } from "@gd-monorepo/ws-tunnel";
+import type { PathAllowlist } from "@gd-monorepo/ws-tunnel";
 import type { SiteFieldConfig } from "../infrastructure/persistence/site-field-seed";
+import type { WireGuardConnectionConfig } from "../infrastructure/wireguard/wireguard-connection";
 
 export type { PostgresConfig };
 
@@ -201,14 +203,14 @@ export function deviceConfigDir(loader: ConfigLoader): string {
   return loader.get<string>("device.configDir");
 }
 
-// FieldConnector zaman sabitleri — bootstrap env'de TASINMAZ (tasarım §6.1:
+// TunnelConnector zaman sabitleri — bootstrap env'de TASINMAZ (tasarım §6.1:
 // runtime değerleri build-time gömülmez); operational config ile canlı değişir.
 const REGISTER_TIMEOUT_MS = 10000;
 const LIVENESS_TIMEOUT_MS = 60000;
 
 /**
- * FieldConnector bootstrap config (tasarım §6.1, T2.3):
- * - Kapalıysa undefined döner (FieldConnector awilix'te kurulmaz).
+ * TunnelConnector bootstrap config (tasarım §6.1, T2.3):
+ * - Kapalıysa undefined döner (TunnelConnector awilix'te kurulmaz).
  * - Etkinse FIELD_WS_URL (virgüllü liste), CONTAINER_TOKEN ve CONTAINER_ID
  *   zorunludur — eksikse fail-fast fırlatır (yanlış yapılandırma sessizce
  *   "bağlı değil" görünmesin).
@@ -217,7 +219,7 @@ const LIVENESS_TIMEOUT_MS = 60000;
 export function fieldConnectorConfig(
   loader: ConfigLoader,
   tier: ServiceTier,
-): FieldConnectorConfig | undefined {
+): TunnelConnectorConfig | undefined {
   const enabled = loader.get<boolean>("fieldConnect.enabled");
   if (!enabled) return undefined;
 
@@ -254,11 +256,113 @@ export function fieldConnectorConfig(
   return {
     wsUrls,
     token,
-    containerId,
-    heartbeatIntervalMs: DEFAULT_FIELD_OPERATIONAL_CONFIG.heartbeatIntervalMs,
-    telemetryIntervalMs: DEFAULT_FIELD_OPERATIONAL_CONFIG.telemetryIntervalMs,
+    peerId: containerId,
+    peerType: "container",
+    heartbeatIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs,
+    telemetryIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs,
     registerTimeoutMs: REGISTER_TIMEOUT_MS,
     livenessTimeoutMs: LIVENESS_TIMEOUT_MS,
+  };
+}
+
+/**
+ * FieldUplink bootstrap config (BOSS-UYGULAMA-MIMARISI.md §7.4 — Boss Faz 3):
+ * field tier, boss cloud'a outbound WSS açar (TunnelConnector, peerType:"field").
+ * - Kapalıysa undefined; etkinse FIELD_UPLINK_WS_URL, FIELD_UPLINK_TOKEN ve
+ *   FIELD_ID zorunludur — eksikse fail-fast (yanlış yapılandırma sessiz
+ *   "bağlı değil" görünmesin).
+ * - Yalnızca field tier'da geçerlidir.
+ */
+export function fieldUplinkConfig(
+  loader: ConfigLoader,
+  tier: ServiceTier,
+): TunnelConnectorConfig | undefined {
+  const enabled = loader.get<boolean>("fieldUplink.enabled");
+  if (!enabled) return undefined;
+
+  if (tier !== "field") {
+    throw new Error(
+      "[Config] FIELD_UPLINK_ENABLED yalnizca field tier'da gecerlidir",
+    );
+  }
+
+  const wsUrlRaw = loader.get<string | undefined>("fieldUplink.wsUrl");
+  const token = loader.get<string | undefined>("fieldUplink.token");
+  const fieldId = loader.get<string | undefined>("site.fieldId");
+  if (!wsUrlRaw || !token || !fieldId) {
+    throw new Error(
+      "[Config] FIELD_UPLINK_ENABLED=true iken FIELD_UPLINK_WS_URL, FIELD_UPLINK_TOKEN ve FIELD_ID zorunludur",
+    );
+  }
+
+  const wsUrls = wsUrlRaw
+    .split(",")
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0);
+  if (wsUrls.length === 0) {
+    throw new Error("[Config] FIELD_UPLINK_WS_URL bos olamaz");
+  }
+  for (const url of wsUrls) {
+    if (!url.startsWith("ws://") && !url.startsWith("wss://")) {
+      throw new Error(
+        `[Config] Gecersiz FIELD_UPLINK_WS_URL adresi: ${url} (ws:// veya wss:// olmali)`,
+      );
+    }
+  }
+
+  return {
+    wsUrls,
+    token,
+    peerId: fieldId,
+    peerType: "field",
+    heartbeatIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs,
+    telemetryIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs,
+    registerTimeoutMs: REGISTER_TIMEOUT_MS,
+    livenessTimeoutMs: LIVENESS_TIMEOUT_MS,
+  };
+}
+
+/**
+ * Boss field-app tünel allowlist'i (BOSS-UYGULAMA-MIMARISI.md §5.6 + dev eki):
+ * `FIELD_TUNNEL_ALLOWED_PREFIXES` env'i §5.6 varsayılanlarına EKLENİR
+ * (ör. field dev Vite asset yolları: /src/, /@vite/, /node_modules/).
+ * Boşsa undefined döner — tünel route'u varsayılan listeyle çalışır.
+ */
+export function fieldTunnelPathAllowlist(
+  loader: ConfigLoader,
+): PathAllowlist | undefined {
+  const extras = loader
+    .get<string>("fieldTunnel.allowedPrefixes")
+    .split(",")
+    .map((prefix) => prefix.trim())
+    .filter((prefix) => prefix.length > 0);
+  if (extras.length === 0) return undefined;
+  return {
+    allowedPrefixes: [
+      ...(DEFAULT_PATH_ALLOWLIST.allowedPrefixes ?? []),
+      ...extras,
+    ],
+    blockedPrefixes: DEFAULT_PATH_ALLOWLIST.blockedPrefixes,
+  };
+}
+
+/**
+ * WireGuard bootstrap config (BOSS Faz 4 — yedek yol):
+ * `WG_CLIENT_PRIVATE_KEY` tanımlıysa modül kurulur; yoksa undefined döner
+ * (WG devre dışı — UI "anahtar tanımlı değil" görür; kademeli bozulma).
+ */
+export function wireGuardConfig(
+  loader: ConfigLoader,
+): WireGuardConnectionConfig | undefined {
+  const clientPrivateKey = loader.get<string | undefined>("wg.clientPrivateKey");
+  if (!clientPrivateKey || clientPrivateKey.trim().length === 0) {
+    return undefined;
+  }
+  return {
+    clientPrivateKey,
+    clientAddress: loader.get<string>("wg.clientAddress"),
+    allowedIps: loader.get<string>("wg.allowedIps"),
+    configDir: loader.get<string>("wg.configDir"),
   };
 }
 

@@ -10,7 +10,7 @@ const READY_STATE_MAP = {
 
 /**
  * WsSocketClient — `ws` paketi istemcisini `ISocketClient`'a uyarlar (Adapter).
- * FieldConnector bu sözleşme üzerinden çalışır; testlerde fake soket enjekte
+ * TunnelConnector bu sözleşme üzerinden çalışır; testlerde fake soket enjekte
  * edilir. `unexpected-response` (pre-upgrade ret — 401/403) `onRejected`'a
  * çevrilir; statusCode yoksa 0 iletilir.
  */

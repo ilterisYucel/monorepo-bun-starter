@@ -26,11 +26,11 @@ export const SESSION_AUDIT_DDL = `
 
 interface OpenSessionRecord {
   fieldId: string;
-  containerId: string;
+  peerId: string;
   sessionId: string;
   username: string;
-  fieldRole: string;
-  containerRole: string;
+  callerRole: string;
+  peerRole: string;
   remoteIp?: string;
 }
 
@@ -68,11 +68,11 @@ export class SessionAudit implements IAuditSink {
       eventCode: "session_open",
       message: "Konteyner oturumu acildi",
       context: {
-        containerId: record.containerId,
+        peerId: record.peerId,
         sessionId: record.sessionId,
         username: record.username,
-        fieldRole: record.fieldRole,
-        containerRole: record.containerRole,
+        callerRole: record.callerRole,
+        peerRole: record.peerRole,
       },
     });
     await this.sql.execute(
@@ -81,11 +81,11 @@ export class SessionAudit implements IAuditSink {
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         record.fieldId,
-        record.containerId,
+        record.peerId,
         record.sessionId,
         record.username,
-        record.fieldRole,
-        record.containerRole,
+        record.callerRole,
+        record.peerRole,
         record.remoteIp ?? null,
       ],
     );

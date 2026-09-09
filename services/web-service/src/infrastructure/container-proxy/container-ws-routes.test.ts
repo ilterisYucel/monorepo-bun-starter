@@ -12,7 +12,7 @@ import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
  * containerUrl self-reported trust ediliyordu. T1.1 ile:
  * - Bearer token yoksa → 401 (upgrade ÖNCESİ).
  * - Hash'i registry'de olmayan token → 401.
- * - Geçerli token → registerContainer(containerId, ws, token) çağrılır.
+ * - Geçerli token → registerContainer(peerId, ws, token) çağrılır (v2).
  * - Register mesajındaki containerUrl YOK SAYILIR (self-reported trust kalktı).
  */
 
@@ -107,7 +107,7 @@ describe("container-ws-routes T1.1 sözleşmesi", () => {
     const port = typeof address === "object" && address ? address.port : 0;
 
     const ws = await connect(port, "gecerli-token");
-    ws.send(JSON.stringify({ type: "register", containerId: "c-1", containerUrl: "http://kotu" }));
+    ws.send(JSON.stringify({ type: "register", peerId: "c-1", peerType: "container", peerUrl: "http://kotu" }));
 
     await vi.waitFor(() => {
       expect(proxy.calls).toContain("registerContainer");
@@ -127,7 +127,7 @@ describe("container-ws-routes T1.1 sözleşmesi", () => {
 
     const ws = await connect(port, "gecerli-token");
     ws.send(
-      JSON.stringify({ type: "register", containerId: "c-2", containerUrl: "http://kotu-bir-url" }),
+      JSON.stringify({ type: "register", peerId: "c-2", peerType: "container", peerUrl: "http://kotu-bir-url" }),
     );
 
     await vi.waitFor(() => {

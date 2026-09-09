@@ -24,6 +24,8 @@
     "stop:container": "docker compose --env-file deployment/.env.container -f deployment/docker-compose.container.yml down",
     "start:field": "docker compose --env-file deployment/.env.field -f deployment/docker-compose.field.yml up -d",
     "stop:field": "docker compose --env-file deployment/.env.field -f deployment/docker-compose.field.yml down",
+    "start:boss": "docker compose --env-file deployment/.env.boss -f deployment/docker-compose.boss.yml up -d",
+    "stop:boss": "docker compose --env-file deployment/.env.boss -f deployment/docker-compose.boss.yml down",
     "build": "nx run-many --target=build",
     "gen:pcs": "bun tools/gen-pcs-configs.mjs",
     "build:container-web": "nx run container-web:build",

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContainerCard, COLORS, SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import { useContainerData, CONTAINERS_QUERY_KEY } from "../features/containers/hooks/useContainerData";
+import { fieldRootPath } from "../lib/api-base";
 import { RegisterContainerForm } from "../features/containers/components/RegisterContainerForm";
 import { Modal } from "../features/ui";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
@@ -82,7 +83,7 @@ export const ContainersPage: React.FC = () => {
             temperature={c.temperature}
             deviceCount={c.deviceCount}
             activeDeviceCount={c.activeDeviceCount}
-            onClick={() => navigate(`/field/${fieldId}/containers/${c.containerId}`)}
+            onClick={() => navigate(`${fieldRootPath(fieldId ?? "")}/containers/${c.containerId}`)}
           />
         ))}
       </div>

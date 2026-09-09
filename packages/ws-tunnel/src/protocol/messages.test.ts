@@ -1,54 +1,55 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import {
-  FIELD_PROTOCOL_VERSION,
-  DEFAULT_FIELD_OPERATIONAL_CONFIG,
-  fieldOperationalConfigSchema,
-  isContainerConnectionState,
+  TUNNEL_PROTOCOL_VERSION,
+  DEFAULT_TUNNEL_OPERATIONAL_CONFIG,
+  tunnelOperationalConfigSchema,
+  isPeerConnectionState,
 } from "./messages";
 import type {
-  ContainerConnectionState,
-  FieldConnectorState,
-  FieldOperationalConfig,
+  PeerConnectionState,
+  TunnelConnectorState,
+  TunnelOperationalConfig,
   RegisterMessage,
   RegisterAckMessage,
   HeartbeatMessage,
   TelemetryMessage,
   ConfigUpdateMessage,
   ErrorMessage,
+  EventMessage,
   StreamOpenMessage,
   OpenSessionMessage,
   OpenSessionAckMessage,
 } from "./messages";
 
 /**
- * T2.0 — FieldConnector kontrol kanalı sözleşmesi (TESTING.md §8.1):
+ * T2.0 — TunnelConnector kontrol kanalı sözleşmesi (TESTING.md §8.1):
  *
- * - `ContainerConnectionState` — field tarafı görünümü: "idle" (kayıtlı ama kapalı),
+ * - `PeerConnectionState` — field tarafı görünümü: "idle" (kayıtlı ama kapalı),
  *   "connected" (heartbeat akıyor), "stale" (45 sn sessizlik), "error".
  *   transport `ConnectionState`'ından AYRIDIR (tünel/telemetri transportu "stale" bilmez).
- * - `FieldConnectorState` — konteyner tarafı durum makinesi (§6 diyagramı):
+ * - `TunnelConnectorState` — konteyner tarafı durum makinesi (§6 diyagramı):
  *   offline → connecting → registered → connected; connecting/connected → backoff;
  *   backoff → connecting. "backoff" = yeniden bağlanma bekleniyor.
  * - Kontrol mesajları — JSON text frame'leri (§4.1): register (ilk mesaj,
  *   protocolVersion zorunlu), register-ack (status "ok"|"rejected" + opsiyonel
  *   operational config), heartbeat (ts = gönderen saati ms), telemetry (en güncel
  *   snapshot), config-update (canlı config push — restart yok), error (kod + mesaj).
- * - `FieldOperationalConfig` — ZORUNLU alan YOK; bilinmeyen anahtarlar strip edilir
+ * - `TunnelOperationalConfig` — ZORUNLU alan YOK; bilinmeyen anahtarlar strip edilir
  *   (ileri uyumluluk); aralıklar 1000-300000 ms bandında tam sayı olmalı.
- * - `DEFAULT_FIELD_OPERATIONAL_CONFIG` — heartbeat 15 sn, telemetry 15 sn
+ * - `DEFAULT_TUNNEL_OPERATIONAL_CONFIG` — heartbeat 15 sn, telemetry 15 sn
  *   (tasarım §4.3: 15 sn heartbeat, 45 sn stale).
  */
 
-describe("FieldConnector sözleşmesi (T2.0)", () => {
-  describe("FIELD_PROTOCOL_VERSION", () => {
-    it("1'dir — sürümlü protokol (tasarım §12.3)", () => {
-      expect(FIELD_PROTOCOL_VERSION).toBe(1);
+describe("TunnelConnector sözleşmesi (T2.0)", () => {
+  describe("TUNNEL_PROTOCOL_VERSION", () => {
+    it("2'dir — sürümlü protokol (v2: peerId+peerType register) (tasarım §12.3)", () => {
+      expect(TUNNEL_PROTOCOL_VERSION).toBe(2);
     });
   });
 
-  describe("fieldOperationalConfigSchema", () => {
+  describe("tunnelOperationalConfigSchema", () => {
     it("tam config'i kabul eder", () => {
-      const parsed = fieldOperationalConfigSchema.parse({
+      const parsed = tunnelOperationalConfigSchema.parse({
         heartbeatIntervalMs: 10000,
         telemetryIntervalMs: 20000,
       });
@@ -59,18 +60,18 @@ describe("FieldConnector sözleşmesi (T2.0)", () => {
     });
 
     it("kısmi config'i kabul eder (yalnızca heartbeat)", () => {
-      const parsed = fieldOperationalConfigSchema.parse({
+      const parsed = tunnelOperationalConfigSchema.parse({
         heartbeatIntervalMs: 5000,
       });
       expect(parsed.telemetryIntervalMs).toBeUndefined();
     });
 
     it("boş config'i kabul eder (tüm alanlar opsiyonel)", () => {
-      expect(fieldOperationalConfigSchema.parse({})).toEqual({});
+      expect(tunnelOperationalConfigSchema.parse({})).toEqual({});
     });
 
     it("bilinmeyen anahtarları strip eder — ileri uyumluluk", () => {
-      const parsed = fieldOperationalConfigSchema.parse({
+      const parsed = tunnelOperationalConfigSchema.parse({
         heartbeatIntervalMs: 5000,
         sessionLimit: 2,
         pathAllowlist: ["/api/*"],
@@ -80,54 +81,54 @@ describe("FieldConnector sözleşmesi (T2.0)", () => {
 
     it("1000 ms altını reddeder", () => {
       expect(() =>
-        fieldOperationalConfigSchema.parse({ heartbeatIntervalMs: 999 }),
+        tunnelOperationalConfigSchema.parse({ heartbeatIntervalMs: 999 }),
       ).toThrow();
     });
 
     it("300000 ms üstünü reddeder", () => {
       expect(() =>
-        fieldOperationalConfigSchema.parse({ telemetryIntervalMs: 300001 }),
+        tunnelOperationalConfigSchema.parse({ telemetryIntervalMs: 300001 }),
       ).toThrow();
     });
 
     it("ondalıklı değeri reddeder", () => {
       expect(() =>
-        fieldOperationalConfigSchema.parse({ heartbeatIntervalMs: 15.5 }),
+        tunnelOperationalConfigSchema.parse({ heartbeatIntervalMs: 15.5 }),
       ).toThrow();
     });
 
     it("tip uyuşmazlığını reddeder", () => {
       expect(() =>
-        fieldOperationalConfigSchema.parse({ heartbeatIntervalMs: "fast" }),
+        tunnelOperationalConfigSchema.parse({ heartbeatIntervalMs: "fast" }),
       ).toThrow();
     });
   });
 
-  describe("DEFAULT_FIELD_OPERATIONAL_CONFIG", () => {
+  describe("DEFAULT_TUNNEL_OPERATIONAL_CONFIG", () => {
     it("heartbeat 15 sn — tasarım §4.3", () => {
-      expect(DEFAULT_FIELD_OPERATIONAL_CONFIG.heartbeatIntervalMs).toBe(15000);
+      expect(DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs).toBe(15000);
     });
 
     it("telemetry 15 sn", () => {
-      expect(DEFAULT_FIELD_OPERATIONAL_CONFIG.telemetryIntervalMs).toBe(15000);
+      expect(DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs).toBe(15000);
     });
 
     it("dondurulmuştur (immutable)", () => {
-      expect(Object.isFrozen(DEFAULT_FIELD_OPERATIONAL_CONFIG)).toBe(true);
+      expect(Object.isFrozen(DEFAULT_TUNNEL_OPERATIONAL_CONFIG)).toBe(true);
     });
   });
 
-  describe("isContainerConnectionState", () => {
+  describe("isPeerConnectionState", () => {
     it("geçerli durumları tanır", () => {
       for (const s of ["idle", "connected", "stale", "error"] as const) {
-        expect(isContainerConnectionState(s)).toBe(true);
+        expect(isPeerConnectionState(s)).toBe(true);
       }
     });
 
     it("geçersiz durumları reddeder", () => {
-      expect(isContainerConnectionState("connecting")).toBe(false);
-      expect(isContainerConnectionState("nope")).toBe(false);
-      expect(isContainerConnectionState("")).toBe(false);
+      expect(isPeerConnectionState("connecting")).toBe(false);
+      expect(isPeerConnectionState("nope")).toBe(false);
+      expect(isPeerConnectionState("")).toBe(false);
     });
   });
 
@@ -135,9 +136,10 @@ describe("FieldConnector sözleşmesi (T2.0)", () => {
     it("RegisterMessage alanlarını sabitler", () => {
       const msg: RegisterMessage = {
         type: "register",
-        containerId: "container-1",
+        peerId: "container-1",
+        peerType: "container",
         containerUrl: "http://web:80",
-        protocolVersion: FIELD_PROTOCOL_VERSION,
+        protocolVersion: TUNNEL_PROTOCOL_VERSION,
       };
       expectTypeOf(msg).toEqualTypeOf<RegisterMessage>();
       expect(msg.type).toBe("register");
@@ -185,6 +187,21 @@ describe("FieldConnector sözleşmesi (T2.0)", () => {
       expect(err.code).toMatch(/^[a-z][a-z0-9-]*$/);
     });
 
+    it("EventMessage jenerik olay bildirimi taşır (Boss Faz 5)", () => {
+      const event: EventMessage = {
+        type: "event",
+        eventId: "f-1:42",
+        timestamp: "2026-09-07T10:00:00.000Z",
+        level: "error",
+        category: "app",
+        eventCode: "device_alarm",
+        message: "Voltage alttan sigortayi atti",
+        context: { deviceId: "bsc-1" },
+      };
+      expect(event.eventCode).toBe("device_alarm");
+      expect(event.context?.deviceId).toBe("bsc-1");
+    });
+
     it("StreamOpenMessage akış açılışını taşır (§5.2)", () => {
       const msg: StreamOpenMessage = {
         type: "stream-open",
@@ -229,8 +246,8 @@ describe("FieldConnector sözleşmesi (T2.0)", () => {
   });
 
   describe("durum tipi birlikleri", () => {
-    it("FieldConnectorState 5 durumludur", () => {
-      const states: FieldConnectorState[] = [
+    it("TunnelConnectorState 5 durumludur", () => {
+      const states: TunnelConnectorState[] = [
         "offline",
         "connecting",
         "registered",
@@ -240,16 +257,16 @@ describe("FieldConnector sözleşmesi (T2.0)", () => {
       expect(states).toHaveLength(5);
     });
 
-    it("FieldOperationalConfig yalnızca iki opsiyonel alan taşır", () => {
-      const cfg: FieldOperationalConfig = {};
+    it("TunnelOperationalConfig yalnızca iki opsiyonel alan taşır", () => {
+      const cfg: TunnelOperationalConfig = {};
       expectTypeOf(cfg).toMatchTypeOf<{
         heartbeatIntervalMs?: number;
         telemetryIntervalMs?: number;
       }>();
     });
 
-    it("ContainerConnectionState transport ConnectionState'ından ayrıdır", () => {
-      const states: ContainerConnectionState[] = [
+    it("PeerConnectionState transport ConnectionState'ından ayrıdır", () => {
+      const states: PeerConnectionState[] = [
         "idle",
         "connected",
         "stale",

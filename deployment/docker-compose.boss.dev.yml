@@ -85,6 +85,18 @@ services:
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
+      # Boss Faz 4: WireGuard yedek yol (opsiyonel — WG_CLIENT_PRIVATE_KEY yoksa kapalı)
+      WG_CONFIG_DIR: ${WG_CONFIG_DIR:-/etc/wireguard}
+      WG_CLIENT_PRIVATE_KEY: ${WG_CLIENT_PRIVATE_KEY:-}
+      WG_CLIENT_ADDRESS: ${WG_CLIENT_ADDRESS:-10.99.0.2/32}
+      WG_ALLOWED_IPS: ${WG_ALLOWED_IPS:-10.0.0.0/8}
+      # Boss Faz 5: lab görselliği — örnek bildirim seed'i (üretimde false)
+      FIELD_EVENTS_DEMO_SEED: ${FIELD_EVENTS_DEMO_SEED:-false}
+      # Boss Faz 3 (dev): field app Vite dev asset yolları tünel allowlist'e
+      # eklenir (üretimde field SPA /assets/* yapısındadır — ek gerekmez).
+      FIELD_TUNNEL_ALLOWED_PREFIXES: ${FIELD_TUNNEL_ALLOWED_PREFIXES:-/src/,/@vite/,/@react-refresh,/node_modules/,/@fs/,/@id/,/vite.svg}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "5003:5003"
     volumes:
@@ -150,6 +162,12 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
+      # integration-service TimescaleDB bağlantısı (external_series yazıcı)
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
       INTEGRATION_PLUGIN_DIR: /app/customer-plugins
       INTEGRATION_CONFIG_DIR: /app/config/plugins
       INTEGRATION_STATE_DIR: /app/data/plugins

@@ -1,7 +1,7 @@
 // apps/container-web/src/hooks/useFieldConnection.ts
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../lib/api-client";
-import type { FieldConnectionStatus } from "@gd-monorepo/ws-tunnel";
+import type { TunnelConnectionStatus } from "@gd-monorepo/ws-tunnel";
 
 export const FIELD_CONNECTION_QUERY_KEY = ["fieldConnection"];
 
@@ -9,8 +9,8 @@ export const FIELD_CONNECTION_QUERY_KEY = ["fieldConnection"];
 const REFETCH_INTERVAL_MS = 5000;
 
 /**
- * useFieldConnection — FieldConnector PPC durumu (tasarım §6, §7).
- * `GET /api/status` kaynağı: `{ fieldConnected, state, lastHeartbeatAt }`.
+ * useFieldConnection — TunnelConnector PPC durumu (tasarım §6, §7).
+ * `GET /api/status` kaynağı: `{ connected, state, lastHeartbeatAt }`.
  * Bağlantı yoksa/route yoksa (field tier) kapalı kabul edilir — UI bozulmaz.
  */
 export const useFieldConnection = (): {
@@ -18,10 +18,10 @@ export const useFieldConnection = (): {
   state: string;
   lastHeartbeatAt?: string;
 } => {
-  const { data } = useQuery<FieldConnectionStatus>({
+  const { data } = useQuery<TunnelConnectionStatus>({
     queryKey: FIELD_CONNECTION_QUERY_KEY,
     queryFn: async ({ signal }) => {
-      const response = await apiClient.get<FieldConnectionStatus>("/status", {
+      const response = await apiClient.get<TunnelConnectionStatus>("/status", {
         signal,
       });
       return response.data;
@@ -31,7 +31,7 @@ export const useFieldConnection = (): {
   });
 
   return {
-    fieldConnected: data?.fieldConnected ?? false,
+    fieldConnected: data?.connected ?? false,
     state: data?.state ?? "offline",
     lastHeartbeatAt: data?.lastHeartbeatAt,
   };

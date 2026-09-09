@@ -15,6 +15,7 @@ import {
   derivePowerLimits,
 } from "../features/dashboard/deriveDashboard";
 import { ContainerFrame } from "../features/containers/components/ContainerFrame";
+import { fieldRootPath } from "../lib/api-base";
 
 const BackIcon = SCADA_ICONS.collapse;
 
@@ -52,7 +53,7 @@ export const ContainerDetailPage: React.FC = () => {
         }}
       >
         <button
-          onClick={() => navigate(`/field/${fieldId}/containers`)}
+          onClick={() => navigate(`${fieldRootPath(fieldId ?? "")}/containers`)}
           style={{
             background: "transparent",
             border: "none",

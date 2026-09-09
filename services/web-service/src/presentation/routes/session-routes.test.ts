@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import Fastify from "fastify";
 import { sessionOpenRoute, tunnelRoutes } from "./session-routes";
-import type { ContainerSessionGateway } from "@gd-monorepo/ws-tunnel";
+import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
 import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
-import type { FieldSession } from "@gd-monorepo/ws-tunnel";
+import type { HubSession } from "@gd-monorepo/ws-tunnel";
 import type { User } from "@gd-monorepo/shared-types";
 import { Result } from "@gd-monorepo/result";
 
@@ -27,12 +27,12 @@ const user: User = {
   updatedAt: "",
 };
 
-const session: FieldSession = {
+const session: HubSession = {
   sessionId: "s-1",
-  containerId: "c-1",
+  peerId: "c-1",
   token: "container-jwt",
   user,
-  containerRole: "admin",
+  peerRole: "admin",
   createdAt: 0,
   lastActivityAt: 0,
   bytesIn: 0,
@@ -46,10 +46,10 @@ describe("session-routes (T3.3)", () => {
         sessionId: "s-1",
         token: "container-jwt",
         expiresInSec: 14400,
-        containerRole: "admin" as const,
+        peerRole: "admin" as const,
       }),
     );
-    const gateway = { openSession } as unknown as ContainerSessionGateway;
+    const gateway = { openSession } as unknown as SessionGateway;
     const app = Fastify();
     app.addHook("onRequest", (request, _reply, done) => {
       (request as unknown as { user: User }).user = user;
@@ -71,7 +71,7 @@ describe("session-routes (T3.3)", () => {
       "container_session=container-jwt; Path=/containers/c-1/ui; HttpOnly; SameSite=Lax",
     );
     expect(openSession).toHaveBeenCalledWith(
-      expect.objectContaining({ fieldId: "f-1", containerId: "c-1" }),
+      expect.objectContaining({ fieldId: "f-1", peerId: "c-1" }),
     );
   });
 
@@ -95,7 +95,7 @@ describe("session-routes (T3.3)", () => {
     await app.register(
       async (fastify) => {
         await sessionOpenRoute(fastify, {
-          gateway: { openSession } as unknown as ContainerSessionGateway,
+          gateway: { openSession } as unknown as SessionGateway,
         });
       },
       { prefix: "/api/fields" },
@@ -119,7 +119,7 @@ describe("session-routes (T3.3)", () => {
     await app.register(
       async (fastify) => {
         await sessionOpenRoute(fastify, {
-          gateway: { openSession: vi.fn() } as unknown as ContainerSessionGateway,
+          gateway: { openSession: vi.fn() } as unknown as SessionGateway,
         });
       },
       { prefix: "/api/fields" },
@@ -133,12 +133,12 @@ describe("session-routes (T3.3)", () => {
 
   it("DELETE session → açık oturum kapatılır (200); yoksa 404", async () => {
     const closeSession = vi.fn();
-    const sessionForContainer = vi.fn().mockReturnValue({
+    const sessionForPeer = vi.fn().mockReturnValue({
       sessionId: "s-1",
-      containerId: "c-1",
+      peerId: "c-1",
       token: "container-jwt",
       user,
-      containerRole: "admin",
+      peerRole: "admin",
       createdAt: 0,
       lastActivityAt: 0,
       bytesIn: 0,
@@ -154,9 +154,9 @@ describe("session-routes (T3.3)", () => {
         await sessionOpenRoute(fastify, {
           gateway: {
             openSession: vi.fn(),
-            sessionForContainer,
+            sessionForPeer,
             closeSession,
-          } as unknown as ContainerSessionGateway,
+          } as unknown as SessionGateway,
         });
       },
       { prefix: "/api/fields" },
@@ -168,7 +168,7 @@ describe("session-routes (T3.3)", () => {
     expect(res.statusCode).toBe(200);
     expect(closeSession).toHaveBeenCalledWith("s-1", "operator-end");
 
-    sessionForContainer.mockReturnValue(undefined);
+    sessionForPeer.mockReturnValue(undefined);
     const missing = await app.inject({
       method: "DELETE",
       url: "/api/fields/f-1/containers/c-1/session",
@@ -189,8 +189,8 @@ describe("session-routes (T3.3)", () => {
       },
     );
     const authenticate = vi.fn().mockImplementation(
-      (cookie: string | undefined, containerId: string) =>
-        cookie === "container_session=container-jwt" && containerId === "c-1"
+      (cookie: string | undefined, peerId: string) =>
+        cookie === "container_session=container-jwt" && peerId === "c-1"
           ? session
           : undefined,
     );
@@ -237,7 +237,7 @@ describe("session-routes (T3.3)", () => {
     const tunnelProxy = {
       authenticate: () => undefined,
       startWsBridge: vi.fn(),
-      sendWsToContainer: vi.fn(),
+      sendWsToPeer: vi.fn(),
       closeWs: vi.fn(),
     } as unknown as TunnelProxy;
     await app.register(async (fastify) => {

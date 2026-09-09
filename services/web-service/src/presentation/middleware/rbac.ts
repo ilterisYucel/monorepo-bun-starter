@@ -24,6 +24,12 @@ const ROUTE_PERMISSIONS: RoutePermission[] = [
   // 2026-08-30: guest/developer saha verisini SALT-OKUNUR görür (dashboard).
   { path: "/api/fields", methods: ["GET"], roles: ["admin", "teknik", "boss", "guest", "developer"] },
   { path: "/api/data/", methods: ["*"], roles: ["admin", "teknik", "guest", "boss", "developer"] },
+  // Faz 2 (boss): EPİAŞ piyasa verileri salt-okunur — tüm roller görür.
+  { path: "/api/market", methods: ["GET"], roles: ["admin", "teknik", "boss", "guest", "developer"] },
+  // Faz 4 (boss): WireGuard yedek yol yönetimi — admin/boss.
+  { path: "/api/admin/wireguard", methods: ["*"], roles: ["admin", "boss"] },
+  // Faz 5 (boss): bildirim akışı salt-okunur — admin/boss.
+  { path: "/api/notifications", methods: ["GET"], roles: ["admin", "boss"] },
 ];
 
 const PUBLIC_PREFIXES = [
@@ -35,9 +41,15 @@ const PUBLIC_PREFIXES = [
   // /ws/container JWT ile korunmaz — service token doğrulaması route'un
   // kendi onRequest'inde yapılır (Faz 1 T1.1)
   "/ws/container",
+  // /ws/field da aynı model — field uplink service token'ı route'un kendi
+  // onRequest'inde doğrulanır (Boss Faz 3)
+  "/ws/field",
   // Faz 3 T3.3: tünel yolları container_session cookie'siyle doğrulanır
   // (route katmanında) — field JWT'si aranmaz
   "/containers/",
+  // Boss Faz 3: field app tünel yolları field_session cookie'siyle
+  // doğrulanır (route katmanında) — boss JWT'si aranmaz
+  "/fields/",
 ];
 
 /**
@@ -116,10 +128,17 @@ export function createRbacHook(
     sessionAuthenticator?: (
       cookieHeader: string | undefined,
     ) => Promise<User | undefined>;
+    /**
+     * Oturum cookie adı — container tier'da `container_session`,
+     * field tier'da boss uplink oturumları için `field_session`.
+     * Varsayılan: `container_session`.
+     */
+    sessionCookieName?: string;
   },
   /** Faz 6 T6.1 — MFA kaydı zorunlu roller (boş liste = enforcement kapalı). */
   mfaRequiredRoles?: Role[],
 ) {
+  const sessionCookieName = options?.sessionCookieName ?? "container_session";
   return async function rbacPreHandler(
     request: FastifyRequest,
     reply: FastifyReply,
@@ -133,7 +152,7 @@ export function createRbacHook(
     if (
       sessionAuthenticator &&
       request.headers.cookie !== undefined &&
-      request.headers.cookie.includes("container_session")
+      request.headers.cookie.includes(sessionCookieName)
     ) {
       const sessionUser = await sessionAuthenticator(request.headers.cookie);
       if (!sessionUser) {

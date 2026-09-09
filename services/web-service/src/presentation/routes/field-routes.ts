@@ -282,7 +282,7 @@ export async function fieldRoutes(
 
       // 2026-08-30: containerUrl ALANI KALDIRILDI — mimari sözleşme: field
       // konteynere URL ile bağlanmaz; bağlantı konteynerden field'a outbound
-      // WSS'tir (FieldConnector). Eski kurulumlardaki kolon değeri artık
+      // WSS'tir (TunnelConnector). Eski kurulumlardaki kolon değeri artık
       // güncellenmez (NULL kalır); payload'daki containerUrl yok sayılır.
       const { token } = request.body as {
         token?: string;

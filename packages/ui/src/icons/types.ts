@@ -23,6 +23,7 @@ export type ScadaIconName =
   | "stop"
   | "refresh"
   | "trash"
+  | "edit"
   | "add"
   | "continuous"
   | "timer"
@@ -34,6 +35,7 @@ export type ScadaIconName =
   | "sourceScheduler"
   | "sourceSystem"
   | "zoomIn"
+  | "expand"
   | "container"
   | "menu"
   | "close"
@@ -47,4 +49,7 @@ export type ScadaIconName =
   | "circuitBreaker"
   | "dcOutput"
   | "scadaChart"
-  | "details";
+  | "details"
+  | "map"
+  | "notification"
+  | "market";

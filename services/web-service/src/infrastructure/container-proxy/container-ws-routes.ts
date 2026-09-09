@@ -31,12 +31,16 @@ export async function containerWsRoutes(
 
       ws.on("message", (raw) => {
         try {
-          const msg = JSON.parse(raw.toString());
-          if (msg.type === "register" && msg.containerId) {
-            // containerUrl self-reported'dır — bilgi amaçlı; URL kayıt
+          const msg = JSON.parse(raw.toString()) as {
+            type?: string;
+            peerId?: string;
+          };
+          // v2-only: register şeması peerId taşır (v1 containerId desteği KALDIRILDI).
+          if (msg.type === "register" && msg.peerId) {
+            // peerUrl self-reported'dır — bilgi amaçlı; URL kayıt
             // defterinden okunur (SSRF yüzeyi kapalı).
             void deps.containerProxy.registerContainer(
-              msg.containerId,
+              msg.peerId,
               ws,
               token,
             );

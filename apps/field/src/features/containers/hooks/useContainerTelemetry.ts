@@ -10,7 +10,7 @@ export const CONTAINER_TELEMETRY_QUERY_KEY = (
 
 /**
  * Faz 5 T5.2 — gerçek veri:
- * - `latest` = FieldConnector snapshot'ı (`/containers` içindeki en güncel).
+ * - `latest` = TunnelConnector snapshot'ı (`/containers` içindeki en güncel).
  * - `timeSeries` = tarihsel downsampled seri (ContainerProxy → konteyner).
  */
 export function useContainerTelemetry(fieldId: string, containerId: string) {

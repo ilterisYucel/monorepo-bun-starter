@@ -100,6 +100,8 @@ export class EpiasTicketStore {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             Accept: "text/plain",
+            // EPİAŞ WAF'ı tarayıcı-benzeri UA ister — başlıksız istek engellenir.
+            "User-Agent": "Mozilla/5.0",
           },
           body: new URLSearchParams({ username, password }).toString(),
           signal: controller.signal,
@@ -110,7 +112,16 @@ export class EpiasTicketStore {
           `[EpiasTicketStore] CAS TGT alinamadi — HTTP ${response.status}`,
         );
       }
-      const ticket = (await response.text()).trim();
+      const raw = (await response.text()).trim();
+      // CAS 201 yanıtı HTML'dir — TGT, form action URL'inin içinde döner:
+      //   .../tickets/TGT-<id>-... "TGT-" prefixli ilk belirteç bilettir.
+      const match = /TGT-[A-Za-z0-9._-]+/.exec(raw);
+      if (!match) {
+        throw new Error(
+          "[EpiasTicketStore] CAS yanitinda TGT bulunamadi",
+        );
+      }
+      const ticket = match[0];
       const data = await this.readFile();
       data.users[username] = {
         ticket,

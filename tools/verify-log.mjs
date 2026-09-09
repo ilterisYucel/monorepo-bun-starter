@@ -13,8 +13,7 @@
  */
 
 import { readFile } from "node:fs/promises";
-import { verifyChain } from "../packages/core/src/logging/verify-chain.ts";
-import { loadSigningKey } from "../packages/core/src/logging/config.ts";
+import { verifyChain, loadSigningKey } from "@gd-monorepo/tamper-logger";
 
 function usage() {
   console.error(

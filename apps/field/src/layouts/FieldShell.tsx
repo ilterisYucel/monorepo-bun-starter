@@ -1,7 +1,8 @@
 import React from "react";
 import { Outlet, useNavigate, useParams, Navigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
-import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
+import { SCADA_ICONS, COLORS, useTranslation } from "@gd-monorepo/ui";
+import { isTunnelMode, fieldRootPath } from "../lib/api-base";
 import { SystemHeader } from "./SystemHeader";
 import { visibleNavKeys, emergencyVisible } from "./nav-visibility";
 import * as S from "./FieldShell.styles";
@@ -30,7 +31,28 @@ export const FieldShell: React.FC = () => {
   const { fieldId } = useParams<{ fieldId: string }>();
   const { isAuthenticated, logout, user, mfaRequiredRoles } = useAuthStore();
 
+  // Boss Faz 3: tünel modunda (boss iframe'i) kimlik yalnızca
+  // field_session cookie'sinden hydrate edilir — login formu açılmaz
+  // (localStorage boss origin'iyle paylaşımlı; form girişi izolasyonu bozar).
   if (!isAuthenticated) {
+    if (isTunnelMode()) {
+      return (
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            textAlign: "center",
+            color: COLORS.textMuted,
+            fontSize: "14px",
+          }}
+        >
+          {t("tunnel.sessionFailed")}
+        </div>
+      );
+    }
     return <Navigate to="/login" replace />;
   }
 
@@ -70,6 +92,9 @@ export const FieldShell: React.FC = () => {
   const navKeys = visibleNavKeys(user?.role ?? "guest");
   const navItems = NAV_ITEMS.filter((item) => navKeys.includes(item.key as never));
 
+  // Boss Faz 3: saha kökü tünelde /fields/<fid>/ui, normalde /field/<fid>.
+  const fieldBase = fieldRootPath(fieldId ?? "");
+
   return (
     <S.Shell>
       <S.SidebarWrapper>
@@ -81,9 +106,9 @@ export const FieldShell: React.FC = () => {
 
         <S.SidebarNav>
           {navItems.map((item) => {
-            const navPath = `/field/${fieldId}${item.path ? `/${item.path}` : ""}`;
+            const navPath = `${fieldBase}${item.path ? `/${item.path}` : ""}`;
             const active = item.path === ""
-              ? currentPath === `/field/${fieldId}`
+              ? currentPath === fieldBase
               : currentPath.startsWith(navPath);
             const Icon = item.icon;
             const label = t(item.key);
@@ -110,7 +135,7 @@ export const FieldShell: React.FC = () => {
 
           {user && emergencyVisible(user.role) && (
             <S.EmergencyStopBtn
-              onClick={() => navigate(`/field/${fieldId}/control`)}
+              onClick={() => navigate(`${fieldBase}/control`)}
               title={t("nav.emergency.button")}
               aria-label={t("nav.emergency.button")}
             >
@@ -119,7 +144,7 @@ export const FieldShell: React.FC = () => {
           )}
 
           <S.FooterBtn
-            onClick={() => navigate(`/field/${fieldId}/settings`)}
+            onClick={() => navigate(`${fieldBase}/settings`)}
             title={t("nav.settings")}
             aria-label={t("nav.settings")}
           >

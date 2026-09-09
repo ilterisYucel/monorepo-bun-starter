@@ -1,5 +1,5 @@
 import type { User } from "@gd-monorepo/shared-types";
-import type { ContainerSessionUser, TunnelUser } from "@gd-monorepo/ws-tunnel";
+import type { ClientSessionUser, TunnelUser } from "@gd-monorepo/ws-tunnel";
 
 /**
  * SessionUserMap — GD-PMS `User` ↔ ws-tunnel `TunnelUser` sınır eşlemesi.
@@ -19,7 +19,7 @@ export function toTunnelUser(user: User): TunnelUser {
   };
 }
 
-export function toWebUser(sessionUser: ContainerSessionUser): User {
+export function toWebUser(sessionUser: ClientSessionUser): User {
   return {
     id: sessionUser.id,
     username: sessionUser.username,

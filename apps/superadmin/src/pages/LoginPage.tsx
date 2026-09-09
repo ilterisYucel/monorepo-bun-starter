@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
 import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
@@ -11,13 +11,19 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  if (isAuthenticated) {
-    // Faz 1 T1.6: seed kullanıcıları ilk girişte şifre değiştirmek zorunda
+  // 2026-09-09: render sırasında navigate() React 19 StrictMode'da
+  // "Cannot update a component while rendering" üretir — yönlendirme effect'e
+  // taşındı (render yan etkisiz).
+  useEffect(() => {
+    if (!isAuthenticated) return;
     if (user?.mustChangePassword) {
       navigate("/change-password", { replace: true });
-      return null;
+      return;
     }
-    navigate("/dashboard", { replace: true });
+    navigate("/fields", { replace: true });
+  }, [isAuthenticated, user?.mustChangePassword, navigate]);
+
+  if (isAuthenticated) {
     return null;
   }
 

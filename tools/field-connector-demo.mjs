@@ -2,8 +2,8 @@
 /**
  * field-connector-demo.mjs — Faz 2 gözle doğrulama demosu (K2.1/K2.2/T2.5).
  *
- * Senaryo (gerçek `ws` sunucusu + gerçek FieldConnector/ContainerProxy):
- *   A. FieldConnector → ContainerProxy tam tur: register → register-ack →
+ * Senaryo (gerçek `ws` sunucusu + gerçek TunnelConnector/ContainerProxy):
+ *   A. TunnelConnector → ContainerProxy tam tur: register → register-ack →
  *      connected. K2.1 kanıtı: start()→connected süresi ölçülür (< 5 sn).
  *   B. Heartbeat akışı: lastSeenAt tazelenir (ContainerProxy sorgusu).
  *   C. K2.2 mekanizması: raw client kayıtlı, TEK heartbeat sonrası sessiz —
@@ -18,7 +18,7 @@
  */
 
 import { WebSocketServer, WebSocket } from "ws";
-import { FieldConnector, WsSocketClientFactory, ReconnectDelay } from "../packages/ws-tunnel/src/index.ts";
+import { TunnelConnector, WsSocketClientFactory, ReconnectDelay } from "../packages/ws-tunnel/src/index.ts";
 import { ContainerProxy } from "../services/web-service/src/infrastructure/container-proxy/container-proxy.ts";
 import { sha256Hex } from "../services/web-service/src/infrastructure/auth/service-token.ts";
 
@@ -60,7 +60,7 @@ const waitFor = async (cond, timeoutMs) => {
 };
 
 // ---------------------------------------------------------------------------
-// A + B + D + E: FieldConnector ↔ ContainerProxy tam tur
+// A + B + D + E: TunnelConnector ↔ ContainerProxy tam tur
 // ---------------------------------------------------------------------------
 const wss = new WebSocketServer({ port: 0 });
 await new Promise((resolve) => wss.on("listening", resolve));
@@ -77,11 +77,11 @@ wss.on("connection", (ws) => {
   void proxy.registerContainer(CONTAINER_ID, ws, TOKEN);
 });
 
-const connector = new FieldConnector(
+const connector = new TunnelConnector(
   {
     wsUrls: [`ws://127.0.0.1:${port}`],
     token: TOKEN,
-    containerId: CONTAINER_ID,
+    peerId: CONTAINER_ID,
     heartbeatIntervalMs: 500,
     telemetryIntervalMs: 500,
     registerTimeoutMs: 2000,
@@ -94,7 +94,7 @@ const connector = new FieldConnector(
 
 const t0 = Date.now();
 void connector.start();
-const connected = await waitFor(() => connector.fieldConnected(), 5000);
+const connected = await waitFor(() => connector.connected(), 5000);
 const elapsed = Date.now() - t0;
 check("A: start() → connected (K2.1 hedefi < 5000 ms)", connected, `${elapsed} ms`);
 

@@ -1,0 +1,187 @@
+name: boss-stack
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: boss-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5435:5432"
+    volumes:
+      - boss-timescale-data:/var/lib/postgresql/data
+    networks:
+      - boss-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: boss-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --appendonly yes
+      --appendfsync everysec
+    ports:
+      - "6382:6379"
+    volumes:
+      - boss-redis-data:/data
+    networks:
+      - boss-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web-service:
+    build:
+      context: ../
+      dockerfile: services/web-service/deployment/Dockerfile
+    container_name: boss-web-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: boss
+      PORT: 5003
+      HOST: 0.0.0.0
+      MFA_ENABLED: ${MFA_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # Boss Faz 4: WireGuard yedek yol (opsiyonel — WG_CLIENT_PRIVATE_KEY yoksa kapalı)
+      WG_CONFIG_DIR: ${WG_CONFIG_DIR:-/etc/wireguard}
+      WG_CLIENT_PRIVATE_KEY: ${WG_CLIENT_PRIVATE_KEY:-}
+      WG_CLIENT_ADDRESS: ${WG_CLIENT_ADDRESS:-10.99.0.2/32}
+      WG_ALLOWED_IPS: ${WG_ALLOWED_IPS:-10.0.0.0/8}
+      # Boss Faz 5: lab görselliği — örnek bildirim seed'i (üretimde false)
+      FIELD_EVENTS_DEMO_SEED: ${FIELD_EVENTS_DEMO_SEED:-false}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5003:5003"
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - boss-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ../
+      dockerfile: apps/superadmin/deployment/Dockerfile
+    container_name: boss-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "88:80"
+    depends_on:
+      - web-service
+    networks:
+      - boss-network
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  integration-service:
+    build:
+      context: ../
+      dockerfile: services/integration-service/deployment/Dockerfile
+    container_name: boss-integration-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      # integration-service TimescaleDB bağlantısı (external_series yazıcı)
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      INTEGRATION_PLUGIN_DIR: /app/customer-plugins
+      INTEGRATION_CONFIG_DIR: /app/config/plugins
+      INTEGRATION_STATE_DIR: /app/data/plugins
+    volumes:
+      # EPİAŞ canlı kimlik bilgileri imaja PİŞMEZ — host'tan bind mount
+      # (gitignored: services/integration-service/config/plugins/epias-market-prices.json).
+      - ../services/integration-service/config:/app/config:ro
+      - ../deployment/customer-plugins:/app/customer-plugins:ro
+      - integration-state-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - boss-network
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  boss-timescale-data:
+  boss-redis-data:
+  integration-state-data:
+
+networks:
+  boss-network:
+    driver: bridge

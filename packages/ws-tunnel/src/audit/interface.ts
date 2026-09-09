@@ -3,11 +3,11 @@ import type { TunnelRole } from "../types";
 /** Oturum açılış kaydı — audit sink'ine verilir. */
 export interface SessionAuditOpenRecord {
   fieldId: string;
-  containerId: string;
+  peerId: string;
   sessionId: string;
   username: string;
-  fieldRole: TunnelRole;
-  containerRole: TunnelRole;
+  callerRole: TunnelRole;
+  peerRole: TunnelRole;
   remoteIp?: string;
 }
 

@@ -29,7 +29,7 @@ export const ChangePasswordPage: React.FC = () => {
     }
     try {
       await changePassword(oldPassword, newPassword);
-      navigate("/dashboard", { replace: true });
+      navigate("/fields", { replace: true });
     } catch {
       setError(t("auth.changePasswordError"));
     }

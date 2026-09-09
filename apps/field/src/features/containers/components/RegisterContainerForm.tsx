@@ -11,7 +11,7 @@ import { containersApi } from "../services/containersApi";
  * (ContainersPage — savunma katmanı, enforcement sunucuda).
  *
  * 2026-08-30: "Konteyner Adresi" alanı KALDIRILDI — field konteynere URL ile
- * bağlanmaz (outbound WSS mimarisi; bkz. AGENTS.md FieldConnector sözleşmesi).
+ * bağlanmaz (outbound WSS mimarisi; bkz. AGENTS.md TunnelConnector sözleşmesi).
  * Form artık ContainersPage'teki MODAL içinde açılır (dış kart görünümü yok).
  *
  * Aynı (fieldId, containerId) yeniden gönderilirse kayıt GÜNCELLENİR

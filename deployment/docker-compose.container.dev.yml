@@ -152,6 +152,8 @@ services:
       # eden web-static (nginx) servisine gider — Vite dev sunucusu subpath'te
       # boot edemez (T4.1). Ön koşul: nx run container-web:build.
       TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://web-static:80}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "5001:5001"
     volumes:

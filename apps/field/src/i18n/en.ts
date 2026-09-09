@@ -78,6 +78,7 @@ export const FIELD_EN_DICT = {
   "frame.closeFullscreen": "Exit Fullscreen",
   "frame.opening": "Opening session...",
   "frame.openFailed": "Could not open session — check container connectivity",
+  "tunnel.sessionFailed": "Remote view session could not be opened — check the field session on the boss side",
   "container.devices": "Devices",
   "container.label": "Container:",
   "container.register.title": "Register Container",

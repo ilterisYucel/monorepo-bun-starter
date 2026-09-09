@@ -1,14 +1,14 @@
 import type { WebSocket } from "ws";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type {
-  ContainerConnectionState,
-  FieldOperationalConfig,
+  PeerConnectionState,
+  TunnelOperationalConfig,
 } from "@gd-monorepo/ws-tunnel";
 import type { DownsampleOptions } from "@gd-monorepo/core";
 
 export interface ContainerObserver {
   onData(containerId: string, telemetries: TelemetryData[]): void;
-  onConnectionChange(containerId: string, state: ContainerConnectionState): void;
+  onConnectionChange(containerId: string, state: PeerConnectionState): void;
   /** Faz 3: telemetry/heartbeat dışı kontrol mesajları (open-session-ack, stream-*). */
   onControlMessage?(containerId: string, message: unknown): void;
   /** Faz 3: konteynerden gelen tünel binary frame'i (9 bayt başlık + payload). */
@@ -39,7 +39,7 @@ export interface IContainerProxy {
   allHistorical(containerIds: string[], params: Omit<DownsampleOptions, "deviceId">): Promise<Record<string, TelemetryData[]>>;
 
   /** Kayıtlı konteynerlerin bağlantı durumları (Faz 2: "stale" dahil). */
-  connectionStatus(): Map<string, ContainerConnectionState>;
+  connectionStatus(): Map<string, PeerConnectionState>;
 
   /** Son heartbeat zamanı (ms epoch) — hiç heartbeat alınmadıysa undefined. */
   lastSeenAt(containerId: string): number | undefined;
@@ -48,7 +48,7 @@ export interface IContainerProxy {
    * Canlı operational config push (Faz 2 T2.5) — bağlı konteynere
    * `config-update` frame'i gönderir; restart gerektirmez.
    */
-  pushConfigUpdate(containerId: string, config: FieldOperationalConfig): void;
+  pushConfigUpdate(containerId: string, config: TunnelOperationalConfig): void;
 
   /**
    * Faz 3: bağlı konteynere kontrol mesajı gönderir (open-session, stream-open,

@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
-import type { ContainerConnectionState, FieldOperationalConfig, RegisterAckMessage, ConfigUpdateMessage, TelemetryQueryMessage } from "@gd-monorepo/ws-tunnel";
+import type { PeerConnectionState, TunnelOperationalConfig, RegisterAckMessage, ConfigUpdateMessage, TelemetryQueryMessage } from "@gd-monorepo/ws-tunnel";
 
 import type { IContainerProxy, ContainerObserver } from "@gd-monorepo/platform-container-access";
 import type { DownsampleOptions, ISqlDatabase } from "@gd-monorepo/core";
@@ -12,7 +12,7 @@ interface ContainerEntry {
   ws: WebSocket;
   url: string;
   latest: TelemetryData[];
-  status: ContainerConnectionState;
+  status: PeerConnectionState;
   lastSeenAt: number;
   staleTimer?: ReturnType<typeof setTimeout>;
 }
@@ -37,7 +37,7 @@ export interface ContainerProxyOptions {
   /** Zaman kaynağı — testlerde deterministik enjekte edilir. */
   now?: () => number;
   /** Register-ack içine gömülecek operational config (T2.5). */
-  operationalConfig?: FieldOperationalConfig;
+  operationalConfig?: TunnelOperationalConfig;
   /** Faz 5.1: telemetry-query yanıt bekleme süresi (ms) — aşınca boş dizi. */
   queryTimeoutMs?: number;
 }
@@ -53,7 +53,7 @@ const DEFAULT_QUERY_TIMEOUT_MS = 10000;
  * - URL kaynağı REGISTRY'dir (field_containers.container_url) — self-reported
  *   URL trust edilmez (SSRF yüzeyi).
  * - Düz token yalnızca RAM'de tutulur (historical/health fetch'lerinde header).
- * - Faz 2 T2.4: başarılı register'da `register-ack` gönderilir (FieldConnector
+ * - Faz 2 T2.4: başarılı register'da `register-ack` gönderilir (TunnelConnector
  *   bunu bekler); `heartbeat` frame'i `lastSeenAt`'i tazeler; 45 sn sessizlik →
  *   "stale"; WS kapanırsa → "idle" (kayıt + son telemetri korunur — §12.4).
  * - Faz 2 T2.5: opsiyonel operationalConfig register-ack'e gömülür;
@@ -69,7 +69,7 @@ export class ContainerProxy implements IContainerProxy {
   private readonly logger: TamperLogger | undefined;
   private readonly staleTimeoutMs: number;
   private readonly sweepIntervalMs: number;
-  private readonly operationalConfig: FieldOperationalConfig | undefined;
+  private readonly operationalConfig: TunnelOperationalConfig | undefined;
   private readonly queryTimeoutMs: number;
   private readonly now: () => number;
 
@@ -253,7 +253,7 @@ export class ContainerProxy implements IContainerProxy {
   }
 
   /** Canlı operational config push (T2.5) — bağlıysa config-update frame'i. */
-  pushConfigUpdate(containerId: string, config: FieldOperationalConfig): void {
+  pushConfigUpdate(containerId: string, config: TunnelOperationalConfig): void {
     const entry = this.containers.get(containerId);
     if (!entry || entry.ws.readyState !== entry.ws.OPEN) return;
     const frame: ConfigUpdateMessage = { type: "config-update", config };
@@ -323,8 +323,8 @@ export class ContainerProxy implements IContainerProxy {
     return results;
   }
 
-  connectionStatus(): Map<string, ContainerConnectionState> {
-    const status = new Map<string, ContainerConnectionState>();
+  connectionStatus(): Map<string, PeerConnectionState> {
+    const status = new Map<string, PeerConnectionState>();
     this.containers.forEach((entry, id) => {
       status.set(id, entry.status);
     });
@@ -477,7 +477,7 @@ export class ContainerProxy implements IContainerProxy {
 
   private notifyConnectionChange(
     containerId: string,
-    state: ContainerConnectionState,
+    state: PeerConnectionState,
   ): void {
     this.observers.forEach((obs) => obs.onConnectionChange(containerId, state));
   }

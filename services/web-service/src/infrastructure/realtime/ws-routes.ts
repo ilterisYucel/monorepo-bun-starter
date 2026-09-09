@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { RealtimeManager } from "./realtime-manager";
 import type { ITokenService } from "../../domain/services/ITokenService";
-import type { ContainerSessionStore } from "@gd-monorepo/ws-tunnel";
+import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
 
 export async function telemetryWsRoutes(
   fastify: FastifyInstance,
@@ -9,7 +9,7 @@ export async function telemetryWsRoutes(
     realtime: RealtimeManager;
     tokens: ITokenService;
     /** Faz 3 (container tier): tünel oturum token'larını da kabul eder. */
-    sessionStore?: ContainerSessionStore;
+    sessionStore?: ClientSessionStore;
   },
 ): Promise<void> {
   const { realtime, tokens, sessionStore } = options;

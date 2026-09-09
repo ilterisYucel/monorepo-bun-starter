@@ -3,7 +3,7 @@
  * tunnel-demo.mjs — Faz 3 gözle doğrulama demosu (K3.1/K3.2/K3.3).
  *
  * Senaryo (gerçek WS + gerçek HTTP upstream'leri, tek kanal üzerinde):
- *   A. Field ContainerProxy ↔ konteyner FieldConnector register (Faz 2 kanıtı).
+ *   A. Field ContainerProxy ↔ konteyner TunnelConnector register (Faz 2 kanıtı).
  *   B. open-session → konteyner JWT üretimi → open-session-ack → session_audit
  *      INSERT + imzalı session_open security logu (K3.3).
  *   C. Tünel HTTP: GET / → konteyner nginx(SPA) upstream'inden HTML akar (K3.1).
@@ -17,9 +17,9 @@
 import http from "node:http";
 import { WebSocketServer } from "ws";
 import { TamperLogger } from "../packages/tamper-logger/src/index.ts";
-import { FieldConnector, WsSocketClientFactory, ReconnectDelay, ContainerSessionStore, ContainerSessionServer, TunnelClient } from "../packages/ws-tunnel/src/index.ts";
+import { TunnelConnector, WsSocketClientFactory, ReconnectDelay, ClientSessionStore, ClientSessionServer, TunnelClient } from "../packages/ws-tunnel/src/index.ts";
 import { ContainerProxy } from "../services/web-service/src/infrastructure/container-proxy/container-proxy.ts";
-import { FieldSessionStore, ContainerSessionGateway, TunnelProxy } from "../packages/ws-tunnel/src/index.ts";
+import { HubSessionStore, SessionGateway, TunnelProxy } from "../packages/ws-tunnel/src/index.ts";
 import { SessionAudit } from "../services/web-service/src/infrastructure/container-session/session-audit.ts";
 import { ContainerProxyFieldChannel } from "../services/web-service/src/infrastructure/container-proxy/container-proxy-field-channel.ts";
 import { JoseTokenSigner } from "../services/web-service/src/infrastructure/auth/jose-token-signer.ts";
@@ -107,21 +107,21 @@ const fieldProxy = new ContainerProxy(fakeSql);
 fieldWss.on("connection", (socket) => {
   void fieldProxy.registerContainer(CONTAINER_ID, socket, TOKEN);
 });
-const fieldStore = new FieldSessionStore();
+const fieldStore = new HubSessionStore();
 const gatewayChannel = new ContainerProxyFieldChannel(fieldProxy);
-const gateway = new ContainerSessionGateway(gatewayChannel, fieldStore, new SessionAudit(fakeSql, logger), logger, { ackTimeoutMs: 3000 });
+const gateway = new SessionGateway(gatewayChannel, fieldStore, new SessionAudit(fakeSql, logger), logger, { ackTimeoutMs: 3000 });
 gateway.initialize();
 const proxyChannel = new ContainerProxyFieldChannel(fieldProxy);
 const tunnelProxy = new TunnelProxy(proxyChannel, fieldStore, logger);
 tunnelProxy.initialize();
 
-// --- konteyner: FieldConnector + SessionServer + TunnelClient ---
-const store = new ContainerSessionStore(new JoseTokenSigner("container-secret-demo-0123456789"));
-const connector = new FieldConnector(
+// --- konteyner: TunnelConnector + SessionServer + TunnelClient ---
+const store = new ClientSessionStore(new JoseTokenSigner("container-secret-demo-0123456789"));
+const connector = new TunnelConnector(
   {
     wsUrls: [`ws://127.0.0.1:${fieldPort}`],
     token: TOKEN,
-    containerId: CONTAINER_ID,
+    peerId: CONTAINER_ID,
     heartbeatIntervalMs: 1000,
     telemetryIntervalMs: 1000,
     registerTimeoutMs: 2000,
@@ -131,7 +131,7 @@ const connector = new FieldConnector(
   { snapshot: async () => [] },
   new ReconnectDelay({ baseMs: 200, maxMs: 500, jitterSpanMs: 0, jitter: () => 0 }),
 );
-const sessionServer = new ContainerSessionServer(connector, store, logger);
+const sessionServer = new ClientSessionServer(connector, store, logger);
 sessionServer.start();
 const tunnelClient = TunnelClient.create({
   webServiceUrl: `http://127.0.0.1:${upstreamPort}`,
@@ -140,19 +140,19 @@ const tunnelClient = TunnelClient.create({
 tunnelClient.attach(connector);
 
 void connector.start();
-check("A: konteyner field'a kaydoldu (Faz 2 kanalı)", await waitFor(() => connector.fieldConnected(), 5000), `state=${connector.state()}`);
+check("A: konteyner field'a kaydoldu (Faz 2 kanalı)", await waitFor(() => connector.connected(), 5000), `state=${connector.state()}`);
 
 // --- B: oturum açılışı (K3.3) ---
 const user = {
   id: "u-1", username: "operator", role: "teknik", name: "Operator",
   fieldIds: ["f-1"], mustChangePassword: false, createdAt: "", updatedAt: "",
 };
-const outcome = await gateway.openSession({ fieldId: "f-1", containerId: CONTAINER_ID, user });
+const outcome = await gateway.openSession({ fieldId: "f-1", peerId: CONTAINER_ID, user });
 check("B: open-session → konteyner JWT (K3.3)", outcome.isOk(), outcome.isOk() ? `expiresInSec=${outcome.unwrap().expiresInSec}` : "hata");
 const session = outcome.isOk() ? outcome.unwrap() : undefined;
 fieldStore.register({
-  sessionId: session.sessionId, containerId: CONTAINER_ID, token: session.token,
-  user, containerRole: session.containerRole, createdAt: 0, lastActivityAt: 0, bytesIn: 0, bytesOut: 0,
+  sessionId: session.sessionId, peerId: CONTAINER_ID, token: session.token,
+  user, peerRole: session.peerRole, createdAt: 0, lastActivityAt: 0, bytesIn: 0, bytesOut: 0,
 });
 check("B: session_audit INSERT (K3.3)", auditInserts.length === 1 && auditInserts[0].sql.includes("INSERT INTO session_audit"));
 check("B: imzalı session_open security logu (K3.3)", securityEvents.includes("session_open"), securityEvents.join(","));

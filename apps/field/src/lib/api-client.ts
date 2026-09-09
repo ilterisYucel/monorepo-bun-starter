@@ -1,7 +1,10 @@
 import axios from "axios";
+import { apiBaseUrl } from "./api-base";
 
+// Boss Faz 3: API tabanı window.location'dan türetilir — tünel modunda
+// (/fields/:fid/ui) istekler field_session cookie'siyle tunnel'dan akar.
 export const apiClient = axios.create({
-  baseURL: "/api",
+  baseURL: apiBaseUrl(),
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
