@@ -52,6 +52,8 @@ bun-debug.log*
 !.env.field.example
 !.env.container.example
 !.env.boss.example
+!.env.aws-edge.example
+!.env.aws-boss.example
 
 # ============================================
 # OS FILES

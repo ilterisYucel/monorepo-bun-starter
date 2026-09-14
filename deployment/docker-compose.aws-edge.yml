@@ -1,0 +1,392 @@
+name: aws-edge-stack
+
+# =============================================================================
+# AWS Edge stack — Makine A (m6i.large, 2 vCPU / 8GB)
+#
+# Container + field TIER'LARI tek compose projesinde birleşiktir (tek bridge
+# network, tek env dosyası). Konteyner → field bağlantısı network içi
+# servis adıyla kurulur (host.docker.internal/loopback YOKTUR).
+#
+# PostgreSQL ayarları AWS boyutuna göre (STORAGE-ESTIMATE.md §8.3 profili):
+# 4GB/12GB "sunucu profili" değil — 8GB makinede OOM riski taşır.
+#
+# FLAG (TLS): FIELD_WS_URL / FIELD_UPLINK_WS_URL şu an ws:// (TLS'siz) — demo
+# kabulü. Üretimde wss:// + ALB/nginx + ACM zorunlu; token'lar düz WS üzerinde
+# taşınmamalı.
+#
+# --- AWS Güvenlik Grubu (Makine A) portları ---
+# AÇIK gerekli : 22 (SSH, ofis IP'si)
+# AÇIK opsiyonel: 80 (container UI doğrudan erişim), 88 (field UI)
+# AÇILMAZ     : 5432/5434/6379/6381 (DB/Redis — 127.0.0.1'e bağlı),
+#               5001/5002 (web-service'ler — yalnızca network içi).
+# B'ye erişim : outbound 5003'e izin (varsayılan egress yeterli).
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Container tier altyapısı
+  # ---------------------------------------------------------------------------
+  container-timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: aws-container-timescaledb
+    command:
+      - -cshared_buffers=768MB
+      - -cwork_mem=8MB
+      - -ceffective_cache_size=5GB
+      - -cmaintenance_work_mem=256MB
+      - -cmax_connections=30
+      - -cwal_buffers=16MB
+      - -ccheckpoint_completion_target=0.9
+      - -csynchronous_commit=off
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      # AWS SG: AÇILMAZ — yalnızca host üstünde debug (psql).
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - aws-container-timescale-data:/var/lib/postgresql/data
+    networks:
+      - edge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 2g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: aws-container-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    ports:
+      # AWS SG: AÇILMAZ — yalnızca host üstünde debug (redis-cli).
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - aws-container-redis-data:/data
+    networks:
+      - edge-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-device-service:
+    build:
+      context: ../
+      dockerfile: services/device-service/deployment/Dockerfile
+    container_name: aws-container-device-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+    depends_on:
+      container-redis:
+        condition: service_healthy
+    volumes:
+      - ../services/device-service/deployment/config-docker:/app/config-docker:ro
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-data-service:
+    build:
+      context: ../
+      dockerfile: services/data-service/deployment/Dockerfile
+    container_name: aws-container-data-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: container-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-web-service:
+    build:
+      context: ../
+      dockerfile: services/web-service/deployment/Dockerfile
+    container_name: aws-container-web-service
+    # AWS SG: ports YOK — yalnızca edge-network içi; erişim container-web (nginx)
+    # üzerinden. Konteyner→field çıkışı da bu servisten (outbound, SG gerekmez).
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: container-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/services/device-service/config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # FieldConnector bootstrap — .env.aws-edge'de true + URL + token zorunlu.
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-false}
+      FIELD_WS_URL: ${FIELD_WS_URL:-ws://field-web-service:5002/ws/container}
+      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # Faz 3 tünel loopback upstream'leri — AWS adlandirmalı (nginx conf'larıyla birebir).
+      TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container-web-service:5001}
+      TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://container-web:80}
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5001/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-web:
+    build:
+      context: ../
+      dockerfile: apps/container-web/deployment/Dockerfile
+    container_name: aws-container-web
+    environment:
+      NODE_ENV: production
+    ports:
+      # AWS SG: OPSIYONEL — container UI'ya doğrudan erişim istenirse 80'i ofis
+      # IP'sine (veya B makinesine) aç. Boss üzerinden tünel kullanılıyorsa
+      # KAPALI kalabilir.
+      - "80:80"
+    volumes:
+      # Imajdaki baked nginx conf'u AWS adlandirmasiyla ez (container-web-service).
+      - ./nginx/aws-container-web.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      container-web-service:
+        condition: service_healthy
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Field tier altyapısı (hub — konteyner kayıtları + boss uplink)
+  # ---------------------------------------------------------------------------
+  field-timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: aws-field-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=2GB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=30
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      # AWS SG: AÇILMAZ — yalnızca host üstünde debug (psql).
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - aws-field-timescale-data:/var/lib/postgresql/data
+    networks:
+      - edge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  field-redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: aws-field-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --appendonly yes
+      --appendfsync everysec
+    ports:
+      # AWS SG: AÇILMAZ — yalnızca host üstünde debug (redis-cli).
+      - "127.0.0.1:6381:6379"
+    volumes:
+      - aws-field-redis-data:/data
+    networks:
+      - edge-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  field-web-service:
+    build:
+      context: ../
+      dockerfile: services/web-service/deployment/Dockerfile
+    container_name: aws-field-web-service
+    # AWS SG: ports YOK — yalnızca edge-network içi. Field→boss uplink'i bu
+    # servisten OUTBOUND (Makine B:5003'e) — A tarafında inbound SG gerekmez.
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: field
+      PORT: 5002
+      HOST: 0.0.0.0
+      # Tek saha modeli — FIELD_ID env'den zorunlu (UUID).
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID — uuidgen)}
+      FIELD_NAME: ${FIELD_NAME:-Saha}
+      MFA_ENABLED: ${MFA_ENABLED:-true}
+      # Field tier fail-fast — dev default secret ile açılış REDDEDİLİR.
+      JWT_SECRET: ${FIELD_JWT_SECRET:?FIELD_JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # Boss uplink (opsiyonel — FIELD_UPLINK_ENABLED=false ise kapalı).
+      # FLAG: demo ws:// — üretimde wss:// + ALB/nginx + ACM.
+      FIELD_UPLINK_ENABLED: ${FIELD_UPLINK_ENABLED:-false}
+      FIELD_UPLINK_WS_URL: ${FIELD_UPLINK_WS_URL:-}
+      FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}
+      # Boss'tan gelen field-app tünel akışlarının upstream'leri (AWS adlandırmalı).
+      TUNNEL_FIELD_API_UPSTREAM: ${TUNNEL_FIELD_API_UPSTREAM:-http://field-web-service:5002}
+      TUNNEL_FIELD_STATIC_UPSTREAM: ${TUNNEL_FIELD_STATIC_UPSTREAM:-http://field-web:80}
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5002/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  field-web:
+    build:
+      context: ../
+      dockerfile: apps/field/deployment/Dockerfile
+      args:
+        # Tek saha — VITE_FIELD_ID build sırasında SPA'ya gömülür.
+        VITE_FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID — uuidgen)}
+    container_name: aws-field-web
+    environment:
+      NODE_ENV: production
+    ports:
+      # AWS SG: OPSIYONEL — field UI'ya doğrudan erişim (boss tüneli yeterliyse
+      # KAPALI kalabilir).
+      - "88:80"
+    volumes:
+      # Imajdaki baked nginx conf'u AWS adlandirmasiyla ez (field-web-service).
+      - ./nginx/aws-field-web.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      field-web-service:
+        condition: service_healthy
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  aws-container-timescale-data:
+  aws-container-redis-data:
+  aws-field-timescale-data:
+  aws-field-redis-data:
+
+networks:
+  edge-network:
+    driver: bridge

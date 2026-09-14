@@ -61,14 +61,19 @@ Bölüm 3.3'te sunulan aylık maliyet tahmini göz önüne alındığında, bu y
 
 ### 3.3 Tahmini Aylık Maliyet
 
+> **2026-09-14 güncellemesi:** İlk tahmin (2× t3.small + db.t3.small) mevcut
+> prod compose'larını kaldıramaz (t3.small = 2GB RAM; container PG tek başına
+> daha fazla ister). Güncel kurulum ikiye bölünmüştür — edge (container+field)
+> ve boss ayrı makinelerde (bkz. `docs/process/AWS-DEPLOYMENT.md`).
+
 | Hizmet | Örnek Kaynak | Tahmini Aylık Maliyet (USD) |
 |---|---|---|
-| Amazon EC2 (sunucu) | 2 × t3.small, 7/24 | 25–35 |
-| Amazon RDS (veritabanı) | db.t3.small (TimescaleDB) | 35–55 |
-| Amazon S3 (nesne depolama) | 50 GB + yedekleme | 2–5 |
+| Amazon EC2 — edge (container+field) | 1 × m6i.large, 7/24 | 65–75 |
+| Amazon EC2 — boss | 1 × t3.medium, 7/24 | 25–35 |
+| Amazon EBS | 130GB gp3 toplam (A: 100GB, B: 30GB) | 10–15 |
 | Amazon CloudWatch (izleme) | Standart metrikler + alarmlar | 3–7 |
 | Veri transferi | Düşük trafik profili | 1–5 |
-| **Toplam** | | **≈ 70–110** |
+| **Toplam** | | **≈ 105–135** |
 
 Not: Free Tier kapsamında ilk 12 ay bu maliyetin önemli bir bölümü sıfırdır; tablo üst sınır senaryosudur.
 

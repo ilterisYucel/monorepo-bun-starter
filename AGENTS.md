@@ -9,6 +9,10 @@ bun run dev:container-desktop             # Electron only
 bun run dev:container             # Full stack (Docker dev mode)
 bun run start:container           # Full stack (Docker prod mode)
 bun run stop:container            # Stop container stack
+bun run start:aws-edge            # AWS edge stack (container+field, Makine A)
+bun run stop:aws-edge
+bun run start:aws-boss            # AWS boss stack (Makine B)
+bun run stop:aws-boss
 nx run demo-backend:dev         # Demo Backend (Fastify, port 5000)
 nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
