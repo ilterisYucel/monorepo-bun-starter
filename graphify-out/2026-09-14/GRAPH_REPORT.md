@@ -1,38 +1,38 @@
 # Graph Report - gd-pms-monorepo  (2026-09-14)
 
 ## Corpus Check
-- 1404 files · ~1,113,165 words
+- 1405 files · ~1,113,511 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 9169 nodes · 17299 edges · 593 communities (385 shown, 184 thin omitted)
+- 9171 nodes · 17301 edges · 598 communities (385 shown, 189 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 660 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1bc1bfe8`
+- Built from commit: `972107cc`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- result/src/index.ts
+- RequestContext
 - FieldShell.styles.ts
-- DeviceService
-- RedisConnection
-- RealtimeContext.tsx
+- device-service.ts
+- BullMQQueue
+- container-web/src/app/providers.tsx
 - definitions.ts
-- shared-utils/src/config/index.ts
+- shared-types/src/index.ts
 - BSC.tsx
 - ContainerProxy
 - control/maneuvers.ts
 - loopback-demo.mjs
 - MockTransport
 - factories.ts
-- data-service/run.ts
-- TimescaleDBAdapter
+- logger-config.ts
+- ITimeseriesDatabase
 - SettingsPanel.tsx
 - User
-- deriveDashboard.ts
+- .registerRoutes
 - components/index.ts
 - XRackSimulator
 - simulators/src/index.ts
@@ -42,29 +42,29 @@
 - IModbusTransport
 - FieldsPage.tsx
 - textures.ts
-- shared-types/src/index.ts
-- ITimeseriesDatabase
+- Result
+- icons/index.ts
 - ConfigLoader
 - ModbusDevice
-- tunnel-client.ts
+- tunnel-proxy.ts
 - BSCCard.styles.ts
 - ContainerCard.styles.ts
-- loopback.spec.ts
+- container-session/tunnel.spec.ts
 - HvacUnit.stories.tsx
 - RackCard.styles.ts
-- .registerRoutes
+- field-session-routes.ts
 - compilerOptions
-- tunnel-proxy.ts
+- result/src/index.ts
 - demo-backend/package.json
 - IModbusSimulatorAdapter
 - ISO/IEC 27001:2022 ISMS Geliştirme Rehberi
 - plugin-sdk/src/index.ts
 - TMS.tsx
 - PlayCanvasViewer.tsx
-- BSCSimulator
-- graphics/types/index.ts
+- IMessageQueue
+- pixi.js
 - container-desktop/package.json
-- ILogSink
+- tunnel-demo.mjs
 - scripts
 - ui/package.json
 - HvacCard.styles.ts
@@ -72,10 +72,10 @@
 - tamper-logger/src/index.ts
 - targets
 - eslint-plugin-energy/package.json
-- FieldRegistry
+- ws-tunnel/src/index.ts
 - EnergyAnalyzerSimulatorAdapter
 - container-web/package.json
-- RealtimeManager
+- ws-routes.test.ts
 - Boss Uygulama Mimarisi — UX Çalışması ve Sayfa Tasarımı
 - CbSimulatorAdapter
 - DcOutputSimulatorAdapter
@@ -83,20 +83,20 @@
 - HvacSimulatorAdapter
 - ManeuverCard.styles.ts
 - ControlPanel.styles.ts
-- ClientLogger
+- container-web/src/lib/client-logger.ts
 - CBCard.styles.ts
 - TelemetryChart.styles.ts
-- session-audit.ts
+- .execute
 - TunnelConnector
 - ITelemetryTransport
 - messages.ts
 - field/package.json
 - targets
-- sinks/index.ts
-- DCOutput.stories.tsx
+- ILogSink
+- FieldPoller
 - rackHelpers.ts
 - RoomCard.drawers.ts
-- TranslationProvider
+- field/src/app/providers.tsx
 - TunnelProxy
 - ModbusTcpClient
 - DCOutputCard.styles.ts
@@ -105,9 +105,9 @@
 - superadmin/package.json
 - mfa-login-use-case.ts
 - container.ts
-- ConsolePluginLogger
+- features/hvac/index.ts
 - EnergyAnalyzerPage.styles.ts
-- redis-login-throttle.ts
+- TimescaleDBAdapter
 - BESSDiagram.tsx
 - TunnelClient
 - TelemetryInput.styles.ts
@@ -127,7 +127,7 @@
 - simulators/package.json
 - SingleTelemetryChart.tsx
 - BossShell.styles.ts
-- EN_DICT
+- FieldMap.tsx
 - DeviceTable.styles.ts
 - container-web/project.json
 - demo-backend/project.json
@@ -135,7 +135,7 @@
 - superadmin/project.json
 - core/project.json
 - container-access/package.json
-- schemas/device-config.ts
+- schemas/index.ts
 - telemetry-query-responder.ts
 - PanelCard.drawers.ts
 - web-service/package.json
@@ -150,10 +150,10 @@
 - EditorCanvas.tsx
 - epias-market-prices/package.json
 - NotificationsPage.tsx
-- PcsSection.tsx
+- COLORS
 - container-web/src/features/devices/components/DeviceDetailModal.styles.ts
-- useDevicesStore
-- DashboardSCADA.tsx
+- BscPage.tsx
+- rbac.ts
 - field/src/features/devices/components/DeviceDetailModal.styles.ts
 - container-access/project.json
 - logging/project.json
@@ -163,10 +163,10 @@
 - Faz 6 NIS-2 Kapanış Planı
 - devDependencies
 - editor/project.json
-- core/src/index.ts
+- ISqlDatabase
 - plugin-sdk/project.json
 - result/project.json
-- device-service.ts
+- simulator-registry.ts
 - tamper-logger/project.json
 - ws-tunnel/project.json
 - device-catalog/index.ts
@@ -197,11 +197,11 @@
 - shared-utils/project.json
 - tamper-logger/package.json
 - field/src/features/auth/stores/AuthStore.ts
-- Scheduler.styles.ts
+- BossSettingsPanel.tsx
 - ConnectionState
 - gen-pcs-configs.mjs
 - WebSocketTransport
-- UplinkEventRelay
+- EpiasClient
 - compilerOptions
 - PropertyPanel.tsx
 - devDependencies
@@ -212,20 +212,20 @@
 - plugin-sdk/package.json
 - shared-utils/package.json
 - useTelemetry.stories.tsx
-- Sparkline.tsx
+- Sparkline.stories.tsx
 - TelemetryInput.stories.tsx
 - syslog-sink.ts
 - IContainerProxy
 - Sprite uretim pipeline'i
 - EP203 Yangın Paneli (C-TEC)
 - Test Gelistirme Plani (NIS-2 & TEIAS kapsami)
-- field/src/app/routes.tsx
-- useTranslation
-- IMessageQueue
+- useAuthStore
+- RacksPage.tsx
+- DeviceJob
 - DeviceGauges.stories.tsx
 - TelemetryGauge.tsx
-- devicesStore.ts
-- apiClient
+- container-web/src/app/routes.tsx
+- HttpClient
 - DeviceTelemetryProvider.tsx
 - FieldManeuverPanel.tsx
 - PcsCard.styles.ts
@@ -236,11 +236,11 @@
 - TelemetryGauge.stories.tsx
 - src/client.ts
 - TelemetryChart.tsx
-- containersApi.ts
+- SCADA_ICONS
 - scripts
 - dependencies
-- useEnergyAnalyzerData.ts
-- main
+- LoginForm.styles.ts
+- core/src/index.ts
 - devDependencies
 - @gd-monorepo/ui paylasimli UI kutuphanesi
 - package.json
@@ -248,7 +248,7 @@
 - result/package.json
 - DeviceDetailModal/DeviceDetailModal.styles.ts
 - generate-sprite.mjs
-- auth-routes.ts
+- usePcsTelemetryProvider.ts
 - import-wiki.ts
 - compilerOptions
 - EditorToolbar.tsx
@@ -257,17 +257,17 @@
 - dependencies
 - MaterializedViewManager (oneri)
 - exports
-- config/types.ts
-- superadmin/src/app/providers.tsx
+- SettingsPanel.styles.ts
+- TranslationProvider
 - compilerOptions
 - compilerOptions
 - AGENTS.md Development Rules
 - dependencies
-- TMS.styles.ts
+- DashboardSCADA.styles.ts
 - EditorPage.tsx
 - containerGaugeBlocks.ts
 - GD-ESS EYS enerji yonetim sistemi
-- ControlPanel.tsx
+- Tabs.stories.tsx
 - core/tsconfig.json
 - epias-client/tsconfig.json
 - container-access/tsconfig.json
@@ -277,7 +277,7 @@
 - shared-types/tsconfig.json
 - shared-utils/tsconfig.json
 - BSCGraphic.styles.ts
-- BinaryPayloadDecoder
+- UserList.tsx
 - ws-tunnel/tsconfig.json
 - DevicePalette.tsx
 - data-service/tsconfig.json
@@ -285,7 +285,7 @@
 - integration-service/tsconfig.json
 - capture-sprite-refs.mjs
 - swap-sprite-theme.mjs
-- SidebarV2.tsx
+- SidebarV2.styles.ts
 - dependencies
 - mockDataGenerator.ts
 - SCADARuntime
@@ -302,12 +302,12 @@
 - 4. Faz Doğrulama Matrisleri
 - v2.0 Gap Analizi
 - Platform paket yapisi plani
-- ContainersPage.tsx
+- FieldShell.tsx
 - field-connector-demo.mjs
 - 7. Veri Akışı ve Backend Kontratları
 - dependencies
 - field-routes.ts
-- schemas/index.ts
+- dependencies
 - FieldFormModal.styles.ts
 - sdk-version.ts
 - nx-import skill
@@ -319,7 +319,7 @@
 - TMSGraphic.styles.ts
 - scripts
 - PowerFlowAnimation.styles.ts
-- useFirePanelData.ts
+- TMS.styles.ts
 - sbom-scan.mjs
 - Nx Import Skill (.agents)
 - nx-workspace Skill
@@ -330,7 +330,7 @@
 - .github/skills/monitor-ci/scripts/ci-state-update.mjs
 - nx-mcp
 - .opencode/skills/monitor-ci/scripts/ci-state-update.mjs
-- SummaryCard.styles.ts
+- SummaryCard.stories.tsx
 - BSC.styles.ts
 - market/types.ts
 - CircuitBreaker.stories.tsx
@@ -338,7 +338,7 @@
 - /monitor-ci Command (CI Orchestrator)
 - scripts
 - scripts
-- BscPage.styles.ts
+- UserCreateForm.tsx
 - scripts
 - SmtpNotifier
 - Oturum tüneli (session tunnel)
@@ -352,23 +352,23 @@
 - EPİAŞ CAS TGT erişim modeli
 - ws-tunnel kutuphane jeneriklestirme yol haritasi
 - colors/index.ts
-- data-service.ts
+- HttpSmsNotifier
 - Graphify Knowledge Graph Pipeline
 - container-desktop/tsconfig.json
 - FirePanelPage (/fire) UI
 - RuleEngine
-- SettingsPage.styles.ts
-- ManeuverConfig
+- ClientLogger
+- FakeSocket
 - ResizeObserverStub
 - devDependencies
-- icons/index.ts
+- RackCell.stories.tsx
 - Link Workspace Packages Skill (.agents)
 - graphify MCP server (graphify.serve stdio)
 - ui/src/index.ts
 - eslint.config.mjs
 - linux
 - TamperLogger
-- Sparkline.stories.tsx
+- health-route.test.ts
 - ManeuverConfig
 - Komut yanitina read-back verisi ekleme (2.1)
 - bullmq.ts
@@ -415,7 +415,7 @@
 - meta/FirePanel/firepanel-meta.ts
 - meta/PanelCard/panelcard-meta.ts
 - meta/RoomCard/roomcard-meta.ts
-- FakeSql
+- devDependencies
 - elements/PanelCard/panelcard-meta.ts
 - ui/vitest.config.ts
 - ws-tunnel/vitest.config.ts
@@ -563,27 +563,32 @@
 - Image asset: packages/ui/assets/sprites/refs/roomcard/room-o-2.png
 - Image asset: packages/ui/src/assets/sprites/circuitbreaker/base.png
 - verify-log.mjs
-- FieldUplinkChannel
+- ILogger
 - container-web/src/lib/api-client.ts
-- LogTerminal.tsx
-- ALL_CONFIG_DEFINITIONS
-- BossSettingsPanel.styles.ts
-- DotenvSource
-- DataRow.styles.ts
-- FieldsPage.styles.ts
 - LogEntry
+- scripts
+- BossSettingsPanel.styles.ts
+- DirectoryPluginSource
+- DataRow.styles.ts
+- Tabs.styles.ts
+- superadmin/src/app/App.tsx
+- ErrorBoundary
+- FieldsPage.styles.ts
+- file-sink.test.ts
+- mockLogs.ts
+- peerDependencies
+- @vitejs/plugin-react-swc
 - integration-service.test.ts
 - peerDependencies
 - FakeWebSocket
 - measure-rackmeta.mjs
-- SectionHeader.tsx
 - DeviceGauges.styles.ts
 - IPC SATIN ALMA TALEP LİSTESİ — Tedarik Linkleri
 - NORMAL RASPBERRY PI için SATIN ALMA TALEP LİSTESİ — Tedarik Linkleri
 - CardHeader.styles.ts
 - TelemetryData
 - main.ts
-- MetricDisplay.styles.ts
+- MetricDisplay.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `TelemetryData` - 145 edges
@@ -640,51 +645,51 @@
 - **GD-PMS Güvenlik/Uyumluluk Standart Doküman Seti** — docs_standards_iso_27001_rehber, docs_standards_nis_2_rehber, docs_standards_owasp_asvs_level2_rehber, docs_standards_mfa_stratejisi_totp, docs_standards_ntp_konfigurasyonu_rehber, docs_standards_olay_mudahale_proseduru_prosedur, docs_standards_nis2_vs_iso27001_yonetici_ozet [INFERRED 0.85]
 - **TEİAŞ Yazılım Geliştirmesi Gerektiren Maddeler** — docs_standards_teias_uyumluluk_degerlendirmesi_agc, docs_standards_teias_uyumluluk_degerlendirmesi_soe, docs_standards_teias_uyumluluk_degerlendirmesi_zaman_senkronizasyonu [INFERRED 0.85]
 
-## Communities (593 total, 184 thin omitted)
+## Communities (598 total, 189 thin omitted)
 
-### Community 0 - "result/src/index.ts"
-Cohesion: 0.07
-Nodes (39): ConflictError, DomainError, DomainErrorOptions, ErrorKind, FatalError, ForbiddenError, NotFoundError, TransientError (+31 more)
+### Community 0 - "RequestContext"
+Cohesion: 0.09
+Nodes (30): loadDeviceConfig(), BoundaryLogger, createErrorHandler(), ErrorHandlerDeps, logBoundary(), STATUS_BY_KIND, buildTestApp(), createRequestIdHook() (+22 more)
 
 ### Community 1 - "FieldShell.styles.ts"
 Cohesion: 0.13
 Nodes (14): Content, EmergencyStopBtn, FooterBtn, LogoIcon, MainArea, NavIcon, NavItem, NavLabel (+6 more)
 
-### Community 2 - "DeviceService"
-Cohesion: 0.07
-Nodes (16): DeviceJobHandler, BaseJob, CommandDeviceJob, FetchExternalJob, ManagementJob, ReadDeviceJob, WriteTelemetryJob, WsBroadcastJob (+8 more)
+### Community 2 - "device-service.ts"
+Cohesion: 0.13
+Nodes (13): DeviceJobHandler, BaseJob, CommandDeviceJob, FetchExternalJob, ManagementJob, ReadDeviceJob, WriteTelemetryJob, WsBroadcastJob (+5 more)
 
-### Community 3 - "RedisConnection"
+### Community 3 - "BullMQQueue"
 Cohesion: 0.05
 Nodes (18): BullMQAdapter, OpenQueueOptions, Handler, QueueEventsMock, queueEventsMocks, QueueMock, queueMocks, WorkerMock (+10 more)
 
-### Community 4 - "RealtimeContext.tsx"
-Cohesion: 0.08
-Nodes (20): App(), router, globalStyles, TranslationWrapper(), router, routes, ErrorBoundary, Props (+12 more)
+### Community 4 - "container-web/src/app/providers.tsx"
+Cohesion: 0.09
+Nodes (19): App(), router, globalStyles, App(), AppProviders(), TranslationWrapper(), router, routes (+11 more)
 
 ### Community 5 - "definitions.ts"
-Cohesion: 0.05
-Nodes (42): authLoginLockSeconds, authLoginMaxFailures, authLoginWindowSeconds, authMfaEnabled, authMfaRequiredRoles, authMfaTokenExpirySeconds, authTotpLockSeconds, authTotpMaxFailures (+34 more)
+Cohesion: 0.04
+Nodes (82): authAccessTokenExpirySeconds, authJwtSecret, authLoginLockSeconds, authLoginMaxFailures, authLoginWindowSeconds, authMfaEnabled, authMfaRequiredRoles, authMfaTokenExpirySeconds (+74 more)
 
-### Community 6 - "shared-utils/src/config/index.ts"
-Cohesion: 0.05
-Nodes (36): authAccessTokenExpirySeconds, authJwtSecret, authRefreshTokenExpirySeconds, deviceConfigDir, i18nAvailableLocales, i18nDefaultLocale, integrationConfigDir, integrationPluginDir (+28 more)
+### Community 6 - "shared-types/src/index.ts"
+Cohesion: 0.12
+Nodes (20): AuthResponse, PathAllowlist, ChangePasswordUseCase, mockUser, CreateUserUseCase, DeleteUserUseCase, ListUsersUseCase, LoginOutcome (+12 more)
 
 ### Community 7 - "BSC.tsx"
 Cohesion: 0.05
-Nodes (61): SystemHeaderProps, CommandHistory, HistoricalData, HistoricalDataPoint, OperationMode, Rack, SetPowerRequest, SetSOCRequest (+53 more)
+Nodes (68): SystemHeaderProps, CommandHistory, HistoricalData, HistoricalDataPoint, OperationMode, Rack, SetPowerRequest, SetSOCRequest (+60 more)
 
 ### Community 8 - "ContainerProxy"
-Cohesion: 0.04
-Nodes (30): ContainerObserver, ContainerProxy, ContainerProxyFieldChannel, apiChunks, apiRaw, auditInserts, browserReceived, browserSocket (+22 more)
+Cohesion: 0.06
+Nodes (12): IHubChannel, PeerConnectionState, TelemetryQueryMessage, TunnelOperationalConfig, ContainerEntry, ContainerProxy, ContainerProxyOptions, ContainerRegistryRow (+4 more)
 
 ### Community 9 - "control/maneuvers.ts"
-Cohesion: 0.09
-Nodes (12): ManeuverPanel(), BSC_IDS, CB_IDS, DC_IDS, HIDDEN_MANEUVER_NAMES, HVAC_IDS, MANEUVER_CONTROLS, MANEUVERS (+4 more)
+Cohesion: 0.05
+Nodes (31): ControlPanel(), ControlPanelProps, executeManeuver(), ManeuverPanel(), ManeuverCardWrapper, ManeuverGrid, ScheduledCommand, Scheduler() (+23 more)
 
 ### Community 10 - "loopback-demo.mjs"
-Cohesion: 0.07
-Nodes (19): apiChunks, apiSink, audit, browserSocket, connector, echoWss, fieldStore, gateway (+11 more)
+Cohesion: 0.06
+Nodes (20): apiChunks, apiSink, audit, browserSocket, connector, echoWss, fieldStore, gateway (+12 more)
 
 ### Community 11 - "MockTransport"
 Cohesion: 0.12
@@ -692,111 +697,115 @@ Nodes (17): DisabledDevice, IsolatedStreams, meta, Story, Wrapper(), Demo(), met
 
 ### Community 12 - "factories.ts"
 Cohesion: 0.03
-Nodes (82): Connected, Disconnected, meta, Small, Story, Default, HighDemand, meta (+74 more)
+Nodes (78): meta, Offline, OnlineCharging, OnlineDischarging, Story, DEFAULT_TR, FirePanelCard(), Fault (+70 more)
 
-### Community 13 - "data-service/run.ts"
-Cohesion: 0.14
-Nodes (13): isLogEventCode(), LOG_EVENT_CODES, LoggerConfig, loggerConfigForTier(), LoggerSinkKind, TIER_LOGGER_DEFAULTS, ServiceTier, resolveSigningKey() (+5 more)
+### Community 13 - "logger-config.ts"
+Cohesion: 0.38
+Nodes (4): LoggerConfig, LoggerSinkKind, TIER_LOGGER_DEFAULTS, ServiceTier
 
-### Community 14 - "TimescaleDBAdapter"
-Cohesion: 0.10
-Nodes (13): DEFAULT_INTERVALS, MaterializedInterval, MvOptions, TimeRange, ALLOWED_AGGREGATE_FNS, FROM, TO, TimescaleDBAdapter (+5 more)
+### Community 14 - "ITimeseriesDatabase"
+Cohesion: 0.08
+Nodes (14): DEFAULT_INTERVALS, MaterializedInterval, MaterializedViewManager, MvOptions, TimeRange, ALLOWED_AGGREGATE_FNS, FROM, TO (+6 more)
 
 ### Community 15 - "SettingsPanel.tsx"
-Cohesion: 0.07
-Nodes (38): SettingsPanel(), SettingsPanelProps, CloseBtn, ComingSoon, Header, Overlay, Panel, Section (+30 more)
+Cohesion: 0.31
+Nodes (11): SettingsPanel(), SettingsPanelProps, UserCreateForm(), UserList(), useCreateUser(), useDeleteUser(), useUserList(), AppLocale (+3 more)
 
 ### Community 16 - "User"
-Cohesion: 0.05
-Nodes (30): PostgresAdapter, Role, User, SeedUser, AccessPayload, MfaPayload, RefreshPayload, base64url() (+22 more)
+Cohesion: 0.07
+Nodes (16): AuthState, Role, User, SeedUser, AccessPayload, MfaPayload, RefreshPayload, base64url() (+8 more)
 
-### Community 17 - "deriveDashboard.ts"
-Cohesion: 0.13
-Nodes (19): deriveEmuMetrics(), derivePcsRows(), derivePowerLimits(), deriveSocSohAverages(), isNumber(), PcsRow, PowerLimits, SnapshotCarrier (+11 more)
+### Community 17 - ".registerRoutes"
+Cohesion: 0.08
+Nodes (15): LogQueryParams, LogSource, LogType, LogRepository, LogRateLimiter, LogRateLimiterConfig, alarmRoutes(), AlarmRow (+7 more)
 
 ### Community 18 - "components/index.ts"
 Cohesion: 0.08
-Nodes (29): CardAtom, CardGridAtom, ChartGridAtom, meta, SectionHeaderAtom, StatusBadges, Story, Card() (+21 more)
+Nodes (26): CardAtom, CardGridAtom, ChartGridAtom, meta, SectionHeaderAtom, StatusBadges, Story, Card() (+18 more)
 
 ### Community 19 - "XRackSimulator"
-Cohesion: 0.07
-Nodes (16): CAPACITY_POINTS, capacityToSocVoltage(), interpolate(), MAX_SOC_PERCENT, MAX_USABLE_CAPACITY_KWH, MIN_SOC_PERCENT, SOC_POINTS, socToCapacity() (+8 more)
+Cohesion: 0.06
+Nodes (17): XRackManager, CAPACITY_POINTS, capacityToSocVoltage(), interpolate(), MAX_SOC_PERCENT, MAX_USABLE_CAPACITY_KWH, MIN_SOC_PERCENT, SOC_POINTS (+9 more)
 
 ### Community 20 - "simulators/src/index.ts"
 Cohesion: 0.10
 Nodes (9): mergeRows(), parseBitFields(), parseBSCMap(), ParsedRegister, parseRegister(), parseScale(), RawRegisterRow, BSCSimulatorAdapter (+1 more)
 
 ### Community 21 - "bsc-simulator.ts"
-Cohesion: 0.11
-Nodes (30): CAPACITY_POINTS, MAX_SOC_PERCENT, MAX_USABLE_CAPACITY_KWH, MIN_SOC_PERCENT, SOC_POINTS, SYSTEM_CAPACITY_KWH, VOLTAGE_POINTS, RackState (+22 more)
+Cohesion: 0.08
+Nodes (38): CAPACITY_POINTS, capacityToSocVoltage(), interpolate(), MAX_SOC_PERCENT, MAX_USABLE_CAPACITY_KWH, MIN_SOC_PERCENT, SOC_POINTS, socToCapacity() (+30 more)
 
 ### Community 22 - "ISocketClient"
-Cohesion: 0.04
-Nodes (14): IHubChannel, ISocketClient, ISocketClientFactory, READY_STATE_MAP, WsSocketClient, WsSocketClientFactory, StreamState, FakeFactory (+6 more)
+Cohesion: 0.07
+Nodes (7): ISocketClient, ISocketClientFactory, READY_STATE_MAP, WsSocketClient, WsSocketClientFactory, StreamState, FakeFactory
 
 ### Community 23 - "wireguard-connection.ts"
 Cohesion: 0.07
-Nodes (22): row, toDto(), WgHost, WgHostInput, WgHostRow, WgHostStore, CONFIG, makeConnection() (+14 more)
+Nodes (23): row, toDto(), WgHost, WgHostInput, WgHostRow, WgHostStore, makeWireGuardConnection(), CONFIG (+15 more)
 
 ### Community 24 - "IModbusTransport"
 Cohesion: 0.06
-Nodes (12): ModbusClientConfig, ModbusRtuConfig, RegisterDataType, RegisterTableType, ModbusDeviceConfig, PlannedWrite, IModbusClient, IModbusTransport (+4 more)
+Nodes (11): ModbusClientConfig, ModbusRtuConfig, RegisterDataType, RegisterTableType, PlannedWrite, IModbusClient, IModbusTransport, ModbusClientTransport (+3 more)
 
 ### Community 25 - "FieldsPage.tsx"
-Cohesion: 0.10
-Nodes (23): FIELD_TYPES, FieldFormModal(), FieldFormModalProps, createMock, editingField, TOKEN, updateMock, ADMIN_FIELDS_QUERY_KEY (+15 more)
+Cohesion: 0.12
+Nodes (25): router, routes, FIELD_TYPES, FieldFormModal(), FieldFormModalProps, ADMIN_FIELDS_QUERY_KEY, row, useCreateField() (+17 more)
 
 ### Community 26 - "textures.ts"
-Cohesion: 0.06
-Nodes (43): Image asset: packages/ui/src/assets/sprites/cable/base.png, Image asset: packages/ui/src/assets/sprites/circuitbreaker/base-close.png, Image asset: packages/ui/src/assets/sprites/circuitbreaker/base-open.png, Image asset: packages/ui/src/assets/sprites/dcoutput/base.png, Image asset: packages/ui/src/assets/sprites/energyanalyzergraphic/base.png, Image asset: packages/ui/src/assets/sprites/firepanel/base.png, Image asset: packages/ui/src/assets/sprites/grid/base.png, Image asset: packages/ui/src/assets/sprites/hvacunit/base.png (+35 more)
-
-### Community 27 - "shared-types/src/index.ts"
 Cohesion: 0.05
-Nodes (29): Result, VOID_SENTINEL, AuthResponse, CreateUserRequest, decodedFrames(), PathAllowlist, ChangePasswordUseCase, mockUser (+21 more)
+Nodes (39): Image asset: packages/ui/src/assets/sprites/cable/base.png, Image asset: packages/ui/src/assets/sprites/circuitbreaker/base-close.png, Image asset: packages/ui/src/assets/sprites/circuitbreaker/base-open.png, Image asset: packages/ui/src/assets/sprites/dcoutput/base.png, Image asset: packages/ui/src/assets/sprites/energyanalyzergraphic/base.png, Image asset: packages/ui/src/assets/sprites/firepanel/base.png, Image asset: packages/ui/src/assets/sprites/grid/base.png, Image asset: packages/ui/src/assets/sprites/hvacunit/base.png (+31 more)
+
+### Community 27 - "Result"
+Cohesion: 0.04
+Nodes (18): Result, VOID_SENTINEL, CreateUserRequest, LoginRequest, MfaConfirmResponse, MfaEnrollConfirmRequest, MfaEnrollResponse, MfaLoginRequest (+10 more)
+
+### Community 28 - "icons/index.ts"
+Cohesion: 0.10
+Nodes (21): RackCardStyles, DEFAULT_TR, getChargeStatusBadge(), getStatusBadge(), RackCard(), Idle, meta, Offline (+13 more)
 
 ### Community 29 - "ConfigLoader"
-Cohesion: 0.09
-Nodes (17): ConfigLoader, defBytes, defPort, defSecret, defStrict, defTimeout, makeLoader(), EnvSource (+9 more)
+Cohesion: 0.06
+Nodes (27): ConfigLoader, defBytes, defPort, defSecret, defStrict, defTimeout, makeLoader(), DotenvSource (+19 more)
 
 ### Community 30 - "ModbusDevice"
-Cohesion: 0.08
-Nodes (14): PowerCommandHandler, ModbusDevice, TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak., BitfieldConfig, BitfieldField, TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak., ByteOrder, BaseTelemetryData (+6 more)
+Cohesion: 0.06
+Nodes (19): PowerCommandHandler, RACK_COUNT, RACK_IDS, TICK_SECONDS, BinaryPayloadDecoder, ModbusDevice, ModbusDeviceConfig, TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak. (+11 more)
 
-### Community 31 - "tunnel-client.ts"
-Cohesion: 0.14
-Nodes (18): RFC-6455, ValidationError, HOP_BY_HOP_HEADERS, codec, TunnelClientConfig, FrameCodec, FrameDecodeError, validateOpcode() (+10 more)
+### Community 31 - "tunnel-proxy.ts"
+Cohesion: 0.07
+Nodes (28): RFC-6455, ValidationError, HOP_BY_HOP_HEADERS, codec, decodedFrames(), TunnelClientConfig, FrameCodec, FrameDecodeError (+20 more)
 
 ### Community 32 - "BSCCard.styles.ts"
-Cohesion: 0.05
-Nodes (41): BSCCard(), DEFAULT_TR, fmt(), fmtPct(), fmtStr(), getChargeStatusBadge(), getStatusBadge(), MetricDisplay() (+33 more)
+Cohesion: 0.06
+Nodes (36): BSCCard(), DEFAULT_TR, fmt(), fmtPct(), fmtStr(), getChargeStatusBadge(), getStatusBadge(), MetricDisplay() (+28 more)
 
 ### Community 33 - "ContainerCard.styles.ts"
-Cohesion: 0.06
-Nodes (33): ContainerCard(), formatKw(), formatTemp(), STATUS_LABEL, meta, OfflineDisconnected, OnlineConnected, Story (+25 more)
+Cohesion: 0.05
+Nodes (38): ContainerCard(), formatKw(), formatTemp(), STATUS_LABEL, meta, OfflineDisconnected, OnlineConnected, Story (+30 more)
 
-### Community 34 - "loopback.spec.ts"
-Cohesion: 0.08
-Nodes (16): audit, setup(), startUpstream(), Upstream, ClientSessionServer, ClientSession, ClientSessionStore, ClientSessionStoreConfig (+8 more)
+### Community 34 - "container-session/tunnel.spec.ts"
+Cohesion: 0.07
+Nodes (19): audit, setup(), startUpstream(), Upstream, SessionEndMessage, ClientSessionServer, ClientSession, ClientSessionStore (+11 more)
 
 ### Community 35 - "HvacUnit.stories.tsx"
-Cohesion: 0.24
-Nodes (11): drawHvacChassis(), Base(), config, Idle(), meta, Offline(), OnlineCooling(), OnlineWarming() (+3 more)
+Cohesion: 0.14
+Nodes (20): drawHvacAnim(), drawHvacBody(), drawHvacChassis(), drawHvacStatus(), HvacUnit(), Base(), config, Idle() (+12 more)
 
 ### Community 36 - "RackCard.styles.ts"
-Cohesion: 0.07
-Nodes (30): RackCardStyles, DEFAULT_TR, getChargeStatusBadge(), getStatusBadge(), RackCard(), BadgeCharge, BadgeDischarge, BadgeIdle (+22 more)
+Cohesion: 0.10
+Nodes (20): BadgeCharge, BadgeDischarge, BadgeIdle, BadgeOffline, BadgeOnline, Badges, Card, DetailButton (+12 more)
 
-### Community 37 - ".registerRoutes"
-Cohesion: 0.05
-Nodes (28): LogQueryParams, LogSource, LogType, isPathAllowed(), sessionCookieValue(), FastifyStreamSink, toTunnelUser(), toWebUser() (+20 more)
+### Community 37 - "field-session-routes.ts"
+Cohesion: 0.10
+Nodes (20): isPathAllowed(), sessionCookieValue(), FastifyStreamSink, toTunnelUser(), toWebUser(), fieldSessionRoutes(), fieldTunnelRoutes(), FORWARD_HEADERS (+12 more)
 
 ### Community 38 - "compilerOptions"
 Cohesion: 0.04
 Nodes (44): compilerOptions, allowImportingTsExtensions, allowJs, composite, declaration, declarationMap, emitDeclarationOnly, jsx (+36 more)
 
-### Community 39 - "tunnel-proxy.ts"
-Cohesion: 0.05
-Nodes (31): IAuditSink, SessionAuditCloseRecord, SessionAuditOpenRecord, ILogger, TunnelLogInput, SessionEndMessage, StreamCloseMessage, StreamWindowMessage (+23 more)
+### Community 39 - "result/src/index.ts"
+Cohesion: 0.06
+Nodes (29): ConflictError, DomainError, DomainErrorOptions, ErrorKind, FatalError, ForbiddenError, NotFoundError, TransientError (+21 more)
 
 ### Community 40 - "demo-backend/package.json"
 Cohesion: 0.05
@@ -811,32 +820,32 @@ Cohesion: 0.06
 Nodes (42): EPİAŞ Şeffaflık Platformu Veri Kullanım Analizi, CAS TGT Erişim Modeli, PTF/MCP Fiyat Serisi, Manevra Sistemi (18 Manevra, FL-01..FL-11), GD-ESS EYS Yazılım Tanıtım Dokümanı, ISO/IEC 27001:2022 Rehberi (PDF arşiv), Üç Katmanlı Manevra Mimarisi, Kontrol ve Manevra Sistemi Mimari Kılavuzu (+34 more)
 
 ### Community 43 - "plugin-sdk/src/index.ts"
-Cohesion: 0.08
-Nodes (15): PluginContext, PluginLoader, tempDirs, PluginKind, PluginManifest, IPlugin, PluginHealth, PluginRegistration (+7 more)
+Cohesion: 0.09
+Nodes (14): PluginContext, PluginLoader, tempDirs, PluginKind, PluginManifest, IPlugin, PluginHealth, PluginRegistration (+6 more)
 
 ### Community 44 - "TMS.tsx"
 Cohesion: 0.12
-Nodes (33): drawHvac(), drawHvacAnimation(), drawPanel(), drawRoomBorder(), drawRoomFill(), getTempColor(), usePixiResize(), usePixiTicker() (+25 more)
+Nodes (34): drawHvac(), drawHvacAnimation(), drawPanel(), drawRoomBorder(), drawRoomFill(), getTempColor(), usePixiResize(), usePixiTicker() (+26 more)
 
 ### Community 45 - "PlayCanvasViewer.tsx"
 Cohesion: 0.17
 Nodes (11): PlayCanvasViewerStyles, CONTAINER_COLORS, PlayCanvasViewer(), SELECTED_COLOR, CanvasContainer, Label, Overlay, Placeholder (+3 more)
 
-### Community 46 - "BSCSimulator"
-Cohesion: 0.20
-Nodes (8): capacityToSocVoltage(), interpolate(), socToCapacity(), BSCSimulator, setBit(), makeReadySim(), writeSint32(), writeUint32()
+### Community 46 - "IMessageQueue"
+Cohesion: 0.10
+Nodes (4): IMessageQueue, DeviceScheduler, defaultConfig, DeviceService
 
-### Community 47 - "graphics/types/index.ts"
-Cohesion: 0.12
-Nodes (22): Cable(), drawCableArrows(), drawCableBody(), drawOneArrow(), getCableColor(), segmentData(), CableProps, CableBus() (+14 more)
+### Community 47 - "pixi.js"
+Cohesion: 0.09
+Nodes (26): Cable(), drawCableArrows(), drawCableBody(), drawOneArrow(), getCableColor(), segmentData(), meta, path (+18 more)
 
 ### Community 48 - "container-desktop/package.json"
 Cohesion: 0.05
 Nodes (38): author, description, homepage, axios, @emotion/react, @emotion/styled, eslint, eslint-plugin-react-hooks (+30 more)
 
-### Community 49 - "ILogSink"
-Cohesion: 0.16
-Nodes (8): DEFAULT_REDACTION_KEYS, LEVEL_RANK, TamperLoggerConfig, ILogSink, AlertNotifier, AlertNotifierConfig, RecordingSink, LogLevel
+### Community 49 - "tunnel-demo.mjs"
+Cohesion: 0.07
+Nodes (27): apiChunks, apiRaw, auditInserts, browserReceived, browserSocket, connector, fakeSql, fieldProxy (+19 more)
 
 ### Community 50 - "scripts"
 Cohesion: 0.04
@@ -844,7 +853,7 @@ Nodes (46): scripts, build, build:container-desktop, build:container-web, clean,
 
 ### Community 51 - "ui/package.json"
 Cohesion: 0.05
-Nodes (38): exports, files, bun-types, @emotion/react, @emotion/styled, eslint, @eslint/js, eslint-plugin-react-hooks (+30 more)
+Nodes (37): exports, files, bun-types, @emotion/react, @emotion/styled, eslint, @eslint/js, eslint-plugin-react-hooks (+29 more)
 
 ### Community 52 - "HvacCard.styles.ts"
 Cohesion: 0.06
@@ -855,8 +864,8 @@ Cohesion: 0.11
 Nodes (11): PcsSimulatorAdapter, COIL_ON_OFF, HOLDING, INPUT, PCS_BASE, PCS_STRIDE, PcsSimulator, toInt16() (+3 more)
 
 ### Community 54 - "tamper-logger/src/index.ts"
-Cohesion: 0.19
-Nodes (23): canonicalize(), EnrichedEvent, enrichEvent(), GENESIS_HASH, nextState(), redactEvent(), redactValue(), signEvent() (+15 more)
+Cohesion: 0.18
+Nodes (26): DEFAULT_REDACTION_KEYS, LEVEL_RANK, TamperLoggerConfig, canonicalize(), EnrichedEvent, enrichEvent(), GENESIS_HASH, nextState() (+18 more)
 
 ### Community 55 - "targets"
 Cohesion: 0.07
@@ -866,9 +875,9 @@ Nodes (36): executor, options, outputs, executor, options, outputs, executor, op
 Cohesion: 0.07
 Nodes (29): devDependencies, @typescript-eslint/utils, vitest, exports, eslint, vitest, main, name (+21 more)
 
-### Community 57 - "FieldRegistry"
+### Community 57 - "ws-tunnel/src/index.ts"
 Cohesion: 0.04
-Nodes (18): AlarmStateRepository, AdminFieldRow, FieldPoller, COLLECTED_EVENT_CODES, FieldEventCollector, FieldEventCollectorConfig, FieldEventDto, FieldEventRow (+10 more)
+Nodes (17): COLLECTED_EVENT_CODES, FieldEventCollector, FieldEventCollectorConfig, FieldEventDto, FieldEventRow, EVENT, toDto(), FieldRegistry (+9 more)
 
 ### Community 58 - "EnergyAnalyzerSimulatorAdapter"
 Cohesion: 0.10
@@ -878,9 +887,9 @@ Nodes (10): EnergyAnalyzerSimulatorAdapter, INPUT, createPhase(), defaultState()
 Cohesion: 0.06
 Nodes (34): axios, bun-types, @emotion/react, @emotion/styled, eslint, @eslint/js, eslint-plugin-react-hooks, eslint-plugin-react-refresh (+26 more)
 
-### Community 60 - "RealtimeManager"
-Cohesion: 0.11
-Nodes (6): RealtimeManager, makeManager(), telemetryWsRoutes(), servers, startServer(), user
+### Community 60 - "ws-routes.test.ts"
+Cohesion: 0.21
+Nodes (4): telemetryWsRoutes(), servers, startServer(), user
 
 ### Community 61 - "Boss Uygulama Mimarisi — UX Çalışması ve Sayfa Tasarımı"
 Cohesion: 0.18
@@ -907,12 +916,12 @@ Cohesion: 0.06
 Nodes (34): ButtonGroup, CancelBtn, CardContainer, CardDescription, CardFooter, CardHeader, CardIcon, CardTitle (+26 more)
 
 ### Community 67 - "ControlPanel.styles.ts"
-Cohesion: 0.12
-Nodes (16): BtnCharge, BtnDischarge, BtnStop, ControlButtons, ControlPanelContainer, FormGroup, FormHint, InputsGroup (+8 more)
+Cohesion: 0.06
+Nodes (32): BtnCharge, BtnDischarge, BtnStop, ControlButtons, ControlPanelContainer, FormGroup, FormHint, InputsGroup (+24 more)
 
-### Community 68 - "ClientLogger"
-Cohesion: 0.11
-Nodes (17): ApiLogTransport, clientLogger, installClientLogging(), App(), ApiLogTransport, clientLogger, installClientLogging(), ApiLogTransport (+9 more)
+### Community 68 - "container-web/src/lib/client-logger.ts"
+Cohesion: 0.14
+Nodes (16): ApiLogTransport, clientLogger, installClientLogging(), App(), ApiLogTransport, clientLogger, installClientLogging(), ApiLogTransport (+8 more)
 
 ### Community 69 - "CBCard.styles.ts"
 Cohesion: 0.07
@@ -922,17 +931,17 @@ Nodes (28): CBCard(), DEFAULT_TR, fmt(), meta, Offline, OnlineClosed, OnlineOpen
 Cohesion: 0.06
 Nodes (33): CategoryHeader, Checkbox, Container, ControlGroup, ControlLabel, Controls, CustomRangeRow, DateTimeInput (+25 more)
 
-### Community 71 - "session-audit.ts"
-Cohesion: 0.23
-Nodes (4): CloseSessionRecord, OpenSessionRecord, SESSION_AUDIT_DDL, SessionAudit
+### Community 71 - ".execute"
+Cohesion: 0.08
+Nodes (9): AlarmSeverity, DeviceAlarmState, AlarmIdentity, AlarmStateRepository, CloseSessionRecord, OpenSessionRecord, SESSION_AUDIT_DDL, SessionAudit (+1 more)
 
 ### Community 72 - "TunnelConnector"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (3): TunnelConnector, TunnelConnectionStatus, makeStatusRoute()
 
 ### Community 74 - "messages.ts"
 Cohesion: 0.07
-Nodes (39): ReconnectDelay, ReconnectDelayConfig, FieldServer, makeConnector(), sampleSnapshot, setup(), startFieldServer(), TunnelConnectorConfig (+31 more)
+Nodes (35): ReconnectDelay, ReconnectDelayConfig, FieldServer, makeConnector(), sampleSnapshot, setup(), startFieldServer(), makeFactory() (+27 more)
 
 ### Community 75 - "field/package.json"
 Cohesion: 0.06
@@ -942,29 +951,29 @@ Nodes (32): axios, bun-types, @emotion/react, @emotion/styled, eslint, @eslint/j
 Cohesion: 0.09
 Nodes (31): executor, executor, options, outputs, options, outputs, executor, options (+23 more)
 
-### Community 77 - "sinks/index.ts"
-Cohesion: 0.08
-Nodes (13): HttpSmsNotifier, HttpSmsNotifierConfig, config, HttpWebhookSink, HttpWebhookSinkConfig, sha256Of(), signBody(), sleep() (+5 more)
+### Community 77 - "ILogSink"
+Cohesion: 0.11
+Nodes (14): ILogSink, AlertNotifier, AlertNotifierConfig, FileSinkConfig, HttpSmsNotifierConfig, HttpWebhookSink, HttpWebhookSinkConfig, sha256Of() (+6 more)
 
-### Community 78 - "DCOutput.stories.tsx"
-Cohesion: 0.16
-Nodes (12): DCOutput(), drawOutputBody(), drawOutputChassis(), Base(), config, meta, output, wrapper (+4 more)
+### Community 78 - "FieldPoller"
+Cohesion: 0.12
+Nodes (6): AdminFieldRow, FieldPoller, adminRoutes(), DEMO_SUMMARY, buildApp(), withRegistryState()
 
 ### Community 79 - "rackHelpers.ts"
-Cohesion: 0.13
-Nodes (22): Ge(), RackDetailModal(), statusBadgeStyle(), TabId, TABS, RackDetailData, RackDetailModalProps, RackDiagnosticFlag (+14 more)
+Cohesion: 0.17
+Nodes (18): Ge(), RackDetailModal(), statusBadgeStyle(), TabId, TABS, RackDetailData, RackDetailModalProps, RackDiagnosticFlag (+10 more)
 
 ### Community 80 - "RoomCard.drawers.ts"
 Cohesion: 0.11
 Nodes (25): RoomCardDrawers, drawRoomBarSlot(), drawRoomBody(), drawRoomChassis(), drawRoomTemp(), drawRoomTempBorder(), RoomCardSlotRect, roomTempGrad() (+17 more)
 
-### Community 81 - "TranslationProvider"
-Cohesion: 0.11
-Nodes (14): ErrorBoundary, ErrorFallback(), TranslationWrapper(), AppLocale, AppTheme, SettingsState, useSettingsStore, FIELD_EN_DICT (+6 more)
+### Community 81 - "field/src/app/providers.tsx"
+Cohesion: 0.07
+Nodes (20): ErrorBoundary, ErrorFallback(), TranslationWrapper(), router, routes, AppLocale, AppTheme, SettingsState (+12 more)
 
 ### Community 82 - "TunnelProxy"
-Cohesion: 0.15
-Nodes (3): StreamOpenAckMessage, close(), TunnelProxy
+Cohesion: 0.19
+Nodes (4): StreamOpenAckMessage, close(), send(), TunnelProxy
 
 ### Community 83 - "ModbusTcpClient"
 Cohesion: 0.11
@@ -988,23 +997,23 @@ Nodes (31): axios, bun-types, @emotion/react, @emotion/styled, eslint, @eslint/j
 
 ### Community 88 - "mfa-login-use-case.ts"
 Cohesion: 0.05
-Nodes (37): RFC-4648, LoginRequest, MfaConfirmResponse, MfaEnrollConfirmRequest, MfaEnrollResponse, MfaLoginRequest, MfaRequiredResponse, RefreshRequest (+29 more)
+Nodes (39): RFC-4648, otplib, logger, logOk, makeCase(), mockRepo(), mockTokens(), mockTotp() (+31 more)
 
 ### Community 89 - "container.ts"
-Cohesion: 0.10
-Nodes (32): SessionGateway, ISnapshotSource, awilix, buildContainer(), DEFAULT_ALERT_EVENT_CODES, RFC-6238, alertSinkConfigs, authConfig (+24 more)
+Cohesion: 0.09
+Nodes (37): isLogEventCode(), LOG_EVENT_CODES, loggerConfigForTier(), ALL_CONFIG_DEFINITIONS, resolveSigningKey(), ConsoleSink, FileSink, TimescaleSink (+29 more)
+
+### Community 90 - "features/hvac/index.ts"
+Cohesion: 0.19
+Nodes (16): calculateAverages(), HVAC_QUERY_KEY, hvacApi, LatestResponse, HvacAlarms, HvacAverages, HvacUnit, defaultAlarms() (+8 more)
 
 ### Community 91 - "EnergyAnalyzerPage.styles.ts"
 Cohesion: 0.12
 Nodes (16): BottomGrid, CardIcon, CardLabel, CardValue, Container, Empty, Loading, MetricLabel (+8 more)
 
-### Community 92 - "redis-login-throttle.ts"
-Cohesion: 0.22
-Nodes (6): LoginThrottleConfig, FAIL_KEY(), LOCK_KEY(), RedisLoginThrottle, config, RedisLike
-
 ### Community 93 - "BESSDiagram.tsx"
-Cohesion: 0.13
-Nodes (19): EnergyAnalyzerData, EnergyAnalyzerGraphicConfig, EnergyAnalyzerGraphicProps, BESSDiagram, BSCPositions, calcBSCPositions(), drawContainerFrame(), drawLabelBox() (+11 more)
+Cohesion: 0.11
+Nodes (25): useWebGLDetect(), BESSDiagram, BSCPositions, calcBSCPositions(), drawContainerFrame(), drawLabelBox(), bscUnit(), Default() (+17 more)
 
 ### Community 94 - "TunnelClient"
 Cohesion: 0.14
@@ -1015,8 +1024,8 @@ Cohesion: 0.07
 Nodes (28): Container, ControlBtn, Controls, Description, DeviceId, Footer, Header, InputGroup (+20 more)
 
 ### Community 96 - "FirePanel.tsx"
-Cohesion: 0.14
-Nodes (22): drawFirePanelChassis(), drawFirePanelSockets(), drawKeySwitch(), drawLabelBox(), drawLamp(), drawPanelBody(), KEY_DEFS, LAMP_DEFS (+14 more)
+Cohesion: 0.15
+Nodes (21): drawFirePanelChassis(), drawFirePanelSockets(), drawKeySwitch(), drawLabelBox(), drawLamp(), drawPanelBody(), KEY_DEFS, LAMP_DEFS (+13 more)
 
 ### Community 97 - "FieldCard.styles.ts"
 Cohesion: 0.12
@@ -1071,16 +1080,16 @@ Cohesion: 0.07
 Nodes (26): dependencies, bun-types, @gd-monorepo/core, @gd-monorepo/shared-types, devDependencies, typescript, vitest, exports (+18 more)
 
 ### Community 110 - "SingleTelemetryChart.tsx"
-Cohesion: 0.18
-Nodes (13): buildSubtitle(), DEFAULT_TR, formatDate(), formatDateShort(), formatInterval(), formatTimeShort(), LEGEND_TR, POINTS_KEY (+5 more)
+Cohesion: 0.12
+Nodes (22): ANNOTATION_COLORS, formatStat(), formatTooltipTime(), formatTooltipVal(), MultiLineChartV2(), SeriesStats, TooltipState, MultiLineChartLabels (+14 more)
 
 ### Community 111 - "BossShell.styles.ts"
 Cohesion: 0.09
 Nodes (22): Content, Drawer, DrawerBackdrop, DrawerBrand, DrawerNavButton, FooterBtn, FooterUser, HeaderBar (+14 more)
 
-### Community 112 - "EN_DICT"
+### Community 112 - "FieldMap.tsx"
 Cohesion: 0.07
-Nodes (31): FieldCard(), formatMw(), STATUS_KEY, meta, Offline, Online, Story, Warning (+23 more)
+Nodes (30): FieldCard(), formatMw(), STATUS_KEY, meta, Offline, Online, Story, Warning (+22 more)
 
 ### Community 113 - "DeviceTable.styles.ts"
 Cohesion: 0.11
@@ -1110,17 +1119,17 @@ Nodes (24): executor, options, outputs, executor, options, implicitDependencies,
 Cohesion: 0.08
 Nodes (24): dependencies, @gd-monorepo/ws-tunnel, devDependencies, @types/ws, ws, exports, @gd-monorepo/core, @gd-monorepo/shared-types (+16 more)
 
-### Community 120 - "schemas/device-config.ts"
-Cohesion: 0.23
-Nodes (10): validDevice, validField, bitfieldConfigSchema, bitfieldFieldSchema, byteOrderSchema, deviceAlarmRuleSchema, deviceConfigFileSchema, deviceTransportConfigSchema (+2 more)
+### Community 120 - "schemas/index.ts"
+Cohesion: 0.15
+Nodes (16): validDevice, validField, bitfieldConfigSchema, bitfieldFieldSchema, byteOrderSchema, deviceAlarmRuleSchema, deviceConfigFileSchema, deviceTransportConfigSchema (+8 more)
 
 ### Community 121 - "telemetry-query-responder.ts"
 Cohesion: 0.14
 Nodes (7): LogEventCode, TelemetryQueryErrorMessage, telemetryQuerySchema, ITelemetrySeriesSource, TelemetrySeriesQuery, TelemetryQueryResponder, TelemetrySeriesSource
 
 ### Community 122 - "PanelCard.drawers.ts"
-Cohesion: 0.14
-Nodes (18): PanelCardDrawers, drawPanelBarSlot(), drawPanelBody(), drawPanelTemp(), drawPanelTempBorder(), panelTempGrad(), _panelTempGrads, tempColor() (+10 more)
+Cohesion: 0.15
+Nodes (17): PanelCardDrawers, drawPanelBarSlot(), drawPanelBody(), drawPanelTemp(), drawPanelTempBorder(), panelTempGrad(), _panelTempGrads, tempColor() (+9 more)
 
 ### Community 123 - "web-service/package.json"
 Cohesion: 0.08
@@ -1139,8 +1148,8 @@ Cohesion: 0.11
 Nodes (24): executor, options, outputs, executor, options, executor, options, implicitDependencies (+16 more)
 
 ### Community 128 - "TranslationProvider.tsx"
-Cohesion: 0.14
-Nodes (13): interpolate(), LocaleSwitcher(), meta, Story, TrEnSwitch, TranslationContextValue, TranslationCtx, TranslationProviderProps (+5 more)
+Cohesion: 0.11
+Nodes (15): interpolate(), LocaleSwitcher(), meta, Story, TrEnSwitch, dicts, Probe(), TranslationContextValue (+7 more)
 
 ### Community 129 - "ws-tunnel/package.json"
 Cohesion: 0.08
@@ -1163,24 +1172,24 @@ Cohesion: 0.09
 Nodes (22): dependencies, @gd-monorepo/epias-client, @gd-monorepo/plugin-sdk, @gd-monorepo/shared-types, devDependencies, typescript, vitest, exports (+14 more)
 
 ### Community 134 - "NotificationsPage.tsx"
-Cohesion: 0.11
-Nodes (22): NOTIFICATIONS_QUERY_KEY, NOTIFICATIONS_SEEN_KEY, touchLastSeen(), useNotifications(), notificationsApi, FieldNotification, defaultStyle, EVENT_STYLE (+14 more)
+Cohesion: 0.13
+Nodes (19): touchLastSeen(), useNotifications(), FieldNotification, defaultStyle, EVENT_STYLE, eventCodeLabel(), formatTime(), KNOWN_CODES (+11 more)
 
-### Community 135 - "PcsSection.tsx"
-Cohesion: 0.08
-Nodes (28): KIND_ALPHA, KIND_COLOR, KIND_ICON, PcsCard(), PcsSummary, PcsConfigModal(), gridStyle, PcsDetailModal() (+20 more)
+### Community 135 - "COLORS"
+Cohesion: 0.07
+Nodes (36): AnalyticsPage(), Container, Icon, SubText, Text, KIND_ALPHA, KIND_COLOR, KIND_ICON (+28 more)
 
 ### Community 136 - "container-web/src/features/devices/components/DeviceDetailModal.styles.ts"
 Cohesion: 0.09
 Nodes (21): Body, CloseButton, ConfigTable, DeviceId, DeviceName, ErrorBox, Header, HeaderTitle (+13 more)
 
-### Community 137 - "useDevicesStore"
-Cohesion: 0.10
-Nodes (44): useRealtimeStream(), Averages, DASHBOARD_QUERY_KEY, extractSystemLevel(), useDashboardData(), useEnergyAnalyzerData(), useFirePanelData(), calculateAverages() (+36 more)
+### Community 137 - "BscPage.tsx"
+Cohesion: 0.09
+Nodes (48): RealtimeContext, RealtimeProvider(), Probe(), useRealtimeStream(), useTransport(), Averages, DASHBOARD_QUERY_KEY, extractSystemLevel() (+40 more)
 
-### Community 138 - "DashboardSCADA.tsx"
-Cohesion: 0.19
-Nodes (13): BSCPositions, calcBSCPositions(), DashboardSCADA, bscUnit, Default, FireAlarm, meta, rooms (+5 more)
+### Community 138 - "rbac.ts"
+Cohesion: 0.18
+Nodes (14): applyRolePermissions(), createRbacHook(), matchesPublicPrefix(), matchesRoutePermission(), MFA_ALLOWLIST, MUST_CHANGE_ALLOWLIST, PUBLIC_PREFIXES, ROUTE_PERMISSIONS (+6 more)
 
 ### Community 139 - "field/src/features/devices/components/DeviceDetailModal.styles.ts"
 Cohesion: 0.09
@@ -1218,9 +1227,9 @@ Nodes (21): devDependencies, electron, electron-builder, @electron-toolkit/eslin
 Cohesion: 0.12
 Nodes (20): executor, options, outputs, executor, options, executor, options, name (+12 more)
 
-### Community 148 - "core/src/index.ts"
-Cohesion: 0.05
-Nodes (24): ISqlDatabase, AlarmSeverity, DeviceAlarmState, pg, AlarmIdentity, makeRaw(), user, isTelemetryPoint() (+16 more)
+### Community 148 - "ISqlDatabase"
+Cohesion: 0.06
+Nodes (11): ISqlDatabase, PostgresAdapter, LOG_EVENTS_DDL, ISnapshotSource, DataService, isTelemetryPoint(), RealtimeSnapshotSource, DeviceInfo (+3 more)
 
 ### Community 149 - "plugin-sdk/project.json"
 Cohesion: 0.12
@@ -1230,8 +1239,8 @@ Nodes (20): executor, options, outputs, executor, options, name, command, cwd (+
 Cohesion: 0.12
 Nodes (20): executor, options, outputs, executor, options, name, command, cwd (+12 more)
 
-### Community 151 - "device-service.ts"
-Cohesion: 0.11
+### Community 151 - "simulator-registry.ts"
+Cohesion: 0.10
 Nodes (14): DeviceConfigFile, DeviceTransportConfig, SimulatorConfig, TelemetryConfigEntry, PostgresConfig, ServiceConfigFile, smol-toml, yaml (+6 more)
 
 ### Community 152 - "tamper-logger/project.json"
@@ -1255,8 +1264,8 @@ Cohesion: 0.10
 Nodes (19): dependencies, bullmq, exports, bullmq, @gd-monorepo/core, @gd-monorepo/shared-types, main, name (+11 more)
 
 ### Community 157 - "field/src/lib/api-client.ts"
-Cohesion: 0.17
-Nodes (9): GUEST_USER, fieldApi, FIELD_LOGS_QUERY_KEY(), useFieldLogProvider(), apiClient, response(), setAdapter(), FieldEventsPage() (+1 more)
+Cohesion: 0.22
+Nodes (6): GUEST_USER, fieldApi, apiClient, response(), setAdapter(), FieldSummary
 
 ### Community 158 - "check-sprite.mjs"
 Cohesion: 0.11
@@ -1267,24 +1276,24 @@ Cohesion: 0.11
 Nodes (19): build, appId, directories, executableName, files, mac, nsis, productName (+11 more)
 
 ### Community 160 - "BossShell.tsx"
-Cohesion: 0.10
-Nodes (25): router, routes, AuthState, useAuthStore, useFieldList(), fieldSessionApi, FieldSessionResponse, MARKET_QUERY_KEY (+17 more)
+Cohesion: 0.09
+Nodes (26): AuthState, useAuthStore, FieldRemoteFrame(), useFieldList(), fieldSessionApi, FieldSessionResponse, MARKET_QUERY_KEY, useMarket() (+18 more)
 
 ### Community 161 - "core/package.json"
-Cohesion: 0.05
-Nodes (40): dependencies, bullmq, @gd-monorepo/result, jsmodbus, nodemailer, p-limit, pg, redis (+32 more)
+Cohesion: 0.11
+Nodes (18): bullmq, @gd-monorepo/result, @gd-monorepo/shared-types, nodemailer, redis, @types/nodemailer, @types/ws, typescript (+10 more)
 
 ### Community 162 - "shared-types/package.json"
 Cohesion: 0.11
 Nodes (18): dependencies, @gd-monorepo/plugin-sdk, zod, devDependencies, vitest, exports, @gd-monorepo/plugin-sdk, vitest (+10 more)
 
 ### Community 163 - "ManeuverCard.tsx"
-Cohesion: 0.30
-Nodes (8): DEFAULT_TR, ManeuverCard(), StepRowData, InputField, ManeuverCardLabels, ManeuverCardProps, ManeuverCardState, ManeuverTransform
+Cohesion: 0.21
+Nodes (12): CommandConfig, CommandParam, CommandStep, ManeuverConfig, DEFAULT_TR, ManeuverCard(), StepRowData, InputField (+4 more)
 
 ### Community 164 - "EnergyAnalyzerCard.styles.ts"
-Cohesion: 0.09
-Nodes (25): DEFAULT_TR, EnergyAnalyzerCard(), fmt(), badgeBase, BadgeOnline, Badges, BottomGrid, Card (+17 more)
+Cohesion: 0.07
+Nodes (30): DEFAULT_TR, EnergyAnalyzerCard(), fmt(), Default, HighDemand, meta, Story, badgeBase (+22 more)
 
 ### Community 165 - "FirePanelCard.styles.ts"
 Cohesion: 0.11
@@ -1331,8 +1340,8 @@ Cohesion: 0.11
 Nodes (17): dependencies, exports, @gd-monorepo/shared-types, main, name, peerDependencies, @gd-monorepo/shared-types, @gd-monorepo/tamper-logger (+9 more)
 
 ### Community 176 - "tamper-logger/src/types.ts"
-Cohesion: 0.16
-Nodes (8): spies, FileSinkConfig, dirs, isLogCategory(), isLogLevel(), LOG_CATEGORIES, LOG_LEVELS, LogCategory
+Cohesion: 0.13
+Nodes (9): spies, FakeSink, makeLogger(), isLogCategory(), isLogLevel(), LOG_CATEGORIES, LOG_LEVELS, LogCategory (+1 more)
 
 ### Community 177 - "epias-market-prices/project.json"
 Cohesion: 0.14
@@ -1351,12 +1360,12 @@ Cohesion: 0.11
 Nodes (17): dependencies, nodemailer, devDependencies, @types/nodemailer, exports, nodemailer, @types/nodemailer, main (+9 more)
 
 ### Community 181 - "field/src/features/auth/stores/AuthStore.ts"
-Cohesion: 0.17
-Nodes (20): GuestBootstrap(), AppProviders(), hydrateSessionAuth(), SessionResponse, applySession(), AuthState, persistTokens(), useAuthStore (+12 more)
+Cohesion: 0.28
+Nodes (11): GuestBootstrap(), AppProviders(), hydrateSessionAuth(), SessionResponse, applySession(), persistTokens(), apiBaseUrl(), fieldRootPath() (+3 more)
 
-### Community 182 - "Scheduler.styles.ts"
-Cohesion: 0.12
-Nodes (16): AddBtn, CmdDate, CmdPower, CmdTimer, CmdType, DateTimeInput, DeleteBtn, EmptyText (+8 more)
+### Community 182 - "BossSettingsPanel.tsx"
+Cohesion: 0.23
+Nodes (13): BossSettings, BossSettingsPanel(), BossSettingsPanelProps, persistSettings(), useCreateWgHost(), useWgConnect(), useWgDisconnect(), useWgRemove() (+5 more)
 
 ### Community 183 - "ConnectionState"
 Cohesion: 0.17
@@ -1410,9 +1419,9 @@ Nodes (16): dependencies, @gd-monorepo/shared-types, devDependencies, vitest, ex
 Cohesion: 0.19
 Nodes (11): RealtimeStream, StoreState, TelemetryEntry, UseRealtimeTelemetryOptions, Demo(), historical, MergedStreams, meta (+3 more)
 
-### Community 197 - "Sparkline.tsx"
-Cohesion: 0.36
-Nodes (7): hexWithAlpha(), Sparkline(), mocks, points, SparklinePoint, SparklineProps, uplot
+### Community 197 - "Sparkline.stories.tsx"
+Cohesion: 0.20
+Nodes (11): hexWithAlpha(), Sparkline(), Default, Empty, meta, Story, Warning, mocks (+3 more)
 
 ### Community 198 - "TelemetryInput.stories.tsx"
 Cohesion: 0.15
@@ -1423,8 +1432,8 @@ Cohesion: 0.14
 Nodes (8): RFC-3339, SEVERITY, SyslogSink, SyslogSinkConfig, RFC-5424, RFC-6587, RFC-5424, RFC-6587
 
 ### Community 200 - "IContainerProxy"
-Cohesion: 0.10
-Nodes (4): IContainerProxy, containerWsRoutes(), buildServer(), servers
+Cohesion: 0.07
+Nodes (6): DownsampleOptions, ContainerObserver, IContainerProxy, containerWsRoutes(), buildServer(), servers
 
 ### Community 201 - "Sprite uretim pipeline'i"
 Cohesion: 0.12
@@ -1438,17 +1447,17 @@ Nodes (16): Advantech ADAM-4055 Modbus TCP I/O modülü, data-service BullMQ tü
 Cohesion: 0.16
 Nodes (16): Boşluk Dökümü — kapsam açıkları, frame-codec.test.ts (18 test), ModbusDevice test kapsamı (27 test — TEİAŞ #22 writeAtomic), tamper-logger test bölümü (14 dosya / 104 test), Test Envanteri (dosya bazinda kapsam dokumu), tunnel-proxy.test.ts (34 test), ws-tunnel ayrım kaydı (KUTUPHANE-CIKARMA-PLANI Faz A), Faz T1 — Güvenlik-kritik unit borçları (+8 more)
 
-### Community 204 - "field/src/app/routes.tsx"
-Cohesion: 0.30
-Nodes (7): router, routes, postLoginDestination, siteFieldId(), ChangePasswordPage(), LoginPage(), MfaEnrollPage()
+### Community 204 - "useAuthStore"
+Cohesion: 0.42
+Nodes (6): useAuthStore, postLoginDestination, siteFieldId(), ChangePasswordPage(), LoginPage(), MfaEnrollPage()
 
-### Community 205 - "useTranslation"
-Cohesion: 0.12
-Nodes (30): DeviceDetailModal(), useRacksData(), useRackTelemetry(), SYSTEM_CHART_DEFAULTS, useSystemTelemetry(), ANNOTATIONS_QUERY_KEY, rangeToDates(), useEventAnnotations() (+22 more)
+### Community 205 - "RacksPage.tsx"
+Cohesion: 0.08
+Nodes (40): DeviceDetailModal(), DeviceDetailModalProps, TABLE_TYPE_LABEL, devicesApi, DevicesResponse, DeviceInfo, TelemetryConfigResponse, TelemetryEntry (+32 more)
 
-### Community 206 - "IMessageQueue"
-Cohesion: 0.07
-Nodes (20): IMessageQueue, QueueStatus, WorkerOptions, JOB_RETRY_OPTIONS, JOB_TYPES, PlatformMessageQueue, PlatformMessageQueueConfig, QUEUE_NAMES (+12 more)
+### Community 206 - "DeviceJob"
+Cohesion: 0.08
+Nodes (17): WorkerOptions, JOB_RETRY_OPTIONS, JOB_TYPES, PlatformMessageQueueConfig, QUEUE_NAMES, ALL_TYPES, Handler, QueueEventsMock (+9 more)
 
 ### Community 207 - "DeviceGauges.stories.tsx"
 Cohesion: 0.18
@@ -1458,13 +1467,13 @@ Nodes (12): AutoSize, computeAutoSize(), DeviceGauges(), SIZE_THRESHOLDS, meta, 
 Cohesion: 0.25
 Nodes (8): TelemetryGaugeStyles, GAUGE_THEMES, gaugeArc(), gaugeColor(), TelemetryGauge(), GaugeSizes, GaugeTheme, TelemetryGaugeProps
 
-### Community 209 - "devicesStore.ts"
-Cohesion: 0.20
-Nodes (13): DeviceDetailModalProps, TABLE_TYPE_LABEL, devicesApi, DevicesResponse, DeviceInfo, TelemetryConfigResponse, TelemetryEntry, num() (+5 more)
+### Community 209 - "container-web/src/app/routes.tsx"
+Cohesion: 0.06
+Nodes (31): PrivateRoute(), AppLayout, MainContent, PageContent, LayoutWrapperV2(), MainLayoutV2Props, menuItemsV2, NAV_KEY (+23 more)
 
-### Community 210 - "apiClient"
-Cohesion: 0.11
-Nodes (17): AlarmListResponse, alarmsApi, extractBoolean(), useFireAlarmData(), fireAlarmApi, LatestResponse, FireAlarmCommand, FireAlarmState (+9 more)
+### Community 210 - "HttpClient"
+Cohesion: 0.24
+Nodes (4): FetchLike, HttpClient, HttpClientConfig, HttpError
 
 ### Community 211 - "DeviceTelemetryProvider.tsx"
 Cohesion: 0.30
@@ -1499,16 +1508,16 @@ Cohesion: 0.13
 Nodes (14): Circular75Percent, ErrorTheme, HighValue95Percent, Large, Linear50Percent, LinearWarningTheme, LowValue5Percent, meta (+6 more)
 
 ### Community 219 - "src/client.ts"
-Cohesion: 0.07
-Nodes (25): EpiasClient, EpiasClientConfig, EpiasEnvelope, GipWapRow, ImbalanceAmountRow, InterimMcpRow, MinMaxMatchingRow, PowerOutageRow (+17 more)
+Cohesion: 0.11
+Nodes (19): EpiasClientConfig, EpiasEnvelope, GipWapRow, ImbalanceAmountRow, InterimMcpRow, MinMaxMatchingRow, PowerOutageRow, PtfRow (+11 more)
 
 ### Community 220 - "TelemetryChart.tsx"
-Cohesion: 0.12
-Nodes (23): ANNOTATION_COLORS, formatStat(), formatTooltipTime(), formatTooltipVal(), MultiLineChartV2(), SeriesStats, TooltipState, MultiLineChartLabels (+15 more)
+Cohesion: 0.17
+Nodes (15): TelemetryChartStyles, buildSubtitle(), DEFAULT_TR, formatDate(), formatDateShort(), formatInterval(), formatTimeShort(), LEGEND_TR (+7 more)
 
-### Community 221 - "containersApi.ts"
-Cohesion: 0.08
-Nodes (17): RegisterContainerForm(), valid, CONTAINER_TELEMETRY_QUERY_KEY(), useContainerTelemetry(), containersApi, OpenSessionOutcome, RegisterContainerPayload, TelemetryConfigResponse (+9 more)
+### Community 221 - "SCADA_ICONS"
+Cohesion: 0.06
+Nodes (43): ContainerFrame(), RegisterContainerForm(), valid, CONTAINERS_QUERY_KEY(), statusForContainer(), summarizeContainer(), useContainerData(), CONTAINER_TELEMETRY_QUERY_KEY() (+35 more)
 
 ### Community 222 - "scripts"
 Cohesion: 0.14
@@ -1518,13 +1527,13 @@ Nodes (14): scripts, build, build:linux, build:mac, build:win, dev, format, lint
 Cohesion: 0.14
 Nodes (14): dependencies, axios, @emotion/react, @emotion/styled, @gd-monorepo/shared-types, @gd-monorepo/shared-utils, @gd-monorepo/ui, @gd-monorepo/ws-tunnel (+6 more)
 
-### Community 224 - "useEnergyAnalyzerData.ts"
-Cohesion: 0.33
-Nodes (9): ENERGY_ANALYZER_QUERY_KEY, ALL_NAMES, energyAnalyzerApi, LatestResponse, EnergyAnalyzerPhase, EnergyAnalyzerSummary, buildPhase(), findValue() (+1 more)
+### Community 224 - "LoginForm.styles.ts"
+Cohesion: 0.17
+Nodes (11): DemoUsers, ErrorMessage, FormGroup, GuestBtn, GuestDivider, LoginBtn, LoginCard, LoginContainer (+3 more)
 
-### Community 225 - "main"
-Cohesion: 0.11
-Nodes (9): createModbusConfig(), RACK_COUNT, RACK_IDS, TICK_SECONDS, main(), racksRoutes(), FastifyServer, ServerConfig (+1 more)
+### Community 225 - "core/src/index.ts"
+Cohesion: 0.06
+Nodes (15): createModbusConfig(), main(), racksRoutes(), FastifyServer, ServerConfig, RedisConnection, PlatformMessageQueue, LoginThrottleConfig (+7 more)
 
 ### Community 226 - "devDependencies"
 Cohesion: 0.14
@@ -1539,8 +1548,8 @@ Cohesion: 0.14
 Nodes (13): @types/bun, typescript, vitest, module, name, private, type, workspaces (+5 more)
 
 ### Community 229 - "FilePluginStateStore"
-Cohesion: 0.20
-Nodes (3): FilePluginStateStore, IPluginStateStore, tempDirs
+Cohesion: 0.08
+Nodes (8): ConsolePluginLogger, FilePluginStateStore, IPluginStateStore, JsonFilePluginConfigSource, PluginConfigSource, PluginLogger, tempDirs, MapConfigSource
 
 ### Community 230 - "result/package.json"
 Cohesion: 0.14
@@ -1554,9 +1563,9 @@ Nodes (16): DeviceDetailModal(), DeviceDetailModalProps, DeviceRecord, meta, Ope
 Cohesion: 0.15
 Nodes (12): @fal-ai/client, args, availableThemes, __dirname, generateOne(), normalize(), OUT_DIR, REFS_DIR (+4 more)
 
-### Community 233 - "auth-routes.ts"
-Cohesion: 0.22
-Nodes (12): ChangePasswordRequest, ChangePasswordRequestSchema, CreateUserRequest, CreateUserRequestSchema, LoginRequest, LoginRequestSchema, MfaEnrollConfirmRequestSchema, MfaLoginRequestSchema (+4 more)
+### Community 233 - "usePcsTelemetryProvider.ts"
+Cohesion: 0.23
+Nodes (6): RANGE_MS, usePcsTelemetryProvider(), TelemetryProvider, TelemetryProviderOptions, UseTelemetryProvider, TimeRange
 
 ### Community 234 - "import-wiki.ts"
 Cohesion: 0.22
@@ -1590,13 +1599,13 @@ Nodes (13): Genericness Audit (servis katmani jenerikligi), MaterializedViewMana
 Cohesion: 0.15
 Nodes (13): exports, ./messaging, ./modbus, ./sql, ./timeseries, default, types, default (+5 more)
 
-### Community 242 - "config/types.ts"
-Cohesion: 0.27
-Nodes (8): ConfigChangeEvent, ConfigChangeHandler, ConfigUnit, ConfigValues, applyUnit(), assertPgDuration(), parseBytes(), parseDurationToMs()
+### Community 242 - "SettingsPanel.styles.ts"
+Cohesion: 0.18
+Nodes (10): CloseBtn, ComingSoon, Header, Overlay, Panel, Section, SectionLabel, Title (+2 more)
 
-### Community 243 - "superadmin/src/app/providers.tsx"
-Cohesion: 0.09
-Nodes (15): App(), AppProviders(), ErrorBoundary, readLocale(), TranslationWrapper(), closeMock, openMock, BOSS_EN_DICT (+7 more)
+### Community 243 - "TranslationProvider"
+Cohesion: 0.11
+Nodes (20): readLocale(), TranslationWrapper(), createMock, editingField, TOKEN, updateMock, closeMock, openMock (+12 more)
 
 ### Community 244 - "compilerOptions"
 Cohesion: 0.15
@@ -1614,9 +1623,9 @@ Nodes (13): AGENTS.md Development Rules, Device Transport Strategy (Strategy Pat
 Cohesion: 0.17
 Nodes (12): dependencies, axios, @electron-toolkit/preload, @electron-toolkit/utils, electron-updater, @emotion/react, @emotion/styled, @gd-monorepo/shared-utils (+4 more)
 
-### Community 248 - "TMS.styles.ts"
-Cohesion: 0.09
-Nodes (18): CanvasWrap, Container, DeviceLabel, FlowBadge, Header, HeaderLeft, HeaderRight, IconBtn (+10 more)
+### Community 248 - "DashboardSCADA.styles.ts"
+Cohesion: 0.20
+Nodes (9): CanvasWrap, Container, DeviceLabel, FlowBadge, Header, HeaderLeft, HeaderRight, IconBtn (+1 more)
 
 ### Community 249 - "EditorPage.tsx"
 Cohesion: 0.23
@@ -1630,9 +1639,9 @@ Nodes (7): buildDeviceGaugeBlocks(), canonicalNum(), DeviceGaugeBlock, num(), so
 Cohesion: 0.17
 Nodes (12): SequenceEngine, ManeuverCard, EdgeX Foundry referansi, EPIAS fiyat cekici entegrasyonu, GD-ESS EYS enerji yonetim sistemi, Grafana referansi, Manevra sistemi (18 tanimli manevra), OWASP Top 10 guvenlik onlemleri (+4 more)
 
-### Community 252 - "ControlPanel.tsx"
-Cohesion: 0.32
-Nodes (8): ControlPanel(), ControlPanelProps, executeManeuver(), ScheduledCommand, Scheduler(), OperationMode, useLogProvider(), useLogStore
+### Community 252 - "Tabs.stories.tsx"
+Cohesion: 0.25
+Nodes (8): Default, meta, Story, WithDefaultKey, WithHiddenTab, TabItem, Tabs(), TabsProps
 
 ### Community 253 - "core/tsconfig.json"
 Cohesion: 0.17
@@ -1670,6 +1679,10 @@ Nodes (11): compilerOptions, composite, emitDeclarationOnly, noEmit, outDir, roo
 Cohesion: 0.17
 Nodes (11): BSCLabel, CanvasWrap, Container, DeviceLabel, FlowBadge, Header, HeaderLeft, HeaderRight (+3 more)
 
+### Community 262 - "UserList.tsx"
+Cohesion: 0.20
+Nodes (9): DeleteBtn, ErrorText, LoadingText, ROLE_LABELS, RoleBadge, Table, Td, Th (+1 more)
+
 ### Community 263 - "ws-tunnel/tsconfig.json"
 Cohesion: 0.17
 Nodes (11): compilerOptions, composite, emitDeclarationOnly, noEmit, outDir, rootDir, exclude, extends (+3 more)
@@ -1698,9 +1711,9 @@ Nodes (11): __dirname, exists(), main(), OUT_DIR, REPO_ROOT, run(), SPRITE_BASES
 Cohesion: 0.27
 Nodes (11): ACTIVE_DIR, backup(), copyDir(), copyMetas(), __dirname, ELEMENTS_DIR, exists(), LEGACY_DIR (+3 more)
 
-### Community 270 - "SidebarV2.tsx"
-Cohesion: 0.09
-Nodes (22): MainLayoutV2Props, menuItemsV2, NAV_KEY, ROLE_KEY, EmergencyStopBtn, FooterBtn, LoginButton, LogoIcon (+14 more)
+### Community 270 - "SidebarV2.styles.ts"
+Cohesion: 0.12
+Nodes (16): EmergencyStopBtn, FooterBtn, LoginButton, LogoIcon, NavIcon, NavItem, NavLabel, SidebarContainer (+8 more)
 
 ### Community 271 - "dependencies"
 Cohesion: 0.18
@@ -1766,9 +1779,9 @@ Nodes (10): v2.0 dusuk kodlu SCADA/EMS platformu hedefi, Field UI refactor plani
 Cohesion: 0.22
 Nodes (10): BullMQAdapter (jenerik katman), BullMQQueue facade'i, PlatformMessageQueue, QUEUE_NAMES + JOB_RETRY_OPTIONS, packages/core jenerikligi ilkesi, platform/container-access paketi, platform/logging paketi, platform/messaging paketi (+2 more)
 
-### Community 287 - "ContainersPage.tsx"
-Cohesion: 0.32
-Nodes (7): CONTAINERS_QUERY_KEY(), ContainerSummary, statusForContainer(), summarizeContainer(), useContainerData(), FieldContainer, ContainersPage()
+### Community 287 - "FieldShell.tsx"
+Cohesion: 0.36
+Nodes (7): FieldShell(), NAV_ITEMS, ROLE_KEYS, ALL_NAV_KEYS, emergencyVisible(), NavKey, visibleNavKeys()
 
 ### Community 288 - "field-connector-demo.mjs"
 Cohesion: 0.14
@@ -1786,9 +1799,9 @@ Nodes (10): dependencies, @emotion/react, @emotion/styled, leaflet, pixi.js, @pi
 Cohesion: 0.26
 Nodes (8): ensureSchema(), FieldContainerRow, fieldRoutes(), FieldRow, getUserFieldIds(), buildApp(), makeDb(), userCanAccessField()
 
-### Community 292 - "schemas/index.ts"
-Cohesion: 0.33
-Nodes (6): validateOrThrow(), authConfigSchema, serverConfigSchema, postgresConfigSchema, redisConfigSchema, serviceConfigFileSchema
+### Community 292 - "dependencies"
+Cohesion: 0.20
+Nodes (10): dependencies, bullmq, @gd-monorepo/result, jsmodbus, nodemailer, p-limit, pg, redis (+2 more)
 
 ### Community 293 - "FieldFormModal.styles.ts"
 Cohesion: 0.15
@@ -1831,12 +1844,12 @@ Cohesion: 0.22
 Nodes (9): scripts, build, build-storybook, clean, dev, lint, storybook, test (+1 more)
 
 ### Community 303 - "PowerFlowAnimation.styles.ts"
-Cohesion: 0.05
-Nodes (41): PowerFlowAnimationStyles, PowerFlowAnimation(), Charge, Discharge, Idle, meta, racks, Story (+33 more)
+Cohesion: 0.06
+Nodes (31): ChargeStatusCharge, ChargeStatusDischarge, ChargeStatusIdle, Container, fadeInAnim, FlowStatus, FlowStatusCharge, FlowStatusDischarge (+23 more)
 
-### Community 304 - "useFirePanelData.ts"
-Cohesion: 0.40
-Nodes (6): FIRE_PANEL_QUERY_KEY, ALL_NAMES, firePanelApi, LatestResponse, FirePanelSummary, telemetriesToFirePanelSummary()
+### Community 304 - "TMS.styles.ts"
+Cohesion: 0.20
+Nodes (9): Container, DeviceLabel, Header, HeaderLeft, HeaderRight, Loading, RefreshButton, StatusBadge (+1 more)
 
 ### Community 305 - "sbom-scan.mjs"
 Cohesion: 0.22
@@ -1878,9 +1891,9 @@ Nodes (7): mcp, nx-mcp, command, enabled, type, plugin, $schema
 Cohesion: 0.50
 Nodes (7): args, cycleCheck(), gate(), getArg(), getFlag(), output(), postAction()
 
-### Community 315 - "SummaryCard.styles.ts"
-Cohesion: 0.29
-Nodes (7): Container, Icon, Label, Value, variantColors, SummaryCardProps, SummaryCardVariant
+### Community 315 - "SummaryCard.stories.tsx"
+Cohesion: 0.15
+Nodes (14): Alarm, Fault, Info, meta, Ok, Story, Container, Icon (+6 more)
 
 ### Community 316 - "BSC.styles.ts"
 Cohesion: 0.17
@@ -1910,17 +1923,13 @@ Nodes (7): scripts, build, clean, dev, lint, preview, test
 Cohesion: 0.29
 Nodes (7): scripts, build, clean, dev, lint, preview, test
 
-### Community 323 - "BscPage.styles.ts"
-Cohesion: 0.18
-Nodes (10): ChartRow, Column, LoadingContainer, PageContainer, RackGrid, spin, Spinner, Summary2x2 (+2 more)
+### Community 323 - "UserCreateForm.tsx"
+Cohesion: 0.22
+Nodes (8): AddBtn, ErrorMsg, Form, Input, ROLES, Row, Select, SuccessMsg
 
 ### Community 324 - "scripts"
 Cohesion: 0.29
 Nodes (7): scripts, build, clean, dev, lint, preview, test
-
-### Community 325 - "SmtpNotifier"
-Cohesion: 0.20
-Nodes (3): SmtpNotifier, SmtpNotifierConfig, config
 
 ### Community 326 - "Oturum tüneli (session tunnel)"
 Cohesion: 0.29
@@ -1959,8 +1968,8 @@ Cohesion: 0.33
 Nodes (6): ws-tunnel ayrim kaydi (240 test), IUpstreamRouter (G1.4), IFieldSessionStore/IContainerSessionStore sozlesmeleri (G1.3), TunnelExtension (G1.1 custom mesaj deseni), v1 kutuphane kabul kriterleri, ws-tunnel kutuphane jeneriklestirme yol haritasi
 
 ### Community 336 - "colors/index.ts"
-Cohesion: 0.07
-Nodes (40): Group, groups, meta, swatch, COLOR, ColorToken, hexToNumber(), tokens (+32 more)
+Cohesion: 0.10
+Nodes (24): Group, groups, meta, swatch, COLOR, ColorToken, hexToNumber(), tokens (+16 more)
 
 ### Community 339 - "Graphify Knowledge Graph Pipeline"
 Cohesion: 0.50
@@ -1978,21 +1987,13 @@ Nodes (5): container-web uygulaması (13 sayfa), ADAM-4055 Modbus TCP I/O modül
 Cohesion: 0.50
 Nodes (5): TamperLogger, @gd-monorepo/tamper-logger paketi, AlertDispatcher, log-service (mini-SIEM), RuleEngine
 
-### Community 343 - "SettingsPage.styles.ts"
-Cohesion: 0.29
-Nodes (6): ComingSoon, Page, Section, SectionLabel, ToggleBtn, ToggleGroup
-
-### Community 344 - "ManeuverConfig"
-Cohesion: 0.62
-Nodes (4): CommandConfig, CommandParam, CommandStep, ManeuverConfig
-
 ### Community 346 - "devDependencies"
 Cohesion: 0.40
 Nodes (5): devDependencies, @types/bun, @types/ws, typescript, vitest
 
-### Community 347 - "icons/index.ts"
+### Community 347 - "RackCell.stories.tsx"
 Cohesion: 0.06
-Nodes (30): Alarm, Fault, Info, meta, Ok, Story, RackInfoPopover(), RackInfoPopoverProps (+22 more)
+Nodes (43): RackCellDrawers, drawRackSymbol(), drawRackSymbolBase(), drawRackSymbolGlow(), PLATE_PAIRS, RackCellRect, rackLabelRows(), rackPlateRects() (+35 more)
 
 ### Community 348 - "Link Workspace Packages Skill (.agents)"
 Cohesion: 0.67
@@ -2004,7 +2005,7 @@ Nodes (5): graphify MCP server (graphify.serve stdio), graphify query CLI, Nx Af
 
 ### Community 350 - "ui/src/index.ts"
 Cohesion: 0.03
-Nodes (67): LogoutBtn, LogoutText, ManeuverCardWrapper, ManeuverGrid, HeaderProps, AppHeader, PageTitle, AppLayout (+59 more)
+Nodes (51): AlarmListResponse, alarmsApi, LogoutBtn, LogoutText, ALARMS_QUERY_KEY, SEVERITY_TO_TYPE, toLogEntry(), useAlarmProvider() (+43 more)
 
 ### Community 351 - "eslint.config.mjs"
 Cohesion: 0.50
@@ -2015,12 +2016,12 @@ Cohesion: 0.50
 Nodes (4): linux, artifactName, icon, target
 
 ### Community 353 - "TamperLogger"
-Cohesion: 0.11
-Nodes (8): TamperLogger, FakeSink, makeLogger(), LogEvent, MemorySink, makeHealthRoute(), buildApp(), FailSink
+Cohesion: 0.12
+Nodes (4): RecordingSink, TamperLogger, LogEvent, MemorySink
 
-### Community 354 - "Sparkline.stories.tsx"
-Cohesion: 0.29
-Nodes (5): Default, Empty, meta, Story, Warning
+### Community 354 - "health-route.test.ts"
+Cohesion: 0.32
+Nodes (3): makeHealthRoute(), buildApp(), FailSink
 
 ### Community 355 - "ManeuverConfig"
 Cohesion: 0.50
@@ -2102,45 +2103,53 @@ Nodes (3): AWS hesap acilisinda kredi karti zorunlulugu karari, IAM rol devri al
 Cohesion: 1.00
 Nodes (3): mapFieldRole birebir tunel eslemesi, Otomatik guest girisi, Rol seti (admin/teknik/boss/guest/developer)
 
+### Community 402 - "devDependencies"
+Cohesion: 0.33
+Nodes (6): devDependencies, @types/nodemailer, @types/pg, @types/ws, typescript, vitest
+
 ### Community 429 - "ws-tunnel Ürün Tescili ve Uygulama-Bazlı Kırılganlık Arındırma Planı"
-Cohesion: 0.25
-Nodes (8): 1. Amaç, 2. Tescil Argümanı, 3. Uygulama-Bazlı Kırılganlık Envanteri, 4. Arındırma Stratejisi (sürümlü, geriye uyumlu), 5. Ürünleştirme Kontrol Listesi (Faz A/B'den kalan + yeni), 6. Doğrulama, 7. Açık Kararlar, ws-tunnel Ürün Tescili ve Uygulama-Bazlı Kırılganlık Arındırma Planı
+Cohesion: 0.22
+Nodes (9): 1. Amaç, 2. Tescil Argümanı, 3. Uygulama-Bazlı Kırılganlık Envanteri, 4. Arındırma Stratejisi (sürümlü, geriye uyumlu), 5. Ürünleştirme Kontrol Listesi (Faz A/B'den kalan + yeni), 6. Doğrulama, 7. Açık Kararlar, 8. SPA Paketleme Sözleşmesi (tünelde servis edilen uygulamalar) (+1 more)
 
 ### Community 569 - "verify-log.mjs"
 Cohesion: 0.31
 Nodes (6): loadSigningKey(), dirs, fileArg, main(), resolveKey(), usage()
 
 ### Community 571 - "container-web/src/lib/api-client.ts"
-Cohesion: 0.05
-Nodes (54): App(), AppProviders(), PrivateRoute(), LoginForm(), DemoUsers, ErrorMessage, FormGroup, GuestBtn (+46 more)
+Cohesion: 0.08
+Nodes (38): LoginForm(), LogoutButton(), LogoutButtonProps, useAuth(), hydrateSessionAuth(), SessionResponse, mockedTunnel, user (+30 more)
 
-### Community 573 - "LogTerminal.tsx"
-Cohesion: 0.21
-Nodes (10): LogTerminalStyles, formatTime(), getEntryComponent(), LogTerminal(), sourceIconMap, typeIconMap, LogTerminalProps, TagFilterConfig (+2 more)
+### Community 573 - "LogEntry"
+Cohesion: 0.17
+Nodes (11): LogEntry, LogTerminalStyles, formatTime(), getEntryComponent(), LogTerminal(), sourceIconMap, typeIconMap, LogTerminalProps (+3 more)
 
-### Community 574 - "ALL_CONFIG_DEFINITIONS"
-Cohesion: 0.33
-Nodes (5): ALL_CONFIG_DEFINITIONS, logFilePath, logLevel, logSigningKeyPath, serviceTier
+### Community 574 - "scripts"
+Cohesion: 0.40
+Nodes (5): scripts, build, clean, test, typecheck
 
 ### Community 575 - "BossSettingsPanel.styles.ts"
-Cohesion: 0.05
-Nodes (44): BossSettings, BossSettingsPanel(), BossSettingsPanelProps, persistSettings(), ActionButton, CloseBtn, ComingSoon, GhostButton (+36 more)
+Cohesion: 0.10
+Nodes (19): ActionButton, CloseBtn, ComingSoon, GhostButton, Header, HostEndpoint, HostInfo, HostName (+11 more)
 
 ### Community 577 - "DataRow.styles.ts"
 Cohesion: 0.40
 Nodes (4): DataIcon, DataLabel, DataRowContainer, DataValue
 
+### Community 578 - "Tabs.styles.ts"
+Cohesion: 0.40
+Nodes (4): TabBar, TabButton, TabContent, TabsContainer
+
 ### Community 581 - "FieldsPage.styles.ts"
 Cohesion: 0.20
 Nodes (9): AddTile, AddTileIcon, CardsGrid, Chip, ChipDot, ChipsRow, Panel, PanelNote (+1 more)
 
-### Community 583 - "LogEntry"
-Cohesion: 0.12
-Nodes (9): LogListParams, LogListResponse, logsApi, debouncedStorage, StoreState, MOCK_SYSTEM_LOGS, MOCK_USER_LOGS, NOW (+1 more)
+### Community 583 - "mockLogs.ts"
+Cohesion: 0.33
+Nodes (3): MOCK_SYSTEM_LOGS, MOCK_USER_LOGS, NOW
 
 ### Community 589 - "integration-service.test.ts"
 Cohesion: 0.08
-Nodes (15): JsonFilePluginConfigSource, PluginConfigSource, PluginContextFactory, FetchWindow, MarketDataPoint, main(), ExternalSeriesWriter, SeriesRow (+7 more)
+Nodes (12): PluginContextFactory, FetchWindow, MarketDataPoint, ExternalSeriesWriter, SeriesRow, FakeSql, IntegrationService, FakeWriter (+4 more)
 
 ### Community 590 - "peerDependencies"
 Cohesion: 0.67
@@ -2149,10 +2158,6 @@ Nodes (3): peerDependencies, react, react-dom
 ### Community 594 - "measure-rackmeta.mjs"
 Cohesion: 0.33
 Nodes (5): AI_PNG, __dirname, META_TS, platesMeasured, REPO_ROOT
-
-### Community 595 - "SectionHeader.tsx"
-Cohesion: 0.40
-Nodes (3): SectionHeaderProps, SectionHeaderContainer, SectionTitle
 
 ### Community 596 - "DeviceGauges.styles.ts"
 Cohesion: 0.40
@@ -2171,40 +2176,40 @@ Cohesion: 0.50
 Nodes (3): CardBadges, CardHeaderContainer, CardName
 
 ### Community 600 - "TelemetryData"
-Cohesion: 0.06
-Nodes (18): LatestResponse, LatestResponse, LatestResponse, DownsampledResponse, DeviceDetailModalProps, CANBusDevice, MQTTDevice, DownsampleOptions (+10 more)
+Cohesion: 0.07
+Nodes (17): LatestResponse, LatestResponse, LatestResponse, DownsampledResponse, ContainerSummary, CANBusDevice, MQTTDevice, IDevice (+9 more)
 
 ### Community 601 - "main.ts"
 Cohesion: 0.50
 Nodes (3): config, dirname, @storybook/react-vite
 
-### Community 602 - "MetricDisplay.styles.ts"
-Cohesion: 0.50
-Nodes (3): MetricDisplayContainer, MetricLabel, MetricValue
+### Community 602 - "MetricDisplay.tsx"
+Cohesion: 0.17
+Nodes (9): MetricBar(), MetricBarProps, MetricBarContainer, MetricBarFill, MetricDisplay(), MetricDisplayProps, MetricDisplayContainer, MetricLabel (+1 more)
 
 ## Ambiguous Edges - Review These
 - `DC Output device unit (SCADA graphic element)` → `DC Output archived sprite (isometric style, inactive)`  [AMBIGUOUS]
   packages/ui/assets/sprites/archive/dcoutput.png · relation: references
 
 ## Knowledge Gaps
-- **3775 isolated node(s):** `args`, `waitMode`, `prevCipeUrl`, `expectedSha`, `prevStatus` (+3770 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 4576 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **184 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3776 isolated node(s):** `args`, `waitMode`, `prevCipeUrl`, `expectedSha`, `prevStatus` (+3771 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 4577 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **189 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `DC Output device unit (SCADA graphic element)` and `DC Output archived sprite (isometric style, inactive)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `COLORS` connect `ui/src/index.ts` to `FieldShell.styles.ts`, `RealtimeContext.tsx`, `BSC.tsx`, `MockTransport`, `factories.ts`, `SettingsPanel.tsx`, `deriveDashboard.ts`, `components/index.ts`, `FieldsPage.tsx`, `textures.ts`, `BSCCard.styles.ts`, `ContainerCard.styles.ts`, `RackCard.styles.ts`, `TMS.tsx`, `PlayCanvasViewer.tsx`, `HvacCard.styles.ts`, `container-web/src/lib/api-client.ts`, `BossSettingsPanel.styles.ts`, `DataRow.styles.ts`, `ManeuverCard.styles.ts`, `ControlPanel.styles.ts`, `FieldsPage.styles.ts`, `CBCard.styles.ts`, `TelemetryChart.styles.ts`, `rackHelpers.ts`, `TranslationProvider`, `SectionHeader.tsx`, `DeviceGauges.styles.ts`, `DCOutputCard.styles.ts`, `RackDetailModal.styles.ts`, `CardHeader.styles.ts`, `LogTerminal.styles.ts`, `MetricDisplay.styles.ts`, `EnergyAnalyzerPage.styles.ts`, `TelemetryInput.styles.ts`, `FieldCard.styles.ts`, `BossShell.styles.ts`, `EN_DICT`, `DeviceTable.styles.ts`, `TranslationProvider.tsx`, `Sidebar.styles.ts`, `EditorCanvas.tsx`, `NotificationsPage.tsx`, `PcsSection.tsx`, `container-web/src/features/devices/components/DeviceDetailModal.styles.ts`, `field/src/features/devices/components/DeviceDetailModal.styles.ts`, `TelemetryGauge.styles.ts`, `BossShell.tsx`, `EnergyAnalyzerCard.styles.ts`, `FirePanelCard.styles.ts`, `field/src/features/auth/stores/AuthStore.ts`, `Scheduler.styles.ts`, `ConnectionState`, `WebSocketTransport`, `PropertyPanel.tsx`, `useTelemetry.stories.tsx`, `TelemetryInput.stories.tsx`, `field/src/app/routes.tsx`, `TelemetryGauge.tsx`, `devicesStore.ts`, `PcsCard.styles.ts`, `FirePanelPage.styles.ts`, `MultiLineChartV2.styles.ts`, `TelemetryChart.tsx`, `containersApi.ts`, `DeviceDetailModal/DeviceDetailModal.styles.ts`, `EditorToolbar.tsx`, `superadmin/src/app/providers.tsx`, `TMS.styles.ts`, `EditorPage.tsx`, `DevicePalette.tsx`, `SidebarV2.tsx`, `ContainersPage.tsx`, `FieldFormModal.styles.ts`, `SummaryCard.styles.ts`, `BSC.styles.ts`, `BscPage.styles.ts`, `colors/index.ts`, `SettingsPage.styles.ts`, `icons/index.ts`, `Sparkline.stories.tsx`, `DashboardPage.styles.ts`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
-- **Why does `TelemetryData` connect `TelemetryData` to `result/src/index.ts`, `DeviceService`, `PcsSection.tsx`, `ContainerProxy`, `useDevicesStore`, `MockTransport`, `factories.ts`, `TimescaleDBAdapter`, `mockDataGenerator.ts`, `deriveDashboard.ts`, `core/src/index.ts`, `device-service.ts`, `IModbusTransport`, `ITimeseriesDatabase`, `field/src/lib/api-client.ts`, `ModbusDevice`, `ContainersPage.tsx`, `field-routes.ts`, `alarm-transition-detector.ts`, `useFirePanelData.ts`, `ConnectionState`, `WebSocketTransport`, `useTelemetry.stories.tsx`, `IContainerProxy`, `messages.ts`, `TelemetryObserver`, `useTranslation`, `rackHelpers.ts`, `devicesStore.ts`, `apiClient`, `containersApi.ts`, `ui/src/index.ts`, `useEnergyAnalyzerData.ts`, `main`, `telemetry-query-responder.ts`, `containerGaugeBlocks.ts`?**
+- **Why does `COLORS` connect `COLORS` to `FieldShell.styles.ts`, `container-web/src/app/providers.tsx`, `BSC.tsx`, `control/maneuvers.ts`, `MockTransport`, `factories.ts`, `components/index.ts`, `FieldsPage.tsx`, `textures.ts`, `icons/index.ts`, `BSCCard.styles.ts`, `ContainerCard.styles.ts`, `RackCard.styles.ts`, `TMS.tsx`, `PlayCanvasViewer.tsx`, `HvacCard.styles.ts`, `BossSettingsPanel.styles.ts`, `DataRow.styles.ts`, `ManeuverCard.styles.ts`, `ControlPanel.styles.ts`, `Tabs.styles.ts`, `FieldsPage.styles.ts`, `CBCard.styles.ts`, `TelemetryChart.styles.ts`, `rackHelpers.ts`, `field/src/app/providers.tsx`, `DeviceGauges.styles.ts`, `DCOutputCard.styles.ts`, `RackDetailModal.styles.ts`, `CardHeader.styles.ts`, `LogTerminal.styles.ts`, `MetricDisplay.tsx`, `EnergyAnalyzerPage.styles.ts`, `TelemetryInput.styles.ts`, `FieldCard.styles.ts`, `SingleTelemetryChart.tsx`, `BossShell.styles.ts`, `FieldMap.tsx`, `DeviceTable.styles.ts`, `TranslationProvider.tsx`, `Sidebar.styles.ts`, `EditorCanvas.tsx`, `NotificationsPage.tsx`, `container-web/src/features/devices/components/DeviceDetailModal.styles.ts`, `field/src/features/devices/components/DeviceDetailModal.styles.ts`, `TelemetryGauge.styles.ts`, `BossShell.tsx`, `EnergyAnalyzerCard.styles.ts`, `FirePanelCard.styles.ts`, `BossSettingsPanel.tsx`, `ConnectionState`, `WebSocketTransport`, `PropertyPanel.tsx`, `useTelemetry.stories.tsx`, `Sparkline.stories.tsx`, `TelemetryInput.stories.tsx`, `useAuthStore`, `RacksPage.tsx`, `TelemetryGauge.tsx`, `container-web/src/app/routes.tsx`, `PcsCard.styles.ts`, `FirePanelPage.styles.ts`, `MultiLineChartV2.styles.ts`, `SCADA_ICONS`, `LoginForm.styles.ts`, `DeviceDetailModal/DeviceDetailModal.styles.ts`, `EditorToolbar.tsx`, `SettingsPanel.styles.ts`, `TranslationProvider`, `DashboardSCADA.styles.ts`, `EditorPage.tsx`, `UserList.tsx`, `DevicePalette.tsx`, `SidebarV2.styles.ts`, `FieldShell.tsx`, `FieldFormModal.styles.ts`, `TMS.styles.ts`, `SummaryCard.stories.tsx`, `BSC.styles.ts`, `UserCreateForm.tsx`, `colors/index.ts`, `RackCell.stories.tsx`, `ui/src/index.ts`, `DashboardPage.styles.ts`?**
+  _High betweenness centrality (0.070) - this node is a cross-community bridge._
+- **Why does `TelemetryData` connect `TelemetryData` to `RequestContext`, `device-service.ts`, `COLORS`, `ContainerProxy`, `BscPage.tsx`, `MockTransport`, `factories.ts`, `ITimeseriesDatabase`, `mockDataGenerator.ts`, `ISqlDatabase`, `IModbusTransport`, `field/src/lib/api-client.ts`, `ModbusDevice`, `field-routes.ts`, `alarm-transition-detector.ts`, `IMessageQueue`, `ConnectionState`, `WebSocketTransport`, `container-web/src/lib/api-client.ts`, `useTelemetry.stories.tsx`, `IContainerProxy`, `TelemetryObserver`, `RacksPage.tsx`, `rackHelpers.ts`, `features/hvac/index.ts`, `TimescaleDBAdapter`, `SCADA_ICONS`, `core/src/index.ts`, `usePcsTelemetryProvider.ts`, `telemetry-query-responder.ts`, `containerGaugeBlocks.ts`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._
 - **Why does `@xyflow/react` connect `EditorCanvas.tsx` to `editor/package.json`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `args`, `waitMode`, `prevCipeUrl` to the rest of the system?**
-  _3775 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `result/src/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.0684931506849315 - nodes in this community are weakly interconnected._
+  _3776 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `RequestContext` be split into smaller, more focused modules?**
+  _Cohesion score 0.09306122448979592 - nodes in this community are weakly interconnected._
 - **Should `FieldShell.styles.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._

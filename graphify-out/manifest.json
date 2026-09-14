@@ -8748,9 +8748,9 @@
     "semantic_hash": ""
   },
   "apps/superadmin/src/pages/MarketPage.tsx": {
-    "mtime": 1788956583.2457874,
-    "seen": 1788956706.1954017,
-    "ast_hash": "922f076d9b3feaa66ee8eced0ac903be",
+    "mtime": 1789399912.237157,
+    "seen": 1789399980.1411188,
+    "ast_hash": "051a9836e4b2ceb0ec08cb9a355e93f0",
     "semantic_hash": ""
   },
   "apps/superadmin/src/pages/NotificationsPage.tsx": {
@@ -9189,6 +9189,12 @@
     "mtime": 1789397401.3979938,
     "seen": 1789397486.531761,
     "ast_hash": "aa9cc3fae39aaa458c65c6b8f0347b07",
+    "semantic_hash": ""
+  },
+  "apps/superadmin/src/pages/MarketPage.test.tsx": {
+    "mtime": 1789399937.2004192,
+    "seen": 1789399980.1411161,
+    "ast_hash": "ede8eeba0305a5464f162731940d709e",
     "semantic_hash": ""
   }
 }

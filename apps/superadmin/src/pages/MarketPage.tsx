@@ -15,12 +15,12 @@ const toChartPoints = (
   key: string,
 ): ChartDataPoint[] =>
   points.map((p) => ({
-    timestamp: new Date(p.timestamp).toLocaleString("tr-TR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    // ChartDataPoint.timestamp sözleşmesi: `new Date()` ile parse edilebilir
+    // değer (MultiLineChartV2 sıralama/uPlot bunu çağırır). Backend ISO-8601
+    // UTC döner — GÖRÜNTÜLEME formatına ÇEVİRMEYİZ; biçimlendirme chart'ın
+    // içindedir (formatTooltipTime). Eski toLocaleString ön-biçimlendirmesi
+    // Invalid Date üretip Piyasa sayfasını çökertiyordu (2026-09-14).
+    timestamp: p.timestamp,
     [key]: p.value,
   }));
 
