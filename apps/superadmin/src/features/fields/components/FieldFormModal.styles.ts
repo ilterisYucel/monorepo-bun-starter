@@ -82,6 +82,18 @@ export const Row = styled.div`
   gap: 10px;
 `;
 
+export const Hint = styled.span`
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: ${COLORS.textMuted};
+`;
+
+export const ErrorText = styled.span`
+  font-size: 12px;
+  color: ${COLORS.error};
+`;
+
 export const Actions = styled.div`
   display: flex;
   gap: 10px;

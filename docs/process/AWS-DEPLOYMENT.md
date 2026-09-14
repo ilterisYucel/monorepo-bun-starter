@@ -81,9 +81,13 @@ curl -s http://localhost:5003/health
 
 ### 4.2 Token kayıtları (sıra serbest — outbound + backoff)
 
-1. **Field uplink token'ı boss'a kaydet:** boss UI / API üzerinden saha kaydı —
-   `POST /api/admin/fields` body'sine `uplinkToken` olarak Makine A'daki
-   `FIELD_UPLINK_TOKEN` düz metni verilir (boss yalnızca SHA-256 hash saklar).
+1. **Field uplink token'ı boss'a kaydet — UI ile:** boss UI (`http://<B_IP>:80`)
+   → admin girişi → Sahalar → **"Saha Ekle"** formu:
+   - **Saha Kimliği (UUID):** Makine A'daki `FIELD_ID` (boş bırakılırsa boss
+     kendi UUID üretir ve uplink register'ı EŞLEŞMEZ — doldurulmalı).
+   - **Uplink Token:** Makine A'daki `FIELD_UPLINK_TOKEN` düz metni (>=32;
+     boss yalnızca SHA-256 hash saklar).
+   - Alternatif: `POST /api/admin/fields` body `{ id, name, uplinkToken }`.
 2. **Konteyner token'ını field'a kaydet — UI ile:** field UI
    (`http://<A_IP>:88`) → admin girişi → **Konteynerler** sayfası →
    **"Konteyner Kaydet"** → Konteyner Kimliği (`container-1`) + Service Token

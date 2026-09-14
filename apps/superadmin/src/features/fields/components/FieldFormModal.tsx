@@ -20,9 +20,18 @@ const CloseIcon = SCADA_ICONS.close;
 /** Bilinen saha tipleri — harita glifi bu anahtara bakar; yeni tip eklemek kodsuz. */
 const FIELD_TYPES = ["wind", "solar", "hydro", "battery", "general"] as const;
 
+/** Backend site-field.ts ile aynı UUID kontratı (küçük harf üretilir — normalize edilir). */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * FieldFormModal — saha ekle/düzenle formu (Sahalar sayfası haritası üzerinden).
  * AssetsPage'in eski formunun modal taşıması; `?edit=<id>` ile açılır.
+ *
+ * 2026-09-14: uplink kayıt alanları eklendi (konteyner kayıt formu deseni):
+ * - "Saha Kimliği (UUID)": field tier'daki FIELD_ID — uplink register'ındaki
+ *   peerId ile birebir eşleşme için. Opsiyonel; boşsa boss kendi UUID üretir.
+ * - "Uplink Token": FIELD_UPLINK_TOKEN (>=32) — boss yalnızca SHA-256 hash
+ *   saklar. Opsiyonel; edit modunda rotasyon için düzenlenebilir.
  */
 export const FieldFormModal: React.FC<FieldFormModalProps> = ({
   open,
@@ -34,31 +43,57 @@ export const FieldFormModal: React.FC<FieldFormModalProps> = ({
   const updateField = useUpdateField();
 
   const [name, setName] = React.useState("");
+  const [fieldId, setFieldId] = React.useState("");
+  const [uplinkToken, setUplinkToken] = React.useState("");
   const [apiUrl, setApiUrl] = React.useState("");
   const [fieldType, setFieldType] = React.useState("general");
   const [lat, setLat] = React.useState("0");
   const [lng, setLng] = React.useState("0");
+  const [error, setError] = React.useState<string | undefined>();
+  const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
     if (editing) {
       setName(editing.name);
+      setFieldId(editing.id);
+      setUplinkToken("");
       setApiUrl(editing.api_url ?? "");
       setFieldType(editing.field_type ?? "general");
       setLat(String(editing.location?.lat ?? 0));
       setLng(String(editing.location?.lng ?? 0));
     } else {
       setName("");
+      setFieldId("");
+      setUplinkToken("");
       setApiUrl("");
       setFieldType("general");
       setLat("0");
       setLng("0");
     }
+    setError(undefined);
+    setSubmitting(false);
   }, [open, editing]);
 
   if (!open) return null;
 
   const submit = async () => {
+    setError(undefined);
+
+    const trimmedId = fieldId.trim().toLowerCase();
+    const trimmedToken = uplinkToken.trim();
+
+    // Saha Kimliği yalnızca YENİ kayıtta girilebilir (edit'te disabled — PUT
+    // path anahtarıdır); doluysa geçerli UUID olmalı.
+    if (!editing && trimmedId.length > 0 && !UUID_PATTERN.test(trimmedId)) {
+      setError(t("boss.invalidFieldId"));
+      return;
+    }
+    if (trimmedToken.length > 0 && trimmedToken.length < 32) {
+      setError(t("boss.invalidUplinkToken"));
+      return;
+    }
+
     const location =
       lat.trim() === "" && lng.trim() === ""
         ? undefined
@@ -68,13 +103,23 @@ export const FieldFormModal: React.FC<FieldFormModalProps> = ({
       location,
       apiUrl: apiUrl.trim() === "" ? undefined : apiUrl.trim(),
       fieldType,
+      ...(!editing && trimmedId.length > 0 ? { id: trimmedId } : {}),
+      ...(trimmedToken.length > 0 ? { uplinkToken: trimmedToken } : {}),
     };
-    if (editing) {
-      await updateField.mutateAsync({ id: editing.id, input });
-    } else {
-      await createField.mutateAsync(input);
+
+    setSubmitting(true);
+    try {
+      if (editing) {
+        await updateField.mutateAsync({ id: editing.id, input });
+      } else {
+        await createField.mutateAsync(input);
+      }
+      onClose();
+    } catch {
+      setError(t("boss.saveError"));
+    } finally {
+      setSubmitting(false);
     }
-    onClose();
   };
 
   return (
@@ -92,6 +137,26 @@ export const FieldFormModal: React.FC<FieldFormModalProps> = ({
           onChange={(e) => setName(e.target.value)}
           aria-label={t("boss.fieldName")}
         />
+        <div>
+          <S.Input
+            placeholder={t("boss.fieldId")}
+            value={fieldId}
+            onChange={(e) => setFieldId(e.target.value)}
+            aria-label={t("boss.fieldId")}
+            disabled={editing !== undefined}
+          />
+          <S.Hint>{t("boss.fieldIdHint")}</S.Hint>
+        </div>
+        <div>
+          <S.Input
+            placeholder={t("boss.uplinkToken")}
+            type="password"
+            value={uplinkToken}
+            onChange={(e) => setUplinkToken(e.target.value)}
+            aria-label={t("boss.uplinkToken")}
+          />
+          <S.Hint>{t("boss.uplinkTokenHint")}</S.Hint>
+        </div>
         <S.Input
           placeholder={t("boss.apiUrl")}
           value={apiUrl}
@@ -123,11 +188,12 @@ export const FieldFormModal: React.FC<FieldFormModalProps> = ({
             aria-label={t("boss.longitude")}
           />
         </S.Row>
+        {error && <S.ErrorText>{error}</S.ErrorText>}
         <S.Actions>
           <S.CancelButton onClick={onClose}>{t("boss.cancel")}</S.CancelButton>
           <S.SaveButton
-            $disabled={name.trim().length === 0}
-            disabled={name.trim().length === 0}
+            $disabled={name.trim().length === 0 || submitting}
+            disabled={name.trim().length === 0 || submitting}
             onClick={() => void submit()}
           >
             {t("boss.save")}

@@ -26,8 +26,15 @@ export interface AdminField {
 /** Saha oluşturma/güncelleme girdisi — backend POST/PUT kontratı. */
 export interface AdminFieldInput {
   name: string;
+  /** Opsiyonel: sahanın KENDİ fieldId'si (field tier FIELD_ID — UUID).
+   * Verilirse boss kaydı o kimliği kullanır; uplink register'ındaki peerId
+   * ile birebir eşleşir. Boşsa boss kendi UUID üretir (uplink eşleşmez). */
+  id?: string;
   location?: { lat: number; lng: number };
   apiUrl?: string;
   fieldType?: string;
+  /** Opsiyonel: field uplink service token'ı (>=32 karakter) — boss yalnızca
+   * SHA-256 hash'ini saklar (düz metin DB'ye yazılmaz). */
+  uplinkToken?: string;
   metadata?: Record<string, unknown>;
 }
