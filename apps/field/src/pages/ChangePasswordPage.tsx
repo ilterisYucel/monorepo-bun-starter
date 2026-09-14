@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
 import { fieldRootPath } from "../lib/api-base";
+import { siteFieldId } from "../lib/site-field";
 import { COLORS, useTranslation } from "@gd-monorepo/ui";
 
 /**
@@ -33,11 +34,20 @@ export const ChangePasswordPage: React.FC = () => {
     try {
       await changePassword(oldPassword, newPassword);
       if (user?.role === "boss") {
-        window.location.href = "/map";
+        // LoginPage sözleşmesiyle aynı (postLoginDestination: boss → /map) —
+        // SPA navigasyonu; eski window.location.href tam sayfa reload'uydu.
+        navigate("/map", { replace: true });
         return;
       }
-      const firstFieldId = user?.fieldIds?.[0] ?? "default-field";
-      navigate(`${fieldRootPath(firstFieldId)}`, { replace: true });
+      // Tek saha kimliği — build'de gömülü VITE_FIELD_ID (site-field.ts
+      // sözleşmesi). user.fieldIds sahte "default-field" fallback'i 2026-09-14'te
+      // kaldırıldı: geçersiz UUID, sonrasındaki TÜM istekleri 500'e düşürüyordu.
+      const fieldId = siteFieldId();
+      if (fieldId.length === 0) {
+        setError(t("auth.changePasswordError"));
+        return;
+      }
+      navigate(fieldRootPath(fieldId), { replace: true });
     } catch {
       setError(t("auth.changePasswordError"));
     }

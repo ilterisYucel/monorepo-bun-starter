@@ -1716,9 +1716,9 @@
     "semantic_hash": "2933dcc6495a31b208556144f50f86c5"
   },
   "apps/field/src/pages/ChangePasswordPage.tsx": {
-    "mtime": 1789387726.1219013,
-    "seen": 1789387783.8306744,
-    "ast_hash": "027f2bd40a1b8aab9507f9090608860f",
+    "mtime": 1788953422.4705987,
+    "seen": 1788954053.4452765,
+    "ast_hash": "c521f9aee905070a5e735790e010960e",
     "semantic_hash": ""
   },
   "apps/field/src/pages/ContainerDetailPage.tsx": {
@@ -1920,9 +1920,9 @@
     "semantic_hash": ""
   },
   "apps/superadmin/src/pages/FieldDetailPage.tsx": {
-    "mtime": 1788963039.8426008,
-    "seen": 1789387783.8307598,
-    "ast_hash": "3526057073e33e78c5d55bf60d1fc43c",
+    "mtime": 1788962728.8225951,
+    "seen": 1788962809.495391,
+    "ast_hash": "911de72212c444640368fe56797e7f9a",
     "semantic_hash": ""
   },
   "apps/superadmin/src/pages/LoginPage.tsx": {
@@ -2082,9 +2082,9 @@
     "semantic_hash": "50ef1b9a14d459d6a12c4c0e16c90838"
   },
   "package.json": {
-    "mtime": 1789380602.4147475,
-    "seen": 1789387783.8308089,
-    "ast_hash": "e56461d91b4550e6d7a4ab21ab949af5",
+    "mtime": 1788866333.8281746,
+    "seen": 1788872378.1070101,
+    "ast_hash": "ae5daaa461e4a1d9c8af747732174787",
     "semantic_hash": ""
   },
   "packages/core/package.json": {
@@ -5448,15 +5448,15 @@
     "semantic_hash": "76796bceb4c2ada3a8ce3d4623adac92"
   },
   "packages/ui/src/icons/nav-icons.tsx": {
-    "mtime": 1788963029.9668574,
-    "seen": 1789387783.8314202,
-    "ast_hash": "dac70b1542db842b1ee42970d5cfffb6",
+    "mtime": 1788944715.4178033,
+    "seen": 1788947375.831631,
+    "ast_hash": "5324260e82c002cae5968171276d9fee",
     "semantic_hash": ""
   },
   "packages/ui/src/icons/types.ts": {
-    "mtime": 1788963020.815095,
-    "seen": 1789387783.8314211,
-    "ast_hash": "3442519e73e06f063f17f38daf640028",
+    "mtime": 1788944694.3023002,
+    "seen": 1788947375.8316314,
+    "ast_hash": "2aad165cef959a92d3639c214c64106e",
     "semantic_hash": ""
   },
   "packages/ui/src/index.ts": {
@@ -7602,9 +7602,9 @@
     "semantic_hash": "c8c9a88cf27f337f6ee1cd5208292842"
   },
   "AGENTS.md": {
-    "mtime": 1789380685.948172,
-    "seen": 1789387783.8317006,
-    "ast_hash": "a63f66306fd5da82ecce9741352257b3",
+    "mtime": 1788865609.0918653,
+    "seen": 1788872378.1085877,
+    "ast_hash": "fd8c5671dd4a77498496033801540179",
     "semantic_hash": ""
   },
   "README.md": {
@@ -7878,10 +7878,10 @@
     "semantic_hash": "b091a5a15840c135c94fce896a1d11e9"
   },
   "docs/decisions/aws-hesap-kart-gerekcesi.md": {
-    "mtime": 1789380654.625135,
-    "seen": 1789387783.8317404,
-    "ast_hash": "7df7fc9debb661c75103526bd2ce7d7c",
-    "semantic_hash": ""
+    "mtime": 1787563037.9518409,
+    "seen": 1788765783.2674947,
+    "ast_hash": "072e1c4cbf6f989292e46e1e65ce3c76",
+    "semantic_hash": "072e1c4cbf6f989292e46e1e65ce3c76"
   },
   "docs/decisions/backend-architecture-analysis.md": {
     "mtime": 1788186057.0607831,
@@ -9117,66 +9117,6 @@
     "mtime": 1788957332.8972826,
     "seen": 1788957557.3386414,
     "ast_hash": "0425ca382656414cc7cc163c06eb0682",
-    "semantic_hash": ""
-  },
-  "apps/field/src/pages/ChangePasswordPage.test.tsx": {
-    "mtime": 1789387728.8538272,
-    "seen": 1789387783.8306713,
-    "ast_hash": "f5e63233559f96afd82a4215844d7649",
-    "semantic_hash": ""
-  },
-  "deployment/docker-compose.aws-boss.yml": {
-    "mtime": 1789380843.739364,
-    "seen": 1789387783.8317113,
-    "ast_hash": "88d3a2caf3600b304808297e6837d5fd",
-    "semantic_hash": ""
-  },
-  "deployment/docker-compose.aws-edge.yml": {
-    "mtime": 1789386781.1793215,
-    "seen": 1789387783.8317122,
-    "ast_hash": "eb49373c9b1351c180f9f1eb0ff096d3",
-    "semantic_hash": ""
-  },
-  "docs/process/AWS-DEPLOYMENT.md": {
-    "mtime": 1789386821.450227,
-    "seen": 1789387783.8317435,
-    "ast_hash": "8f915795367e6e351d9836131f592e06",
-    "semantic_hash": ""
-  },
-  "docs/process/ipc-satin-alma-linkleri.md": {
-    "mtime": 1788966385.8790832,
-    "seen": 1789387783.8317454,
-    "ast_hash": "e09d9137f3d5c3ce3f2a7549f812a69e",
-    "semantic_hash": ""
-  },
-  "docs/process/normal-raspi-satin-alma-linkleri.md": {
-    "mtime": 1788971070.3708124,
-    "seen": 1789387783.831746,
-    "ast_hash": "3a2e09555040f1ed90e392c8900ea3d8",
-    "semantic_hash": ""
-  },
-  "docs/product/artech-ipc921-teklif-talebi.md": {
-    "mtime": 1789108740.74357,
-    "seen": 1789387783.8317475,
-    "ast_hash": "039c9ef7a3bb041ebe0a07b741398d02",
-    "semantic_hash": ""
-  },
-  "docs/archived/Green-Diamond-Artech-IPC921-Teklif-Talebi.pdf": {
-    "mtime": 1789110007.243172,
-    "seen": 1789387783.8317654,
-    "ast_hash": "1573682e7376517ebbb4680aafc1093f",
-    "semantic_hash": ""
-  },
-  "docs/process/ipc-satin-alma-linkleri.pdf": {
-    "mtime": 1788966426.5740154,
-    "seen": 1789387783.831773,
-    "ast_hash": "33f54752b3e5a04b8204b6015d3cd131",
-    "semantic_hash": ""
-  },
-  "docs/process/normal-raspi-satin-alma-linkleri.pdf": {
-    "mtime": 1788971077.5506208,
-    "seen": 1789387783.8317738,
-    "ast_hash": "261e1072a12100811b3338a659d60aa1",
     "semantic_hash": ""
   }
 }
