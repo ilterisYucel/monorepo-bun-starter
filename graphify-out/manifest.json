@@ -8664,9 +8664,9 @@
     "semantic_hash": ""
   },
   "docs/architecture/WS-TUNNEL-URUN-TESCILI.md": {
-    "mtime": 1788865609.1518636,
-    "seen": 1788872378.1086588,
-    "ast_hash": "ca5b20fa35ef61447f76d69f9a7519e4",
+    "mtime": 1789397465.700369,
+    "seen": 1789397486.533032,
+    "ast_hash": "19470bb38bdf03fb0e510ce8d00f2f2f",
     "semantic_hash": ""
   },
   "apps/superadmin/src/features/fields/hooks/useAdminFields.test.tsx": {
@@ -9138,9 +9138,9 @@
     "semantic_hash": ""
   },
   "docs/process/AWS-DEPLOYMENT.md": {
-    "mtime": 1789390095.9820778,
-    "seen": 1789390116.7950258,
-    "ast_hash": "21cb1a8e1109f4697b965e0014aceb43",
+    "mtime": 1789397443.8209221,
+    "seen": 1789397486.5330503,
+    "ast_hash": "c972192c3d88833da67cb6924bc925de",
     "semantic_hash": ""
   },
   "docs/process/ipc-satin-alma-linkleri.md": {
@@ -9183,6 +9183,12 @@
     "mtime": 1789390017.492239,
     "seen": 1789390116.7942235,
     "ast_hash": "1461bbf74ba937e7a5ba2604163aeca5",
+    "semantic_hash": ""
+  },
+  "apps/field/vite-config.test.ts": {
+    "mtime": 1789397401.3979938,
+    "seen": 1789397486.531761,
+    "ast_hash": "aa9cc3fae39aaa458c65c6b8f0347b07",
     "semantic_hash": ""
   }
 }

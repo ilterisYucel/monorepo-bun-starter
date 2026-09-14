@@ -119,7 +119,7 @@ kaldırılırsa `DNSException: ENOTFOUND` alınır).
 - [ ] `docker ps`: 10 servis (A) / 5 servis (B) sağlıklı
 - [ ] Boss UI: `http://<B_IP>:80` → admin girişi (MFA KAPALI — demo; TOTP adımı yok)
 - [ ] Boss'ta saha listesi: field "online" (uplink register-ack)
-- [ ] Boss → field UI tüneli: `/fields/<FIELD_ID>/ui` (field SPA)
+- [ ] Boss → field UI tüneli: `/fields/<FIELD_ID>/ui` (field SPA — asset'ler yüklenir, beyaz ekran/MIME hatası YOK; index.html'de `/fields/<FIELD_ID>/ui/assets/` yolları olmalı)
 - [ ] Field UI → konteyner UI tüneli: `/containers/<CONTAINER_ID>/ui`
 - [ ] Konteyner telemetri: boss/field UI'da canlı seriler + tarihsel grafik
 - [ ] Konteyner alarmı: device_alarm logu → field → boss olay aktarımı (Faz 5)

@@ -83,3 +83,21 @@ Kapsam dışı (kırılganlık değil): `ws`+`zod` bağımlılık sınırı, `de
 | K2 | V2 register şeması | ✅ KARARLANDI: `peerId` + zorunlu `peerType` (`container`\|`field`); `TUNNEL_PROTOCOL_VERSION=2`; **v2-ONLY** — hub'daki v1 `containerId` fallback'i 2026-09-08'de kaldırıldı |
 | K3 | `telemetry` mesaj adı | ✅ KORUNDU (payload `TunnelTelemetryPoint[]` — field uplink snapshot kaynağı aynı çerçeveden push eder); olay aktarımı için additif jenerik `EventMessage` eklendi (Boss Faz 5) — telemetri ile karıştırılmadı |
 | K4 | Alias yönetimi | ✅ TEK SEFERDE geçiş — alias hiç yayımlanmadı; tüm tüketiciler aynı turda v2'ye alındı |
+
+## 8. SPA Paketleme Sözleşmesi (tünelde servis edilen uygulamalar)
+
+ws-tunnel akış tarafı önek'i strip eder (boss: `/fields/<fid>/ui/*` → `/*`; field:
+`/containers/<cid>/ui/*` → `/*`) ve `/`-kök patikaları static upstream'e iletir.
+SPA'ların bu akışta çalışması **paketleme sözleşmesine** bağlıdır:
+
+| Kural | Değer | Gerekçe |
+|---|---|---|
+| Field tipi uygulamalar (build-time kimlikli: `FIELD_ID`) | **Mutlak tünel base'i build'de GÖMÜLÜR**: `VITE_TUNNEL_BASE=/fields/${FIELD_ID}/ui/` (vite `base`) | base `"/"` kalırsa asset'ler tünel origin'ine (boss) isabet eder → nginx `index.html` (text/html) → beyaz ekran + MIME hatası; API çağrıları da yanlış backend'e gider. Doğrudan erişim için nginx `location ~ ^/fields/[^/]+/ui/(.*)$ { try_files /$1 /index.html; }` eklenir |
+| Container tipi uygulamalar (runtime kimlikli: `CONTAINER_ID`) | Relative base `base: "./"` + **yalnızca kök giriş** (derin rotaya doğrudan reload desteklenmez) | `CONTAINER_ID` runtime değeridir — bake edilemez; relative asset'ler kök giriş URL'sinden çözülür |
+| Build guard | Field Dockerfile: `RUN test -n "$VITE_FIELD_ID" || exit 1` | Arg'sız build kırık base (`/fields//ui/`) gömülmesin — fail-fast |
+| Regresyon kilidi | `apps/field/vite-config.test.ts` | `VITE_TUNNEL_BASE` set → base önekli; boş → `"/"` |
+
+Referans uygulama: `apps/field/deployment/Dockerfile` (bake + guard + nginx önek
+konumu) ve `apps/container-web` (relative base). Yeni tünel-servisli SPA
+yazılacaksa bu kontrat takip edilir — 2026-09-14'te canlı boss→field
+beyaz ekran hatası bu sözleşmenin eksikliğinden çıktı.
