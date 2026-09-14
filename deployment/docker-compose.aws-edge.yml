@@ -48,7 +48,12 @@ services:
     volumes:
       - aws-container-timescale-data:/var/lib/postgresql/data
     networks:
-      - edge-network
+      edge-network:
+        aliases:
+          # device-service PG bağlantısı config-docker/service.json'daki
+          # HARDCODED "timescaledb" host'unu kullanır (DeviceConfigLoader env
+          # override desteklemez) — alias olmadan DNS ENOTFOUND alır.
+          - timescaledb
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
       interval: 10s

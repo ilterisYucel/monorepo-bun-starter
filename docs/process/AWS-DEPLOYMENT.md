@@ -79,13 +79,21 @@ docker ps --format '{{.Names}} {{.Status}}' | grep aws-boss
 curl -s http://localhost:5003/health
 ```
 
-### 4.2 Token kayıtları (sıra önemli)
+### 4.2 Token kayıtları (sıra serbest — outbound + backoff)
 
 1. **Field uplink token'ı boss'a kaydet:** boss UI / API üzerinden saha kaydı —
    `POST /api/admin/fields` body'sine `uplinkToken` olarak Makine A'daki
    `FIELD_UPLINK_TOKEN` düz metni verilir (boss yalnızca SHA-256 hash saklar).
-2. **Konteyner token'ını field'a kaydet:** `POST /api/fields/:fieldId/containers/:containerId/register`
-   — body'de Makine A'daki `CONTAINER_TOKEN` (field yalnızca hash saklar).
+2. **Konteyner token'ını field'a kaydet — UI ile:** field UI
+   (`http://<A_IP>:88`) → admin girişi → **Konteynerler** sayfası →
+   **"Konteyner Kaydet"** → Konteyner Kimliği (`container-1`) + Service Token
+   (`CONTAINER_TOKEN` düz metni) → Kaydet. Form `POST /api/fields/:fieldId/containers/:containerId/register`
+   çağırır; field yalnızca SHA-256 hash saklar. (Alternatif: aynı endpoint curl ile.)
+
+Not: Servis başlatma sırası zorunlu DEĞİL — her iki bağlantı da outbound ve
+register reddedilirse otomatik backoff ile yeniden denenir; kayıt yapılınca
+ilk retry bağlanır. Sıra yalnızca "kayıtları register denemelerinden önce
+bitirme" konforu içindir.
 
 ### 4.3 Edge kalkar (Makine A)
 
@@ -94,12 +102,18 @@ bun run start:aws-edge     # build + up
 docker ps --format '{{.Names}} {{.Status}}' | grep aws-
 curl -s http://localhost:5001/health
 curl -s http://localhost:5002/health
+docker logs aws-container-device-service | grep "Cihaz tablosu hazir"
 ```
+
+Bilinen tuzak: device-service PG bağlantısı `config-docker/service.json`'daki
+hardcoded `timescaledb` host'unu kullanır — AWS compose'da `container-timescaledb`
+servisine `timescaledb` network alias'ı verilmiştir (compose içi yorum; alias
+kaldırılırsa `DNSException: ENOTFOUND` alınır).
 
 ## 5. Doğrulama kontrol listesi
 
 - [ ] `docker ps`: 10 servis (A) / 5 servis (B) sağlıklı
-- [ ] Boss UI: `http://<B_IP>:80` → giriş → MFA (MFA_ENABLED=true)
+- [ ] Boss UI: `http://<B_IP>:80` → admin girişi (MFA KAPALI — demo; TOTP adımı yok)
 - [ ] Boss'ta saha listesi: field "online" (uplink register-ack)
 - [ ] Boss → field UI tüneli: `/fields/<FIELD_ID>/ui` (field SPA)
 - [ ] Field UI → konteyner UI tüneli: `/containers/<CONTAINER_ID>/ui`
@@ -112,10 +126,12 @@ Compose'larda DB yedekleme mekanizması yok. Demo için kabul; üretimden önce:
 A'da `container-timescaledb` için günlük `pg_dump`/WAL arşiv + EBS snapshot
 politikası kurulmalı.
 
-## 7. TLS FLAG — üretim geçişi
+## 7. FLAG — üretim geçişi
 
 - `FIELD_WS_URL` / `FIELD_UPLINK_WS_URL` → `wss://` (ALB/nginx + ACM sertifikası).
 - Boss UI (80) → HTTPS terminate (ALB).
+- **MFA:** demo'da `MFA_ENABLED=false` (TOTP kapalı) — üretimde `true`
+  (admin/teknik için zorunlu kayıt).
 - WireGuard yedek yol etkinleştirilecekse `web-service` Dockerfile'ında
   `wg-quick` bulunmalı; compose'da `cap_add: NET_ADMIN` + `/dev/net/tun`
   hazırdır (şu an `WG_CLIENT_PRIVATE_KEY` boş → modül kapalı).
