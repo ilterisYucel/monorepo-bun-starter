@@ -17,3 +17,4 @@ export * from "./field";
 // NOT: Result 2026-09-01'de AYRI YAPRAK PAKETE taşındı: `@gd-monorepo/result`.
 export * from "./log";
 export * from "./schemas";
+export * from "./automation-rule";

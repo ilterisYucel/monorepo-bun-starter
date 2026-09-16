@@ -34,22 +34,31 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 - E2E: Playwright (`e2e/`). Perf: k6 (`deployment/k6/`). Both via root scripts.
 - Mocking rules: external deps (redis, pg, bullmq) via `vi.mock()` + root-level `__mocks__/`; `@gd-monorepo/*` internal packages are never mocked.
 
-### TDD (MANDATORY for new code)
+### Geliştirme İş Akışı — 6 aşama (MANDATORY for new code)
 
-**Yeni modüller** (Faz 0-6 dahil her yeni sınıf/modül/fonksiyon) katı TDD ile geliştirilir:
+**Yeni modüller** (Faz 0-6 dahil her yeni sınıf/modül/fonksiyon) katı TDD ile, **6 aşamalı iş akışıyla** geliştirilir:
 
 ```
-interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasyon (yeşil) → refactor
+1. SPEC     docs/architecture/<MODUL>-MIMARISI.md      — kapsam, bileşenler, kontratlar, kabul kriterleri, T görev listesi
+2. JSDoc    interface/tip + davranış sözleşmesi        — state'ler, edge-case'ler, hata kategorisi, yan etkiler, limitler
+3. TEST     *.test.ts (KIRMIZI)                        — sözleşmeyi sabitler; implementasyon yokken kırmızı verir
+4. IMPL     minimal implementasyon (YEŞİL) + refactor  — yalnızca testi yeşile çeviren kod; Elegant Object + DI kuralları
+5. SONUÇ    docs/architecture/<MODUL>-DOGRULAMA.md     — satır referanslı değişiklik matrisi, test kanıtları,
+                                                        kabul kriteri kanıtları, sapmalar, gözle kontrol, review_date
+6. KAPSAM   docs/architecture/<MODUL>-TEST-KAPSAMI.md  — testlerin kapsadığı DURUMLARIN senaryo matrisi
+                                                        (durum → koşul → beklenen → test ref'i) + KAPSANMAYAN boşluklar
 ```
 
+- **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; DOGRULAMA + TEST-KAPSAMI güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
 - **JSDoc önce:** Test yazılmadan önce davranış sözleşmesi JSDoc ile yazılır: state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler.
 - **Test sonra:** `*.test.ts` sözleşmeyi sabitler ve kırmızı verir; implementasyon testi yeşile çevirir. Test yoksa implementasyon başlamaz.
 - **Legacy karakterizasyon testleri:** Değiştirilecek testsiz modüllerde (örn. `rbac.ts`, `field-routes.ts`, `ws-routes.ts`, `bullmq-adapter.ts`) önce **mevcut davranış** testle sabitlenir — bug/delik dahil — sonra değişiklik yapılır.
 - **Kapılar:** Yeni kodda ≥%70 satır (SonarCloud kapısı); **güvenlik-kritik modüllerde ≥%90 branch**: rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu.
+- **Test dokümantasyonu (hibrit):** Aşama 6'nın `TEST-KAPSAMI` dokümanı **yaşayan çalışma dokümanıdır** — test genişletileceği zaman üzerinde çalışılır (boşluk listesi birincil girdidir). Ayrıca yeni eklenen tüm testler `docs/roadmap/test-envanteri.md`'ye işlenir (dosya başına başlık + it-by-it maddeler + `[DOSYA NOTU]` formatı; modül bölümü başında `TEST-KAPSAMI` dokümanına link). Test değişince ikisi birden güncellenir.
 - **Güvenlik hedef standardı:** OWASP ASVS **Level 2** — kategori → check eşleme matrisi, SAST'in doğrulayamadıkları ve release kontrol listesi: `docs/standards/owasp-asvs-level2.md`.
 - **Kural: testsiz PR merge edilmez.**
 - **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
-- **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur: satır referanslı değişiklik kaydı, nedeni, testler + geçme durumu, sisteme etkisi, kabul kriteri kanıtları ve gözle kontrol maddeleri. Faz kapanmadan önce genel durum özeti ve `review_date` güncellenir.
+- **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur: satır referanslı değişiklik kaydı, nedeni, testler + geçme durumu, sisteme etkisi, kabul kriteri kanıtları ve gözle kontrol maddeleri. Faz kapanmadan önce genel durum özeti ve `review_date` güncellenir. Bu kural, yukarıdaki 6 aşamalı iş akışının Faz 0-6 görevlerine uygulanmış özel halidir — KONTEYNER fazları dışındaki yeni modüller kendi `<MODUL>-DOGRULAMA.md` dosyalarını kullanır.
 
 ## Monorepo structure
 - **Bun** is the package manager. Workspaces: `apps/*` + `packages/**` + `services/*`.

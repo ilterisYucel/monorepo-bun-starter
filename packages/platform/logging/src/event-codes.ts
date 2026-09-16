@@ -45,6 +45,11 @@ export const LOG_EVENT_CODES = [
   "device_alarm",
   "device_alarm_cleared",
   "alarm_resolved",
+  // otomasyon (management-service — kural ateşleme + aksiyon sonuçları;
+  // kural bazlı dinamik kodlar `auto_rule_` önekiyle servis validator'ünde)
+  "auto_rule_fired",
+  "auto_rule_action_ok",
+  "auto_rule_action_failed",
   // telemetri
   "telemetry_write_failed",
   // istek sınırı (web-service setErrorHandler)

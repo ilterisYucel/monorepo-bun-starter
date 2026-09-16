@@ -1,0 +1,30 @@
+{
+  "rules": [
+    {
+      "name": "high-soc-stop",
+      "enabled": true,
+      "cooldownMs": 300000,
+      "when": {
+        "all": [
+          {
+            "device": { "types": ["bsc"] },
+            "telemetry": "soc",
+            "op": "gte",
+            "threshold": 95,
+            "debounceMs": 10000
+          }
+        ]
+      },
+      "then": [
+        { "action": "command", "deviceId": "BSC-1", "command": "stop" },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_high_soc",
+          "message": "BSC yuksek SoC — otomatik durdurma tetiklendi"
+        },
+        { "action": "notify" }
+      ]
+    }
+  ]
+}

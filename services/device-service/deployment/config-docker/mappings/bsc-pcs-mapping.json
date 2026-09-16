@@ -1,0 +1,276 @@
+{
+  "target": {
+    "host": "127.0.0.1",
+    "port": 15502
+  },
+  "intervalMs": 5000,
+  "mappings": [
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30036
+      },
+      "to": 768,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30037,
+        "bit": 2
+      },
+      "to": 769,
+      "bit": 1
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30037,
+        "bit": 0
+      },
+      "to": 769,
+      "bit": 7
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30059,
+        "size": 2
+      },
+      "to": 770,
+      "ratio": 0.001,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30061,
+        "size": 2,
+        "signed": true
+      },
+      "to": 771,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30055
+      },
+      "to": 772,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30056
+      },
+      "to": 773,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30128,
+        "size": 2,
+        "signed": true
+      },
+      "to": 774,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30128,
+        "size": 2,
+        "signed": true
+      },
+      "to": 775,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30063
+      },
+      "to": 776,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30065
+      },
+      "to": 777,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30100
+      },
+      "to": 778,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30102
+      },
+      "to": 779,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30149
+      },
+      "to": 780,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30151
+      },
+      "to": 781,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30138
+      },
+      "to": 782,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30140
+      },
+      "to": 783,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30124
+      },
+      "to": 784,
+      "ratio": 10,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30125
+      },
+      "to": 785,
+      "ratio": 10,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "EMU-1",
+        "table": "input",
+        "address": 109,
+        "size": 2
+      },
+      "to": 786,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "EMU-1",
+        "table": "input",
+        "address": 111,
+        "size": 2
+      },
+      "to": 787,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "constant",
+      "to": 788,
+      "value": 5018
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30063
+      },
+      "to": 789,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30036
+      },
+      "to": 790,
+      "ratio": 1,
+      "offset": 0
+    }
+  ]
+}

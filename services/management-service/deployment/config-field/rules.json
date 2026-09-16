@@ -1,0 +1,37 @@
+{
+  "rules": [
+    {
+      "name": "r06_recovery",
+      "enabled": true,
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "device": { "ids": ["PCS-1"] },
+            "telemetry": "Emergency Stop Button Status",
+            "op": "eq",
+            "threshold": 0,
+            "debounceMs": 2000
+          },
+          {
+            "device": { "ids": ["PCS-1"] },
+            "telemetry": "PCS Fault Status",
+            "op": "eq",
+            "threshold": 0
+          }
+        ]
+      },
+      "then": [
+        { "action": "command", "deviceId": "PCS-1", "command": "fault_reset" },
+        { "action": "command", "deviceId": "PCS-1", "command": "standby" },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_r06_recovery",
+          "message": "FL-06 Recovery: E-stop kalkti — sistem Standby'a dondu"
+        },
+        { "action": "notify" }
+      ]
+    }
+  ]
+}

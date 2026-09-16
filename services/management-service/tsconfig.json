@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "types": ["bun"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "run.ts"],
+  "references": [
+    { "path": "../../packages/shared-types" },
+    { "path": "../../packages/result" },
+    { "path": "../../packages/core" },
+    { "path": "../../packages/platform/messaging" },
+    { "path": "../../packages/platform/commands" },
+    { "path": "../../packages/platform/logging" },
+    { "path": "../../packages/tamper-logger" }
+  ]
+}

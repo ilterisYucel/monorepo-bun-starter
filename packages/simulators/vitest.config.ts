@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
+      "@gd-monorepo/result": resolve(workspaceRoot, "packages/result/src"),
       "@gd-monorepo/shared-utils": resolve(workspaceRoot, "packages/shared-utils/src"),
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
       "@gd-monorepo/simulators": resolve(workspaceRoot, "packages/simulators/src"),

@@ -5,26 +5,27 @@ import { RequestContext, createRequestIdHook } from "../middleware/request-conte
 import { createErrorHandler } from "../middleware/error-handler";
 import type { IMessageQueue } from "@gd-monorepo/core";
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { IDeviceConfigSource } from "@gd-monorepo/platform-commands";
+import type { DeviceConfigFile } from "@gd-monorepo/shared-types";
 
-
-vi.mock("../../infrastructure/config-loader", () => ({
-  loadDeviceConfig: vi.fn().mockReturnValue({
-    deviceId: "bsc-1",
-    name: "BSC 1",
-    protocol: "modbus",
-    connection: {},
-    telemetry: [],
-    commands: {
-      charge: {
-        label: "Şarj",
-        telemetries: [{ name: "Request", value: "Charge" }],
-        params: {
-          powerKw: { type: "number", min: 0, max: 100, default: 50, required: true, label: "Güç" },
-        },
+const bscConfig: DeviceConfigFile = {
+  deviceId: "bsc-1",
+  name: "BSC 1",
+  manufacturer: "LG",
+  model: "BSC",
+  protocol: "MODBUS",
+  connection: {},
+  telemetry: [],
+  commands: {
+    charge: {
+      label: "Şarj",
+      telemetries: [{ name: "Request", value: "Charge" }],
+      params: {
+        powerKw: { type: "number", min: 0, max: 100, default: 50, required: true, label: "Güç" },
       },
     },
-  }),
-}));
+  },
+};
 
 /**
  * command-routes sözleşmesi (Faz 0 T0.6):
@@ -33,6 +34,9 @@ vi.mock("../../infrastructure/config-loader", () => ({
  * - execute-multi: parallel/sequential; onFailure=stop ilk hatada durur.
  * - Zamanlı stop planlama: logger varsa audit loglanır, yoksa console
  *   (geriye uyumlu).
+ * - 2026-09-15 (T2): config çözümleme `@gd-monorepo/platform-commands`'a
+ *   taşındı; testler gerçek `IDeviceConfigSource` implementasyonu enjekte
+ *   eder (internal paketler mock'lanmaz).
  */
 
 function mockMq(overrides: Partial<IMessageQueue> = {}): IMessageQueue {
@@ -54,6 +58,7 @@ function mockMq(overrides: Partial<IMessageQueue> = {}): IMessageQueue {
 async function buildApp(
   mq: IMessageQueue,
   logger?: TamperLogger,
+  configSource?: IDeviceConfigSource,
 ) {
   const app = Fastify();
   const context = new RequestContext();
@@ -66,7 +71,14 @@ async function buildApp(
   );
   await app.register(
     async (fastify) => {
-      await makeCommandRoutes(fastify, { mq, configDir: "./config", logger });
+      await makeCommandRoutes(fastify, {
+        mq,
+        configDir: "./config",
+        logger,
+        configSource: configSource ?? {
+          load: (id: string) => (id === "bsc-1" ? bscConfig : undefined),
+        },
+      });
     },
     { prefix: "/api/commands" },
   );
@@ -85,9 +97,6 @@ describe("command-routes (T0.6)", () => {
   });
 
   it("POST /execute — bilinmeyen cihaz → 404", async () => {
-    vi.mocked(
-      (await import("../../infrastructure/config-loader")).loadDeviceConfig,
-    ).mockReturnValueOnce(null);
     const app = await buildApp(mockMq());
     const res = await app.inject({
       method: "POST",
@@ -172,9 +181,6 @@ describe("command-routes (T0.6)", () => {
   });
 
   it("GET /:deviceId/commands — config yoksa boş liste", async () => {
-    vi.mocked(
-      (await import("../../infrastructure/config-loader")).loadDeviceConfig,
-    ).mockReturnValueOnce(null);
     const app = await buildApp(mockMq());
     const res = await app.inject({
       method: "GET",

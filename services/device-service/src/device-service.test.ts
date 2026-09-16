@@ -292,6 +292,82 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
     });
   });
 
+  describe("validate.expect ilişki sözcükleri (PCS-WATTOX T-P3)", () => {
+    function readBack(value: number): IDevice["read"] {
+      return vi.fn().mockResolvedValue([
+        {
+          name: "Grid Active Power",
+          value,
+          timestamp: new Date().toISOString(),
+          deviceId: "bsc-1",
+          description: "",
+          unit: "kW",
+        },
+      ]);
+    }
+
+    it("'positive' sağlanıyorsa → validated: true", async () => {
+      const device = fakeDevice({ read: readBack(100) });
+      const { service, capture } = buildService(device);
+      await service.start();
+
+      const promise = capture.processor!(commandJob({
+        validate: {
+          timeoutMs: 2000,
+          reads: [{ name: "Grid Active Power", expect: "positive" }],
+        },
+      }) as never);
+      await vi.advanceTimersByTimeAsync(100);
+      const result = (await promise) as { success: boolean; validated?: boolean };
+      expect(result.success).toBe(true);
+      expect(result.validated).toBe(true);
+    });
+
+    it("ilişki sağlanmıyorsa timeout sonuna kadar poll → validated: false", async () => {
+      const device = fakeDevice({ read: readBack(-100) });
+      const { service, capture } = buildService(device);
+      await service.start();
+
+      const promise = capture.processor!(commandJob({
+        validate: {
+          timeoutMs: 2000,
+          reads: [{ name: "Grid Active Power", expect: "positive" }],
+        },
+      }) as never);
+      await vi.advanceTimersByTimeAsync(2100);
+      const result = (await promise) as { success: boolean; validated?: boolean };
+      expect(result.success).toBe(true);
+      expect(result.validated).toBe(false);
+    });
+
+    it("ilişki dışı string birebir eşitlik olarak kalır", async () => {
+      const device = fakeDevice({
+        read: vi.fn().mockResolvedValue([
+          {
+            name: "Mode",
+            value: "open",
+            timestamp: new Date().toISOString(),
+            deviceId: "bsc-1",
+            description: "",
+            unit: "",
+          },
+        ]),
+      });
+      const { service, capture } = buildService(device);
+      await service.start();
+
+      const promise = capture.processor!(commandJob({
+        validate: {
+          timeoutMs: 2000,
+          reads: [{ name: "Mode", expect: "open" }],
+        },
+      }) as never);
+      await vi.advanceTimersByTimeAsync(100);
+      const result = (await promise) as { success: boolean; validated?: boolean };
+      expect(result.validated).toBe(true);
+    });
+  });
+
   describe("bilinmeyen cihaz", () => {
     it("logger varsa request_rejected loglanır, publish yok", async () => {
       const { logger, log } = mockLogger();

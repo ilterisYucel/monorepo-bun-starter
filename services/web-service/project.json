@@ -48,5 +48,5 @@
       }
     }
   },
-  "implicitDependencies": ["core", "shared-types"]
+  "implicitDependencies": ["core", "shared-types", "platform-commands"]
 }

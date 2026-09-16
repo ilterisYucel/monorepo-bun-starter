@@ -18,6 +18,10 @@ import {
   PcsSimulatorAdapter,
   EmuSimulator,
   EmuSimulatorAdapter,
+  WattoxPcsSimulator,
+  WattoxPcsAdapter,
+  parseBscPcsMapping,
+  BscPcsConnectorAdapter,
   SimulatorTransport,
 } from "@gd-monorepo/simulators";
 import type { IModbusSimulatorAdapter, DeviceConfigFile, SimulatorConfig } from "@gd-monorepo/shared-types";
@@ -27,6 +31,8 @@ const TICK_INTERVAL_MS = 1000;
 interface SimulatorEntry {
   adapter: IModbusSimulatorAdapter;
   tick: () => void;
+  /** Opsiyonel — transport disconnect'inde çağrılır (ör. BMS port kapatma). */
+  stop?: () => Promise<void>;
 }
 
 export interface SimulatorFactory {
@@ -41,10 +47,12 @@ export interface SimulatorFactory {
 export class SimulatorRegistry {
   private readonly transports: Map<string, IModbusTransport>;
   private readonly registry: Map<string, SimulatorFactory>;
+  private readonly adapters: Map<string, IModbusSimulatorAdapter>;
 
   constructor() {
     this.transports = new Map();
     this.registry = new Map();
+    this.adapters = new Map();
     this.registerDefaults();
   }
 
@@ -112,6 +120,39 @@ export class SimulatorRegistry {
         return { adapter: new EmuSimulatorAdapter(emu), tick: () => emu.tick(elapsed) };
       },
     });
+
+    // Wattox MPCS — field tier PCS (PCS-WATTOX-MIMARISI.md)
+    this.registry.set("wattox-pcs", {
+      build: (_deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const pcs = new WattoxPcsSimulator({
+          ...(sim.bmsPort !== undefined ? { bmsPort: sim.bmsPort } : undefined),
+        });
+        return {
+          adapter: new WattoxPcsAdapter(pcs),
+          tick: () => pcs.tick(elapsed),
+          stop: () => pcs.stopBmsServer(),
+        };
+      },
+    });
+
+    // BSC→PCS connector — sanal gateway cihaz (BSC-PCS-CONNECTOR-MIMARISI.md)
+    this.registry.set("bsc-pcs-connector", {
+      build: (_deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        if (!sim.registerMap) {
+          throw new Error("[SimulatorRegistry] bsc-pcs-connector registerMap zorunlu");
+        }
+        const mapping = parseBscPcsMapping(readFileSync(sim.registerMap, "utf-8"));
+        const connector = new BscPcsConnectorAdapter({
+          mapping,
+          adapters: this.adapters,
+        });
+        return {
+          adapter: connector,
+          tick: () => void connector.tick(elapsed),
+          stop: () => connector.closeTarget(),
+        };
+      },
+    });
   }
 
   register(type: string, factory: SimulatorFactory): void {
@@ -141,12 +182,14 @@ export class SimulatorRegistry {
         rackCount: transport.rackCount,
         registerMap: transport.registerMap,
         pcsCount: transport.pcsCount,
+        bmsPort: transport.bmsPort,
       };
       const entry = factory.build(config.deviceId, sim, elapsed);
 
+      this.adapters.set(config.deviceId, entry.adapter);
       this.transports.set(
         config.deviceId,
-        new SimulatorTransport(entry.adapter, entry.tick, TICK_INTERVAL_MS),
+        new SimulatorTransport(entry.adapter, entry.tick, TICK_INTERVAL_MS, entry.stop),
       );
       console.log(`[SimulatorRegistry] Simulator transport hazir: ${config.deviceId} (${simType})`);
     }

@@ -61,6 +61,67 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Field tier device-service — Wattox PCS'ler (konteyner başına 1; PCS-1..PCS-N).
+  # PCS-WATTOX-MIMARISI.md: PCS'ler field katmanında okunur/kontrol edilir.
+  device-service:
+    build:
+      context: ../
+      dockerfile: services/device-service/deployment/Dockerfile
+    container_name: field-device-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: field
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
+    networks:
+      - field-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Field tier otomasyon (management-service) — R-06 recovery kuralı.
+  management-service:
+    build:
+      context: ../
+      dockerfile: services/management-service/deployment/Dockerfile
+    container_name: field-management-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: field
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+    depends_on:
+      redis:
+        condition: service_healthy
+      device-service:
+        condition: service_started
+    volumes:
+      - ../services/management-service/deployment/config-field:/app/config:ro
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
+    networks:
+      - field-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   web-service:
     build:
       context: ../

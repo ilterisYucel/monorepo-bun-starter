@@ -304,16 +304,25 @@ Key differences:
 
 ## 8. TDD Workflow (MANDATORY)
 
-### 8.1 Döngü
+### 8.1 İş Akışı — 6 aşama
 
 ```
-interface/tip → JSDoc kontratı → test (kırmızı) → minimal implementasyon (yeşil) → refactor
+1. SPEC     docs/architecture/<MODUL>-MIMARISI.md      — kapsam, bileşenler, kontratlar, kabul kriterleri, T görev listesi
+2. JSDoc    interface/tip + davranış sözleşmesi        — state'ler, edge-case'ler, hata kategorisi, yan etkiler, limitler
+3. TEST     *.test.ts (KIRMIZI)                        — sözleşmeyi sabitler; implementasyon yokken kırmızı verir
+4. IMPL     minimal implementasyon (YEŞİL) + refactor  — yalnızca testi yeşile çeviren kod; Elegant Object + DI kuralları
+5. SONUÇ    docs/architecture/<MODUL>-DOGRULAMA.md     — satır referanslı değişiklik matrisi, test kanıtları,
+                                                        kabul kriteri kanıtları, sapmalar, gözle kontrol, review_date
+6. KAPSAM   docs/architecture/<MODUL>-TEST-KAPSAMI.md  — testlerin kapsadığı DURUMLARIN senaryo matrisi
+                                                        (durum → koşul → beklenen → test ref'i) + KAPSANMAYAN boşluklar
 ```
 
-1. **JSDoc kontratı:** Davranış sözleşmesi kod yazılmadan yazılır — state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler. Test dosyasının başına bu kontrat referans olarak konur.
-2. **Kırmızı test:** `*.test.ts` sözleşmeyi sabitler; implementasyon yokken kırmızı verir.
-3. **Minimal implementasyon:** Yalnızca testi yeşile çevirecek kod; spekülasyon yok.
-4. **Refactor:** Elegant Object + DI kurallarına uygun temizlik; testler yeşil kalmalı.
+1. **SPEC önce:** Tasarım dokümanı (kapsam, bileşenler, kabul kriterleri, T görev listesi) yazılmadan test yazılmaz.
+2. **JSDoc kontratı:** Davranış sözleşmesi kod yazılmadan yazılır — state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler. Test dosyasının başına bu kontrat referans olarak konur.
+3. **Kırmızı test:** `*.test.ts` sözleşmeyi sabitler; implementasyon yokken kırmızı verir.
+4. **Minimal implementasyon:** Yalnızca testi yeşile çevirecek kod; spekülasyon yok.
+5. **Refactor:** Elegant Object + DI kurallarına uygun temizlik; testler yeşil kalmalı.
+6. **SONUÇ + KAPSAM:** Modül kapanışında DOGRULAMA ve TEST-KAPSAMI dokümanları güncel olmalıdır — güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
 
 ### 8.2 Legacy karakterizasyon testleri
 
@@ -353,3 +362,13 @@ Her faz kapanışında [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](../docs/architect
 2. Kabul kriterleri teker teker kanıtla işaretlenir (test çıktısı, curl, DB kaydı, Playwright trace).
 3. Gözle kontrol maddeleri tamamlanmadan faz kapanmaz.
 4. Genel durum özeti + `review_date` güncellenir; sapma varsa doküman sapmaları bölümüne kaydedilir.
+
+Bu kural, §8.1'deki 6 aşamalı iş akışının Faz 0-6 görevlerine uygulanmış özel halidir — KONTEYNER fazları dışındaki yeni modüller kendi `<MODUL>-DOGRULAMA.md` dosyalarını kullanır.
+
+### 8.7 Test dokümantasyonu (hibrit — MANDATORY)
+
+Aşama 6'nın `docs/architecture/<MODUL>-TEST-KAPSAMI.md` dokümanı **yaşayan çalışma dokümanıdır**:
+
+- İçerik: testlerin kapsadığı DURUMLARIN senaryo matrisi (durum → koşul → beklenen → test dosyası+`it` adı) + **KAPSANMAYAN** boşluk bölümü.
+- Kullanım: test genişletileceği zaman boşluk listesi birincil girdidir; üzerinde çalışıldıktan sonra doküman güncellenir.
+- Konsolidasyon: yeni eklenen tüm testler `docs/roadmap/test-envanteri.md`'ye de işlenir (dosya başına başlık + it-by-it maddeler + `[DOSYA NOTU]` formatı; modül bölümü başında `TEST-KAPSAMI` dokümanına link). Test değişince ikisi birden güncellenir.

@@ -2,7 +2,12 @@ import React, { useState, useCallback, useMemo } from "react";
 import { ManeuverCard, useTranslation } from "@gd-monorepo/ui";
 import type { StepResult, ManeuverCardLabels } from "@gd-monorepo/ui";
 import type { CommandStep } from "@gd-monorepo/shared-types";
-import { buildFieldManeuvers } from "../maneuvers";
+import {
+  buildFieldManeuvers,
+  buildFieldManeuverControls,
+  resolveSteps,
+  FIELD_HIDDEN_MANEUVER_NAMES,
+} from "../maneuvers";
 import { mockContainers } from "../../containers/services/mockDataGenerator";
 
 interface CardState {
@@ -11,9 +16,10 @@ interface CardState {
 }
 
 /**
- * Konteyner başına TEK PCS (2026-08-30): hedef PCS listesi mock konteyner
- * snapshot'larından türetilir — sabit liste YOKTUR. Gerçek backend geldiğinde
- * saha device-service kayıt defterine bağlanacak.
+ * Konteyner başına TEK PCS (REV.01 — FIELD-MANEVRA-KATALOGU): hedef PCS
+ * listesi mock konteyner snapshot'larından türetilir — sabit liste YOKTUR.
+ * Gerçek backend geldiğinde saha device-service kayıt defterine bağlanacak.
+ * GİZLİ manevralar (FL-06/07/10) kart olarak GÖSTERİLMEZ — otomasyon katmanındadır.
  */
 function pcsIdsFromMock(): string[] {
   return [
@@ -63,7 +69,9 @@ export const FieldManeuverPanel: React.FC = () => {
   const [states, setStates] = useState<Record<string, CardState>>({});
   const { t } = useTranslation();
 
-  const maneuvers = useMemo(() => buildFieldManeuvers(pcsIdsFromMock()), []);
+  const pcsIds = useMemo(() => pcsIdsFromMock(), []);
+  const maneuvers = useMemo(() => buildFieldManeuvers(pcsIds), [pcsIds]);
+  const controls = useMemo(() => buildFieldManeuverControls(pcsIds), [pcsIds]);
 
   const labels: ManeuverCardLabels = useMemo(
     () => ({
@@ -86,13 +94,15 @@ export const FieldManeuverPanel: React.FC = () => {
   );
 
   const execute = useCallback(
-    async (name: string) => {
+    async (name: string, values: Record<string, number>) => {
       const m = maneuvers[name];
       if (!m) return;
 
+      const steps = resolveSteps(m, values, controls[name]?.transform, pcsIds);
+
       setStates((prev) => ({ ...prev, [name]: { status: "running", stepResults: [] } }));
 
-      const results = await mockExecute(m.steps, t("container.disconnected"));
+      const results = await mockExecute(steps, t("container.disconnected"));
       const allOk = results.every((r) => r.success);
 
       setStates((prev) => ({
@@ -100,7 +110,7 @@ export const FieldManeuverPanel: React.FC = () => {
         [name]: { status: allOk ? "success" : "failed", stepResults: results },
       }));
     },
-    [maneuvers, t],
+    [maneuvers, controls, pcsIds, t],
   );
 
   return (
@@ -112,20 +122,25 @@ export const FieldManeuverPanel: React.FC = () => {
         alignItems: "start",
       }}
     >
-      {Object.entries(maneuvers).map(([name, m]) => {
-        const s = states[name];
-        return (
-          <ManeuverCard
-            key={name}
-            maneuver={{ ...m, label: t(m.label), description: t(m.description ?? "") }}
-            state={s?.status ?? "idle"}
-            stepResults={s?.stepResults}
-            labels={labels}
-            onRun={() => execute(name)}
-            onRetry={() => execute(name)}
-          />
-        );
-      })}
+      {Object.entries(maneuvers)
+        .filter(([name]) => !FIELD_HIDDEN_MANEUVER_NAMES.has(name))
+        .map(([name, m]) => {
+          const s = states[name];
+          const c = controls[name];
+          return (
+            <ManeuverCard
+              key={name}
+              maneuver={{ ...m, label: t(m.label), description: t(m.description ?? "") }}
+              state={s?.status ?? "idle"}
+              stepResults={s?.stepResults}
+              inputs={c?.inputs}
+              timerConfig={c?.timerConfig}
+              labels={labels}
+              onRun={(values) => execute(name, values)}
+              onRetry={() => execute(name, { group: -1, powerKw: 500 })}
+            />
+          );
+        })}
     </div>
   );
 };

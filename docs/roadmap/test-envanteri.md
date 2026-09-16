@@ -16,7 +16,9 @@
 | 6 | packages/tamper-logger — tamper-evident log kütüphanesi | 14 | 104 |
 | 7 | packages/platform — messaging · container-access · logging | 3 | 35 |
 | 8 | packages/ws-tunnel — çoklanmış WS tüneli (2026-09-01 ayrıldı) | 12 | 214 |
-| **Toplam** | | **164** | **~1447** |
+| 9 | management-service · platform/commands · automation-rule (2026-09-15) | 8 | 102 |
+| 10 | Wattox PCS · BSC-PCS Connector · REV.01 manevraları (2026-09-15) | 9 | 84 |
+| **Toplam** | | **181** | **~1633** |
 
 > **Sayım doğrulaması (2026-09-01):** tüm monorepo gerçek vitest çıktısıyla doğrulandı — **153 test dosyası / 1431 test, tümü yeşil** (`bun run test`). Proje bazında: result 2/33, ws-tunnel 12/214, web-service 44/423, shared-types 5/56, core 8/102, data-service 1/13, platform-container-access 0 (interface yalnızca tip), container-web 9/82. **Son değişiklik (2026-09-01):** `Result`/`DomainError` AYRI YAPRAK PAKETE taşındı (`packages/result` — core/errors + ws-tunnel kopyası + shared-types basit Result tek pakette birleşti; `okVoid` eklendi); `tunnel-proxy.test.ts` 34 ve `ws-socket-client.test.ts` 9 başlık sayısı `it.each` genişlemelerini içerir. **Faz B teknik (2026-09-01):** ws-tunnel tam bağımsız (shared-types tip bağımlılığı söküldü); paket içi loopback (`demo/loopback.spec.ts` 5 test) + `examples/loopback-demo.mjs` 6/6.
 
@@ -2580,6 +2582,237 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 |-------|-------------|
 | `sinks/syslog-sink` | TCP transport yolu (yalnız UDP testli): tcpSocket kurulumu, `\n` framing, kopan bağlantıda yeniden kurma |
 | `verify-chain` | strict-null tip borcu (tsc hataları) — davranış testli, tip temizliği bekliyor |
+
+## 9. management-service · platform/commands · automation-rule (2026-09-15)
+
+> **Kaynak:** MANAGEMENT-SERVICE-MIMARISI.md (SPEC) + DOGRULAMA + TEST-KAPSAMI dokümanları (6 aşamalı iş akışı — AGENTS.md).
+> **Kapsam senaryo matrisi ve boşluk listesi:** [MANAGEMENT-SERVICE-TEST-KAPSAMI.md](../architecture/MANAGEMENT-SERVICE-TEST-KAPSAMI.md)
+> **Doğrulama:** monorepo 1702/1702 test yeşil (2026-09-15); management-service coverage %98.2 satır / %95.3 branch.
+
+### `packages/shared-types/src/automation-rule.test.ts` (`24 test`)
+**Hedef:** `automationRulesSchema` — otomasyon kuralı konfigürasyon sözleşmesi (strict şema; beklenen hatalar safeParse ile taşınır).
+
+1. **"geçerli kural dosyasını kabul eder (command + log + notify)"** — üç aksiyon tipli tam kuralın parse edildiğini doğruluyor.
+2. **"when.all ile çoklu koşul kabul eder"** — all altında iki koşulun geçerli olduğunu kontrol ediyor.
+3. **"when.any kabul eder"** — any grubunun geçerli olduğunu doğruluyor.
+4. **"device seçicisi ids + types birlikte kabul eder"** — birleşim seçicinin parse edildiğini kontrol ediyor.
+5. **"device seçicisi olmadan koşul kabul eder (tüm cihazlar)"** — seçicisiz koşulun geçerli olduğunu doğruluyor.
+6. **"enabled/cooldownMs/debounceMs opsiyoneldir"** — opsiyonel alanların eksikliğinde şemanın reddetmediğini kontrol ediyor.
+7. **"debounceMs 0 kabul eder (anında kenar)"** — sıfır debounce'un geçerli olduğunu doğruluyor.
+8. **"when hem eksik hem boş → red"** — koşulsuz kuralın reddedildiğini kontrol ediyor.
+9. **"all boş dizi → red"** — boş all dizisinin reddedildiğini doğruluyor.
+10. **"op enum dışı değer → red"** — bilinmeyen operatörün reddedildiğini kontrol ediyor.
+11. **"threshold sayı değilse → red"** — string eşiğin reddedildiğini doğruluyor.
+12. **"device.ids boş dizi → red"** — anlamsız seçicinin reddedildiğini kontrol ediyor.
+13. **"device.types boş dizi → red"** — boş tip listesinin reddedildiğini doğruluyor.
+14. **"then boş → red"** — aksiyonsuz kuralın reddedildiğini kontrol ediyor.
+15. **"bilinmeyen aksiyon tipi → red"** — discriminant dışı aksiyonun reddedildiğini doğruluyor.
+16. **"command aksiyonu command adı zorunlu, params opsiyonel"** — command şeklinin geçerli ve eksik command'in geçersiz olduğunu kontrol ediyor.
+17. **"log aksiyonu level enum zorunlu, eventCode/message opsiyonel"** — log şeklinin ve enum dışı level reddinin doğrulanması.
+18. **"notify aksiyonu boş obje olarak kabul eder"** — notify varyantının parse edildiğini doğruluyor.
+19. **"cooldownMs negatif → red"** — negatif bastırma süresinin reddedildiğini kontrol ediyor.
+20. **"debounceMs negatif → red"** — negatif debounce'un reddedildiğini doğruluyor.
+21. **"bilinmeyen üst seviye anahtar → red (strict)"** — kök seviye strict davranışını kontrol ediyor.
+22. **"bilinmeyen koşul anahtarı → red (strict)"** — koşul seviyesi strict davranışını doğruluyor.
+23. **"rules boş dizi → red"** — boş kural dosyasının reddedildiğini kontrol ediyor.
+24. **"çıktı tipi sözleşmeyi taşır (derleme kontratı)"** — parse çıktısının tipleriyle sözleşmeyi taşıdığını doğruluyor.
+
+`[DOSYA NOTU]`: opsiyonel `enabled` alanının çıktıda varsayılan `true`'ya normalize edilmesi test edilmiyor (tüketici çözümler — bilinçli).
+
+### `packages/platform/commands/src/command-job-builder.test.ts` (`15 test`)
+**Hedef:** `CommandJobBuilder` — device config komut tanımını `COMMAND_DEVICE` job'ına çeviren jenerik çözümleyici + `DeviceConfigFileSource` dosya kaynağı.
+
+1. **"config yok → err device_not_found"** — bilinmeyen cihazda Result.err + reason kodunu doğruluyor.
+2. **"komut tanımsız → err command_not_found"** — bilinmeyen komutta Result.err + reason kodunu kontrol ediyor.
+3. **"zorunlu param eksik → err missing_param (context.paramName taşır)"** — required param eksikliğinde reason + context.paramName doğrulaması.
+4. **"zorunlu olmayan param eksik → ok"** — optional param eksikliğinde başarılı çözümleme kontrol ediyor.
+5. **"{{param}} sayısal çözülür; -{{param}} negatif uygular; şablon olmayan aynen kalır"** — üç şablon davranışını birlikte doğruluyor.
+6. **"atomic belirtilmemişse true; false belirtilmişse false"** — atomic varsayılanı ve açık değerini kontrol ediyor.
+7. **"validate eşlemesi: reads + timeoutMs + minWaitMs"** — validate bloğunun job'a birebir eşlendiğini doğruluyor.
+8. **"validate yoksa job.validate undefined; timeoutMs defaultu yalnızca validate ile birlikte anlamlı"** — validate'siz komut çıktısını kontrol ediyor.
+9. **"jobId formatı: deviceId-command-timestamp (enjekte now)"** — deterministik jobId formatını doğruluyor.
+10. **"telemetri çıktısına timestamp + deviceId + description eklenir"** — zenginleştirilmiş telemetri şeklini kontrol ediyor.
+11. **"job type COMMAND_DEVICE ve deviceId doğru"** — job kimliği alanlarını doğruluyor.
+12. **"mevcut dosyayı yükler"** (DeviceConfigFileSource) — diskten config okumayı kontrol ediyor.
+13. **"olmayan cihaz → undefined"** — eksik dosyada undefined dönüşünü doğruluyor.
+14. **"büyük/küçük harf uyumlu arama: önce lowercase, sonra orijinal"** — `PCS-1.json` dosyasının `PCS-1` id'siyle bulunmasını kontrol ediyor.
+15. **"bozuk JSON atlanır → undefined"** — parse hatasında undefined dönüşünü doğruluyor.
+
+`[DOSYA NOTU]`: dosya kaynağında dizin izni/yetki hataları (existsSync true + readFileSync throw) ayrıca test edilmiyor — try/catch ile undefined'a düşer.
+
+### `services/management-service/src/cycle-snapshot-store.test.ts` (`10 test`)
+**Hedef:** `CycleSnapshotStore` — MANAGEMENT job'larının (deviceId, name)→en yeni değer deposu; TTL bayatlama + canonical indeks.
+
+1. **"record + snapshot: değer adıyla okunur, unit ve recordedAt taşınır"**
+2. **"yeni kayıt eskisini ezer (aynı anahtar)"**
+3. **"maxAgeMs aşan giriş snapshot'a girmez"**
+4. **"bayat giriş depodan temizlenir — sonraki snapshot tutarlı"**
+5. **"olmayan cihaz/anahtar → undefined"**
+6. **"canonical etiketiyle erişim: key ad değilse tags.canonical indeksine düşer"**
+7. **"canonical indeksi de yeni kayıtla güncellenir"**
+8. **"boş store → boş snapshot"**
+9. **"snapshot anlık görüntüdür — sonraki record'lar dönen nesneyi etkilemez"**
+10. **"çok cihaz: deviceIds tümünü listeler"**
+
+`[DOSYA NOTU]`: eşzamanlı record yarışı test edilmiyor (tek iş parçacığı JS + BullMQ concurrency 5 — pratikte yok).
+
+### `services/management-service/src/device-catalog.test.ts` (`7 test`)
+**Hedef:** `DeviceCatalog` — kural `device` seçicisinin (ids ∪ types) somut cihaz setine çözümü.
+
+1. **"seçici yoksa tüm cihazlar"** 2. **"ids seçicisi birebir döner"** 3. **"types seçicisi eşleşen cihazları döner"** 4. **"ids + types birleşim (çift kayıt yok)"** 5. **"bilinmeyen type → yalnızca ids varsa onlar"** 6. **"type olmayan cihaz yalnızca ids ile seçilir"** 7. **"bilinmeyen id sessizce yok sayılır"**
+
+`[DOSYA NOTU]`: girdi sıralaması/sıralama garantisi test edilmiyor (ekleme sırası korunur — belgelenmiş).
+
+### `services/management-service/src/rule-evaluator.test.ts` (`16 test`)
+**Hedef:** `RuleEvaluator` — kenar-tetikli + debounce + cooldown dedup durum makinesi (güvenlik-kritik: bayat veriyle ASLA tetiklenmez).
+
+1. **"yükselen kenarda bir kez döner; aktifken tekrarlamaz"**
+2. **"düşüş sonrası yeniden yükseliş yeni kenardır (cooldown yoksa ateşler)"**
+3. **"debounce: süre dolmadan aktifleşme olmaz; dolunca ateşler"**
+4. **"debounce sırasında düşüş sayaç sıfırlar — yeniden tam süre gerekir"**
+5. **"cooldown içinde yeni kenar bastırılır; sonrası ateşler"**
+6. **"when.any: bir koşul sağlansa yeterli"**
+7. **"when.all: bir koşul false ise ateşleme yok"**
+8. **"enabled: false kural hiç ateşlemez"**
+9. **"device seçicisi hedef dışındaki cihaz değerini yok sayar"**
+10. **"koşul hedef sette en az bir cihazda sağlanırsa TRUE"**
+11. **"veri yok → koşul FALSE (bayat veriyle asla tetiklenmez)"**
+12. **"sayısal op string değerde false (karşılaştırma yapılmaz)"**
+13. **"eq sayısal eşitlikte çalışır"**
+14. **"aynı snapshot ile ikinci çağrı boş döner (tekrarlı tick güvenliği)"**
+15. **"bağımsız kurallar aynı cycle'da birlikte döner"**
+16. **"gte/lt/lte/neq operatorleri"** — dört operatörün sınır davranışı ayrı değerlendiricilerle.
+
+`[DOSYA NOTU]`: restart sonrası dedup state sıfırlaması test edilmiyor (yeni instance = yeni gözlem dönemi — SPEC bilinçli karar, TEST-KAPSAMI B5).
+
+### `services/management-service/src/action-executor.test.ts` (`15 test`)
+**Hedef:** `ActionExecutor` — command/log/notify aksiyonları; sıralı + kademeli bozulma; `auto_rule_*` sonuç logları.
+
+1. **"kural ateşleme logu: auto_rule_fired (info, context.rule)"**
+2. **"command aksiyonu başarı → executeAndWait + auto_rule_action_ok"** — timeout = validate.timeoutMs + 2000 tampon doğrulamasıyla.
+3. **"validate olmayan komutta timeout varsayılan 3000 + tampon"**
+4. **"command aksiyonu job başarısız → auto_rule_action_failed"**
+5. **"command aksiyonu çözümleme hatası → fail (throw yok, akış durmaz)"**
+6. **"zorunlu param eksik command → fail; sonraki aksiyon devam eder"**
+7. **"log aksiyonu: config eventCode + level; logger yoksa console fallback"**
+8. **"log aksiyonu logger hatası → fail; akış devam eder"**
+9. **"notify aksiyonu: eventCode auto_rule_<name> ile loglanır; başarı sonucu ok"** — bildirim yönlendirmesi TamperLogger alertRules üzerinden (S1).
+10. **"logger yoksa notify ATLANIR (ok sonuç)"**
+11. **"notify logu hatası → fail sonucu (akış durmaz)"**
+12. **"beklenmeyen mq throw → fail sonucu, akış devam eder"**
+13. **"sonuç logu hatası aksiyon sonucunu değiştirmez (best-effort)"**
+14. **"logger yoksa log aksiyonu console fallback: error ve info seviyeleri"**
+15. **"sonuç listesi aksiyon sırasını korur"**
+
+`[DOSYA NOTU]`: executeAndWait iptali (service stop sırasında) test edilmiyor — TEST-KAPSAMI B4.
+
+### `services/management-service/src/rule-config-loader.test.ts` (`9 test`)
+**Hedef:** `RuleConfigLoader` — rules.json fail-fast yükleme + device config dizininden katalog.
+
+1. **"geçerli dosyayı yükler (tipli)"** 2. **"dosya yok → throw"** 3. **"bozuk JSON → throw"** 4. **"şema reddi (then boş) → throw"** 5. **"bilinmeyen anahtar → throw (strict şema)"** 6. **"dizindeki cihaz config'lerinden katalog üretir"** 7. **"bozuk cihaz dosyası atlanır (best-effort)"** 8. **"dizin yoksa boş katalog"** 9. **"type alanı olmayan cihaz da kataloga girer (type undefined)"**
+
+`[DOSYA NOTU]`: büyük dizin/perf testi yok (senkron tarama — 17 dosyalık dizinde ihmal edilebilir).
+
+### `services/management-service/src/management-service.test.ts` (`6 test`)
+**Hedef:** `ManagementService` — queue_management tüketicisi + değerlendirme döngüsü (fake timers).
+
+1. **"start: MANAGEMENT worker kaydedilir; job telemetrisi snapshot'a yazılır"**
+2. **"runCycle: koşul sağlanınca kural ateşlenir ve executor çağrılır"** — kenar-tetik ikinci cycle'da 0 dönüş doğrulamasıyla.
+3. **"tick döngüsü: interval sonrası değerlendirme kendiliğinden çalışır"**
+4. **"worker yalnızca MANAGEMENT tipini kaydeder (non-MANAGEMENT job yok sayılır)"**
+5. **"stop: döngü durur, mq.close çağrılır; çift stop güvenli"**
+6. **"health: çalışıyorsa mq.health yansır"**
+
+`[DOSYA NOTU]`: runCycle executor hata yayılımı (allSettled sonrası konsol sessizliği) test edilmiyor — TEST-KAPSAMI B3. Canlı end-to-end gözle kanıt: DOGRULAMA §5 (K7).
+
+## 10. Wattox PCS · BSC-PCS Connector · REV.01 manevraları (2026-09-15)
+
+> **Kaynak:** PCS-WATTOX-MIMARISI.md, BSC-PCS-CONNECTOR-MIMARISI.md, FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md (6 aşamalı iş akışı).
+> **Senaryo matrisleri:** [PCS-WATTOX-TEST-KAPSAMI.md](../architecture/PCS-WATTOX-TEST-KAPSAMI.md) · [BSC-PCS-CONNECTOR-TEST-KAPSAMI.md](../architecture/BSC-PCS-CONNECTOR-TEST-KAPSAMI.md) · [FIELD-MANEVRA-REV01-TEST-KAPSAMI.md](../architecture/FIELD-MANEVRA-REV01-TEST-KAPSAMI.md)
+> **Doğrulama:** monorepo 1781/1781 test yeşil (2026-09-15).
+
+### `packages/shared-types/src/commands/validate-expect.test.ts` (`7 test`)
+**Hedef:** `expectHolds`/`isRelationExpect` — komut validate read-back ilişki sözcükleri (negative/positive/zero/nonzero).
+
+1. **"ilişki sözcüklerini tanır"** — RELATION_EXPECTS üyeleri true döner.
+2. **"diğer string/sayı/boolean değerleri tanımaz"** — "2"/""/2/true/undefined false.
+3. **"negative: yalnızca negatif sayılar tutar"** — −100/−0.5 tutar; 0/5/"−5"/true tutmaz.
+4. **"positive: yalnızca pozitif sayılar tutar"** — 100 tutar; 0/−1/"5" tutmaz.
+5. **"zero: yalnızca 0 tutar"** — 0 tutar; 1/false tutmaz.
+6. **"nonzero: 0 dışı sayılar tutar"** — 1/−1 tutar; 0/"x" tutmaz.
+7. **"birebir eşitlik değişmez (sayı/string/boolean)"** — `===` kesin eşitlik ("2" ≠ 2).
+
+`[DOSYA NOTU]`: ilişki sözcüğünün büyük/küçük harf varyantları kabul edilmez (küme birebir).
+
+### `packages/simulators/src/wattox-pcs/wattox-pcs.test.ts` (`17 test`)
+**Hedef:** `WattoxPcsSimulator` — register-accurate durum makinesi (Stop→Standby→Charge/Discharge; şarj NEGATİF; komutlar ANINDA uygulanır).
+
+1. **"ilk değerler: nominal (Stop, 50 Hz, anma güç, şebeke voltajı)"** — anma 1725/1500/1900, 50Hz raw 5000, 400V raw 4000, fault/alarm 0, maks şarj raw 63811.
+2. **"start komutu: Stop → Standby; komut register'ı yazılanı tutar"**
+3. **"negatif setpoint → Charging; grid aktif güç birebir setpoint (şarj negatif)"**
+4. **"pozitif setpoint → Discharging"**
+5. **"sıfır setpoint → Standby (sıfır güç)"**
+6. **"stop komutu: Stop + setpoint sıfırlanır"**
+7. **"standby komutu: herhangi bir işletme durumundan Standby"**
+8. **"fault set → fault durumu + Fault; reset → temiz + Standby"**
+9. **"alarm word 3 bit9 (islanding) → alarm durumu 1"**
+10. **"fault word adresleri D01-D10 sıralı okunur"**
+11. **"E-stop bitleri: local/remote/BMS"** — 0b101.
+12. **"EMS yüzü BMS bloğunu değiştiremez (RO); setBmsRegister yazar"** — izolasyon.
+13. **"BMS bloğu dışına setBmsRegister reddedilir (throw)"**
+14. **"komut kaynağı register'ı yazılabilir (EMS=1)"**
+15. **"tick: güç setpoint'e yakınsar (anında uygulama — tick kararlı kalır)"**
+16. **"BMS varsayılanları: SOC %50.0, pack voltaj 1500.0 V"**
+17. **"çoklu register okuma (FC 0x03 aralığı)"**
+
+`[DOSYA NOTU]`: rampa davranışı (S11) simüle edilmez — AGENTS "komut anında" kuralı; B4.
+
+### `packages/simulators/src/wattox-pcs/bms-port-server.test.ts` (`8 test`)
+**Hedef:** `BmsPortServer` — minimal Modbus TCP sunucu (FC 0x03/0x06/0x10; BMS bloğu dışı → 0x02; bilinmeyen FC → 0x01; start/stop idempotent).
+
+1. **"start port döner; FC 0x03 BMS bloğunu okur"** 2. **"FC 0x06 yazımı simülatör deposuna uygular (EMS yüzü görür)"** 3. **"FC 0x10 çoklu yazım uygulanır"** 4. **"BMS bloğu DIŞI yazım → exception 0x02"** 5. **"BMS bloğu DIŞI okuma → exception 0x02"** 6. **"bilinmeyen fonksiyon → exception 0x01"** 7. **"start idempotent: ikinci çağrı aynı port"** 8. **"stop sonrası bağlantı reddedilir"**
+
+`[DOSYA NOTU]`: çoklu-çerçeve/pipelining test edilmez (tek istek-tek yanıt MVP).
+
+### `packages/simulators/src/bsc-pcs-connector/connector.test.ts` (`15 test`)
+**Hedef:** `parseBscPcsMapping` (strict) + `BscPcsConnectorAdapter` (dönüşüm/bitişik-koşu yazım/izleme/kademeli hata/retry).
+
+1. **"geçerli dosyayı parse eder (üç kind)"** 2. **"bilinmeyen kind → throw"** 3. **"register mapping'de from/ratio eksik → throw"** 4. **"bit mapping'de from.bit eksik → throw"** 5. **"BMS bloğu dışı to → throw"** 6. **"bilinmeyen anahtar → throw (strict)"** 7. **"boş mappings → throw"**
+8. **"tick: register dönüşümleri yazılır (ratio/offset, yuvarlama; bitişik koşular)"** — 769-770 koşusu + 772 + 788 ayrı koşular.
+9. **"değişmeyen değerler ikinci tick'te yazılmaz"** 10. **"kaynak değişince intervalMs sonrası yeniden yazılır"** — yalnız değişen adres. 11. **"kaynak hatası kademeli — diğer eşleşmeler devam eder"** 12. **"yazım hatası → link 0 + fail sayacı; sonraki tick yeniden bağlanır"** 13. **"kaynak yoksa yazım yapılmaz ve kaynak durumu 2 olur"** 14. **"bit eşlemesi hedef kelimenin diğer bitlerini bozmaz"** 15. **"yazma girişimi yok sayılır"**
+
+`[DOSYA NOTU]`: çift BSC agregasyonu (C1) ve B02 bit kaynak eşlemesi (C2) açık — TEST-KAPSAMI.
+
+### `packages/simulators/src/bsc-pcs-connector/tcp-target.test.ts` (`4 test`)
+**Hedef:** `TcpBmsTarget` — gerçek BmsPortServer'a uçtan uca Modbus TCP FC 0x10 yazımı.
+
+1. **"BmsPortServer'a FC 0x10 yazar; simülatör deposu güncellenir"** 2. **"sunucu kapalıyken connect throw eder"** 3. **"close sonrası yeniden connect + yazım çalışır (retry deseni)"** 4. **"BMS bloğu dışına yazım → Modbus exception throw"**
+
+`[DOSYA NOTU]`: ephemaral port üzerinden gerçek soket kullanılır — CI'da port çakışması yok.
+
+### `services/device-service/src/config-field.test.ts` (`8 test`)
+**Hedef:** `config-field/pcs-1.json` sözleşmesi — şema, ad referansları, şarj NEGATİF konvansiyonu, bitfield/adres tutarlılığı, B01-B23, App.3 alarm bitfield'ları, S-register HOLDING kaydı.
+
+1. **"şemadan geçer"** 2. **"komut telemetri adları telemetri listesinde mevcuttur"** 3. **"charge komutu şarj NEGATİF konvansiyonunu taşır"** 4. **"validate ilişki sözcükleri: negative/positive/zero"** 5. **"bitfield register'ları telemetri adreslerinde kayıtlı"** 6. **"BMS bloğu B01-B23 tam kapsamda (768-790)"** 7. **"alarm sözcükleri Appendix 3 bitfield'larına bölünmüş"** 8. **"S-register'ları HOLDING_REGISTER olarak kayıtlı"**
+
+### `services/device-service/src/config-connector.test.ts` (`5 test`)
+**Hedef:** connector config + mapping dosyası sözleşmesi.
+
+1. **"connector cihaz config'i şemadan geçer"** 2. **"mapping strict parse edilir; hedef adresler BMS bloğunda (768-790)"** 3. **"mapping B01-B23 tam kapsam: hedef adresler 768-790 aralığını doldurur"** 4. **"kaynak cihazlar config-docker'da mevcuttur (BSC-1, EMU-1)"** 5. **"connector telemetri adları benzersiz"**
+
+### `apps/field/src/features/field-control/maneuvers.test.ts` (`16 test` — REV.01 yeniden yazımı, önceki 4 testin yerine)
+**Hedef:** REV.01 saha manevra kataloğu — 11 manevra (3 gizli), grup seçimi (sayısal indeks), santral gücü eşit dağıtım.
+
+1. **"her PCS kimliği için bir komut adımı üretir"** 2. **"boş liste → boş adım listesi"** 3. **"kart manevraları + gizli manevralar birlikte üretilir"** 4. **"FL-01 başlatma tüm PCS'lere start gönderir"** 5. **"FL-03 idle: set_power_zero (şarj/deşarj yok — güç sıfır)"** 6. **"FL-05 emergency stop: stop + rollback yok"** 7. **"FL-02 şarj: rollback = stop (güvenli geri dönüş)"** 8. **"gizli manevralar: FL-06 fault_reset+standby, FL-07/FL-10 stop"** 9. **"gizli set: FL-06/FL-07/FL-10"** 10. **"boş pcsIds → tüm manevralar boş adımlı"** 11. **"FL-02 için grup seçimi + güç girdisi + dağıtım transform'u"** 12. **"FL-04 kalibrasyon timer'lıdır"** 13. **"santral seviyesi: güç adım sayısına eşit bölünür"** 14. **"grup seçili: yalnızca o grup + gücün tamamı"** 15. **"transform yoksa adımlar aynen döner (param eklenmez)"** 16. **"tek PCS'e dağıtım: küsürat aşağı yuvarlanır, toplam korunur"**
+
+### `services/management-service/src/field-rules.test.ts` (`4 test`)
+**Hedef:** field tier R-06 recovery kuralı — E-stop düşen kenar + fault temiz → fault_reset + standby; şarj/deşarj ASLA otomatik.
+
+1. **"geçerli ve r06_recovery içeriyor"** 2. **"tetikleyici: E-stop 0 + fault 0 (all)"** 3. **"aksiyonlar: fault_reset + standby + log + notify — şarj/deşarj YOK"** 4. **"debounce: E-stop düşen kenarı 2 sn doğrulanır"**
+
+`[DOSYA NOTU]`: R-06'nın gerçek E-stop simülasyonuyla tetiklenme demosu açık (M3).
+
+**Güncelleme notu:** `device-service.test.ts` +3 test ("validate.expect ilişki sözcükleri" bloğu — T-P3); toplam 68.
 
 ## Bilinen kapsam dışı dosyalar (hiç testi yok — plan: test-gelistirme-plani.md)
 

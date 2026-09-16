@@ -12,6 +12,8 @@ export class SimulatorTransport implements IModbusTransport {
     private readonly simulator: IModbusSimulatorAdapter,
     private readonly tick: () => void,
     private readonly intervalMs: number = 1000,
+    /** Opsiyonel — disconnect'te çağrılır (ör. simülatör içi TCP sunucu kapatma). */
+    private readonly onDisconnect?: () => void | Promise<void>,
   ) {}
 
   async connect(): Promise<void> {
@@ -23,6 +25,9 @@ export class SimulatorTransport implements IModbusTransport {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = undefined;
+    }
+    if (this.onDisconnect) {
+      await Promise.resolve(this.onDisconnect());
     }
   }
 

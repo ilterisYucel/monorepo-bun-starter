@@ -1,6 +1,7 @@
 // Konfigürasyon tipleri — cihaz, taşıma ve servis konfig dosyalarının sözleşmeleri.
 
 import type { BitfieldConfig } from "../modbus/bitfield";
+import type { DeviceAlarmRule } from "../alarm";
 import type {
   ModbusTelemetryData,
   CanbusTelemetryData,
@@ -39,14 +40,17 @@ export interface DeviceTransportConfig {
   rackCount?: number;
   registerMap?: string;
   pcsCount?: number;
+  /** Wattox PCS simülatörü BMS port sunucu portu (yalnızca wattox-pcs + simulator) */
+  bmsPort?: number;
 }
 
 /** Simülatör konfigürasyonu (cihaz konfig dosyası içinde) */
 export interface SimulatorConfig {
-  type: "bsc" | "hvac" | "xrack" | "cb" | "dc-output" | "energy-analyzer" | "pcs" | "emu";
+  type: "bsc" | "hvac" | "xrack" | "cb" | "dc-output" | "energy-analyzer" | "pcs" | "emu" | "wattox-pcs";
   rackCount?: number;
   registerMap?: string;
   pcsCount?: number;
+  bmsPort?: number;
 }
 
 /**
@@ -66,6 +70,7 @@ export interface DeviceConfigFile {
   connection: Record<string, unknown>;
   telemetry: TelemetryConfigEntry[];
   bitfieldConfigs?: BitfieldConfig[];
+  alarms?: DeviceAlarmRule[];
   pollIntervalMs?: number;
   transport?: DeviceTransportConfig;
   commands?: Record<string, CommandConfig>;

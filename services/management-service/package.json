@@ -1,0 +1,24 @@
+{
+  "name": "@gd-monorepo/management-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run run.ts",
+    "test": "vitest run",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "dependencies": {
+    "@gd-monorepo/core": "*",
+    "@gd-monorepo/platform-commands": "*",
+    "@gd-monorepo/platform-messaging": "*",
+    "@gd-monorepo/platform-logging": "*",
+    "@gd-monorepo/result": "*",
+    "@gd-monorepo/shared-types": "*",
+    "@gd-monorepo/tamper-logger": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
+  }
+}

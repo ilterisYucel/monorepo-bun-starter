@@ -57,6 +57,78 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Field tier device-service — Wattox PCS'ler (PCS-WATTOX-MIMARISI.md).
+  device-service:
+    build:
+      context: ../
+      dockerfile: services/device-service/deployment/Dockerfile.dev
+    container_name: field-device-service-dev
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+    volumes:
+      - ../services/device-service/src:/app/services/device-service/src
+      - ../services/device-service/run.ts:/app/services/device-service/run.ts
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../packages/simulators/src:/app/packages/simulators/src
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Field tier otomasyon (management-service) — R-06 recovery kuralı.
+  # FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md §5.
+  management-service:
+    build:
+      context: ../
+      dockerfile: services/management-service/deployment/Dockerfile.dev
+    container_name: field-management-service-dev
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+    volumes:
+      - ../services/management-service/src:/app/services/management-service/src
+      - ../services/management-service/run.ts:/app/services/management-service/run.ts
+      - ../services/management-service/deployment/config-field:/app/config:ro
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
+      - ../packages/core/src:/app/packages/core/src
+      - ../packages/shared-types/src:/app/packages/shared-types/src
+      - ../packages/result/src:/app/packages/result/src
+      - ../packages/platform/messaging/src:/app/packages/platform/messaging/src
+      - ../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../packages/tamper-logger/src:/app/packages/tamper-logger/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      device-service:
+        condition: service_started
+    networks:
+      - field-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   web-service:
     build:
       context: ../

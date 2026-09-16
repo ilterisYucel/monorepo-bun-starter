@@ -1,0 +1,2726 @@
+{
+  "deviceId": "PCS-1",
+  "name": "PCS 1",
+  "manufacturer": "Wattox",
+  "model": "MPCS",
+  "protocol": "MODBUS",
+  "type": "pcs",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 502,
+    "unitId": 1
+  },
+  "pollIntervalMs": 1000,
+  "transport": {
+    "kind": "simulator",
+    "type": "wattox-pcs",
+    "bmsPort": 15502
+  },
+  "telemetry": [
+    {
+      "name": "Rated Power",
+      "description": "Rated Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 12040,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Rated Voltage",
+      "description": "Rated Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12041,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Rated Current",
+      "description": "Rated Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 12042,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Charging Power",
+      "description": "Max Charging Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 291,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Discharging Power",
+      "description": "Max Discharging Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 292,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Reactive Power Upper Limit",
+      "description": "Reactive Power Upper Limit",
+      "unit": "kVar",
+      "protocol": "MODBUS",
+      "registerAddress": 294,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Reactive Power Lower Limit",
+      "description": "Reactive Power Lower Limit",
+      "unit": "kVar",
+      "protocol": "MODBUS",
+      "registerAddress": 293,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Charging Current",
+      "description": "Max Charging Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 295,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Discharging Current",
+      "description": "Max Discharging Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 296,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Upper Voltage Limit Off-grid",
+      "description": "Upper Voltage Limit Off-grid",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12047,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Lower Voltage Limit Off-grid",
+      "description": "Lower Voltage Limit Off-grid",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12048,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Upper Voltage Limit Const-V",
+      "description": "Upper Voltage Limit Const-V",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 279,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Lower Voltage Limit Const-V",
+      "description": "Lower Voltage Limit Const-V",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 280,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Allowable Discharging Power",
+      "description": "Max Allowable Discharging Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 12078,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Allowable Charging Power",
+      "description": "Max Allowable Charging Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 12079,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "PCS Operation Status",
+      "description": "PCS Operation Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12157,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "operation_status"
+    },
+    {
+      "name": "PCS Operation Status Bits",
+      "description": "PCS Operation Status Bits",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12122,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "PCS Fault Status",
+      "description": "PCS Fault Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12099,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "pcs_fault"
+    },
+    {
+      "name": "PCS Alarm Status",
+      "description": "PCS Alarm Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12101,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "pcs_alarm"
+    },
+    {
+      "name": "Charging Operation Status",
+      "description": "Charging Operation Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12093,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "charging"
+    },
+    {
+      "name": "Discharging Operation Status",
+      "description": "Discharging Operation Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12094,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "discharging"
+    },
+    {
+      "name": "Assembly Operation Status",
+      "description": "Assembly Operation Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12096,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Voltage",
+      "description": "Battery Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12104,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "voltage"
+    },
+    {
+      "name": "DC Current",
+      "description": "DC Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 12105,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "current"
+    },
+    {
+      "name": "Grid Frequency",
+      "description": "Grid Frequency",
+      "unit": "Hz",
+      "protocol": "MODBUS",
+      "registerAddress": 12110,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "grid_frequency"
+    },
+    {
+      "name": "DC Power",
+      "description": "DC Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 12109,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "dc_power_kw"
+    },
+    {
+      "name": "Power Factor",
+      "description": "Power Factor",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12115,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.001,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "power_factor"
+    },
+    {
+      "name": "Upper Half Bus Voltage",
+      "description": "Upper Half Bus Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12102,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Lower Half Bus Voltage",
+      "description": "Lower Half Bus Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12103,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Grid Active Power",
+      "description": "Grid Active Power",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 12158,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "power_kw"
+    },
+    {
+      "name": "Grid Reactive Power",
+      "description": "Grid Reactive Power",
+      "unit": "kVar",
+      "protocol": "MODBUS",
+      "registerAddress": 12159,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "reactive_power_kvar"
+    },
+    {
+      "name": "Total Apparent Power",
+      "description": "Total Apparent Power",
+      "unit": "kVA",
+      "protocol": "MODBUS",
+      "registerAddress": 12114,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Grid Voltage AB",
+      "description": "Grid Voltage AB",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12111,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "grid_voltage"
+    },
+    {
+      "name": "Grid Voltage BC",
+      "description": "Grid Voltage BC",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12112,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Grid Voltage CA",
+      "description": "Grid Voltage CA",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 12113,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Phase A Current",
+      "description": "Phase A Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 12106,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Phase B Current",
+      "description": "Phase B Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 12107,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Phase C Current",
+      "description": "Phase C Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 12108,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Inverter Voltage AB",
+      "description": "Inverter Voltage AB",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 8216,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Inverter Voltage BC",
+      "description": "Inverter Voltage BC",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 8217,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Inverter Voltage CA",
+      "description": "Inverter Voltage CA",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 8218,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Derated Operation",
+      "description": "Derated Operation",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12121,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "AC Circuit Breaker Status",
+      "description": "AC Circuit Breaker Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12123,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "ac_breaker_status"
+    },
+    {
+      "name": "AC Pre-charge Contactor Status",
+      "description": "AC Pre-charge Contactor Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12125,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DC Circuit Breaker Status 1",
+      "description": "DC Circuit Breaker Status 1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12124,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "dc_breaker_status"
+    },
+    {
+      "name": "DC Pre-charge Contactor Status 1",
+      "description": "DC Pre-charge Contactor Status 1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12126,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DC Circuit Breaker Status 2",
+      "description": "DC Circuit Breaker Status 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12164,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DC Pre-charge Contactor Status 2",
+      "description": "DC Pre-charge Contactor Status 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12165,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Emergency Stop Button Status",
+      "description": "Emergency Stop Button Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12128,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "emergency_stop"
+    },
+    {
+      "name": "IGBT Temp A1",
+      "description": "IGBT Temp A1",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12116,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "IGBT Temp B1",
+      "description": "IGBT Temp B1",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12117,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "IGBT Temp C1",
+      "description": "IGBT Temp C1",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12118,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "IGBT Temp A2",
+      "description": "IGBT Temp A2",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12160,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "IGBT Temp B2",
+      "description": "IGBT Temp B2",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12161,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "IGBT Temp C2",
+      "description": "IGBT Temp C2",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12162,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Reactor Temperature 1",
+      "description": "Reactor Temperature 1",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12120,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Reactor Temperature 2",
+      "description": "Reactor Temperature 2",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12163,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Filter Capacitor Temperature",
+      "description": "Filter Capacitor Temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 8232,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Internal Cavity Temperature",
+      "description": "Internal Cavity Temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 8231,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Ambient Humidity",
+      "description": "Ambient Humidity",
+      "unit": "%RH",
+      "protocol": "MODBUS",
+      "registerAddress": 8239,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "ambient_humidity"
+    },
+    {
+      "name": "Ambient Temperature",
+      "description": "Ambient Temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 12119,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "ambient_temperature"
+    },
+    {
+      "name": "Fuse Status 1",
+      "description": "Fuse Status 1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12127,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fuse Status 2",
+      "description": "Fuse Status 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12166,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Grounding Insulation Impedance 1",
+      "description": "Grounding Insulation Impedance 1",
+      "unit": "kΩ",
+      "protocol": "MODBUS",
+      "registerAddress": 12138,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "insulation_impedance"
+    },
+    {
+      "name": "Grounding Insulation Impedance 2",
+      "description": "Grounding Insulation Impedance 2",
+      "unit": "kΩ",
+      "protocol": "MODBUS",
+      "registerAddress": 12167,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Water Pump Status",
+      "description": "Water Pump Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12129,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Three-phase Fan Status",
+      "description": "Three-phase Fan Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12131,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DC Fan Status",
+      "description": "DC Fan Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12130,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DI Status 1",
+      "description": "DI Status 1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8283,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DI Status 2",
+      "description": "DI Status 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12480,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Accumulative Discharge Low",
+      "description": "Accumulative Discharge Low",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 12132,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Accumulative Discharge High",
+      "description": "Accumulative Discharge High",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 12133,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Accumulative Charge Low",
+      "description": "Accumulative Charge Low",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 12134,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Accumulative Charge High",
+      "description": "Accumulative Charge High",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 12135,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Daily Discharge Amount",
+      "description": "Daily Discharge Amount",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 12136,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Daily Charge Amount",
+      "description": "Daily Charge Amount",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 12137,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS Running Status",
+      "description": "BMS Running Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 768,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS Status Word",
+      "description": "BMS Status Word",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 769,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Pack Total Voltage",
+      "description": "Battery Pack Total Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 770,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Pack Total Current",
+      "description": "Battery Pack Total Current",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 771,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Pack SOC",
+      "description": "Battery Pack SOC",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 772,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "soc"
+    },
+    {
+      "name": "Battery Pack SOH",
+      "description": "Battery Pack SOH",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 773,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "soh"
+    },
+    {
+      "name": "Max Charging Current Pack",
+      "description": "Max Charging Current Pack",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 774,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Discharging Current Pack",
+      "description": "Max Discharging Current Pack",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 775,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Max Charging Power Pack",
+      "description": "Max Charging Power Pack",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 776,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "charge_power_limit"
+    },
+    {
+      "name": "Max Discharging Power Pack",
+      "description": "Max Discharging Power Pack",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 777,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "discharge_power_limit"
+    },
+    {
+      "name": "Max Cell SOC",
+      "description": "Max Cell SOC",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 778,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "max_soc"
+    },
+    {
+      "name": "Min Cell SOC",
+      "description": "Min Cell SOC",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 779,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "min_soc"
+    },
+    {
+      "name": "Highest Cell Temperature",
+      "description": "Highest Cell Temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 780,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "max_cell_temp"
+    },
+    {
+      "name": "Lowest Cell Temperature",
+      "description": "Lowest Cell Temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 781,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "min_cell_temp"
+    },
+    {
+      "name": "Max Cell Voltage",
+      "description": "Max Cell Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 782,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.001,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "max_cell_voltage"
+    },
+    {
+      "name": "Min Cell Voltage",
+      "description": "Min Cell Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 783,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.001,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "min_cell_voltage"
+    },
+    {
+      "name": "Battery Pack Upper Voltage Limit",
+      "description": "Battery Pack Upper Voltage Limit",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 784,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Pack Lower Voltage Limit",
+      "description": "Battery Pack Lower Voltage Limit",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 785,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Available Charge Energy",
+      "description": "Available Charge Energy",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 786,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Available Discharge Energy",
+      "description": "Available Discharge Energy",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 787,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Rated Energy Pack",
+      "description": "Rated Energy Pack",
+      "unit": "MWh",
+      "protocol": "MODBUS",
+      "registerAddress": 788,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.001,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Pack SOP",
+      "description": "Battery Pack SOP",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 789,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "DC-side System Status",
+      "description": "DC-side System Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 790,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS CAN Rate",
+      "description": "BMS CAN Rate",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2846,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS NMT Node Status",
+      "description": "BMS NMT Node Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2848,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS CAN Timeout",
+      "description": "BMS CAN Timeout",
+      "unit": "s",
+      "protocol": "MODBUS",
+      "registerAddress": 2849,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS CAN Module Status",
+      "description": "BMS CAN Module Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2850,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS CAN Tx Error Count",
+      "description": "BMS CAN Tx Error Count",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2851,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS CAN Rx Error Count",
+      "description": "BMS CAN Rx Error Count",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2852,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Last BMS CAN LEC Error",
+      "description": "Last BMS CAN LEC Error",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2853,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "BMS CAN Communication Status",
+      "description": "BMS CAN Communication Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2854,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 1",
+      "description": "Fault Status Word 1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12213,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 2",
+      "description": "Fault Status Word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12214,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 3",
+      "description": "Fault Status Word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12215,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 4",
+      "description": "Fault Status Word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12216,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 5",
+      "description": "Fault Status Word 5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12217,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 6",
+      "description": "Fault Status Word 6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12218,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 7",
+      "description": "Fault Status Word 7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12219,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 8",
+      "description": "Fault Status Word 8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12220,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 9",
+      "description": "Fault Status Word 9",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12221,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Status Word 10",
+      "description": "Fault Status Word 10",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12222,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 1",
+      "description": "Alarm Status Word 1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12223,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 2",
+      "description": "Alarm Status Word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12224,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 3",
+      "description": "Alarm Status Word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12225,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 4",
+      "description": "Alarm Status Word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12226,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 5",
+      "description": "Alarm Status Word 5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12227,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 6",
+      "description": "Alarm Status Word 6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12228,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 7",
+      "description": "Alarm Status Word 7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12229,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Alarm Status Word 8",
+      "description": "Alarm Status Word 8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12230,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Command Source",
+      "description": "Command Source",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3584,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "PCS Operation Mode",
+      "description": "PCS Operation Mode",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3585,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "PCS On-grid Control Mode",
+      "description": "PCS On-grid Control Mode",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3586,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Reactive Power Mode Setting",
+      "description": "Reactive Power Mode Setting",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3588,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Preferred Power Mode Setting",
+      "description": "Preferred Power Mode Setting",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3590,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Active Power Setpoint",
+      "description": "Active Power Setpoint",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3609,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Reactive Power Setpoint",
+      "description": "Reactive Power Setpoint",
+      "unit": "kVar",
+      "protocol": "MODBUS",
+      "registerAddress": 3610,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Power Factor Setpoint",
+      "description": "Power Factor Setpoint",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3611,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.001,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Voltage Set Const-V Mode",
+      "description": "Voltage Set Const-V Mode",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3612,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Current Set Const-I Mode",
+      "description": "Current Set Const-I Mode",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 3613,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Power Change Rate Setting",
+      "description": "Power Change Rate Setting",
+      "unit": "%Pn/s",
+      "protocol": "MODBUS",
+      "registerAddress": 3614,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Off-grid Acceleration Rate",
+      "description": "Off-grid Acceleration Rate",
+      "unit": "pu/s",
+      "protocol": "MODBUS",
+      "registerAddress": 3616,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Off-grid Line Voltage RMS",
+      "description": "Off-grid Line Voltage RMS",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3619,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Insulation Detection Command",
+      "description": "Insulation Detection Command",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3591,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Start Command",
+      "description": "Start Command",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3604,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Stop Command",
+      "description": "Stop Command",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3605,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault Reset Command",
+      "description": "Fault Reset Command",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3606,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Standby Command",
+      "description": "Standby Command",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3607,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Sync Time Year",
+      "description": "Sync Time Year",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3623,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Sync Time MMDD",
+      "description": "Sync Time MMDD",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3624,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Sync Time hhmm",
+      "description": "Sync Time hhmm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3625,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Sync Time Seconds",
+      "description": "Sync Time Seconds",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3626,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Active Silo Detection",
+      "description": "Active Silo Detection",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1406,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Zero Power Standby Mode",
+      "description": "Zero Power Standby Mode",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1337,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Grid-forming Enable",
+      "description": "Grid-forming Enable",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4608,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Primary Frequency Control Enable",
+      "description": "Primary Frequency Control Enable",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4616,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Primary Frequency Dead Zone",
+      "description": "Primary Frequency Dead Zone",
+      "unit": "Hz",
+      "protocol": "MODBUS",
+      "registerAddress": 4618,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Primary Frequency Coefficient",
+      "description": "Primary Frequency Coefficient",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4617,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Primary Voltage Control Enable",
+      "description": "Primary Voltage Control Enable",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4620,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Primary Voltage Dead Zone",
+      "description": "Primary Voltage Dead Zone",
+      "unit": "pu",
+      "protocol": "MODBUS",
+      "registerAddress": 4622,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Primary Voltage Coefficient",
+      "description": "Primary Voltage Coefficient",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4621,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Virtual Inertia Coefficient",
+      "description": "Virtual Inertia Coefficient",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4611,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Virtual Damping Coefficient",
+      "description": "Virtual Damping Coefficient",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4612,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Virtual Excitation Coefficient",
+      "description": "Virtual Excitation Coefficient",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4613,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "bitfieldConfigs": [
+    {
+      "registerAddress": 769,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "BMS No Comm",
+          "dataTag": "bms_no_comm",
+          "description": "BMS No Comm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "BMS Fault",
+          "dataTag": "bms_fault",
+          "description": "BMS Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "BMS Charge Prohibited",
+          "dataTag": "bms_charge_prohibited",
+          "description": "BMS Charge Prohibited",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "canonical": "bms_charge_prohibited"
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "BMS Discharge Prohibited",
+          "dataTag": "bms_discharge_prohibited",
+          "description": "BMS Discharge Prohibited",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "canonical": "bms_discharge_prohibited"
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "BMS Initializing",
+          "dataTag": "bms_initializing",
+          "description": "BMS Initializing",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "BMS Alarm",
+          "dataTag": "bms_alarm",
+          "description": "BMS Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "BMS Chg&Dschg Prohibited",
+          "dataTag": "bms_blocked",
+          "description": "BMS Chg&Dschg Prohibited",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12128,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Local Emergency Stop",
+          "dataTag": "estop_local",
+          "description": "Local Emergency Stop",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Remote Emergency Stop",
+          "dataTag": "estop_remote",
+          "description": "Remote Emergency Stop",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "BMS Emergency Stop",
+          "dataTag": "estop_bms",
+          "description": "BMS Emergency Stop",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 8283,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Cabinet Door Open",
+          "dataTag": "di_door",
+          "description": "Cabinet Door Open",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "canonical": "door_open"
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Insulation Detection Contactor",
+          "dataTag": "di_insulation_contactor",
+          "description": "Insulation Detection Contactor",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Water Level Fault",
+          "dataTag": "di_water_level",
+          "description": "Water Level Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "DC Surge Protection Fault",
+          "dataTag": "di_dc_spd",
+          "description": "DC Surge Protection Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "AC Surge Protection Fault",
+          "dataTag": "di_ac_spd",
+          "description": "AC Surge Protection Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "Water Pump Power Contactor",
+          "dataTag": "di_pump_contactor",
+          "description": "Water Pump Power Contactor",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Fan Power Contactor",
+          "dataTag": "di_fan_contactor",
+          "description": "Fan Power Contactor",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "Heater Contactor",
+          "dataTag": "di_heater_contactor",
+          "description": "Heater Contactor",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Reactor Over-temperature Switch",
+          "dataTag": "di_reactor_ot",
+          "description": "Reactor Over-temperature Switch",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12223,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "BMS System Alarm",
+          "dataTag": "al_bms_system",
+          "description": "BMS System Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "BMS Insulation Alarm",
+          "dataTag": "al_bms_insulation",
+          "description": "BMS Insulation Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12224,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "DC Side Switch Alarm",
+          "dataTag": "al_dc_switch",
+          "description": "DC Side Switch Alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12225,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Islanding Fault",
+          "dataTag": "al_islanding",
+          "description": "Islanding Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0,
+          "canonical": "islanding"
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Low Insulation Resistance",
+          "dataTag": "al_low_insulation",
+          "description": "Low Insulation Resistance",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12226,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Insulation Detection Failed",
+          "dataTag": "al_insulation_failed",
+          "description": "Insulation Detection Failed",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12227,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Parallel Communication Fault",
+          "dataTag": "al_parallel_comm",
+          "description": "Parallel Communication Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12228,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "EMS Communication Fault",
+          "dataTag": "al_ems_comm",
+          "description": "EMS Communication Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "220V Control Power Disconnected",
+          "dataTag": "al_ctrl_power",
+          "description": "220V Control Power Disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Local Emergency Stop Fault",
+          "dataTag": "al_estop_local_fault",
+          "description": "Local Emergency Stop Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12229,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Remote Emergency Stop Fault",
+          "dataTag": "al_estop_remote_fault",
+          "description": "Remote Emergency Stop Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "BMS Emergency Stop Fault",
+          "dataTag": "al_estop_bms_fault",
+          "description": "BMS Emergency Stop Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Cabinet Door Fault",
+          "dataTag": "al_door_fault",
+          "description": "Cabinet Door Fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12230,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "DC Midpoint Sampling Disconnected",
+          "dataTag": "al_dc_mid_sampling",
+          "description": "DC Midpoint Sampling Disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "DC Voltage Sampling Disconnected",
+          "dataTag": "al_dc_v_sampling",
+          "description": "DC Voltage Sampling Disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    }
+  ],
+  "alarms": [
+    {
+      "telemetry": "PCS Fault Status",
+      "severity": "error",
+      "description": "PCS fault durumu"
+    },
+    {
+      "telemetry": "PCS Alarm Status",
+      "severity": "warning",
+      "description": "PCS alarm durumu"
+    },
+    {
+      "telemetry": "Cabinet Door Open",
+      "severity": "warning",
+      "description": "PCS kabin kapısı açık"
+    },
+    {
+      "telemetry": "Local Emergency Stop",
+      "severity": "error",
+      "description": "Lokal acil durdurma"
+    },
+    {
+      "telemetry": "Remote Emergency Stop",
+      "severity": "error",
+      "description": "Uzaktan acil durdurma"
+    },
+    {
+      "telemetry": "BMS Emergency Stop",
+      "severity": "error",
+      "description": "BMS acil durdurma"
+    }
+  ],
+  "commands": {
+    "start": {
+      "label": "Başlat",
+      "telemetries": [
+        {
+          "name": "Start Command",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "PCS Operation Status",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "stop": {
+      "label": "Durdur",
+      "telemetries": [
+        {
+          "name": "Stop Command",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "PCS Operation Status",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "standby": {
+      "label": "Standby",
+      "telemetries": [
+        {
+          "name": "Standby Command",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "PCS Operation Status",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "fault_reset": {
+      "label": "Fault Reset",
+      "telemetries": [
+        {
+          "name": "Fault Reset Command",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "PCS Fault Status",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "charge": {
+      "label": "Şarj",
+      "telemetries": [
+        {
+          "name": "Active Power Setpoint",
+          "value": "-{{powerKw}}"
+        }
+      ],
+      "params": {
+        "powerKw": {
+          "type": "number",
+          "min": 0,
+          "max": 1725,
+          "default": 500,
+          "required": true,
+          "label": "Güç (kW)"
+        }
+      },
+      "timeoutMs": 5000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Grid Active Power",
+            "expect": "negative"
+          }
+        ]
+      }
+    },
+    "discharge": {
+      "label": "Deşarj",
+      "telemetries": [
+        {
+          "name": "Active Power Setpoint",
+          "value": "{{powerKw}}"
+        }
+      ],
+      "params": {
+        "powerKw": {
+          "type": "number",
+          "min": 0,
+          "max": 1725,
+          "default": 500,
+          "required": true,
+          "label": "Güç (kW)"
+        }
+      },
+      "timeoutMs": 5000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Grid Active Power",
+            "expect": "positive"
+          }
+        ]
+      }
+    },
+    "set_power_zero": {
+      "label": "Gücü Sıfırla",
+      "telemetries": [
+        {
+          "name": "Active Power Setpoint",
+          "value": 0
+        }
+      ],
+      "timeoutMs": 5000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Grid Active Power",
+            "expect": "zero"
+          }
+        ]
+      }
+    },
+    "set_command_source": {
+      "label": "EMS Kontrol",
+      "telemetries": [
+        {
+          "name": "Command Source",
+          "value": 1
+        }
+      ],
+      "validate": {
+        "reads": [
+          {
+            "name": "Command Source",
+            "expect": 1
+          }
+        ]
+      }
+    }
+  }
+}

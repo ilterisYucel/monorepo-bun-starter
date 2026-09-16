@@ -1,4 +1,6 @@
+import { isAbsolute, resolve } from "node:path";
 import type { IDevice, ReadDeviceJob, CommandDeviceJob, TelemetryData, ServiceConfigFile, DeviceAlarmRule } from "@gd-monorepo/shared-types";
+import { expectHolds } from "@gd-monorepo/shared-types";
 
 import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
@@ -132,6 +134,15 @@ export class DeviceService {
   ): Promise<DeviceService> {
     const loader = new DeviceConfigLoader(configDir);
     const { service, devices: configs } = loader.load();
+
+    // Config dizini bağıl registerMap yollarını mutlak yap — simülatör
+    // fabrikaları CWD'den bağımsız dosya okur (BSC register map, connector
+    // mapping vb. config dizininin altında yaşar).
+    for (const config of configs) {
+      if (config.transport?.registerMap && !isAbsolute(config.transport.registerMap)) {
+        config.transport.registerMap = resolve(configDir, config.transport.registerMap);
+      }
+    }
 
     const simulators = new SimulatorRegistry();
     simulators.createFromConfigs(configs);
@@ -555,7 +566,10 @@ export class DeviceService {
           const readBack = await entry.device.read();
           const allMatch = validate.reads.every((expected) => {
             const actual = readBack.find((r) => r.name === expected.name);
-            return actual && actual.value === expected.expect;
+            return (
+              actual !== undefined &&
+              expectHolds(actual.value, expected.expect)
+            );
           });
           if (allMatch) return { success: true, validated: true };
         } catch {

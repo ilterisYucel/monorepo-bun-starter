@@ -13,6 +13,9 @@ describe("GD-PMS olay sözlüğü", () => {
     expect(isLogEventCode("device_alarm")).toBe(true);
     expect(isLogEventCode("service_started")).toBe(true);
     expect(isLogEventCode("audit_sink_failure")).toBe(true);
+    expect(isLogEventCode("auto_rule_fired")).toBe(true);
+    expect(isLogEventCode("auto_rule_action_ok")).toBe(true);
+    expect(isLogEventCode("auto_rule_action_failed")).toBe(true);
   });
 
   it("bilinmeyen kodlar reddedilir", () => {

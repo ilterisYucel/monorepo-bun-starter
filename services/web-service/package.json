@@ -25,7 +25,8 @@
     "redis": "^4.0.0",
     "ws": "^8.0.0",
     "zod": "^3.25.0",
-    "@gd-monorepo/result": "*"
+    "@gd-monorepo/result": "*",
+    "@gd-monorepo/platform-commands": "*"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -1,0 +1,9 @@
+{
+  "redis": {
+    "host": "redis",
+    "port": 6379
+  },
+  "servicePollIntervalMs": 5000,
+  "workerConcurrency": 5,
+  "managementIntervalMs": 10000
+}

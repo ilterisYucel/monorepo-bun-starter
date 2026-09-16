@@ -1,0 +1,122 @@
+{
+  "deviceId": "BSC-PCS-CONNECTOR-1",
+  "name": "BSC-PCS Connector",
+  "manufacturer": "GD-PMS",
+  "model": "Virtual Gateway",
+  "protocol": "MODBUS",
+  "type": "bsc-pcs-connector",
+  "connection": {},
+  "pollIntervalMs": 5000,
+  "transport": {
+    "kind": "simulator",
+    "type": "bsc-pcs-connector",
+    "registerMap": "mappings/bsc-pcs-mapping.json"
+  },
+  "telemetry": [
+    {
+      "name": "Connector Link Status",
+      "description": "PCS BMS port baglanti durumu (0 kopuk / 1 bagli)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "canonical": "connector_link"
+    },
+    {
+      "name": "Connector Source Status",
+      "description": "Kaynak durumu (0 ok / 1 kismi / 2 yok)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Connector Last Write Time Low",
+      "description": "Son basarili yazim zamani (unix sn, dusuk word)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Connector Last Write Time High",
+      "description": "Son basarili yazim zamani (unix sn, yuksek word)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Connector Write Counter Low",
+      "description": "Toplam basarili yazim sayaci (dusuk word)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Connector Write Counter High",
+      "description": "Toplam basarili yazim sayaci (yuksek word)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Connector Fail Counter Low",
+      "description": "Toplam basarisiz yazim sayaci (dusuk word)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Connector Fail Counter High",
+      "description": "Toplam basarisiz yazim sayaci (yuksek word)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ]
+}

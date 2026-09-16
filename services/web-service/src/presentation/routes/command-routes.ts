@@ -3,9 +3,13 @@ import type { FastifyInstance } from "fastify";
 import type { IMessageQueue } from "@gd-monorepo/core";
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
 
-import type { CommandConfig, TelemetryData } from "@gd-monorepo/shared-types";
+import type { CommandConfig, CommandDeviceJob, TelemetryData } from "@gd-monorepo/shared-types";
 
-import { loadDeviceConfig } from "../../infrastructure/config-loader";
+import {
+  CommandJobBuilder,
+  DeviceConfigFileSource,
+} from "@gd-monorepo/platform-commands";
+import type { IDeviceConfigSource } from "@gd-monorepo/platform-commands";
 
 const telemetryEntrySchema = z.object({
   name: z.string().min(1),
@@ -29,66 +33,20 @@ const executeMultiSchema = z.object({
   onFailure: z.enum(["stop", "continue"]).default("stop"),
 });
 
-function resolveTelemetries(
-  command: CommandConfig,
-  params: Record<string, unknown> | undefined,
-  deviceId: string,
-): TelemetryData[] {
-  const now = new Date().toISOString();
-  return command.telemetries.map((t) => {
-    let resolvedValue: unknown = t.value;
-
-    if (typeof resolvedValue === "string") {
-      const match = resolvedValue.match(/^([+-]?)\{\{(\w+)\}\}$/);
-      if (match) {
-        const paramName = match[2]!;
-        const param = params?.[paramName];
-        // İşaret öneki: PCS setpoint'leri için (+ deşarj, − şarj)
-        if (match[1] === "-" && typeof param === "number") {
-          resolvedValue = -param;
-        } else {
-          resolvedValue = param;
-        }
-      }
-    }
-
-    return {
-      name: t.name,
-      value: resolvedValue as number | string | boolean,
-      unit: t.unit ?? "",
-      description: "",
-      timestamp: now,
-      deviceId,
-    } as TelemetryData;
-  });
-}
-
-function buildJob(
-  deviceId: string,
-  telemetries: TelemetryData[],
-  command: CommandConfig | undefined,
-  jobId: string,
-) {
-  return {
-    jobId,
-    type: "COMMAND_DEVICE" as const,
-    deviceId,
-    timestamp: new Date().toISOString(),
-    telemetries,
-    atomic: command?.atomic ?? true,
-    validate: command?.validate ? {
-      minWaitMs: command.validate.minWaitMs,
-      timeoutMs: command.timeoutMs ?? 3000,
-      reads: command.validate.reads.map((r) => ({ name: r.name, expect: r.expect })),
-    } : undefined,
-  };
-}
-
 export async function makeCommandRoutes(
   fastify: FastifyInstance,
-  options: { mq: IMessageQueue; configDir: string; logger?: TamperLogger },
+  options: {
+    mq: IMessageQueue;
+    configDir: string;
+    logger?: TamperLogger;
+    /** Test enjeksiyonu — verilmezse `DeviceConfigFileSource(configDir)`. */
+    configSource?: IDeviceConfigSource;
+  },
 ) {
-  const { mq, configDir, logger } = options;
+  const { mq, logger } = options;
+  const configSource =
+    options.configSource ?? new DeviceConfigFileSource(options.configDir);
+  const commandJobs = new CommandJobBuilder({ source: configSource });
 
   fastify.post("/execute", async (request, reply) => {
     const body = commandStepSchema.parse(request.body);
@@ -96,9 +54,13 @@ export async function makeCommandRoutes(
 
     let telemetries: TelemetryData[];
     let commandConfig: CommandConfig | undefined;
+    let jobId: string;
+    let jobTimestamp: string;
+    let jobAtomic: boolean;
+    let jobValidate: CommandDeviceJob["validate"] | undefined;
 
     if (commandName) {
-      const config = loadDeviceConfig(configDir, deviceId);
+      const config = configSource.load(deviceId);
       if (!config) {
         return reply.status(404).send({ error: `Device not found: ${deviceId}` });
       }
@@ -106,14 +68,19 @@ export async function makeCommandRoutes(
       if (!commandConfig) {
         return reply.status(404).send({ error: `Command not found: ${commandName}` });
       }
-      if (commandConfig.params) {
-        for (const [key, paramConfig] of Object.entries(commandConfig.params)) {
-          if (paramConfig.required && (!params || params[key] === undefined)) {
-            return reply.status(400).send({ error: `Missing required param: ${key}` });
-          }
-        }
+      const result = commandJobs.build(deviceId, commandName, params);
+      if (result.isErr()) {
+        const err = result.error();
+        return reply
+          .status(400)
+          .send({ error: `Missing required param: ${err.context.paramName ?? ""}` });
       }
-      telemetries = resolveTelemetries(commandConfig, params, deviceId);
+      const job = result.unwrap();
+      telemetries = job.telemetries;
+      jobId = job.jobId;
+      jobTimestamp = job.timestamp;
+      jobAtomic = job.atomic ?? true;
+      jobValidate = job.validate;
     } else {
       telemetries = rawTelemetries!.map((t) => ({
         ...t,
@@ -121,12 +88,25 @@ export async function makeCommandRoutes(
         deviceId,
         description: "",
       })) as TelemetryData[];
+      jobId = `${deviceId}-raw-${Date.now()}`;
+      jobTimestamp = new Date().toISOString();
+      jobAtomic = true;
+      jobValidate = undefined;
     }
 
     const timeoutMs = (commandConfig?.timeoutMs ?? 3000) + 2000;
-    const jobId = `${deviceId}-${commandName ?? "raw"}-${Date.now()}`;
-    const job = buildJob(deviceId, telemetries, commandConfig, jobId);
-    const result = await mq.executeAndWait(job, timeoutMs);
+    const result = await mq.executeAndWait(
+      {
+        jobId,
+        type: "COMMAND_DEVICE",
+        deviceId,
+        timestamp: jobTimestamp,
+        telemetries,
+        atomic: jobAtomic,
+        ...(jobValidate ? { validate: jobValidate } : undefined),
+      },
+      timeoutMs,
+    );
 
     return reply.status(result.success ? 200 : 422).send({
       deviceId,
@@ -145,18 +125,21 @@ export async function makeCommandRoutes(
       let commandConfig: CommandConfig | undefined;
 
       if (commandName) {
-        const config = loadDeviceConfig(configDir, deviceId);
+        const config = configSource.load(deviceId);
         if (!config) return { deviceId, command: commandName, success: false, reason: `Device not found: ${deviceId}` };
         commandConfig = config.commands?.[commandName];
         if (!commandConfig) return { deviceId, command: commandName, success: false, reason: `Command not found: ${commandName}` };
-        if (commandConfig.params) {
-          for (const [key, paramConfig] of Object.entries(commandConfig.params)) {
-            if (paramConfig.required && (!params || params[key] === undefined)) {
-              return { deviceId, command: commandName, success: false, reason: `Missing required param: ${key}` };
-            }
-          }
+        const result = commandJobs.build(deviceId, commandName, params);
+        if (result.isErr()) {
+          const err = result.error();
+          return {
+            deviceId,
+            command: commandName,
+            success: false,
+            reason: `Missing required param: ${err.context.paramName ?? ""}`,
+          };
         }
-        telemetries = resolveTelemetries(commandConfig, params, deviceId);
+        telemetries = result.unwrap().telemetries;
       } else {
         telemetries = rawTelemetries!.map((t) => ({
           ...t,
@@ -168,8 +151,29 @@ export async function makeCommandRoutes(
 
       const timeoutMs = (commandConfig?.timeoutMs ?? 3000) + 2000;
       const jobId = `${deviceId}-${commandName ?? "raw"}-${Date.now()}`;
-      const job = buildJob(deviceId, telemetries, commandConfig, jobId);
-      const result = await mq.executeAndWait(job, timeoutMs);
+      const result = await mq.executeAndWait(
+        {
+          jobId,
+          type: "COMMAND_DEVICE",
+          deviceId,
+          timestamp: new Date().toISOString(),
+          telemetries,
+          atomic: commandConfig?.atomic ?? true,
+          ...(commandConfig?.validate
+            ? {
+                validate: {
+                  minWaitMs: commandConfig.validate.minWaitMs,
+                  timeoutMs: commandConfig.timeoutMs ?? 3000,
+                  reads: commandConfig.validate.reads.map((r) => ({
+                    name: r.name,
+                    expect: r.expect,
+                  })),
+                },
+              }
+            : undefined),
+        },
+        timeoutMs,
+      );
 
       // Zamanlı komut: _durationSeconds varsa, süre dolunca otomatik stop job'ı zamanla
       const durationSeconds = params && typeof params._durationSeconds === "number"
@@ -271,7 +275,7 @@ export async function makeCommandRoutes(
   fastify.get("/:deviceId/commands", async (request, reply) => {
     const { deviceId } = request.params as { deviceId: string };
 
-    const config = loadDeviceConfig(configDir, deviceId);
+    const config = configSource.load(deviceId);
     if (!config || !config.commands) {
       return reply.send({ commands: [] });
     }

@@ -1,0 +1,59 @@
+{
+  "name": "management-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "services/management-service/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun --watch run.ts",
+        "cwd": "services/management-service"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun build src/index.ts --outdir dist --target bun",
+        "cwd": "services/management-service"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run run.ts",
+        "cwd": "services/management-service"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --passWithNoTests",
+        "cwd": "services/management-service"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "services/management-service"
+      }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rm -rf dist",
+        "cwd": "services/management-service"
+      }
+    }
+  },
+  "implicitDependencies": [
+    "core",
+    "shared-types",
+    "platform-messaging",
+    "platform-commands",
+    "platform-logging",
+    "tamper-logger"
+  ]
+}

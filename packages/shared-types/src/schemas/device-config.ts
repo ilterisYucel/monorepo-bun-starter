@@ -26,6 +26,8 @@ const deviceTransportConfigSchema = z.object({
   rackCount: z.number().int().positive().optional(),
   registerMap: z.string().optional(),
   pcsCount: z.number().int().positive().optional(),
+  // Wattox PCS simülatörü BMS port sunucu portu (BSC-PCS-CONNECTOR-MIMARISI.md T-C2)
+  bmsPort: z.number().int().positive().optional(),
 });
 
 export const bitfieldFieldSchema = z.object({
