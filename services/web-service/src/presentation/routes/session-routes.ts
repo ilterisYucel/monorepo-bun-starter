@@ -7,7 +7,7 @@ import { FastifyStreamSink } from "../../infrastructure/container-session/fastif
 import { toTunnelUser } from "../../infrastructure/container-session/session-user-map";
 
 /** İstek başlıklarını hop-by-hop başlıklardan arındırır (proxy ileri iletim). */
-const FORWARD_HEADERS = new Set(["accept", "content-type", "user-agent", "accept-language"]);
+const FORWARD_HEADERS = new Set(["accept", "content-type", "user-agent", "accept-language", "x-gd-trace-id"]);
 
 function forwardHeaders(headers: Record<string, string | string[] | undefined>): Record<string, string> {
   const out: Record<string, string> = {};

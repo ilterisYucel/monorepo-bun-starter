@@ -30,6 +30,11 @@ describe("DeviceConfigLoader", () => {
       expect(ids).toContain("BSC-1");
       expect(ids).toContain("PCS-1");
       expect(ids).toContain("EMU-1");
+      // Sanal IO cihaz ailesi (SANAL-IO-CIHAZ-AILESI-MIMARISI.md)
+      expect(ids).toContain("AUX-ANALYSER-1");
+      expect(ids).toContain("FSS-1");
+      expect(ids).toContain("CONTROL-PANEL-IO-1");
+      expect(ids).toContain("IMD-1");
     });
 
     it("PCS instance'ları ayrı adres pencerelerinde (5000+300×(n−1))", () => {
@@ -41,6 +46,17 @@ describe("DeviceConfigLoader", () => {
       const v1 = pcs1.telemetry.find((t) => t.name === "AC Voltage AB") as ModbusTelemetryData | undefined;
 
       expect(v1?.registerAddress).toBe(5000);
+    });
+
+    it("BSC global 30264/30265 config'te (WS2)", () => {
+      const loader = new DeviceConfigLoader(CONFIG_DIR);
+      const { devices } = loader.load();
+
+      const bsc1 = devices.find((d) => d.deviceId === "BSC-1")!;
+      const globalRack = bsc1.telemetry.find((t) => t.name === "Rack Max Diff Temp (Global)");
+      const globalPack = bsc1.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack (Global)");
+      expect(globalRack?.registerAddress).toBe(30264);
+      expect(globalPack?.registerAddress).toBe(30265);
     });
   });
 });

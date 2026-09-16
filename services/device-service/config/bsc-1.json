@@ -6325,6 +6325,34 @@
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
       "tags": {}
+    },
+    {
+      "name": "Rack Max Diff Temp (Global)",
+      "description": "Max Difference of Temperature in Rack (online rack'ler arası — Flex map 30264)",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 30264,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {}
+    },
+    {
+      "name": "Rack Max Diff Temp Pack (Global)",
+      "description": "Max Difference of Temperature in Pack (online rack'ler arası — Flex map 30265)",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 30265,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {}
     }
   ],
   "bitfieldConfigs": [

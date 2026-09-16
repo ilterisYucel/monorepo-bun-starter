@@ -68,6 +68,11 @@ services:
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-docker
       CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # BSC→PCS connector BMS hedefi — standalone'da field stack host'ta.
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-host.docker.internal}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../services/device-service/src:/app/services/device-service/src
       - ../services/device-service/run.ts:/app/services/device-service/run.ts
@@ -170,7 +175,13 @@ services:
       NODE_ENV: development
       PORT: 5001
       HOST: 0.0.0.0
-      JWT_SECRET: dev-secret-change-in-production
+      # Faz 1 T1.6 env konvansiyonu: tier sırları .env.container'dan gelir
+      # (field/boss dev ile birebir — sert kodlanmış dev-secret KALDIRILDI).
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      MFA_ENABLED: ${MFA_ENABLED:-true}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       POSTGRES_HOST: timescaledb

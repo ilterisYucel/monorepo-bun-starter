@@ -64,6 +64,7 @@ export const FIELD_TR_DICT = {
 
   "container.connected": "PPC: Bağlı",
   "container.disconnected": "PPC: Bağlantı Yok",
+  "container.noPcs": "Hedef PCS bulunamadı (konteyner snapshot'ı bekleniyor)",
   "container.power": "Güç",
   "container.temperature": "Sıcaklık",
   "container.device": "Cihaz",

@@ -131,6 +131,7 @@ export class DeviceService {
     mq: IMessageQueue,
     identity?: { containerId?: string; fieldId?: string },
     logger?: TamperLogger,
+    options?: { bmsTarget?: { host?: string; port?: number } },
   ): Promise<DeviceService> {
     const loader = new DeviceConfigLoader(configDir);
     const { service, devices: configs } = loader.load();
@@ -144,7 +145,7 @@ export class DeviceService {
       }
     }
 
-    const simulators = new SimulatorRegistry();
+    const simulators = new SimulatorRegistry(options);
     simulators.createFromConfigs(configs);
 
     const factory = new DeviceFactory(simulators);
@@ -599,6 +600,7 @@ export class DeviceService {
         deviceId: job.deviceId,
         telemetryNames: job.telemetries.map((t) => t.name),
         atomic: job.atomic ?? false,
+        ...(job.traceId !== undefined ? { traceId: job.traceId } : {}),
         ...(error !== undefined ? { error } : {}),
       },
     });

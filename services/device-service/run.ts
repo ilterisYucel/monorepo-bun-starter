@@ -72,7 +72,23 @@ async function main() {
     fieldId: config.get<string | undefined>("site.fieldId"),
   };
 
-  const service = await DeviceService.fromConfigDir(configDir, mq, identity, logger);
+  // BSC→PCS connector BMS hedef override (deployment-bazlı — aws-edge:
+  // field-device-service, standalone: host.docker.internal). Verilmezse
+  // mapping dosyasındaki sabit hedef kullanılır.
+  const bmsTargetHost = config.get<string | undefined>("device.bmsTargetHost");
+  const bmsTargetPort = config.get<number | undefined>("device.bmsTargetPort");
+  const bmsTarget =
+    bmsTargetHost !== undefined || bmsTargetPort !== undefined
+      ? { host: bmsTargetHost, port: bmsTargetPort }
+      : undefined;
+
+  const service = await DeviceService.fromConfigDir(
+    configDir,
+    mq,
+    identity,
+    logger,
+    bmsTarget ? { bmsTarget } : undefined,
+  );
 
   let stopping = false;
   const shutdown = async (signal: string) => {

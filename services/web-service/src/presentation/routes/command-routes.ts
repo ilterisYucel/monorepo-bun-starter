@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { IMessageQueue } from "@gd-monorepo/core";
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
 
@@ -32,6 +32,15 @@ const executeMultiSchema = z.object({
   mode: z.enum(["parallel", "sequential"]).default("parallel"),
   onFailure: z.enum(["stop", "continue"]).default("stop"),
 });
+
+/**
+ * Çapraz katman iz kimliği (WS4 D1) — tünel üzerinden gelen isteklerde
+ * `x-gd-trace-id` başlığıdır; yoksa undefined (davranış değişmez).
+ */
+function traceFrom(request: FastifyRequest): string | undefined {
+  const value = request.headers["x-gd-trace-id"];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
 
 export async function makeCommandRoutes(
   fastify: FastifyInstance,
@@ -103,6 +112,7 @@ export async function makeCommandRoutes(
         timestamp: jobTimestamp,
         telemetries,
         atomic: jobAtomic,
+        traceId: traceFrom(request),
         ...(jobValidate ? { validate: jobValidate } : undefined),
       },
       timeoutMs,
@@ -159,6 +169,7 @@ export async function makeCommandRoutes(
           timestamp: new Date().toISOString(),
           telemetries,
           atomic: commandConfig?.atomic ?? true,
+          traceId: traceFrom(request),
           ...(commandConfig?.validate
             ? {
                 validate: {
@@ -197,6 +208,7 @@ export async function makeCommandRoutes(
                 description: `${durationSeconds}s timer sonucu otomatik durdurma`,
               }] as any,
               atomic: true,
+              traceId: traceFrom(request),
             },
             { delay: durationSeconds * 1000 },
           );

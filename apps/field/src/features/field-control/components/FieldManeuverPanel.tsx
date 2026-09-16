@@ -8,7 +8,9 @@ import {
   resolveSteps,
   FIELD_HIDDEN_MANEUVER_NAMES,
 } from "../maneuvers";
-import { mockContainers } from "../../containers/services/mockDataGenerator";
+import { fieldControlApi } from "../services/fieldControlApi";
+import { useContainerData } from "../../containers/hooks/useContainerData";
+import { siteFieldId } from "../../../lib/site-field";
 
 interface CardState {
   status: "idle" | "running" | "timer" | "success" | "failed";
@@ -17,14 +19,18 @@ interface CardState {
 
 /**
  * Konteyner başına TEK PCS (REV.01 — FIELD-MANEVRA-KATALOGU): hedef PCS
- * listesi mock konteyner snapshot'larından türetilir — sabit liste YOKTUR.
- * Gerçek backend geldiğinde saha device-service kayıt defterine bağlanacak.
- * GİZLİ manevralar (FL-06/07/10) kart olarak GÖSTERİLMEZ — otomasyon katmanındadır.
+ * listesi field API'sinin konteyner snapshot'larından türetilir — sabit
+ * liste YOKTUR. Yürütme GERÇEKTİR: PCS adımları field web-service
+ * /commands/execute-multi'ye gider (field device-service read-back doğrular;
+ * konteyner bağlantısı kopsa bile PCS komutu device-service tarafından
+ * yürütülür — PPC koptuysa komut reddedilir kuralı management-service'te).
  */
-function pcsIdsFromMock(): string[] {
+function pcsIdsFromContainers(
+  containers: Array<{ latestTelemetry: Array<{ deviceId: string }> }>,
+): string[] {
   return [
     ...new Set(
-      mockContainers().flatMap((c) =>
+      containers.flatMap((c) =>
         c.latestTelemetry
           .filter((x) => x.deviceId.startsWith("PCS-"))
           .map((x) => x.deviceId),
@@ -33,43 +39,13 @@ function pcsIdsFromMock(): string[] {
   ].sort();
 }
 
-// PCS deviceId → konteyner (mock): PCS'in bağlı olduğu konteyner, snapshot'ında
-// o deviceId'nin geçtiği konteynerdir.
-function containerForPcs(pcsId: string) {
-  return mockContainers().find((c) =>
-    c.latestTelemetry.some((x) => x.deviceId === pcsId),
-  );
-}
-
-// ponytail: backend olmadığı için lokal simülasyon — PCS'in kontrol ettiği
-// konteyner ile bağlantı (PPC) kopuksa komut başarısız sayılır. Gerçek field
-// device-service geldiğinde bu fonksiyon API çağrısıyla değişecek.
-function mockExecute(
-  steps: CommandStep[],
-  disconnectedReason: string,
-): Promise<StepResult[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(
-        steps.map((s) => {
-          const ok = containerForPcs(s.deviceId)?.connected ?? false;
-          return {
-            deviceId: s.deviceId,
-            command: s.command ?? "",
-            success: ok,
-            reason: ok ? undefined : disconnectedReason,
-          };
-        }),
-      );
-    }, 900);
-  });
-}
-
 export const FieldManeuverPanel: React.FC = () => {
   const [states, setStates] = useState<Record<string, CardState>>({});
   const { t } = useTranslation();
 
-  const pcsIds = useMemo(() => pcsIdsFromMock(), []);
+  const fieldId = siteFieldId();
+  const { containers } = useContainerData(fieldId);
+  const pcsIds = useMemo(() => pcsIdsFromContainers(containers), [containers]);
   const maneuvers = useMemo(() => buildFieldManeuvers(pcsIds), [pcsIds]);
   const controls = useMemo(() => buildFieldManeuverControls(pcsIds), [pcsIds]);
 
@@ -99,16 +75,67 @@ export const FieldManeuverPanel: React.FC = () => {
       if (!m) return;
 
       const steps = resolveSteps(m, values, controls[name]?.transform, pcsIds);
-
-      setStates((prev) => ({ ...prev, [name]: { status: "running", stepResults: [] } }));
-
-      const results = await mockExecute(steps, t("container.disconnected"));
-      const allOk = results.every((r) => r.success);
+      const commandSteps = steps.filter((s) => s.command);
+      if (commandSteps.length === 0) {
+        setStates((prev) => ({
+          ...prev,
+          [name]: {
+            status: "failed",
+            stepResults: [
+              {
+                deviceId: "-",
+                command: "",
+                success: false,
+                reason: t("container.noPcs"),
+              },
+            ],
+          },
+        }));
+        return;
+      }
 
       setStates((prev) => ({
         ...prev,
-        [name]: { status: allOk ? "success" : "failed", stepResults: results },
+        [name]: { status: "running", stepResults: [] },
       }));
+
+      try {
+        const results = await fieldControlApi.executeMulti({
+          commands: commandSteps.map((s: CommandStep) => ({
+            deviceId: s.deviceId,
+            command: s.command ?? "",
+            params: s.params,
+          })),
+          mode: m.mode,
+          onFailure: m.onFailure ?? "stop",
+        });
+        const stepResults: StepResult[] = results.map((r) => ({
+          deviceId: r.deviceId,
+          command: r.command,
+          success: r.success,
+          reason: r.reason,
+        }));
+        const allOk = stepResults.every((r) => r.success);
+        setStates((prev) => ({
+          ...prev,
+          [name]: { status: allOk ? "success" : "failed", stepResults },
+        }));
+      } catch (err) {
+        setStates((prev) => ({
+          ...prev,
+          [name]: {
+            status: "failed",
+            stepResults: [
+              {
+                deviceId: "-",
+                command: "",
+                success: false,
+                reason: String(err),
+              },
+            ],
+          },
+        }));
+      }
     },
     [maneuvers, controls, pcsIds, t],
   );

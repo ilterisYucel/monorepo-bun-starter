@@ -2814,6 +2814,101 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 
 **Güncelleme notu:** `device-service.test.ts` +3 test ("validate.expect ilişki sözcükleri" bloğu — T-P3); toplam 68.
 
+## 11. Sanal IO Cihaz Ailesi · Field↔Konteyner Komut Kanalı (2026-09-16)
+
+> Kapsam dokümanı: [SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md](../architecture/SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md)
+> DOGRULAMA: [SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md](../architecture/SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md), [FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md](../architecture/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md)
+
+### `packages/simulators/src/aux-analyser/aux-analyser.test.ts` (`9 test`)
+**Hedef:** AUX enerji analizörü simülatörü — AUX OK durumu, nominal bant, energy-loss enjeksiyonu.
+1. **"başlangıçta AUX OK"** 2. **"nominal voltaj"** 3. **"nominal frekans"** 4. **"akım pozitif"** 5. **"setEnergyLoss(true)"** 6. **"setEnergyLoss(false) geri dönüş"** 7. **"kayıpta voltaj 0"** 8. **"jitter bandı"** 9. **"bilinmeyen adres"**
+
+### `packages/simulators/src/fss/fss.test.ts` (`6 test`)
+**Hedef:** FSS durum simülatörü — System OK/Fault/Discharged DI sözleşmesi.
+1. **"başlangıçta sağlıklı"** 2. **"setFault(true)"** 3. **"setFault(false)"** 4. **"setDischarged"** 5. **"tick durumu bozmaz"** 6. **"bilinmeyen adres"**
+
+### `packages/simulators/src/control-panel-io/control-panel-io.test.ts` (`8 test`)
+**Hedef:** Kapı DI + ışık COIL simülatörü (FL-07).
+1. **"kapılar kapalı ışıklar sönük"** 2-3. **kapı state (batarya/panel)** 4-5. **ışık AÇ/KAPAT** 6. **bağımsızlık** 7. **"bilinmeyen DI"** 8. **"bilinmeyen COIL yazılmaz"**
+
+### `packages/simulators/src/imd/imd.test.ts` (`6 test`)
+**Hedef:** IMD simülatörü — izolasyon direnci + Status bitfield.
+1. **"başlangıçta sağlıklı"** 2. **"direnç 1000 kΩ civarı"** 3. **"setFault(true)"** 4. **"setFault(false)"** 5. **"fault'ta direnç düşer"** 6. **"bilinmeyen adres"**
+
+### `services/device-service/src/simulator-registry.test.ts` (`3 test` — YENİ)
+**Hedef:** Registry kayıtları — sanal IO ailesi transport üretimi + bilinmeyen tip sessiz atlama.
+1. **it.each 4 tip transport üretir** 2. **"bilinmeyen tip transport üretmez"** 3. **"simulator olmayan config yok sayılır"**
+
+### `services/web-service/src/infrastructure/container-proxy/container-connection-telemetry-publisher.test.ts` (`4 test` — YENİ)
+**Hedef:** PPC durum değişimi → synthetic MANAGEMENT job'ı (WS3).
+1. **"connected → value 1 job"** 2. **"idle→0, stale→2, error→0"** 3. **"addJob reddi yutulur"** 4. **"diğer observer callback'leri no-op"**
+
+### `services/web-service/src/presentation/routes/field-container-commands.test.ts` (`13 test` — YENİ)
+**Hedef:** Field→konteyner komut proxy rotası (WS4 D3) — yetki, oturum, stream, yanıt aynenlik, audit.
+1. **"yetki yok → 403"** 2. **"yanlış token → 403"** 3. **"admin kabul/guest 403"** 4. **"connected değilse 503"** 5. **"mevcut oturum yeniden kullanılır"** 6. **"programatik açılış (system)"** 7. **"stream başlıkları (trace+cookie)"** 8. **"yanıt AYNEN 200"** 9. **"yanıt AYNEN 422"** 10. **"audit traceId"** 11. **"audit hatası akışı kesmez"** 12. **"stream destroy → 502"** 13. **"trace üretilir"**
+
+### `services/management-service/src/container-command-channel.test.ts` (`5 test` — YENİ)
+**Hedef:** HTTP kanal (WS4 D4) — URL/gövde/başlık, sonuç ayrıştırma, hata yutma.
+1. **"URL+gövde+trace"** 2. **"internalToken başlığı"** 3. **"success=false → ok=false"** 4. **"HTTP 503 → ok=false"** 5. **"network hatası → ok=false"** + constructor doğrulama
+
+### `services/management-service/src/container-rules.test.ts` (`5 test` — YENİ)
+**Hedef:** Konteyner rules.json (WS5) — zod, blok seti, kenar-tetik senaryoları.
+1. **"zod-valid yüklenir"** 2. **"blok seti TAM + şarj/deşarj yok"** 3. **"eşik altı ateşlemez"** 4. **"eşik üstü tek ateşleme"** 5. **"pack eşiği tetikler"**
+
+### `apps/field/src/features/containers/services/containersApi.test.ts` (+2 test)
+**Hedef:** `executeCommands` (D5) — proxy rota gövdesi + varsayılanlar.
+1. **"komut proxy rotasını doğru gövdeyle çağırır"** 2. **"varsayılan mod parallel"**
+
+`[DOSYA NOTU]`: Field manevra paneli yürütmesi hâlâ mock (field device-service görevi — FIELD-MANEVRA-REV01 T-M4); konteyner adımı gerçek API'si hazır, panel entegrasyonu field cihaz kayıt defteriyle birlikte.
+
+**Ayrıca +:** `action-executor.test.ts` +3 (container-command), `command-job-builder.test.ts` +3 (allow + gerçek config), `automation-rule.test.ts` +1 (container-command şema), `config-loader.test.ts` +1 (BSC global register'ları).
+
+## 12. Field Stack Tamamlama (2026-09-16 — T-M3 panel + T-M4 compose + connector hedefi)
+
+> DOGRULAMA: [FIELD-MANEVRA-REV01-DOGRULAMA.md](../architecture/FIELD-MANEVRA-REV01-DOGRULAMA.md)
+
+### `services/device-service/src/simulator-registry-bms-target.test.ts` (`4 test` — YENİ)
+**Hedef:** BSC→PCS connector BMS hedef override (env PCS_BMS_TARGET_HOST/PORT).
+1. **"bmsTarget verilmezse mapping hedefi AYNEN geçer"** 2. **"host ezilir; port + mappings korunur"** 3. **"port ezilir"** 4. **"diğer simülatör tipleri override'tan ETKİLENMEZ"**
+
+### `apps/field/src/features/field-control/services/fieldControlApi.test.ts` (`2 test` — YENİ)
+**Hedef:** field web-service /commands/execute-multi istemcisi — kontrat, mode/onFailure.
+1. **"komutları execute-multi kontratıyla gönderir"** 2. **"mode/onFailure birebir iletilir"**
+
+### `apps/field/src/features/field-control/components/FieldManeuverPanel.test.tsx` (`4 test` — YENİ)
+**Hedef:** panel gerçek yürütmesi (mock kaldırıldı) — kart seti, çözümleme, hata durumları.
+1. **"REV.01 kartlarını üretir; gizli manevralar YOKTUR"** 2. **"Çalıştır → executeMulti'ye çözümlenmiş adımlar"** 3. **"kısmi başarısızlık → failed + Tekrar Dene"** 4. **"API hatası → failed (throw yutulur)"**
+
+`[DOSYA NOTU]`: Panelde konteyner cihaz adımları yok (REV.01 katalog PCS-only) — D5 kanalı hazır, katalog genişleyince eklenecek. Gerçek stack koşum gözlemi (connector link=1 + komut doğrulaması) kullanıcı ortamında.
+
+**Ayrıca +:** `shared-utils definitions.test.ts` +1 (bmsTarget env okuma/coerce), `simulator-registry.test.ts` (mevcut — constructor opsiyonel parametreye uyumlu).
+
+## 13. Manevra Entegrasyon + E2E Katmanı (2026-09-16)
+
+> DOGRULAMA: [FIELD-MANEVRA-REV01-DOGRULAMA.md](../architecture/FIELD-MANEVRA-REV01-DOGRULAMA.md) §8
+
+### `services/device-service/src/maneuver-command.spec.ts` (`7 test` — YENİ, integration)
+**Hedef:** gerçek DeviceService + simülatörler + config'ler ile komut hattı uçtan uca (Docker/Redis YOK).
+1. **BSC stop validated** 2. **BSC open_contactors** 3. **CB open** 4. **HVAC force_cool** 5. **io-panel ışık (COIL)** 6. **PCS forbid/allow** 7. **bilinmeyen cihaz reddi**
+
+### `services/web-service/src/presentation/routes/field-container-command.spec.ts` (`4 test` — YENİ, integration)
+**Hedef:** çapraz yığın komut — gerçek WS loopback + D3 route + upstream vekili.
+1. **komut → doğrulanmış sonuç geri döner** 2. **trace başlığı upstream'e ulaşır** 3. **internal token programatik kanal** 4. **yanlış token → 403 + istek gitmez**
+
+### `services/management-service/src/ppc-rule.spec.ts` (`4 test` — YENİ, integration)
+**Hedef:** PPC synthetic telemetri → kural → container-command zinciri (WS3+D4).
+1. **kopukluk tetikler + kanal trace'i** 2. **stale tetikler / bağlı tetiklemez** 3. **kenar-tetik** 4. **kanal fail → kademeli bozulma**
+
+### `e2e/field-maneuver.spec.ts` (`2 test` — YENİ, e2e)
+**Hedef:** field Control paneli — FL-05 stop + FL-03 idle kartları gerçek PCS komutunu çalıştırır; success durumu (Tekrar Dene yok).
+`[DOSYA NOTU]`: FL-02 charge/discharge kartları güç girişi değişkenliği nedeniyle kapsam dışı; kart sırası katalog sırasına nth ile bağlı (katalog değişirse indeks güncellenir).
+
+### `e2e/cross-stack-command.spec.ts` (`1 test` — YENİ, e2e)
+**Hedef:** D3 route üzerinden field → konteyner BSC-1 stop + field Olaylar sayfasında audit.
+`[DOSYA NOTU]`: konteyner olay sayfasındaki traceId'li `command_executed` assert'i yok (yalnızca field tarafı — konteyner UI akışı maneuver-ui'de).
+
+**E2E güncellemeleri:** `maneuver-ui.spec.ts` (tamamlanma kanıtı + placeholder exact login), `field-flow.spec.ts` (frame overlay, session mesaj assert'i, charts→API kanıtı, devices poll, timeout 240sn).
+
 ## Bilinen kapsam dışı dosyalar (hiç testi yok — plan: test-gelistirme-plani.md)
 
 - `packages/core/src/timeseries/implementations/timescaledb/materialized-view-manager.ts`

@@ -1,0 +1,89 @@
+{
+  "deviceId": "AUX-ANALYSER-1",
+  "name": "AUX Energy Analyser 1",
+  "manufacturer": "Generic",
+  "model": "AUX-ANA-01",
+  "protocol": "MODBUS",
+  "type": "aux-analyser",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 533,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "name": "Aux Voltage",
+      "description": "AUX besleme gerilimi",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Aux Current",
+      "description": "AUX besleme akımı",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Aux Frequency",
+      "description": "AUX besleme frekansı",
+      "unit": "Hz",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "bitfieldConfigs": [
+    {
+      "registerAddress": 3,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "AUX OK",
+          "dataTag": "aux_ok",
+          "description": "AUX besleme sağlıklı",
+          "unit": "-"
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "AUX Loss",
+          "dataTag": "aux_loss",
+          "description": "AUX enerji kaybı",
+          "unit": "-"
+        }
+      ]
+    }
+  ],
+  "alarms": [
+    {
+      "telemetry": "AUX Loss",
+      "severity": "error",
+      "description": "AUX enerji kaybı"
+    }
+  ],
+  "transport": {
+    "kind": "simulator",
+    "type": "aux-analyser"
+  }
+}

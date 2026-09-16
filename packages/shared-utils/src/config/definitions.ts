@@ -502,6 +502,30 @@ export const deviceConfigDir: ConfigDefinition<string> = {
   description: "Cihaz konfigürasyon dosyalarinin bulundugu dizin",
 };
 
+/**
+ * BSC→PCS connector BMS hedef host override (PCS_BMS_TARGET_HOST).
+ * Verilmezse mapping dosyasındaki sabit hedef kullanılır (dev: 127.0.0.1).
+ * Deployment-bazlı: aws-edge'de `field-device-service`, standalone'da
+ * `host.docker.internal` (BSC-PCS-CONNECTOR-MIMARISI.md §6 + WS-faz planı).
+ */
+export const deviceBmsTargetHost: ConfigDefinition<string | undefined> = {
+  key: "device.bmsTargetHost",
+  env: "PCS_BMS_TARGET_HOST",
+  filePath: "device.bmsTargetHost",
+  default: undefined,
+  description: "BSC→PCS connector BMS hedef host'u — mapping target'ini ezer (opsiyonel)",
+};
+
+/** BSC→PCS connector BMS hedef port override — verilmezse mapping portu. */
+export const deviceBmsTargetPort: ConfigDefinition<number | undefined> = {
+  key: "device.bmsTargetPort",
+  env: "PCS_BMS_TARGET_PORT",
+  filePath: "device.bmsTargetPort",
+  default: undefined,
+  validate: (v) => (v === undefined ? undefined : Number(v)),
+  description: "BSC→PCS connector BMS hedef portu — mapping target'ini ezer (opsiyonel)",
+};
+
 // =============================================================================
 // Log altyapısı (TamperLogger — Faz 0 T0.5/T0.6)
 // =============================================================================
@@ -1023,6 +1047,8 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   // Servis
   serviceTier,
   deviceConfigDir,
+  deviceBmsTargetHost,
+  deviceBmsTargetPort,
   servicePollIntervalMs,
   workerConcurrency,
   managementIntervalMs,

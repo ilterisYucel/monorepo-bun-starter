@@ -107,6 +107,18 @@ export type RuleAction =
       params?: Record<string, unknown>;
     }
   | {
+      /**
+       * Konteyner cihazına komut (WS4 D4) — field tier kuralları için.
+       * Komut, field web-service komut proxy rotası üzerinden tünelden
+       * konteynerin kendi komut hattına iletilir (katman sızmaz).
+       */
+      action: "container-command";
+      containerId: string;
+      deviceId: string;
+      command: string;
+      params?: Record<string, unknown>;
+    }
+  | {
       action: "log";
       level: "info" | "warn" | "error";
       eventCode?: string;
@@ -118,6 +130,15 @@ export const ruleActionSchema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("command"),
+      deviceId: z.string().min(1),
+      command: z.string().min(1),
+      params: z.record(z.unknown()).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("container-command"),
+      containerId: z.string().min(1),
       deviceId: z.string().min(1),
       command: z.string().min(1),
       params: z.record(z.unknown()).optional(),

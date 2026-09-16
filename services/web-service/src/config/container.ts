@@ -81,6 +81,7 @@ import { UserRepository } from "../infrastructure/persistence/user-repository";
 import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
 import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
+import { ContainerConnectionTelemetryPublisher } from "../infrastructure/container-proxy/container-connection-telemetry-publisher";
 import { FieldPoller } from "../infrastructure/field-poller";
 import { MarketSeries } from "../infrastructure/market/market-series";
 import { FieldRegistry } from "../infrastructure/field-uplink/field-registry";
@@ -200,9 +201,15 @@ export function buildContainer() {
     ).singleton(),
 
     // Tier-aware servisler
-    containerProxy: asFunction(({ config, postgres, logger }) => {
+    containerProxy: asFunction(({ config, postgres, logger, mq }) => {
       const tier = serviceTier(config);
-      if (tier === "field") return new ContainerProxy(postgres, logger);
+      if (tier === "field") {
+        const proxy = new ContainerProxy(postgres, logger);
+        // PPC sinyal kaynağı (R-07/FL-07): durum değişimi → synthetic
+        // MANAGEMENT telemetrisi (FIELD-MANEVRA-KATALOGU-REV01 §5 seçenek-a).
+        proxy.addObserver(new ContainerConnectionTelemetryPublisher(mq));
+        return proxy;
+      }
       return undefined;
     }).singleton(),
 
@@ -307,6 +314,9 @@ export function buildContainer() {
           fieldSessionStore,
           sessionAudit,
           logger,
+          // WS4 D2: 1 interaktif UI oturumu + 1 programatik (manevra/kural)
+          // oturumu — ikincisi operatörün UI oturumunu düşürmez.
+          { maxSessionsPerPeer: 2 },
         );
       },
     ).singleton(),

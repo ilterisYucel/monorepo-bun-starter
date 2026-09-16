@@ -73,6 +73,7 @@ function executor(
     mq: IMessageQueue;
     logger: TamperLogger;
     source: IDeviceConfigSource;
+    containerCommands?: import("./container-command-channel").IContainerCommandChannel;
   }> = {},
 ): ActionExecutor {
   const source: IDeviceConfigSource = overrides.source ?? {
@@ -82,6 +83,9 @@ function executor(
     builder: new CommandJobBuilder({ source }),
     mq: overrides.mq ?? mockMq(),
     logger: overrides.logger,
+    ...(overrides.containerCommands
+      ? { containerCommands: overrides.containerCommands }
+      : {}),
   });
 }
 
@@ -243,6 +247,73 @@ describe("ActionExecutor", () => {
     );
     expect(outcomes[0]!.ok).toBe(false);
     expect(outcomes[1]!.ok).toBe(true);
+  });
+
+  it("container-command başarı → kanal trace'iyle çağrılır + auto_rule_action_ok", async () => {
+    const { logger, log } = fakeLogger();
+    const send = vi.fn().mockResolvedValue({ ok: true, traceId: "auto:r" });
+    const ex = executor({ logger, containerCommands: { send } });
+    const outcomes = await ex.execute(
+      rule({
+        then: [
+          {
+            action: "container-command",
+            containerId: "c-1",
+            deviceId: "BSC-1",
+            command: "stop",
+          },
+        ],
+      }),
+    );
+    expect(outcomes[0]!.ok).toBe(true);
+    expect(send).toHaveBeenCalledWith({
+      containerId: "c-1",
+      deviceId: "BSC-1",
+      command: "stop",
+      params: undefined,
+      traceId: "auto:high-soc-stop",
+    });
+    expect(
+      log.mock.calls
+        .map((c) => c[0])
+        .some((e: { eventCode: string }) => e.eventCode === "auto_rule_action_ok"),
+    ).toBe(true);
+  });
+
+  it("container-command kanal fail → auto_rule_action_failed (akış durmaz)", async () => {
+    const { logger, log } = fakeLogger();
+    const send = vi.fn().mockResolvedValue({ ok: false, reason: "Validation timeout", traceId: "auto:r" });
+    const ex = executor({ logger, containerCommands: { send } });
+    const outcomes = await ex.execute(
+      rule({
+        then: [
+          { action: "container-command", containerId: "c-1", deviceId: "BSC-1", command: "stop" },
+          { action: "notify" },
+        ],
+      }),
+    );
+    expect(outcomes[0]!.ok).toBe(false);
+    expect(outcomes[0]!.reason).toBe("Validation timeout");
+    expect(outcomes[1]!.ok).toBe(true);
+    expect(
+      log.mock.calls
+        .map((c) => c[0])
+        .some((e: { eventCode: string }) => e.eventCode === "auto_rule_action_failed"),
+    ).toBe(true);
+  });
+
+  it("container-command kanal YOK → fail (kademeli bozulma)", async () => {
+    const { logger } = fakeLogger();
+    const ex = executor({ logger });
+    const outcomes = await ex.execute(
+      rule({
+        then: [
+          { action: "container-command", containerId: "c-1", deviceId: "BSC-1", command: "stop" },
+        ],
+      }),
+    );
+    expect(outcomes[0]!.ok).toBe(false);
+    expect(outcomes[0]!.reason).toContain("kanal");
   });
 
   it("notify aksiyonu: eventCode auto_rule_<name> ile loglanır; başarı sonucu ok", async () => {

@@ -46,6 +46,7 @@ import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
 import { containerWsRoutes } from "../infrastructure/container-proxy/container-ws-routes";
 import { fieldRoutes } from "./routes/field-routes";
 import { sessionOpenRoute, tunnelRoutes } from "./routes/session-routes";
+import { fieldContainerCommandRoutes } from "./routes/field-container-commands";
 import { adminRoutes } from "./routes/admin-routes";
 import { marketRoutes } from "./routes/market-routes";
 import type { MarketSeries } from "../infrastructure/market/market-series";
@@ -297,6 +298,18 @@ export class WebServiceServer {
         if (deps.sessionGateway) {
           await sessionOpenRoute(fastify, {
             gateway: deps.sessionGateway,
+          });
+        }
+        // WS4 D3: field → konteyner komut proxy'si (ince — iş mantığı YOK)
+        if (deps.sessionGateway && deps.tunnelProxy && deps.containerProxy) {
+          await fieldContainerCommandRoutes(fastify, {
+            containerProxy: deps.containerProxy,
+            gateway: deps.sessionGateway,
+            tunnelProxy: deps.tunnelProxy,
+            logger: deps.logger,
+            // Programatik kanal (management-service) gizli token'ı —
+            // env yoksa internal yol KAPALI (fail-closed).
+            internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
           });
         }
       },

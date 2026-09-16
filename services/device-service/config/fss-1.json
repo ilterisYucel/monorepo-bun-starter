@@ -1,0 +1,65 @@
+{
+  "deviceId": "FSS-1",
+  "name": "Fire Suppression System 1",
+  "manufacturer": "Generic",
+  "model": "FSS-01",
+  "protocol": "MODBUS",
+  "type": "fss",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 534,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "name": "System OK",
+      "description": "FSS sağlıklı",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault",
+      "description": "FSS arıza",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Discharged",
+      "description": "Söndürme aktive edildi",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "alarms": [
+    {
+      "telemetry": "Fault",
+      "severity": "error",
+      "description": "FSS arıza"
+    }
+  ],
+  "transport": {
+    "kind": "simulator",
+    "type": "fss"
+  }
+}

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { CommandJobBuilder } from "./command-job-builder";
 import type {
@@ -76,9 +77,49 @@ const memorySource = {
   },
 };
 
+// PCS "blok kaldırma" komutları (OTOMASYON-KURALLARI-MIMARISI.md 4.6):
+// forbid=1 yazan register'a allow=0 yazar — yeni register GEREKMEZ.
+const pcsConfig: DeviceConfigFile = {
+  deviceId: "pcs-1",
+  name: "PCS 1",
+  manufacturer: "Generic",
+  model: "PCS",
+  protocol: "MODBUS",
+  type: "pcs",
+  connection: { host: "127.0.0.1" },
+  telemetry: [],
+  commands: {
+    forbid_charge: {
+      telemetries: [{ name: "Charge Forbidden", value: 1 }],
+      atomic: true,
+    },
+    allow_charge: {
+      telemetries: [{ name: "Charge Forbidden", value: 0 }],
+      atomic: true,
+    },
+    allow_discharge: {
+      telemetries: [{ name: "Discharge Forbidden", value: 0 }],
+      atomic: true,
+    },
+  },
+};
+
+const pcsMemorySource = {
+  load(deviceId: string): DeviceConfigFile | undefined {
+    return deviceId === pcsConfig.deviceId ? pcsConfig : undefined;
+  },
+};
+
 function builder(): CommandJobBuilder {
   return new CommandJobBuilder({
     source: memorySource,
+    now: () => FIXED_DATE,
+  });
+}
+
+function pcsBuilder(): CommandJobBuilder {
+  return new CommandJobBuilder({
+    source: pcsMemorySource,
     now: () => FIXED_DATE,
   });
 }
@@ -132,6 +173,47 @@ describe("CommandJobBuilder.build", () => {
     expect(charge.unwrap().atomic).toBe(true);
     const stop = builder().build("bsc-1", "stop");
     expect(stop.unwrap().atomic).toBe(false);
+  });
+
+  it("PCS allow komutları: blok kaldırma 0 değeriyle job üretir (4.6)", () => {
+    const allow = pcsBuilder().build("pcs-1", "allow_charge").unwrap();
+    expect(allow.atomic).toBe(true);
+    expect(allow.telemetries).toEqual([
+      expect.objectContaining({ name: "Charge Forbidden", value: 0 }),
+    ]);
+
+    const allowDischarge = pcsBuilder().build("pcs-1", "allow_discharge").unwrap();
+    expect(allowDischarge.telemetries).toEqual([
+      expect.objectContaining({ name: "Discharge Forbidden", value: 0 }),
+    ]);
+  });
+
+  it("gerçek config: pcs-1.json allow komutları + bsc-1.json global 30264/30265", () => {
+    const realDir = fileURLToPath(
+      new URL("../../../../services/device-service/config", import.meta.url),
+    );
+    const source = new DeviceConfigFileSource(realDir);
+
+    const pcs = source.load("pcs-1")!;
+    expect(pcs.commands?.["allow_charge"]?.telemetries).toEqual([
+      expect.objectContaining({ name: "Charge Forbidden", value: 0 }),
+    ]);
+    expect(pcs.commands?.["allow_discharge"]?.telemetries).toEqual([
+      expect.objectContaining({ name: "Discharge Forbidden", value: 0 }),
+    ]);
+
+    const bsc = source.load("bsc-1")!;
+    const globalRack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp (Global)");
+    const globalPack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack (Global)");
+    expect(globalRack?.registerAddress).toBe(30264);
+    expect(globalPack?.registerAddress).toBe(30265);
+
+    const built = new CommandJobBuilder({ source, now: () => FIXED_DATE })
+      .build("pcs-1", "allow_charge")
+      .unwrap();
+    expect(built.telemetries).toEqual([
+      expect.objectContaining({ name: "Charge Forbidden", value: 0 }),
+    ]);
   });
 
   it("validate eşlemesi: reads + timeoutMs + minWaitMs", () => {

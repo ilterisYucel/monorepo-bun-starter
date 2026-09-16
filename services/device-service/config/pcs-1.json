@@ -2527,6 +2527,26 @@
         }
       ],
       "timeoutMs": 3000
+    },
+    "allow_charge": {
+      "label": "Şarj Yasağını Kaldır",
+      "telemetries": [
+        {
+          "name": "Charge Forbidden",
+          "value": 0
+        }
+      ],
+      "timeoutMs": 3000
+    },
+    "allow_discharge": {
+      "label": "Deşarj Yasağını Kaldır",
+      "telemetries": [
+        {
+          "name": "Discharge Forbidden",
+          "value": 0
+        }
+      ],
+      "timeoutMs": 3000
     }
   },
   "alarms": [

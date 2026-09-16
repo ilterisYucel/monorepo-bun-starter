@@ -12,6 +12,7 @@ import type {
   RuleAction,
 } from "@gd-monorepo/shared-types";
 import { CommandJobBuilder } from "@gd-monorepo/platform-commands";
+import type { IContainerCommandChannel } from "./container-command-channel";
 
 /** Tek aksiyonun sonucu. */
 export interface ActionOutcome {
@@ -27,6 +28,8 @@ export interface ActionExecutorConfig {
   logger?: TamperLogger;
   /** executeAndWait timeout tamponu (job timeout'una eklenir). */
   commandTimeoutBufferMs?: number;
+  /** Konteyner komut kanalı (WS4 D4) — yoksa container-command aksiyonu fail. */
+  containerCommands?: IContainerCommandChannel;
 }
 
 /** Komut timeout'u config'de yoksa kullanılan varsayılan. */
@@ -55,12 +58,14 @@ export class ActionExecutor {
   private readonly mq: IMessageQueue;
   private readonly logger: TamperLogger | undefined;
   private readonly bufferMs: number;
+  private readonly containerCommands: IContainerCommandChannel | undefined;
 
   constructor(config: ActionExecutorConfig) {
     this.builder = config.builder;
     this.mq = config.mq;
     this.logger = config.logger;
     this.bufferMs = config.commandTimeoutBufferMs ?? DEFAULT_COMMAND_TIMEOUT_BUFFER_MS;
+    this.containerCommands = config.containerCommands;
   }
 
   /** Komut — kuralın aksiyonlarını sırayla çalıştırır, sonuç listesini döner. */
@@ -82,11 +87,61 @@ export class ActionExecutor {
     switch (action.action) {
       case "command":
         return this.runCommand(rule, action);
+      case "container-command":
+        return this.runContainerCommand(rule, action);
       case "log":
         return this.runLog(rule, action);
       case "notify":
         return this.runNotify(rule);
     }
+  }
+
+  /**
+   * Konteyner komutu (WS4 D4) — field web-service komut proxy'si üzerinden
+   * tünelden konteynerin kendi komut hattına iletilir. Kanal yapılandırılmamışsa
+   * fail (kademeli bozulma — akış durmaz).
+   */
+  private async runContainerCommand(
+    rule: AutomationRule,
+    action: Extract<RuleAction, { action: "container-command" }>,
+  ): Promise<ActionOutcome> {
+    const traceId = `auto:${rule.name}`;
+    const context = {
+      rule: rule.name,
+      action: "container-command" as const,
+      containerId: action.containerId,
+      deviceId: action.deviceId,
+      command: action.command,
+      traceId,
+    };
+
+    if (!this.containerCommands) {
+      const reason = "konteyner komut kanali yapilandirilmamis";
+      await this.logAction("auto_rule_action_failed", "error", {
+        ...context,
+        reason,
+      });
+      return { action, ok: false, reason };
+    }
+
+    const result = await this.containerCommands.send({
+      containerId: action.containerId,
+      deviceId: action.deviceId,
+      command: action.command,
+      params: action.params,
+      traceId,
+    });
+
+    if (result.ok) {
+      await this.logAction("auto_rule_action_ok", "info", context);
+      return { action, ok: true };
+    }
+    const reason = result.reason ?? "komut basarisiz";
+    await this.logAction("auto_rule_action_failed", "error", {
+      ...context,
+      reason,
+    });
+    return { action, ok: false, reason };
   }
 
   private async runCommand(

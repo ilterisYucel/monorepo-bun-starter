@@ -15,9 +15,13 @@ const WEB_UI = process.env.BASE_URL || "http://localhost:5173";
 
 async function loginContainer(page: Page): Promise<void> {
   await page.goto(`${WEB_UI}/#/login`);
-  await page.fill("input[name='username']", "admin");
-  await page.fill("input[name='password']", process.env.E2E_ADMIN_PASSWORD || "kurulum-yeni-sifre-456");
-  await page.click("button[type='submit']");
+  // LoginForm input'ları name taşımaz — placeholder ile hedeflenir
+  // ("admin" alt dize olarak "admin123" ile çakışır — exact eşleşme şart).
+  await page.getByPlaceholder("admin", { exact: true }).fill("admin");
+  await page
+    .getByPlaceholder("admin123", { exact: true })
+    .fill(process.env.E2E_ADMIN_PASSWORD || "kurulum-yeni-sifre-456");
+  await page.locator("button[type='submit']").click();
   await page.waitForTimeout(2000);
 }
 
@@ -32,9 +36,10 @@ test.describe("Manevra UI (ControlPage)", () => {
     await page.goto(`${WEB_UI}/#/control`);
     step("control-page");
 
-    // İlk manevra kartındaki çalıştır butonu
+    // İlk manevra kartındaki çalıştır butonu (soğuk Vite derlemesi + paralel
+    // koşumda kart render'ı gecikebilir — geniş pencere)
     const runButton = page.locator("button", { hasText: /Çalıştır|Run/ }).first();
-    await expect(runButton).toBeVisible({ timeout: 15000 });
+    await expect(runButton).toBeVisible({ timeout: 45000 });
     step("maneuver-card-visible");
 
     await runButton.click();
@@ -46,5 +51,12 @@ test.describe("Manevra UI (ControlPage)", () => {
       page.locator("text=/Çalışıyor|Running|Tekrar Dene|Geri Al|Retry/").first(),
     ).toBeVisible({ timeout: 30000 });
     step("state-visible");
+
+    // E-2 tamamlanma kanıtı: yürütme BİTER — kart tekrar Çalıştır (success)
+    // veya Tekrar Dene (failed) durumuna döner; sonsuz "Çalışıyor..." YOKTUR.
+    await expect(
+      page.locator("text=/Çalışıyor|Running/").first(),
+    ).toBeHidden({ timeout: 45000 });
+    step("state-completed");
   });
 });

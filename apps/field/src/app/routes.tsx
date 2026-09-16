@@ -19,6 +19,13 @@ export const routes: RouteObject[] = [
     element: <LoginPage />,
   },
   {
+    // Boss Faz 3 tünel modu eşi: iframe'de SPA /fields/<fid>/ui altında
+    // yaşar — giriş rotası da bu önekle erişilebilir olmalı (yerel dev
+    // e2e'leri dahil; boss'ta oturum yoksa kullanıcı buradan girer).
+    path: "fields/:fieldId/ui/login",
+    element: <LoginPage />,
+  },
+  {
     path: "/change-password",
     element: <ChangePasswordPage />,
   },

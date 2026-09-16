@@ -23,6 +23,14 @@ import {
   parseBscPcsMapping,
   BscPcsConnectorAdapter,
   SimulatorTransport,
+  AuxAnalyserSimulator,
+  AuxAnalyserAdapter,
+  FssSimulator,
+  FssAdapter,
+  ControlPanelIoSimulator,
+  ControlPanelIoAdapter,
+  ImdSimulator,
+  ImdAdapter,
 } from "@gd-monorepo/simulators";
 import type { IModbusSimulatorAdapter, DeviceConfigFile, SimulatorConfig } from "@gd-monorepo/shared-types";
 
@@ -39,6 +47,12 @@ export interface SimulatorFactory {
   build(deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry;
 }
 
+/** Registry yapılandırması — opsiyonel; deployment-bazlı hedef override'ları. */
+export interface SimulatorRegistryConfig {
+  /** BSC→PCS connector BMS hedef host/port override (env PCS_BMS_TARGET_*). */
+  bmsTarget?: { host?: string; port?: number };
+}
+
 /**
  * Simülatör kayıt defteri: config'de transport.kind === "simulator" olan cihazlar
  * için IModbusTransport döndürür. Tick yaşam döngüsü SimulatorTransport'un
@@ -48,11 +62,13 @@ export class SimulatorRegistry {
   private readonly transports: Map<string, IModbusTransport>;
   private readonly registry: Map<string, SimulatorFactory>;
   private readonly adapters: Map<string, IModbusSimulatorAdapter>;
+  private readonly bmsTarget: { host?: string; port?: number } | undefined;
 
-  constructor() {
+  constructor(config: SimulatorRegistryConfig = {}) {
     this.transports = new Map();
     this.registry = new Map();
     this.adapters = new Map();
+    this.bmsTarget = config.bmsTarget;
     this.registerDefaults();
   }
 
@@ -141,7 +157,21 @@ export class SimulatorRegistry {
         if (!sim.registerMap) {
           throw new Error("[SimulatorRegistry] bsc-pcs-connector registerMap zorunlu");
         }
-        const mapping = parseBscPcsMapping(readFileSync(sim.registerMap, "utf-8"));
+        const parsed = parseBscPcsMapping(readFileSync(sim.registerMap, "utf-8"));
+        // Deployment-bazlı hedef override (env PCS_BMS_TARGET_HOST/PORT):
+        // aws-edge'de field-device-service, standalone'da host.docker.internal.
+        // Verilmezse mapping dosyasındaki sabit hedef (dev: 127.0.0.1) korunur.
+        const bmsTarget = this.bmsTarget;
+        const mapping = bmsTarget
+          ? {
+              ...parsed,
+              target: {
+                ...parsed.target,
+                ...(bmsTarget.host !== undefined ? { host: bmsTarget.host } : {}),
+                ...(bmsTarget.port !== undefined ? { port: bmsTarget.port } : {}),
+              },
+            }
+          : parsed;
         const connector = new BscPcsConnectorAdapter({
           mapping,
           adapters: this.adapters,
@@ -151,6 +181,36 @@ export class SimulatorRegistry {
           tick: () => void connector.tick(elapsed),
           stop: () => connector.closeTarget(),
         };
+      },
+    });
+
+    // Sanal IO cihaz ailesi — SANAL-IO-CIHAZ-AILESI-MIMARISI.md (demo map'ler;
+    // gerçek register map'leri config'te yaşar).
+    this.registry.set("aux-analyser", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const aux = new AuxAnalyserSimulator();
+        return { adapter: new AuxAnalyserAdapter(aux), tick: () => aux.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("fss", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const fss = new FssSimulator();
+        return { adapter: new FssAdapter(fss), tick: () => fss.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("control-panel-io", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const io = new ControlPanelIoSimulator();
+        return { adapter: new ControlPanelIoAdapter(io), tick: () => io.tick(elapsed) };
+      },
+    });
+
+    this.registry.set("imd", {
+      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
+        const imd = new ImdSimulator();
+        return { adapter: new ImdAdapter(imd), tick: () => imd.tick(elapsed) };
       },
     });
   }

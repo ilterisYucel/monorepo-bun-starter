@@ -1,0 +1,38 @@
+{
+  "rules": [
+    {
+      "name": "tms_temp_diff_protect",
+      "enabled": true,
+      "cooldownMs": 900000,
+      "when": {
+        "any": [
+          {
+            "device": { "ids": ["BSC-1", "BSC-2"] },
+            "telemetry": "Rack Max Diff Temp (Global)",
+            "op": "gte",
+            "threshold": 10
+          },
+          {
+            "device": { "ids": ["BSC-1", "BSC-2"] },
+            "telemetry": "Rack Max Diff Temp Pack (Global)",
+            "op": "gte",
+            "threshold": 5
+          }
+        ]
+      },
+      "then": [
+        { "action": "command", "deviceId": "PCS-1", "command": "forbid_charge" },
+        { "action": "command", "deviceId": "PCS-1", "command": "forbid_discharge" },
+        { "action": "command", "deviceId": "BSC-1", "command": "stop" },
+        { "action": "command", "deviceId": "BSC-2", "command": "stop" },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_tms_temp_diff_protect",
+          "message": "FL-05 sıcaklık farkı koruması: blok uygulandı — reset beklenir"
+        },
+        { "action": "notify" }
+      ]
+    }
+  ]
+}

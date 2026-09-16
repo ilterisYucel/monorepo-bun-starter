@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const step = (name: string) => console.log("[E2E]", name);
+const step = (name: string) =>
+  console.log("[E2E]", name, `t=${Math.round(performance.now() / 1000)}s`);
 
 /**
  * Faz 5 E2E — K5.1: kart → özet → tam ekran → konteynerde komut → audit kaydı.
@@ -22,7 +23,9 @@ async function loginField(page: Page): Promise<void> {
 }
 
 test.describe("Faz 5 saha akışı (K5.1)", () => {
-  test.describe.configure({ timeout: 120_000 });
+  // Uzun yolculuk: tünel iframe oturumu (poll) + komut + audit + grafik —
+  // adım adım toplam en kötü durum 240sn içinde kalır.
+  test.describe.configure({ timeout: 240_000 });
   test("kart → özet → tam ekran → konteynerde komut → audit", async ({
     browser,
   }) => {
@@ -52,9 +55,9 @@ test.describe("Faz 5 saha akışı (K5.1)", () => {
       timeout: 15000,
     });
 
-    // 4) Tam Ekran → iframe tünel oturumu
+    // 4) Tam Ekran → iframe tünel oturumu (2026-09-02: ayrı ROTA YOK —
+    // ContainerFrame aynı sayfada overlay'dir; URL değişmez)
     await page.getByRole("button", { name: /Tam Ekran/i }).click();
-    await page.waitForURL(/\/frame$/, { timeout: 15000 });
     step("4-frame-route");
     const frame = page.frameLocator("iframe");
     // konteyner SPA'sı iframe içinde render olur (login EKRANI DEĞİL — K4.2):
@@ -89,19 +92,22 @@ test.describe("Faz 5 saha akışı (K5.1)", () => {
     });
     step("7-kapatildi");
 
-    // 7) audit kaydı — saha Olaylar sayfasında imzalı session_open/session_end
+    // 7) audit kaydı — saha Olaylar sayfasında imzalı session açılış/kapanış
+    // (LogTerminal mesajı gösterir — eventCode DEĞİL; session-audit mesajları:
+    // "Konteyner oturumu acildi" / "Konteyner oturumu kapandi")
     await page.getByText("Olaylar").first().click();
     await page.waitForURL(/\/events$/, { timeout: 15000 });
     step("8-events-page");
-    await expect(page.getByText(/session_open|session_end/).first()).toBeVisible({
+    await expect(
+      page.getByText(/Konteyner oturumu acildi|Konteyner oturumu kapandi/).first(),
+    ).toBeVisible({
       timeout: 30000,
     });
 
-    // 8) Faz 5.1 B2 — grafik sayfası: konteynerden GERÇEK tarihsel seri
+    // 8) Faz 5.1 B2 — tarihsel seri: konteynerden GERÇEK downsampled seri
     //    (field API → ContainerProxy → telemetry-query frame → konteyner).
-    await page.getByText("Grafikler").first().click();
-    await page.waitForURL(/\/charts$/, { timeout: 15000 });
-    step("9-charts-page");
+    //    Charts sayfası kaldırıldı (2026-09: Raporlar'a taşındı) — kanıt
+    //    API üzerinden toplanır; UI rotası yoktur.
     const token = await page.evaluate(() => localStorage.getItem("auth-token"));
     expect(token).toBeTruthy();
     const seriesStatus = await page.evaluate(
@@ -118,24 +124,9 @@ test.describe("Faz 5 saha akışı (K5.1)", () => {
     expect(seriesStatus.status).toBe(200);
     // S11 (Faz 5.1): ham downsampled sorgusu canlı stack'te cihaz başına 10sn+
     // sürüyor (BSC tabloları ~59M satır/24s) — field'ın 10sn timeout'u boş dizi
-    // döndürür. Veri noktası sayısı assert EDİLMEZ; uç 200 + chart render kanıtı.
+    // döndürür. Veri noktası sayısı assert EDİLMEZ; uç 200 kanıttır.
     // Çözüm adayları (CA view yolu, name-unit index) Faz 5.2'ye bırakıldı.
     step("9a-b2-serisi-ok");
-    // grafik sayfası render: sekmeler + grafik bileşeni (uPlot canvas veya boş
-    // durum etiketi — bileşen monte oldu).
-    await expect(
-      page.getByRole("button", { name: "Toplam Güç" }),
-    ).toBeVisible({ timeout: 15000 });
-    await expect(
-      page.getByRole("button", { name: "Konteyner Bazlı" }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator(".uplot")
-        .first()
-        .or(page.getByText("Henüz veri yok...").first()),
-    ).toBeVisible({ timeout: 30000 });
-    step("9b-chart-render-ok");
 
     // 9) Faz 5.1 B3 — cihaz sayfası: snapshot'tan konteyner cihazları
     //    (field tier'da cihaz tablosu yoktur; 19 cihaz konteynerden gelir).
@@ -144,7 +135,12 @@ test.describe("Faz 5 saha akışı (K5.1)", () => {
     step("10-devices-page");
     const rows = page.locator("tbody tr");
     await expect(rows.first()).toBeVisible({ timeout: 15000 });
-    expect(await rows.count()).toBeGreaterThanOrEqual(19);
+    // Tünel cihaz listesi oturum açılıp fetch tamamlanana kadar satır satır
+    // dolabilir — sayıya poll ile varılır (konteyner 22 cihaz: bsc/cb/dc/emu/
+    // hvac/pcs + sanal IO ailesi).
+    await expect
+      .poll(async () => rows.count(), { timeout: 30000 })
+      .toBeGreaterThanOrEqual(19);
     await expect(page.getByText("BSC-1").first()).toBeVisible();
     // PCS-1 satırı tabloda görünür (select <option>'ı gizlidir — row hedeflenir)
     await expect(

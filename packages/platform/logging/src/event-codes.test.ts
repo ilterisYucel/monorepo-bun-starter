@@ -16,6 +16,9 @@ describe("GD-PMS olay sözlüğü", () => {
     expect(isLogEventCode("auto_rule_fired")).toBe(true);
     expect(isLogEventCode("auto_rule_action_ok")).toBe(true);
     expect(isLogEventCode("auto_rule_action_failed")).toBe(true);
+    // WS4 D3 — field_container_command audit'i (canlı koşumda yakalandı:
+    // sözlükte yokken fail-closed sessizce reddediyordu)
+    expect(isLogEventCode("field_container_command")).toBe(true);
   });
 
   it("bilinmeyen kodlar reddedilir", () => {

@@ -36,6 +36,11 @@ export interface CommandDeviceJob extends BaseJob {
    */
   atomic?: boolean;
   /**
+   * Çapraz katman iz kimliği (field manevra logu ↔ konteyner komut logu
+   * eşlemesi — WS4 D1). Audit context'ine taşınır; davranışı etkilemez.
+   */
+  traceId?: string;
+  /**
    * Yazma sonrası doğrulama konfigürasyonu.
    * Belirtilen register'lar belirtilen değerlere eşit olana kadar poll yapılır.
    */

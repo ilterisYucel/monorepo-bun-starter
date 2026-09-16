@@ -62,6 +62,23 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      // Tünel base modu (/fields/<fid>/ui/): SPA boss iframe'inde bu yolda
+      // yaşar; /fields/<fid>/ui/api/* istekleri üretimde boss→field tünel
+      // proxy'sinden akar. Yerel standalone dev'de bu akışı Vite emüle eder:
+      // /fields/<fid>/ui/{api,ws}/* → web-service /{api,ws}/* (rewrite);
+      // SPA rotaları (login/control/...) Vite'a KALIR (bypass).
+      "/fields": {
+        target: process.env.VITE_FIELD_SERVICE_URL || "http://localhost:5002",
+        changeOrigin: true,
+        ws: true,
+        rewrite: (path: string) =>
+          path.replace(/^\/fields\/[^/]+\/ui\/(api|ws)\//, "/$1/"),
+        bypass: (req) => {
+          const url = req.url ?? "";
+          if (/^\/fields\/[^/]+\/ui\/(api|ws)\//.test(url)) return undefined;
+          return url;
+        },
+      },
     },
   },
   optimizeDeps: {

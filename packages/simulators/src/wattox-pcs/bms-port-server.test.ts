@@ -84,7 +84,7 @@ afterEach(async () => {
 describe("BmsPortServer", () => {
   it("start port döner; FC 0x03 BMS bloğunu okur", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const res = await readHolding(port, BMS_SOC, 1);
@@ -94,7 +94,7 @@ describe("BmsPortServer", () => {
 
   it("FC 0x06 yazımı simülatör deposuna uygular (EMS yüzü görür)", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const res = await writeSingle(port, BMS_SOC, 8720);
@@ -104,7 +104,7 @@ describe("BmsPortServer", () => {
 
   it("FC 0x10 çoklu yazım uygulanır", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const res = await writeMultiple(port, BMS_TOTAL_VOLTAGE, [15200, 300]);
@@ -115,7 +115,7 @@ describe("BmsPortServer", () => {
 
   it("BMS bloğu DIŞI yazım → exception 0x02", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const res = await writeSingle(port, 767, 1);
@@ -128,7 +128,7 @@ describe("BmsPortServer", () => {
 
   it("BMS bloğu DIŞI okuma → exception 0x02", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const res = await readHolding(port, REG_OP_STATUS, 1);
@@ -138,7 +138,7 @@ describe("BmsPortServer", () => {
 
   it("bilinmeyen fonksiyon → exception 0x01", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const pdu = Buffer.from([0x05, 0x00, 0x00, 0x00, 0x00]);
@@ -149,7 +149,7 @@ describe("BmsPortServer", () => {
 
   it("start idempotent: ikinci çağrı aynı port", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port1 = await server.start();
     const port2 = await server.start();
     expect(port1).toBe(port2);
@@ -157,7 +157,7 @@ describe("BmsPortServer", () => {
 
   it("stop sonrası bağlantı reddedilir", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
     await server.stop();
 

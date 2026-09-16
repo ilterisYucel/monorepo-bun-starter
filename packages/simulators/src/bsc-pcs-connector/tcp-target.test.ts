@@ -21,7 +21,7 @@ afterEach(async () => {
 describe("TcpBmsTarget", () => {
   it("BmsPortServer'a FC 0x10 yazar; simülatör deposu güncellenir", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const target = new TcpBmsTarget("127.0.0.1", port);
@@ -33,7 +33,7 @@ describe("TcpBmsTarget", () => {
 
   it("sunucu kapalıyken connect throw eder", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
     await server.stop();
     server = undefined;
@@ -45,7 +45,7 @@ describe("TcpBmsTarget", () => {
 
   it("close sonrası yeniden connect + yazım çalışır (retry deseni)", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const target = new TcpBmsTarget("127.0.0.1", port);
@@ -60,7 +60,7 @@ describe("TcpBmsTarget", () => {
 
   it("BMS bloğu dışına yazım → Modbus exception throw", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim });
+    server = new BmsPortServer({ simulator: sim, port: 0 });
     const port = await server.start();
 
     const target = new TcpBmsTarget("127.0.0.1", port);

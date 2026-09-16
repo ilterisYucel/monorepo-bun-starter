@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { containersApi } from "./containersApi";
 
+const postMock = vi.fn();
+vi.mock("../../../lib/api-client", () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: (...args: unknown[]) => postMock(...args),
+    delete: vi.fn(),
+  },
+}));
+
 /**
  * containersApi — tünel device uçları sözleşmesi (2026-09-02):
  * Field, konteynerin /api/unified/* uçlarına MEVCUT HTTP tünelinden erişir
@@ -12,6 +21,47 @@ import { containersApi } from "./containersApi";
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  postMock.mockReset();
+});
+
+describe("containersApi.executeCommands (WS4 D5)", () => {
+  it("komut proxy rotasını doğru gövdeyle çağırır", async () => {
+    postMock.mockResolvedValue({
+      data: {
+        results: [{ deviceId: "BSC-1", command: "stop", success: true }],
+      },
+    });
+
+    const result = await containersApi.executeCommands(
+      "f-1",
+      "c-1",
+      [{ deviceId: "BSC-1", command: "stop" }],
+      { mode: "sequential" },
+    );
+
+    expect(postMock).toHaveBeenCalledWith(
+      "/fields/f-1/containers/c-1/commands",
+      {
+        commands: [{ deviceId: "BSC-1", command: "stop", params: {} }],
+        mode: "sequential",
+        onFailure: "stop",
+      },
+    );
+    expect(result.results[0]).toMatchObject({ success: true });
+  });
+
+  it("varsayılan mod parallel + onFailure stop", async () => {
+    postMock.mockResolvedValue({ data: { results: [] } });
+    await containersApi.executeCommands("f-1", "c-1", [
+      { deviceId: "BSC-1", command: "stop", params: { x: 1 } },
+    ]);
+    const body = postMock.mock.calls[0]![1] as {
+      mode: string;
+      onFailure: string;
+    };
+    expect(body.mode).toBe("parallel");
+    expect(body.onFailure).toBe("stop");
+  });
 });
 
 describe("containersApi.listDevices (2026-09-02)", () => {

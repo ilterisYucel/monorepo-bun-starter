@@ -75,6 +75,16 @@ services:
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-field
       FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+      # Alarm durum tablosu (device_alarms) — field timescale
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    # Wattox PCS BMS port sunucusu — standalone container stack'ten
+    # (host.docker.internal) BSC→PCS connector'ın bağlanması için host'a açılır.
+    ports:
+      - "15502:15502"
     depends_on:
       redis:
         condition: service_healthy
@@ -104,6 +114,11 @@ services:
       DEVICE_CONFIG_DIR: /app/config-field
       MANAGEMENT_RULES_PATH: /app/config/rules.json
       MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      # WS4 D4: konteyner komut kanalı — field web-service proxy rotası
+      # (opsiyonel; yoksa container-command aksiyonu kademeli fail olur)
+      FIELD_WEB_SERVICE_URL: ${FIELD_WEB_SERVICE_URL:-http://web-service:5002}
+      FIELD_ID: ${FIELD_ID:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
     depends_on:
       redis:
         condition: service_healthy
@@ -150,6 +165,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
+      # Field tier komut çözümlemesi: PCS config'leri config-field'da
+      # (Wattox register map — konteyner config'leri DEĞİL).
+      DEVICE_CONFIG_DIR: /app/config-field
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
@@ -160,10 +178,15 @@ services:
       # Boss'tan gelen field-app tünel akışlarının upstream'leri (loopback)
       TUNNEL_FIELD_API_UPSTREAM: ${TUNNEL_FIELD_API_UPSTREAM:-http://web-service:5002}
       TUNNEL_FIELD_STATIC_UPSTREAM: ${TUNNEL_FIELD_STATIC_UPSTREAM:-http://web:80}
+      # WS4 D3: programatik kanal (management-service) gizli token'ı —
+      # env yoksa internal yol KAPALI (fail-closed; Bearer admin/teknik açık)
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
       - "5002:5002"
+    volumes:
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
     depends_on:
       redis:
         condition: service_healthy

@@ -33,7 +33,19 @@ export function expectHolds(
   expect: string | number | boolean,
 ): boolean {
   if (!isRelationExpect(expect)) {
-    return actual === expect;
+    if (actual === expect) return true;
+    // Modbus BOOLEAN register'ları (DISCRETE_INPUT/COIL) sayısal 0/1 olarak
+    // çözülür; config'te "expect: true/false" yazılır (cb open, dc on,
+    // control-panel-io ışıklar). Katman sınırında 0/1 ↔ boolean eşleşir —
+    // canlı koşumda yakalanan sözleşme uyuşmazlığı (2026-09-16).
+    if (
+      typeof expect === "boolean" &&
+      typeof actual === "number" &&
+      (actual === 0 || actual === 1)
+    ) {
+      return actual === (expect ? 1 : 0);
+    }
+    return false;
   }
   if (typeof actual !== "number") return false;
   switch (expect) {

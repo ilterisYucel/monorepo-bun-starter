@@ -107,6 +107,10 @@ services:
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-docker
       CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # BSC→PCS connector BMS hedefi — field PCS'ler aynı edge-network'te
+      # field-device-service'te koşar (BSC-PCS-CONNECTOR-MIMARISI §6).
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
     depends_on:
       container-redis:
         condition: service_healthy
@@ -296,6 +300,76 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Field tier device-service — Wattox PCS'ler (PCS-WATTOX-MIMARISI.md).
+  # PCS BMS port sunucusu edge-network içi; container-device-service'teki
+  # BSC→PCS connector PCS_BMS_TARGET_HOST=field-device-service ile bağlanır.
+  field-device-service:
+    build:
+      context: ../
+      dockerfile: services/device-service/deployment/Dockerfile
+    container_name: aws-field-device-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: field
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID — uuidgen)}
+      # Alarm durum tablosu (device_alarms) — field timescale
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    depends_on:
+      field-redis:
+        condition: service_healthy
+    volumes:
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Field tier otomasyon (management-service) — R-06 recovery kuralı.
+  field-management-service:
+    build:
+      context: ../
+      dockerfile: services/management-service/deployment/Dockerfile
+    container_name: aws-field-management-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: field
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      # WS4 D4: konteyner komut kanalı — field web-service proxy rotası
+      FIELD_WEB_SERVICE_URL: ${FIELD_WEB_SERVICE_URL:-http://field-web-service:5002}
+      FIELD_ID: ${FIELD_ID:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
+    depends_on:
+      field-redis:
+        condition: service_healthy
+    volumes:
+      - ../services/management-service/deployment/config-field:/app/config:ro
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   field-web-service:
     build:
       context: ../
@@ -324,9 +398,15 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
+      # Field tier komut çözümlemesi: PCS config'leri config-field'da
+      # (Wattox register map — konteyner config'leri DEĞİL).
+      DEVICE_CONFIG_DIR: /app/services/device-service/deployment/config-field
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
+      # WS4 D3: programatik kanal (management-service) gizli token'ı —
+      # env yoksa internal yol KAPALI (fail-closed; Bearer admin/teknik açık)
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
       # Boss uplink (opsiyonel — FIELD_UPLINK_ENABLED=false ise kapalı).
       # FLAG: demo ws:// — üretimde wss:// + ALB/nginx + ACM.
       FIELD_UPLINK_ENABLED: ${FIELD_UPLINK_ENABLED:-false}

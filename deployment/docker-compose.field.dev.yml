@@ -70,6 +70,16 @@ services:
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-field
       FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+      # Alarm durum tablosu (device_alarms) — field timescale
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    # Wattox PCS BMS port sunucusu — standalone container stack'ten
+    # (host.docker.internal) BSC→PCS connector'ın bağlanması için host'a açılır.
+    ports:
+      - "15502:15502"
     volumes:
       - ../services/device-service/src:/app/services/device-service/src
       - ../services/device-service/run.ts:/app/services/device-service/run.ts
@@ -104,6 +114,10 @@ services:
       DEVICE_CONFIG_DIR: /app/config-field
       MANAGEMENT_RULES_PATH: /app/config/rules.json
       MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      # WS4 D4: konteyner komut kanalı (opsiyonel)
+      FIELD_WEB_SERVICE_URL: ${FIELD_WEB_SERVICE_URL:-http://web-service:5002}
+      FIELD_ID: ${FIELD_ID:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
     volumes:
       - ../services/management-service/src:/app/services/management-service/src
       - ../services/management-service/run.ts:/app/services/management-service/run.ts
@@ -157,7 +171,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      DEVICE_CONFIG_DIR: /app/services/device-service/config
+      # Field tier komut çözümlemesi: PCS config'leri config-field'da
+      # (Wattox register map — konteyner config'leri DEĞİL).
+      DEVICE_CONFIG_DIR: /app/config-field
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
@@ -167,6 +183,8 @@ services:
       FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}
       # Boss'tan gelen field-app tünel akışlarının upstream'leri (loopback)
       TUNNEL_FIELD_API_UPSTREAM: ${TUNNEL_FIELD_API_UPSTREAM:-http://web-service:5002}
+      # WS4 D3: programatik kanal gizli token'ı (yoksa internal yol KAPALI)
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
       # Boss Faz 3: field app dev (Vite) tünel upstream'i base önekini taşır —
       # VITE_TUNNEL_BASE ile birebir (/fields/<FIELD_ID>/ui).
       TUNNEL_FIELD_STATIC_UPSTREAM: ${TUNNEL_FIELD_STATIC_UPSTREAM:-http://web:5174/fields/${FIELD_ID}/ui}
@@ -177,9 +195,11 @@ services:
     volumes:
       - ../services/web-service/src:/app/services/web-service/src
       - ../services/web-service/run.ts:/app/services/web-service/run.ts
+      - ../services/device-service/deployment/config-field:/app/config-field:ro
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../packages/platform/logging/src:/app/packages/platform/logging/src
     depends_on:
       redis:
         condition: service_healthy
@@ -202,8 +222,11 @@ services:
       NODE_ENV: development
       VITE_FIELD_SERVICE_URL: http://web-service:5002
       # Boss Faz 3: boss iframe'inden tünel erişimi için Vite base'i —
-      # TUNNEL_FIELD_STATIC_UPSTREAM ile aynı önek.
-      VITE_TUNNEL_BASE: /fields/${FIELD_ID}/ui/
+      # yalnızca boss demosu gerektirdiğinde .env.field'da ayarlanır
+      # (ör. /fields/<FIELD_ID>/ui/). Standalone dev/e2e'de BOŞ kalır:
+      # SPA "/" tabanında yaşar ve form girişi çalışır (tünel modunda
+      # persistTokens NO-OP'tur — kimlik field_session cookie'sindedir).
+      VITE_TUNNEL_BASE: ${VITE_TUNNEL_BASE:-}
       # 2026-08-28: tek saha — frontend giriş sonrası doğrudan bu ID'ye gider
       # (saha listesi çözümü kaldırıldı). Backend FIELD_ID ile aynı kaynak.
       VITE_FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}

@@ -76,4 +76,14 @@ describe("expectHolds", () => {
     // kesin eşitlik: "2" !== 2
     expect(expectHolds(2, "2")).toBe(false);
   });
+
+  it("BOOLEAN register sayısal çözümü: 0/1 ↔ true/false eşleşir", () => {
+    expect(expectHolds(1, true)).toBe(true);
+    expect(expectHolds(0, false)).toBe(true);
+    expect(expectHolds(1, false)).toBe(false);
+    expect(expectHolds(0, true)).toBe(false);
+    // sayısal beklenenler etkilenmez: boolean değil, birebir kalır
+    expect(expectHolds(1, 1)).toBe(true);
+    expect(expectHolds(0, 1)).toBe(false);
+  });
 });

@@ -18,3 +18,8 @@ export type {
   BscPcsConnectorAdapterConfig,
   IBmsTarget,
 } from "./bsc-pcs-connector";
+export { AuxAnalyserSimulator, AuxAnalyserAdapter, AUX_INPUT } from "./aux-analyser";
+export { FssSimulator, FssAdapter, FSS_DISCRETE } from "./fss";
+export { ControlPanelIoSimulator, ControlPanelIoAdapter, IO_COILS, IO_DISCRETE } from "./control-panel-io";
+export type { DoorStateInput } from "./control-panel-io";
+export { ImdSimulator, ImdAdapter, IMD_INPUT } from "./imd";

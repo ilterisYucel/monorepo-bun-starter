@@ -28,6 +28,8 @@ export const LOG_EVENT_CODES = [
   // komut
   "command_executed",
   "command_rejected",
+  // WS4: field → konteyner komut proxy audit'i
+  "field_container_command",
   // ws / field bağlantısı
   "ws_register_rejected",
   "ws_connection_lost",

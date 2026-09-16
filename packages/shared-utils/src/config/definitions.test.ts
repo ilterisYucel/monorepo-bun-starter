@@ -8,14 +8,6 @@ import {
   serviceTier,
 } from "./definitions";
 
-/**
- * Faz 0 — shared-utils config definitions kontratı (T0.5/T0.6):
- * - Log tanımları ConfigLoader'dan tip güvenli okunur.
- * - `log.level` yalnızca 5 seviyeyi kabul eder; geçersiz değer fırlatır.
- * - `log.signingKeyPath` varsayılanı doludur; env ile ezilebilir.
- * - `log.filePath` varsayılanı undefined — tier varsayılanına düşer.
- */
-
 describe("log config definitions (T0.5/T0.6)", () => {
   it("logLevel varsayılanı info'dur", () => {
     const loader = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [new EnvSource()]);
@@ -56,5 +48,23 @@ describe("log config definitions (T0.5/T0.6)", () => {
   it("tüm tanımlar benzersiz anahtara sahiptir", () => {
     const keys = ALL_CONFIG_DEFINITIONS.map((d) => d.key);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("bmsTarget tanımları: varsayılan undefined; env ile okunur; port sayıya dönüşür", () => {
+    process.env.PCS_BMS_TARGET_HOST = "field-device-service";
+    process.env.PCS_BMS_TARGET_PORT = "15502";
+    try {
+      const loader = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [
+        new EnvSource(),
+      ]);
+      loader.load();
+      expect(loader.get<string | undefined>("device.bmsTargetHost")).toBe(
+        "field-device-service",
+      );
+      expect(loader.get<number | undefined>("device.bmsTargetPort")).toBe(15502);
+    } finally {
+      delete process.env.PCS_BMS_TARGET_HOST;
+      delete process.env.PCS_BMS_TARGET_PORT;
+    }
   });
 });

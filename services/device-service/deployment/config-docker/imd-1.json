@@ -1,0 +1,76 @@
+{
+  "deviceId": "IMD-1",
+  "name": "Insulation Monitoring Device 1",
+  "manufacturer": "Generic",
+  "model": "IMD-01",
+  "protocol": "MODBUS",
+  "type": "imd",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 536,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "name": "Insulation Resistance",
+      "description": "İzolasyon direnci",
+      "unit": "kΩ",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "bitfieldConfigs": [
+    {
+      "registerAddress": 1,
+      "registerType": "INPUT_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "IMD OK",
+          "dataTag": "imd_ok",
+          "description": "IMD sağlıklı",
+          "unit": "-"
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "IMD Fault",
+          "dataTag": "imd_fault",
+          "description": "İzolasyon arızası",
+          "unit": "-"
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "IMD Comm Lost",
+          "dataTag": "imd_comm_lost",
+          "description": "IMD iletişim kaybı",
+          "unit": "-"
+        }
+      ]
+    }
+  ],
+  "alarms": [
+    {
+      "telemetry": "IMD Fault",
+      "severity": "error",
+      "description": "İzolasyon değeri ideal değil"
+    },
+    {
+      "telemetry": "IMD Comm Lost",
+      "severity": "error",
+      "description": "IMD iletişim kaybı"
+    }
+  ],
+  "transport": {
+    "kind": "simulator",
+    "type": "imd"
+  }
+}

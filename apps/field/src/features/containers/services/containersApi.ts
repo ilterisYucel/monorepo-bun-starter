@@ -131,6 +131,29 @@ export const containersApi = {
   },
 
   /**
+   * Konteyner cihazına komut (WS4 D3/D5) — field web-service komut proxy
+   * rotası üzerinden tünelden konteynerin kendi komut hattına gider.
+   * Yanıt konteynerin execute-multi sonuçlarıdır (per-step success/reason).
+   * Yetki: admin/teknik (Bearer) — aksi 403.
+   */
+  executeCommands: async (
+    fieldId: string,
+    containerId: string,
+    commands: Array<{ deviceId: string; command: string; params?: Record<string, unknown> }>,
+    options: { mode?: "parallel" | "sequential"; onFailure?: "stop" | "continue" } = {},
+  ): Promise<{ results: Array<{ deviceId: string; command?: string; success: boolean; reason?: string }> }> => {
+    const { data } = await apiClient.post(
+      `/fields/${fieldId}/containers/${containerId}/commands`,
+      {
+        commands: commands.map((c) => ({ ...c, params: c.params ?? {} })),
+        mode: options.mode ?? "parallel",
+        onFailure: options.onFailure ?? "stop",
+      },
+    );
+    return data;
+  },
+
+  /**
    * Konteyner kaydı (T1.2 + 2026-08-28 UI) — kurulum adımı:
    * token'ın yalnızca SHA-256 hash'i field DB'sine yazılır (düz metin yok).
    * Aynı (fieldId, containerId) yeniden gönderilirse hash güncellenir

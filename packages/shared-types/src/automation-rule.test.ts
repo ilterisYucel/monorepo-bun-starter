@@ -252,6 +252,37 @@ describe("automationRulesSchema", () => {
     expect(r.success).toBe(false);
   });
 
+  it("container-command aksiyonu: containerId + deviceId + command zorunlu", () => {
+    const ok = automationRulesSchema.safeParse({
+      ...validFile,
+      rules: [
+        {
+          ...validRule,
+          then: [
+            {
+              action: "container-command",
+              containerId: "c-1",
+              deviceId: "BSC-1",
+              command: "stop",
+            },
+          ],
+        },
+      ],
+    });
+    expect(ok.success).toBe(true);
+
+    const missing = automationRulesSchema.safeParse({
+      ...validFile,
+      rules: [
+        {
+          ...validRule,
+          then: [{ action: "container-command", deviceId: "BSC-1", command: "stop" }],
+        },
+      ],
+    });
+    expect(missing.success).toBe(false);
+  });
+
   it("command aksiyonu command adı zorunlu, params opsiyonel", () => {
     const r = automationRulesSchema.safeParse({
       ...validFile,

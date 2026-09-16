@@ -64,6 +64,7 @@ export const FIELD_EN_DICT = {
 
   "container.connected": "PPC: Connected",
   "container.disconnected": "PPC: Disconnected",
+  "container.noPcs": "No target PCS found (waiting for container snapshot)",
   "container.power": "Power",
   "container.temperature": "Temperature",
   "container.device": "Device",

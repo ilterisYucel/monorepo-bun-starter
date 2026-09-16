@@ -15,6 +15,7 @@ import { RuleConfigLoader } from "./src/rule-config-loader";
 import { CycleSnapshotStore } from "./src/cycle-snapshot-store";
 import { RuleEvaluator } from "./src/rule-evaluator";
 import { ActionExecutor } from "./src/action-executor";
+import { HttpContainerCommandChannel } from "./src/container-command-channel";
 import { ManagementService } from "./src/management-service";
 
 const DEFAULT_EVALUATION_INTERVAL_MS = 10_000;
@@ -106,10 +107,31 @@ async function main() {
     maxAgeMs: snapshotMaxAgeMs,
   });
   const evaluator = new RuleEvaluator(catalog);
+
+  // WS4 D4: konteyner komut kanalı — field web-service proxy rotası üzerinden.
+  // Env yoksa kanal kurulmaz; container-command aksiyonu fail sonucuna düşer
+  // (kademeli bozulma — lokal komut aksiyonları etkilenmez).
+  const webServiceUrl = process.env.FIELD_WEB_SERVICE_URL;
+  const fieldId = process.env.FIELD_ID;
+  const containerCommands =
+    webServiceUrl && fieldId
+      ? new HttpContainerCommandChannel({
+          baseUrl: webServiceUrl,
+          fieldId,
+          ...(process.env.FIELD_INTERNAL_API_TOKEN
+            ? { internalToken: process.env.FIELD_INTERNAL_API_TOKEN }
+            : {}),
+        })
+      : undefined;
+  if (containerCommands) {
+    console.log(`[run] Konteyner komut kanali: ${webServiceUrl} (field ${fieldId})`);
+  }
+
   const executor = new ActionExecutor({
     builder,
     mq,
     logger,
+    ...(containerCommands ? { containerCommands } : {}),
   });
 
   const service = new ManagementService({

@@ -6,6 +6,13 @@ export { RuleEvaluator } from "./rule-evaluator";
 export type { RuleEvaluatorConfig } from "./rule-evaluator";
 export { ActionExecutor } from "./action-executor";
 export type { ActionExecutorConfig, ActionOutcome } from "./action-executor";
+export { HttpContainerCommandChannel } from "./container-command-channel";
+export type {
+  IContainerCommandChannel,
+  ContainerCommandInput,
+  ContainerCommandResult,
+  HttpContainerCommandChannelConfig,
+} from "./container-command-channel";
 export { RuleConfigLoader } from "./rule-config-loader";
 export type { RuleConfigLoaderConfig } from "./rule-config-loader";
 export { ManagementService } from "./management-service";

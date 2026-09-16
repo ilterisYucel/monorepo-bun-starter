@@ -73,6 +73,13 @@ services:
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-docker
       CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # BSC→PCS connector BMS hedefi (BSC-PCS-CONNECTOR-MIMARISI §6):
+      # standalone'da field stack host'ta → host.docker.internal; aws-edge'de
+      # field-device-service (compose içi). Verilmezse mapping sabiti (dev).
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-host.docker.internal}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       redis:
         condition: service_healthy
