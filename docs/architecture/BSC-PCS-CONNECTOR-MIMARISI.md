@@ -256,6 +256,6 @@ Bit kaynak adresleri devreye alım sırasında `bsc-1.json` bitfield listesinden
 | A1 | B01/B23 durum kodu eşlemesi (BSC State ↔ Wattox pack running status) — offset veya bit türetme |
 | A2 | B02 bit kaynakları (BSC bitfield adları — bsc-1.json'dan) |
 | A3 | B17/B18 limit kaynağı (Rack Max/Min Voltage uygun mu?) |
-| A4 | B19/B20 EMU register adresleri |
+| A4 | B19/B20 EMU register adresleri — **GÜNCELLEME (2026-09-17):** EMU cihazı KALDIRILIYOR (KONTEYNER-MANEVRA-KATALOGU REV.03 K1 — DC metre gelir). Kaynak sabit (nominal enerji) veya BSC SOC türetimi olacak — Faz 1.1'de mapping güncellenir |
 | A5 | B22 SOP türetimi (min(charge,discharge) limiti mi?) |
 | A6 | Çift BSC durumunda kaynak seçimi (her konteynerde BSC-1/BSC-2 — MVP: mapping'de açık `deviceId`; agregasyon Faz 2) |

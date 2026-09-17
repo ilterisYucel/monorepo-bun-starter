@@ -8,7 +8,7 @@ review_date: 2026-09-16
 # Field↔Konteyner Komut Kanalı — DOGRULAMA
 
 > **İş akışı aşaması:** 5/6 — SONUÇ.
-> **Kaynak SPEC'ler:** [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) §5 (PPC sinyal kaynağı), [OTOMASYON-KURALLARI-MIMARISI.md](./OTOMASYON-KURALLARI-MIMARISI.md) §3-§4 (kural seti + eksikler), WS4 planı.
+> **Kaynak SPEC'ler:** [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) §5 (PPC sinyal kaynağı), [KONTEYNER-MANEVRA-KATALOGU-REV03-MIMARISI.md](./KONTEYNER-MANEVRA-KATALOGU-REV03-MIMARISI.md) §3-§4 (kural seti + eksikler), WS4 planı.
 > **Kapsam:** WS3 (PPC synthetic telemetry), WS4 (D1-D5 komut kanalı), WS5 (unblocked kurallar).
 
 ## 1. Değişiklik Matrisi

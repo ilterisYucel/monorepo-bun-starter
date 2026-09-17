@@ -59,7 +59,7 @@ docker compose config (5 dosya, dummy env'lerle) → OK
 | Sapma | Açıklama |
 |:------|:---------|
 | S1 | Boss tarafı değişmedi — uplink mevcut env tasarımıyla (`.env`'de FIELD_UPLINK_*); koşumda elle doğrulanır |
-| S2 | Panel yalnızca PCS adımları üretir — konteyner cihaz adımları REV.01 katalogda yok; gerektiğinde `containersApi.executeCommands` (D5) hazır |
+| S2 | Panel yalnızca PCS adımları üretir — konteyner cihaz adımları REV.01 katalogda yok; gerektiğinde `containersApi.executeCommands` (D5) hazır. **GÜNCELLEME (2026-09-17):** bu artık bilinçli karardır — FL-02 operasyon modeli (`KOMUT-MANEVRA-OPERASYON` §6.1) gelince konteyner HAZIRLIK adımları (`bsc_prepare` — K12: güç param'ı YOK) uzak adım olarak eklenecek; şimdilik frontend üretimi geçerli |
 | S3 | `config-field/service.json` bayat (device-service artık ConfigLoader/env tabanlı) — kaldırılmadı, zararsız; temizlik ileride |
 
 ## 6. Genel Durum
@@ -117,3 +117,18 @@ bun run test          # 214 dosya / 1884 test (integration spec'leri dahil — s
 FIELD_ID=<uuid> bunx playwright test --project=chromium --workers=1   # stack'ler up iken
 ```
 CI: `.github/workflows/e2e.yml` — container.dev + field.dev stack'leri + curl ile kayıt/şifre adımı + chromium.
+
+## 9. Yeni SPEC'lerin Etkisi (REV.03 — 2026-09-17)
+
+> KOMUT-MANEVRA-OPERASYON (§6.1), KURAL-MOTORU-V2, WS-TUNNEL-KAPASITE,
+> KONTEYNER-MANEVRA-KATALOGU-REV03 (K10/K11/K12) ışığında bu DOGRULAMA'ya düşenler.
+
+| # | Konu | Durum / Gerekli güncelleme |
+|:--|:-----|:---------------------------|
+| N1 | **K12 düzeltmesi:** field FL-02 operasyonunun uzak adımı `bsc_charge` DEĞİL `bsc_prepare` (BSC'de charge komutu YOK) | SPEC'ler düzeltildi (2026-09-17); KOD değişikliği YOK — field `buildFieldManeuvers` yalnız PCS adımları üretiyor (doğru); konteyner adımı migrasyonla (Faz A-C) gelecek |
+| N2 | **I-1 test referansı:** `maneuver-command.spec.ts` "PCS forbid/allow" bloğu LEGACY `services/device-service/config/pcs-1.json`'a dayanıyor | K11 (Faz 1.6) bu config'i silince **test bloğu kaldırılmalı/güncellenmeli** — Wattox'ta `forbid_*` YOK; blok = `stop` + setpoint 0 |
+| N3 | **FL-03 Idle netleştirme:** impl `set_power_zero` (S06←0) yazar; SPEC §3.3 "standby (S19)" da der | Sapma DEĞİL — iki komut ayrıdır; mevcut davranış setpoint sıfırlamadır; standby adımı gerekirse ayrı komut olarak sonradan eklenir |
+| N4 | **R-06:** kurallar canlıya alınınca gizli manevra kartları (`FIELD_HIDDEN_MANEUVER_NAMES`) kural aksiyonlarıyla DEĞİŞTİRİLİR (KURAL-MOTORU-V2 `operation`/`maneuver` aksiyonları) | şimdilik katalog tamlığı için durur; K-M4 kanıtı değişmez |
+| N5 | **Sinyal kaynağı (R-07):** konteyner FL-09 (K7 defer) aynı synthetic-sinyal desenini bekliyor | iki taraf birlikte tasarlanırsa tek mekanizma — FIELD-MANEVRA REV.01.2 §5 çapraz referansı düşüldü |
+
+`review_date: 2026-09-17` — yeni SPEC'lerle hizalandı; kod tarafında değişiklik gerekmez (N2 hariç: K11 uygulanınca test bloğu güncellenecek).

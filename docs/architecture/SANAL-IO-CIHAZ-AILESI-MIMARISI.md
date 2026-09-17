@@ -8,7 +8,7 @@ review_date: 2026-09-16
 # Sanal IO Cihaz Ailesi — Mimari Tasarım (SPEC)
 
 > **İş akışı aşaması:** 1/6 — SPEC (AGENTS.md "Geliştirme İş Akışı — 6 aşama").
-> **Kaynak:** [OTOMASYON-KURALLARI-MIMARISI.md](./OTOMASYON-KURALLARI-MIMARISI.md) §4 eksikler envanteri (4.1, 4.2, 4.7, FL-11) + [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) §6 veri boşlukları (G-2, G-6).
+> **Kaynak:** [KONTEYNER-MANEVRA-KATALOGU-REV03-MIMARISI.md](./KONTEYNER-MANEVRA-KATALOGU-REV03-MIMARISI.md) §4 eksikler envanteri (4.1, 4.2, 4.7, FL-11) + [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) §6 veri boşlukları (G-2, G-6).
 > **Karar (2026-09-16):** Eksik cihazların TÜMÜ sahada analog/dijital I/O üzerinden Modbus gateway ile bağlanacak. Kod tarafında her fiziksel cihaza **ayrı sanal config + ayrı simülatör** üretilir (tek config + device_id tag yaklaşımı REDDEDİLDİ — downstream boru hattı üst seviye `TelemetryData.deviceId` kullanır). Demo register map'leri bu dokümandadır; gerçek Modbus map'leri geldiğinde YALNIZCA config/register-map güncellenir, kod değişmez.
 > **Kapsam dışı:** HVAC dehumid komutu (enerji mühendislerine soru — NOT düşüldü), TelemetryTagger değişikliği (ayrı iş).
 

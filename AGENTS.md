@@ -50,6 +50,7 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 ```
 
 - **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; DOGRULAMA + TEST-KAPSAMI güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
+- **SPEC onay kapısı (MANDATORY):** SPEC dokümanı yazıldıktan/revize edildikten sonra implementasyon **developer onayı BEKLER** — onay alınmadan test/implementasyon başlamaz. SPEC'i yazan ajan, developer'ı dokümanı incelemesi için **açıkça uyarır** (doküman yolu + "onay bekliyor" durumuyla); iş ancak developer onayı sonrası sürer.
 - **JSDoc önce:** Test yazılmadan önce davranış sözleşmesi JSDoc ile yazılır: state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler.
 - **Test sonra:** `*.test.ts` sözleşmeyi sabitler ve kırmızı verir; implementasyon testi yeşile çevirir. Test yoksa implementasyon başlamaz.
 - **Legacy karakterizasyon testleri:** Değiştirilecek testsiz modüllerde (örn. `rbac.ts`, `field-routes.ts`, `ws-routes.ts`, `bullmq-adapter.ts`) önce **mevcut davranış** testle sabitlenir — bug/delik dahil — sonra değişiklik yapılır.
