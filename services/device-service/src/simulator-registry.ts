@@ -14,19 +14,13 @@ import {
   DcOutputSimulatorAdapter,
   EnergyAnalyzerSimulator,
   EnergyAnalyzerSimulatorAdapter,
-  PcsSimulator,
-  PcsSimulatorAdapter,
-  EmuSimulator,
-  EmuSimulatorAdapter,
+  DcMeterSimulator,
+  DcMeterAdapter,
   WattoxPcsSimulator,
   WattoxPcsAdapter,
   parseBscPcsMapping,
   BscPcsConnectorAdapter,
   SimulatorTransport,
-  AuxAnalyserSimulator,
-  AuxAnalyserAdapter,
-  FssSimulator,
-  FssAdapter,
   ControlPanelIoSimulator,
   ControlPanelIoAdapter,
   ImdSimulator,
@@ -123,17 +117,10 @@ export class SimulatorRegistry {
       },
     });
 
-    this.registry.set("pcs", {
+    this.registry.set("dc-meter", {
       build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
-        const pcs = new PcsSimulator();
-        return { adapter: new PcsSimulatorAdapter(pcs), tick: () => pcs.tick(elapsed) };
-      },
-    });
-
-    this.registry.set("emu", {
-      build: (_deviceId: string, sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
-        const emu = new EmuSimulator(sim.pcsCount ?? 3);
-        return { adapter: new EmuSimulatorAdapter(emu), tick: () => emu.tick(elapsed) };
+        const meter = new DcMeterSimulator();
+        return { adapter: new DcMeterAdapter(meter), tick: () => meter.tick(elapsed) };
       },
     });
 
@@ -186,20 +173,6 @@ export class SimulatorRegistry {
 
     // Sanal IO cihaz ailesi — SANAL-IO-CIHAZ-AILESI-MIMARISI.md (demo map'ler;
     // gerçek register map'leri config'te yaşar).
-    this.registry.set("aux-analyser", {
-      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
-        const aux = new AuxAnalyserSimulator();
-        return { adapter: new AuxAnalyserAdapter(aux), tick: () => aux.tick(elapsed) };
-      },
-    });
-
-    this.registry.set("fss", {
-      build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
-        const fss = new FssSimulator();
-        return { adapter: new FssAdapter(fss), tick: () => fss.tick(elapsed) };
-      },
-    });
-
     this.registry.set("control-panel-io", {
       build: (_deviceId: string, _sim: SimulatorConfig, elapsed: number): SimulatorEntry => {
         const io = new ControlPanelIoSimulator();

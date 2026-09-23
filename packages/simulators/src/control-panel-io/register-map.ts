@@ -17,4 +17,9 @@ export const COILS = {
 export const DISCRETE = {
   BATTERY_DOOR_OPEN: 0, // true = batarya kapısı açık
   PANEL_DOOR_OPEN: 1, // true = panel kapısı açık
+  // FSS kuru kontakları (K5 — EP203 paneli DI'lara taşındı):
+  FSS_SYSTEM_OK: 2, // true = FSS sağlıklı (NC kuru kontak)
+  FSS_FAULT: 3, // true = FSS arıza
+  FSS_DISCHARGED: 4, // true = söndürme aktive edildi
+  FSS_2ND_STAGE: 5, // true = 2. aşama aktive
 } as const;

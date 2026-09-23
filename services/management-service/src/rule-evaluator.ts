@@ -17,12 +17,12 @@ export interface RuleEvaluatorConfig {
 
 /** Kural başına kenar/dedup durumu. */
 interface RuleState {
-  /** Koşul setinin kesintisiz TRUE kaldığı başlangıç zamanı. */
-  heldSince: number | undefined;
   /** Aktif dönem içinde kenar tüketildi mi? */
   fired: boolean;
   /** Son ateşleme zamanı (cooldown hesabı). */
   lastFiredAt: number | undefined;
+  /** Koşul başına kesintisiz-TRUE başlangıcı (per-condition debounce). */
+  conditionHeldSince: Array<number | undefined>;
 }
 
 /**
@@ -33,8 +33,10 @@ interface RuleState {
  *   (bayat değer snapshot garantisiyle zaten yok).
  * - Sayısal op'lar yalnızca number değerlerde; string/boolean → FALSE.
  * - Kural yalnızca inactive→active kenarında döner; aktifken TEKRARLAMAZ.
- * - `debounceMs` (koşulların maksimumu) dolmadan aktifleşme olmaz; düşüş
- *   sayacı sıfırlar.
+ * - `debounceMs` KOŞUL BAŞINA değerlendirilir (2026-09-22 REV03 K-A1):
+ *   her koşul kendi kesintisiz-TRUE süresini tutar — 3 kademeli koruma
+ *   kurallarında (örn. 15 dk / 5 dk / 45 sn) hızlı kademe yavaş kademeyi
+ *   BEKLEMEZ. Düşüş o koşulun sayacını sıfırlar.
  * - `cooldownMs` içindeki yeni kenar BASTIRILIR (kenar tüketilir); sonrası
  *   ateşler.
  * - Yan etki: kendi state'i dışında YOK; aynı snapshot ile ikinci çağrı boş.
@@ -64,25 +66,29 @@ export class RuleEvaluator {
       const conditionTruths = conditions.map((c) =>
         this.conditionTrue(c, snapshot),
       );
+
+      // Per-condition debounce (REV03 K-A1): her koşul kendi heldSince'ini
+      // tutar; debounceMs dolan koşul "debounced-TRUE" sayılır.
+      const debouncedTruths = conditions.map((c, i) => {
+        const held = state.conditionHeldSince[i];
+        if (!conditionTruths[i]) {
+          state.conditionHeldSince[i] = undefined;
+          return false;
+        }
+        if (held === undefined) {
+          state.conditionHeldSince[i] = now;
+        }
+        return now - (state.conditionHeldSince[i] ?? now) >= (c.debounceMs ?? 0);
+      });
+
       const ruleTrue = rule.when.all
-        ? conditionTruths.every(Boolean)
-        : conditionTruths.some(Boolean);
+        ? debouncedTruths.every(Boolean)
+        : debouncedTruths.some(Boolean);
 
       if (!ruleTrue) {
-        state.heldSince = undefined;
         state.fired = false;
         continue;
       }
-
-      if (state.heldSince === undefined) {
-        state.heldSince = now;
-      }
-
-      const debounceMs = Math.max(
-        0,
-        ...conditions.map((c) => c.debounceMs ?? 0),
-      );
-      if (now - state.heldSince < debounceMs) continue;
 
       if (state.fired) continue;
       state.fired = true;
@@ -104,7 +110,11 @@ export class RuleEvaluator {
   private stateFor(name: string): RuleState {
     let state = this.states.get(name);
     if (!state) {
-      state = { heldSince: undefined, fired: false, lastFiredAt: undefined };
+      state = {
+        fired: false,
+        lastFiredAt: undefined,
+        conditionHeldSince: [],
+      };
       this.states.set(name, state);
     }
     return state;

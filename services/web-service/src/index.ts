@@ -69,6 +69,7 @@ export async function main() {
   const telemetryQueryResponder = c.telemetryQueryResponder as any;
   const uplinkConnector = c.uplinkConnector as any;
   const uplinkSessionServer = c.uplinkSessionServer as any;
+  const operationResponder = c.operationResponder as any;
   const uplinkTunnelClient = c.uplinkTunnelClient as any;
   const uplinkSessionStore = c.uplinkSessionStore as any;
   const fieldTunnelPathAllowlist = c.fieldTunnelPathAllowlist as any;
@@ -102,6 +103,11 @@ export async function main() {
     fieldEventCollector: c.fieldEventCollector as any,
     uplinkEventRelay: c.uplinkEventRelay as any,
     fieldConnector: c.fieldConnector as any,
+    maneuverRegistry: c.maneuverRegistry as any,
+    maneuverExecutor: c.maneuverExecutor as any,
+    operationRunStore: c.operationRunStore as any,
+    operationDefStore: c.operationDefStore as any,
+    operationRequester: c.operationRequester as any,
     sessionStore,
     uplinkSessionStore,
     fieldTunnelPathAllowlist,
@@ -158,6 +164,7 @@ export async function main() {
     if (deps.fieldRegistry) await deps.fieldRegistry.stop();
     if (uplinkConnector) await uplinkConnector.stop();
     if (uplinkSessionServer) uplinkSessionServer.stop();
+    if (operationResponder) operationResponder.stop();
     if (uplinkTunnelClient) uplinkTunnelClient.stop();
     await mq.close();
     await timescale.close();
@@ -224,6 +231,19 @@ export async function main() {
   if (deps.wireGuard) {
     await deps.wireGuard.ensureSchema();
   }
+  // KOMUT-MANEVRA-OPERASYON §5.1 — hedef çözümleme: devices önbelleği
+  // açılışta + periyodik tazelenir (device-service cihaz kayıtları).
+  const deviceRegistry = c.deviceRegistry as any;
+  if (deviceRegistry) {
+    const refresh = () => {
+      void deviceRegistry.refresh().catch((err: unknown) => {
+        console.warn("[DeviceRegistry] tazeleme basarisiz", err);
+      });
+    };
+    await refresh();
+    const registryTimer = setInterval(refresh, 10_000);
+    registryTimer.unref();
+  }
   // Boss tier (Faz 3): field uplink kabulü — registry şeması + start;
   // gateway/tunnel proxy observer'ları kanala abone olur.
   if (deps.fieldRegistry) {
@@ -255,6 +275,9 @@ export async function main() {
     }
     if (uplinkSessionServer) {
       uplinkSessionServer.start();
+    }
+    if (operationResponder) {
+      operationResponder.start();
     }
   }
   // Faz 2: TunnelConnector sunucu dinlemeye başladıktan sonra bağlanır —

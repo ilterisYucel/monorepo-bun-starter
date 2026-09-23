@@ -6,7 +6,9 @@
 > `WS-TUNNEL-URUN-TESCILI.md`, `BOSS-UYGULAMA-MIMARISI.md` §7.4,
 > `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`.
 >
-> **Durum: GÖZDEN GEÇİRME BEKLİYOR** — onay alınmadan geliştirme başlamaz.
+> **Durum: İP-5 (KOMUT Faz C) ONAYLANDI ve TAMAMLANDI (2026-09-22)** —
+> [DOGRULAMA](./WS-TUNNEL-KAPASITE-DOGRULAMA.md) +
+> [TEST-KAPSAMI](./WS-TUNNEL-KAPASITE-TEST-KAPSAMI.md). C4 (admin UI) ✅ **TAMAMLANDI (2026-09-22, İP-7)** — field AdminOperationsPage operasyon kurucusu (DOGRULAMA S-5 kapandı).
 
 ## İçindekiler
 
@@ -214,13 +216,13 @@ uyumlu, eskiye dokunmaz):
 ## 9. Kabul Kriterleri
 
 - K1: `operation-execute` → yürütme → `operation-result` uçtan uca (gerçek WS
-  integration spec'i + gözle demo, `telemetry-query` spec'lerinin deseni).
+  integration spec'i + gözle demo, `telemetry-query` spec'lerinin deseni). ✅ **TAMAM (2026-09-22)** — `operation-flow.spec.ts` 2/2 (gözle demo devreye alımda — G-2)
 - K2: İki-hop (boss→field→konteyner) komut akışında konteyner cihaz audit'i,
-  field proxy audit'i ve boss istek audit'i üçü birden mevcut.
+  field proxy audit'i ve boss istek audit'i üçü birden mevcut. ✅ **TAMAM** — operation_boss_request/operation_result_sent + operation_* + konteyner command_* zinciri
 - K3: Bilinmeyen mesaj tipi / kopuk peer / yarı-ölü bağlantı senaryolarında
-  kademeli bozulma (çökme yok, yanlış sonuç yok).
+  kademeli bozulma (çökme yok, yanlış sonuç yok). ✅ **TAMAM** — sessiz yok sayma + timeout + system_unreachable
 - K4: ws-tunnel paketinde **protokol değişikliği YOK** — yalnızca `protocol/messages.ts`'e
-  iki ek tip; codec/connector/client/proxy değişmez (regresyon yüzeyi sıfır).
+  iki ek tip; codec/connector/client/proxy değişmez (regresyon yüzeyi sıfır). ✅ **TAMAM** — diff yalnızca messages.ts (+test)
 
 ---
 

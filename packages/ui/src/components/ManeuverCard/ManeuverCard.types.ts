@@ -1,4 +1,4 @@
-import type { ManeuverConfig, CommandStep } from "@gd-monorepo/shared-types";
+import type { ManeuverRecord, CommandStep } from "@gd-monorepo/shared-types";
 
 export interface StepResult {
   deviceId: string;
@@ -44,7 +44,10 @@ export interface ManeuverCardState {
 }
 
 export interface ManeuverCardProps {
-  maneuver: ManeuverConfig;
+  /** Sunucu manevra kaydı (Faz D2 — GET /api/maneuvers kataloğu). */
+  maneuver: ManeuverRecord;
+  /** Adım satırları — verilirse kayıt adımları YERİNE gösterilir (operasyon kartları). */
+  stepSummary?: Array<{ deviceId: string; command: string }>;
   state: "idle" | "running" | "timer" | "success" | "failed";
   stepResults?: StepResult[];
 

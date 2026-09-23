@@ -13,11 +13,12 @@ import { test, expect, type Page } from "@playwright/test";
 const FIELD_API = process.env.FIELD_API_URL || "http://localhost:5002";
 
 async function login(page: Page, username: string): Promise<string> {
+  const password =
+    username === "guest"
+      ? process.env.E2E_GUEST_PASSWORD || "guest123"
+      : process.env.E2E_ADMIN_PASSWORD || "kurulum-yeni-sifre-456";
   const res = await page.request.post(`${FIELD_API}/api/auth/login`, {
-    data: {
-      username,
-      password: process.env.E2E_ADMIN_PASSWORD || "kurulum-yeni-sifre-456",
-    },
+    data: { username, password },
   });
   expect([200, 201]).toContain(res.status());
   const body = await res.json();
@@ -35,7 +36,8 @@ test.describe("NIS-2 güvenlik — alarm uçları (KE)", () => {
       headers: { authorization: `Bearer ${token}` },
     });
     expect(res.status()).toBe(200);
-    expect(Array.isArray(await res.json())).toBe(true);
+    const body = await res.json();
+    expect(Array.isArray(body.alarms)).toBe(true);
   });
 
   test("aktif olmayan alarm çözümlemesi 409 döner (TEİAŞ resolved sözleşmesi)", async ({

@@ -1,14 +1,9 @@
 import React, { useState, useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ManeuverCard, useTranslation } from "@gd-monorepo/ui";
-import type { StepResult, ManeuverCardLabels } from "@gd-monorepo/ui";
-import type { CommandStep } from "@gd-monorepo/shared-types";
-import {
-  buildFieldManeuvers,
-  buildFieldManeuverControls,
-  resolveSteps,
-  FIELD_HIDDEN_MANEUVER_NAMES,
-} from "../maneuvers";
-import { fieldControlApi } from "../services/fieldControlApi";
+import type { StepResult, ManeuverCardLabels, InputField } from "@gd-monorepo/ui";
+import type { ManeuverRecord, OperationRecord, OperationRunResult } from "@gd-monorepo/shared-types";
+import { fieldManeuverApi } from "../services/fieldManeuverApi";
 import { useContainerData } from "../../containers/hooks/useContainerData";
 import { siteFieldId } from "../../../lib/site-field";
 
@@ -17,14 +12,18 @@ interface CardState {
   stepResults: StepResult[];
 }
 
-/**
- * Konteyner başına TEK PCS (REV.01 — FIELD-MANEVRA-KATALOGU): hedef PCS
- * listesi field API'sinin konteyner snapshot'larından türetilir — sabit
- * liste YOKTUR. Yürütme GERÇEKTİR: PCS adımları field web-service
- * /commands/execute-multi'ye gider (field device-service read-back doğrular;
- * konteyner bağlantısı kopsa bile PCS komutu device-service tarafından
- * yürütülür — PPC koptuysa komut reddedilir kuralı management-service'te).
- */
+interface CatalogCard {
+  kind: "maneuver" | "operation";
+  name: string;
+  label: string;
+  description?: string;
+  mode: "parallel" | "sequential";
+  stepSummary: Array<{ deviceId: string; command: string }>;
+  ui?: { inputs?: InputField[]; timer?: boolean; hidden?: boolean };
+}
+
+const ALL_GROUPS = -1;
+
 function pcsIdsFromContainers(
   containers: Array<{ latestTelemetry: Array<{ deviceId: string }> }>,
 ): string[] {
@@ -39,15 +38,72 @@ function pcsIdsFromContainers(
   ].sort();
 }
 
+function toCard(m: ManeuverRecord): CatalogCard {
+  return {
+    kind: "maneuver",
+    name: m.name,
+    label: m.label,
+    description: m.description,
+    mode: m.mode,
+    stepSummary: m.steps.map((s) => ({
+      deviceId:
+        s.deviceId ?? s.deviceIds?.join(", ") ?? s.deviceTypes?.join(", ") ?? "—",
+      command: s.command ?? "",
+    })),
+    ...(m.ui ? { ui: { ...(m.ui.inputs ? { inputs: m.ui.inputs as InputField[] } : {}), ...(m.ui.timer !== undefined ? { timer: m.ui.timer } : {}), ...(m.ui.hidden !== undefined ? { hidden: m.ui.hidden } : {}) } } : {}),
+  };
+}
+
+function toOperationCard(o: OperationRecord): CatalogCard {
+  return {
+    kind: "operation",
+    name: o.name,
+    label: o.label,
+    description: o.description,
+    mode: o.mode,
+    stepSummary: o.steps.map((s) =>
+      "system" in s
+        ? { deviceId: s.system, command: s.maneuver }
+        : "maneuver" in s
+          ? { deviceId: "local", command: s.maneuver }
+          : { deviceId: "local", command: `${s.commands.length} komut` },
+    ),
+    ...(o.ui ? { ui: { ...(o.ui.inputs ? { inputs: o.ui.inputs as InputField[] } : {}), ...(o.ui.timer !== undefined ? { timer: o.ui.timer } : {}), ...(o.ui.hidden !== undefined ? { hidden: o.ui.hidden } : {}) } } : {}),
+  };
+}
+
+/**
+ * FieldManeuverPanel — sunucu kataloğu tabanlı (Faz D2): saha kartları
+ * GET /api/maneuvers + /api/operations'tan gelir (UI TANIMLAMAZ — REV.01 §7
+ * migrasyonu); FL-02/FL-11 operasyon kartlarıdır. Grup seçimi yürütme
+ * isteğindeki `deviceIds` kısıtına iner (§5.1); güç dağıtımı sunucuda
+ * (`divideTotal` transform).
+ */
 export const FieldManeuverPanel: React.FC = () => {
   const [states, setStates] = useState<Record<string, CardState>>({});
+  const [group, setGroup] = useState<number>(ALL_GROUPS);
   const { t } = useTranslation();
 
   const fieldId = siteFieldId();
   const { containers } = useContainerData(fieldId);
   const pcsIds = useMemo(() => pcsIdsFromContainers(containers), [containers]);
-  const maneuvers = useMemo(() => buildFieldManeuvers(pcsIds), [pcsIds]);
-  const controls = useMemo(() => buildFieldManeuverControls(pcsIds), [pcsIds]);
+
+  const { data: maneuvers = [] } = useQuery({
+    queryKey: ["field-maneuvers"],
+    queryFn: ({ signal }) => fieldManeuverApi.listManeuvers(signal),
+  });
+  const { data: operations = [] } = useQuery({
+    queryKey: ["field-operations"],
+    queryFn: ({ signal }) => fieldManeuverApi.listOperations(signal),
+  });
+
+  const cards: CatalogCard[] = useMemo(
+    () => [
+      ...maneuvers.map(toCard),
+      ...operations.map(toOperationCard),
+    ].filter((c) => c.ui?.hidden !== true),
+    [maneuvers, operations],
+  );
 
   const labels: ManeuverCardLabels = useMemo(
     () => ({
@@ -70,104 +126,122 @@ export const FieldManeuverPanel: React.FC = () => {
   );
 
   const execute = useCallback(
-    async (name: string, values: Record<string, number>) => {
-      const m = maneuvers[name];
-      if (!m) return;
-
-      const steps = resolveSteps(m, values, controls[name]?.transform, pcsIds);
-      const commandSteps = steps.filter((s) => s.command);
-      if (commandSteps.length === 0) {
-        setStates((prev) => ({
-          ...prev,
-          [name]: {
-            status: "failed",
-            stepResults: [
-              {
-                deviceId: "-",
-                command: "",
-                success: false,
-                reason: t("container.noPcs"),
-              },
-            ],
-          },
-        }));
-        return;
-      }
-
+    async (
+      card: CatalogCard,
+      values: Record<string, number>,
+      timer?: { durationSeconds: number },
+    ) => {
       setStates((prev) => ({
         ...prev,
-        [name]: { status: "running", stepResults: [] },
+        [card.name]: { status: "running", stepResults: [] },
       }));
 
+      const deviceIds =
+        group !== ALL_GROUPS && pcsIds[group] ? [pcsIds[group]!] : undefined;
+
       try {
-        const results = await fieldControlApi.executeMulti({
-          commands: commandSteps.map((s: CommandStep) => ({
-            deviceId: s.deviceId,
-            command: s.command ?? "",
-            params: s.params,
-          })),
-          mode: m.mode,
-          onFailure: m.onFailure ?? "stop",
-        });
-        const stepResults: StepResult[] = results.map((r) => ({
-          deviceId: r.deviceId,
-          command: r.command,
-          success: r.success,
-          reason: r.reason,
+        const result: OperationRunResult =
+          card.kind === "maneuver"
+            ? await fieldManeuverApi.executeManeuver(card.name, {
+                ...(Object.keys(values).length > 0 ? { params: values } : {}),
+                ...(deviceIds !== undefined ? { deviceIds } : {}),
+                ...(timer && timer.durationSeconds > 0
+                  ? { timer: { durationSeconds: timer.durationSeconds } }
+                  : {}),
+              })
+            : await fieldManeuverApi.executeOperation(card.name, {
+                ...(Object.keys(values).length > 0 ? { params: values } : {}),
+                ...(deviceIds !== undefined ? { deviceIds } : {}),
+                ...(timer && timer.durationSeconds > 0
+                  ? { timer: { durationSeconds: timer.durationSeconds } }
+                  : {}),
+              });
+
+        const stepResults: StepResult[] = result.outcomes.map((o) => ({
+          deviceId: o.deviceId ?? o.system ?? o.maneuver ?? "—",
+          command: o.command ?? o.maneuver ?? "",
+          success: o.success,
+          ...(o.reason !== undefined ? { reason: o.reason } : {}),
         }));
-        const allOk = stepResults.every((r) => r.success);
+        const ok = result.status === "completed" || result.status === "rolled_back";
+
         setStates((prev) => ({
           ...prev,
-          [name]: { status: allOk ? "success" : "failed", stepResults },
+          [card.name]: {
+            status: ok ? "success" : "failed",
+            stepResults,
+          },
         }));
       } catch (err) {
         setStates((prev) => ({
           ...prev,
-          [name]: {
+          [card.name]: {
             status: "failed",
             stepResults: [
-              {
-                deviceId: "-",
-                command: "",
-                success: false,
-                reason: String(err),
-              },
+              { deviceId: "-", command: "", success: false, reason: String(err) },
             ],
           },
         }));
       }
     },
-    [maneuvers, controls, pcsIds, t],
+    [group, pcsIds],
   );
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-        gap: "12px",
-        alignItems: "start",
-      }}
-    >
-      {Object.entries(maneuvers)
-        .filter(([name]) => !FIELD_HIDDEN_MANEUVER_NAMES.has(name))
-        .map(([name, m]) => {
-          const s = states[name];
-          const c = controls[name];
+    <div>
+      <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <label htmlFor="field-group">{t("maneuver.group")}</label>
+        <select
+          id="field-group"
+          value={group}
+          onChange={(e) => setGroup(Number(e.target.value))}
+        >
+          <option value={ALL_GROUPS}>{t("maneuver.groupAll")}</option>
+          {pcsIds.map((id, index) => (
+            <option key={id} value={index}>
+              {id}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          gap: "12px",
+          alignItems: "start",
+        }}
+      >
+        {cards.map((c) => {
+          const s = states[c.name];
           return (
-            <ManeuverCard
-              key={name}
-              maneuver={{ ...m, label: t(m.label), description: t(m.description ?? "") }}
-              state={s?.status ?? "idle"}
-              stepResults={s?.stepResults}
-              inputs={c?.inputs}
-              timerConfig={c?.timerConfig}
-              labels={labels}
-              onRun={(values) => execute(name, values)}
-              onRetry={() => execute(name, { group: -1, powerKw: 500 })}
-            />
+            <div
+              key={`${c.kind}:${c.name}`}
+              data-card-name={c.name}
+              data-card-kind={c.kind}
+            >
+              <ManeuverCard
+                maneuver={{
+                  name: c.name,
+                  label: c.label,
+                  description: c.description,
+                  mode: c.mode,
+                  steps: [],
+                }}
+                stepSummary={c.stepSummary}
+                state={s?.status ?? "idle"}
+                stepResults={s?.stepResults}
+                inputs={c.ui?.inputs}
+                timerConfig={c.ui?.timer === true}
+                labels={labels}
+                onRun={(values, timer) => execute(c, values, timer)}
+                onRetry={() => execute(c, {})}
+              />
+            </div>
           );
         })}
+      </div>
     </div>
   );
 };

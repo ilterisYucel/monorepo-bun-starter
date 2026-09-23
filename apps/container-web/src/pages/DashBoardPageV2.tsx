@@ -77,9 +77,9 @@ export const DashboardPageV2: React.FC = () => {
     id: "CB-1, CB-2",
     gauges: cbDevices.length >= 2 ? [
       { value: findVal(cbDevices[0]!.id, "Is Closed"), label: "CB1 Kapali", unit: "", min: 0, max: 1, icon: <CB_ICON size={16} /> },
-      { value: findVal(cbDevices[0]!.id, "Is Tripped"), label: "CB1 Atmis", unit: "", min: 0, max: 1, icon: <WarningIcon size={16} /> },
+      { value: findVal(cbDevices[0]!.id, "Is Open"), label: "CB1 Acik", unit: "", min: 0, max: 1, icon: <WarningIcon size={16} /> },
       { value: findVal(cbDevices[1]!.id, "Is Closed"), label: "CB2 Kapali", unit: "", min: 0, max: 1, icon: <CB_ICON size={16} /> },
-      { value: findVal(cbDevices[1]!.id, "Is Tripped"), label: "CB2 Atmis", unit: "", min: 0, max: 1, icon: <WarningIcon size={16} /> },
+      { value: findVal(cbDevices[1]!.id, "Is Open"), label: "CB2 Acik", unit: "", min: 0, max: 1, icon: <WarningIcon size={16} /> },
     ] as DeviceGaugeItem[] : [] as DeviceGaugeItem[],
   }), [cbDevices, realtimeData]);
 

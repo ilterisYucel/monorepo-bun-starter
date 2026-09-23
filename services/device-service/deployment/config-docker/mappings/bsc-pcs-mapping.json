@@ -222,28 +222,14 @@
       "offset": 0
     },
     {
-      "kind": "register",
-      "from": {
-        "deviceId": "EMU-1",
-        "table": "input",
-        "address": 109,
-        "size": 2
-      },
+      "kind": "constant",
       "to": 786,
-      "ratio": 1,
-      "offset": 0
+      "value": 35000
     },
     {
-      "kind": "register",
-      "from": {
-        "deviceId": "EMU-1",
-        "table": "input",
-        "address": 111,
-        "size": 2
-      },
+      "kind": "constant",
       "to": 787,
-      "ratio": 1,
-      "offset": 0
+      "value": 35000
     },
     {
       "kind": "constant",

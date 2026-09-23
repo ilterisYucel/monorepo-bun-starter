@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  deriveEmuMetrics,
   derivePcsRows,
   deriveSocSohAverages,
   derivePowerLimits,
@@ -11,10 +10,11 @@ import type { TelemetryData } from "@gd-monorepo/shared-types";
 /**
  * Faz 5.1 B4 — saha PANO sözleşmesi: mock veri YOKTUR.
  * Topoloji konteyner snapshot'ından türetilir:
- * - EMU sütunu: EMU-* deviceId'li satırlar (isim başına en yeni değer).
  * - PCS sütunu: PCS-* deviceId'li cihazlar (snapshot'ta varsa bağlı).
  * - Ort. SoC/SoH: canonical "soc"/"soh" + rack_id "system" satırları (BSC).
  * - Şarj/deşarj limitleri: canonical "charge_power"/"discharge_power" (system).
+ * 2026-09-22 (K1): EMU sütunu kaldırıldı — EMU-1 cihazı silindi; sistem
+ * agregatı BSC canonical kaynaklarından türetilir (KONTEYNER-REV03 K1).
  */
 
 const point = (
@@ -39,28 +39,6 @@ const container = (telemetry: TelemetryData[]): FieldContainer => ({
   layout: { x: 0, y: 0, z: 0 },
   connectionStatus: "connected",
   latestTelemetry: telemetry,
-});
-
-describe("deriveEmuMetrics (B4)", () => {
-  it("EMU-* satırlarını isim→değer eşler; aynı isimde en yeni kazanır", () => {
-    const metrics = deriveEmuMetrics([
-      container([
-        point("EMU-1", "System SOC", 85),
-        point("EMU-1", "Active Power", 120, "2026-08-25T11:00:00.000Z"),
-        point("EMU-1", "Active Power", 140, "2026-08-25T12:00:00.000Z"),
-        point("BSC-1", "SOC", 90),
-      ]),
-    ]);
-    expect(metrics["System SOC"]).toBe(85);
-    expect(metrics["Active Power"]).toBe(140);
-    expect(metrics["SOC"]).toBeUndefined();
-  });
-
-  it("EMU yoksa boş eşleme", () => {
-    expect(deriveEmuMetrics([container([point("BSC-1", "SOC", 90)])])).toEqual(
-      {},
-    );
-  });
 });
 
 describe("derivePcsRows (B4)", () => {

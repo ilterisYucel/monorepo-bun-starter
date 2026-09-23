@@ -6,7 +6,10 @@
 > (otomatik tetikleme). Bu SPEC mevcut tasarımı değiştirir; çelişkide kaldığı yerde bu döküman
 > üstündür.
 >
-> **Durum: GÖZDEN GEÇİRME BEKLİYOR** — onay alınmadan geliştirme başlamaz.
+> **Durum: İP-3 (Faz A) + İP-4 (Faz B) ONAYLANDI ve TAMAMLANDI (2026-09-22)** —
+> [DOGRULAMA](./KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md) +
+> [TEST-KAPSAMI](./KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md).
+> Faz C/D kendi onay kapılarından sonra başlar.
 >
 > **REV.02 (2026-09-17):** dinamik cihaz hedefleme (§5.1), interlock sözleşmesi (§7.3),
 > admin tanım arayüzü (§11). REV.01'e eklemelerdir; diğer bölümler değişmedi.
@@ -515,34 +518,34 @@ Geliştirme onaydan sonra fazlar halinde yürütülür; her faz 6 aşamalı iş 
 (SPEC→JSDoc→TEST→IMPL→DOGRULAMA→TEST-KAPSAMI) ile kapanır.
 
 ### Faz A — Kayıtlar ve şemalar
-- A1 `maneuvers.json`/`operations.json` strict zod şemaları (`shared-types`), fail-fast yükleme.
-- A2 `ManeuverRegistry` + test (geçersiz kayıt → yükleme hatası; bilinmeyen isim → `Result.err`).
-- A3 Mevcut 18 manevranın (`maneuvers.ts` + field kataloğu) `maneuvers.json`'a migrasyonu.
+- A1 `maneuvers.json`/`operations.json` strict zod şemaları (`shared-types`), fail-fast yükleme. ✅ **TAMAM (2026-09-22)** — `maneuver.ts` + `maneuver-record.test.ts` 23/23
+- A2 `ManeuverRegistry` + test (geçersiz kayıt → yükleme hatası; bilinmeyen isim → `Result.err`). ✅ **TAMAM (2026-09-22)** — `maneuver-registry.ts` + test 7/7
+- A3 Mevcut manevraların (`maneuvers.ts` + field kataloğu) `maneuvers.json`'a migrasyonu. ✅ **TAMAM (2026-09-22)** — config-docker 11 kayıt + config-field 11 manevra + 3 operasyon; `maneuver-migration.test.ts` 12/12
 - Kabul: registry bilinmeyen manevrada `not_found` döner; kayıt dosyası bozuksa servis açılmaz.
 
 ### Faz B — Yürütücü ve kalıcılık
-- B1 `OperationExecutor` (yerel adımlar, parallel/sequential, onFailure stop/continue/rollback).
-- B2 `operation_runs` tablosu + `IOperationRunStore` PG adaptörü; fail-closed başlangıç.
-- B3 REST rotaları (`/api/maneuvers`, `/api/operations`, `/api/operations/runs`), RBAC + iç token.
-- B4 Timer genelleştirmesi (`timer` alanı; `_durationSeconds` hack kaldırılır).
+- B1 `OperationExecutor` (yerel adımlar, parallel/sequential, onFailure stop/continue/rollback). ✅ **TAMAM (2026-09-22)** — `operation-executor.ts` + test 17/17
+- B2 `operation_runs` tablosu + `IOperationRunStore` PG adaptörü; fail-closed başlangıç. ✅ **TAMAM (2026-09-22)** — `operation-run-store.ts` + test 6/6
+- B3 REST rotaları (`/api/maneuvers`, `/api/operations`, `/api/operations/runs`), RBAC + iç token. ✅ **TAMAM (2026-09-22)** — `maneuver-routes.ts` + adaptörler + server wiring + compose mount'ları
+- B4 Timer genelleştirmesi (`timer` alanı; `_durationSeconds` hack kaldırılır). ✅ **TAMAM (2026-09-22)** — execute-multi `timer` alanı; ManeuverPanel/controlApi timer üretimi
 - B5 Admin tanım yönetimi: `operation_defs` deposu + CRUD rotaları (yalnız admin) +
-  audit; hibrit registry çözümleme (DB > dosya). (§11)
+  audit; hibrit registry çözümleme (DB > dosya). (§11) ✅ **TAMAM (2026-09-22)** — `operation-def-store.ts` + hibrit registry + fail-closed audit
 - Kabul: UC-1 (yalnız yerel kısmı), UC-4 uçtan uca geçer; audit zinciri tam.
   B5: admin tanımlı YEREL manevra/operasyon kaydedilir, listelenir, çalıştırılır;
   teknik/guest 403; bozuk tanım kaydedilmez; tanım audit'i TamperLogger'da.
 
 ### Faz C — Çapraz sistem
-- C1 `IRemoteCommandChannel` + mevcut tünel komut kanalı adaptörü; `system` adım desteği.
-- C2 boss→field `operation-execute/operation-result` kontrol mesajları (WS-TUNNEL spec §5).
-- C3 Sonuç yayılımı: operasyon audit olaylarının event frame'e bağlanması.
-- C4 Admin tanımlı UZAK adımlı operasyonlar: UI'da sistem seçimi + kayıt (§11.3).
+- C1 `IRemoteCommandChannel` + mevcut tünel komut kanalı adaptörü; `system` adım desteği. ✅ **TAMAM (2026-09-22)** — executor delegasyonu + TunnelManeuverChannel
+- C2 boss→field `operation-execute/operation-result` kontrol mesajları (WS-TUNNEL spec §5). ✅ **TAMAM (2026-09-22)** — mesajlar + responder/requester + boss rota
+- C3 Sonuç yayılımı: operasyon audit olaylarının event frame'e bağlanması. ✅ **TAMAM (2026-09-22)** — UplinkEventRelay whitelist'e operation_* terminal geçişleri
+- C4 Admin tanımlı UZAK adımlı operasyonlar: UI'da sistem seçimi + kayıt (§11.3). ⏸ **İP-7 (Faz D2)** — API tarafı hazır (şema+CRUD uzak adım kabul eder); UI kurucusu frontend dalgasında (DOGRULAMA S-5)
 - Kabul: UC-2, UC-3 uçtan uca (gerçek WS integration spec'i + gözle demo); C4:
   UC-6 arbitraj senaryosu uçtan uca.
 
 ### Faz D — Kural motoru ve frontend
-- D1 `maneuver`/`operation` kural aksiyonları (KURAL-MOTORU-V2 spec).
+- D1 `maneuver`/`operation` kural aksiyonları (KURAL-MOTORU-V2 spec). ✅ **TAMAM (2026-09-22)** — [KURAL-MOTORU-V2-DOGRULAMA](./KURAL-MOTORU-V2-DOGRULAMA.md)
 - D2 Frontend: katalog `GET /api/maneuvers`'den; ManeuverPanel registry tabanlı;
-  operasyon paneli/listesi.
+  operasyon paneli/listesi. ✅ **TAMAM (2026-09-22)** — container-web ManeuverPanel + field FieldManeuverPanel sunucu kataloğundan; buildFieldManeuvers/MANEUVERS kaldırıldı; C4 admin operasyon kurucusu eklendi
 - Kabul: UC-2 kural tetikli uçtan uca; UI artık kendi kataloğunu tanımlamaz.
 
 ### Kapılar

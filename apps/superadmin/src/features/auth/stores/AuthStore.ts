@@ -10,6 +10,12 @@ export interface AuthState {
   logout: () => Promise<void>;
   /** Faz 1 T1.6 — zorunlu şifre değişimi (yeni token'larla oturumu tazeler). */
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  /**
+   * AUTH-REFRESH (2026-09-23) — oturum sonu temizliği. Backend çağrısı
+   * YAPMAZ; state'i (persist dahil) tam sıfırlar. Refresh başarısızlığı
+   * yolunda interceptor'dan çağrılır.
+   */
+  clearSession: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -50,6 +56,12 @@ export const useAuthStore = create<AuthState>()(
         localStorage.setItem("auth-refresh-token", refreshToken);
 
         set({ user, isAuthenticated: true });
+      },
+
+      // AUTH-REFRESH (2026-09-23): oturum sonu temizliği — backend çağrısı
+      // YOK; persist middleware `set` ile bayatsız state'i yazar.
+      clearSession: () => {
+        set({ user: null, isAuthenticated: false });
       },
     }),
     { name: "supadmin-auth-storage" },

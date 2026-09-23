@@ -6,16 +6,7 @@ import {
   useTranslation,
 } from "@gd-monorepo/ui";
 import { useContainerData } from "../features/containers/hooks/useContainerData";
-import { deriveEmuMetrics, deriveSocSohAverages, derivePowerLimits } from "../features/dashboard/deriveDashboard";
-
-const STATION_STATE_KEY: Record<number, string> = {
-  0: "status.initialState",
-  1: "status.shutdown",
-  2: "status.standby",
-  3: "status.hotStandby",
-  4: "status.charging",
-  5: "status.discharging",
-};
+import { deriveSocSohAverages, derivePowerLimits } from "../features/dashboard/deriveDashboard";
 
 export const FieldDashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -23,15 +14,11 @@ export const FieldDashboardPage: React.FC = () => {
   const { containers } = useContainerData(fieldId ?? "");
 
   // 2026-09-02: üst kartlar BSC sistem seviyesi canonical metriklerinden
-  // türetilir; EMU yalnızca İstasyon Durumu sağlar — mock veri YOKTUR.
-  const emuMetrics = useMemo(() => deriveEmuMetrics(containers), [containers]);
+  // türetilir — mock veri YOKTUR.
+  // 2026-09-22 (K1): EMU-1 kaldırıldı → İstasyon Durumu kartı çıkarıldı;
+  // sistem agregatı BSC canonical kaynaklarından gelir.
   const socSoh = useMemo(() => deriveSocSohAverages(containers), [containers]);
   const limits = useMemo(() => derivePowerLimits(containers), [containers]);
-
-  const emuVal = (name: string): number => emuMetrics[name] ?? 0;
-  const stationState = emuVal("Station State");
-
-  const stationVariant = stationState === 4 ? "ok" : stationState === 5 ? "dc" : "info";
 
   return (
     <div>
@@ -67,12 +54,6 @@ export const FieldDashboardPage: React.FC = () => {
           value={`${limits.dischargeKw.toFixed(1)} kW`}
           label={t("dashboard.dischargeLimit")}
           variant="dc"
-        />
-        <SummaryCard
-          icon={<SCADA_ICONS.dashboard size={28} />}
-          value={t(STATION_STATE_KEY[stationState] ?? "common.offline")}
-          label={t("emu.stationState")}
-          variant={stationVariant}
         />
       </div>
     </div>

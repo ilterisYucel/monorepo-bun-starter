@@ -71,9 +71,9 @@ export const BscPage: React.FC = () => {
   const dcProvider = useTelemetryProvider({ telemetryNames: dcNames, defaultRange: "1h", defaultPoints: 200, deviceIds: dcIds.length > 0 ? dcIds : ["DC-1"] });
 
   const cbStatuses = useMemo(() => bscDevices.map((_, idx) => {
-    const tripped = realtimeData.find(d => d.deviceId === `CB-${idx + 1}` && d.name === "Is Tripped");
     const closed = realtimeData.find(d => d.deviceId === `CB-${idx + 1}` && d.name === "Is Closed");
-    return { isTripped: !!(tripped && (tripped.value === 1 || tripped.value === true)), isClosed: !!(closed && (closed.value === 1 || closed.value === true)) };
+    const open = realtimeData.find(d => d.deviceId === `CB-${idx + 1}` && d.name === "Is Open");
+    return { isClosed: !!(closed && (closed.value === 1 || closed.value === true)), isOpen: !!(open && (open.value === 1 || open.value === true)) };
   }), [bscDevices, realtimeData]);
 
   const dcStatuses = useMemo(() => bscDevices.map((_, idx) => {
@@ -104,9 +104,7 @@ export const BscPage: React.FC = () => {
 
   const cbLabels: CBCardLabels = useMemo(() => ({
     online: t("common.online"), offline: t("common.offline"),
-    closed: "Kapalı", open: "Açık", tripped: "Atmış", normal: "Normal",
-    voltage: t("device.voltage"), current: t("device.current"),
-    tripCount: "Açma Sayısı", closeCount: "Kapama Sayısı", detail: t("common.detail"),
+    closed: "Kapalı", open: "Açık", detail: t("common.detail"),
   }), [t]);
 
   const dcLabels: DCOutputCardLabels = useMemo(() => ({
@@ -210,9 +208,8 @@ export const BscPage: React.FC = () => {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
               {cbDevices.map((device, idx) => (
                 <CBCard key={device.id} name={device.id} status="online"
-                  isClosed={cbStatuses[idx]?.isClosed ?? true} isTripped={cbStatuses[idx]?.isTripped ?? false}
-                  voltage={dcStatuses[idx]?.voltage ?? null} current={dcStatuses[idx]?.current ?? null}
-                  tripCount={0} closeCount={0} labels={cbLabels} onDetailClick={() => setSelectedDeviceId(device.id)} />
+                  isClosed={cbStatuses[idx]?.isClosed ?? true} isOpen={cbStatuses[idx]?.isOpen ?? false}
+                  labels={cbLabels} onDetailClick={() => setSelectedDeviceId(device.id)} />
               ))}
             </div>
 

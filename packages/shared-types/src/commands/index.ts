@@ -1,5 +1,30 @@
-export type { CommandParam, CommandConfig, CommandStep } from "./command";
-export type { ManeuverConfig } from "./maneuver";
+export type {
+  CommandParam,
+  CommandConfig,
+  CommandStep,
+  CommandTimer,
+} from "./command";
+export type {
+  ManeuverConfig,
+} from "./maneuver-config";
+export type {
+  ManeuverRecord,
+  ManeuverUi,
+  OperationRecord,
+  OperationStep,
+  ManeuversFile,
+  OperationsFile,
+} from "./maneuver";
+export {
+  commandStepSchema,
+  maneuverRecordSchema,
+  operationStepSchema,
+  operationRecordSchema,
+  maneuversFileSchema,
+  operationsFileSchema,
+  loadManeuversFile,
+  loadOperationsFile,
+} from "./maneuver";
 export {
   RELATION_EXPECTS,
   isRelationExpect,

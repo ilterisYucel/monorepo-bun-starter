@@ -5,9 +5,8 @@ export { HvacSimulator, HvacSimulatorAdapter } from "./hvac";
 export { CbSimulator, CbSimulatorAdapter } from "./cb";
 export { DcOutputSimulator, DcOutputSimulatorAdapter } from "./dc-output";
 export { EnergyAnalyzerSimulator, EnergyAnalyzerSimulatorAdapter } from "./energy-analyzer";
-export { PcsSimulator, PcsSimulatorAdapter } from "./pcs";
 export { SimulatorTransport } from "./simulator-transport";
-export { EmuSimulator, EmuSimulatorAdapter } from "./emu";
+export { DcMeterSimulator, DcMeterAdapter, DC_METER_INPUT } from "./dc-meter";
 export { WattoxPcsSimulator, WattoxPcsAdapter } from "./wattox-pcs";
 export type { WattoxPcsSimulatorConfig } from "./wattox-pcs";
 export { BmsPortServer } from "./wattox-pcs/bms-port-server";
@@ -18,8 +17,6 @@ export type {
   BscPcsConnectorAdapterConfig,
   IBmsTarget,
 } from "./bsc-pcs-connector";
-export { AuxAnalyserSimulator, AuxAnalyserAdapter, AUX_INPUT } from "./aux-analyser";
-export { FssSimulator, FssAdapter, FSS_DISCRETE } from "./fss";
 export { ControlPanelIoSimulator, ControlPanelIoAdapter, IO_COILS, IO_DISCRETE } from "./control-panel-io";
-export type { DoorStateInput } from "./control-panel-io";
+export type { DoorStateInput, FssStateInput } from "./control-panel-io";
 export { ImdSimulator, ImdAdapter, IMD_INPUT } from "./imd";

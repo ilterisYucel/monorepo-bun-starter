@@ -62,6 +62,58 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "System OK",
+      "description": "FSS sağlıklı (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault",
+      "description": "FSS arıza (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Discharged",
+      "description": "Söndürme aktive edildi (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "2nd Stage",
+      "description": "2. aşama aktive (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
     }
   ],
   "commands": {
@@ -148,6 +200,27 @@
       "telemetry": "Panel Door Open",
       "severity": "warning",
       "description": "Panel kapısı açık"
+    },
+    {
+      "telemetry": "System OK",
+      "severity": "warning",
+      "description": "FSS sağlıklı sinyali kayıp (K5)",
+      "activeLow": true
+    },
+    {
+      "telemetry": "Fault",
+      "severity": "error",
+      "description": "FSS arıza (K5)"
+    },
+    {
+      "telemetry": "Discharged",
+      "severity": "error",
+      "description": "Söndürme aktive edildi (K5)"
+    },
+    {
+      "telemetry": "2nd Stage",
+      "severity": "error",
+      "description": "FSS 2. aşama aktive (K5)"
     }
   ],
   "transport": {

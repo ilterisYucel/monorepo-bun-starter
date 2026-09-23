@@ -10,8 +10,10 @@ import type { AutomationRule } from "@gd-monorepo/shared-types";
  *
  * - Kenar-tetik: kural yalnızca inactive→active geçişinde döner; aktif kaldığı
  *   sürece sonraki evaluate çağrılarında TEKRARLAMAZ.
- * - Debounce: `debounceMs` (koşulların maksimumu) boyunca koşul seti kesintisiz
- *   TRUE kalmalı; süre dolmadan aktifleşme olmaz.
+ * - Debounce: `debounceMs` KOŞUL BAŞINA (per-condition) değerlendirilir
+ *   (REV03 K-A1, 2026-09-22) — her koşul kendi kesintisiz-TRUE süresini
+ *   tutar; 3 kademeli koruma kurallarında hızlı kademe yavaş kademeyi
+ *   beklemez. Düşüş o koşulun sayacını sıfırlar.
  * - Cooldown: ateşleme sonrası `cooldownMs` içinde düşüp yeniden yükselen kenar
  *   BASTIRILIR (kenar tüketilir); cooldown sonrası yeni kenar ateşler.
  * - Koşul TRUE = hedef sette EN AZ BİR cihazda değer mevcut (bayat değil —
@@ -106,6 +108,30 @@ describe("RuleEvaluator", () => {
     expect(ev.evaluate(rules, high)).toEqual([]);
     clock += 1;
     expect(ev.evaluate(rules, high)).toEqual([rules[0]]);
+  });
+
+  it("per-condition debounce: hızlı kademe yavaş kademeyi BEKLEMEZ (REV03 K-A1)", () => {
+    const ev = evaluator();
+    const rules = [
+      rule({
+        name: "tms_overheat_protect",
+        when: {
+          any: [
+            { telemetry: "room", op: "gt", threshold: 29, debounceMs: 900000 },
+            { telemetry: "pack", op: "gt", threshold: 50, debounceMs: 300000 },
+            { telemetry: "pack", op: "gt", threshold: 75, debounceMs: 45000 },
+          ],
+        },
+      }),
+    ];
+    // Yalnızca hızlı kademe (75°C / 45 sn) aktif; oda koşulu SAĞLANMIYOR.
+    const snap = fakeSnapshot({ "bsc-1": { pack: snapshotValue(80) } });
+
+    ev.evaluate(rules, snap);
+    clock += 44999;
+    expect(ev.evaluate(rules, snap)).toEqual([]);
+    clock += 1;
+    expect(ev.evaluate(rules, snap)).toEqual([rules[0]]);
   });
 
   it("debounce sırasında düşüş sayaç sıfırlar — yeniden tam süre gerekir", () => {

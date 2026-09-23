@@ -16,6 +16,7 @@ import { CycleSnapshotStore } from "./src/cycle-snapshot-store";
 import { RuleEvaluator } from "./src/rule-evaluator";
 import { ActionExecutor } from "./src/action-executor";
 import { HttpContainerCommandChannel } from "./src/container-command-channel";
+import { HttpManeuverOperationChannel } from "./src/maneuver-operation-channel";
 import { ManagementService } from "./src/management-service";
 
 const DEFAULT_EVALUATION_INTERVAL_MS = 10_000;
@@ -113,18 +114,29 @@ async function main() {
   // (kademeli bozulma — lokal komut aksiyonları etkilenmez).
   const webServiceUrl = process.env.FIELD_WEB_SERVICE_URL;
   const fieldId = process.env.FIELD_ID;
+  const internalToken = process.env.FIELD_INTERNAL_API_TOKEN;
   const containerCommands =
     webServiceUrl && fieldId
       ? new HttpContainerCommandChannel({
           baseUrl: webServiceUrl,
           fieldId,
-          ...(process.env.FIELD_INTERNAL_API_TOKEN
-            ? { internalToken: process.env.FIELD_INTERNAL_API_TOKEN }
-            : {}),
+          ...(internalToken ? { internalToken } : {}),
         })
       : undefined;
   if (containerCommands) {
     console.log(`[run] Konteyner komut kanali: ${webServiceUrl} (field ${fieldId})`);
+  }
+
+  // KURAL-MOTORU-V2 §3.2: manevra/operasyon delegasyon kanalı — aynı
+  // web-service + iç token; yoksa aksiyon kademeli fail eder.
+  const maneuverOperations = webServiceUrl
+    ? new HttpManeuverOperationChannel({
+        baseUrl: webServiceUrl,
+        ...(internalToken ? { internalToken } : {}),
+      })
+    : undefined;
+  if (maneuverOperations) {
+    console.log(`[run] Manevra/operasyon kanali: ${webServiceUrl}`);
   }
 
   const executor = new ActionExecutor({
@@ -132,6 +144,7 @@ async function main() {
     mq,
     logger,
     ...(containerCommands ? { containerCommands } : {}),
+    ...(maneuverOperations ? { maneuverOperations } : {}),
   });
 
   const service = new ManagementService({

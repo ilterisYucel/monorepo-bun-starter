@@ -24,6 +24,10 @@ const bscConfig: DeviceConfigFile = {
         powerKw: { type: "number", min: 0, max: 100, default: 50, required: true, label: "Güç" },
       },
     },
+    stop: {
+      label: "Durdur",
+      telemetries: [{ name: "Command Request", value: 3 }],
+    },
   },
 };
 
@@ -197,32 +201,81 @@ describe("command-routes (T0.6)", () => {
       url: "/api/commands/bsc-1/commands",
     });
     expect(res.statusCode).toBe(200);
-    expect(res.json().commands).toHaveLength(1);
+    expect(res.json().commands).toHaveLength(2);
   });
 
-  describe("zamanlı stop audit (T0.11)", () => {
+  describe("zamanlı stop planlama (REV.03 §10 — timer alanı)", () => {
     const timedStep = {
       deviceId: "bsc-1",
       command: "charge",
-      params: { powerKw: 10, _durationSeconds: 5 },
+      params: { powerKw: 10 },
+      timer: { durationMs: 5000 },
     };
 
-    it("logger varsa zamanlı stop planlaması audit loglanır", async () => {
+    it("başarılı adımda stop job'ı delay ile planlanır + timer_scheduled audit", async () => {
       const log = vi.fn().mockResolvedValue(undefined);
-      const app = await buildApp(mockMq(), { log } as unknown as TamperLogger);
+      const mq = mockMq();
+      const app = await buildApp(mq, { log } as unknown as TamperLogger);
       const res = await app.inject({
         method: "POST",
         url: "/api/commands/execute-multi",
         payload: { commands: [timedStep], mode: "parallel" },
       });
       expect(res.statusCode).toBe(200);
+      // stop job'ı builder'dan çözülür (BSC stop — Command Request 3)
+      const addJobCalls = (mq.addJob as ReturnType<typeof vi.fn>).mock.calls;
+      expect(addJobCalls).toHaveLength(1);
+      const [job, opts] = addJobCalls[0] as [unknown, { delay: number }];
+      expect(opts).toEqual({ delay: 5000 });
+      expect((job as { deviceId: string }).deviceId).toBe("bsc-1");
+      expect((job as { telemetries: Array<{ name: string; value: number }> }).telemetries[0])
+        .toMatchObject({ name: "Command Request", value: 3 });
       const auditEvents = log.mock.calls
         .map((c) => c[0])
         .filter((e: { category: string }) => e.category === "audit");
       expect(auditEvents).toHaveLength(1);
-      expect(auditEvents[0].eventCode).toBe("command_executed");
+      expect(auditEvents[0].eventCode).toBe("timer_scheduled");
       expect(auditEvents[0].context.deviceId).toBe("bsc-1");
-      expect(auditEvents[0].context.timerSeconds).toBe(5);
+      expect(auditEvents[0].context.durationMs).toBe(5000);
+    });
+
+    it("timer.stopCommand özel komutu çözümlenir", async () => {
+      const log = vi.fn().mockResolvedValue(undefined);
+      const mq = mockMq();
+      const app = await buildApp(mq, { log } as unknown as TamperLogger);
+      await app.inject({
+        method: "POST",
+        url: "/api/commands/execute-multi",
+        payload: {
+          commands: [
+            {
+              deviceId: "bsc-1",
+              command: "charge",
+              params: { powerKw: 10 },
+              timer: { durationMs: 5000, stopCommand: "stop" },
+            },
+          ],
+          mode: "parallel",
+        },
+      });
+      const auditEvents = log.mock.calls
+        .map((c) => c[0])
+        .filter((e: { category: string }) => e.category === "audit");
+      expect(auditEvents[0].context.command).toBe("stop");
+    });
+
+    it("komut BAŞARISIZSA planlama YAPILMAZ", async () => {
+      const mq = mockMq({
+        executeAndWait: vi.fn().mockResolvedValue({ success: false }),
+      });
+      const app = await buildApp(mq);
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/commands/execute-multi",
+        payload: { commands: [timedStep], mode: "parallel" },
+      });
+      expect(res.statusCode).toBe(422);
+      expect((mq.addJob as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
     });
 
     it("logger yoksa console bilgi çıktısı (geriye uyumlu)", async () => {
@@ -240,7 +293,7 @@ describe("command-routes (T0.6)", () => {
       }
     });
 
-    it("planlama hatası logger varsa audit command_rejected", async () => {
+    it("planlama hatası → timer_schedule_failed audit", async () => {
       const log = vi.fn().mockResolvedValue(undefined);
       const mq = mockMq({
         addJob: vi.fn().mockRejectedValue(new Error("queue down")),
@@ -251,11 +304,11 @@ describe("command-routes (T0.6)", () => {
         url: "/api/commands/execute-multi",
         payload: { commands: [timedStep], mode: "parallel" },
       });
-      const rejected = log.mock.calls
+      const failed = log.mock.calls
         .map((c) => c[0])
-        .find((e: { eventCode: string }) => e.eventCode === "command_rejected");
-      expect(rejected).toBeDefined();
-      expect(rejected.category).toBe("audit");
+        .find((e: { eventCode: string }) => e.eventCode === "timer_schedule_failed");
+      expect(failed).toBeDefined();
+      expect(failed.category).toBe("audit");
     });
   });
 });

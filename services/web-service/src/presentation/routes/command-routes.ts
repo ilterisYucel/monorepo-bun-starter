@@ -22,6 +22,15 @@ const commandStepSchema = z.object({
   command: z.string().optional(),
   telemetries: z.array(telemetryEntrySchema).optional(),
   params: z.record(z.unknown()).optional(),
+  // REV.03 §10 — zamanlı stop: ana komut başarılıysa stopCommand
+  // (varsayılan "stop") durationMs gecikmeyle planlanır.
+  timer: z
+    .object({
+      durationMs: z.number().positive(),
+      stopCommand: z.string().min(1).optional(),
+    })
+    .strict()
+    .optional(),
 }).refine(
   (d) => d.command || (d.telemetries && d.telemetries.length > 0),
   "command or telemetries required",
@@ -129,7 +138,7 @@ export async function makeCommandRoutes(
     const { commands, mode, onFailure } = executeMultiSchema.parse(request.body);
 
     const executeStep = async (step: z.infer<typeof commandStepSchema>) => {
-      const { deviceId, command: commandName, telemetries: rawTelemetries, params } = step;
+      const { deviceId, command: commandName, telemetries: rawTelemetries, params, timer } = step;
 
       let telemetries: TelemetryData[];
       let commandConfig: CommandConfig | undefined;
@@ -186,35 +195,29 @@ export async function makeCommandRoutes(
         timeoutMs,
       );
 
-      // Zamanlı komut: _durationSeconds varsa, süre dolunca otomatik stop job'ı zamanla
-      const durationSeconds = params && typeof params._durationSeconds === "number"
-        ? params._durationSeconds
-        : undefined;
-      if (durationSeconds && durationSeconds > 0 && result.success) {
-        const stopJobId = `${deviceId}-stop-${Date.now()}`;
+      // REV.03 §10 — zamanlı stop: ana komut BAŞARILIYSA stopCommand
+      // (varsayılan "stop"; config'den parametresiz çözümlenir) durationMs
+      // delay ile planlanır (BullMQ delay). Planlama best-effort + audit —
+      // mevcut logTimerSchedule deseni korunur, BSC register adı KALKAR.
+      if (timer && result.success) {
+        const stopCommand = timer.stopCommand ?? "stop";
         try {
-          await mq.addJob(
-            {
-              jobId: stopJobId,
-              type: "COMMAND_DEVICE" as const,
+          const stopBuilt = commandJobs.build(deviceId, stopCommand, {});
+          if (stopBuilt.isOk()) {
+            const stopJob = stopBuilt.unwrap();
+            await mq.addJob(stopJob, { delay: timer.durationMs });
+            await logTimerSchedule(deviceId, stopCommand, timer.durationMs, true);
+          } else {
+            await logTimerSchedule(
               deviceId,
-              timestamp: new Date().toISOString(),
-              telemetries: [{
-                name: "Request",
-                value: "Stop (timer)",
-                unit: "",
-                timestamp: new Date().toISOString(),
-                deviceId,
-                description: `${durationSeconds}s timer sonucu otomatik durdurma`,
-              }] as any,
-              atomic: true,
-              traceId: traceFrom(request),
-            },
-            { delay: durationSeconds * 1000 },
-          );
-          await logTimerSchedule(deviceId, durationSeconds, true);
+              stopCommand,
+              timer.durationMs,
+              false,
+              new Error(stopBuilt.error().reason),
+            );
+          }
         } catch (err) {
-          await logTimerSchedule(deviceId, durationSeconds, false, err);
+          await logTimerSchedule(deviceId, stopCommand, timer.durationMs, false, err);
         }
       }
 
@@ -246,19 +249,20 @@ export async function makeCommandRoutes(
   });
 
   /**
-   * Zamanlı stop planlama audit'i (T0.11) — logger yoksa console bilgi
-   * çıktısı (geriye uyumluluk). Audit fail-closed değildir: komut zaten
-   * yürütülmüş durumdadır; planlama best-effort'tur.
+   * Zamanlı stop planlama audit'i (REV.03 §10 — BSC register adı KALKTI).
+   * Logger yoksa console bilgi çıktısı (geriye uyumluluk). Audit fail-closed
+   * değildir: komut zaten yürütülmüş durumdadır; planlama best-effort'tur.
    */
   async function logTimerSchedule(
     deviceId: string,
-    timerSeconds: number,
+    stopCommand: string,
+    durationMs: number,
     success: boolean,
     err?: unknown,
   ): Promise<void> {
     if (!logger) {
       if (success) {
-        console.log(`[CommandRoutes] Zamanli stop planlandi: ${deviceId}, ${timerSeconds}s`);
+        console.log(`[CommandRoutes] Zamanli stop planlandi: ${deviceId}, ${stopCommand}, ${durationMs}ms`);
       } else {
         console.warn(`[CommandRoutes] Zamanli stop planlanamadi: ${deviceId}`, err);
       }
@@ -268,13 +272,14 @@ export async function makeCommandRoutes(
       await logger.log({
         level: success ? "info" : "error",
         category: "audit",
-        eventCode: success ? "command_executed" : "command_rejected",
+        eventCode: success ? "timer_scheduled" : "timer_schedule_failed",
         message: success
           ? "Zamanlı durdurma planlandı"
           : "Zamanlı durdurma planlanamadı",
         context: {
           deviceId,
-          timerSeconds,
+          command: stopCommand,
+          durationMs,
           phase: "schedule",
           ...(err !== undefined ? { error: String(err) } : {}),
         },

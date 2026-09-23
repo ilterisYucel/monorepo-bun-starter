@@ -4,8 +4,10 @@ import type { DeviceConfigFile } from "@gd-monorepo/shared-types";
 
 /**
  * SimulatorRegistry — sanal IO cihaz ailesi kayıtları (SANAL-IO-CIHAZ-AILESI-MIMARISI.md):
- * aux-analyser, fss, control-panel-io, imd config'de transport.kind === "simulator"
+ * control-panel-io, imd config'de transport.kind === "simulator"
  * iken transport üretir; kayıtlı olmayan tip sessizce atlanır.
+ * 2026-09-22 (K3/K5): aux-analyser ve fss KALDIRILDI — AUX = PM5340 tek
+ * cihaz; FSS kuru kontakları control-panel-io DI'larına taşındı.
  */
 
 function configWith(type: string): DeviceConfigFile {
@@ -31,7 +33,7 @@ function configWith(type: string): DeviceConfigFile {
 }
 
 describe("SimulatorRegistry — sanal IO cihaz ailesi", () => {
-  it.each(["aux-analyser", "fss", "control-panel-io", "imd"])(
+  it.each(["control-panel-io", "imd", "dc-meter"])(
     "%s kayıtlıdır ve transport üretir",
     (type) => {
       const registry = new SimulatorRegistry();
@@ -48,7 +50,7 @@ describe("SimulatorRegistry — sanal IO cihaz ailesi", () => {
 
   it("simulator olmayan transport config'i yok sayılır", () => {
     const registry = new SimulatorRegistry();
-    const config = configWith("aux-analyser");
+    const config = configWith("imd");
     (config.transport as { kind: string }).kind = "tcp";
     registry.createFromConfigs([config]);
     expect(registry.count()).toBe(0);

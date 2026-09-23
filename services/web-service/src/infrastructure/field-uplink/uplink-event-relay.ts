@@ -4,8 +4,10 @@ import type { ILogger } from "@gd-monorepo/ws-tunnel";
 
 /**
  * Boss'a aktarılacak olay whitelist'i (BOSS-UYGULAMA-MIMARISI.md §7.6):
- * cihaz alarm geçişleri + oturum audit'i. Tüm log akışı GÜRÜLTÜ olur —
- * yalnızca patronun kararında değer taşıyan geçişler aktarılır.
+ * cihaz alarm geçişleri + oturum audit'i + operasyon koşusu geçişleri
+ * (KOMUT-MANEVRA-OPERASYON §9 — sonuç yayılımı event frame ile). Tüm log
+ * akışı GÜRÜLTÜ olur — yalnızca patronun kararında değer taşıyan geçişler
+ * aktarılır.
  */
 export const UPLINK_EVENT_WHITELIST = [
   "device_alarm",
@@ -13,6 +15,11 @@ export const UPLINK_EVENT_WHITELIST = [
   "alarm_resolved",
   "session_open",
   "session_end",
+  // KOMUT-MANEVRA-OPERASYON §9 — operasyon koşusu terminal geçişleri
+  "operation_started",
+  "operation_completed",
+  "operation_failed",
+  "operation_rolled_back",
 ] as const;
 
 /** UplinkEventRelay yapılandırması — opsiyonel alanlar testlerde enjekte edilir. */

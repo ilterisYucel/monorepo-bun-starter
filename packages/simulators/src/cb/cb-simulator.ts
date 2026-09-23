@@ -1,166 +1,97 @@
-// CB Simulator — DC Circuit Breaker simulation
-import { COILS, DISCRETE, INPUT, HOLDING } from "./register-map";
+// CB Simülatörü — DC Şalter (SYW6GZ-4000) — K2 rework.
 
-const randomFloat = (): number => {
-  const buf = new Uint32Array(1);
-  crypto.getRandomValues(buf);
-  return buf[0]! / 0xFFFFFFFF;
-};
+import { COILS, DISCRETE } from "./register-map";
 
 interface CbState {
   closed: boolean;
-  tripped: boolean;
-  current: number;
-  voltage: number;
-  temperature: number;
-  tripCount: number;
-  operateCount: number;
-  tripThreshold: number;
-  uvThreshold: number;
-  ovThreshold: number;
-
   pendingOpen: boolean;
   pendingClose: boolean;
-  pendingReset: boolean;
 }
 
-function defaultState(): CbState {
-  return {
-    closed: true,
-    tripped: false,
-    current: 1000,       // 100.0A
-    voltage: 4000,       // 400.0V
-    temperature: 350,    // 35.0°C
-    tripCount: 0,
-    operateCount: 100,
-    tripThreshold: 5000, // 500.0A
-    uvThreshold: 3200,   // 320.0V
-    ovThreshold: 4800,   // 480.0V
-
-    pendingOpen: false,
-    pendingClose: false,
-    pendingReset: false,
-  };
-}
-
+/**
+ * CbSimulator — DC şalter simülatörü (K2: kesici → şalter modeli).
+ *
+ * Sözleşme (register-map.ts):
+ * - Başlangıç kapalı: Is Closed = true, Is Open = false.
+ * - COIL 0 (shunt trip) / COIL 1 (closing coil) darbeleri `tick`'te uygulanır
+ *   (yazım anında DEĞİL — validate read-back tick'ten sonra doğru görür).
+ * - Trip/akım/sıcaklık/eşik/reset semantiği YOKTUR; input/holding okumaları 0.
+ * - Bilinmeyen adres → 0/false (yok say).
+ */
 export class CbSimulator {
   private state: CbState;
 
   constructor() {
-    this.state = defaultState();
+    this.state = { closed: true, pendingOpen: false, pendingClose: false };
   }
 
-  tick(elapsedSeconds: number): void {
+  /** Zaman adımı — bekleyen coil darbelerini uygular (komut). */
+  tick(_elapsedSeconds: number): void {
     const s = this.state;
-
-    if (s.pendingReset) {
-      s.pendingReset = false;
-      if (s.tripped) {
-        s.tripped = false;
-        s.closed = true;
-        s.operateCount++;
-      }
-    }
 
     if (s.pendingOpen) {
       s.pendingOpen = false;
-      if (s.closed && !s.tripped) {
-        s.closed = false;
-        s.current = 0;
-        s.operateCount++;
-      }
+      if (s.closed) s.closed = false;
     }
 
     if (s.pendingClose) {
       s.pendingClose = false;
-      if (!s.closed && !s.tripped) {
-        s.closed = true;
-        s.operateCount++;
-      }
-    }
-
-    if (s.closed && !s.tripped) {
-      const jitter = (randomFloat() - 0.5) * 20;
-      s.current = 1000 + jitter;
-
-      if (s.current > s.tripThreshold) {
-        s.tripped = true;
-        s.closed = false;
-        s.current = 0;
-        s.tripCount++;
-      }
-    } else {
-      s.current = 0;
-    }
-
-    s.temperature += (s.current / 1000) * 0.02 * elapsedSeconds;
-    s.temperature += (35.0 * 10 - s.temperature) * 0.01 * elapsedSeconds;
-  }
-
-  readInputRegister(address: number): number {
-    const s = this.state;
-
-    switch (address) {
-      case INPUT.CURRENT:   return Math.round(s.current);
-      case INPUT.VOLTAGE:   return Math.round(s.voltage);
-      case INPUT.TEMP:      return Math.round(s.temperature);
-      case INPUT.TRIP_COUNT:   return s.tripCount;
-      case INPUT.OPERATE_COUNT: return s.operateCount;
-      default: return 0;
+      if (!s.closed) s.closed = true;
     }
   }
 
-  readHoldingRegister(address: number): number {
-    const s = this.state;
-
-    switch (address) {
-      case HOLDING.TRIP_THRESHOLD: return s.tripThreshold;
-      case HOLDING.UV_THRESHOLD:   return s.uvThreshold;
-      case HOLDING.OV_THRESHOLD:   return s.ovThreshold;
-      default: return 0;
-    }
+  /** Input register okur — şalterde yoktur, hep 0 (sorgu). */
+  readInputRegister(_address: number): number {
+    return 0;
   }
 
-  writeHoldingRegister(address: number, value: number): void {
-    const s = this.state;
-
-    switch (address) {
-      case HOLDING.TRIP_THRESHOLD: s.tripThreshold = value; break;
-      case HOLDING.UV_THRESHOLD:   s.uvThreshold = value; break;
-      case HOLDING.OV_THRESHOLD:   s.ovThreshold = value; break;
-      default: break;
-    }
+  /** Holding register okur — şalterde yoktur, hep 0 (sorgu). */
+  readHoldingRegister(_address: number): number {
+    return 0;
   }
 
+  /** Holding register yazımı — şalterde yoktur, yok sayılır (komut). */
+  writeHoldingRegister(_address: number, _value: number): void {
+    // Şalterde holding register YOKTUR.
+  }
+
+  /** Coil okur — bekleyen komut darbesi (sorgu). */
   readCoil(address: number): boolean {
-    const s = this.state;
-
     switch (address) {
-      case COILS.OPEN:  return s.pendingOpen;
-      case COILS.CLOSE: return s.pendingClose;
-      case COILS.RESET: return s.pendingReset;
-      default: return false;
+      case COILS.OPEN:
+        return this.state.pendingOpen;
+      case COILS.CLOSE:
+        return this.state.pendingClose;
+      default:
+        return false;
     }
   }
 
+  /** Coil yazar — OPEN/CLOSE darbesi işaretler; false yok sayılır (komut). */
   writeCoil(address: number, value: boolean): void {
     if (!value) return;
 
     switch (address) {
-      case COILS.OPEN:  this.state.pendingOpen = true; break;
-      case COILS.CLOSE: this.state.pendingClose = true; break;
-      case COILS.RESET: this.state.pendingReset = true; break;
-      default: break;
+      case COILS.OPEN:
+        this.state.pendingOpen = true;
+        break;
+      case COILS.CLOSE:
+        this.state.pendingClose = true;
+        break;
+      default:
+        break;
     }
   }
 
+  /** Aux kontak durumu okur — DI 0 Is Closed (NC), DI 1 Is Open (NO) (sorgu). */
   readDiscreteInput(address: number): boolean {
-    const s = this.state;
-
     switch (address) {
-      case DISCRETE.IS_CLOSED:  return s.closed;
-      case DISCRETE.IS_TRIPPED: return s.tripped;
-      default: return false;
+      case DISCRETE.IS_CLOSED:
+        return this.state.closed;
+      case DISCRETE.IS_OPEN:
+        return !this.state.closed;
+      default:
+        return false;
     }
   }
 }

@@ -42,13 +42,11 @@ export const ScadaDashboardPage: React.FC = () => {
   const breakerStatuses = useMemo<Array<"online" | "offline">>(
     () =>
       bscDevices.map((_bsc, idx) => {
-        const isTripped = realtimeData.find(
-          (t) => t.deviceId === `CB-${idx + 1}` && t.name === "Is Tripped",
-        );
-        if (!isTripped) return "online";
-        return isTripped.value === 1 || isTripped.value === true ? "offline" : "online";
+        // K2 — şalter modeli: trip semantiği YOK; durum cihaz bağlantısından.
+        const cb = devices.find((d) => d.id === `CB-${idx + 1}`);
+        return cb?.status === "offline" ? "offline" : "online";
       }),
-    [bscDevices, realtimeData],
+    [bscDevices, devices],
   );
 
   const breakerPositions = useMemo<Array<"open" | "close">>(

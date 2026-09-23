@@ -40,8 +40,14 @@ import { makeHealthRoute } from "./routes/health-route";
 import { makeStatusRoute } from "./routes/status-route";
 import { alarmRoutes } from "./routes/alarm-routes";
 import { makeCommandRoutes } from "./routes/command-routes";
+import { maneuverOperationRoutes } from "./routes/maneuver-routes";
+import { operationBossRoutes } from "./routes/operation-boss-routes";
 import { LogRepository } from "../infrastructure/persistence/log-repository";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
+import type { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
+import type { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
+import type { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
+import type { ManeuverRegistry, OperationExecutor } from "@gd-monorepo/platform-commands";
 import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
 import { containerWsRoutes } from "../infrastructure/container-proxy/container-ws-routes";
 import { fieldRoutes } from "./routes/field-routes";
@@ -110,6 +116,12 @@ export interface ServerDependencies {
   requestContext: RequestContext;
   /** Faz 6 T6.1 — MFA kaydı zorunlu roller (rbac enforcement). */
   mfaRequiredRoles: Role[];
+  /** KOMUT-MANEVRA-OPERASYON Faz B/C — awilix'te kurulan paylaşımlı bileşenler. */
+  maneuverRegistry?: ManeuverRegistry;
+  maneuverExecutor?: OperationExecutor;
+  operationRunStore?: OperationRunStore;
+  operationDefStore?: OperationDefStore;
+  operationRequester?: OperationRequester;
 }
 
 export class WebServiceServer {
@@ -272,6 +284,47 @@ export class WebServiceServer {
         });
       },
       { prefix: "/api/logs" },
+    );
+
+    // KOMUT-MANEVRA-OPERASYON §4 — manevra/operasyon yürütme + kayıt rotaları.
+    // Bileşenler awilix container'da kurulur (server ile index arasında
+    // paylaşılır — responder/executor aynı örnektir); DDL'ler burada açılır.
+    if (deps.operationDefStore) {
+      await deps.operationDefStore.initialize();
+    }
+    if (deps.operationRunStore) {
+      await deps.operationRunStore.initialize();
+    }
+
+    if (deps.maneuverRegistry && deps.maneuverExecutor && deps.operationRunStore) {
+      await this.app.register(
+        async (fastify) => {
+          await maneuverOperationRoutes(fastify, {
+            registry: deps.maneuverRegistry,
+            executor: deps.maneuverExecutor,
+            runStore: deps.operationRunStore,
+            ...(deps.operationDefStore
+              ? { defs: deps.operationDefStore }
+              : {}),
+            logger: deps.logger,
+            internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+          });
+        },
+        { prefix: "/api" },
+      );
+    }
+
+    // Boss tier: field'da operasyon tetikleme (WS-TUNNEL §5.2).
+    await this.app.register(
+      async (fastify) => {
+        await operationBossRoutes(fastify, {
+          ...(deps.operationRequester
+            ? { requester: deps.operationRequester }
+            : {}),
+          internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+        });
+      },
+      { prefix: "/api" },
     );
 
     await this.app.register(

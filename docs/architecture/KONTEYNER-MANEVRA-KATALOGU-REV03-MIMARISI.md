@@ -2,14 +2,13 @@
 status: active
 space: architecture
 tags: [mimari, manevra, konteyner, katalog, otomasyon, FL, spec]
-review_date: 2026-09-17
+review_date: 2026-09-22
 ---
 
 # Konteyner Manevra Kataloğu ve Otomasyon Kuralları — REV.03 (SPEC)
 
-> **İş akışı aşaması:** 1/6 — SPEC (AGENTS.md "Geliştirme İş Akışı — 6 aşama").
-> **Kaynaklar:** `~/Downloads/080726/` — `GD-EMS_FL-XX_*.drawio` (enerji mühendisi akış diyagramları) + `Functional_Logic_Matrix_210626_MC_V1.xlsx` (fonksiyonel mantık matrisi: cihaz/register/aksiyon/değer/koşul/öncelik) + `docs/devices/` cihaz manuelleri.
-> **Durum:** **UYGULAMA ONAYI BEKLİYOR.** Geliştirme YAPILMAMIŞTIR — developer bu SPEC'i kontrol edip onaylayınca Faz 1-4 başlar (AGENTS.md kapısı: "SPEC yazılır → implementasyon developer onayı BEKLER").
+> **İş akışı aşaması:** 1/6 — SPEC. **İP-1 (Faz 1.1-1.6) + İP-2 (Faz 2-3) ONAYLANDI ve TAMAMLANDI (2026-09-22)** —
+> [DOGRULAMA](./KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md) + [TEST-KAPSAMI](./KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md).
 > **Geçmiş:** REV.01/02 — OTOMASYON-KURALLARI-MIMARISI (kural seti taslağı); REV.03 (2026-09-17) — konteyner cihaz envanteri sabitlendi, 11 karar, FL veri kaynakları revize edildi, kural seti `command` aksiyon modeline çevrildi, PCS mimari düzeltmesi (K10/K11), S9/S10 kapanışı, BSC→PCS connector EMU çapraz etkisi (A7). REV.03 yeniden adlandırma ile katalog dokümanına dönüştü: §2 her FL için algoritma (pseudo-code) + komut/manevra veri yapıları + register eşlemesi; §3.2 manuel tetik yapıları eklendi.
 > **İlişkili:** [MANAGEMENT-SERVICE-MIMARISI.md](./MANAGEMENT-SERVICE-MIMARISI.md) (kural motoru altyapısı — Faz 0 tamamlandı), [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) (field tier kataloğu — PCS/Wattox), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md), [BSC-PCS-CONNECTOR-MIMARISI.md](./BSC-PCS-CONNECTOR-MIMARISI.md), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md).
 
@@ -753,15 +752,15 @@ export const MANEUVER_CONTROLS = {
 | Faz | İçerik | Çıktı |
 |:----|:-------|:------|
 | 0 | SPEC (bu doküman) | ✅ tamam |
-| 1.1 | dc-meter (DJSF1352): simülatör + config + registry; EMU silme; **bsc-pcs-mapping B19/B20 kaynak güncellemesi** | `packages/simulators/src/dc-meter/` + `dc-meter-1.json` + mapping |
-| 1.2 | CB şalter rework: register map + config + CBCard UI + BscPage/DashBoardPage/ScadaDashboardPage + field mockDataGenerator + manevralar (K2 + K12 + 4.17/4.18 düzeltmeleri) | `packages/simulators/src/cb/` + config + UI |
-| 1.3 | aux-analyser silme (PM5340 tek AUX) | config + simülatör silme |
-| 1.4 | IMD gerçek register map (Bender D00272 indirilir) | `packages/simulators/src/imd/` + config + `docs/devices/` |
-| 1.5 | FSS → control-panel-io DI'ları; fss silme | `packages/simulators/src/control-panel-io/` + config |
-| 1.6 | Legacy konteyner PCS silme (eski `pcs-1.json` + `PcsSimulator` kaydı) — K11 | config + registry |
-| 2 | rules.json (container tier) + `automation-rules.spec.ts` | `management-service/deployment/config/rules.json` + test |
-| 3 | `e2e/automation-rules.spec.ts` + mevcut e2e uyumu | Playwright spec |
-| 4 | DOGRULAMA + TEST-KAPSAMI + `graphify update .` | dokümanlar |
+| 1.1 | dc-meter (DJSF1352): simülatör + config + registry; EMU silme; **bsc-pcs-mapping B19/B20 kaynak güncellemesi** | ✅ **TAMAM (2026-09-22)** — `packages/simulators/src/dc-meter/` + `dc-meter-1.json` + mapping sabit (A7); DOGRULAMA §3-4 |
+| 1.2 | CB şalter rework: register map + config + CBCard UI + BscPage/DashBoardPage/ScadaDashboardPage + field mockDataGenerator + manevralar (K2 + K12 + 4.17/4.18 düzeltmeleri) | ✅ **TAMAM (2026-09-22)** — `packages/simulators/src/cb/` + config + UI + `maneuvers.ts` |
+| 1.3 | aux-analyser silme (PM5340 tek AUX) | ✅ **TAMAM (2026-09-22)** — config + simülatör silme |
+| 1.4 | IMD gerçek register map (Bender D00272 indirilir) | ✅ **TAMAM (2026-09-22)** — D00007_A_XXEN indirildi (sapma S-2) + map + config + simülatör |
+| 1.5 | FSS → control-panel-io DI'ları; fss silme | ✅ **TAMAM (2026-09-22)** — IO DI 2-5 + fss silme |
+| 1.6 | Legacy konteyner PCS silme (eski `pcs-1.json` + `PcsSimulator` kaydı) — K11 | ✅ **TAMAM (2026-09-22)** — config + simülatör + registry + rules.json PCS temizliği |
+| 2 | rules.json (container tier) + `automation-rules.spec.ts` | ✅ **TAMAM (2026-09-22)** — §3.1 tamamı 43 kural; `container-rules.test.ts` + `management-service/src/automation-rules.spec.ts` (K9); sapmalar S-7..S-10 (DOGRULAMA §4) |
+| 3 | `e2e/automation-rules.spec.ts` + mevcut e2e uyumu | ✅ **TAMAM (2026-09-22)** — `e2e/automation-rules.spec.ts` yeni (HVAC 25.0→soğuma zinciri); mevcut e2e'lerde CB/EMU/PCS referansı yok |
+| 4 | DOGRULAMA + TEST-KAPSAMI + `graphify update .` | ✅ **İP-1 + İP-2 TAMAM (2026-09-22)** — [DOGRULAMA](./KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md) + [TEST-KAPSAMI](./KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md) |
 
 **Kabul kriterleri (uygulama gününde kanıtlanacak):**
 - K-A1: Her uygulanabilir FL kuralı, dokümanda yazılı eşik/süre ile birebir eşleşir (senaryo testi).

@@ -176,6 +176,8 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
       DEVICE_CONFIG_DIR: /app/services/device-service/config
+      # KOMUT-MANEVRA-OPERASYON §5 — tier manevra/operasyon kayıt dizini
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
@@ -186,6 +188,8 @@ services:
       FIELD_WS_URL: ${FIELD_WS_URL:-}
       CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
       CONTAINER_ID: ${CONTAINER_ID:-container-1}
+    volumes:
+      - ../services/web-service/deployment/config-docker:/app/maneuver-config:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

@@ -91,6 +91,11 @@ export const FieldShell: React.FC = () => {
 
   const navKeys = visibleNavKeys(user?.role ?? "guest");
   const navItems = NAV_ITEMS.filter((item) => navKeys.includes(item.key as never));
+  // C4 — admin operasyon tanım yönetimi (yalnız admin; §11.3 nav-visibility)
+  const adminItems =
+    user?.role === "admin"
+      ? [{ path: "admin/operations", key: "nav.adminOperations", icon: SCADA_ICONS.settings }]
+      : [];
 
   // Boss Faz 3: saha kökü tünelde /fields/<fid>/ui, normalde /field/<fid>.
   const fieldBase = fieldRootPath(fieldId ?? "");
@@ -105,7 +110,7 @@ export const FieldShell: React.FC = () => {
         </S.SidebarLogo>
 
         <S.SidebarNav>
-          {navItems.map((item) => {
+          {[...navItems, ...adminItems].map((item) => {
             const navPath = `${fieldBase}${item.path ? `/${item.path}` : ""}`;
             const active = item.path === ""
               ? currentPath === fieldBase

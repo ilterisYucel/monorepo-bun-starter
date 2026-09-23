@@ -46,7 +46,7 @@ export interface DeviceTransportConfig {
 
 /** Simülatör konfigürasyonu (cihaz konfig dosyası içinde) */
 export interface SimulatorConfig {
-  type: "bsc" | "hvac" | "xrack" | "cb" | "dc-output" | "energy-analyzer" | "pcs" | "emu" | "wattox-pcs";
+  type: "bsc" | "hvac" | "xrack" | "cb" | "dc-output" | "dc-meter" | "energy-analyzer" | "wattox-pcs";
   rackCount?: number;
   registerMap?: string;
   pcsCount?: number;

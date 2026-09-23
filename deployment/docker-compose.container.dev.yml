@@ -178,6 +178,9 @@ services:
       # Faz 1 T1.6 env konvansiyonu: tier sırları .env.container'dan gelir
       # (field/boss dev ile birebir — sert kodlanmış dev-secret KALDIRILDI).
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      # AUTH-REFRESH (A1): kısa TTL test stack'i — e2e specleri bu env ile
+      # koşar (ACCESS_TOKEN_EXPIRY_SECONDS=10). Varsayılan 900 sn (15 dk).
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
       MFA_ENABLED: ${MFA_ENABLED:-true}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
       SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
@@ -190,6 +193,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
       DEVICE_CONFIG_DIR: /app/services/device-service/config
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
@@ -210,10 +214,14 @@ services:
       - "5001:5001"
     volumes:
       - ../services/web-service/src:/app/services/web-service/src
+      - ../services/web-service/deployment/config-docker:/app/maneuver-config:ro
       - ../services/web-service/run.ts:/app/services/web-service/run.ts
       - ../packages/core/src:/app/packages/core/src
       - ../packages/shared-types/src:/app/packages/shared-types/src
       - ../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../packages/result/src:/app/packages/result/src
+      - ../packages/platform/logging/src:/app/packages/platform/logging/src
     depends_on:
       redis:
         condition: service_healthy

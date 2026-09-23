@@ -5,7 +5,9 @@
 > `MANAGEMENT-SERVICE-MIMARISI.md` (motor mimarisi), `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`
 > (varlık hiyerarşisi), `WS-TUNNEL-KAPASITE-DEGERLENDIRMESI.md` (çapraz sistem taşıma).
 >
-> **Durum: GÖZDEN GEÇİRME BEKLİYOR** — onay alınmadan geliştirme başlamaz.
+> **Durum: İP-6 (KOMUT Faz D1) ONAYLANDI ve TAMAMLANDI (2026-09-22)** —
+> [DOGRULAMA](./KURAL-MOTORU-V2-DOGRULAMA.md) +
+> [TEST-KAPSAMI](./KURAL-MOTORU-V2-TEST-KAPSAMI.md).
 
 ## İçindekiler
 
@@ -173,10 +175,10 @@ config değişikliğiyle bakımı güvence altına alır — kural motorunda de�
 Faz D (KOMUT-MANEVRA-OPERASYON spec §13) içinde uygulanır; 6 aşamalı iş akışı geçerlidir.
 
 - D1 `automation-rule.ts` şema genişletmesi + `RuleEvaluator`'a dokunulmadan
-  mevcut değerlendirme testlerinin yeşil kalması.
+  mevcut değerlendirme testlerinin yeşil kalması. ✅ **TAMAM (2026-09-22)** — 26/26; RuleEvaluator değişmedi
 - D2 `ActionExecutor` manevra/operasyon aksiyonları: iç token kanalı, 15 sn timeout,
-  202 + durum sorgulama, trace kimliği; kanal yoksa fail (kademeli bozulma).
-- D3 `rules.json` örnekleri: `r06_recovery` → operation; SOC dengeleme örneği.
+  202 + durum sorgulama, trace kimliği; kanal yoksa fail (kademeli bozulma). ✅ **TAMAM (2026-09-22)** — kanal 7/7 + ActionExecutor 22/22 + route 202 17/17
+- D3 `rules.json` örnekleri: `r06_recovery` → operation; SOC dengeleme örneği. ✅ **TAMAM (2026-09-22)** — r06 → maneuver(fl06_recovery) (sapma S-1); SOC örneği → operation(field_discharge, disabled) (S-2)
 - Kabul: UC-1 uçtan uca (gerçek WS + tünel); UC-4 409 yolu; değerlendirme
   semantiği testleri (kenar/debounce/cooldown) DEĞİŞMEDEN geçer.
 - Kapı: ActionExecutor yeni yollar ≥%90 branch.

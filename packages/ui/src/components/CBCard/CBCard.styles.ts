@@ -73,54 +73,6 @@ export const BadgeOpen = styled(badgeBase)`
   border: 1px solid ${COLORS.warning};
 `;
 
-export const BadgeTripped = styled(badgeBase)`
-  background: ${COLORS.errorAlpha12};
-  color: ${COLORS.error};
-  border: 1px solid ${COLORS.error};
-`;
-
-export const BadgeNormal = styled(badgeBase)`
-  background: ${COLORS.successAlpha12};
-  color: ${COLORS.success};
-  border: 1px solid ${COLORS.success};
-`;
-
-export const DataGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 4px;
-`;
-
-export const DataItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: ${COLORS.bgInput};
-  padding: 8px 10px;
-  border-radius: 8px;
-`;
-
-export const DataIcon = styled.span`
-  font-size: 15px;
-  min-width: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-export const DataLabel = styled.span`
-  font-size: 11px;
-  color: ${COLORS.textMuted};
-  flex: 1;
-`;
-
-export const DataValue = styled.span`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${COLORS.textPrimary};
-`;
-
 export const DetailButton = styled.button`
   margin-top: 12px;
   width: 100%;

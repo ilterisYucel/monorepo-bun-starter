@@ -194,7 +194,7 @@ Her tick'te, her kural için:
 1. **Hedef set çözümle:** koşul başına hedef cihazlar = `ids` ∪ `types` çözümlenmiş set (`DeviceCatalog`); selector verilmemişse snapshot'taki tüm cihazlar.
 2. **Koşul doğruluğu:** Bir koşul, hedef setteki **en az bir** cihazın ilgili `telemetry` değeri snapshot'ta mevcut + bayat değil + `op`'u sağlıyorsa TRUE. (Çok cihazda AND isteniyorsa iki ayrı koşul `when.all` altına yazılır — kompozisyon yeterli.)
 3. **when birleşimi:** `all` → tüm koşullar TRUE; `any` → en az biri TRUE.
-4. **Debounce:** Koşul `debounceMs` boyunca **kesintisiz** TRUE kalmalı — state: kural başına `heldSince` zamanı. `heldSince` set edildikten sonra her tick'te TRUE kalırsa, `now - heldSince >= debounceMs` olduğu anda koşul "aktif" sayılır.
+4. **Debounce:** Koşul `debounceMs` boyunca **kesintisiz** TRUE kalmalı — state: KOŞUL BAŞINA `heldSince` zamanı (2026-09-22 REV03 K-A1 güncellemesi: eski "kural başına max-debounce" yerine per-condition; 3 kademeli koruma kurallarında hızlı kademe yavaş kademeyi beklemez). `heldSince` set edildikten sonra her tick'te TRUE kalırsa, `now - heldSince >= debounceMs` olduğu anda koşul "aktif" sayılır.
 5. **Kenar-tetik:** Kural yalnızca **inactive → active** geçişinde aksiyonları çalıştırır; aktif kaldığı sürece her tick'te TEKRARLAMAZ (AlarmTransitionDetector deseni — `device_alarm` yalnızca yükselen kenarda).
 6. **Düşen kenar:** Koşul FALSE'a düşünce kural inactive'a döner ve `heldSince` sıfırlanır; yeniden yükselirse yeni oluşum sayılır.
 7. **Cooldown:** Aksiyonlar çalıştıktan sonra `cooldownMs` dolmadan yeni yükselen kenar aksiyon tetiklemez. Cooldown `now()` enjeksiyonuyla deterministik test edilir.

@@ -23,10 +23,29 @@ export interface CommandConfig {
   };
 }
 
-/** Tek bir cihaza gönderilecek komut adımı */
+/** Adım içi komut zamanlayıcı — REV.03 §10 (bkz. maneuver.ts sözleşmesi). */
+export interface CommandTimer {
+  durationMs: number;
+  stopCommand?: string;
+}
+
+/**
+ * Komut adımı — REV.02 §5.1 hedef seçicisi:
+ *
+ * - `deviceId`: tek hedef (mevcut kullanım).
+ * - `deviceIds`: açık liste (grup seçimi).
+ * - `deviceTypes`: tip seçici — device config üst seviye `type` alanından;
+ *   çözümleme yürütme anında, yalnızca online+müsait cihazlar (§5.1).
+ *
+ * Üçünden TAM BİRİ zorunludur (şema: commandStepSchema). `command` =
+ * config isimli komut VEYA `telemetries` = ham yazımlar (en az biri).
+ */
 export interface CommandStep {
-  deviceId: string;
+  deviceId?: string;
+  deviceIds?: string[];
+  deviceTypes?: string[];
   command?: string;
   telemetries?: Array<{ name: string; value: unknown; unit?: string }>;
   params?: Record<string, unknown>;
+  timer?: CommandTimer;
 }

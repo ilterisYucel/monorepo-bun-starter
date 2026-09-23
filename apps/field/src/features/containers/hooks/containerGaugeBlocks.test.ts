@@ -119,13 +119,13 @@ describe("buildDeviceGaugeBlocks — HVAC (V2 formatı)", () => {
 });
 
 describe("buildDeviceGaugeBlocks — CB + DC (V2 formatı)", () => {
-  it("CB tekleşik warning bloğu: CB1/CB2 Kapalı+Atmış", () => {
+  it("CB tekleşik warning bloğu: CB1/CB2 Kapalı+Açık (K2 şalter)", () => {
     const blocks = buildDeviceGaugeBlocks(
       [
         point("CB-1", "Is Closed", true),
-        point("CB-1", "Is Tripped", false),
+        point("CB-1", "Is Open", false),
         point("CB-2", "Is Closed", false),
-        point("CB-2", "Is Tripped", true),
+        point("CB-2", "Is Open", true),
       ],
       t,
     );
@@ -134,9 +134,9 @@ describe("buildDeviceGaugeBlocks — CB + DC (V2 formatı)", () => {
     expect(cb.theme).toBe("warning");
     expect(cb.gauges).toHaveLength(4);
     expect(cb.gauges[0]).toMatchObject({ value: 1, label: `CB-1 ${t("status.closed")}` });
-    expect(cb.gauges[1]).toMatchObject({ value: 0, label: `CB-1 ${t("status.tripped")}` });
+    expect(cb.gauges[1]).toMatchObject({ value: 0, label: `CB-1 ${t("status.open")}` });
     expect(cb.gauges[2]).toMatchObject({ value: 0, label: `CB-2 ${t("status.closed")}` });
-    expect(cb.gauges[3]).toMatchObject({ value: 1, label: `CB-2 ${t("status.tripped")}` });
+    expect(cb.gauges[3]).toMatchObject({ value: 1, label: `CB-2 ${t("status.open")}` });
   });
 
   it("DC tekleşik info bloğu: DC1/DC2 Voltaj+Akım", () => {

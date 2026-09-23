@@ -39,6 +39,8 @@
     "test:coverage": "vitest --workspace vitest.workspace.ts --coverage",
     "test:e2e": "playwright test",
     "test:perf": "k6 run deployment/k6/*.js",
+    "spec:check": "bun tools/spec-check.mjs",
+    "test:inventory": "bun tools/test-inventory.mjs --out docs/roadmap/test-envanteri.otomatik.md",
     "sprite:refs": "bun tools/capture-sprite-refs.mjs",
     "sprite:gen": "bun tools/generate-sprite.mjs",
     "sprite:theme": "bun tools/swap-sprite-theme.mjs",

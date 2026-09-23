@@ -1,18 +1,24 @@
 {
   "deviceId": "CB-1",
-  "name": "DC Circuit Breaker 1",
+  "name": "DC Switch-Disconnector 1",
   "manufacturer": "Generic",
-  "model": "CB-480-630A",
+  "model": "SYW6GZ-4000",
   "protocol": "MODBUS",
+  "type": "cb",
   "connection": {
     "host": "127.0.0.1",
     "port": 530,
     "slaveId": 1
   },
+  "pollIntervalMs": 2000,
+  "transport": {
+    "kind": "simulator",
+    "type": "cb"
+  },
   "telemetry": [
     {
       "name": "Is Closed",
-      "description": "Breaker closed status",
+      "description": "Şalter kapalı (aux NC kontak)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -27,142 +33,14 @@
       }
     },
     {
-      "name": "Is Tripped",
-      "description": "Breaker trip status",
+      "name": "Is Open",
+      "description": "Şalter açık (aux NO kontak)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
       "registerTableType": "DISCRETE_INPUT",
       "registerDataType": "BOOLEAN",
       "scale": 1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "Current",
-      "description": "Current flowing through breaker",
-      "unit": "A",
-      "protocol": "MODBUS",
-      "registerAddress": 0,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "Voltage",
-      "description": "Line side voltage",
-      "unit": "V",
-      "protocol": "MODBUS",
-      "registerAddress": 1,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "Temperature",
-      "description": "Breaker temperature",
-      "unit": "°C",
-      "protocol": "MODBUS",
-      "registerAddress": 2,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "Trip Count",
-      "description": "Number of trip events",
-      "unit": "-",
-      "protocol": "MODBUS",
-      "registerAddress": 3,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "Operate Count",
-      "description": "Number of open/close cycles",
-      "unit": "-",
-      "protocol": "MODBUS",
-      "registerAddress": 4,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "Trip Threshold",
-      "description": "Overcurrent trip threshold",
-      "unit": "A",
-      "protocol": "MODBUS",
-      "registerAddress": 0,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "UV Threshold",
-      "description": "Undervoltage threshold",
-      "unit": "V",
-      "protocol": "MODBUS",
-      "registerAddress": 1,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
-    },
-    {
-      "name": "OV Threshold",
-      "description": "Overvoltage threshold",
-      "unit": "V",
-      "protocol": "MODBUS",
-      "registerAddress": 2,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
@@ -172,7 +50,7 @@
     },
     {
       "name": "Open",
-      "description": "Open breaker command",
+      "description": "Shunt trip bobini — uzaktan açma",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -188,7 +66,7 @@
     },
     {
       "name": "Close",
-      "description": "Close breaker command",
+      "description": "Kapama bobini",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -201,25 +79,8 @@
       "tags": {
         "deviceId": "CB-1"
       }
-    },
-    {
-      "name": "Reset",
-      "description": "Reset trip command",
-      "unit": "-",
-      "protocol": "MODBUS",
-      "registerAddress": 2,
-      "registerTableType": "COIL",
-      "registerDataType": "BOOLEAN",
-      "scale": 1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "CB-1"
-      }
     }
   ],
-  "pollIntervalMs": 2000,
   "commands": {
     "open": {
       "label": "Aç (Open)",
@@ -232,6 +93,10 @@
       "timeoutMs": 2000,
       "validate": {
         "reads": [
+          {
+            "name": "Is Open",
+            "expect": true
+          },
           {
             "name": "Is Closed",
             "expect": false
@@ -253,32 +118,13 @@
           {
             "name": "Is Closed",
             "expect": true
-          }
-        ]
-      }
-    },
-    "reset": {
-      "label": "Reset Trip",
-      "telemetries": [
-        {
-          "name": "Reset",
-          "value": 1
-        }
-      ],
-      "timeoutMs": 2000,
-      "validate": {
-        "reads": [
+          },
           {
-            "name": "Is Tripped",
+            "name": "Is Open",
             "expect": false
           }
         ]
       }
     }
-  },
-  "type": "cb",
-  "transport": {
-    "kind": "simulator",
-    "type": "cb"
   }
 }

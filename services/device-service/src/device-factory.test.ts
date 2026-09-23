@@ -36,7 +36,7 @@ describe("DeviceFactory — transport seçimi (Strategy)", () => {
     const registry = new SimulatorRegistry();
     const config = makeConfig({
       deviceId: "PCS-1",
-      transport: { kind: "simulator", type: "pcs" },
+      transport: { kind: "simulator", type: "imd" },
     });
     registry.createFromConfigs([config]);
 
@@ -82,7 +82,7 @@ describe("DeviceFactory — transport seçimi (Strategy)", () => {
     const registry = new SimulatorRegistry();
     const config = makeConfig({
       deviceId: "BSC-CANON",
-      transport: { kind: "simulator", type: "pcs" },
+      transport: { kind: "simulator", type: "imd" },
       telemetry: [
         {
           protocol: "MODBUS",
@@ -113,7 +113,7 @@ describe("DeviceFactory — transport seçimi (Strategy)", () => {
     const registry = new SimulatorRegistry();
     const config = makeConfig({
       deviceId: "BSC-NOCANON",
-      transport: { kind: "simulator", type: "pcs" },
+      transport: { kind: "simulator", type: "imd" },
     });
     registry.createFromConfigs([config]);
     const factory = new DeviceFactory(registry);

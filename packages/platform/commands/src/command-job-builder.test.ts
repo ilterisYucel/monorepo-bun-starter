@@ -35,13 +35,16 @@ import type { DeviceConfigFile, CommandConfig } from "@gd-monorepo/shared-types"
 
 const FIXED_DATE = new Date("2026-09-15T10:00:00.000Z");
 
-const bscConfig: DeviceConfigFile = {
-  deviceId: "bsc-1",
-  name: "BSC 1",
-  manufacturer: "LG",
-  model: "BSC",
+// 2026-09-22 (K12): fixture cihazı jeneriktir (type "test") — BSC'de charge
+// komutu YOKTUR (Flex Rev AF); şablon/negatif/atomic mekanikleri cihaz
+// sözlüğünden bağımsız test edilir. Gerçek config doğrulaması ayrı testtedir.
+const demoConfig: DeviceConfigFile = {
+  deviceId: "demo-1",
+  name: "Demo 1",
+  manufacturer: "Generic",
+  model: "Demo",
   protocol: "MODBUS",
-  type: "bsc",
+  type: "test",
   connection: { host: "127.0.0.1" },
   telemetry: [],
   commands: {
@@ -73,40 +76,7 @@ const bscConfig: DeviceConfigFile = {
 
 const memorySource = {
   load(deviceId: string): DeviceConfigFile | undefined {
-    return deviceId === bscConfig.deviceId ? bscConfig : undefined;
-  },
-};
-
-// PCS "blok kaldırma" komutları (OTOMASYON-KURALLARI-MIMARISI.md 4.6):
-// forbid=1 yazan register'a allow=0 yazar — yeni register GEREKMEZ.
-const pcsConfig: DeviceConfigFile = {
-  deviceId: "pcs-1",
-  name: "PCS 1",
-  manufacturer: "Generic",
-  model: "PCS",
-  protocol: "MODBUS",
-  type: "pcs",
-  connection: { host: "127.0.0.1" },
-  telemetry: [],
-  commands: {
-    forbid_charge: {
-      telemetries: [{ name: "Charge Forbidden", value: 1 }],
-      atomic: true,
-    },
-    allow_charge: {
-      telemetries: [{ name: "Charge Forbidden", value: 0 }],
-      atomic: true,
-    },
-    allow_discharge: {
-      telemetries: [{ name: "Discharge Forbidden", value: 0 }],
-      atomic: true,
-    },
-  },
-};
-
-const pcsMemorySource = {
-  load(deviceId: string): DeviceConfigFile | undefined {
-    return deviceId === pcsConfig.deviceId ? pcsConfig : undefined;
+    return deviceId === demoConfig.deviceId ? demoConfig : undefined;
   },
 };
 
@@ -117,16 +87,9 @@ function builder(): CommandJobBuilder {
   });
 }
 
-function pcsBuilder(): CommandJobBuilder {
-  return new CommandJobBuilder({
-    source: pcsMemorySource,
-    now: () => FIXED_DATE,
-  });
-}
-
 describe("CommandJobBuilder.build", () => {
   it("config yok → err device_not_found", () => {
-    const r = builder().build("bsc-99", "stop");
+    const r = builder().build("demo-99", "stop");
     expect(r.isErr()).toBe(true);
     expect((r.error() as CommandResolutionError).reason).toBe<
       CommandResolutionCode
@@ -134,7 +97,7 @@ describe("CommandJobBuilder.build", () => {
   });
 
   it("komut tanımsız → err command_not_found", () => {
-    const r = builder().build("bsc-1", "turbo");
+    const r = builder().build("demo-1", "turbo");
     expect(r.isErr()).toBe(true);
     expect((r.error() as CommandResolutionError).reason).toBe<
       CommandResolutionCode
@@ -142,7 +105,7 @@ describe("CommandJobBuilder.build", () => {
   });
 
   it("zorunlu param eksik → err missing_param (context.paramName taşır)", () => {
-    const r = builder().build("bsc-1", "charge", {});
+    const r = builder().build("demo-1", "charge", {});
     expect(r.isErr()).toBe(true);
     expect((r.error() as CommandResolutionError).reason).toBe<
       CommandResolutionCode
@@ -153,12 +116,12 @@ describe("CommandJobBuilder.build", () => {
   });
 
   it("zorunlu olmayan param eksik → ok", () => {
-    const r = builder().build("bsc-1", "charge", { powerKw: 50 });
+    const r = builder().build("demo-1", "charge", { powerKw: 50 });
     expect(r.isOk()).toBe(true);
   });
 
   it("{{param}} sayısal çözülür; -{{param}} negatif uygular; şablon olmayan aynen kalır", () => {
-    const r = builder().build("bsc-1", "charge", { powerKw: 50 });
+    const r = builder().build("demo-1", "charge", { powerKw: 50 });
     expect(r.isOk()).toBe(true);
     const job = r.unwrap();
     const byName = Object.fromEntries(job.telemetries.map((t) => [t.name, t.value]));
@@ -169,38 +132,17 @@ describe("CommandJobBuilder.build", () => {
   });
 
   it("atomic belirtilmemişse true; false belirtilmişse false", () => {
-    const charge = builder().build("bsc-1", "charge", { powerKw: 50 });
+    const charge = builder().build("demo-1", "charge", { powerKw: 50 });
     expect(charge.unwrap().atomic).toBe(true);
-    const stop = builder().build("bsc-1", "stop");
+    const stop = builder().build("demo-1", "stop");
     expect(stop.unwrap().atomic).toBe(false);
   });
 
-  it("PCS allow komutları: blok kaldırma 0 değeriyle job üretir (4.6)", () => {
-    const allow = pcsBuilder().build("pcs-1", "allow_charge").unwrap();
-    expect(allow.atomic).toBe(true);
-    expect(allow.telemetries).toEqual([
-      expect.objectContaining({ name: "Charge Forbidden", value: 0 }),
-    ]);
-
-    const allowDischarge = pcsBuilder().build("pcs-1", "allow_discharge").unwrap();
-    expect(allowDischarge.telemetries).toEqual([
-      expect.objectContaining({ name: "Discharge Forbidden", value: 0 }),
-    ]);
-  });
-
-  it("gerçek config: pcs-1.json allow komutları + bsc-1.json global 30264/30265", () => {
+  it("gerçek config: bsc-1.json global 30264/30265 + dc-meter-1.json (K1)", () => {
     const realDir = fileURLToPath(
       new URL("../../../../services/device-service/config", import.meta.url),
     );
     const source = new DeviceConfigFileSource(realDir);
-
-    const pcs = source.load("pcs-1")!;
-    expect(pcs.commands?.["allow_charge"]?.telemetries).toEqual([
-      expect.objectContaining({ name: "Charge Forbidden", value: 0 }),
-    ]);
-    expect(pcs.commands?.["allow_discharge"]?.telemetries).toEqual([
-      expect.objectContaining({ name: "Discharge Forbidden", value: 0 }),
-    ]);
 
     const bsc = source.load("bsc-1")!;
     const globalRack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp (Global)");
@@ -208,16 +150,20 @@ describe("CommandJobBuilder.build", () => {
     expect(globalRack?.registerAddress).toBe(30264);
     expect(globalPack?.registerAddress).toBe(30265);
 
+    const dcMeter = source.load("dc-meter-1")!;
+    const voltage = dcMeter.telemetry.find((t) => t.name === "DC Voltage");
+    expect(voltage?.registerAddress).toBe(50);
+
     const built = new CommandJobBuilder({ source, now: () => FIXED_DATE })
-      .build("pcs-1", "allow_charge")
+      .build("bsc-1", "stop")
       .unwrap();
     expect(built.telemetries).toEqual([
-      expect.objectContaining({ name: "Charge Forbidden", value: 0 }),
+      expect.objectContaining({ name: "Command Request", value: 3 }),
     ]);
   });
 
   it("validate eşlemesi: reads + timeoutMs + minWaitMs", () => {
-    const job = builder().build("bsc-1", "charge", { powerKw: 50 }).unwrap();
+    const job = builder().build("demo-1", "charge", { powerKw: 50 }).unwrap();
     expect(job.validate).toEqual({
       minWaitMs: 100,
       timeoutMs: 2500,
@@ -226,37 +172,37 @@ describe("CommandJobBuilder.build", () => {
   });
 
   it("validate yoksa job.validate undefined; timeoutMs defaultu yalnızca validate ile birlikte anlamlı", () => {
-    const job = builder().build("bsc-1", "stop").unwrap();
+    const job = builder().build("demo-1", "stop").unwrap();
     expect(job.validate).toBeUndefined();
   });
 
   it("jobId formatı: deviceId-command-timestamp (enjekte now)", () => {
-    const job = builder().build("bsc-1", "stop").unwrap();
-    expect(job.jobId).toBe(`bsc-1-stop-${FIXED_DATE.getTime()}`);
+    const job = builder().build("demo-1", "stop").unwrap();
+    expect(job.jobId).toBe(`demo-1-stop-${FIXED_DATE.getTime()}`);
   });
 
   it("telemetri çıktısına timestamp + deviceId + description eklenir", () => {
-    const job = builder().build("bsc-1", "stop").unwrap();
+    const job = builder().build("demo-1", "stop").unwrap();
     expect(job.telemetries).toHaveLength(1);
     const t = job.telemetries[0]!;
     expect(t.timestamp).toBe(FIXED_DATE.toISOString());
-    expect(t.deviceId).toBe("bsc-1");
+    expect(t.deviceId).toBe("demo-1");
     expect(t.description).toBe("");
   });
 
   it("job type COMMAND_DEVICE ve deviceId doğru", () => {
-    const job = builder().build("bsc-1", "stop").unwrap();
+    const job = builder().build("demo-1", "stop").unwrap();
     expect(job.type).toBe("COMMAND_DEVICE");
-    expect(job.deviceId).toBe("bsc-1");
+    expect(job.deviceId).toBe("demo-1");
   });
 });
 
 describe("DeviceConfigFileSource", () => {
   it("mevcut dosyayı yükler", () => {
     const dir = mkdtempSync(join(tmpdir(), "cmd-src-XXXXXX"));
-    writeFileSync(join(dir, "bsc-1.json"), JSON.stringify(bscConfig));
+    writeFileSync(join(dir, "demo-1.json"), JSON.stringify(demoConfig));
     const source = new DeviceConfigFileSource(dir);
-    expect(source.load("bsc-1")?.deviceId).toBe("bsc-1");
+    expect(source.load("demo-1")?.deviceId).toBe("demo-1");
   });
 
   it("olmayan cihaz → undefined", () => {
@@ -267,9 +213,9 @@ describe("DeviceConfigFileSource", () => {
 
   it("büyük/küçük harf uyumlu arama: önce lowercase, sonra orijinal", () => {
     const dir = mkdtempSync(join(tmpdir(), "cmd-src-XXXXXX"));
-    writeFileSync(join(dir, "PCS-1.json"), JSON.stringify({ ...bscConfig, deviceId: "PCS-1" }));
+    writeFileSync(join(dir, "DEMO-1.json"), JSON.stringify({ ...demoConfig, deviceId: "DEMO-1" }));
     const source = new DeviceConfigFileSource(dir);
-    expect(source.load("PCS-1")?.deviceId).toBe("PCS-1");
+    expect(source.load("DEMO-1")?.deviceId).toBe("DEMO-1");
   });
 
   it("bozuk JSON atlanır → undefined", () => {

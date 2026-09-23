@@ -9,7 +9,8 @@ import { parseBscPcsMapping } from "@gd-monorepo/simulators";
  * BSC-PCS connector config sözleşmesi (BSC-PCS-CONNECTOR-MIMARISI T-C3):
  * - `bsc-pcs-connector-1.json` şemadan geçer; transport tipi bsc-pcs-connector.
  * - `bsc-pcs-mapping.json` strict parse edilir; tüm `to` adresleri BMS bloğunda.
- * - Mapping kaynak deviceId'leri config-docker'da mevcuttur (BSC-1, EMU-1).
+ * - Mapping kaynak deviceId'leri config-docker'da mevcuttur (BSC-1; B19/B20
+ *   sabittir — KONTEYNER-MANEVRA-KATALOGU-REV03 4.15, A7 kararı).
  */
 
 function loadConnectorConfig(): DeviceConfigFile {
@@ -55,7 +56,7 @@ describe("BSC-PCS connector config'leri", () => {
     }
   });
 
-  it("kaynak cihazlar config-docker'da mevcuttur (BSC-1, EMU-1)", () => {
+  it("kaynak cihazlar config-docker'da mevcuttur (BSC-1; B19/B20 sabit)", () => {
     const mapping = loadMapping();
     const sources = new Set(
       mapping.mappings.flatMap((m) => (m.kind === "constant" ? [] : [m.from.deviceId])),
@@ -64,13 +65,14 @@ describe("BSC-PCS connector config'leri", () => {
       join(__dirname, "../deployment/config-docker/bsc-1.json"),
       "utf-8",
     ).includes("BSC-1");
-    const emuExists = readFileSync(
-      join(__dirname, "../deployment/config-docker/emu-1.json"),
-      "utf-8",
-    ).includes("EMU-1");
-    expect([...sources].every((s) => s === "BSC-1" || s === "EMU-1")).toBe(true);
+    expect([...sources].every((s) => s === "BSC-1")).toBe(true);
     expect(bscExists).toBe(true);
-    expect(emuExists).toBe(true);
+
+    // B19/B20 (786/787) sabit nominal değerler (A7): 3500.0 kWh → 35000 (0.1 kWh)
+    const b19 = mapping.mappings.find((m) => m.to === 786);
+    const b20 = mapping.mappings.find((m) => m.to === 787);
+    expect(b19?.kind).toBe("constant");
+    expect(b20?.kind).toBe("constant");
   });
 
   it("connector telemetri adları benzersiz", () => {

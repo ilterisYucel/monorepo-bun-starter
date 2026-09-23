@@ -14,6 +14,7 @@ import {
   redisConfig,
   seedUsers,
   serviceTier,
+  deviceConfigDir,
   logConfig,
   fieldConnectorConfig,
   fieldUplinkConfig,
@@ -44,6 +45,15 @@ import {
 } from "../infrastructure/field-connector";
 import { JoseTokenSigner } from "../infrastructure/auth/jose-token-signer";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
+import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
+import { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
+import { TunnelManeuverChannel } from "../infrastructure/container-session/tunnel-maneuver-channel";
+import { OperationResponder } from "../infrastructure/field-uplink/operation-responder";
+import { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
+import { loadTierManeuverRecords } from "../infrastructure/commands/load-maneuver-records";
+import { CommandChannel } from "../infrastructure/commands/command-channel";
+import { DeviceRegistryTargets } from "../infrastructure/commands/device-registry-targets";
+import { ManeuverRegistry, OperationExecutor, CommandJobBuilder, DeviceConfigFileSource } from "@gd-monorepo/platform-commands";
 import { OtpLibTotpService } from "../infrastructure/auth/otplib-totp-service";
 import { RedisLoginThrottle } from "../infrastructure/auth/redis-login-throttle";
 import { RedisTotpThrottle } from "../infrastructure/auth/redis-totp-throttle";
@@ -494,6 +504,103 @@ export function buildContainer() {
           fieldId,
           logger,
         );
+      },
+    ).singleton(),
+
+    // ── KOMUT-MANEVRA-OPERASYON Faz B/C — kayıt/yürütme/tünel kanalları ──
+
+    operationDefStore: asFunction(
+      ({ postgres }) => new OperationDefStore(postgres),
+    ).singleton(),
+
+    // Devices önbelleği — hedef çözümleme (§5.1) + unified rotalar.
+    deviceRegistry: asFunction(
+      ({ postgres }) => new DeviceRegistry(postgres),
+    ).singleton(),
+
+    maneuverRegistry: asFunction(
+      ({ config, operationDefStore }) => {
+        const dir = process.env.MANEUVER_CONFIG_DIR ?? deviceConfigDir(config);
+        const records = loadTierManeuverRecords(dir);
+        return new ManeuverRegistry({
+          maneuvers: records.maneuvers,
+          operations: records.operations,
+          source: operationDefStore,
+        });
+      },
+    ).singleton(),
+
+    operationRunStore: asFunction(
+      ({ postgres }) => new OperationRunStore(postgres),
+    ).singleton(),
+
+    // Field tier: uzak adım kanalı — tünel proxy üzerinden konteynerin KENDİ
+    // manevra yürütme rotasına gider (Faz C1; katman sızmaz).
+    tunnelManeuverChannel: asFunction(
+      ({ config, containerProxy, sessionGateway, tunnelProxy, logger }) => {
+        const tier = serviceTier(config);
+        if (tier !== "field" || !containerProxy || !sessionGateway || !tunnelProxy) {
+          return undefined;
+        }
+        const fieldId = config.get<string | undefined>("site.fieldId");
+        if (!fieldId) return undefined;
+        return new TunnelManeuverChannel({
+          fieldId,
+          containerProxy,
+          gateway: sessionGateway,
+          tunnelProxy,
+          logger,
+        });
+      },
+    ).singleton(),
+
+    maneuverExecutor: asFunction(
+      ({
+        config,
+        maneuverRegistry,
+        operationRunStore,
+        mq,
+        deviceRegistry,
+        tunnelManeuverChannel,
+        logger,
+      }) => {
+        const targets = new DeviceRegistryTargets(deviceRegistry);
+        const channel = new CommandChannel({
+          builder: new CommandJobBuilder({
+            source: new DeviceConfigFileSource(deviceConfigDir(config)),
+          }),
+          mq,
+        });
+        return new OperationExecutor({
+          registry: maneuverRegistry,
+          targets,
+          channel,
+          runs: operationRunStore,
+          ...(tunnelManeuverChannel
+            ? { remoteChannel: tunnelManeuverChannel }
+            : {}),
+          logger,
+        });
+      },
+    ).singleton(),
+
+    // Field tier: boss'tan gelen operation-execute'leri yanıtlar (Faz C2b).
+    operationResponder: asFunction(
+      ({ config, uplinkConnector, maneuverExecutor, logger }) => {
+        const tier = serviceTier(config);
+        if (tier !== "field" || !uplinkConnector || !maneuverExecutor) {
+          return undefined;
+        }
+        return new OperationResponder(uplinkConnector, maneuverExecutor, logger);
+      },
+    ).singleton(),
+
+    // Boss tier: field'a operation-execute gönderir (Faz C2b).
+    operationRequester: asFunction(
+      ({ config, fieldUplinkChannel }) => {
+        const tier = serviceTier(config);
+        if (tier !== "boss" || !fieldUplinkChannel) return undefined;
+        return new OperationRequester({ channel: fieldUplinkChannel });
       },
     ).singleton(),
 

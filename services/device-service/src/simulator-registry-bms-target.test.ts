@@ -110,8 +110,8 @@ describe("SimulatorRegistry — bmsTarget override", () => {
       transport: { kind: string; type: string };
       deviceId: string;
     };
-    config.type = "aux-analyser";
-    config.transport = { kind: "simulator", type: "aux-analyser" };
+    config.type = "imd";
+    config.transport = { kind: "simulator", type: "imd" };
     registry.createFromConfigs([config as unknown as DeviceConfigFile]);
     expect(registry.transportFor("CONNECTOR-1")).toBeDefined();
     expect(adapterMock).not.toHaveBeenCalled();

@@ -1,13 +1,13 @@
 import { test, expect, type Page } from "@playwright/test";
 
 /**
- * 2026-08-30 T5 — otomatik guest E2E kanıtı (Faz R):
- * - Field uygulamasına HİÇBİR token olmadan gidildiğinde login ekranı
- *   GÖRÜNMEZ; GuestBootstrap varsayılan guest hesabıyla oturum açar ve
- *   Panel (dashboard) render edilir.
- * - Guest rolünde menüde YALNIZCA "Panel" görünür (diğer menüler gizli).
+ * AUTH-REFRESH 2026-09-23 — K1 E2E kanıtı (auto-guest KALDIRILDI):
+ * - Field uygulamasına HİÇBİR token olmadan gidildiğinde LOGIN EKRANI
+ *   görünür — otomatik guest girişi YOKTUR (2026-08-30 davranışının tersi).
+ * - Refresh ölümü = login ekranı (K1); guest fallback YALNIZCA
+ *   container-web'dedir.
  *
- * Ön koşul: field dev stack'i + guest seed kullanıcısı (SEED_GUEST_PASSWORD).
+ * Ön koşul: field dev stack'i (FIELD_UI_URL).
  */
 
 const FIELD_UI = process.env.FIELD_UI_URL || "http://localhost:5174";
@@ -22,27 +22,29 @@ async function clearTokens(page: Page): Promise<void> {
   });
 }
 
-test.describe("Otomatik guest (Faz R)", () => {
+test.describe("Auto-guest YOK — K1 (AUTH-REFRESH)", () => {
   test.describe.configure({ timeout: 60_000 });
 
-  test("token'sız açılışta login YERİNE Panel render edilir", async ({
+  test("token'sız açılışta LOGIN ekranı görünür (guest denenmez)", async ({
     page,
   }) => {
     await clearTokens(page);
     await page.goto(`${FIELD_UI}/field/${FIELD_ID}`);
-    // Otomatik guest oturumu kurulur — login ekranına düşülmez.
-    await page.waitForURL(new RegExp(`/field/${FIELD_ID}$`), { timeout: 15000 });
-    await expect(page.getByText("Panel").first()).toBeVisible({ timeout: 10000 });
+    // K1: auto-guest KALDIRILDI — korumalı rota login'e düşer.
+    await page.waitForURL(/\/login/, { timeout: 15000 });
+    await expect(
+      page.getByPlaceholder("Kullanıcı adı"),
+    ).toBeVisible({ timeout: 10000 });
   });
 
-  test("guest rolünde yalnızca Panel menüsü görünür", async ({ page }) => {
+  test("token'sız doğrudan /login açılır (login formu render)", async ({
+    page,
+  }) => {
     await clearTokens(page);
-    await page.goto(`${FIELD_UI}/field/${FIELD_ID}`);
-    await page.waitForURL(new RegExp(`/field/${FIELD_ID}$`), { timeout: 15000 });
-
-    await expect(page.getByTitle("Panel")).toBeVisible();
-    // Yalnız salt-okunur menü: Kontrol/Konteynerler gizli
-    await expect(page.getByTitle("Kontrol")).toHaveCount(0);
-    await expect(page.getByTitle("Konteynerler")).toHaveCount(0);
+    await page.goto(`${FIELD_UI}/login`);
+    await expect(
+      page.getByPlaceholder("Kullanıcı adı"),
+    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByPlaceholder("Şifre")).toBeVisible();
   });
 });

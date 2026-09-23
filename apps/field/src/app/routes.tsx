@@ -11,6 +11,7 @@ import { FieldControlPage } from "../pages/FieldControlPage";
 import { FieldEventsPage } from "../pages/FieldEventsPage";
 import { FieldReportsPage } from "../pages/FieldReportsPage";
 import { FieldDevicesPage } from "../pages/FieldDevicesPage";
+import { AdminOperationsPage } from "../pages/AdminOperationsPage";
 import { SettingsPage } from "../pages/SettingsPage";
 
 export const routes: RouteObject[] = [
@@ -74,6 +75,11 @@ export const routes: RouteObject[] = [
         path: "field/:fieldId/settings",
         element: <SettingsPage />,
       },
+      {
+        // C4 — admin operasyon tanım yönetimi (§11.3; yalnız admin)
+        path: "field/:fieldId/admin/operations",
+        element: <AdminOperationsPage />,
+      },
 
       // Boss Faz 3 — tünel rotaları: boss iframe'i /fields/<fid>/ui altında
       // uygulamayı açar; alan parametre adı `fieldId` korunur (useParams
@@ -113,6 +119,10 @@ export const routes: RouteObject[] = [
       {
         path: "fields/:fieldId/ui/settings",
         element: <SettingsPage />,
+      },
+      {
+        path: "fields/:fieldId/ui/admin/operations",
+        element: <AdminOperationsPage />,
       },
     ],
   },

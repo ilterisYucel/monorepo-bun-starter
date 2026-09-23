@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SCADA_ICONS, useTranslation } from "@gd-monorepo/ui";
 import toast from "react-hot-toast";
 import { useAuth } from "../features/auth/hooks/useAuth";
-import { controlApi } from "../features/control/services/controlApi";
-import { MANEUVERS } from "../features/control/maneuvers";
+import { maneuverApi } from "../features/control/services/maneuverApi";
 import { SettingsPanel } from "../features/settings";
 import { useDevicesStore } from "../stores/devicesStore";
 import type { SidebarV2Props, PageTypeV2 } from "./SidebarV2.types";
@@ -72,25 +71,14 @@ export const SidebarV2: React.FC<SidebarV2Props> = ({
 
     setEmergencyLoading(true);
     try {
-      const m = MANEUVERS.fl03_emergency_stop;
-      if (!m) return;
-      const { results } = await controlApi.executeMulti(
-        m.steps.map((s) => ({
-          deviceId: s.deviceId,
-          command: s.command ?? "",
-          params: s.params ?? {},
-        })),
-        m.mode,
-      );
-      const allOk = results.every((r) => r.success);
-      if (allOk) {
+      const result = await maneuverApi.execute("fl03_emergency_stop");
+      const ok = result.status === "completed" || result.status === "rolled_back";
+      if (ok) {
         toast.success(
-          `${t("nav.emergency.button")}: ${results.length} ${t("maneuver.steps").toLowerCase()} ✅`,
+          `${t("nav.emergency.button")}: ${result.outcomes.length} ${t("maneuver.steps").toLowerCase()} ✅`,
         );
       } else {
-        for (const r of results) {
-          if (!r.success) toast.error(`${r.deviceId}: ${r.command} ❌`);
-        }
+        toast.error(`${t("nav.emergency.button")}: ${result.status} ❌`);
       }
     } catch {
       toast.error(`${t("nav.emergency.button")} gönderilemedi!`);

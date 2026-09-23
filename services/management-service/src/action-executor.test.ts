@@ -74,6 +74,7 @@ function executor(
     logger: TamperLogger;
     source: IDeviceConfigSource;
     containerCommands?: import("./container-command-channel").IContainerCommandChannel;
+    maneuverOperations?: import("./maneuver-operation-channel").IManeuverOperationChannel;
   }> = {},
 ): ActionExecutor {
   const source: IDeviceConfigSource = overrides.source ?? {
@@ -85,6 +86,9 @@ function executor(
     logger: overrides.logger,
     ...(overrides.containerCommands
       ? { containerCommands: overrides.containerCommands }
+      : {}),
+    ...(overrides.maneuverOperations
+      ? { maneuverOperations: overrides.maneuverOperations }
       : {}),
   });
 }
@@ -417,5 +421,95 @@ describe("ActionExecutor", () => {
       "log",
       "notify",
     ]);
+  });
+});
+
+describe("ActionExecutor — maneuver/operation aksiyonları (KURAL-MOTORU-V2)", () => {
+  it("kanal YOKSA fail (channel_not_configured) — akış durmaz", async () => {
+    const log = vi.fn().mockResolvedValue(undefined);
+    const ex = executor({ logger: { log } as never });
+    const rule: AutomationRule = {
+      name: "r_op",
+      when: { all: [{ telemetry: "soc", op: "gt", threshold: 90 }] },
+      then: [{ action: "operation", name: "field_charge" }],
+    };
+    const outcomes = await ex.execute(rule);
+    expect(outcomes[0]).toMatchObject({ ok: false, reason: "kanal yapilandirilmamis" });
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({ eventCode: "auto_rule_action_failed" }),
+    );
+  });
+
+  it("ok sonucu → auto_rule_action_ok + trace auto:<kural>", async () => {
+    const send = vi.fn(async () => ({ ok: true, traceId: "auto:r_op" }));
+    const log = vi.fn().mockResolvedValue(undefined);
+    const ex = executor({
+      logger: { log } as never,
+      maneuverOperations: { execute: send } as never,
+    });
+    const rule: AutomationRule = {
+      name: "r_op",
+      when: { all: [{ telemetry: "soc", op: "gt", threshold: 90 }] },
+      then: [{ action: "maneuver", name: "pcs_charge", params: { powerKw: 100 } }],
+    };
+    const outcomes = await ex.execute(rule);
+    expect(send).toHaveBeenCalledWith(
+      "maneuver",
+      "pcs_charge",
+      { powerKw: 100 },
+      "auto:r_op",
+    );
+    expect(outcomes[0]!.ok).toBe(true);
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventCode: "auto_rule_action_ok",
+        context: expect.objectContaining({ name: "pcs_charge" }),
+      }),
+    );
+  });
+
+  it("202 (started) → ok + started context taşınır", async () => {
+    const send = vi.fn(async () => ({ ok: true, started: true, traceId: "auto:r_op" }));
+    const log = vi.fn().mockResolvedValue(undefined);
+    const ex = executor({
+      logger: { log } as never,
+      maneuverOperations: { execute: send } as never,
+    });
+    const rule: AutomationRule = {
+      name: "r_op",
+      when: { all: [{ telemetry: "soc", op: "gt", threshold: 90 }] },
+      then: [{ action: "operation", name: "field_charge" }],
+    };
+    const outcomes = await ex.execute(rule);
+    expect(outcomes[0]!.ok).toBe(true);
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventCode: "auto_rule_action_ok",
+        context: expect.objectContaining({ started: true }),
+      }),
+    );
+  });
+
+  it("fail (409 disabled — UC-4) → auto_rule_action_failed + reason; sonraki aksiyon devam", async () => {
+    const send = vi.fn(async () => ({ ok: false, reason: "disabled", traceId: "auto:r" }));
+    const log = vi.fn().mockResolvedValue(undefined);
+    const ex = executor({
+      logger: { log } as never,
+      maneuverOperations: { execute: send } as never,
+    });
+    const rule: AutomationRule = {
+      name: "r",
+      when: { all: [{ telemetry: "soc", op: "gt", threshold: 90 }] },
+      then: [
+        { action: "operation", name: "bakim" },
+        { action: "log", level: "warn", eventCode: "auto_rule_fired" },
+      ],
+    };
+    const outcomes = await ex.execute(rule);
+    expect(outcomes[0]).toMatchObject({ ok: false, reason: "disabled" });
+    expect(outcomes[1]!.action.action).toBe("log");
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({ eventCode: "auto_rule_action_failed" }),
+    );
   });
 });

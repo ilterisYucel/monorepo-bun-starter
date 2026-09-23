@@ -218,8 +218,6 @@ export const FIELD_EN_DICT = {
   "pcs.dailyChargeEnergy": "Daily Charge Energy",
   "pcs.dailyDischargeEnergy": "Daily Discharge Energy",
 
-  "emu.stationState": "Station State",
-
   "container.lastSeen": "Last Seen",
 
   "status.initialState": "Initial",
@@ -229,6 +227,8 @@ export const FIELD_EN_DICT = {
   "status.charging": "Charging",
   "status.discharging": "Discharging",
   "status.idleMode": "Idle",
+  "status.closed": "Closed",
+  "status.open": "Open",
 
   "viewer.loading3d": "3D viewer loading...",
   "header.container": "Container",
@@ -242,6 +242,7 @@ export const FIELD_EN_DICT = {
 
   "nav.reports": "Reports",
   "nav.settings": "Settings",
+  "nav.adminOperations": "Operation Definitions",
 
   "settings.appearance": "Appearance",
   "settings.language": "Language",

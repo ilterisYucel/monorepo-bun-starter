@@ -1,15 +1,62 @@
 import axios from "axios";
-import { apiBaseUrl } from "./api-base";
+import type { AxiosError, AxiosRequestConfig } from "axios";
+import { apiBaseUrl, isTunnelMode } from "./api-base";
+import { useAuthStore } from "../features/auth/stores/AuthStore";
+import { navigateToLogin } from "./auth-navigation";
 
-// Boss Faz 3: API tabanı window.location'dan türetilir — tünel modunda
-// (/fields/:fid/ui) istekler field_session cookie'siyle tunnel'dan akar.
+/**
+ * AUTH-REFRESH (2026-09-23) — tek-uçuş refresh interceptor sözleşmesi (UC-1):
+ *
+ * - Request: STANDALONE modda `auth-token` varsa Bearer eklenir. Tünel
+ *   modunda localStorage'a DOKUNULMAZ (boss origin'inin anahtarları korunur;
+ *   kimlik `field_session` cookie'sindedir).
+ * - Response 401: tünel modunda tamamen İNERT — refresh denenmez,
+ *   localStorage'a dokunulmaz, navigasyon yapılmaz (B3).
+ * - 401 (standalone): tek-uçuş refresh — eşzamanlı N istek TEK
+ *   `/auth/refresh`'i bekler (failedQueue); refresh `apiClient` üzerinden
+ *   (apiBaseUrl tabanlı) yapılır — ham origin-göreli `axios.post` YASAK (B2).
+ * - Refresh başarısız / refresh'in kendisi 401 / refresh token yok →
+ *   `clearAuthState()` (token'lar + persist store) + `navigateToLogin()`
+ *   (SPA navigasyon — reload YOK, B4).
+ * - `_retry` bayrağı döngüyü keser.
+ */
+
 export const apiClient = axios.create({
   baseURL: apiBaseUrl(),
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
 
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown, token: string | null): void {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error || !token) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+  failedQueue = [];
+}
+
+/** Token'lar + persist store tam temizliği — refresh başarısızlığı yolu. */
+function clearAuthState(): void {
+  try {
+    localStorage.removeItem("auth-token");
+    localStorage.removeItem("auth-refresh-token");
+  } catch {
+    // gizli mod / engelli storage — uygulama çökmez
+  }
+  useAuthStore.getState().clearSession();
+}
+
 apiClient.interceptors.request.use((config) => {
+  if (isTunnelMode()) return config;
   const token = localStorage.getItem("auth-token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -19,24 +66,74 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      const refreshToken = localStorage.getItem("auth-refresh-token");
-      if (refreshToken && !(error.config._retry as boolean)) {
-        error.config._retry = true;
-        try {
-          const { data } = await axios.post("/api/auth/refresh", { refreshToken });
-          localStorage.setItem("auth-token", data.accessToken);
-          localStorage.setItem("auth-refresh-token", data.refreshToken);
-          error.config.headers.Authorization = `Bearer ${data.accessToken}`;
-          return apiClient(error.config);
-        } catch {
-          localStorage.removeItem("auth-token");
-          localStorage.removeItem("auth-refresh-token");
-          window.location.href = "/login";
+  async (error: AxiosError) => {
+    const originalRequest = error.config as
+      | (AxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+
+    // B3: tünel modunda 401-refresh akışı İNERT — boss iframe koruması.
+    if (isTunnelMode()) return Promise.reject(error);
+
+    // Manuel giriş hatası — refresh akışına girilmez.
+    if (originalRequest?.url?.includes("/auth/login")) {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status !== 401 || originalRequest?._retry) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest === undefined) {
+      return Promise.reject(error);
+    }
+
+    // Refresh çağrısının kendisi 401 → oturum sonu (döngü koruması).
+    if (originalRequest.url?.includes("/auth/refresh")) {
+      clearAuthState();
+      navigateToLogin();
+      return Promise.reject(error);
+    }
+
+    if (!isRefreshing) {
+      isRefreshing = true;
+
+      try {
+        const refreshToken = localStorage.getItem("auth-refresh-token");
+        if (!refreshToken) {
+          clearAuthState();
+          navigateToLogin();
+          return Promise.reject(error);
         }
+
+        const { data } = await apiClient.post("/auth/refresh", { refreshToken });
+        localStorage.setItem("auth-token", data.accessToken);
+        localStorage.setItem("auth-refresh-token", data.refreshToken);
+
+        processQueue(null, data.accessToken);
+
+        // Retry'de Authorization elle YAZILMAZ — request interceptor yeni
+        // token'ı localStorage'dan tazeler (tek doğruluk noktası).
+        originalRequest._retry = true;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        clearAuthState();
+        navigateToLogin();
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
-    return Promise.reject(error);
+
+    // Refresh sürerken gelen istekler kuyrukta bekler (tek-uçuş).
+    return new Promise((resolve, reject) => {
+      failedQueue.push({
+        resolve: () => {
+          originalRequest._retry = true;
+          resolve(apiClient(originalRequest));
+        },
+        reject,
+      });
+    });
   },
 );

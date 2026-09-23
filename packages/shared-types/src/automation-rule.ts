@@ -91,6 +91,12 @@ export const automationRuleWhenSchema = z
  *
  * - `command`: cihaz komutu çalıştır (device config'ten çözümlenir;
  *   CommandJobBuilder). `params` komut şablonlarına (`{{param}}`) verilir.
+ * - `container-command`: konteyner cihazına komut (WS4 D4) — field tier.
+ * - `maneuver` / `operation` (KURAL-MOTORU-V2 §3.1): manevra/operasyon
+ *   kaydını web-service yürütücüsüne DELEGE eder (iç token kanalı). `name`
+ *   kayıt adıdır — management-service kaydı YÜKLEMEZ, içeriği bilmez;
+ *   varlık doğrulaması yürütücüdedir (bilinmeyen/disabled → aksiyon fail,
+ *   kademeli bozulma).
  * - `log`: TamperLogger'a imzalı olay yaz (kategori app). `eventCode`
  *   verilmezse "auto_rule_fired".
  * - `notify`: AlertNotifier bildirimi — eventCode kural adından türetilir
@@ -119,6 +125,18 @@ export type RuleAction =
       params?: Record<string, unknown>;
     }
   | {
+      /** Manevra yürütme delegasyonu (KURAL-MOTORU-V2 §3.1) — web-service iç token. */
+      action: "maneuver";
+      name: string;
+      params?: Record<string, unknown>;
+    }
+  | {
+      /** Operasyon yürütme delegasyonu (KURAL-MOTORU-V2 §3.1) — web-service iç token. */
+      action: "operation";
+      name: string;
+      params?: Record<string, unknown>;
+    }
+  | {
       action: "log";
       level: "info" | "warn" | "error";
       eventCode?: string;
@@ -141,6 +159,20 @@ export const ruleActionSchema = z.discriminatedUnion("action", [
       containerId: z.string().min(1),
       deviceId: z.string().min(1),
       command: z.string().min(1),
+      params: z.record(z.unknown()).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("maneuver"),
+      name: z.string().min(1),
+      params: z.record(z.unknown()).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("operation"),
+      name: z.string().min(1),
       params: z.record(z.unknown()).optional(),
     })
     .strict(),

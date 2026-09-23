@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { UserRepository } from "./user-repository";
 import type { PostgresAdapter } from "@gd-monorepo/core";
+import { sha256Hex } from "../auth/service-token";
 
 /**
  * UserRepository sözleşmesi (2026-08-30 — developer rolü eklenmeden önceki
@@ -156,5 +157,32 @@ describe("UserRepository MFA (T6.1 — 2026-08-30 T1.3 karakterizasyonu)", () =>
     const alreadyUsed = makeDb({ execute: vi.fn().mockResolvedValue(0) });
     const repoUsed = new UserRepository(alreadyUsed);
     expect(await repoUsed.consumeRecoveryCode("u-1", "h1")).toBe(false);
+  });
+});
+
+describe("UserRepository refresh token hash (K4 — 2026-09-23)", () => {
+  it("storeRefreshToken DB'ye SHA-256 hash yazar — düz metin DEĞİL (AK-4.1)", async () => {
+    const db = makeDb();
+    const repo = new UserRepository(db);
+    const expiresAt = new Date("2026-10-01T00:00:00Z");
+    await repo.storeRefreshToken("u-1", "gizli-token", expiresAt);
+    const [sql, params] = (db.execute as ReturnType<typeof vi.fn>).mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("refresh_token = $1");
+    expect(params[0]).toBe(sha256Hex("gizli-token"));
+    expect(params[0]).not.toBe("gizli-token");
+    expect(params[0]).toHaveLength(64);
+    expect(params[1]).toBe(expiresAt.toISOString());
+    expect(params[2]).toBe("u-1");
+  });
+
+  it("findByRefreshToken gelen token'ı hash'leyip eşleştirir (AK-4.1)", async () => {
+    const db = makeDb();
+    const repo = new UserRepository(db);
+    await repo.findByRefreshToken("gizli-token");
+    const [sql, params] = (db.queryOne as ReturnType<typeof vi.fn>).mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("refresh_token = $1");
+    expect(sql).toContain("refresh_token_expires_at > NOW()");
+    expect(params[0]).toBe(sha256Hex("gizli-token"));
+    expect(params[0]).not.toBe("gizli-token");
   });
 });

@@ -245,11 +245,43 @@ describe("automationRulesSchema", () => {
       rules: [
         {
           ...validRule,
-          then: [{ action: "maneuver", name: "x" }],
+          then: [{ action: "teleport", name: "x" }],
         },
       ],
     });
     expect(r.success).toBe(false);
+  });
+
+  it("maneuver/operation aksiyonları: name zorunlu, params opsiyonel (KURAL-MOTORU-V2)", () => {
+    const ok = automationRulesSchema.safeParse({
+      ...validFile,
+      rules: [
+        {
+          ...validRule,
+          then: [
+            { action: "maneuver", name: "pcs_charge", params: { powerKw: 100 } },
+            { action: "operation", name: "field_charge" },
+          ],
+        },
+      ],
+    });
+    expect(ok.success).toBe(true);
+
+    const missingName = automationRulesSchema.safeParse({
+      ...validFile,
+      rules: [
+        { ...validRule, then: [{ action: "operation", params: {} }] },
+      ],
+    });
+    expect(missingName.success).toBe(false);
+
+    const emptyName = automationRulesSchema.safeParse({
+      ...validFile,
+      rules: [
+        { ...validRule, then: [{ action: "maneuver", name: "" }] },
+      ],
+    });
+    expect(emptyName.success).toBe(false);
   });
 
   it("container-command aksiyonu: containerId + deviceId + command zorunlu", () => {

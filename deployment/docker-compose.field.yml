@@ -168,6 +168,7 @@ services:
       # Field tier komut çözümlemesi: PCS config'leri config-field'da
       # (Wattox register map — konteyner config'leri DEĞİL).
       DEVICE_CONFIG_DIR: /app/config-field
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
@@ -187,6 +188,7 @@ services:
       - "5002:5002"
     volumes:
       - ../services/device-service/deployment/config-field:/app/config-field:ro
+      - ../services/web-service/deployment/config-field:/app/maneuver-config:ro
     depends_on:
       redis:
         condition: service_healthy

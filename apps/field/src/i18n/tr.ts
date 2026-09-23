@@ -218,8 +218,6 @@ export const FIELD_TR_DICT = {
   "pcs.dailyChargeEnergy": "Günlük Şarj Enerjisi",
   "pcs.dailyDischargeEnergy": "Günlük Deşarj Enerjisi",
 
-  "emu.stationState": "İstasyon Durumu",
-
   "container.lastSeen": "Son Görülme",
 
   "status.initialState": "Başlangıç",
@@ -229,6 +227,8 @@ export const FIELD_TR_DICT = {
   "status.charging": "Şarj Oluyor",
   "status.discharging": "Deşarj Oluyor",
   "status.idleMode": "Beklemede",
+  "status.closed": "Kapalı",
+  "status.open": "Açık",
 
   "viewer.loading3d": "3B görüntüleyici yükleniyor...",
   "header.container": "Container",
@@ -242,6 +242,7 @@ export const FIELD_TR_DICT = {
 
   "nav.reports": "Raporlar",
   "nav.settings": "Ayarlar",
+  "nav.adminOperations": "Operasyon Tanımları",
 
   "settings.appearance": "Görünüm",
   "settings.language": "Dil",

@@ -103,14 +103,14 @@ export function buildDeviceGaugeBlocks(
     });
   }
 
-  // ---------- CB (tekleşik blok) ----------
+  // ---------- CB (tekleşik blok) — K2: şalter modeli ----------
   const cbIds = sortedIds(latestTelemetry, "CB");
   if (cbIds.length > 0) {
     const gauges: DeviceGaugeItem[] = [];
     for (const deviceId of cbIds.slice(0, 2)) {
       gauges.push(
         { value: num(latestTelemetry, deviceId, "Is Closed"), label: `${deviceId} ${t("status.closed")}`, unit: "", min: 0, max: 1, decimals: 0 },
-        { value: num(latestTelemetry, deviceId, "Is Tripped"), label: `${deviceId} ${t("status.tripped")}`, unit: "", min: 0, max: 1, decimals: 0 },
+        { value: num(latestTelemetry, deviceId, "Is Open"), label: `${deviceId} ${t("status.open")}`, unit: "", min: 0, max: 1, decimals: 0 },
       );
     }
     blocks.push({ deviceId: cbIds.join(", "), theme: TYPE_THEMES.cb, gauges });

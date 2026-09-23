@@ -30,6 +30,27 @@ export const LOG_EVENT_CODES = [
   "command_rejected",
   // WS4: field → konteyner komut proxy audit'i
   "field_container_command",
+  // KOMUT-MANEVRA-OPERASYON §8 — operasyon koşusu yaşam döngüsü + kompanzasyon
+  "operation_started",
+  "operation_completed",
+  "operation_failed",
+  "operation_rolled_back",
+  "operation_state_update_failed",
+  "rollback_step_ok",
+  "rollback_step_failed",
+  "timer_scheduled",
+  "timer_schedule_failed",
+  // KOMUT-MANEVRA-OPERASYON §7.3 — interlock reddi
+  "command_interlock_rejected",
+  // KOMUT-MANEVRA-OPERASYON Faz C — uzak manevra kanalı uyarıları
+  "maneuver_remote_failed",
+  // KOMUT-MANEVRA-OPERASYON Faz C — boss↔field operasyon mesaj audit'i (WS-TUNNEL §8)
+  "operation_boss_request",
+  "operation_result_sent",
+  // KOMUT-MANEVRA-OPERASYON §11.2 — admin tanım yönetimi audit'i
+  "operation_definition_created",
+  "operation_definition_updated",
+  "operation_definition_deleted",
   // ws / field bağlantısı
   "ws_register_rejected",
   "ws_connection_lost",

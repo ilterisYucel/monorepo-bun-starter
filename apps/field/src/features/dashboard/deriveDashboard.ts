@@ -25,33 +25,6 @@ export interface PowerLimits {
 const isNumber = (v: unknown): v is number => typeof v === "number";
 
 /**
- * Faz 5.1 B4 — EMU sütunu: EMU-* cihazlarının sistem seviyesi metrikleri.
- *
- * Tüm konteyner snapshot'larından deviceId'si "EMU-" ile başlayan satırlar
- * toplanır; isim başına en yeni timestamp'li satır kazanır (dedup). Dönüş:
- * metrik adı → sayısal değer (sayısal olmayanlar atlanır).
- */
-export function deriveEmuMetrics(
-  containers: SnapshotCarrier[],
-): Record<string, number> {
-  const byName = new Map<string, { value: number; timestamp: string }>();
-  for (const container of containers) {
-    for (const item of container.latestTelemetry) {
-      if (!item.deviceId.startsWith("EMU-") || !isNumber(item.value)) continue;
-      const existing = byName.get(item.name);
-      if (!existing || (item.timestamp ?? "") >= existing.timestamp) {
-        byName.set(item.name, { value: item.value, timestamp: item.timestamp ?? "" });
-      }
-    }
-  }
-  const metrics: Record<string, number> = {};
-  for (const [name, entry] of byName) {
-    metrics[name] = entry.value;
-  }
-  return metrics;
-}
-
-/**
  * Faz 5.1 B4 — PCS sütunu: snapshot'taki PCS-* cihazları.
  *
  * Snapshot yalnızca online cihazları taşıdığından (RealtimeSnapshotSource

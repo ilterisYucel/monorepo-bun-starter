@@ -13,6 +13,7 @@ import type {
 } from "@gd-monorepo/shared-types";
 import { CommandJobBuilder } from "@gd-monorepo/platform-commands";
 import type { IContainerCommandChannel } from "./container-command-channel";
+import type { IManeuverOperationChannel } from "./maneuver-operation-channel";
 
 /** Tek aksiyonun sonucu. */
 export interface ActionOutcome {
@@ -30,6 +31,8 @@ export interface ActionExecutorConfig {
   commandTimeoutBufferMs?: number;
   /** Konteyner komut kanalı (WS4 D4) — yoksa container-command aksiyonu fail. */
   containerCommands?: IContainerCommandChannel;
+  /** Manevra/operasyon delegasyon kanalı (KURAL-MOTORU-V2) — yoksa aksiyon fail. */
+  maneuverOperations?: IManeuverOperationChannel;
 }
 
 /** Komut timeout'u config'de yoksa kullanılan varsayılan. */
@@ -59,6 +62,7 @@ export class ActionExecutor {
   private readonly logger: TamperLogger | undefined;
   private readonly bufferMs: number;
   private readonly containerCommands: IContainerCommandChannel | undefined;
+  private readonly maneuverOperations: IManeuverOperationChannel | undefined;
 
   constructor(config: ActionExecutorConfig) {
     this.builder = config.builder;
@@ -66,6 +70,7 @@ export class ActionExecutor {
     this.logger = config.logger;
     this.bufferMs = config.commandTimeoutBufferMs ?? DEFAULT_COMMAND_TIMEOUT_BUFFER_MS;
     this.containerCommands = config.containerCommands;
+    this.maneuverOperations = config.maneuverOperations;
   }
 
   /** Komut — kuralın aksiyonlarını sırayla çalıştırır, sonuç listesini döner. */
@@ -89,6 +94,10 @@ export class ActionExecutor {
         return this.runCommand(rule, action);
       case "container-command":
         return this.runContainerCommand(rule, action);
+      case "maneuver":
+        return this.runManeuverOperation(rule, "maneuver", action);
+      case "operation":
+        return this.runManeuverOperation(rule, "operation", action);
       case "log":
         return this.runLog(rule, action);
       case "notify":
@@ -137,6 +146,57 @@ export class ActionExecutor {
       return { action, ok: true };
     }
     const reason = result.reason ?? "komut basarisiz";
+    await this.logAction("auto_rule_action_failed", "error", {
+      ...context,
+      reason,
+    });
+    return { action, ok: false, reason };
+  }
+
+  /**
+   * Manevra/operasyon delegasyonu (KURAL-MOTORU-V2 §3.2) — web-service
+   * yürütücüsüne iç token kanalıyla iletilir. Kanal yapılandırılmamışsa fail
+   * (kademeli bozulma — akış durmaz). 202 (arka plan) → ok + started —
+   * terminal durum `operation_*` audit olaylarından izlenir (kural sonucu
+   * geri beslemez — §3.4).
+   */
+  private async runManeuverOperation(
+    rule: AutomationRule,
+    kind: "maneuver" | "operation",
+    action: Extract<RuleAction, { action: "maneuver" | "operation" }>,
+  ): Promise<ActionOutcome> {
+    const traceId = `auto:${rule.name}`;
+    const context = {
+      rule: rule.name,
+      action: kind,
+      name: action.name,
+      traceId,
+    };
+
+    if (!this.maneuverOperations) {
+      const reason = "kanal yapilandirilmamis";
+      await this.logAction("auto_rule_action_failed", "error", {
+        ...context,
+        reason,
+      });
+      return { action, ok: false, reason };
+    }
+
+    const result = await this.maneuverOperations.execute(
+      kind,
+      action.name,
+      action.params,
+      traceId,
+    );
+
+    if (result.ok) {
+      await this.logAction("auto_rule_action_ok", "info", {
+        ...context,
+        ...(result.started ? { started: true } : {}),
+      });
+      return { action, ok: true };
+    }
+    const reason = result.reason ?? "yurutme basarisiz";
     await this.logAction("auto_rule_action_failed", "error", {
       ...context,
       reason,

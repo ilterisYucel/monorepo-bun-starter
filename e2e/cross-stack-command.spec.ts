@@ -27,6 +27,11 @@ async function loginField(page: Page): Promise<void> {
   await page.getByPlaceholder("Şifre").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: /Giriş|Login/i }).click();
   await page.waitForURL(/\/field\//, { timeout: 15000 });
+  // Otomatik-guest yarışı: login admin tamamlanmadan guest navigasyonu URL'i
+  // doldurur — ADMIN menüsü görünene kadar beklenir (admin-only "Kontrol").
+  await expect(page.getByTitle(/Kontrol|Control/).first()).toBeVisible({
+    timeout: 15000,
+  });
 }
 
 test.describe("Çapraz yığın komut (field → konteyner)", () => {

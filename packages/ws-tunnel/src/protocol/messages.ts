@@ -310,6 +310,62 @@ export type SessionStreamMessage =
   | StreamWindowMessage
   | StreamCloseMessage;
 
+/**
+ * Boss→Field: operasyon tetikleme isteği (WS-TUNNEL-KAPASITE §6).
+ * Boss yalnızca YÖNLENDİRİR — iş mantığı field'dadır (katman sızmaz);
+ * field yürütücüsü `operationId` ile idempotenttir (running iken tekrar →
+ * rejected).
+ */
+export interface OperationExecuteMessage {
+  type: "operation-execute";
+  /** İstek-yanıt eşleştirme kimliği (boss üretir — benzersiz). */
+  operationId: string;
+  /** operations.json kayıt adı (field tier). */
+  name: string;
+  params?: Record<string, unknown>;
+  traceId?: string;
+}
+
+/** Field→Boss: operasyon sonucu — her zaman gönderilir (başarı/başarısızlık `status`'ta). */
+export interface OperationResultMessage {
+  type: "operation-result";
+  operationId: string;
+  status: "completed" | "failed" | "rolled_back" | "rejected";
+  reason?: string;
+  /** Adım başına makine-okunur özet (WS-TUNNEL §6). */
+  results?: OperationStepResult[];
+}
+
+/** Operasyon adımı sonucu — makine-okunur özet. */
+export interface OperationStepResult {
+  step: number;
+  system?: string;
+  maneuver?: string;
+  ok: boolean;
+  reason?: string;
+}
+
+/** Operasyon kontrol mesajları — TunnelConnector kanalı üzerinden taşınır. */
+export type OperationControlMessage =
+  | OperationExecuteMessage
+  | OperationResultMessage;
+
+/**
+ * `operation-execute` alım zod şeması — güvenilmez BOSS girdisi doğrulanır
+ * (field tarafı; geçersiz istek `operation-result (rejected)` ile reddedilir).
+ * STRICT: bilinmeyen anahtar RED (güven sınırı). `type` zarfın parçasıdır —
+ * tam frame doğrulanır.
+ */
+export const operationExecuteSchema = z
+  .object({
+    type: z.literal("operation-execute"),
+    operationId: z.string().min(1).max(128),
+    name: z.string().min(1).max(128),
+    params: z.record(z.unknown()).optional(),
+    traceId: z.string().min(1).max(256).optional(),
+  })
+  .strict();
+
 /** Kanal üzerindeki tüm kontrol mesajları. */
 export type TunnelControlMessage =
   | RegisterMessage
@@ -320,7 +376,8 @@ export type TunnelControlMessage =
   | ErrorMessage
   | EventMessage
   | SessionStreamMessage
-  | TelemetryQueryControlMessage;
+  | TelemetryQueryControlMessage
+  | OperationControlMessage;
 
 /**
  * `GET /api/status` yanıt DTO'su (tasarım §6) — client UI "Hub Bağlantısı"

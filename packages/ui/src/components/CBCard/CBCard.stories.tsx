@@ -16,11 +16,7 @@ export const OnlineClosed: Story = {
     name: "CB-1",
     status: "online",
     isClosed: true,
-    isTripped: false,
-    voltage: 400.2,
-    current: 12.4,
-    tripCount: 2,
-    closeCount: 31,
+    isOpen: false,
   },
 };
 
@@ -29,24 +25,7 @@ export const OnlineOpen: Story = {
     name: "CB-1",
     status: "online",
     isClosed: false,
-    isTripped: false,
-    voltage: 398.8,
-    current: 0,
-    tripCount: 2,
-    closeCount: 31,
-  },
-};
-
-export const Tripped: Story = {
-  args: {
-    name: "CB-1",
-    status: "online",
-    isClosed: false,
-    isTripped: true,
-    voltage: 0,
-    current: 0,
-    tripCount: 3,
-    closeCount: 31,
+    isOpen: true,
   },
 };
 
@@ -55,10 +34,6 @@ export const Offline: Story = {
     name: "CB-2",
     status: "offline",
     isClosed: false,
-    isTripped: false,
-    voltage: null,
-    current: null,
-    tripCount: 0,
-    closeCount: 12,
+    isOpen: true,
   },
 };

@@ -192,7 +192,7 @@ describe("deviceConfigFileSchema", () => {
   });
 
   it("accepts simulator transport (tip açık string — kayıt defteri çalışma zamanında doğrular)", () => {
-    for (const t of ["bsc", "hvac", "xrack", "cb", "dc-output", "pcs", "emu", "gelecekteki-tip"]) {
+    for (const t of ["bsc", "hvac", "xrack", "cb", "dc-output", "dc-meter", "pcs", "gelecekteki-tip"]) {
       const r = deviceConfigFileSchema.safeParse({
         ...validDevice,
         transport: { kind: "simulator", type: t },

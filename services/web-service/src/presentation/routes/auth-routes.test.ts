@@ -144,8 +144,11 @@ describe("Auth Routes (Fastify integration)", () => {
     it("returns 401 when refresh token is invalid", async () => {
       // Force failure
       const test = buildTestApp();
-      (test.tokens.verifyRefresh as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined as never);
-      (test.repo.findByRefreshToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
+      // K5 (2026-09-23): imza doğrulaması throw eder — use-case err'e çevirir
+      // (500 DEĞİL, 401).
+      (test.tokens.verifyRefresh as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error("imza gecersiz"),
+      );
       const failApp = Fastify();
       failApp.register(makeAuthRoutes, test.deps as unknown as ServerDependencies);
       await failApp.ready();
@@ -156,6 +159,28 @@ describe("Auth Routes (Fastify integration)", () => {
         payload: { refreshToken: "bad-token" },
       });
       expect(res.statusCode).toBe(401);
+      expect(res.json().error).toBe("Gecersiz refresh token");
+      // reuse tespiti YAPILMAZ — imza geçersizse token iptal edilmez
+      expect(test.repo.clearRefreshToken).not.toHaveBeenCalled();
+    });
+
+    it("K5: imza geçerli + DB'de yok → 401 + clearRefreshToken (reuse tespiti)", async () => {
+      const test = buildTestApp();
+      (test.repo.findByRefreshToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        undefined,
+      );
+      const reuseApp = Fastify();
+      reuseApp.register(makeAuthRoutes, test.deps as unknown as ServerDependencies);
+      await reuseApp.ready();
+
+      const res = await reuseApp.inject({
+        method: "POST",
+        url: "/refresh",
+        payload: { refreshToken: "rotasyonlanmis-token" },
+      });
+      expect(res.statusCode).toBe(401);
+      expect(res.json().error).toBe("Gecersiz refresh token");
+      expect(test.repo.clearRefreshToken).toHaveBeenCalledWith("user-1");
     });
 
     it("returns 400 when refreshToken is empty", async () => {

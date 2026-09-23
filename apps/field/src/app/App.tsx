@@ -1,21 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import { AppProviders } from "./providers";
-import { useAuthStore } from "../features/auth/stores/AuthStore";
 import { isTunnelMode } from "../lib/api-base";
 import { hydrateSessionAuth } from "../features/auth/session-auth";
 
 /**
- * GuestBootstrap — otomatik misafir girişi (2026-08-30):
- * uygulama açılışında hiç token yoksa varsayılan guest hesabıyla giriş
- * denenir (manuel misafir girişi yoktur). Başarısızlıkta unauthenticated
- * kalınır — FieldShell login'e yönlendirir (backend yok senaryosu).
- *
- * Boss Faz 3: tünel modunda (boss iframe'i) guest girişi YAPILMAZ —
- * `field_session` cookie'sinden oturum hydrate edilir.
+ * TunnelBootstrap (AUTH-REFRESH 2026-09-23 — UC-2):
+ * - Tünel modunda (boss iframe'i) `field_session` cookie'sinden oturum
+ *   hydrate edilir — login formu AÇILMAZ.
+ * - Standalone modda no-op: auto-guest KALDIRILDI (K1) — kullanıcı login
+ *   ekranından girer; FieldShell guard'ı kimliksiz açılışı /login'e düşürür.
  */
-const GuestBootstrap: React.FC = () => {
-  const loginAsGuest = useAuthStore((s) => s.loginAsGuest);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+export const TunnelBootstrap: React.FC = () => {
   const attempted = useRef(false);
 
   useEffect(() => {
@@ -23,19 +18,14 @@ const GuestBootstrap: React.FC = () => {
     attempted.current = true;
     if (isTunnelMode()) {
       void hydrateSessionAuth();
-      return;
     }
-    const token = localStorage.getItem("auth-token");
-    if (!token && !isAuthenticated) {
-      void loginAsGuest();
-    }
-  }, [loginAsGuest, isAuthenticated]);
+  }, []);
 
   return null;
 };
 
 export const App: React.FC = () => (
   <AppProviders>
-    <GuestBootstrap />
+    <TunnelBootstrap />
   </AppProviders>
 );

@@ -3,11 +3,14 @@ import { test, expect, type Page } from "@playwright/test";
 const step = (name: string) => console.log("[E2E]", name);
 
 /**
- * Field manevra paneli E2E (WS4 Faz C — panel GERÇEK komut gönderir):
+ * Field manevra paneli E2E (Faz D2 — sunucu kataloğu):
  *
- * Field UI Control sayfasında FL-05 Acil Durdurma kartı (güvenli: PCS stop,
- * rollback yok) çalıştırılır; komut field device-service'te (Wattox PCS
- * simülatörü) yürütülür ve read-back doğrulanır; kart success durumuna döner.
+ * Field UI Control sayfasında kartlar GET /api/maneuvers + /api/operations'tan
+ * gelir (UI TANIMLAMAZ). FL-05 Acil Durdurma kartı (güvenli: PCS stop) ve
+ * FL-03 Idle kartı çalıştırılır; komut field device-service'te (Wattox PCS
+ * simülatörü) yürütülür ve read-back doğrulanır; kart success'e döner.
+ *
+ * Kart hedefleme `data-card-name` ile yapılır (kart sırasına bağlı DEĞİL).
  *
  * Ön koşul: field + container dev stack'leri, saha kurulumu (FIELD_ID env),
  * field UI 5174'te. PCS simülatörü NORMAL duruma kendiliğinden geçer
@@ -26,9 +29,19 @@ async function loginField(page: Page): Promise<void> {
   await page.getByPlaceholder("Şifre").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: /Giriş|Login/i }).click();
   await page.waitForURL(/\/field\//, { timeout: 15000 });
+  // Otomatik-guest yarışı: login admin tamamlanmadan guest navigasyonu URL'i
+  // doldurur — ADMIN menüsü görünene kadar beklenir (admin-only "Kontrol").
+  await expect(page.getByTitle(/Kontrol|Control/).first()).toBeVisible({
+    timeout: 15000,
+  });
 }
 
-test.describe("Field manevra paneli (Control)", () => {
+/** Kart konteyneri — data-card-name hedefli (sıra bağımsız). */
+function card(page: Page, name: string) {
+  return page.locator(`[data-card-name="${name}"]`);
+}
+
+test.describe("Field manevra paneli (Control — sunucu kataloğu)", () => {
   test.describe.configure({ timeout: 120_000 });
 
   test("FL-05 kartı gerçek komutu çalıştırır ve success'e döner", async ({
@@ -40,35 +53,22 @@ test.describe("Field manevra paneli (Control)", () => {
     await page.goto(`${FIELD_UI}/field/${FIELD_ID}/control`);
     step("2-control-page");
 
-    // Kart sırası katalog sırasıdır (buildFieldManeuvers): FL-01 start(0),
-    // FL-01 shutdown(1), FL-02 charge(2), FL-02 discharge(3), FL-03 idle(4),
-    // FL-04 calibration(5), FL-05 emergency stop(6), FL-11 maintenance(7).
-    // Gizli manevralar (FL-06/07/10) kart OLARAK render edilmez.
-    const runButtons = page.locator("button", { hasText: /Çalıştır/ });
-    await expect(runButtons.nth(6)).toBeVisible({ timeout: 15000 });
-    // Veri hazır olmadan tıklama boş hedef seti üretir (anlık failed) —
-    // adım satırları PCS-1'i taşıyana kadar beklenir (konteyner snapshot'ı).
-    await expect(page.getByText(/Adımlar.*PCS-1/).first()).toBeVisible({
-      timeout: 30000,
-    });
+    const fl05 = card(page, "fl05_emergency_stop");
+    await expect(fl05).toBeVisible({ timeout: 30000 });
     step("3-fl05-visible");
 
-    const fl05Run = runButtons.nth(6);
-    await fl05Run.click();
+    const run = fl05.getByRole("button", { name: /Çalıştır/ });
+    await run.click();
     step("4-run-clicked");
 
-    // Çalışıyor... görünür (komut field device-service'e gidiyor)
-    await expect(
-      page.locator("text=/Çalışıyor|Running/").first(),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(fl05.getByText(/Çalışıyor|Running/)).toBeVisible({
+      timeout: 15000,
+    });
     step("5-running-visible");
 
-    // Tamamlanma: kart Çalıştır durumuna geri döner (success — PCS stop
-    // doğrulanır); Tekrar Dene GÖRÜNMEZ
-    await expect(fl05Run).toBeVisible({ timeout: 45000 });
-    await expect(
-      page.locator("button", { hasText: /Tekrar Dene|Retry/ }).first(),
-    ).toHaveCount(0);
+    // Tamamlanma: kart Çalıştır durumuna geri döner; Tekrar Dene GÖRÜNMEZ
+    await expect(run).toBeVisible({ timeout: 45000 });
+    await expect(fl05.getByText(/Tekrar Dene|Retry/)).toHaveCount(0);
     step("6-success-state");
   });
 
@@ -76,18 +76,29 @@ test.describe("Field manevra paneli (Control)", () => {
     await loginField(page);
     await page.goto(`${FIELD_UI}/field/${FIELD_ID}/control`);
 
-    const runButtons = page.locator("button", { hasText: /Çalıştır/ });
-    const fl03Run = runButtons.nth(4);
-    await expect(fl03Run).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/Adımlar.*PCS-1/).first()).toBeVisible({
+    const fl03 = card(page, "fl03_idle");
+    await expect(fl03).toBeVisible({ timeout: 30000 });
+
+    const run = fl03.getByRole("button", { name: /Çalıştır/ });
+    await run.click();
+
+    await expect(run).toBeVisible({ timeout: 45000 });
+    await expect(fl03.getByText(/Tekrar Dene|Retry/)).toHaveCount(0);
+    step("fl03-success");
+  });
+
+  test("gizli manevralar (FL-06/07/10) kart OLARAK render edilmez", async ({
+    page,
+  }) => {
+    await loginField(page);
+    await page.goto(`${FIELD_UI}/field/${FIELD_ID}/control`);
+
+    await expect(card(page, "fl05_emergency_stop")).toBeVisible({
       timeout: 30000,
     });
-    await fl03Run.click();
-
-    await expect(fl03Run).toBeVisible({ timeout: 45000 });
-    await expect(
-      page.locator("button", { hasText: /Tekrar Dene|Retry/ }).first(),
-    ).toHaveCount(0);
-    step("fl03-success");
+    expect(await card(page, "fl06_recovery").count()).toBe(0);
+    expect(await card(page, "fl07_comm_loss").count()).toBe(0);
+    expect(await card(page, "fl10_islanding").count()).toBe(0);
+    step("hidden-absent");
   });
 });

@@ -45,6 +45,7 @@ const StepRow: React.FC<{ step: StepRowData }> = ({ step }) => (
 
 export const ManeuverCard: React.FC<ManeuverCardProps> = ({
   maneuver,
+  stepSummary,
   state,
   stepResults,
   inputs,
@@ -180,17 +181,31 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
   const isExecuting = state === "running" || state === "timer";
 
   const steps: StepRowData[] = useMemo(() => {
+    if (stepSummary) {
+      return stepSummary.map((s) => {
+        const result = stepResults?.find(
+          (r) => r.deviceId === s.deviceId && r.command === (s.command ?? ""),
+        );
+        return {
+          deviceId: s.deviceId,
+          command: s.command,
+          status: result ? (result.success ? "success" : "failed") : "pending",
+        };
+      });
+    }
     return maneuver.steps.map((s) => {
+      const deviceId =
+        s.deviceId ?? s.deviceIds?.join(", ") ?? s.deviceTypes?.join(", ") ?? "—";
       const result = stepResults?.find(
         (r) => r.deviceId === s.deviceId && r.command === (s.command ?? ""),
       );
       return {
-        deviceId: s.deviceId,
+        deviceId,
         command: s.command ?? "",
         status: result ? (result.success ? "success" : "failed") : "pending",
       };
     });
-  }, [maneuver.steps, stepResults]);
+  }, [maneuver.steps, stepResults, stepSummary]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -198,7 +213,7 @@ export const ManeuverCard: React.FC<ManeuverCardProps> = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const metaBadge = `${maneuver.steps.length} · ${maneuver.mode === "parallel" ? "∥" : "→"}`;
+  const metaBadge = `${steps.length} · ${maneuver.mode === "parallel" ? "∥" : "→"}`;
 
   return (
     <S.CardContainer>

@@ -5,9 +5,9 @@ import type { DeviceInfo } from "../types/device";
 const DEVICE_TYPE_BY_PREFIX: Array<[string, string]> = [
   ["BSC-", "bsc"],
   ["PCS-", "pcs"],
-  ["EMU-", "emu"],
   ["CB-", "cb"],
   ["DC-OUTPUT-", "dc-output"],
+  ["DC-METER-", "dc-meter"],
   ["DC-", "dc-output"],
   ["HVAC-", "hvac"],
   ["PM5340-", "energy-analyzer"],

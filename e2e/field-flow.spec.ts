@@ -17,7 +17,9 @@ const CONTAINER_ID = "container-1";
 async function loginField(page: Page): Promise<void> {
   await page.goto(`${FIELD_UI}/login`);
   await page.getByPlaceholder("Kullanıcı adı").fill("admin");
-  await page.getByPlaceholder("Şifre").fill("kurulum-yeni-sifre-456");
+  await page.getByPlaceholder("Şifre").fill(
+    process.env.E2E_ADMIN_PASSWORD || "kurulum-yeni-sifre-456",
+  );
   await page.getByRole("button", { name: /Giriş|Login/i }).click();
   await page.waitForURL(/\/field\//, { timeout: 15000 });
 }
@@ -136,8 +138,8 @@ test.describe("Faz 5 saha akışı (K5.1)", () => {
     const rows = page.locator("tbody tr");
     await expect(rows.first()).toBeVisible({ timeout: 15000 });
     // Tünel cihaz listesi oturum açılıp fetch tamamlanana kadar satır satır
-    // dolabilir — sayıya poll ile varılır (konteyner 22 cihaz: bsc/cb/dc/emu/
-    // hvac/pcs + sanal IO ailesi).
+    // dolabilir — sayıya poll ile varılır (konteyner 22 cihaz: bsc/cb/dc/
+    // dc-meter/hvac/pcs + sanal IO ailesi).
     await expect
       .poll(async () => rows.count(), { timeout: 30000 })
       .toBeGreaterThanOrEqual(19);

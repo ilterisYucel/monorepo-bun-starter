@@ -1,37 +1,1711 @@
 {
   "rules": [
     {
-      "name": "tms_temp_diff_protect",
-      "enabled": true,
-      "cooldownMs": 900000,
+      "name": "tms_cool_on_h1",
+      "cooldownMs": 60000,
       "when": {
-        "any": [
+        "all": [
           {
-            "device": { "ids": ["BSC-1", "BSC-2"] },
-            "telemetry": "Rack Max Diff Temp (Global)",
+            "telemetry": "Current Temp",
             "op": "gte",
-            "threshold": 10
-          },
-          {
-            "device": { "ids": ["BSC-1", "BSC-2"] },
-            "telemetry": "Rack Max Diff Temp Pack (Global)",
-            "op": "gte",
-            "threshold": 5
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-1"
+              ]
+            }
           }
         ]
       },
       "then": [
-        { "action": "command", "deviceId": "PCS-1", "command": "forbid_charge" },
-        { "action": "command", "deviceId": "PCS-1", "command": "forbid_discharge" },
-        { "action": "command", "deviceId": "BSC-1", "command": "stop" },
-        { "action": "command", "deviceId": "BSC-2", "command": "stop" },
+        {
+          "action": "command",
+          "deviceId": "HVAC-1",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h1",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-1",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h1",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-1",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h1",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-1",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h2",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-2"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-2",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h2",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-2"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-2",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h2",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-2"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-2",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h2",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-2"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-2",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h3",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-3"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-3",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h3",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-3"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-3",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h3",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-3"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-3",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h3",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-3"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-3",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h4",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-4"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-4",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h4",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-4"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-4",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h4",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-4"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-4",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h4",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-4"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-4",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h5",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-5"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-5",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h5",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-5"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-5",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h5",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-5"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-5",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h5",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-5"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-5",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h6",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-6"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-6",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h6",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-6"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-6",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h6",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-6"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-6",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h6",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-6"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-6",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h7",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-7"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-7",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h7",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-7"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-7",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h7",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-7"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-7",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h7",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-7"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-7",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_on_h8",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 25,
+            "device": {
+              "ids": [
+                "HVAC-8"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-8",
+          "command": "force_cool"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_cool_off_h8",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 23,
+            "device": {
+              "ids": [
+                "HVAC-8"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-8",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_cool_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_on_h8",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lte",
+            "threshold": 17,
+            "device": {
+              "ids": [
+                "HVAC-8"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-8",
+          "command": "force_heat"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_on"
+        }
+      ]
+    },
+    {
+      "name": "tms_heat_off_h8",
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gte",
+            "threshold": 20,
+            "device": {
+              "ids": [
+                "HVAC-8"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-8",
+          "command": "on"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_tms_heat_off"
+        }
+      ]
+    },
+    {
+      "name": "tms_overheat_protect",
+      "cooldownMs": 900000,
+      "when": {
+        "any": [
+          {
+            "telemetry": "Current Temp",
+            "op": "gt",
+            "threshold": 29,
+            "device": {
+              "types": [
+                "hvac"
+              ]
+            },
+            "debounceMs": 900000
+          },
+          {
+            "telemetry": "Max Pack Temp",
+            "op": "gt",
+            "threshold": 50,
+            "device": {
+              "types": [
+                "bsc"
+              ]
+            },
+            "debounceMs": 300000
+          },
+          {
+            "telemetry": "Max Pack Temp",
+            "op": "gt",
+            "threshold": 75,
+            "device": {
+              "types": [
+                "bsc"
+              ]
+            },
+            "debounceMs": 45000
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-1",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-2",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-3",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-4",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-5",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-6",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-7",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-8",
+          "command": "force_cool"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "stop"
+        },
         {
           "action": "log",
           "level": "warn",
-          "eventCode": "auto_rule_tms_temp_diff_protect",
-          "message": "FL-05 sıcaklık farkı koruması: blok uygulandı — reset beklenir"
+          "eventCode": "auto_rule_tms_overheat"
         },
-        { "action": "notify" }
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "tms_overcold_protect",
+      "cooldownMs": 900000,
+      "when": {
+        "any": [
+          {
+            "telemetry": "Current Temp",
+            "op": "lt",
+            "threshold": 10,
+            "device": {
+              "types": [
+                "hvac"
+              ]
+            },
+            "debounceMs": 900000
+          },
+          {
+            "telemetry": "Min Pack Temp",
+            "op": "lt",
+            "threshold": 15,
+            "device": {
+              "types": [
+                "bsc"
+              ]
+            },
+            "debounceMs": 300000
+          },
+          {
+            "telemetry": "Min Pack Temp",
+            "op": "lt",
+            "threshold": 5,
+            "device": {
+              "types": [
+                "bsc"
+              ]
+            },
+            "debounceMs": 45000
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "HVAC-1",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-2",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-3",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-4",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-5",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-6",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-7",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "HVAC-8",
+          "command": "force_heat"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "stop"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_tms_overcold"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "tms_humidity_alarm",
+      "when": {
+        "any": [
+          {
+            "telemetry": "Return Humidity",
+            "op": "gte",
+            "threshold": 85,
+            "device": {
+              "types": [
+                "hvac"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "stop"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_tms_humidity"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "tms_temp_diff_protect",
+      "cooldownMs": 900000,
+      "when": {
+        "any": [
+          {
+            "telemetry": "Rack Max Diff Temp R1",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R2",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R3",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R4",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R5",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R6",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R7",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp R8",
+            "op": "gte",
+            "threshold": 10,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R1",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R2",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R3",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R4",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R5",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R6",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R7",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          },
+          {
+            "telemetry": "Rack Max Diff Temp Pack R8",
+            "op": "gte",
+            "threshold": 5,
+            "device": {
+              "ids": [
+                "BSC-1",
+                "BSC-2"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "stop"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_tms_temp_diff_protect"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "fl02_aux_loss",
+      "cooldownMs": 300000,
+      "when": {
+        "all": [
+          {
+            "telemetry": "Voltage L-N Avg",
+            "op": "lt",
+            "threshold": 180,
+            "device": {
+              "ids": [
+                "PM5340-1"
+              ]
+            },
+            "debounceMs": 5000
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CB-1",
+          "command": "open"
+        },
+        {
+          "action": "command",
+          "deviceId": "CB-2",
+          "command": "open"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "open_contactors"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "open_contactors"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_fl02_aux_loss"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "fl07_battery_door_open",
+      "when": {
+        "all": [
+          {
+            "telemetry": "Battery Door Open",
+            "op": "eq",
+            "threshold": 1,
+            "device": {
+              "ids": [
+                "CONTROL-PANEL-IO-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CONTROL-PANEL-IO-1",
+          "command": "battery_light_on"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "stop"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_fl07_door"
+        }
+      ]
+    },
+    {
+      "name": "fl07_battery_door_close",
+      "when": {
+        "all": [
+          {
+            "telemetry": "Battery Door Open",
+            "op": "eq",
+            "threshold": 0,
+            "device": {
+              "ids": [
+                "CONTROL-PANEL-IO-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CONTROL-PANEL-IO-1",
+          "command": "battery_light_off"
+        }
+      ]
+    },
+    {
+      "name": "fl07_panel_door_open",
+      "when": {
+        "all": [
+          {
+            "telemetry": "Panel Door Open",
+            "op": "eq",
+            "threshold": 1,
+            "device": {
+              "ids": [
+                "CONTROL-PANEL-IO-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CONTROL-PANEL-IO-1",
+          "command": "panel_light_on"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "stop"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_fl07_door"
+        }
+      ]
+    },
+    {
+      "name": "fl07_panel_door_close",
+      "when": {
+        "all": [
+          {
+            "telemetry": "Panel Door Open",
+            "op": "eq",
+            "threshold": 0,
+            "device": {
+              "ids": [
+                "CONTROL-PANEL-IO-1"
+              ]
+            }
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CONTROL-PANEL-IO-1",
+          "command": "panel_light_off"
+        }
+      ]
+    },
+    {
+      "name": "fl08_scf_trip",
+      "cooldownMs": 3600000,
+      "when": {
+        "any": [
+          {
+            "telemetry": "DC Voltage",
+            "op": "gt",
+            "threshold": 1500,
+            "device": {
+              "ids": [
+                "DC-METER-1"
+              ]
+            },
+            "debounceMs": 1000
+          },
+          {
+            "telemetry": "DC Current",
+            "op": "gt",
+            "threshold": 1680,
+            "device": {
+              "ids": [
+                "DC-METER-1"
+              ]
+            },
+            "debounceMs": 1000
+          },
+          {
+            "telemetry": "DC Power",
+            "op": "gt",
+            "threshold": 1784,
+            "device": {
+              "ids": [
+                "DC-METER-1"
+              ]
+            },
+            "debounceMs": 1000
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CB-1",
+          "command": "open"
+        },
+        {
+          "action": "command",
+          "deviceId": "CB-2",
+          "command": "open"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "open_contactors"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "open_contactors"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_fl08_scf"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "fl11_ground_fault",
+      "when": {
+        "any": [
+          {
+            "telemetry": "Insulation Alarm",
+            "op": "neq",
+            "threshold": 0,
+            "device": {
+              "ids": [
+                "IMD-1"
+              ]
+            },
+            "debounceMs": 2000
+          },
+          {
+            "telemetry": "Device Error",
+            "op": "neq",
+            "threshold": 0,
+            "device": {
+              "ids": [
+                "IMD-1"
+              ]
+            },
+            "debounceMs": 2000
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "command",
+          "deviceId": "CB-1",
+          "command": "open"
+        },
+        {
+          "action": "command",
+          "deviceId": "CB-2",
+          "command": "open"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-1",
+          "command": "open_contactors"
+        },
+        {
+          "action": "command",
+          "deviceId": "BSC-2",
+          "command": "open_contactors"
+        },
+        {
+          "action": "log",
+          "level": "warn",
+          "eventCode": "auto_rule_fl11_ground"
+        },
+        {
+          "action": "notify"
+        }
       ]
     }
   ]

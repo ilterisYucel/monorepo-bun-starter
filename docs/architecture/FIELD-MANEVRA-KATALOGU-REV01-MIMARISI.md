@@ -483,7 +483,7 @@ komut doğrulama reddi olarak çalışır — yürütücü reddi "adım başarı
 - **Mevcut desen korunur:** `buildFieldManeuvers(pcsIds)` dinamik liste üretimi — N konteyner için ölçeklenir; `MANEUVER_CONTROLS` transform'ları buna göre genişler.
 - **İnterlock UI'ı:** I-1 (toprak bıçağı → şarj/deşarj kartı pasif + uyarı), I-4 (motorlu kesici yok → "manuel yapın" bilgisi).
 - **FL-04 timer:** ManeuverCard `timer` özelliği mevcut — takvim girişi eklenecek.
-- **Sunucu migrasyonu (REV.02 — REV.01.5 ile HİZALANDI):** Katalog
+- **Sunucu migrasyonu (REV.02 — REV.01.5 ile HİZALANDI) — ✅ TAMAMLANDI (2026-09-22):** Katalog
   `maneuvers.json`/`operations.json`'a taşınırken konteynerde komut/manevra
   ÇALIŞTIRILAN akışlar **OPERASYON** kaydı olur (REV.01.5 kriteri: başka sistemden
   yalnız OKUMA operasyon DEĞİLDİR):

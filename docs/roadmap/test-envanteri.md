@@ -527,36 +527,23 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-### `packages/simulators/src/emu/emu.test.ts` (5 test)
-**Hedef:** `EmuSimulator` — EMU istasyon simülatörü: coil/register yazımlarıyla istasyon durumu (standby/şarj/deşarj/shutdown) ve PCS iletişim durumu üretilir.
+### `packages/simulators/src/emu/emu.test.ts` (5 test) — ❌ KALDIRILDI (2026-09-22, K1)
+**Hedef:** EMU istasyon simülatörüydü — EMU-1 cihazı kaldırıldı (KONTEYNER-REV03 K1): DC V/I/P yalnız DC-METER-1'den, sistem agregatı (SOC/SOH) BSC kaynaklarından gelir. Modül + config + registry + mapping kaynakları silindi; B19/B20 sabit (A7).
 
-1. **"başlangıçta istasyon açık, hot standby durumu (3)"** — ilk tick sonrası COIL_STATION_ON_OFF=false (ON) ve STATION_STATE=3 okunur.
-2. **"negatif setpoint → şarj durumu (4)"** — negatif AC_ACTIVE_POWER_SETPOINT yazılıp 10 tick sonra STATION_STATE=4 olur.
-3. **"pozitif setpoint → deşarj durumu (5)"** — pozitif setpoint yazılıp 10 tick sonra STATION_STATE=5 olur.
-4. **"istasyon kapanınca shutdown durumu (1) ve güç sıfır"** — OFF coil'i true yapılınca STATION_STATE=1 olur.
-5. **"PCS sayısı ve comm durumu word'leri doğru"** — PCS_COUNT=3 ve STATUS_WORD_1+2=0b111 (3 PCS comm) okunur.
+### `packages/simulators/src/cb/cb.test.ts` (9 test — 2026-09-22 REV03 K2 REWORK)
+**Hedef:** `CbSimulator` — DC ŞALTER (SYW6GZ-4000) sözleşmesi: trip/akım/sıcaklık/eşik semantiği YOK; aux kontaklar DI 0 Is Closed (NC) / DI 1 Is Open (NO); COIL 0 open (shunt trip) / COIL 1 close. RESET kaldırıldı.
 
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
+1. (describe: "başlangıç durumu") **"kapalı başlar: Is Closed = true, Is Open = false"**
+2. (describe: "aç/kapat (coil komutları)") **"OPEN coil → şalter açılır (Is Open = true)"**
+3. (describe: "aç/kapat (coil komutları)") **"CLOSE coil → şalter kapanır (Is Closed = true)"**
+4. (describe: "aç/kapat (coil komutları)") **"writeCoil false değerini yok sayar"**
+5. (describe: "aç/kapat (coil komutları)") **"açıkken aç, kapalıyken kapat — konum değişmez (idempotent)"**
+6. (describe: "kaldırılan semantik (K2)") **"input register okumaları 0 döner"**
+7. (describe: "kaldırılan semantik (K2)") **"holding register okumaları 0 döner"**
+8. (describe: "kaldırılan semantik (K2)") **"RESET coil'i yok sayılır"**
+9. (describe: "kaldırılan semantik (K2)") **"bilinmeyen discrete input false döner"**
 
-### `packages/simulators/src/cb/cb.test.ts` (14 test)
-**Hedef:** `CbSimulator` — kesici simülatörü: coil yazımlarıyla aç/kapa, aşırı akımda trip, reset dizisi ve sıcaklık kayıtlarını simüle eder.
-
-1. (describe: "initial state") **"starts closed and not tripped"** — başlangıçta IS_CLOSED=true ve IS_TRIPPED=false okunur.
-2. (describe: "initial state") **"has current flowing when closed"** — kapalıyken akım kaydı 0'dan büyüktür.
-3. (describe: "open/close via coils") **"opens when OPEN coil is set true"** — OPEN coil'i true yazılınca IS_CLOSED false olur.
-4. (describe: "open/close via coils") **"closes when CLOSE coil is set true after open"** — açıldıktan sonra CLOSE coil'i true yazılınca IS_CLOSED tekrar true olur.
-5. (describe: "open/close via coils") **"ignores writeCoil with false value"** — false coil yazımı yok sayılır, kesici kapalı kalır.
-6. (describe: "open/close via coils") **"increments operateCount on open and close"** — bir aç+kapa döngüsü operateCount'u 2 artırır.
-7. (describe: "trip on overcurrent") **"trips when current exceeds tripThreshold"** — eşik çok düşürülünce kesici trip eder (IS_TRIPPED=true, IS_CLOSED=false, akım 0).
-8. (describe: "trip on overcurrent") **"increments tripCount on overcurrent trip"** — trip oluşunca tripCount 1 artar.
-9. (describe: "reset") **"handles trip and reset sequence"** — trip sonrası eşik yükseltilip RESET coil'i yazılınca trip kalkar (IS_TRIPPED=false).
-10. (describe: "reset") **"increments operateCount on reset"** — reset işlemi operateCount'u 1 artırır.
-11. (describe: "reset") **"cannot close while tripped (must reset first)"** — trip durumundayken CLOSE yazılsa da kesici kapalı konuma geçmez.
-12. (describe: "temperature") **"reports temperature readings"** — sıcaklık kaydı 0'dan büyük sayısal bir değerdir.
-13. (describe: "temperature") **"temperature changes when open"** — açıkken sıcaklık kaydı sayısal okunabilir durumdadır.
-14. (describe: "threshold changes") **"updates trip threshold in real-time"** — holding register'a yazılan eşik değeri aynen geri okunur.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
+[DOSYA NOTU] Kapsam: [KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md](../architecture/KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md)
 
 ### `packages/simulators/src/bsc/bsc-simulator.test.ts` (5 test)
 **Hedef:** `BSCSimulator` — T4 karakterizasyonu: otomatik init sonrası NORMAL duruma geçer, START/DISCHARGE/EMERGENCY komutlarını register'a işler ve deşarjda SOC'nin %0 altına düşmesini engeller.
@@ -579,16 +566,26 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-### `packages/simulators/src/pcs/pcs.test.ts` (5 test)
-**Hedef:** `PcsSimulator` — PCS simülatörü: on/off coil'i ve setpoint ile şarj/deşarj durum bitleri, 32-bit hi/lo kayıt okumaları ve enerji sayaçları üretilir.
+### `packages/simulators/src/pcs/pcs.test.ts` (5 test) — ❌ KALDIRILDI (2026-09-22, K11)
+**Hedef:** EMU protokolü PCS simülatörüydü — legacy konteyner PCS (forbid/allow komutları) kaldırıldı; PCS yalnız field tier'dadır (Wattox — `wattox-pcs` simülatörü).
 
-1. **"başlangıçta kapalıdır (coil=1), standby biti set"** — ilk tick sonrası COIL_ON_OFF=true ve STATUS_WORD_1 standby biti (bit5) set olur.
-2. **"on + negatif setpoint → şarj durumu (status bit7)"** — ON + negatif setpoint ile 10 tick sonra charge biti (bit7) set, discharge biti (bit8) 0 ve run biti (bit1) set olur.
-3. **"pozitif setpoint → deşarj durumu (status bit8)"** — pozitif setpoint ile discharge biti set, charge biti 0 olur.
-4. **"32-bit kayıtlar hi/lo kelime olarak okunur (frekans)"** — AC_FREQUENCY hi/lo kelimeleri birleştirilince ~50 Hz okunur.
-5. **"şarj sırasında toplam şarj enerjisi artar"** — negatif setpoint'le şarjda TOTAL_CHARGE_ENERGY 0'dan büyük olur.
+### `packages/simulators/src/dc-meter/dc-meter.test.ts` (12 test — YENİ, 2026-09-22 K1)
+**Hedef:** `DcMeterSimulator` — DJSF1352-RN DC metre: FC03 addr 50/52/54 = V/I/P (FLOAT32 BE) + alarm word 19; salt ölçüm, komut YOK.
 
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
+1. (describe: "başlangıç durumu") **"DC Voltage 750.0 V — FLOAT32 BE kelime çifti"**
+2. (describe: "başlangıç durumu") **"DC Current 100.0 A — FLOAT32 BE kelime çifti"**
+3. (describe: "başlangıç durumu") **"DC Power 75.0 kW — FLOAT32 BE kelime çifti"**
+4. (describe: "başlangıç durumu") **"Alarm Word 0 (normal çalışma)"**
+5. (describe: "ölçüm enjeksiyonu") **"setMeasurements voltage 1600 → eşik üstü değer okunur"**
+6. (describe: "ölçüm enjeksiyonu") **"yalnızca verilen alanlar değişir — diğerleri nominal kalır"**
+7. (describe: "ölçüm enjeksiyonu") **"current/power ayrı ayrı enjekte edilebilir"**
+8. (describe: "ölçüm enjeksiyonu") **"alarm word ham değer olarak enjekte edilebilir"**
+9. (describe: "okuma sınırları") **"bilinmeyen adres 0 döner"**
+10. (describe: "DcMeterAdapter") **"readInputRegisters ardışık kelimeler döner (float çifti)"**
+11. (describe: "DcMeterAdapter") **"holding register 0 döner — komut YOKTUR"**
+12. (describe: "DcMeterAdapter") **"coil/discrete okumaları boş — I/O YOKTUR"**
+
+[DOSYA NOTU] FL-08 kuralı alarm word'ü KULLANMAZ — eşikler V/I/P telemetrilerinden (1500 V / 1680 A / 1784 kW).
 
 ### `packages/simulators/src/dc-output/dc-output.test.ts` (10 test)
 **Hedef:** `DcOutputSimulator` — DC çıkış simülatörü: coil'lerle on/off, voltajın setpoint'e doğru kayması/boşalması, aşırı gerilim hatası, enerji sayacı ve sıcaklık davranışları.
@@ -782,15 +779,16 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-### `services/web-service/src/presentation/routes/auth-routes.test.ts` (`30 test`)
+### `services/web-service/src/presentation/routes/auth-routes.test.ts` (`31 test`)
 **Hedef:** makeAuthRoutes (Fastify entegrasyonu) — login/refresh/users/session/change-password ve Faz 6 MFA uçlarının sözleşmesi.
 
 1. (describe: "POST /login") **"returns 200 with tokens on valid credentials"** — geçerli kimlik bilgisiyle 200 döner; access/refresh token'lar, `user.username` ve `mfaRequiredRoles:["admin","teknik"]` gövdededir.
 2. (describe: "POST /login") **"returns 400 when username is empty"** — boş username 400 + hata gövdesi üretir.
 3. (describe: "POST /login") **"returns 400 when password is empty"** — boş password 400 üretir.
 4. (describe: "POST /refresh") **"returns 200 with new tokens"** — geçerli refreshToken ile 200 + yeni accessToken döner.
-5. (describe: "POST /refresh") **"returns 401 when refresh token is invalid"** — `verifyRefresh`/`findByRefreshToken` boş döndüğünde 401 verilir.
-6. (describe: "POST /refresh") **"returns 400 when refreshToken is empty"** — boş refreshToken 400 üretir.
+5. (describe: "POST /refresh") **"returns 401 when refresh token is invalid"** — `verifyRefresh` REJECT edince (imza geçersiz) 401 + `"Gecersiz refresh token"` döner ve `clearRefreshToken` ÇAĞRILMAZ (K5: imza geçersizse reuse YOK).
+6. (describe: "POST /refresh") **"K5: imza geçerli + DB'de yok → 401 + clearRefreshToken (reuse tespiti)"** — `findByRefreshToken` undefined iken 401 döner ve `clearRefreshToken("user-1")` çağrılır.
+7. (describe: "POST /refresh") **"returns 400 when refreshToken is empty"** — boş refreshToken 400 üretir.
 7. (describe: "GET /users") **"returns 200 with user list"** — 1 kullanıcılı liste 200 + `username:"admin"` döner.
 8. (describe: "GET /users/:id") **"returns 200 with user by id"** — bilinen id 200 + kullanıcı döner.
 9. (describe: "GET /users/:id") **"returns 404 when user not found"** — repo `findById` undefined döndüğünde 404 verilir.
@@ -1358,8 +1356,8 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-### `services/web-service/src/infrastructure/persistence/user-repository.test.ts` (`10` test)
-**Hedef:** `UserRepository` — users DDL + developer rolü migration, CRUD ve MFA (TOTP/kurtarma kodu) kalıcılığı.
+### `services/web-service/src/infrastructure/persistence/user-repository.test.ts` (`12` test)
+**Hedef:** `UserRepository` — users DDL + developer rolü migration, CRUD, MFA (TOTP/kurtarma kodu) kalıcılığı ve K4 refresh token SHA-256 hash'i.
 
 1. (describe: "UserRepository (developer rolü migration — 2026-08-30)") **"initialize users DDL'ini oluşturur (developer CHECK dahil)"** — CREATE TABLE `'developer'` rolünü içerir.
 2. (describe: "UserRepository") **"initialize eski kurulumlar için role CHECK constraint'ini yeniler (idempotent)"** — DROP CONSTRAINT IF EXISTS + developer'lı ADD CONSTRAINT üretilir.
@@ -1371,6 +1369,8 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 8. (describe: "UserRepository MFA") **"disableMfa: mfa_enabled FALSE + sır NULL + kurtarma kodları silinir; satır yoksa hata"** — disable kurtarma kodlarını siler, eksik satırda throw.
 9. (describe: "UserRepository MFA") **"storeRecoveryCodes: önce tüm eski kodlar silinir, sonra her hash INSERT edilir"** — önce DELETE, sonra 3 ayrı INSERT çalışır.
 10. (describe: "UserRepository MFA") **"consumeRecoveryCode: kullanılmamış kod 1 satır etkiler → true; kullanılmış → false (tek kullanımlık SQL koşulu)"** — `used = FALSE` koşuluyla tek kullanımlık tüketim.
+11. (describe: "UserRepository refresh token hash (K4 — 2026-09-23)") **"storeRefreshToken DB'ye SHA-256 hash yazar — düz metin DEĞİL (AK-4.1)"** — `refresh_token` parametresi `sha256Hex(token)` (64 karakter hex), düz metin DEĞİL; expiresAt ISO + userId korunur.
+12. (describe: "UserRepository refresh token hash (K4 — 2026-09-23)") **"findByRefreshToken gelen token'ı hash'leyip eşleştirir (AK-4.1)"** — sorgu parametresi hash'tir ve SQL `refresh_token_expires_at > NOW()` koşulunu taşır.
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
@@ -1538,16 +1538,19 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-### `apps/field/src/lib/api-client.test.ts` (5 test)
-**Hedef:** field `apiClient` interceptor'ü — localStorage'dan Bearer token ekleme, 401'de tek seferlik refresh+retry, refresh başarısızlığında token temizliği + `/login` yönlendirmesi (jsdom'da navsiz) sözleşmesi.
+### `apps/field/src/lib/api-client.test.ts` (8 test)
+**Hedef:** field `apiClient` interceptor'ü (AUTH-REFRESH 2026-09-23 — UC-1) — Bearer ekleme (tünelde NO-OP), tek-uçuş 401-refresh (failedQueue), apiClient tabanlı refresh (ham `axios.post` YASAK), refresh başarısızlığında token + persist store temizliği + SPA `/login` navigasyonu, tünel modunda tamamen inert davranış, `_retry` döngü koruması sözleşmesi.
 
-1. (describe: "field api-client interceptor (T2)") **"request'e Bearer token eklenir"** — `apiClient.get` isteğinde `Authorization: Bearer eski` header'ı gönderilir.
-2. (describe: "field api-client interceptor (T2)") **"401 → refresh → yeni token'larla retry"** — ilk yanıt 401 olunca `POST /api/auth/refresh` bir kez çağrılır, localStorage token'ları güncellenir ve orijinal istek 200 ile döner.
-3. (describe: "field api-client interceptor (T2)") **"refresh başarısız → token'lar silinir (tam sayfa /login yönlendirmesi jsdom'da navsiz)"** — refresh reddedilince istek hata fırlar ve `auth-token`/`auth-refresh-token` localStorage'dan silinir.
-4. (describe: "field api-client interceptor (T2)") **"refresh token yoksa retry YAPILMAZ — hata fırlar"** — refresh token yokken 401 olduğunda `axios.post` hiç çağrılmaz ve 401 hatası çağırana fırlar.
-5. (describe: "field api-client interceptor (T2)") **"ikinci 401 (retry sonrası) refresh ÇAĞRILMAZ — döngü koruması"** — sürekli 401 dönen adaptörde refresh tam olarak bir kez çağrılır, ardından hata fırlar.
+1. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"standalone: request'e Bearer token eklenir"** — `apiClient.get` isteğinde `Authorization: Bearer eski` header'ı gönderilir.
+2. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"tünel modunda request interceptor Bearer EKLEMEZ (boss localStorage korunur)"** — tünel modunda Authorization header'ı boş kalır.
+3. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"eşzamanlı N 401 → TEK /auth/refresh + hepsi yeni token'la retry (AK-1.1)"** — iki paralel istek tek refresh çağrısı üretir; ikisi de `Bearer yeni` ile 200 döner, localStorage tazelenir.
+4. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"refresh apiClient üzerinden (apiBaseUrl) yapılır — ham axios.post ÇAĞRILMAZ (AK-1.2)"** — refresh isteği adaptörde `/auth/refresh` (baseURL `/api`) olarak görünür; `axios.post` spy'ı hiç çağrılmaz.
+5. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"refresh başarısız → token'lar + persist store temizlenir + /login SPA navigasyonu (AK-1.3)"** — refresh 401'i sonrası her iki token anahtarı silinir, `field-auth-storage` persist'inde `user:null`/`isAuthenticated:false` yazılır, `clearSession` state'i sıfırlar ve navigator `/login` ile çağrılır.
+6. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"refresh token yoksa retry YAPILMAZ — temizlik + navigasyon (401 fırlar)"** — refresh token yokken yalnızca tek istek atılır, temizlik + navigasyon yapılır, 401 fırlar.
+7. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"retry sonrası ikinci 401 refresh ÇAĞRILMAZ — döngü koruması (_retry)"** — sürekli 401 dönen adaptörde refresh tam olarak bir kez çağrılır.
+8. (describe: "field api-client interceptor (AUTH-REFRESH — UC-1)") **"tünel modunda 401 → tamamen İNERT: refresh yok, localStorage'a dokunulmaz, navigasyon yok (AK-1.4)"** — tünelde 401 yalnızca reddedilir; token'lar korunur, refresh atılmaz, navigator çağrılmaz.
 
-[DOSYA NOTU] Refresh yanıtında `accessToken`/`refreshToken` alanlarının eksik veya boş olduğu senaryo test edilmemiş.
+[DOSYA NOTU] Refresh sırasında gelen isteklerin retry'da yeni Authorization header'ı taşıması başarı yolunda kanıtlanır; refresh İPTAL edildiğinde (yeni 401) kuyruktaki isteklerin reject olduğu ayrı bir senaryoyla test edilmemiş (container-web ile aynı davranış — A3).
 
 ### `apps/field/src/pages/SettingsPage.test.tsx` (4 test)
 **Hedef:** `SettingsPage` — görünüm (dark/light toggle + "yakında" notu) ve dil (TR/EN butonları, `settingsStore.locale` + `TranslationProvider` geçişi) bölümleri sözleşmesi.
@@ -1574,16 +1577,16 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 [DOSYA NOTU] guest/developer rollerinin destinasyonu ayrı bir senaryo ile test edilmemiş (yalnız "Diğer → /field" dalı teknik üzerinden kapsanıyor).
 
 ### `apps/field/src/features/auth/stores/AuthStore.test.ts` (6 test)
-**Hedef:** field `AuthStore` — login sonrası rol bayrakları, mfaRequired'ta `pendingMfaToken` saklanması, otomatik guest girişi ve logout sonrası otomatik guest'e dönüş sözleşmesi.
+**Hedef:** field `AuthStore` (AUTH-REFRESH 2026-09-23 — UC-2) — login rol bayrakları, mfaRequired'ta `pendingMfaToken`, auto-guest KALDIRILDI (logout → temizlik, guest YOK), `clearSession` tam temizlik sözleşmesi.
 
-1. (describe: "AuthStore (otomatik guest — 2026-08-30)") **"login başarılı → oturum + rol bayrakları"** — admin yanıtıyla `login()` sonrası `isAuthenticated`/`isAdmin` true olur ve `auth-token` localStorage'a yazılır.
-2. (describe: "AuthStore (otomatik guest — 2026-08-30)") **"login mfaRequired → pendingMfaToken, oturum yok"** — `mfaRequired: true` yanıtında `login()` true döner, oturum AÇILMAZ ve `pendingMfaToken` saklanır.
-3. (describe: "AuthStore (otomatik guest — 2026-08-30)") **"loginAsGuest başarılı → guest oturumu"** — `loginAsGuest()` sonrası `isAuthenticated`/`isGuest` true, `isAdmin` false olur.
-4. (describe: "AuthStore (otomatik guest — 2026-08-30)") **"loginAsGuest başarısız → unauthenticated kalır"** — API reddederse guest girişi sessizce başarısız olur, `isAuthenticated` false kalır.
-5. (describe: "AuthStore (otomatik guest — 2026-08-30)") **"logout temizler ve guest'e otomatik yeniden giriş yapar"** — admin oturumundan `logout()` sonrası rol bayrakları temizlenir ve guest oturumu otomatik açılır.
-6. (describe: "AuthStore (otomatik guest — 2026-08-30)") **"developer rolü isDeveloper bayrağını set eder"** — developer yanıtıyla `login()` sonrası `isDeveloper` true, `isGuest` false olur.
+1. (describe: "AuthStore (AUTH-REFRESH — 2026-09-23)") **"login başarılı → oturum + rol bayrakları"** — admin yanıtıyla `login()` sonrası `isAuthenticated`/`isAdmin` true olur ve `auth-token` localStorage'a yazılır.
+2. (describe: "AuthStore (AUTH-REFRESH — 2026-09-23)") **"login mfaRequired → pendingMfaToken, oturum yok"** — `mfaRequired: true` yanıtında `login()` true döner, oturum AÇILMAZ ve `pendingMfaToken` saklanır.
+3. (describe: "AuthStore (AUTH-REFRESH — 2026-09-23)") **"logout backend'i çağırır ve temizler — auto-guest YOKTUR (AK-2.1)"** — logout sonrası `isAuthenticated`/`isGuest` false, `user` null, token'lar silinir; API yalnızca login+logout için çağrılır (guest denemesi YOK).
+4. (describe: "AuthStore (AUTH-REFRESH — 2026-09-23)") **"logout sunucu hatasında bile yerel state'i temizler"** — logout API reddetse de oturum ve token'lar temizlenir.
+5. (describe: "AuthStore (AUTH-REFRESH — 2026-09-23)") **"clearSession persist dahil tam temizler; backend çağrısı YAPMAZ (AK-2.2)"** — `clearSession()` tüm bayrakları/`fieldIds`/`mfaRequiredRoles`/`pendingMfaToken` sıfırlar, persist'te `user:null` yazar ve `apiClient.post` çağrılmaz.
+6. (describe: "AuthStore (AUTH-REFRESH — 2026-09-23)") **"developer rolü isDeveloper bayrağını set eder"** — developer yanıtıyla `login()` sonrası `isDeveloper` true, `isGuest` false olur.
 
-[DOSYA NOTU] `pendingMfaToken` ile ikinci adım MFA doğrulama akışı (verify) ve `fieldIds` bayrağının set edilmesi test edilmemiş.
+[DOSYA NOTU] `pendingMfaToken` ile ikinci adım MFA doğrulama akışı (mfaLogin verify) ve `fieldIds` bayrağının set edilmesi test edilmemiş; tünel modunda logout'un localStorage'a dokunmaması ayrı senaryo yok.
 
 ### `apps/field/src/features/field-devices/hooks/useFieldDevices.test.ts` (7 test)
 **Hedef:** `deriveDevicesFromSnapshot`/`latestTelemetryForDevice` — field tier'da cihaz tablosu yoktur; cihaz listesi konteyner snapshot'ının (`/fields/:id/containers` → `latestTelemetry`, yalnız online) deviceId'lerinden türetilir.
@@ -2535,7 +2538,7 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 | `RegisterContainerForm` | Kaydet sırasında çift submit koruması (pending state) |
 | `useContainerData` | 5 sn refetch davranışı fake-timer testi yok; HVAC sıcaklık + BSC güç eşikli sayım dalları; rack bazlı filtreleme |
 | `useFieldDevices` | Bilinmeyen cihaz öneki (EMU/PM5340) davranışı |
-| `AuthStore` | pendingMfaToken ile ikinci adım akışı + fieldIds bayrağı set edilmesi |
+| `AuthStore` | `mfaLogin` ikinci adım doğrulama akışı + `fieldIds` bayrağı set edilmesi; tünel modunda logout localStorage izolasyonu |
 | `maneuvers` | field_discharge_all/emergency_stop mode/onFailure alanları (yalnız charge'da assert) |
 
 ## apps/container-web
@@ -2555,7 +2558,7 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 
 | Dosya | Kapsanmayan |
 |-------|-------------|
-| `superadmin/app` | Yalnız import smoke'u — bileşen render, route guard, login/logout davranışı (proje 0 testten geliyor) |
+| `superadmin/app` | Yalnız import smoke'u — bileşen render, route guard davranışı (auth akışı UC-3 ile `api-client`/`AuthStore` birim testli) |
 | `demo-backend` | Tek smoke — kritik yol genişletmesi kaynakta TODO |
 | `editor/catalog` | Yalnız tek modül — REST/WS uçları ve DeviceJobHandler davranışı |
 
@@ -2564,7 +2567,10 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 | Dosya | Kapsanmayan |
 |-------|-------------|
 | `security/alarm-api` | Aktif alarmın başarılı resolve'u (200) + liste içerik doğrulaması |
-| `security/guest-auto-dashboard` | Guest çıkış/yeniden giriş döngüsü + guest saha API yetki sınırları |
+| `security/guest-auto-dashboard` | K1 (2026-09-23) sonrası login ekranı davranışı kanıtlanır; tünel modu açılış hydrate'i e2e yok |
+| `security/container-guest-fallback` | Guest fallback sonrası rol sınırları (yalnız dashboard kalışı kanıtlanır) |
+| `field-auth` | Kısa TTL olmadan koşum (E2E_SHORT_TTL skip'i — A1); refresh sırasında logout yarışı |
+| `superadmin-auth` | Çift sekme reuse senaryosu (yalnız field'de AK-5.1) |
 | `field-flow` | Grafik veri noktası sayısı assert edilmiyor (S11 perf kısıtı — Faz 5.2); adımlar tek testte birleşik |
 | `auth-flow` | Başarılı giriş + logout yok; hata selector'ları genel |
 | `maneuver-ui` | Yalnız ilk kart; success/failed son durum ayrımı assert edilmiyor |
@@ -2819,25 +2825,23 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 > Kapsam dokümanı: [SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md](../architecture/SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md)
 > DOGRULAMA: [SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md](../architecture/SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md), [FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md](../architecture/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md)
 
-### `packages/simulators/src/aux-analyser/aux-analyser.test.ts` (`9 test`)
-**Hedef:** AUX enerji analizörü simülatörü — AUX OK durumu, nominal bant, energy-loss enjeksiyonu.
-1. **"başlangıçta AUX OK"** 2. **"nominal voltaj"** 3. **"nominal frekans"** 4. **"akım pozitif"** 5. **"setEnergyLoss(true)"** 6. **"setEnergyLoss(false) geri dönüş"** 7. **"kayıpta voltaj 0"** 8. **"jitter bandı"** 9. **"bilinmeyen adres"**
+### `packages/simulators/src/aux-analyser/aux-analyser.test.ts` (`9 test`) — ❌ KALDIRILDI (2026-09-22, K3)
+**Hedef:** AUX enerji analizörüydü — aux-analyser kaldırıldı; AUX = PM5340 tek cihaz (FL-02 PM5340 `Voltage L-N Avg`'den).
 
-### `packages/simulators/src/fss/fss.test.ts` (`6 test`)
-**Hedef:** FSS durum simülatörü — System OK/Fault/Discharged DI sözleşmesi.
-1. **"başlangıçta sağlıklı"** 2. **"setFault(true)"** 3. **"setFault(false)"** 4. **"setDischarged"** 5. **"tick durumu bozmaz"** 6. **"bilinmeyen adres"**
+### `packages/simulators/src/fss/fss.test.ts` (`6 test`) — ❌ KALDIRILDI (2026-09-22, K5)
+**Hedef:** FSS simülatörüydü — fss kaldırıldı; EP203 kuru kontakları control-panel-io DI'larına taşındı (System OK/Fault/Discharged/2nd Stage).
 
-### `packages/simulators/src/control-panel-io/control-panel-io.test.ts` (`8 test`)
-**Hedef:** Kapı DI + ışık COIL simülatörü (FL-07).
-1. **"kapılar kapalı ışıklar sönük"** 2-3. **kapı state (batarya/panel)** 4-5. **ışık AÇ/KAPAT** 6. **bağımsızlık** 7. **"bilinmeyen DI"** 8. **"bilinmeyen COIL yazılmaz"**
+### `packages/simulators/src/control-panel-io/control-panel-io.test.ts` (`13 test` — 2026-09-22 K5 genişletme)
+**Hedef:** Kapı DI + ışık COIL + FSS kuru kontakt DI'ları (FL-07 + K5).
+1. (describe: "initial state") **"kapılar kapalı, ışıklar sönük başlar"** 2. (describe: "initial state") **"FSS sağlıklı başlar: System OK=true, Fault/Discharged/2nd=false"** 3-4. **kapı state (batarya/panel)** 5-7. **ışık AÇ/KAPAT + bağımsızlık** 8. **"setFssState fault → Fault=true, System OK=false"** 9. **"setFssState discharged → Discharged=true, System OK=false"** 10. **"setFssState secondStage → 2nd Stage=true"** 11. **"setFssState temizlenince System OK geri döner"** 12. **"bilinmeyen DI"** 13. **"bilinmeyen COIL yazılmaz"**
 
-### `packages/simulators/src/imd/imd.test.ts` (`6 test`)
-**Hedef:** IMD simülatörü — izolasyon direnci + Status bitfield.
-1. **"başlangıçta sağlıklı"** 2. **"direnç 1000 kΩ civarı"** 3. **"setFault(true)"** 4. **"setFault(false)"** 5. **"fault'ta direnç düşer"** 6. **"bilinmeyen adres"**
+### `packages/simulators/src/imd/imd.test.ts` (`10 test` — 2026-09-22 K4 gerçek map)
+**Hedef:** IMD simülatörü — isoPV1685RTU GERÇEK register map (D00007_A_XXEN §3): direnç Ω/UInt32, Alarm/Prewarning 0/4, Device Error kodu.
+1. **"izolasyon direnci ~1 MΩ (Ω cinsinden UInt32 BE)"** 2. **"Insulation Alarm 0 (OK)"** 3. **"Insulation Prewarning 0 (OK)"** 4. **"Device Error 0 (hata yok)"** 5. **"setFault(true) → Alarm 4, direnç eşik altı"** 6. **"setFault(true) → Prewarning 4"** 7. **"setFault(false) → Alarm 0'a döner"** 8. **"setDeviceError(1) → kod taşır"** 9. **"setDeviceError(0) → temizlenir"** 10. **"bilinmeyen adres 0"**
 
-### `services/device-service/src/simulator-registry.test.ts` (`3 test` — YENİ)
-**Hedef:** Registry kayıtları — sanal IO ailesi transport üretimi + bilinmeyen tip sessiz atlama.
-1. **it.each 4 tip transport üretir** 2. **"bilinmeyen tip transport üretmez"** 3. **"simulator olmayan config yok sayılır"**
+### `services/device-service/src/simulator-registry.test.ts` (`3 test` — güncellendi)
+**Hedef:** Registry kayıtları — sanal IO ailesi + dc-meter transport üretimi + bilinmeyen tip sessiz atlama.
+1. **it.each 3 tip (control-panel-io, imd, dc-meter) transport üretir** 2. **"bilinmeyen tip transport üretmez"** 3. **"simulator olmayan config yok sayılır"**
 
 ### `services/web-service/src/infrastructure/container-proxy/container-connection-telemetry-publisher.test.ts` (`4 test` — YENİ)
 **Hedef:** PPC durum değişimi → synthetic MANAGEMENT job'ı (WS3).
@@ -2887,9 +2891,9 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 
 > DOGRULAMA: [FIELD-MANEVRA-REV01-DOGRULAMA.md](../architecture/FIELD-MANEVRA-REV01-DOGRULAMA.md) §8
 
-### `services/device-service/src/maneuver-command.spec.ts` (`7 test` — YENİ, integration)
+### `services/device-service/src/maneuver-command.spec.ts` (`6 test` — integration)
 **Hedef:** gerçek DeviceService + simülatörler + config'ler ile komut hattı uçtan uca (Docker/Redis YOK).
-1. **BSC stop validated** 2. **BSC open_contactors** 3. **CB open** 4. **HVAC force_cool** 5. **io-panel ışık (COIL)** 6. **PCS forbid/allow** 7. **bilinmeyen cihaz reddi**
+1. **BSC stop validated** 2. **BSC open_contactors** 3. **CB open** 4. **HVAC force_cool** 5. **io-panel ışık (COIL)** 6. **bilinmeyen cihaz reddi** — PCS forbid/allow testi 2026-09-22'de KALDIRILDI (K11: konteyner PCS yok).
 
 ### `services/web-service/src/presentation/routes/field-container-command.spec.ts` (`4 test` — YENİ, integration)
 **Hedef:** çapraz yığın komut — gerçek WS loopback + D3 route + upstream vekili.
@@ -2916,3 +2920,252 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 - `apps/container-desktop` (renderer smoke vite:import-analysis alias sınırı nedeniyle; config/setup hazır)
 - simulators: XRack, EnergyAnalyzer aileleri + tüm Modbus adapter'ları
 - container-web/field sayfa (pages/) katmanları, ui kart komponentlerinin çoğu (Storybook kapsamında)
+
+## 14. KONTEYNER-REV03 İP-1 — Cihaz Katmanı Rework (2026-09-22)
+
+> Kapsam dokümanı: [KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md](../architecture/KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md)
+> DOGRULAMA: [KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md](../architecture/KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md)
+> Faz 1.1-1.6: dc-meter (K1), CB şalter (K2), aux-analyser silme (K3), IMD gerçek map (K4), FSS→IO DI (K5), legacy PCS silme (K11) + K12 manevra temizliği.
+
+### `apps/container-web/src/features/control/maneuvers.test.ts` (REWRITE — K12/4.17/4.18)
+**Hedef:** Konteyner manevra kataloğu — BSC charge/discharge referansı YOK; open_contactors/emergency/close_contactors düzeltmeleri.
+1. **"kaldırılan kartlar yoktur (K12)"** 2. **"every maneuver has required fields"** 3. **"all steps have deviceId"** 4. **"K12: hiçbir adımda BSC charge/discharge komutu yoktur"** 5. **"fl01_start: BSC start (0x0002)"** 6. **"fl03: emergency + open; off/stop YOK"** 7-10. **koruma manevraları open_contactors + CB open (fl02/fl08/fl10/fl11)** 11. **"fl_contactor_close → close_contactors (4.18)"** 12. **HVAC 8 cihaz** 13. **DC 2 cihaz** 14. **CB 2 cihaz** 15. **"fl_bsc_power kontrolü kaldırıldı"** 16. **"hidden set MANEUVERS'ta mevcut"** 17. **"kaldırılan kartlar gizli sette yok"** 18. **"görünür kartlar gizli değil"**
+
+### `services/device-service/src/config-loader.test.ts` (güncellendi)
+- "tüm cihaz config'leri" — EMU-1/AUX-ANALYSER-1/FSS-1/PCS-1 beklentileri kaldırıldı; DC-METER-1 eklendi (K-A7 cihaz tutarlılığı).
+- PCS adres penceresi testi KALDIRILDI (K11).
+
+### `services/device-service/src/config-connector.test.ts` (güncellendi)
+- Kaynak cihazlar artık yalnız BSC-1; B19/B20 (786/787) `constant` (35000 — 3500.0 kWh, A7) olarak doğrulanır.
+
+### `services/management-service/src/container-rules.test.ts` (güncellendi)
+- Blok aksiyon seti: PCS forbid/allow KALDIRILDI (K10/K-A8) — yalnız BSC-1/BSC-2 stop + log + notify; interlock: komutlar yalnız `stop`.
+
+### `packages/platform/commands/src/command-job-builder.test.ts` (güncellendi)
+- Legacy PCS (forbid/allow) fixture'ı + gerçek config testi kaldırıldı; fixture jenerik `demo-1` (K12); gerçek config testi artık bsc-1 stop + dc-meter-1 DC Voltage (50) doğrular.
+
+### `apps/field/src/features/dashboard/deriveDashboard.test.ts` (güncellendi)
+- `deriveEmuMetrics` testleri KALDIRILDI (K1 — EMU-1 yok); PCS/SoC-SoH/limit testleri aynen.
+
+### `apps/field/src/features/field-devices/hooks/useFieldDevices.test.ts` (güncellendi)
+- EMU-1 satırı → DC-METER-1 (tip öneki `dc-meter` eklendi).
+
+### `apps/field/src/features/containers/hooks/containerGaugeBlocks.test.ts` (güncellendi)
+- CB gauges: Is Tripped → Is Open (K2 şalter).
+
+### `packages/shared-types/src/schemas/device-config.test.ts` (güncellendi)
+- Simulator tip listesi: "emu"/"pcs" çıktı, "dc-meter" girdi.
+
+### `services/device-service/src/device-factory.test.ts` + `simulator-registry-bms-target.test.ts` (güncellendi)
+- Transport tipi "pcs"/"aux-analyser" referansları "imd" ile değiştirildi (silinen simülatörler).
+
+`[DOSYA NOTU]`: `field-flow.spec.ts` cihaz sayısı yorumu güncellendi (22 cihaz: emu yerine dc-meter — sayı aynı). `ControlPanel.tsx` hâlâ `MANEUVERS.fl_idle` kullanıyor (katalog notu — kural canlıya alınınca İP-2'de ele alınır).
+
+## 15. KONTEYNER-REV03 İP-2 — Kural Seti + Zincir (2026-09-22)
+
+> Kapsam dokümanı: [KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md](../architecture/KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md)
+> DOGRULAMA: [KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md](../architecture/KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md)
+> Faz 2-3: rules.json FL seti (43 kural — §3.1) + kural zinciri spec + e2e.
+
+### `services/management-service/src/container-rules.test.ts` (REWRITE — 22 test)
+**Hedef:** 43 kuralın envanter + eşik/debounce/cooldown + K-A4/K-A8/K-A9 + kenar-tetik sözleşmesi.
+1. **"43 kural zod-valid"** 2. **"FL-06/09/12 YOK (K-A4)"** 3. **"PCS/charge/discharge YOK (K-A8/K-A9)"** 4-8. **tms_cool/heat on/off eşikleri + 32 kural tamlığı** 9-12. **korumalar (overheat 3 kademe, overcold, humidity, temp_diff 16 koşul)** 13. **fl02 (180V/5sn)** 14-15. **fl07 kapı (eq 1/0)** 16. **fl08 (1500/1680/1784, 1sn)** 17. **fl11 (neq 0, 2sn)** 18-22. **kenar-tetik senaryoları (FL-08/FL-05/FL-07 + kontrollü saat)**
+
+### `services/management-service/src/rule-evaluator.test.ts` (17 test — +1)
+**Hedef:** kenar-tetik + **per-condition debounce** (REV03 K-A1 — eski max-debounce değişti).
+Yeni: **"per-condition debounce: hızlı kademe yavaş kademeyi BEKLEMEZ"** — 3 kademeli koruma senaryosu (45 sn kademesi 15 dk kademesine esir değil).
+
+### `services/management-service/src/automation-rules.spec.ts` (8 test — YENİ, integration K9)
+**Hedef:** GERÇEK rules.json + GERÇEK config-docker + gerçek CommandJobBuilder + test-local IMessageQueue + fake TamperLogger: telemetri → kural → COMMAND job (register değerleri birebir) + audit zinciri.
+1. **FL-08: V>1500 + 1sn → 4 job + fired/action_ok/fl08 audit** 2. **FL-02: <180V + 5sn → 4 job** 3. **FL-05 koruma: 51°C + 5dk → 8 force_cool + 2 stop** 4. **FL-05 normal: 25.2 → force_cool job (Remote On/Off 1 + Setpoint 10)** 5. **FL-07: kapı 1 → ışık true + 2× stop(3)** 6. **FL-07 kenar: kapı 0 → ışık false** 7. **FL-11: Alarm 4 + 2sn → 4 job** 8. **fail-safe: BSC State 9 → 0 job**
+
+### `e2e/automation-rules.spec.ts` (1 test — YENİ, Playwright)
+**Hedef:** Konteyner stack'te kural zincirinin FİZİKSEL etkisi: HVAC 25.0°C başlangıcı → tms_cool_on_h1..h8 ateşler → `/api/data/HVAC-N/latest` Equipment Status 2 + Current Temp <23 (management-service sink'i console — /api/logs'a yazmaz; end-state yalnız kural zinciriyle üretilebilir).
+`[DOSYA NOTU]`: docker stack gerektirir (CI e2e turu); fullyParallel lokal koşumda diğer e2e'lerin HVAC manevralarıyla aynı end-state'i üretebilir (smoke seviyesi — K9 "FL başına ayrı UI e2e YOK").
+
+### `apps/container-web/src/features/control/maneuvers.test.ts` (güncellendi — K-A5)
+Gizli koruma kartları (fl02/fl05-block/fl07/fl08/fl11) KALDIRILDI — kurallar canlıya alındı; fl09 (K7 defer) + fl_idle (ControlPanel S-6) gizli sette KALIR.
+
+`[DOSYA NOTU]`: Sapmalar S-7..S-10 DOGRULAMA §4'te: tek cihazlı aksiyon ayrıştırması, FL-11 neq 0 (gerçek değer 4), per-condition debounce (MIMARISI §197 güncellendi), FL-07 sayısal DI eşikleri.
+
+## 16. KOMUT-MANEVRA-OPERASYON İP-3 — Faz A: Kayıtlar + Registry + Migrasyon (2026-09-22)
+
+> Kapsam dokümanı: [KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md](../architecture/KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md)
+> DOGRULAMA: [KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md](../architecture/KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md)
+
+### `packages/shared-types/src/commands/maneuver-record.test.ts` (23 test — YENİ)
+**Hedef:** Manevra/operasyon kayıt şemaları (REV.02 §5.1 seçiciler, §7.1 rollback fail-fast, §10 timer, STRICT) + fail-fast yükleyiciler.
+1-3. **hedef seçiciler (deviceId/deviceIds/deviceTypes) + ham telemetries kabul** 4. **seçici YOK → RED** 5. **iki seçici → RED** 6. **içerik YOK → RED** 7. **timer (pozitif durationMs; 0 RED)** 8. **bilinmeyen anahtar RED** 9. **tam manevra kaydı (ui meta + rollback)** 10. **steps boş RED** 11-12. **§7.1 rollback fail-fast (yok RED / var OK)** 13-15. **operasyon adım union (uzak/yerel/zincir; boş RED)** 16. **field_charge §6.1 deseni** 17. **operasyon rollback fail-fast** 18-19. **dosya kökleri (min 1; strict)** 20-23. **yükleyiciler (bozuk JSON/şema → THROW; geçerli parse)**
+
+### `packages/platform/commands/src/maneuver-registry.test.ts` (7 test — YENİ)
+**Hedef:** `ManeuverRegistry` — davranışsız kayıt; `resolve` sorgusu `Result` döner (throw YOK).
+1. **bilinen manevra ok** 2. **bilinen operasyon ok** 3. **bilinmeyen → err(not_found)** 4. **tür ayrımı** 5. **boş set not_found** 6. **mükerrer isim kurulumda THROW** 7. **ortak isim ayrı ad uzayı**
+
+### `packages/platform/commands/src/maneuver-migration.test.ts` (12 test — YENİ)
+**Hedef:** A3 migrasyon çıktıları — gerçek tier dosyaları fail-fast yüklenir + içerik birebir.
+1. **konteyner 11 kayıt** 2. **11 isim registry'den çözülür** 3. **K12: charge/discharge YOK** 4. **bsc_prepare güç paramı TAŞIMAZ** 5. **field 11 kayıt** 6. **deviceTypes + {{divideTotal}} + transform birebir** 7. **gizli set (fl06/07/10)** 8. **FL-02 manevrada YOK (operasyona taşındı §7)** 9. **3 operasyon** 10. **field_charge §6.1 birebir (adım + rollback sırası)** 11. **field_maintenance FL-11** 12. **operasyon çözümleme**
+
+`[DOSYA NOTU]`: Sapmalar DOGRULAMA §4'te: fail-fast yükleyiciler düz Error (shared-types leaf — result bağımlılığı YASAK), adım seçicisi "tam biri" XOR, kayıt adı teklik fail-fast, fl05_emergency_stop stop+set_power_zero, field_maintenance container-1 sabit (Faz C), DB kaynağı B5'te.
+
+## 17. KOMUT-MANEVRA-OPERASYON İP-4 — Faz B: Yürütücü + Kalıcılık + Rotalar + Timer + Admin (2026-09-22)
+
+> Kapsam dokümanı: [KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md](../architecture/KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md)
+> DOGRULAMA: [KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md](../architecture/KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md)
+
+### `packages/platform/commands/src/operation-executor.test.ts` (17 test — YENİ, B1)
+**Hedef:** `OperationExecutor` — yerel manevra/operasyon yürütme (mode/onFailure/rollback/seçici çözümleme/divideTotal/timer/fail-closed kalıcılık).
+1. **kayıt yok → rejected (kanal+persist çalışmaz)** 2. **deviceTypes + divideTotal (200→2×100)** 3. **grup kısıtı keser** 4. **çözüm boş → failed** 5. **stop kalanları atlar** 6. **continue devam** 7. **rollback başarılı-hedef + ters sıra** 8. **rollback best-effort** 9. **begin fail-closed → rejected** 10. **begin/finish/audit zinciri** 11. **finish best-effort + state_update_failed** 12. **timer planlama** 13. **timer başarısızsa planlama yok** 14. **timer hata → timer_schedule_failed** 15. **operasyon manevra+zincir** 16. **uzak adım fail (B1)** 17. **üst rollback**
+
+### `packages/platform/commands/src/maneuver-registry.test.ts` (12 test — hibrit genişletme, B5)
+1-7. **dosya çözümleme (ok/not_found/tür ayrımı/boş/mükerrer/ortak)** 8. **list dosya sırası** 9. **DB gölgeler** 10. **disabled → err(disabled)** 11. **DB yoksa dosyaya düşer** 12. **list: enabled DB + gölgelenmeyen dosya (disabled da gölgeler)**
+
+### `services/web-service/src/infrastructure/persistence/operation-run-store.test.ts` (6 test — B2)
+operation_runs DDL + begin params birebir (fail-closed throw) + finish + findById/listRecent eşlemesi.
+
+### `services/web-service/src/infrastructure/persistence/operation-def-store.test.ts` (6 test — B5)
+operation_defs DDL + create (dup throw) + upsert update + setEnabled (soft; yoksa throw) + okuma eşlemesi.
+
+### `services/web-service/src/infrastructure/commands/command-channel.test.ts` (9 test — B3)
+ICommandChannel adaptörü: job üretimi + validate, çözümleme hatası fail, raw fallback, kuyruk hatası fail, success=false reason, schedule delay, schedule throw. + DeviceRegistryTargets (type filtre + online kesişimi).
+
+### `services/web-service/src/presentation/routes/maneuver-routes.test.ts` (15 test — B3+B5)
+Yetki (admin/teknik/iç token; guest 403) + liste + execute argümanları + HTTP eşlemesi (404/400/503/422/rolled_back 200) + runs okuma + CRUD: teknik/guest 403, bozuk tanım 400, dup 409, **audit fail-closed 500**, PUT isim uyuşmazlığı, DELETE soft/404, operasyon CRUD.
+
+### `services/web-service/src/presentation/routes/command-routes.test.ts` (14 test — B4 güncellendi)
+`_durationSeconds` hack testleri YENİ timer kontratına çevrildi: register-çözümlü stop job (Command Request 3) + delay birebir + timer_scheduled/timer_schedule_failed audit + başarısız komutta planlama yok.
+
+`[DOSYA NOTU]`: Sapmalar DOGRULAMA §4'te (S-7..S-10): uzak adım B1 fail (Faz C), müsaitlik filtresi status='online' (adaptör genişler), disabled DB gölgelemesi, CRUD audit fail-closed sırası. Compose mount'ları: config-docker/field → /app/maneuver-config (MANEUVER_CONFIG_DIR) — 4 compose dosyası.
+
+## 18. KOMUT-MANEVRA-OPERASYON İP-5 — Faz C: WS-TUNNEL Kapasite (2026-09-22)
+
+> Kapsam dokümanı: [WS-TUNNEL-KAPASITE-TEST-KAPSAMI.md](../architecture/WS-TUNNEL-KAPASITE-TEST-KAPSAMI.md)
+> DOGRULAMA: [WS-TUNNEL-KAPASITE-DOGRULAMA.md](../architecture/WS-TUNNEL-KAPASITE-DOGRULAMA.md)
+
+### `packages/ws-tunnel/src/protocol/messages.test.ts` (32 test — +4)
+operation-execute/result tipleri + `operationExecuteSchema` (STRICT, type zarf dahil): geçerli kabul / eksik-boş RED / bilinmeyen anahtar RED / union iki yönlü.
+
+### `packages/platform/commands/src/operation-executor.test.ts` (20 test — +3)
+`remoteChannel` delegasyonu (system+maneuver+params), kanal fail → failed (kademeli), uzak rollback → rollback_step_ok (yalnızca başarılı adım kompanse edilir).
+
+### `services/web-service/src/infrastructure/container-session/tunnel-maneuver-channel.test.ts` (6 test — YENİ, C1)
+Tünel manevra kanalı: connected+200 ok / bağlantı yok system_unreachable / POST /api/maneuvers/:name/execute gövdesi / 404 reason / stream hatası / oturum yeniden kullanımı.
+
+### `services/web-service/src/infrastructure/field-uplink/operation-responder.test.ts` (5 test — YENİ, C2b)
+zod doğrulama (geçersiz → rejected; yürütücü çalışmaz) / trigger-createdBy-traceId / rejected reason / throw → failed (kanal kapanmaz) / audit çifti.
+
+### `services/web-service/src/infrastructure/field-uplink/operation-requester.test.ts` (3 test — YENİ, C2b)
+korelasyon + abonelik sökme / yabancı frame yok sayma / timeout → undefined.
+
+### `services/web-service/src/presentation/routes/operation-boss-routes.test.ts` (5 test — YENİ, C2b)
+yetki (admin/teknik/iç token) / send argümanları (uuid + params + trace) / requester yok 503 / timeout 503 / rejected AYNEN.
+
+### `services/web-service/src/infrastructure/field-uplink/operation-flow.spec.ts` (2 test — YENİ, K1 GERÇEK WS)
+Loopback WebSocketServer (boss hub) + TunnelConnector (field uplink) + OperationResponder: frame → yürütücü → result aynı kanaldan; bilinmeyen mesaj sessiz (kanal AÇIK).
+
+### `uplink-event-relay.test.ts` (güncellendi — C3)
+Whitelist: device_alarm/cleared, alarm_resolved, session_open/end + **operation_started/completed/failed/rolled_back**.
+
+`[DOSYA NOTU]`: Sapmalar DOGRULAMA §4'te: schema STRICT + type zarf, requester timeout 30 sn, boss'ta koşu kalıcılığı YOK, uzak rollback system_unreachable (retry yok), **C4 admin UI İP-7'ye**. Wiring: awilix maneuverRegistry/executor/runStore/defStore/tunnelManeuverChannel/operationResponder/operationRequester; index yaşam döngüsü (responder start/stop); boss rota /api/fields/:fieldId/operations/:name/execute.
+
+## 19. KURAL-MOTORU-V2 İP-6 — Faz D1: Manevra/Operasyon Aksiyonları (2026-09-22)
+
+> Kapsam dokümanı: [KURAL-MOTORU-V2-TEST-KAPSAMI.md](../architecture/KURAL-MOTORU-V2-TEST-KAPSAMI.md)
+> DOGRULAMA: [KURAL-MOTORU-V2-DOGRULAMA.md](../architecture/KURAL-MOTORU-V2-DOGRULAMA.md)
+
+### `packages/shared-types/src/automation-rule.test.ts` (26 test — +1)
+maneuver/operation aksiyon şemaları: name zorunlu/boş RED; bilinmeyen aksiyon testi güncellendi (maneuver artık gerçek — teleport kullanıldı).
+
+### `services/management-service/src/maneuver-operation-channel.test.ts` (7 test — YENİ)
+HttpManeuverOperationChannel: POST kontratı (yol/gövde/başlıklar), maneuver öneki, rolled_back ok, failed/rejected/409 reason, 202 started, network/503 fail, timeout (AbortController).
+
+### `services/management-service/src/action-executor.test.ts` (22 test — +4)
+maneuver/operation aksiyonları: kanal YOK → channel_not_configured (kademeli), ok → trace auto:<kural>, 202 → started context, 409 disabled → fail + sonraki aksiyon devam.
+
+### `services/web-service/src/presentation/routes/maneuver-routes.test.ts` (17 test — +2)
+15 sn senkron üst sınır → 202 {status:running} (arka plan devam); hızlı yürütme normal sonuç.
+
+### `services/management-service/src/field-rules.test.ts` (5 test — REWRITE)
+r06_recovery → maneuver(fl06_recovery) + log + notify (komut aksiyonu YOK); soc_discharge_example (disabled) → operation(field_discharge) + params; K-M4 saflığı.
+
+`[DOSYA NOTU]`: Sapmalar DOGRULAMA §4'te: r06 → maneuver (S-1: REV.01.5 kriteri — recovery konteynerde komut çalıştırmaz), SOC örneği field_discharge'a bağlandı (S-2), kanal timeout 20 sn (S-3: route 15 sn 202'yi yakalasın), 202 runId'siz (S-4). RuleEvaluator DEĞİŞMEDİ (17/17).
+
+## 20. KOMUT-MANEVRA-OPERASYON İP-7 — Faz D2 + FIELD Migrasyonu + C4 (2026-09-22)
+
+> Kapsam dokümanı: [KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md](../architecture/KOMUT-MANEVRA-OPERASYON-TEST-KAPSAMI.md)
+> DOGRULAMA: [KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md](../architecture/KOMUT-MANEVRA-OPERASYON-DOGRULAMA.md)
+
+### `apps/container-web/src/features/control/services/maneuverApi.test.ts` (4 test — YENİ)
+list (GET /maneuvers + boş katalog []) / execute gövdesi {params} varsayılan + deviceIds/timer taşınması.
+
+### `apps/container-web/src/features/control/components/ManeuverPanel.test.tsx` (2 test — YENİ)
+Sunucu kataloğu yükleme (gizli kayıtlar gösterilmez) / katalog hatası → hata durumu (çökme yok).
+
+### `packages/platform/commands/src/operation-executor.test.ts` (22 test — +2)
+`options.timer` tüm yerel ana adımlara uygulanır (rollback HARİÇ); kayıt timer'ı options.timer'ı EZER.
+
+### `services/web-service/src/presentation/routes/maneuver-routes.test.ts` (17 test — timer gövdesi dahil)
+executeBodySchema `timer: {durationSeconds}` + options aktarımı.
+
+### `apps/field/src/features/field-control/services/fieldManeuverApi.test.ts` (3 test — YENİ)
+listManeuvers/listOperations + executeManeuver (deviceIds+timer) + executeOperation passthrough.
+
+### `apps/field/src/features/field-control/services/fieldManeuverApi.defs.test.ts` (4 test — YENİ, C4)
+createOperation/updateOperation/deleteOperation/listRuns (tanım yönetimi kanalı).
+
+### `apps/field/src/features/field-control/components/FieldManeuverPanel.test.tsx` (5 test — REWRITE)
+Sunucu kataloğu kartları (gizli manevralar yok; operasyon kartları görünür) / grup deviceIds kısıtı / rolled_back başarı sayılır / API hatası failed.
+
+### `apps/field/src/pages/AdminOperationsPage.test.tsx` (4 test — YENİ, C4)
+Admin guard / tanım+geçmiş listesi / createOperation (boş adımlar elenir) / deleteOperation (yumuşak).
+
+`[DOSYA NOTU]`: Kaldırılanlar: container-web MANEUVERS/MANEUVER_CONTROLS/controlApi/ControlPanel/Scheduler (S-6 kapandı — fl_idle bağımlılığı bitti); field buildFieldManeuvers/buildFieldManeuverControls/resolveSteps/fieldControlApi (REV.01 §7 migrasyonu). ManeuverCard ManeuverRecord'a geçti (stepSummary override ile operasyon kartları). Executor timer'ı UI'dan `options.timer` ile gelir. C4 UI: AdminOperationsPage — sistem seçimi (ContainerProxy connected) + manevra seçimi + mode/onFailure + rollback editörü + yumuşak silme + geçmiş.
+
+## 21. E2E Turu + FL Envanteri (2026-09-22 — İP-7 kapanışı)
+
+> FL bazlı katman envanteri: [fl-test-envanteri.md](./fl-test-envanteri.md)
+
+### E2E spec onarımları + yenileri
+- `field-maneuver.spec.ts` REWRITE (sunucu kataloğu — data-card-name; gizli kart testi).
+- `field-operation.spec.ts` YENİ (FL-11 success + FL-02 kademeli bozulma).
+- `field-admin-operations.spec.ts` YENİ (C4 kurucu + yumuşak silme + geçmiş).
+- `maneuver-ui.spec.ts` katalog uyumu; `automation-rules.spec.ts` login/limit düzeltmeleri.
+- `auth-flow.test.ts` placeholder kontratı; `field-flow`/`tunnel`/`container-realtime` env şifreleri; `security/alarm-api` yanıt şekli + guest şifresi.
+- Tüm field spec'leri: admin-menü beklemesi (otomatik-guest yarışı — G-7).
+
+### Altyapı düzeltmeleri
+- `config-field/service.json` + postgresql (field devices tablosu — §5.1 hedef çözümleme).
+- `deviceRegistry` singleton + 10 sn tazeleme; `TunnelManeuverChannel` container_session cookie'si.
+- Dev compose mount'ları (platform/commands + result).
+
+### Sonuç
+- Playwright chromium tam paket: **25/26 yeşil** (tek istisna `tfa-throttle` — MFA-AÇIK ön koşulu, G-3).
+- Programatik spec katmanı: 11 proje full yeşil (önceki bölümler).
+
+## 22. AUTH-REFRESH (2026-09-23)
+
+> **Kaynak:** [AUTH-REFRESH-MIMARISI.md](../architecture/AUTH-REFRESH-MIMARISI.md) (SPEC, developer onaylı) — 5 aşamalı iş akışı (AGENTS.md).
+> **Kapanış (Doğrulama + Test Kapsamı):** [AUTH-REFRESH-KAPANIS.md](../architecture/AUTH-REFRESH-KAPANIS.md) — değişiklik matrisi, AK kanıtları, kapsam matrisi ve KAPSANMAYAN boşluklar TEK dokümanda.
+> **it-by-it envanter:** [test-envanteri.otomatik.md](./test-envanteri.otomatik.md) (2026-09-23 — `bun run test:inventory` ile üretilir; elle kopya YAPILMAZ).
+
+### Birim test dosyaları (indeks — ayrıntı otomatik envanterde)
+
+| Dosya | Test | Kapı |
+|:------|:-----|:-----|
+| `services/web-service/src/application/use-cases/refresh-token-use-case.test.ts` | 5 | K4+K5 — tüm dallar (AK-4.1-4.3) |
+| `services/web-service/src/infrastructure/persistence/user-repository.test.ts` | 12 | +2 hash testi (AK-4.1) |
+| `services/web-service/src/presentation/routes/auth-routes.test.ts` | 31 | +reuse rotası regresyonu (AK-4.4) |
+| `apps/field/src/lib/api-client.test.ts` | 8 | UC-1 (AK-1.1-1.4) |
+| `apps/field/src/features/auth/stores/AuthStore.test.ts` | 6 | UC-2 (AK-2.1-2.2) |
+| `apps/field/src/app/App.test.tsx` | 3 | TunnelBootstrap (AK-2.3) |
+| `apps/superadmin/src/lib/api-client.test.ts` | 5 | UC-3 (AK-3.1-3.2) |
+| `apps/superadmin/src/features/auth/stores/AuthStore.test.ts` | 3 | clearSession/logout |
+
+**Koşum kanıtı:** web-service 577/577, field 156/156, superadmin 56/56 yeşil (2026-09-23).
+
+### E2E specleri (UC-5)
+
+- `e2e/field-auth.spec.ts` YENİ — AK-5.2 logout → login (auto-guest YOK); kısa TTL ile otomatik refresh kesintisizlik + refresh başarısız → login; AK-5.1 çift sekme (B login → A refresh → ikisi de login'e düşer). Zamanlama testleri `E2E_SHORT_TTL=1` ile gate'li (A1).
+- `e2e/superadmin-auth.spec.ts` YENİ — AK-5.2 superadmin logout → login; kısa TTL refresh kesintisizlik.
+- `e2e/security/guest-auto-dashboard.spec.ts` REV — K1: token'sız açılışta LOGIN ekranı (eski auto-guest beklentileri söküldü).
+- `e2e/security/container-guest-fallback.spec.ts` YENİ — AK-5.3 regresyon: container-web refresh başarısız → guest fallback → dashboard kalır.
+- `deployment/docker-compose.{field,boss,container}.dev.yml` — `ACCESS_TOKEN_EXPIRY_SECONDS` opsiyonel passthrough (varsayılan 900; A1 kapanışı).

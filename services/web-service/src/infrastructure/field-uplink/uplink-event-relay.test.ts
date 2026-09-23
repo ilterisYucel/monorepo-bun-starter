@@ -138,13 +138,17 @@ describe("UplinkEventRelay (Faz 5)", () => {
     });
   });
 
-  it("whitelist varsayılanı alarm + oturum audit'idir", () => {
+  it("whitelist varsayılanı alarm + oturum + operasyon koşusu audit'idir", () => {
     expect(UPLINK_EVENT_WHITELIST).toEqual([
       "device_alarm",
       "device_alarm_cleared",
       "alarm_resolved",
       "session_open",
       "session_end",
+      "operation_started",
+      "operation_completed",
+      "operation_failed",
+      "operation_rolled_back",
     ]);
   });
 

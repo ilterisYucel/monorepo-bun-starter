@@ -14,7 +14,10 @@ import { test, expect } from "@playwright/test";
  */
 
 const CONTAINER_UI = process.env.CONTAINER_UI_URL || "http://localhost:5173";
-const CONTAINER_PASSWORD = process.env.CONTAINER_ADMIN_PASSWORD || "admin123";
+const CONTAINER_PASSWORD =
+  process.env.CONTAINER_ADMIN_PASSWORD ||
+  process.env.E2E_ADMIN_PASSWORD ||
+  "admin123";
 const CONTAINER_ACCESS_TOKEN = process.env.CONTAINER_ACCESS_TOKEN;
 
 test.describe("Faz 5.1 B5 — konteyner realtime (Vite /ws proxy)", () => {

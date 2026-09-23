@@ -21,13 +21,14 @@ import { DeviceService } from "./device-service";
  *
  * Kapsam (SANAL-IO-CIHAZ + manevra komutları):
  * - BSC: stop / start / open_contactors (P1 koruma komutları)
- * - CB: open / close (FL-08/FL-02 akışı)
+ * - CB: open / close (FL-08/FL-02 akışı — şalter modeli, K2)
  * - HVAC: on / force_cool (FL-05)
  * - CONTROL-PANEL-IO: battery_light_on/off (FL-07 — COIL write + read-back)
- * - PCS (konteyner): forbid_charge / allow_charge (blok + kaldırma)
  * - AUX/FSS/IMD: komut YOK — salt okuma cihazları (yazma girişimi → bilinmeyen
  *   komut/cihaz hatası yerine write no-op; bu spec'te kapsam dışı)
  * - Bilinmeyen cihaz → success=false + "Bilinmeyen cihaz"
+ * 2026-09-22 (K11): konteyner PCS (forbid/allow komutları) kaldırıldı — PCS
+ * field tier'dadır (Wattox).
  */
 
 const REAL_CONFIG_DIR = fileURLToPath(new URL("../config", import.meta.url));
@@ -150,13 +151,6 @@ describe("manevra komut hattı (integration — gerçek simülatörler)", () => 
     const off = await execute("CONTROL-PANEL-IO-1", "battery_light_off");
     expect(off.success).toBe(true);
     expect(off.validated).toBe(true);
-  });
-
-  it("PCS blok + kaldırma: forbid_charge → allow_charge (0 yazımı)", async () => {
-    const forbid = await execute("PCS-1", "forbid_charge");
-    expect(forbid.success).toBe(true);
-    const allow = await execute("PCS-1", "allow_charge");
-    expect(allow.success).toBe(true);
   });
 
   it("bilinmeyen cihaz → success=false + reason", async () => {

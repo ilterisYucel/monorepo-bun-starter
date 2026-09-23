@@ -2,6 +2,7 @@ import { PostgresAdapter } from "@gd-monorepo/core";
 import type { Role, User } from "@gd-monorepo/shared-types";
 import type { SeedUser } from "../../config/default";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { sha256Hex } from "../auth/service-token";
 
 interface UserRow {
   id: string;
@@ -219,6 +220,12 @@ export class UserRepository implements IUserRepository {
     return row?.password_hash;
   }
 
+  /**
+   * K4 (2026-09-23): refresh token DB'ye SHA-256 hash'li yazılır — düz metin
+   * SAKLANMAZ. DB sızıntısında aktif refresh token'lar ifşa olmaz.
+   * Aynı kolon (`users.refresh_token`) — şema değişikliği yok. Kullanıcı
+   * başına TEK token (K2): yazma önceki token'ı ezer.
+   */
   async storeRefreshToken(
     userId: string,
     token: string,
@@ -226,14 +233,19 @@ export class UserRepository implements IUserRepository {
   ): Promise<void> {
     await this.db.execute(
       "UPDATE users SET refresh_token = $1, refresh_token_expires_at = $2 WHERE id = $3",
-      [token, expiresAt.toISOString(), userId],
+      [sha256Hex(token), expiresAt.toISOString(), userId],
     );
   }
 
+  /**
+   * K4 (2026-09-23): gelen token hash'lenip kolonla eşleştirilir. Süresi
+   * dolmuş satır bulunmaz (SQL koşulu). Eski düz metin değerler hash'le
+   * eşleşmez → doğal olarak geçersiz (migration gerekmez).
+   */
   async findByRefreshToken(token: string): Promise<User | undefined> {
     const row = await this.db.queryOne<UserRow>(
       "SELECT * FROM users WHERE refresh_token = $1 AND refresh_token_expires_at > NOW()",
-      [token],
+      [sha256Hex(token)],
     );
     return row ? toUser(row) : undefined;
   }

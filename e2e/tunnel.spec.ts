@@ -28,7 +28,10 @@ test.describe("tünel iframe (Faz 4 — K4.1/K4.2)", () => {
     const login = await fetch(`${FIELD_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "kurulum-yeni-sifre-456" }),
+      body: JSON.stringify({
+        username: "admin",
+        password: process.env.E2E_ADMIN_PASSWORD || "kurulum-yeni-sifre-456",
+      }),
     });
     expect(login.ok).toBe(true);
     const { accessToken } = await login.json();

@@ -4,6 +4,7 @@ import {
   DEFAULT_TUNNEL_OPERATIONAL_CONFIG,
   tunnelOperationalConfigSchema,
   isPeerConnectionState,
+  operationExecuteSchema,
 } from "./messages";
 import type {
   PeerConnectionState,
@@ -19,6 +20,9 @@ import type {
   StreamOpenMessage,
   OpenSessionMessage,
   OpenSessionAckMessage,
+  OperationExecuteMessage,
+  OperationResultMessage,
+  OperationControlMessage,
 } from "./messages";
 
 /**
@@ -274,5 +278,70 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
       ];
       expectTypeOf(states[0]).not.toEqualTypeOf<"connecting">();
     });
+  });
+});
+
+describe("operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)", () => {
+  it("operationExecuteSchema: geçerli istek kabul edilir", () => {
+    const parsed = operationExecuteSchema.safeParse({
+      type: "operation-execute",
+      operationId: "op-1",
+      name: "field_charge",
+      params: { powerKw: 200 },
+      traceId: "auto:boss:1",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("operationExecuteSchema: eksik/boş zorunlu alanlar RED", () => {
+    expect(
+      operationExecuteSchema.safeParse({
+        type: "operation-execute",
+        name: "field_charge",
+      }).success,
+    ).toBe(false);
+    expect(
+      operationExecuteSchema.safeParse({
+        type: "operation-execute",
+        operationId: "op-1",
+        name: "",
+      }).success,
+    ).toBe(false);
+    expect(
+      operationExecuteSchema.safeParse({
+        operationId: "op-1",
+        name: "x",
+      }).success,
+    ).toBe(false); // type zarfı zorunlu
+  });
+
+  it("operationExecuteSchema: bilinmeyen anahtar RED (strict güven sınırı)", () => {
+    // Güvenilmez boss girdisi — bilinmeyen anahtar kabul edilmez.
+    const parsed = operationExecuteSchema.safeParse({
+      type: "operation-execute",
+      operationId: "op-1",
+      name: "x",
+      extra: true,
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("OperationControlMessage union tipi iki yönü de kapsar", () => {
+    const execute: OperationExecuteMessage = {
+      type: "operation-execute",
+      operationId: "op-1",
+      name: "field_charge",
+    };
+    const result: OperationResultMessage = {
+      type: "operation-result",
+      operationId: "op-1",
+      status: "rolled_back",
+      results: [{ step: 0, system: "container-1", maneuver: "bsc_prepare", ok: true }],
+    };
+    expectTypeOf<OperationControlMessage>().toEqualTypeOf<
+      OperationExecuteMessage | OperationResultMessage
+    >();
+    expect(execute.type).toBe("operation-execute");
+    expect(result.status).toBe("rolled_back");
   });
 });

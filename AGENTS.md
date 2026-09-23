@@ -22,6 +22,8 @@ bun run test                    # All unit/component/integration tests (vitest w
 bun run test:coverage           # With coverage report
 bun run test:e2e                # Playwright (requires docker stack)
 bun run test:perf               # k6 smoke tests
+bun run spec:check <dosya...>   # SPEC/KAPANIŞ doküman lint'i (şablon + ID + GWT + referans kapısı)
+bun run test:inventory          # Test envanterini test dosyalarından OTOMATİK üretir (docs/roadmap/test-envanteri.otomatik.md)
 nx run <proj>:test              # Single project tests
 nx run <proj>:<target>          # Run any Nx target
 nx graph                        # Dependency graph visualizer
@@ -34,32 +36,36 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 - E2E: Playwright (`e2e/`). Perf: k6 (`deployment/k6/`). Both via root scripts.
 - Mocking rules: external deps (redis, pg, bullmq) via `vi.mock()` + root-level `__mocks__/`; `@gd-monorepo/*` internal packages are never mocked.
 
-### Geliştirme İş Akışı — 6 aşama (MANDATORY for new code)
+### Geliştirme İş Akışı (MANDATORY for new code)
 
-**Yeni modüller** (Faz 0-6 dahil her yeni sınıf/modül/fonksiyon) katı TDD ile, **6 aşamalı iş akışıyla** geliştirilir:
+**Yeni modüller** (her yeni sınıf/modül/fonksiyon) katı TDD ile, **5 aşamalı iş akışıyla** geliştirilir — **2 doküman/modül** (SPEC + KAPANIŞ):
 
 ```
-1. SPEC     docs/architecture/<MODUL>-MIMARISI.md      — kapsam, bileşenler, kontratlar, kabul kriterleri, T görev listesi
+1. SPEC     docs/architecture/<MODUL>-MIMARISI.md      — kapsam, bileşenler, kontratlar, FR-x gereksinimler,
+                                                         GWT kabul senaryoları, AK kabul kriterleri, T görev listesi
+                                                         (kanonik format: `docs/architecture/SPEC-SABLONU.md`)
 2. JSDoc    interface/tip + davranış sözleşmesi        — state'ler, edge-case'ler, hata kategorisi, yan etkiler, limitler
 3. TEST     *.test.ts (KIRMIZI)                        — sözleşmeyi sabitler; implementasyon yokken kırmızı verir
 4. IMPL     minimal implementasyon (YEŞİL) + refactor  — yalnızca testi yeşile çeviren kod; Elegant Object + DI kuralları
-5. SONUÇ    docs/architecture/<MODUL>-DOGRULAMA.md     — satır referanslı değişiklik matrisi, test kanıtları,
-                                                        kabul kriteri kanıtları, sapmalar, gözle kontrol, review_date
-6. KAPSAM   docs/architecture/<MODUL>-TEST-KAPSAMI.md  — testlerin kapsadığı DURUMLARIN senaryo matrisi
-                                                        (durum → koşul → beklenen → test ref'i) + KAPSANMAYAN boşluklar
+5. KAPANIŞ  docs/architecture/<MODUL>-KAPANIS.md       — §A DOĞRULAMA (değişiklik matrisi, test kanıtları, AK kanıtları,
+                                                         sapmalar, gözle kontrol) + §B TEST KAPSAMI (senaryo matrisi +
+                                                         KAPSANMAYAN boşluklar) — TEK dokümanda, review_date ile
 ```
 
-- **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; DOGRULAMA + TEST-KAPSAMI güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
+- **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; KAPANIŞ güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
 - **SPEC onay kapısı (MANDATORY):** SPEC dokümanı yazıldıktan/revize edildikten sonra implementasyon **developer onayı BEKLER** — onay alınmadan test/implementasyon başlamaz. SPEC'i yazan ajan, developer'ı dokümanı incelemesi için **açıkça uyarır** (doküman yolu + "onay bekliyor" durumuyla); iş ancak developer onayı sonrası sürer.
+- **SPEC formatı (kanonik):** Tüm yeni/revize SPEC'ler `docs/architecture/SPEC-SABLONU.md` şablonunu kullanır — doküman iskeleti (metadata, kararlar K-x, purity, yaşam döngüsü, başarı kriterleri SC-x, aşama eşlemesi, açık kararlar A-x) + use-case blokları (Status, Kapsam dahil/hariç, Akış, **FR-x gereksinim tablosu**, **GWT kabul senaryoları** — her AK için en az 1 Given/When/Then —, AK tablosu Kanıt+Durum sütunlu, T görevleri, Edge Cases, Involved Files). **Status değerleri:** `✏️ Specified` (onay bekliyor) → `✅ Approved` → `🟡 Geliştirmede` → `🟢 Doğrulanmış` → `⛔ Defer`. Geriye dönük dönüşüm YOKTUR — yalnızca yeni/dokunulan SPEC'ler.
+- **Kod referansı (MANDATORY):** Dokümanlarda kod `#sembol` çapasıyla referanslanır — `path/file.ts#fonksiyonAdı` (+ denetim için opsiyonel `@<git-short-hash>`). **Satır numarası referansı (`file.ts:123`) YASAKTIR** — edit sonrası bayatlar (yalnızca aynı PR içi geçici analiz notlarında serbest).
+- **Lint kapısı (MANDATORY):** SPEC/KAPANIŞ kapanmadan `bun run spec:check <dosya...>` temiz olmalıdır — şablon bölümleri, ID benzersizliği (K/B/FR/SC/AK/T/A/UC), AK↔GWT eşleşmesi, FR→AK eşleşmesi, T özet kapsaması, status enum'u, satır-referans yasağı.
 - **JSDoc önce:** Test yazılmadan önce davranış sözleşmesi JSDoc ile yazılır: state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler.
 - **Test sonra:** `*.test.ts` sözleşmeyi sabitler ve kırmızı verir; implementasyon testi yeşile çevirir. Test yoksa implementasyon başlamaz.
 - **Legacy karakterizasyon testleri:** Değiştirilecek testsiz modüllerde (örn. `rbac.ts`, `field-routes.ts`, `ws-routes.ts`, `bullmq-adapter.ts`) önce **mevcut davranış** testle sabitlenir — bug/delik dahil — sonra değişiklik yapılır.
 - **Kapılar:** Yeni kodda ≥%70 satır (SonarCloud kapısı); **güvenlik-kritik modüllerde ≥%90 branch**: rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu.
-- **Test dokümantasyonu (hibrit):** Aşama 6'nın `TEST-KAPSAMI` dokümanı **yaşayan çalışma dokümanıdır** — test genişletileceği zaman üzerinde çalışılır (boşluk listesi birincil girdidir). Ayrıca yeni eklenen tüm testler `docs/roadmap/test-envanteri.md`'ye işlenir (dosya başına başlık + it-by-it maddeler + `[DOSYA NOTU]` formatı; modül bölümü başında `TEST-KAPSAMI` dokümanına link). Test değişince ikisi birden güncellenir.
+- **Test dokümantasyonu:** KAPANIŞ §B **yaşayan çalışma dokümanıdır** — test genişletileceği zaman üzerinde çalışılır (KAPSANMAYAN boşluk listesi birincil girdidir). Test envanteri **otomatiktir**: `bun run test:inventory` test dosyalarından `docs/roadmap/test-envanteri.otomatik.md`'yi üretir — elle it-by-it kopya YAPILMAZ; `test-envanteri.md` elle yazılan indeks/bağlam notları için kalır. Test değişince envanter komutu tekrar koşulur.
 - **Güvenlik hedef standardı:** OWASP ASVS **Level 2** — kategori → check eşleme matrisi, SAST'in doğrulayamadıkları ve release kontrol listesi: `docs/standards/owasp-asvs-level2.md`.
 - **Kural: testsiz PR merge edilmez.**
 - **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
-- **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur: satır referanslı değişiklik kaydı, nedeni, testler + geçme durumu, sisteme etkisi, kabul kriteri kanıtları ve gözle kontrol maddeleri. Faz kapanmadan önce genel durum özeti ve `review_date` güncellenir. Bu kural, yukarıdaki 6 aşamalı iş akışının Faz 0-6 görevlerine uygulanmış özel halidir — KONTEYNER fazları dışındaki yeni modüller kendi `<MODUL>-DOGRULAMA.md` dosyalarını kullanır.
+- **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur (legacy özel kural — geriye dönük). KONTEYNER fazları dışındaki yeni modüller yukarıdaki 5 aşamalı akışı kullanır ve kendi `<MODUL>-KAPANIS.md` dosyalarını üretir.
 
 ## Monorepo structure
 - **Bun** is the package manager. Workspaces: `apps/*` + `packages/**` + `services/*`.
