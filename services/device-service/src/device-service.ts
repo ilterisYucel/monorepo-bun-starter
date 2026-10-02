@@ -1,5 +1,12 @@
 import { isAbsolute, resolve } from "node:path";
-import type { IDevice, ReadDeviceJob, CommandDeviceJob, TelemetryData, ServiceConfigFile, DeviceAlarmRule } from "@gd-monorepo/shared-types";
+import type {
+  IDevice,
+  ReadDeviceJob,
+  CommandDeviceJob,
+  TelemetryData,
+  ServiceConfigFile,
+  DeviceAlarmRule,
+} from "@gd-monorepo/shared-types";
 import { expectHolds } from "@gd-monorepo/shared-types";
 
 import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
@@ -12,7 +19,10 @@ import { DeviceFactory } from "./device-factory";
 import { SimulatorRegistry } from "./simulator-registry";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
-import { AlarmTransitionDetector, alarmSamples } from "./alarm-transition-detector";
+import {
+  AlarmTransitionDetector,
+  alarmSamples,
+} from "./alarm-transition-detector";
 import { AlarmStateRepository } from "./alarm-state-repository";
 
 interface DeviceEntry {
@@ -140,8 +150,14 @@ export class DeviceService {
     // fabrikaları CWD'den bağımsız dosya okur (BSC register map, connector
     // mapping vb. config dizininin altında yaşar).
     for (const config of configs) {
-      if (config.transport?.registerMap && !isAbsolute(config.transport.registerMap)) {
-        config.transport.registerMap = resolve(configDir, config.transport.registerMap);
+      if (
+        config.transport?.registerMap &&
+        !isAbsolute(config.transport.registerMap)
+      ) {
+        config.transport.registerMap = resolve(
+          configDir,
+          config.transport.registerMap,
+        );
       }
     }
 
@@ -195,7 +211,9 @@ export class DeviceService {
     const sql = new PostgresAdapter(service.postgresql);
     await sql.connect();
     await sql.execute(CREATE_DEVICES_TABLE);
-    await sql.execute("CREATE INDEX IF NOT EXISTS idx_devices_status ON devices (status)");
+    await sql.execute(
+      "CREATE INDEX IF NOT EXISTS idx_devices_status ON devices (status)",
+    );
     console.log("[DeviceService] Cihaz tablosu hazir");
     return sql;
   }
@@ -204,11 +222,15 @@ export class DeviceService {
     this.running = true;
 
     const entries = Array.from(this.devices.values());
-    const results = await Promise.allSettled(entries.map((e) => e.device.connect()));
+    const results = await Promise.allSettled(
+      entries.map((e) => e.device.connect()),
+    );
     const connected = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
     if (failed > 0) {
-      console.warn(`[DeviceService] ${failed}/${entries.length} cihaza baglanilamadi, ${connected} baglandi`);
+      console.warn(
+        `[DeviceService] ${failed}/${entries.length} cihaza baglanilamadi, ${connected} baglandi`,
+      );
     } else {
       console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
     }
@@ -229,7 +251,9 @@ export class DeviceService {
         ),
       ),
     );
-    const scheduleFailed = scheduleResults.filter((r) => r.status === "rejected").length;
+    const scheduleFailed = scheduleResults.filter(
+      (r) => r.status === "rejected",
+    ).length;
     if (scheduleFailed > 0) {
       console.warn(
         `[DeviceService] ${scheduleFailed}/${entries.length} cihaz zamanlanamadi`,
@@ -252,7 +276,9 @@ export class DeviceService {
           ]),
         ),
       );
-      const upsertFailed = upsertResults.filter((r) => r.status === "rejected").length;
+      const upsertFailed = upsertResults.filter(
+        (r) => r.status === "rejected",
+      ).length;
       if (upsertFailed > 0) {
         console.warn(
           `[DeviceService] ${upsertFailed}/${entries.length} cihaz kaydi yapilamadi`,
@@ -272,15 +298,18 @@ export class DeviceService {
       this.alarmDetector.reset(entry.device.id);
     }
 
-    await this.mq.registerWorker(async (job) => {
-      if (!this.running) return;
+    await this.mq.registerWorker(
+      async (job) => {
+        if (!this.running) return;
 
-      if (job.type === "READ_DEVICE") {
-        await this.readDevice(job);
-      } else if (job.type === "COMMAND_DEVICE") {
-        return await this.executeCommand(job);
-      }
-    }, { concurrency: 10 });
+        if (job.type === "READ_DEVICE") {
+          await this.readDevice(job);
+        } else if (job.type === "COMMAND_DEVICE") {
+          return await this.executeCommand(job);
+        }
+      },
+      { concurrency: 10 },
+    );
 
     console.log(`[DeviceService] ${this.devices.size} cihaz baslatildi`);
   }
@@ -288,20 +317,26 @@ export class DeviceService {
   async stop(): Promise<void> {
     this.running = false;
 
-    const disconnectPromises = Array.from(this.devices.values()).map(async (entry) => {
-      if (this.sql) {
-        try {
-          await this.sql.execute(SET_DEVICE_OFFLINE, [entry.device.id]);
-        } catch {
-          console.warn(`[DeviceService] Status update failed for ${entry.device.id}`);
+    const disconnectPromises = Array.from(this.devices.values()).map(
+      async (entry) => {
+        if (this.sql) {
+          try {
+            await this.sql.execute(SET_DEVICE_OFFLINE, [entry.device.id]);
+          } catch {
+            console.warn(
+              `[DeviceService] Status update failed for ${entry.device.id}`,
+            );
+          }
         }
-      }
-      try {
-        await entry.device.disconnect();
-      } catch {
-        console.warn(`[DeviceService] Disconnect failed for ${entry.device.id}`);
-      }
-    });
+        try {
+          await entry.device.disconnect();
+        } catch {
+          console.warn(
+            `[DeviceService] Disconnect failed for ${entry.device.id}`,
+          );
+        }
+      },
+    );
     await Promise.allSettled(disconnectPromises);
 
     await this.scheduler.close();
@@ -359,7 +394,7 @@ export class DeviceService {
     telemetry: TelemetryData[],
   ): Promise<void> {
     const entry = this.devices.get(deviceId);
-    if (!entry || !entry.alarms || entry.alarms.length === 0) return;
+    if (!entry?.alarms || entry.alarms.length === 0) return;
 
     const samples = alarmSamples(entry.alarms, telemetry);
     if (samples.length === 0) return;
@@ -376,7 +411,8 @@ export class DeviceService {
             description: transition.description,
           });
           await this.logger?.log({
-            level: transition.severity === "warning" ? "warn" : transition.severity,
+            level:
+              transition.severity === "warning" ? "warn" : transition.severity,
             category: "app",
             eventCode: "device_alarm",
             message: `Cihaz alarmi aktif: ${transition.name}`,
@@ -491,13 +527,18 @@ export class DeviceService {
     console.warn(`[DeviceService] ${warnMessage}`);
   }
 
-  private async publish(deviceId: string, data: TelemetryData[]): Promise<void> {
+  private async publish(
+    deviceId: string,
+    data: TelemetryData[],
+  ): Promise<void> {
     const tagger = this.taggers.get(deviceId);
     const enriched = tagger ? tagger.enrich(data) : data;
     await this.scheduler.publishTelemetry(deviceId, enriched);
   }
 
-  private async executeCommand(job: CommandDeviceJob): Promise<{ success: boolean; validated?: boolean; reason?: string }> {
+  private async executeCommand(
+    job: CommandDeviceJob,
+  ): Promise<{ success: boolean; validated?: boolean; reason?: string }> {
     const entry = this.devices.get(job.deviceId);
     if (!entry) {
       const msg = `Bilinmeyen cihaz: ${job.deviceId}`;
@@ -514,7 +555,9 @@ export class DeviceService {
       return { success: false, reason: msg };
     }
 
-    console.log(`[DeviceService] Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`);
+    console.log(
+      `[DeviceService] Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`,
+    );
 
     try {
       if (job.atomic && entry.device.writeAtomic) {
@@ -544,13 +587,15 @@ export class DeviceService {
       const allData = await entry.device.read();
       await this.publish(job.deviceId, allData);
     } catch (err) {
-      await this.logger?.log({
-        level: "error",
-        category: "app",
-        eventCode: "modbus_read_failed",
-        message: "Komut sonrası okuma hatası",
-        context: { deviceId: job.deviceId, error: String(err) },
-      }).catch(() => undefined);
+      await this.logger
+        ?.log({
+          level: "error",
+          category: "app",
+          eventCode: "modbus_read_failed",
+          message: "Komut sonrası okuma hatası",
+          context: { deviceId: job.deviceId, error: String(err) },
+        })
+        .catch(() => undefined);
     }
 
     await this.logCommand(job, true);
@@ -568,8 +613,7 @@ export class DeviceService {
           const allMatch = validate.reads.every((expected) => {
             const actual = readBack.find((r) => r.name === expected.name);
             return (
-              actual !== undefined &&
-              expectHolds(actual.value, expected.expect)
+              actual !== undefined && expectHolds(actual.value, expected.expect)
             );
           });
           if (allMatch) return { success: true, validated: true };

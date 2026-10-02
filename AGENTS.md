@@ -1,6 +1,7 @@
 # AGENTS.md
 
 ## Quick commands
+
 ```
 bun install                     # Install deps (Bun only, no npm/pnpm/yarn)
 bun run dev                     # All apps in parallel (max 5)
@@ -28,9 +29,26 @@ nx run <proj>:test              # Single project tests
 nx run <proj>:<target>          # Run any Nx target
 nx graph                        # Dependency graph visualizer
 ```
+
 No root `lint` or `format` scripts exist. Linting is per-project.
 
+## Detay referansları (ihtiyaç anında oku)
+
+Bu dosya yalnızca **her göreve uygulanan kuralları** taşır. Aşağıdaki konulara
+dokunacaksan ilgili referansı ayrıca oku (her oturumda yüklenmez):
+
+| Konu                                                    | Dosya                      |
+| :------------------------------------------------------ | :------------------------- |
+| Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | `AGENTS-INFRA.md`          |
+| Telemetry tagging & canonical metrics                   | `AGENTS-DEVICE-CONFIG.md`  |
+| Tunnel / TunnelConnector sözleşmeleri                   | `AGENTS-WS-TUNNEL.md`      |
+| Device transport strategy                               | `AGENTS-DEVICE-SERVICE.md` |
+| Komut config / manevra / operasyon                      | `AGENTS-KOMUT-MANEVRA.md`  |
+| Frontend transport & provider kontratları               | `AGENTS-FRONTEND.md`       |
+| Icon / renk token / sprite pipeline                     | `AGENTS-UI.md`             |
+
 ## Testing
+
 - **`TESTING.md` is the authoritative testing reference** — layers, file naming, mocking rules, coverage targets, and commands. Read it before writing or running any test.
 - Unit/component/integration: Vitest workspace (`vitest.workspace.ts`).
 - E2E: Playwright (`e2e/`). Perf: k6 (`deployment/k6/`). Both via root scripts.
@@ -55,6 +73,7 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 - **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; KAPANIŞ güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
 - **SPEC onay kapısı (MANDATORY):** SPEC dokümanı yazıldıktan/revize edildikten sonra implementasyon **developer onayı BEKLER** — onay alınmadan test/implementasyon başlamaz. SPEC'i yazan ajan, developer'ı dokümanı incelemesi için **açıkça uyarır** (doküman yolu + "onay bekliyor" durumuyla); iş ancak developer onayı sonrası sürer.
 - **SPEC formatı (kanonik):** Tüm yeni/revize SPEC'ler `docs/architecture/SPEC-SABLONU.md` şablonunu kullanır — doküman iskeleti (metadata, kararlar K-x, purity, yaşam döngüsü, başarı kriterleri SC-x, aşama eşlemesi, açık kararlar A-x) + use-case blokları (Status, Kapsam dahil/hariç, Akış, **FR-x gereksinim tablosu**, **GWT kabul senaryoları** — her AK için en az 1 Given/When/Then —, AK tablosu Kanıt+Durum sütunlu, T görevleri, Edge Cases, Involved Files). **Status değerleri:** `✏️ Specified` (onay bekliyor) → `✅ Approved` → `🟡 Geliştirmede` → `🟢 Doğrulanmış` → `⛔ Defer`. Geriye dönük dönüşüm YOKTUR — yalnızca yeni/dokunulan SPEC'ler.
+- **KAPANIŞ otomasyonu:** Aşama 5 (KAPANIŞ) başladığında ana agent, `@reviewer` subagent'ını otomatik çağırır. Reviewer, diff'i analiz eder ve `<MODUL>-KAPANIS.md` dosyasını §A DOĞRULAMA + §B TEST KAPSAMI formatında üretir. Ana agent reviewer çıktısını doğrudan kullanır.
 - **Kod referansı (MANDATORY):** Dokümanlarda kod `#sembol` çapasıyla referanslanır — `path/file.ts#fonksiyonAdı` (+ denetim için opsiyonel `@<git-short-hash>`). **Satır numarası referansı (`file.ts:123`) YASAKTIR** — edit sonrası bayatlar (yalnızca aynı PR içi geçici analiz notlarında serbest).
 - **Lint kapısı (MANDATORY):** SPEC/KAPANIŞ kapanmadan `bun run spec:check <dosya...>` temiz olmalıdır — şablon bölümleri, ID benzersizliği (K/B/FR/SC/AK/T/A/UC), AK↔GWT eşleşmesi, FR→AK eşleşmesi, T özet kapsaması, status enum'u, satır-referans yasağı.
 - **JSDoc önce:** Test yazılmadan önce davranış sözleşmesi JSDoc ile yazılır: state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler.
@@ -67,66 +86,6 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 - **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
 - **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur (legacy özel kural — geriye dönük). KONTEYNER fazları dışındaki yeni modüller yukarıdaki 5 aşamalı akışı kullanır ve kendi `<MODUL>-KAPANIS.md` dosyalarını üretir.
 
-## Monorepo structure
-- **Bun** is the package manager. Workspaces: `apps/*` + `packages/**` + `services/*`.
-- **Nx** v22 orchestrates build order via `"dependsOn": ["^build"]` in `nx.json`.
-- Cached Nx targets: `build`, `test`, `lint`.
-
-### Three-layer model (MANDATORY mental model)
-
-| Layer | What | Physical location | Examples |
-|:------|:-----|:------------------|:---------|
-| **Platform (engine)** | Reusable libraries — imported, never deployed | `packages/` | core, platform/*, plugin-sdk, plugins/*, shared-types, shared-utils, simulators, ui |
-| **Capabilities** | Deployable, config-driven parts — runnable alone but not a product; composed into products via config | `services/` (backend) + `apps/` (frontend/desktop) | web-service, data-service, device-service, integration-service \| field, superadmin, container-web, desktop, editor |
-| **Products** | Assembled composition of capabilities + configs | `deployment/` (compose files + configs) | field stack, boss stack, container stack, customer variants |
-
-- **`packages/core` JENERİKTİR** — başka şirkette başka projede yeniden kullanılabilir olmalı. GD-PMS'ye özgü kod (`JobType` kuyrukları, tier defaults, konteyner uzaktan erişim sözleşmeleri) `packages/platform/*`'da yaşar. Bağımlılık yönü: `core → platform` YASAK; `platform/* → core` serbest. Ayrıntı: `docs/roadmap/platform-paket-yapisi.md`.
-- Services are **not** products — a product is the configured composition (e.g. field product = device-service + data-service + web-service + field app + compose + device configs + `SERVICE_TIER=field`).
-- Low-code/no-code evolution: the editor generates the **product layer** (compose compositions + configs); capabilities stay generic; customer-specific behavior belongs in product configs/plugins — never in the platform.
-- `packages/` = import-only. If something has a `run.ts`/Dockerfile and gets deployed, it belongs in `services/` or `apps/`.
-
-### Build order (implicit from Nx `^build`)
-```
-shared-types, result (leaf, no deps)
-  → shared-utils, core, tamper-logger, simulators, plugin-sdk, ws-tunnel (depends on result)
-    → platform/messaging, platform/container-access (depend on core, shared-types, ws-tunnel)
-    → platform/logging (depends on shared-types, tamper-logger)
-      → epias-client (depends on plugin-sdk)
-        → plugins/epias-market-prices (depends on epias-client), ui
-          → demo-backend (depends on core, platform/*, tamper-logger, shared-types, simulators)
-          → web-service (depends on core, platform/*, tamper-logger, shared-types, ws-tunnel)
-          → data-service (depends on core, platform/*, tamper-logger, shared-types)
-          → device-service (depends on core, platform/*, tamper-logger, shared-types, simulators)
-          → integration-service (depends on core, platform/*, plugin-sdk, plugins/*)
-          → web (depends on shared-types, shared-utils, ui)
-          → desktop (depends on shared-types, shared-utils)
-```
-
-### Package ownership
-| Package        | Purpose                                                              |
-| :---------------| :---------------------------------------------------------------------|
-| `shared-types` | Pure TS type definitions (telemetry, jobs, device interfaces, auth, integration contracts) |
-| `shared-utils` | ConfigLoader, env sources, config definitions                          |
-| `core`         | **JENERİK** backend logic: Modbus, CANbus(stub), MQTT(stub), TimescaleDB, SQL adapters, RedisConnection, **generic** `BullMQAdapter`/`BullMQQueue` — GD-PMS kavramı İÇERMEZ |
-| `result`       | **JENERİK** yaprak paket: `Result<T,E>` (Railway — ok/err, map, andThen, match, `okVoid`) + `DomainError` ailesi (kind → 4xx/5xx eşlemesi). Tüm paketler/servisler buradan import eder (2026-09-01: core/errors + ws-tunnel kopyası + shared-types basit Result birleşti) |
-| `tamper-logger` | **JENERİK** tamper-evident log kütüphanesi (ayrı ürün): `TamperLogger` (HMAC zinciri, fail-closed audit/security), sink'ler (console/file/timescale/syslog/webhook/smtp/sms), `verifyChain`, signing key. eventCode SERBEST string — sözlük `eventCodeValidator` ile enjekte edilir |
-| `platform/messaging` | `PlatformMessageQueue` (IMessageQueue implementasyonu) + `QUEUE_NAMES` + `JOB_RETRY_OPTIONS` — JobType'ı bilen TEK yer |
-| `ws-tunnel` | **JENERİK** çoklanmış WebSocket tüneli (ayrı ürün — tamper-logger deseni; **iki deployment: field→container + field→boss**): `FrameCodec` (9 bayt başlık), kontrol mesaj protokolü (`protocol/messages.ts`, v2: `peerId`+`peerType`; olay bildirimi: `EventMessage`), `TunnelConnector` (durum makinesi + backoff), `TunnelClient` (stream multiplex + kredi + WS köprüsü), `ClientSessionStore/Server` (client oturumu — `ITokenSigner` enjeksiyonu), `SessionGateway`/`HubSessionStore`/`TunnelProxy` (hub tarafı — `IHubChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu), jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` (types.ts), paket içi loopback demo (`src/demo/` + `examples/loopback-demo.mjs`). Bağımlılık: yalnızca `ws` + `zod` — TAM BAĞIMSIZ. Domain adapter'leri monorepo'da: `ContainerProxyFieldChannel`, `FastifyStreamSink`, `JoseTokenSigner`, `SessionAudit`, `SessionUserMap` |
-| `platform/container-access` | Konteyner uzaktan erişim sözleşmeleri: `IContainerProxy`/`ContainerObserver` (tunnel frame codec/tipler 2026-09-01'de `@gd-monorepo/ws-tunnel`'a taşındı) |
-| `platform/logging` | `TIER_LOGGER_DEFAULTS` + `loggerConfigForTier` (container/field/boss tier varsayılanları) + GD-PMS olay sözlüğü (`LOG_EVENT_CODES`/`isLogEventCode`) |
-| `plugin-sdk`   | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/architecture/PLUGIN-MIMARISI.md`) |
-| `epias-client` | EPIAŞ HTTP client: CAS TGT yaşam döngüsü (`EpiasTicketStore` — dosya önbelleği), `EpiasClient` (TGT header + EPIAŞ tarih formatı + tipli yardımcılar), endpoint sabitleri. Plugin değil — kütüphane; EPIAŞ plugin'leri paylaşır |
-| `plugins/*`    | Built-in plugin packages (e.g. `epias-market-prices`) — loaded via StaticPluginSource |
-| `simulators`   | BSC/HVAC/XRack/CB/DC-Output device simulators — register-accurate                 |
-| `ui`           | Shared React components (PixiJS graphics, Recharts, Emotion)         |
-| `web`          | React v19 frontend (Vite v8, TanStack Query, Zustand)                |
-| `desktop`      | Electron v39 + React v19 (electron-vite)                             |
-| `demo-backend` | Fastify v5 backend (REST + WebSocket) — legacy                       |
-| `web-service`  | Hexagonal Fastify 5 API — Auth/JWT, TimescaleDB queries, awilix, zod | *(in `services/`)* |
-| `data-service` | BullMQ consumer — writes telemetry to TimescaleDB                    | *(in `services/`)* |
-| `device-service`| Modbus poller — reads device configs, produces BullMQ jobs           | *(in `services/`)* |
-| `integration-service` | Plugin host — EPIAŞ etc. periodic data collection (BullMQ repeatable) | *(in `services/`)* |
-
 ## Dependency injection rules (MANDATORY)
 
 **Every new class MUST follow these rules.** awilix is used in `web-service`; other packages use manual constructor injection.
@@ -134,159 +93,14 @@ shared-types, result (leaf, no deps)
 1. **Plain constructor injection only.** All dependencies are passed via `constructor(private dep: Type)`. No `@Injectable()`, no decorators, no service locator globals.
 2. **No default exports.** Every file uses named exports exclusively.
 3. **Config objects, not primitives.** When a class needs >2 primitive config values, define a `*Config` interface (e.g. `TimescaleDBConfig`, `ModbusClientConfig`) and pass that single object.
-4. **Interfaces for swappable backends.** Use `I`-prefixed interface contracts (e.g. `IMessageQueue`, `ITimeseriesDatabase`, `IModbusSimulatorAdapter`, `IUserRepository`). Concrete adapters implement them. Interfaces live in `domain/` (services) or `shared-types` (cross-package).
+4. **Interfaces for swappable backends.** Use `I`-prefixed interface contracts (e.g. `IMessageQueue`, `ITimeseriesDatabase`). Concrete adapters implement them. Interfaces live in `domain/` (services) or `shared-types` (cross-package). Mevcut liste + örnekler: `AGENTS-INFRA.md`.
 5. **Inject constructed instances, not raw configs, when the resource may be shared.** Example: `BullMQAdapter` receives a `RedisConnection` instance (not `RedisConfig`) — so one Redis connection can be reused across queues.
 6. **Wiring happens in `main()` or DI container.** In `web-service`, awilix `asFunction` registers all dependencies (see `src/config/container.ts`). In other packages, all `new X(...)` calls happen in a single bootstrap function.
 7. **Lifecycle methods.** Classes that manage external resources must expose `connect()`/`disconnect()` or `close()` + `health()` patterns. All startup/shutdown sequences go in `main()`.
 
-### Existing DI contracts (interfaces)
-| Interface | Location | Purpose |
-|:----------|:---------|:--------|
-| `IMessageQueue` | `packages/core/src/messaging/interface.ts` | Job queue abstraction |
-| `ITimeseriesDatabase` | `packages/core/src/timeseries/interface.ts` | Time-series DB abstraction |
-| `IModbusSimulatorAdapter` | `packages/shared-types/src/modbus/adapter.ts` | Modbus simulator contract |
-| `IUserRepository` | `web-service/src/domain/repositories/IUserRepository.ts` | User persistence contract |
-| `ITokenService` | `web-service/src/domain/services/ITokenService.ts` | JWT token sign/verify |
-| `IPasswordHasher` | `web-service/src/domain/services/IPasswordHasher.ts` | Password hashing contract |
-
-## Frontend data source contracts (MANDATORY)
-
-**All UI components in `packages/ui` MUST be state-library-agnostic.** They receive data via props or React Context — never by importing TanStack Query, Zustand, SWR, or any state management library directly.
-
-### Transport contracts (`packages/shared-types/src/telemetry/transport.ts`)
-
-```ts
-// Interface that ALL real-time data transports must implement
-interface ITelemetryTransport {
-  connect(params: ConnectParams): Promise<void>;
-  disconnect(): Promise<void>;
-  connectionState(): ConnectionState;
-  subscribe(observer: TelemetryObserver): () => void;
-}
-
-type ConnectionState = "idle" | "connecting" | "connected" | "error";
-
-interface TelemetryObserver {
-  onData(batch: TelemetryData[]): void;
-  onError(error: Error): void;
-  onConnectionChange(state: ConnectionState): void;
-}
-```
-
-**This is the Strategy pattern for frontend data.** Swap WebSocket, HTTP polling, SSE, or Mock without changing any UI code.
-
-### Transport implementations (`packages/ui/src/transports/`)
-
-| Transport | Use Case | Constructor |
-|-----------|----------|------------|
-| `WebSocketTransport` | Production realtime | `new WebSocketTransport(wsUrl, getToken?)` |
-| `HttpPollingTransport` | Fallback, simple setup | `new HttpPollingTransport({ endpoint, intervalMs?, getToken? })` |
-| `MockTransport` | Storybook, tests, demos | `new MockTransport(definitions, intervalMs?)` |
-
-All implement `ITelemetryTransport`. Import from `@gd-monorepo/ui`:
-```ts
-import { WebSocketTransport, HttpPollingTransport, MockTransport } from "@gd-monorepo/ui";
-```
-
-### UI provider contracts (`packages/ui/src/interfaces/`)
-
-| Interface | Purpose | Consumed By |
-|-----------|---------|-------------|
-| `TelemetryProvider` | Time-series telemetry data + range/points/filter controls | `TelemetryChart` |
-| `LogProvider` | Log entries + add/clear actions | `LogTerminal` |
-| `EventAnnotationsProvider` | Event annotations for chart vertical lines | `TelemetryChart` (optional) |
-
-These are **interfaces only** — no implementations exist in `packages/ui`. Implementations live in `apps/container-web` (using TanStack Query, Zustand, etc.).
-
-### Compound component contracts (`packages/ui/src/core/`)
-
-```tsx
-// Grafana-like isolated data context per device
-<DeviceTelemetryProvider deviceId="bsc-1" transport={wsTransport}>
-  <DeviceTelemetryProvider.Gauge metric="Voltage" label="Voltaj" />
-  <DeviceTelemetryProvider.Gauge metric="Current" label="Akım" />
-  <DeviceTelemetryProvider.StatusBadge />
-</DeviceTelemetryProvider>
-```
-
-Each `DeviceTelemetryProvider`:
-- Creates its OWN isolated data stream via `useRealtimeTelemetry(transport)`
-- Uses `useSyncExternalStore` for React 18 concurrent-mode compatibility
-- Crash in one provider's stream does NOT affect other providers (Grafana panel isolation)
-- Sub-components access data via internal React Context — no prop drilling
-
-### Transport wiring in apps (`apps/container-web/src/contexts/TransportContext.tsx`)
-
-```tsx
-// App-level transport selection:
-<TransportProvider>
-  <RealtimeProvider>           ← uses useTransport('ws') internally
-    <RouterProvider>
-      ...
-    </RouterProvider>
-  </RealtimeProvider>
-</TransportProvider>
-```
-
-Any component can access transports via `useTransport('ws')` or `useTransport('http')`. This allows swapping transports at the app level without touching individual components.
-
-### Data flow rules (MANDATORY)
-
-| Package | Allowed Imports | Forbidden Imports |
-|---------|----------------|-------------------|
-| `packages/ui` | `react`, `@gd-monorepo/shared-types`, browser APIs | TanStack Query, Zustand, SWR, Axios, `apps/*` |
-| `apps/container-web` | `@gd-monorepo/ui`, TanStack Query, Zustand, Axios | — (app layer can use anything) |
-
-**UI components never:**
-- Import `useQuery` or `useMutation` directly
-- Await `fetch()` or `apiClient.get()` directly
-- Manage their own data fetching lifecycle
-
-**UI components always:**
-- Accept a provider object via props (IoC)
-- Or consume data from a parent compound component's Context
-- Or receive fully-resolved data via props
-
-### Existing contracts (frontend)
-
-| Contract | Location | Implementations |
-|:---------|:---------|:----------------|
-| `ITelemetryTransport` | `shared-types/src/telemetry/transport.ts` | `WebSocketTransport`, `HttpPollingTransport`, `MockTransport` (all in `ui/transports`) |
-| `TelemetryProvider` | `ui/src/interfaces/telemetry-provider.ts` | `useTelemetryProvider` (in `apps/container-web/src/hooks/`) |
-| `LogProvider` | `ui/src/interfaces/log-provider.ts` | `useLogStore` (Zustand, in `apps/container-web/src/stores/`) |
-| `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts` | `useEventAnnotations` (in `apps/container-web/src/hooks/`) |
-
-### Adding a new data source
-
-1. Implement `ITelemetryTransport` in `packages/ui/src/transports/` (e.g., `SseTransport`, `MqttTransport`)
-2. Export from `transports/index.ts` — automatically available via `@gd-monorepo/ui`
-3. Register in `TransportProvider` (or create custom provider)
-4. All existing UI components now work with the new transport — **zero component changes**
-
-### SIGILL / runtime stability fixes (implemented)
-
-The following optimizations were applied across the codebase to prevent Chrome SIGILL crashes during 24/7 operation:
-
-| Category | Fix | File(s) |
-|----------|-----|---------|
-| **WS message shaping** | Backend batches telemetry into `{ type: "telemetry", data: [...] }` — N separate `ws.send()` → 1 | `web-service/src/index.ts` |
-| **Client message batching** | `requestAnimationFrame` batching — N state updates/second → 1 per frame | `useRealtimeTelemetry.ts` |
-| **WebGL context lifecycle** | Ref callback destroys old PIXI `Application` on key change (resize) | `BSC.tsx`, `TMS.tsx`, `BSCGraphic.tsx`, `TMSGraphic.tsx` |
-| **PixiJS ticker throttle** | `setFrameCount` throttled from 60fps → 6fps | `BSCGraphic.hooks.ts`, `TMSGraphic.hooks.ts` |
-| **WS ping/pong** | `@fastify/websocket` configured with `pingInterval: 30000` | `server.ts` (web-service, demo-backend) |
-| **Dead WS sweep** | `RealtimeManager` sweeps CLOSED/CLOSING sockets every 60s | `realtime-manager.ts` |
-| **Zustand localStorage throttle** | Debounced storage wrapper: writes max once per 2s | `LogStore.ts` |
-| **Token refresh** | `RealtimeProvider` auto-refreshes expired JWT, breaks reconnect loop | `RealtimeContext.tsx` |
-| **Error Boundary** | React error boundary catches WebGL/React crashes, shows reload UI | `ErrorBoundary.tsx` |
-| **Electron crash handler** | `render-process-gone`, `crashed`, `unresponsive` handlers with auto-reload | `apps/container-desktop/src/main/index.ts` |
-
-## Telemetry tagging & canonical metrics (MANDATORY)
-
-- **Config'lerde `device_id`/`container_id`/`field_id` tag'i yazmak YASAKTIR** — bu tag'lerin tek sahibi device-service `TelemetryTagger`'dır (`services/device-service/src/telemetry-tagger.ts`). Config yalnızca kendi alanına ait tag'leri (`rack_id`, `aggregation` vb.) taşır.
-- **Canonical metric attr:** Config telemetry/bitfield girişine opsiyonel `"canonical"` alanı verilebilir (**serbest string** — örn: `soc`, `soh`, `voltage`, `battery_ready`). Değer, cihaz servisi tarafından `tags.canonical` olarak taşınır. **Konvansiyon:** canonical değeri = UI alan adı; frontend generic eşleme yapar (`if (canonical in target) target[canonical] = value` — tek istisnalar `battery_ready`→bool status ve `charge_power`/`discharge_power`→işaretli `power_kw`). Canonical verilmezse davranış değişmez (name ile gösterim). Enum/sabit liste YOKTUR — yeni canonical isim kullanmak için kod değişmez.
-- **TODO:** `canonical` ileride tags yerine ayrı bir `TelemetryData` alanına taşınacak (DB kolonu + adapter eşleme + frontend kontratı ile birlikte).
-
 ## Cihaz alarm sözleşmesi (MANDATORY — Faz 0 eki)
+
+> Detay: `docs/architecture/DEVICE-SERVICE-MIMARISI.md` §4.2 + `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` (Faz 0 alarm sözleşmesi).
 
 - **Tek kaynak — config kuralı:** Alarm tanımları YALNIZCA device config'teki üst seviye `alarms` bölümündedir: `{ telemetry: <ad>, severity: "error"|"warning"|"info", description?, activeLow? }`. Alarm adı = telemetri adı. Config dışında (kod, tag, enum) alarm kaynağı YOKTUR.
 - **Cihaz tipinden bağımsız:** Değerlendirme yalnızca device-service'te, standart `TelemetryData[]` akışı üzerinde yapılır (`AlarmTransitionDetector` + `alarmSamples`). `IDevice` alarm API'si taşımaz (ISP). Modbus, CANbus, MQTT, simülatör — hepsi aynı yoldan geçer; telemetri üretmek yeterlidir.
@@ -295,336 +109,8 @@ The following optimizations were applied across the codebase to prevent Chrome S
 - **Resolve akışı:** `POST /api/unified/alarms/resolve` — admin/teknik; audit `alarm_resolved` (fail-closed — audit yazılamazsa çözme reddedilir); aktif olmayan alarm 409. Teknisyen bit=1'ken "çözüldü" işaretlese bile yeni log basılmaz (loglama fiziksel kenara bağlıdır; resolved satır meta verisidir).
 - **Restart:** device-service `start()` bayat aktif satırları kapatır + dedup state'ini sıfırlar (aktif koşul yeniden yükselen kenar sayılır).
 
-## TunnelConnector sözleşmesi (MANDATORY — Faz 2)
-
-- **Tek outbound WS (tasarım R4/R5):** Client→hub yalnızca `FIELD_WS_URL`'e outbound WSS; inbound TCP/HTTP YOKTUR. Kontrol mesajları + (Faz 3) tünel stream'leri AYNI kanaldan geçer.
-- **Durum makinesi (tasarım §6):** `offline → connecting → registered → connected ↔ backoff`. Geçişler: register-ack ok → ilk heartbeat → connected; hata/401/register-timeout → backoff (`exp(2^n·1s)+jitter`, tavan 60 sn — `ReconnectDelay`); `stop()` → offline. Soket olaylarında `generation` koruması (bayat soket olayları yok sayılır).
-- **Register (v2):** `{ type:"register", peerId, peerType:"container"|"field", protocolVersion:2 }` — nötr şema; **v2-ONLY** (v1 `containerId` desteği 2026-09-08'de kaldırıldı — fallback YOK). Bootstrap env (container tier): `FIELD_CONNECT_ENABLED` (default false), `FIELD_WS_URL` (virgüllü liste — ana+yedek), `CONTAINER_TOKEN` (secret, redacted), `CONTAINER_ID` (→ `peerId`). Etkinse eksik env → **fail-fast açılış reddi** (`fieldConnectorConfig`). Yalnızca container tier'da geçerli.
-- **Operational config (canlı):** `register-ack.config` / `config-update` frame'leri → zod (`tunnelOperationalConfigSchema`, bilinmeyen anahtar strip) → geçerliyse heartbeat/telemetry aralıkları **restart'sız** uygulanır; geçersiz → `field_config_rejected` + eski config korunur. Hub tarafı: `ContainerProxy.pushConfigUpdate()` (DB saklama Faz 3/6 — DOGRULAMA S5).
-- **Liveness:** client her heartbeat'te ping atar; 60 sn pong yoksa bağlantı yarı-ölü → kapat + backoff. Hub tarafı: heartbeat → `lastSeenAt`; son liveness işaretinden tam 45 sn sonra `"stale"` (per-entry zamanlayıcı); WS kapanırsa `"idle"` (kayıt + son telemetri korunur — §12.4).
-- **Telemetri push:** `RealtimeSnapshotSource` = devices tablosu (`status='online'`) + RealtimeManager ring buffer başı; (deviceId,name) başına en yeni; hata → boş dizi (kademeli bozulma).
-- **Test:** tunnel-connector branch kapısı ≥%90 (şu an %100); zaman davranışları `vi.useFakeTimers` ile; K2.1 gerçek-WS integration spec'i (`tunnel-connector.spec.ts`) + `bun tools/field-connector-demo.mjs` gözle demosu.
-
-## Tünel sözleşmesi (MANDATORY — Faz 3)
-
-- **Tek kanal:** Tünel stream'leri TunnelConnector'ın AYNI WS kanalından geçer; ayrı bağlantı YOKTUR. Text frame = kontrol mesajı, binary frame = akış verisi.
-- **Binary frame (§4.2):** 9 bayt başlık (streamId u32 BE + seq u32 BE + flags); flags `FIN 0x01 | RST 0x02 | WS_OP 0x04`; WS_OP varken yüksek 4 bit opcode. Codec `packages/ws-tunnel/src/codec/frame-codec.ts` (2026-09-01'de ayrı jenerik pakete taşındı) — `decode` **asla throw etmez** (`Result<_,FrameDecodeError>`); encode programcı hatasında throw eder. `seq` her iki tarafça AYRI sayaçtır.
-- **Stream yaşam döngüsü:** streamId'yi HUB atar (monoton). Akış: `stream-open` → `stream-open-ack {statusCode, headers}` → BINARY gövde (≤64 KiB parça) → `FIN`; hata → `RST`; iki taraf da `stream-close` gönderebilir. HTTP akışlarında `stream-window` kredisi zorunludur (kredi yoksa gövde DURUR — deadlock yok: idle sweep kapatır).
-- **Yönlendirme (client):** `/api/*` + `/ws/*` → `TUNNEL_API_UPSTREAM`; diğer her şey → `TUNNEL_STATIC_UPSTREAM` (nginx SPA). WS köprüsü aynı upstream'in `ws://` türevine bağlanır.
-- **Oturum (§5.4-§5.7):** `open-session` → client KENDİ secret'iyle JWT üretir (`ITokenSigner` sözleşmesi; monorepo `JoseTokenSigner` implementasyonu `type:"container-session"` etiketi basar — access token'la karışmaz) → `open-session-ack`; cookie `container_session` **Path-scoped** `/containers/<cid>/ui`, HttpOnly. Hub tarafı cookie'yi `HubSessionStore`'a eşler; client tarafı `ClientSessionStore`'a. Kullanıcı client DB'sine ASLA yazılmaz. Rol eşlemesi hub'da: admin/teknik→admin, boss→guest, guest→oturum YOK.
-- **Allowlist (hub, §5.6):** `/api/*`, `/ws/*`, `/assets/*`, `/favicon*`, `/`; YASAKLILAR: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/users`. Limitler: 1 etkileşimli oturum/peer, 16 eşzamanlı stream, pencere 256 KiB, TTL 4 sa, idle 15 dk. Allowlist/cookie adı deployment-bazlı config'le enjekte edilir (`PathAllowlist`, `cookieName`).
-- **Audit fail-closed:** `SessionAudit.open` security logu yazılamazsa oturum AÇILMAZ; `session_audit` INSERT açılışta, UPDATE kapanışta.
-- **Test:** codec + session-gateway + tunnel-client + tunnel-proxy branch ≥%90 (şu an %92.5-100); uçtan uca `tunnel.spec.ts` (K3.1-K3.3) + `bun tools/tunnel-demo.mjs` gözle demosu.
-- **İkinci deployment (boss uplink):** Aynı paket field→boss topolojisinde de çalışır (`peerType:"field"`; boss'ta `SessionGateway`+`TunnelProxy`, field'da `TunnelConnector`) — ayrıntı: [BOSS-UYGULAMA-MIMARISI.md](docs/architecture/BOSS-UYGULAMA-MIMARISI.md) §7.4 + [WS-TUNNEL-URUN-TESCILI.md](docs/architecture/WS-TUNNEL-URUN-TESCILI.md).
-
-## Device transport strategy (MANDATORY)
-
-**`ModbusDevice` taşıma katmanını hiç bilmez.** Gerçek (TCP/RTU) ve simüle cihazlar aynı sınıftan üretilir; fark yalnızca enjekte edilen `IModbusTransport`'tadır (Strategy pattern).
-
-```
-IDevice ◄── ModbusDevice(config, transport?: IModbusTransport)
-               └─ transport yoksa → varsayılan ModbusClientTransport(ModbusTcpClient)
-IModbusTransport (packages/core/src/modbus/transport/)
-   ├── ModbusClientTransport   (IModbusClient sarmalayıcı: TCP/RTU)
-   └── SimulatorTransport      (simulators paketi; tick yaşam döngüsü kendi içinde:
-                                connect() başlatır, disconnect() durdurur)
-```
-
-Config seçimi açıktır (`transport.kind`):
-
-```json
-{ "transport": { "kind": "tcp" } }                         // varsayılan
-{ "transport": { "kind": "rtu" } }                         // connection.path vb. kullanır
-{ "transport": { "kind": "simulator", "type": "pcs" } }    // SimulatorRegistry'den transport
-```
-
-Kurallar:
-- `ModbusDevice` içinde `isSimulator` dallanması YASAKTIR — her yer `this.transport.*`.
-- Yeni cihaz simülatörü = yeni simülatör modülü + `SimulatorRegistry`'e 1 kayıt satırı.
-- Simülatörler komut yazımlarını **anında** uygular (validate read-back tick beklemez).
-- Config'de üst seviye `type` alanı zorunludur (üretimde transport "simulator" olmayabilir).
-
-### Concrete DI examples
-```ts
-// GOOD: inject constructed instance, config object
-class BullMQAdapter implements IMessageQueue {
-  constructor(private connection: RedisConnection) {}
-}
-class TimescaleDBAdapter implements ITimeseriesDatabase {
-  constructor(config: TimescaleDBConfig) {} // creates own pg.Pool
-}
-class ModbusDevice {
-  constructor(config: ModbusDeviceConfig, transport?: IModbusTransport) {}
-}
-
-// BAD: global singleton, decorators, hardcoded deps
-```
-
-## Architecture: Clean Architecture (backend)
-```
-apps/demo-backend/src/
-  config/              # Constants, config factories
-  application/         # Use-case / service classes (no I/O)
-  infrastructure/      # External adapters (Fastify, simulator wrappers)
-```
-- `application/` classes never import from `infrastructure/`.
-- All I/O (HTTP, DB, queues) lives in `infrastructure/`.
-- Routes use Fastify's plugin pattern — dependencies passed as an `options` object.
-
-## Design patterns in use (packages/core)
-| Pattern | Where | Detail |
-|:--------|:------|:-------|
-| Strategy | `IMessageQueue`/`BullMQAdapter`, `ITimeseriesDatabase`/`TimescaleDBAdapter` | Interface defines contract; concrete adapter swaps backend |
-| Adapter | `ModbusTcpClient` (wraps jsmodbus), `BullMQAdapter` (wraps bullmq) | Adapts 3rd-party libs to internal interfaces |
-| Facade | `ModbusDevice` | High-level `read()`/`write()` API hides register tables, batching, byte order |
-| Transactional | `ModbusDevice.writeAtomic()` | Manual read-backup + rollback on failure |
-
-## Command config system (device JSONs)
-
-Every device config JSON can define a `"commands"` section. Commands reference telemetry entries by `name` to resolve register addresses and MODBUS table types.
-
-### Pattern
-
-```json
-{
-  "commands": {
-    "<commandName>": {
-      "label": "Human-readable label",
-      "telemetries": [
-        { "name": "<telemetry name>", "value": <register value> }
-      ],
-      "params": {
-        "<paramName>": {
-          "type": "number",
-          "min": 0,
-          "max": 3568,
-          "default": 50,
-          "required": true,
-          "label": "Güç (kW)"
-        }
-      },
-      "atomic": true,
-      "timeoutMs": 3000,
-      "validate": {
-        "reads": [{ "name": "<status telemetry>", "expect": <expected value> }]
-      }
-    }
-  }
-}
-```
-
-- `telemetries[].name` — must match a telemetry entry in the config's `"telemetry"` array
-- `telemetries[].value` — direct value or `"{{paramName}}"` template, resolved from user params
-- `params` — user-facing inputs (shown in UI before executing)
-- `validate.reads` — after write, reads back these telemetry names and compares `value === expect`
-- `atomic` — if true and device supports `writeAtomic()`, uses read-backup + rollback on failure
-
-### Per-device examples
-
-| Device | Register Type | Validation | Commands |
-|--------|--------------|------------|----------|
-| BSC | `HOLDING_REGISTER` writes | `INPUT_REGISTER` read-back (e.g. `Request Acknowledge`) | `charge`, `discharge`, `stop` |
-| HVAC | `HOLDING_REGISTER` writes | `INPUT_REGISTER` read-back (e.g. `Equipment Status`) | `on`, `off`, `force_cool`, `force_heat` |
-| CB | `COIL` writes | `DISCRETE_INPUT` read-back (e.g. `Is Closed`, `Is Tripped`) | `open`, `close`, `reset` |
-| DC Output | `COIL` writes | `DISCRETE_INPUT` read-back (e.g. `Is On`) | `on`, `off` |
-
-**Flow:** Web → `POST /api/commands/execute` → `COMMAND_DEVICE` BullMQ job → `ModbusDevice.write()` → validates read-back.
-
-## Maneuver system
-
-Maneuvers are named, reusable multi-device command chains. 18 maneuvers defined from .drawio flow diagrams (FL-01 through FL-11). Replaces the old ControlPanel + Scheduler on the Control page.
-
-### Key types (`packages/shared-types/src/telemetry.ts`)
-
-```ts
-interface CommandStep {
-  deviceId: string;
-  command?: string;
-  telemetries?: Array<{ name: string; value: unknown; unit?: string }>;
-  params?: Record<string, unknown>;
-}
-
-interface ManeuverConfig {
-  name: string;
-  label: string;
-  description?: string;
-  mode: "parallel" | "sequential";
-  onFailure?: "stop" | "continue";
-  steps: CommandStep[];
-  rollbackSteps?: CommandStep[];
-}
-```
-
-### File map
-
-| File | Role |
-|------|------|
-| `apps/container-web/src/features/control/maneuvers.ts` | `MANEUVERS` (18 entries) + `MANEUVER_CONTROLS` (inputs, timerConfig, transform) |
-| `apps/container-web/src/features/control/components/ManeuverPanel.tsx` | Renders masonry grid of cards, manages per-maneuver state |
-| `packages/ui/src/components/ManeuverCard/` | Stateless card — inputs, timer checkbox, schedule dropdown, step list, status-aware buttons |
-
-### ManeuverControls
-
-Per-maneuver UI configuration, defined next to `MANEUVERS` in `maneuvers.ts`:
-
-```ts
-interface ManeuverControls {
-  inputs?: InputField[];        // TelemetryInput definitions
-  timerConfig?: boolean;        // show "Zamanlı" checkbox → reveals Süre input
-  transform?: ManeuverTransform; // per-step param calculator
-}
-
-type ManeuverTransform = (
-  values: Record<string, number>,
-  steps: CommandStep[],
-) => Record<string, number>[];
-```
-
-**Transform example** — divide total power across N BSC devices:
-```ts
-transform: (values, steps) => {
-  const perDevice = Math.round(values.powerKw / steps.length);
-  return steps.map(() => ({ powerKw: perDevice }));
-}
-```
-
-### ManeuverCard state machine
-
-| State | Buttons shown |
-|-------|--------------|
-| `idle` | `▶ Çalıştır ▾` (split: Şimdi / 📅 Zamanla) |
-| `running` | `Çalışıyor...` (disabled) |
-| `success` | `▶ Çalıştır` (re-run) |
-| `failed` | `Tekrar Dene` + `Geri Al` (if `rollbackSteps` defined) |
-
-Schedule dropdown: datetime-local input → `setTimeout` countdown → `onRun(values)` at target time.
-
-### Adding a new maneuver
-
-1. Add entry to `MANEUVERS` in `maneuvers.ts`
-2. If inputs/timer needed → add entry to `MANEUVER_CONTROLS`
-3. If params need per-step calculation → add `transform`
-4. `ManeuverPanel` auto-renders all entries from `MANEUVERS` — no panel changes needed
-
-### ControlPage — bare masonry grid
-
-```tsx
-// ControlPage.tsx
-export const ControlPage: React.FC = () => (
-  <S.ControlPageContainer>
-    <ManeuverPanel />
-  </S.ControlPageContainer>
-);
-```
-
-Old `ControlPanel` (charge/discharge/stop buttons) and `Scheduler` (in-memory command list) removed. Charge/discharge/idle are now maneuver cards in the grid.
-
-### Emergency Stop sidebar
-
-`Sidebar.tsx` emergency button wired directly to `MANEUVERS.fl03_emergency_stop`:
-```ts
-const m = MANEUVERS.fl03_emergency_stop;
-await controlApi.executeMulti(m.steps, m.mode);
-```
-
-## Icon system (`packages/ui/src/icons/`)
-
-All icons live in `packages/ui/src/icons/`. Consumer packages import from `@gd-monorepo/ui` — never import `react-icons/tb` directly.
-
-### File structure
-| File | Purpose |
-|------|---------|
-| `types.ts` | `ScadaIconName` union type — canonical list of 35 allowed icon names |
-| `nav-icons.tsx` | `SCADA_ICONS: Record<ScadaIconName, IconType>` — maps names to Tabler Icons components |
-| `index.ts` | Barrel — `export { SCADA_ICONS }` + `export type { ScadaIconName }` |
-
-Root barrel (`packages/ui/src/index.ts`) re-exports via `export * from "./icons"`.
-
-### Usage
-```tsx
-import { SCADA_ICONS } from "@gd-monorepo/ui";
-const Icon = SCADA_ICONS.dashboard;
-<Icon size={18} />
-```
-
-### Adding a new icon
-1. Add the name string literal to the `ScadaIconName` union in `types.ts`
-2. Import the corresponding `Tb*` component in `nav-icons.tsx` and add the mapping entry to `SCADA_ICONS`
-3. That's it — barrel exports expose it automatically
-
----
-
-## Color token system (`packages/ui/src/colors/`)
-
-All colors are centralized in `packages/ui/src/colors/`. **NEVER hardcode hex values** (`#1a1a2e`, `0x10b981`) in any file. Use the token system.
-
-### File structure
-| File | Purpose |
-|------|---------|
-| `tokens.ts` | 104 color tokens defined as hex strings (`tokens` object). Exports `COLORS` (string), `COLOR` (pre-computed 0x numbers), `hexToNumber()`, `ColorToken` type |
-| `index.ts` | Barrel — `export { COLORS, COLOR, hexToNumber }` + `export type { ColorToken }` |
-
-Root barrel re-exports via `export * from "./colors"`.
-
-### Dual-format exports
-
-| Export | Type | Example | Use case |
-|--------|------|---------|----------|
-| `COLORS` | Record of hex strings | `COLORS.success` → `"#10b981"` | Emotion styled, inline CSS, string props |
-| `COLOR` | Record of 0x numbers | `COLOR.success` → `0x10b981` | PixiJS fills, strokes, text styles |
-| `hexToNumber()` | `(hex: string) => number` | `hexToNumber(COLORS.error)` → `0xef4444` | Dynamic PixiJS color from hex string |
-
-### Usage patterns
-```tsx
-import { COLORS, COLOR, hexToNumber } from "@gd-monorepo/ui";
-
-// Emotion / CSS-in-JS
-const Card = styled.div`
-  background: ${COLORS.bgCard};
-  border: 1px solid ${COLORS.borderDefault};
-  color: ${COLORS.textPrimary};
-`;
-
-// PixiJS graphics (number format)
-g.fill({ color: COLOR.success });
-g.stroke({ width: 2, color: COLOR.borderStroke });
-
-// Dynamic PixiJS conversion
-const c = hexToNumber(someHexString);
-g.fill({ color: c });
-
-// Inline styles (plain string value, no template literal needed)
-const style = { color: COLORS.textMuted };
-```
-
-### Token groups (104 tokens)
-| Group | Count | Examples |
-|-------|-------|----------|
-| **Status** | 14 | `success`, `successGlow`, `successHover`, `warning`, `warningGlow`, `warningHover`, `error`, `errorHover`, `errorStroke`, `info`, `infoDark`, `infoLight`, `infoHover`, `idle` |
-| **Surface** | 14 | `bgApp`, `bgCard`, `bgPopup`, `bgHeader`, `bgInput`, `bgPanel`, `bgRoom`, `bgSkeleton`, `bgHover`, `bgTag`, `bgVerbose`, `bgSystemBar`, `bgCodeDark`, `bgCodeLight` |
-| **Border** | 5 | `borderDefault`, `borderStroke`, `borderLight`, `borderHover`, `borderDivider` |
-| **Text** | 10 | `textPrimary`, `textWhite`, `textMuted`, `textDisabled`, `textLight`, `textVoltage`, `textPurple`, `textTagGray`, `textNearWhite`, `textNearBlack` |
-| **Gradient** | 9 | `gradBodyTop`, `gradBodyBot`, `gradMid`, `gradMid2`, `gradLow`, `gradScreen`, `gradPanelTop`, `gradDeviceIdStart`, `gradDeviceIdEnd` |
-| **Temperature** | 3 | `tempCold`, `tempChilly`, `tempHot` |
-| **Special** | 7 | `cable`, `terminal`, `shadow`, `dcActiveCenter`, `dcActiveEdge`, `dcIdleCenter`, `dcIdleEdge` |
-| **Alpha** | 12 | `infoAlpha8`, `infoAlpha12`, `infoAlpha25`, `successAlpha12`, `successAlpha25`, `errorAlpha12`, `errorAlpha19`, `errorAlpha25`, `errorAlpha50`, `warningAlpha12`, `warningAlpha25`, `idleAlpha12` |
-| **Chart** | 16 | `chart1`..`chart16` |
-| **Accent** | 2 | `accentLight`, `accentDark` |
-
-### Adding a color token
-1. Add the entry to the `tokens` object in `tokens.ts` (hex string format only — e.g. `myColor: "#ff9900"`)
-2. `COLOR` (0x numbers) and `ColorToken` union type are **auto-derived** from `tokens` keys — no manual sync needed
-3. Use semantic names: group prefix (`bg*`, `text*`, `border*`, `grad*`) for surfaces; adjectives for status (`success`, `warning`, `error`, `info`, `idle`); `*Hover`/`*Glow` for variants; `*AlphaXX` for opacity variants
-
-### Migration rule
-When touching any file with hardcoded hex colors:
-1. Replace `#hex` with `COLORS.*` (CSS/Emotion) or `0xhex` with `COLOR.*` (PixiJS)
-2. If no matching token exists, add it to `tokens.ts` **first**, then use the token
-3. Never leave a one-off hex value behind
-
----
-
 ## Coding conventions (repo-wide)
+
 - **File names:** kebab-case in backend (`device-job-handler.ts`), PascalCase in web components (`ControlPanel.tsx`)
 - **Exports:** Named exports only. No default exports anywhere.
 - **Interfaces:** `I` prefix for abstractions (`IMessageQueue`). No `I` for DTO/struct types (`ServerConfig`, `RedisConfig`).
@@ -637,6 +123,7 @@ When touching any file with hardcoded hex colors:
 - **Async loops (MANDATORY):** Never use `for...of` with `await` inside. Always use `Promise.all` or `Promise.allSettled`. If sequential execution is required, use `Promise.allSettled` with explicit ordering or a dedicated queue mechanism.
 
 ## Web app conventions
+
 - **Feature-based** directory layout: `features/<name>/components/, hooks/, services/, types/, stores/`
 - **Data fetching:** React Query v5 (`useQuery`). `QueryClient` singleton at `src/lib/query-client.ts`.
 - **Client state:** Zustand with `persist` middleware (`AuthStore`, `LogStore`).
@@ -645,10 +132,8 @@ When touching any file with hardcoded hex colors:
 - **UI components** from `@gd-monorepo/ui` receive data/callbacks via props — no hook imports into the UI package.
 - **Router:** React Router v7 with `createBrowserRouter`. Protected routes check localStorage.
 
-## Vite resolves packages to source
-`apps/container-web` and `apps/container-desktop` Vite config aliases map `@gd-monorepo/*` to `packages/*/src/` (not `dist/`) for HMR. Library builds are not required for frontend dev.
-
 ## Docker / deployment
+
 - Compose files: `deployment/docker-compose.{field,boss,container}*.yml` (prod + dev) — the **product layer**.
 - Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
 - **Env convention (MANDATORY):** tier başına ayrı env dosyası — `deployment/.env.field`, `.env.container`, `.env.boss` (üçü de gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/.env.<tier>` ile geçer (script'ler `package.json`'da hazır). Commit'lenen şablonlar: `.env.<tier>.example` (sır yok; kopyalanıp doldurulur). Tier dosyalarına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `.env.container`'da; field token'ı register API'siyle hash olarak DB'de tutar).
@@ -656,132 +141,85 @@ When touching any file with hardcoded hex colors:
 - Web Dockerfiles: `apps/container-web/deployment/`.
 - Customer plugins: `deployment/customer-plugins/` (mounted into integration-service at runtime).
 
-## Key framework versions
-- **Runtime:** Bun (latest)
-- **Backend:** Fastify v5
-- **Web:** React v19, Vite v8, TanStack Query v5, Zustand v5, React Router v7, Recharts v3
-- **Desktop:** Electron v39, electron-vite v5, electron-builder
-- **UI lib:** PixiJS v8, Emotion CSS-in-JS
-- **DB/MQ:** TimescaleDB (pg npm), Redis + BullMQ
-- **Auth/DI/Validation:** jose v5 (JWT), awilix v11 (DI container), zod v3 (validation)
-
 ## Package manager lock-in
+
 - **Bun only.** `bun install`, `bun run`, `bun build`, `bun --watch`.
 - `bun.lock` is committed. No `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`.
 - Workspace dependencies use `"*"` version (e.g. `"@gd-monorepo/core": "*"`).
 
 ## Build artifacts rule
+
 - Paket dizinlerinde bare `tsc` çalıştırılmaz — composite projeler `outDir` yerine src'e emit edebilir. Nx hedefleri (`nx run <p>:build/test`) veya `tsc -b` kullanılır.
 - `*.d.ts`, `*.d.ts.map`, `*.tsbuildinfo` build çıktısıdır ve gitignore'dadır; el yazımı tip dosyaları yalnızca `src/preload/index.d.ts` (Electron) ve `vite-env.d.ts`/`vite.env.d.ts` (Vite env) kalıplarıdır.
-
-## Sprite pipeline (AI sprite üretimi — pixi çizimleri → sprite)
-
-Pixi `pixiGraphics` çizimlerini AI üretimi (fal.ai img2img) sprite'larla değiştirme altyapısı. **Üretim nasıl yapılır:** `docs/process/SPRITE-URETIMI.md` (pratik iş akışı). Stil kuralları ve prompt şablonu: **`docs/process/SPRITE-STYLE-KIT.md`** (authoritative).
-
-### Komutlar
-```bash
-bun run sprite:refs                          # Storybook'tan referans PNG yakalar
-bun run sprite:refs -- --reset-sprites       # src/assets sprite'larını placeholder'a döndürür
-bun run sprite:gen rackcell                  # fal.ai ile sprite üretir (FAL_KEY gerekli)
-bun run sprite:gen --all [--skip-removal]
-bun run sprite:measure                       # rackcell pencere/tüp ölçümü -> rackcell-meta.ts
-bun tools/check-sprite.mjs                   # piksel bazlı kalite kapısı (boyut/şeffaflık/nötr renk)
-```
-`capture` refs/<element>/base.png'i her zaman tazeler; `src/assets/sprites/<element>/base.png`'i yalnızca dosya yoksa yazar — AI çıktılarını ezmez.
-
-### Dosya düzeni
-| Yol | İçerik |
-|:----|:-------|
-| `packages/ui/assets/sprites/refs/<element>/` | Faz 0 referans görselleri (capture script üretir, commit'lenir) |
-| `packages/ui/src/assets/sprites/<element>/base.png` | **Uygulamanın yüklediği sprite.** Placeholder = mevcut çizimin nötr baz render'ı; `sprite:gen` üzerine AI çıktısını yazar |
-| `packages/ui/src/graphics/textures.ts` | `SPRITE_ASSETS`: element → url + texture frame + scale |
-| `packages/ui/src/core/SpriteTextureProvider/` | `Assets.load` ile yükler, `useSpriteTexture(key)` ile texture sağlar |
-| `tools/sprites-spec.mjs` | Element başına canvas/frame/margin spesifikasyonu (capture+generate+check ortak) |
-
-### Kurallar
-- **Hibrit katman:** Sprite yalnızca nötr gövdeyi değiştirir. Durum renkleri, glow/pulse animasyonları ve `pixiText` etiketleri kod tarafında çizilmeye devam eder.
-- **Fallback:** Texture yüklenemezse element eski `drawX` çizimine döner — hiçbir koşulda boş ekran olmaz.
-- **Nötr baz:** AI çıktısında durum rengi (success/warning/error) ve metin BULUNAMAZ; renkler kodda tint/overlay ile verilir. img2img referansı olarak durumlu story DEĞİL, nötr `Base` story yakalaması kullanılır.
-- **Üretim modeli:** `fal-ai/nano-banana/edit` (giriş referansını temel alır) + `fal-ai/birefnet/v2` arka plan temizliği. Model çözünürlük değiştirirse generate script içerik bbox'ını kırpıp `sprites-spec.mjs` frame'ine normalize eder.
-- Element'e sprite eklemek için: chassis fonksiyonu (drawers) → Base story (transparent `backgroundAlpha={0}` + `backgrounds: { default: "transparent" }`) → `sprites-spec.mjs` girdisi → `SPRITE_ASSETS` meta (frame/scale) → elementte `useSpriteTexture` + fallback ternary.
-- Frame'ler yakalama DPR'ına göredir (şu an 2x). Kablo (`Cable`) özel durum: tek segment texture'ı her path segmenti için döndürülüp uzatılır (pabuç marjı 12px).
-
-### Tümleşik pencere/dolgu metrikleri (RackCell paterni)
-- **Amaç:** Dinamik içerik (text/dolgu/lamba) sprite içindeki AI çizimi yuvalara yazılır.
-- **Akış:** Base story'ye nötr yuva çizimleri eklenir → `sprite:gen` → ölçüm → `*-meta.ts` (`*_META`, gövdeye ORAN değerleri, `measured` bayrağı).
-- **Ölçüm araçları:** `tools/measure-rackmeta.mjs` (rackcell: pencere sütunu + tüp; recessed bileşen tespiti + satır yürüyüşü + pitch ekstrapolasyonu) ve `tools/measure-meta.mjs` (genel: panelcard barSlot, roomcard tempSlot, energyanalyzer lcd, firepanel lamp/key kümeleri, circuitbreaker display; yerel kontrast maskesi + persentil bbox, cluster başına `polarity: "dark"|"light"` — AI yuvayı koyu veya parlak çizebilir; `absDark`/`relLight` eşikleri; bölge gövde içine kırpılır).
-- **Stil:** Aktif stil **düz 2D front-facing HMI**'dır (prompt'ta perspective/izometrik yasak). Eski izometrik çıktılar `packages/ui/assets/sprites/archive/` altında saklanır (aktif değil).
-- **Tüketim:** Element sprite modunda `*_META`'yı gerçek width/height ile ölçekler; text/dolgu/lamba ölçülen yuvalara yazılır. `measured=false` ise tasarım geometrisi kullanılır.
-- **Varyantlar (duruma göre sprite):** `sprites-spec.mjs`'te `variants: ["close","open"]` → capture `--base-<v>` story'lerini yakalar, üretim `base-<v>.png` yazar (generate'da `specKey`/`out` alanları), `textures.ts`'te ayrı anahtarlar, element duruma göre `useSpriteTexture` ile seçer (ör. CircuitBreaker lever konumu sprite'a gömülü — `drawBreakerLever` sprite modunda çizilmez). Ölçüm `cluster.files` ile varyant başına meta anahtarı üretir (`displayClosed`/`displayOpen`).
-- **BSCUnitRow** (`graphics/system/shared/BSCUnitRow.tsx`): rack satırı (rack'ler + Cable tabanlı bus/feeder/konverjans + CircuitBreaker + DCOutput) tek ortak bileşen — BSC.tsx ve BESSDiagram.tsx ikisi de kullanır; kablo/kesici kodu tek yerde. Yeni kablo çizimi YASAKTIR: ham `pixiGraphics` stroke yerine `Cable` bileşeni kullanılır.
-- **Kural:** AI her üretimde yerleşimi ±10-30px kaydırabilir; meta tespiti bu kaymayı emer. Ölçüm sonrası storybook'ta görsel onay şarttır.
-
-
-
-## What's missing
-- No PR-level unit-test CI workflow (`.github/workflows/` has `e2e.yml`, `perf.yml`, `sonar.yml`, `storybook.yml`, but no `test.yml`).
-- No pre-commit hooks, no centralized linting/formatting.
-- `shared-utils` package is empty.
-- CANbus and MQTT are empty stubs in core.
-- `reports` feature in web is a placeholder.
 
 ## Elegant Object Principles (MANDATORY for all new code & refactors)
 
 All code MUST adhere to the following object-oriented design principles derived from "Elegant Object" by Yegor Bugayenko. These rules override any other conventions in case of conflict.
 
 ### 1. No static methods (ever)
+
 - **Static methods are procedural, not object-oriented.** They are banned.
 - Use real objects with constructors and instance methods instead.
 - **Exception:** Factory methods (e.g., `public static MyClass create(...)`) are allowed ONLY for simple object instantiation when the constructor signature is complex or overloaded. They must return a new instance.
 
 ### 2. No NULLs (use Optional or Null Object Pattern)
+
 - **Returning `null` is forbidden.**
 - For optional values, use `T | undefined` or `null` only for performance-critical internal code with explicit `// @ts-ignore` comment explaining why.
 - For public APIs and interfaces, use `Optional<T>` (from `fp-ts` or similar) or a Null Object implementation (e.g., `class NullLogger implements ILogger { log() {} }`).
 - **Validation:** Always validate constructor arguments. Throw `IllegalArgumentException` (or `new Error()`) on invalid input—never accept `null` silently.
 
 ### 3. Immutable objects (prefer `readonly`)
+
 - **Make objects immutable whenever possible.** Mark all fields as `readonly` or `private readonly`.
 - State changes should produce **new objects**, not mutate existing ones (e.g., `withState(newState): ThisClass` returns a new instance).
 - **Mutable objects are allowed only** if they are clearly state machines (e.g., `ModbusDevice` with `connect()`/`disconnect()` lifecycle) and explicitly documented as "mutable by design".
 
 ### 4. Never use `instanceof` or type reflection
+
 - **Do not inspect an object's type at runtime.** Avoid `instanceof`, `typeof`, or checking for the existence of methods to decide behavior.
 - Instead, use **polymorphism**: call a method on the object and let the object decide what to do.
 - **Exception:** Adapter classes may use `instanceof` internally ONLY when interfacing with third-party libraries.
 
 ### 5. No getters/setters (tell, don't ask)
+
 - **Avoid "getter" methods that expose internal state.** Do not ask an object for data and then perform logic on it outside the object.
 - **Instead, tell the object what to do:** The object should contain the behavior.
 - **Exception:** Data Transfer Objects (DTOs) for serialization (e.g., REST responses, database entities) MAY have public getters/setters but should be clearly separated from domain objects.
 
 ### 6. Objects are not data structures
+
 - **Do not use objects as simple data bags.** A class must have behavior.
 - Anemic models (classes with only fields and getters/setters) are prohibited.
 - **Refactor rule:** If a class has no methods that operate on its own data, move the behavior into the class.
 
 ### 7. Naming: "Manager", "Processor", "Utils" are forbidden
+
 - **Do not use generic suffixes like `*Manager`, `*Processor`, `*Handler`, `*Utils`, `*Helper`.** These are signs of procedural design.
-- **Instead, name the class for what it *is* (a noun) or what it *does* (a verb with -er/-or) in the domain:**
+- **Instead, name the class for what it _is_ (a noun) or what it _does_ (a verb with -er/-or) in the domain:**
   - ✅ `ModbusDevice`, `JobQueue`, `TimescaleWriter`
   - ❌ `DeviceManager`, `QueueProcessor`, `DBHelper`
 - **For factories:** Use `*Factory` or `*Builder` (e.g., `ModbusDeviceFactory`).
 
 ### 8. One primary constructor (no overloading)
+
 - **A class should have one primary constructor** that sets all its final fields.
 - Secondary constructors are banned. Use static factory methods with descriptive names (`MyClass.withConfig(Config c)`) instead.
 - All logic must be in the primary constructor—never in default values or chained calls.
 
 ### 9. Never use `@Inject` or DI containers to inject behavior (only state)
+
 - **Dependency injection should inject state (configuration, connections), not behavior.**
 - Do not inject factories or service locators. Inject concrete instances that represent state.
 - In our codebase: DI container (awilix) is planned, but constructor injection is mandatory (see existing DI rules).
 
 ### 10. Code must be testable (but not over-engineered)
+
 - **Write unit tests for all public methods.** (Existing `vitest` config is available.)
-- **But follow YAGNI:** Only write tests for behavior you need *now*, not for every possible edge case.
+- **But follow YAGNI:** Only write tests for behavior you need _now_, not for every possible edge case.
 
 ### 11. Method naming: Command vs Query (Verb/Noun distinction)
+
 - **Methods must be either commands or queries, never both.**
 - **Command methods (verbs):** Perform an action, change state, or produce a side effect. They MUST return `void` (or `Promise<void>` for async).
   - ✅ `save()`, `delete()`, `connect()`, `send(message)`, `write(data)`
@@ -795,10 +233,10 @@ All code MUST adhere to the following object-oriented design principles derived 
 - **For async operations:** The same rule applies with `Promise<void>` for commands and `Promise<T>` for queries.
 
 ### Refactoring guidance for existing code
+
 - **When touching a class for any reason, refactor it to these rules.**
 - **Exceptions** to these rules must be documented with a `// ELEGANT-EXCEPTION: <reason>` comment.
 - **Priority:** If a rule contradicts the existing "Coding conventions (repo-wide)", the Elegant Object rule takes precedence.
-
 
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
@@ -822,7 +260,6 @@ All code MUST adhere to the following object-oriented design principles derived 
 - DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
-
 <!-- nx configuration end-->
 
 ## graphify
@@ -832,6 +269,7 @@ This project has a knowledge graph at graphify-out/ with god nodes, community st
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
 Rules:
+
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
