@@ -32,7 +32,6 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
-    mem_limit: 128m
     logging:
       driver: json-file
       options:
@@ -69,7 +68,6 @@ services:
     networks:
       - office-network
     restart: unless-stopped
-    mem_limit: 512m
     logging:
       driver: json-file
       options:
@@ -96,7 +94,6 @@ services:
     networks:
       - office-network
     restart: unless-stopped
-    mem_limit: 512m
     logging:
       driver: json-file
       options:
@@ -129,7 +126,6 @@ services:
     networks:
       - office-network
     restart: unless-stopped
-    mem_limit: 512m
     logging:
       driver: json-file
       options:
@@ -177,7 +173,6 @@ services:
     networks:
       - office-network
     restart: unless-stopped
-    mem_limit: 2g
     healthcheck:
       test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5001/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
       interval: 10s
@@ -198,13 +193,12 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - "80:80"
+      - "5080:80"
     depends_on:
       - web-service
     networks:
       - office-network
     restart: unless-stopped
-    mem_limit: 128m
     logging:
       driver: json-file
       options:
