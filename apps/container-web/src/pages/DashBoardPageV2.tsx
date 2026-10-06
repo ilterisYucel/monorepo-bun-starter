@@ -35,10 +35,10 @@ export const DashboardPageV2: React.FC = () => {
   const systemLogProvider = useFilteredLogProvider("system");
   const { data: realtimeData } = useRealtimeStream();
 
-  const bscDevices = useMemo(() => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")), [devices]);
+  const bscDevices = useMemo(() => devices.filter((d) => d.type !== "bsc-pcs-connector" && (d.type === "bsc" || d.id?.startsWith("BSC-"))), [devices]);
   const hvacDevices = useMemo(() => devices.filter((d) => d.type === "hvac"), [devices]);
   const cbDevices = useMemo(() => devices.filter((d) => d.type === "cb" || d.id?.startsWith("CB-")), [devices]);
-  const dcDevices = useMemo(() => devices.filter((d) => d.type === "dc_output" || d.id?.startsWith("DC-")), [devices]);
+  const dcDevices = useMemo(() => devices.filter((d) => d.type !== "dc-meter" && (d.type === "dc-output" || d.id?.startsWith("DC-"))), [devices]);
 
   const bscGaugeBlocks = useMemo(() => bscDevices.map((d) => ({
     id: d.id,

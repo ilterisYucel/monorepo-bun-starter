@@ -7,7 +7,7 @@ review_date: 2026-09-15
 
 # Field Manevra Kataloğu REV.01 — Test Kapsamı (Aşama 6/6)
 
-> **Yaşayan doküman** (AGENTS hibrit kural). Kapsam: `apps/field/src/features/field-control/*` + `services/management-service/deployment/config-field/rules.json`.
+> **Yaşayan doküman** (AGENTS hibrit kural). Kapsam: `apps/field/src/features/field-control/*` + `deployment/dev/field/rules/rules.json`.
 
 ## 1. Manevra kataloğu — `maneuvers.test.ts` (16)
 

@@ -1,7 +1,7 @@
 // Cihaz config kaynağı sözleşmesi — komut çözümlemenin dosya sisteminden
 // bağımsız olması için (testlerde in-memory, üretimde dosya tabanlı).
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import type { DeviceConfigFile } from "@gd-monorepo/shared-types";
 
@@ -21,6 +21,8 @@ export interface IDeviceConfigSource {
  * Arama sırası (web-service config-loader ile birebir — K9):
  * 1. lowercase deviceId dosyası (`bsc-1.json`)
  * 2. orijinal deviceId dosyası (`BSC-1.json`)
+ * 3. içerik taraması: dosya adı deviceId'den farklı olabilir — kanonik adlar
+ *    gerçek cihaz adıdır (örn. `dc-output-1.json` → `deviceId: "DC-1"`).
  *
  * Okuma hataları (bozuk JSON, yok dosya) sessizce `undefined`'a düşer —
  * kaynak, varlık değil sorgudur; hata üst katmanda `device_not_found`
@@ -43,6 +45,25 @@ export class DeviceConfigFileSource implements IDeviceConfigSource {
         } catch {
           continue;
         }
+      }
+    }
+
+    // İçerik tabanlı fallback (dosya adı ≠ deviceId).
+    if (!existsSync(this.configDir)) return undefined;
+    for (const file of readdirSync(this.configDir)) {
+      if (!file.endsWith(".json")) continue;
+      try {
+        const parsed = JSON.parse(
+          readFileSync(join(this.configDir, file), "utf-8"),
+        ) as DeviceConfigFile;
+        if (
+          typeof parsed.deviceId === "string" &&
+          parsed.deviceId.toLowerCase() === deviceIdLower
+        ) {
+          return parsed;
+        }
+      } catch {
+        // bozuk dosya atla
       }
     }
     return undefined;

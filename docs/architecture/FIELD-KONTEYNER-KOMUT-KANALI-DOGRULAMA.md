@@ -30,8 +30,8 @@ review_date: 2026-09-16
 | W13 | `ActionExecutor.runContainerCommand` | `services/management-service/src/action-executor.ts` | D4 — kademeli bozulma (kanal yoksa fail, akış durmaz) |
 | W14 | management-service run.ts kanal wiring (env-gated) | `services/management-service/run.ts` | D4 |
 | W15 | Field frontend `containersApi.executeCommands` | `apps/field/src/features/containers/services/containersApi.ts` | D5 |
-| W16 | Konteyner tier `rules.json` (yeni) — `tms_temp_diff_protect` | `services/management-service/deployment/config/rules.json` | WS5 — 30264/30265 global register'larla birebir |
-| W17 | Compose/env: field tier `FIELD_WEB_SERVICE_URL` + `FIELD_INTERNAL_API_TOKEN` | `deployment/docker-compose.field.yml` + `.dev.yml` + `.env.field.example` | D4 wiring |
+| W16 | Konteyner tier `rules.json` (yeni) — `tms_temp_diff_protect` | `deployment/dev/container/rules/rules.json` | WS5 — 30264/30265 global register'larla birebir |
+| W17 | Compose/env: field tier `FIELD_WEB_SERVICE_URL` + `FIELD_INTERNAL_API_TOKEN` | `deployment/prod/field/docker-compose.yml` + `.dev.yml` + `.env.field.example` | D4 wiring |
 
 ## 2. Test Kanıtları
 

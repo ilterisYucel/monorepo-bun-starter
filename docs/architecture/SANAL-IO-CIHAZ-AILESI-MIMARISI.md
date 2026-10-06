@@ -33,7 +33,7 @@ device-service (konteyner tier)
   data-service → TimescaleDB; komutlar COMMAND_DEVICE job → ModbusDevice.write)
 ```
 
-- **Katman:** Konteyner app cihazlarıdır (FL-02/07/11 + FL-01/06 önkoşulları konteyner manevralarında kullanılır); simülatörler `packages/simulators/`'da (jenerik), config'ler `services/device-service/config/` + `deployment/config-docker/`'da (product).
+- **Katman:** Konteyner app cihazlarıdır (FL-02/07/11 + FL-01/06 önkoşulları konteyner manevralarında kullanılır); simülatörler `packages/simulators/`'da (jenerik), config'ler `services/device-service/deployment/sample-config/` + `deployment/dev/container/device-configs/`'da (product).
 - **Ayrı config gerekçesi:** Cihaz listesi, alarm dedup (`device_id, alarm_name` PK), RealtimeSnapshotSource, DB yazımı — hepsi üst seviye `deviceId` ile çalışır. Her fiziksel cihaz kendi `deviceId`'sine sahip olmalı.
 - **Demo → üretim geçişi:** Config'te `transport.kind` değişir (`simulator` → `tcp`), `connection.host/port/slaveId` gerçek gateway'e, register adresleri gerçek map'e güncellenir. `SimulatorRegistry` kayıtları üretimde pasif kalır (yalnızca `transport.kind === "simulator"` config'leri etkiler).
 
@@ -116,7 +116,7 @@ Kurallar:
 
 ## 4. Config Deseni (ayrı config per cihaz)
 
-- `services/device-service/config/{aux-analyser-1,fss-1,control-panel-io-1,imd-1}.json` + `deployment/config-docker/` kopyaları (compose zaten config-docker'ı mount eder — compose değişikliği YOK).
+- `services/device-service/deployment/sample-config/{aux-analyser-1,fss-1,control-panel-io-1,imd-1}.json` + `deployment/dev/container/device-configs/` kopyaları (compose zaten config-docker'ı mount eder — compose değişikliği YOK).
 - `transport: { kind: "simulator", type: "<tip>" }` (demo); `connection` gerçek gateway parametreleri için hazır.
 - `alarms` bölümleri §2'deki gibi (Faz 0 alarm sözleşmesi: tek kaynak config).
 - deviceId'ler: `AUX-ANALYSER-1`, `FSS-1`, `CONTROL-PANEL-IO-1`, `IMD-1` (büyük harf — mevcut konvansiyon).

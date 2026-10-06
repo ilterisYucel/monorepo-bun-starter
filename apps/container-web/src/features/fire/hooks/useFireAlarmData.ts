@@ -20,17 +20,19 @@ export function useFireAlarmData() {
 
   const state: FireAlarmState = useMemo(
     () => ({
+      // CONTROL-PANEL-IO (EP203 kuru kontak) telemetri adları:
       fault: extractBoolean(telemetries, "Fault"),
-      fire: extractBoolean(telemetries, "Fire"),
-      firstStage: extractBoolean(telemetries, "1st Stage Alarm"),
-      secondStage: extractBoolean(telemetries, "2nd Stage Alarm"),
+      secondStage: extractBoolean(telemetries, "2nd Stage"),
       discharged: extractBoolean(telemetries, "Discharged"),
-      extract: extractBoolean(telemetries, "Extract"),
-      modeAuto: extractBoolean(telemetries, "Mode Auto"),
-      hold: extractBoolean(telemetries, "Hold"),
-      abort: extractBoolean(telemetries, "Abort"),
-      reset: extractBoolean(telemetries, "Reset"),
-      localFire: extractBoolean(telemetries, "Local Fire"),
+      // Kuru kontakta karşılığı olmayan relay'ler read-only kartta pasif kalır.
+      fire: false,
+      firstStage: false,
+      extract: false,
+      modeAuto: false,
+      hold: false,
+      abort: false,
+      reset: false,
+      localFire: false,
       lastUpdated: new Date().toISOString(),
     }),
     [telemetries],

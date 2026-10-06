@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: battery-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5438:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+    networks:
+      - battery-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: battery-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - battery-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  demo-backend:
+    build:
+      context: ../../../
+      dockerfile: apps/demo-backend/deployment/Dockerfile
+    container_name: battery-demo-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      MODBUS_HOST: host.docker.internal
+      MODBUS_PORT: 502
+    ports:
+      - "3000:3000"
+    depends_on:
+      - timescaledb
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - battery-network
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ../../../
+      dockerfile: apps/container-web/deployment/Dockerfile
+    container_name: battery-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "80:80"
+    depends_on:
+      - demo-backend
+    networks:
+      - battery-network
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  timescale-data:
+  redis-data:
+
+networks:
+  battery-network:
+    driver: bridge

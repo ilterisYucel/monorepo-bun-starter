@@ -66,7 +66,7 @@ export const RacksPage: React.FC = () => {
   const [detailData, setDetailData] = useState<RackDetailData | null>(null);
 
   const tagFilterList = useMemo(() => [
-    { tagKey: "deviceId", label: "Cihaz" },
+    { tagKey: "device_id", label: "Cihaz" },
     { tagKey: "rack_id", label: "Rack Numarası" },
   ], []);
 
@@ -198,7 +198,7 @@ export const RacksPage: React.FC = () => {
             tagFilters={tagFilterList}
             eventAnnotations={eventAnnotations}
             defaultMetric="SOC"
-            defaultTagSelections={{ deviceId: bscIds, rack_id: ["1"] }}
+            defaultTagSelections={{ device_id: bscIds, rack_id: ["1"] }}
           />
         </>
       )}

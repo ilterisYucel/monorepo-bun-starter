@@ -13,8 +13,11 @@ export const FirePanelPage: React.FC = () => {
   const loc = locale();
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
-  const { names: fireNames } = useTelemetryNames(["EP203"]);
-  const fireProvider = useTelemetryProvider({ telemetryNames: fireNames, defaultRange: "1h", defaultPoints: 200, deviceIds: ["EP203"] });
+  // Yangın telemetrisi artık CONTROL-PANEL-IO (EP203 kuru kontak) cihazında
+  // (K11: EP203 standalone config kaldırıldı).
+  const FIRE_DEVICE_ID = "CONTROL-PANEL-IO-1";
+  const { names: fireNames } = useTelemetryNames([FIRE_DEVICE_ID]);
+  const fireProvider = useTelemetryProvider({ telemetryNames: fireNames, defaultRange: "1h", defaultPoints: 200, deviceIds: [FIRE_DEVICE_ID] });
 
   const chartLabels: TelemetryChartLabels = useMemo(() => ({
     range1m: t("chart.range.1m"), range1h: t("chart.range.1h"), range1d: t("chart.range.1d"),
@@ -91,7 +94,7 @@ export const FirePanelPage: React.FC = () => {
         </S.TopCards>
 
         <FirePanelCard deviceId="EP203" state={state}
-          labels={fireLabels} onDetailClick={() => setSelectedDeviceId("EP203")} />
+          labels={fireLabels} onDetailClick={() => setSelectedDeviceId(FIRE_DEVICE_ID)} />
 
         <div style={{ marginTop: 24 }}>
           <SingleTelemetryChart provider={fireProvider} telemetryNames={fireNames}

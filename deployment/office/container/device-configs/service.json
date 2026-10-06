@@ -1,0 +1,16 @@
+{
+  "redis": {
+    "host": "redis",
+    "port": 6379
+  },
+  "postgresql": {
+    "host": "192.168.1.113",
+    "port": 5432,
+    "user": "revpi",
+    "password": "GD-Energy-2026",
+    "database": "ems"
+  },
+  "servicePollIntervalMs": 5000,
+  "workerConcurrency": 5,
+  "managementIntervalMs": 10000
+}

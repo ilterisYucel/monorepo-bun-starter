@@ -70,7 +70,7 @@ review_date: 2026-12-01
 | B6 | İki fazlı init (`new` → `createFromConfigs`) + ölü `register()`/`count()` API'leri (sıfır çağıran) | `simulator-registry.ts#SimulatorRegistry` |
 | B7 | `IDevice.read(telemetries?)` parametresi — hiçbir çağıran argüman geçirmiyor | `packages/shared-types/src/device-interface.ts#IDevice` |
 | B8 | T0.7 (`DomainError` + `onFailed`) device-service'te yok — hata yolları ham catch | KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md T0.7 (sapma — A5) |
-| B9 | rackCount çift yazım — top-level + `transport.rackCount` aynı config'te | `services/device-service/config/bsc-1.json` (ikisi de 8) |
+| B9 | rackCount çift yazım — top-level + `transport.rackCount` aynı config'te | `services/device-service/deployment/sample-config/bsc-1.json` (ikisi de 8) |
 | B10 | In-process `SimulatorTransport` deseni — gerçek TCP yolu bypass (iki ayrı cihaz yolu) | `packages/simulators/src/simulator-transport.ts#SimulatorTransport` |
 | B11 | `bmsTarget` deployment env'i registry'ye sızıyor (deployment-bazlı hedef bilgisi kodda) | `services/device-service/src/simulator-registry.ts#SimulatorRegistry` |
 
@@ -216,7 +216,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/src/device-service.ts` | DeviceEntry `details` passthrough, hoist, DDL `details JSONB` + `rack_count` DROP |
 | `services/device-service/src/types.ts` | SİLİNİR |
 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | top-level `rackCount` kaldırılır; `details` eklenir |
-| `services/device-service/config/*.json` + `deployment/config-docker/*.json` | `rackCount` → `details.rackCount` |
+| `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | `rackCount` → `details.rackCount` |
 | `services/web-service/src/presentation/routes/device-routes.ts` | SELECT `details` |
 | `apps/container-web/src/features/devices/types/device.ts` + `features/racks/utils/rackHelpers.ts` + `bscHelpers.ts` + `stores/devicesStore.ts` + `pages/DashBoardPage.tsx` + `pages/ScadaDashboardPage.tsx` | `details` tipi + `rackCountOf` accessor |
 
@@ -439,8 +439,8 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/src/device-service.ts` | `simulators` param kaldırılır (fromConfigDir rewiring) |
 | `services/device-service/src/index.ts` | SimulatorRegistry export kaldırılır |
 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | ConnectorConfig |
-| `services/device-service/deployment/config-docker/bsc-1.json` | connector bölümü gömülür |
-| `services/device-service/deployment/config-docker/bsc-pcs-connector-1.json` | SİLİNİR |
+| `deployment/dev/container/device-configs/bsc-1.json` | connector bölümü gömülür |
+| `deployment/dev/container/device-configs/bsc-pcs-connector-1.json` | SİLİNİR |
 | `services/device-service/run.ts` | SimulatorHost wiring (T-9) |
 
 ### 6.6 UC-6 — Log Sözleşmesi (iki kanal)

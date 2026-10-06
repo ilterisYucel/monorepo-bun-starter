@@ -1,0 +1,151 @@
+{
+  "maneuvers": [
+    {
+      "name": "fl01_startup",
+      "label": "FL-01: Başlatma",
+      "description": "Saha PCS'leri start (S16 ← 1) — hazırlık kapısı verileri bekleniyor (G-1/G-3)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "start" }
+      ]
+    },
+    {
+      "name": "fl01_shutdown",
+      "label": "FL-01: Kapatma",
+      "description": "Saha PCS'leri stop (S17 ← 1)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "stop" }
+      ]
+    },
+    {
+      "name": "fl03_idle",
+      "label": "FL-03: Idle / Bekleme",
+      "description": "Setpoint sıfırlama (S06 ← 0) — PCS enerjili kalır",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "set_power_zero" }
+      ]
+    },
+    {
+      "name": "fl04_calibration",
+      "label": "FL-04: Kalibrasyon",
+      "description": "PCS standby (S19 ← 1) — iç algoritma DC Block'ta; güç PCS S06'dan (K12)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "standby" }
+      ],
+      "ui": { "timer": true }
+    },
+    {
+      "name": "fl05_emergency_stop",
+      "label": "FL-05: Acil Durdurma",
+      "description": "PCS stop (S17) + setpoint sıfırlama (S06 ← 0)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "stop" },
+        { "deviceTypes": ["pcs"], "command": "set_power_zero" }
+      ]
+    },
+    {
+      "name": "fl06_recovery",
+      "label": "FL-06: Recovery",
+      "description": "fault_reset (S18) + standby (S19) — şarj/deşarj OTO geri GELMEZ (R-06)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "fault_reset" },
+        { "deviceTypes": ["pcs"], "command": "standby" }
+      ],
+      "ui": { "hidden": true }
+    },
+    {
+      "name": "fl07_comm_loss",
+      "label": "FL-07: İletişim Kaybı",
+      "description": "İlgili PCS stop — doküman bekleniyor (gövde taslak)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    },
+    {
+      "name": "fl10_islanding",
+      "label": "FL-10: Ada Modu / Grid Kaybı",
+      "description": "İlgili PCS stop — doküman bekleniyor (gövde taslak)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    },
+    {
+      "name": "pcs_charge",
+      "label": "PCS Şarj",
+      "description": "S06 ← −powerKw (şarj NEGATİF) — güç online+müsait PCS sayısına bölünür (divideTotal)",
+      "mode": "parallel",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceTypes": ["pcs"],
+          "command": "charge",
+          "params": { "powerKw": "{{divideTotal}}" }
+        }
+      ],
+      "rollbackSteps": [
+        { "deviceTypes": ["pcs"], "command": "stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 50, "label": "Güç (kW)" }
+        ],
+        "timer": true,
+        "transform": "divideTotal",
+        "hidden": false
+      }
+    },
+    {
+      "name": "pcs_discharge",
+      "label": "PCS Deşarj",
+      "description": "S06 ← +powerKw — güç online+müsait PCS sayısına bölünür (divideTotal)",
+      "mode": "parallel",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceTypes": ["pcs"],
+          "command": "discharge",
+          "params": { "powerKw": "{{divideTotal}}" }
+        }
+      ],
+      "rollbackSteps": [
+        { "deviceTypes": ["pcs"], "command": "stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 50, "label": "Güç (kW)" }
+        ],
+        "timer": true,
+        "transform": "divideTotal",
+        "hidden": false
+      }
+    },
+    {
+      "name": "pcs_stop",
+      "label": "PCS Durdur",
+      "description": "Operasyon kompanzasyon adımı — PCS stop (S17 ← 1)",
+      "mode": "parallel",
+      "onFailure": "continue",
+      "steps": [
+        { "deviceTypes": ["pcs"], "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    }
+  ]
+}

@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
+import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { DeviceConfigLoader } from "./config-loader";
 
-const CONFIG_DIR = fileURLToPath(new URL("../config/", import.meta.url));
+// Source of truth — kök configs/ (alet adıyla kanonik cihaz config'leri).
+// Testler proje/deployment dizinlerine değil buraya bakar (bkz. AGENTS-DEVICE-CONFIG.md).
+const CONFIG_DIR = fileURLToPath(new URL("../../../configs/", import.meta.url));
 
 describe("DeviceConfigLoader", () => {
   describe("constructor", () => {
@@ -20,28 +23,25 @@ describe("DeviceConfigLoader", () => {
     });
   });
 
-  describe("load() — gerçek config dizini", () => {
-    it("tüm cihaz config'lerini doğrular (bsc, dc-meter dahil — K11: PCS field tier)", () => {
-      const loader = new DeviceConfigLoader(CONFIG_DIR);
-      const { devices } = loader.load();
+  describe("load() — source of truth (kök configs/)", () => {
+    it("tüm cihaz config dosyalarını yükler ve şemadan geçirir", () => {
+      const { devices } = new DeviceConfigLoader(CONFIG_DIR).load();
 
-      const ids = devices.map((d) => d.deviceId);
-      expect(ids).toContain("BSC-1");
-      expect(ids).toContain("DC-METER-1");
-      // Sanal IO cihaz ailesi (SANAL-IO-CIHAZ-AILESI-MIMARISI.md)
-      expect(ids).toContain("CONTROL-PANEL-IO-1");
-      expect(ids).toContain("IMD-1");
+      const deviceFiles = readdirSync(CONFIG_DIR).filter(
+        (f) => f.endsWith(".json") && !f.startsWith("service."),
+      );
+      expect(devices).toHaveLength(deviceFiles.length);
+      for (const device of devices) {
+        expect(device.deviceId).toBeTruthy();
+        expect(device.name).toBeTruthy();
+        expect(device.telemetry.length).toBeGreaterThan(0);
+      }
     });
 
-    it("BSC global 30264/30265 config'te (WS2)", () => {
-      const loader = new DeviceConfigLoader(CONFIG_DIR);
-      const { devices } = loader.load();
-
-      const bsc1 = devices.find((d) => d.deviceId === "BSC-1")!;
-      const globalRack = bsc1.telemetry.find((t) => t.name === "Rack Max Diff Temp (Global)");
-      const globalPack = bsc1.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack (Global)");
-      expect(globalRack?.registerAddress).toBe(30264);
-      expect(globalPack?.registerAddress).toBe(30265);
+    it("service.json yüklenir (global servis konfigürasyonu)", () => {
+      const { service } = new DeviceConfigLoader(CONFIG_DIR).load();
+      expect(service.redis.host).toBeTruthy();
+      expect(service.redis.port).toBeGreaterThan(0);
     });
   });
 });

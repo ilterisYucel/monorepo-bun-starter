@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,22 @@ import type {
   CommandResolutionError,
 } from "./command-job-builder";
 import { DeviceConfigFileSource } from "./device-config-source";
+import type { IDeviceConfigSource } from "./device-config-source";
 import type { DeviceConfigFile, CommandConfig } from "@gd-monorepo/shared-types";
+
+/** Kök configs/ (source of truth) dizinini tarayıp deviceId'ye göre in-memory
+ *  kaynak kurar — dosya adından bağımsız (kanonik adlar alet adıdır). */
+function sourceFromDir(dir: string): IDeviceConfigSource {
+  const byId = new Map<string, DeviceConfigFile>();
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith(".json")) continue;
+    const config = JSON.parse(
+      readFileSync(join(dir, file), "utf-8"),
+    ) as DeviceConfigFile;
+    if (config.deviceId) byId.set(config.deviceId.toLowerCase(), config);
+  }
+  return { load: (deviceId) => byId.get(deviceId.toLowerCase()) };
+}
 
 /**
  * CommandJobBuilder sözleşmesi (MANAGEMENT-SERVICE-MIMARISI.md T2, §7):
@@ -138,24 +153,23 @@ describe("CommandJobBuilder.build", () => {
     expect(stop.unwrap().atomic).toBe(false);
   });
 
-  it("gerçek config: bsc-1.json global 30264/30265 + dc-meter-1.json (K1)", () => {
-    const realDir = fileURLToPath(
-      new URL("../../../../services/device-service/config", import.meta.url),
+  it("gerçek config (source of truth): BSC global 30264/30265 + DC-METER voltage + stop (K1)", () => {
+    const source = sourceFromDir(
+      fileURLToPath(new URL("../../../../configs", import.meta.url)),
     );
-    const source = new DeviceConfigFileSource(realDir);
 
-    const bsc = source.load("bsc-1")!;
+    const bsc = source.load("BSC-1")!;
     const globalRack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp (Global)");
     const globalPack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack (Global)");
     expect(globalRack?.registerAddress).toBe(30264);
     expect(globalPack?.registerAddress).toBe(30265);
 
-    const dcMeter = source.load("dc-meter-1")!;
+    const dcMeter = source.load("DC-METER-1")!;
     const voltage = dcMeter.telemetry.find((t) => t.name === "DC Voltage");
     expect(voltage?.registerAddress).toBe(50);
 
     const built = new CommandJobBuilder({ source, now: () => FIXED_DATE })
-      .build("bsc-1", "stop")
+      .build("BSC-1", "stop")
       .unwrap();
     expect(built.telemetries).toEqual([
       expect.objectContaining({ name: "Command Request", value: 3 }),

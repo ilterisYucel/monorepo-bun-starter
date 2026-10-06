@@ -11,13 +11,17 @@ import type { CommandConfig } from "../commands/command";
 
 /**
  * Konfigürasyon dosyasındaki telemetry girdisi.
- * Protocol tipinden sadece çalışma zamanı alanları çıkarılmış halidir.
- * Yeni bir interface değil, mevcut tiplerden türetilmiş type alias.
+ * Protocol tipinden sadece çalışma zamanı alanları (value/timestamp/deviceId)
+ * çıkarılmış halidir. Dağıtılmış (distributive) union: her girdi kendi
+ * protokolünün alanlarını taşır (`protocol` ile daraltılabilir, örn. "MODBUS"
+ * → `registerAddress`). Yeni bir interface değil, mevcut tiplerden türetilmiş
+ * type alias.
  */
-export type TelemetryConfigEntry = Omit<
-  ModbusTelemetryData | CanbusTelemetryData | MqttTelemetryData,
-  "value" | "timestamp" | "deviceId"
-> & {
+export type TelemetryConfigEntry = (
+  | Omit<ModbusTelemetryData, "value" | "timestamp" | "deviceId">
+  | Omit<CanbusTelemetryData, "value" | "timestamp" | "deviceId">
+  | Omit<MqttTelemetryData, "value" | "timestamp" | "deviceId">
+) & {
   /**
    * Kanonik metrik adı (serbest string — örn: "soc", "battery_ready").
    * device-service tarafından tags.canonical olarak taşınır.

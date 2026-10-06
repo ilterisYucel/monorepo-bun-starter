@@ -21,10 +21,10 @@ review_date: 2026-09-16
 | C5 | Panel gerçek yürütme (T-M3) | `apps/field/src/features/field-control/components/FieldManeuverPanel.tsx` | mockExecute/mockContainers KALDIRILDI; PCS adımları gerçek execute-multi'ye |
 | C6 | `fieldControlApi` (yeni) | `apps/field/src/features/field-control/services/fieldControlApi.ts` | field web-service /commands/execute-multi istemcisi |
 | C7 | i18n: `container.noPcs` | `apps/field/src/i18n/{tr,en}.ts` | boş hedef set durum mesajı |
-| C8 | field.dev.yml: web-service config-field mount + DEVICE_CONFIG_DIR | `deployment/docker-compose.field.dev.yml` | **kritik hata:** önceki değer konteyner PCS config'ine bakıyordu (yanlış register map) |
+| C8 | field.dev.yml: web-service config-field mount + DEVICE_CONFIG_DIR | `deployment/dev/field/docker-compose.yml` | **kritik hata:** önceki değer konteyner PCS config'ine bakıyordu (yanlış register map) |
 | C9 | field.dev.yml + field.yml: device-service PG env + `15502:15502` | `deployment/docker-compose.field.{yml,dev.yml}` | alarm state tablosu + standalone'da connector erişimi |
 | C10 | container.yml/.dev.yml: `PCS_BMS_TARGET_*` + device-service extra_hosts | `deployment/docker-compose.container.{yml,dev.yml}` | standalone connector hedefi |
-| C11 | aws-edge.yml: **+field-device-service, +field-management-service** (yeni), field-web-service DEVICE_CONFIG_DIR + token, container-device-service hedef env'i | `deployment/docker-compose.aws-edge.yml` | field tier servis katmanı AWS'de YOKTU |
+| C11 | aws-edge.yml: **+field-device-service, +field-management-service** (yeni), field-web-service DEVICE_CONFIG_DIR + token, container-device-service hedef env'i | `deployment/aws/edge/docker-compose.yml` | field tier servis katmanı AWS'de YOKTU |
 | C12 | env şablonları | `.env.container.example`, `.env.aws-edge.example` | yeni değişkenler yorumlu |
 
 ## 2. Test Kanıtları
@@ -126,7 +126,7 @@ CI: `.github/workflows/e2e.yml` — container.dev + field.dev stack'leri + curl 
 | # | Konu | Durum / Gerekli güncelleme |
 |:--|:-----|:---------------------------|
 | N1 | **K12 düzeltmesi:** field FL-02 operasyonunun uzak adımı `bsc_charge` DEĞİL `bsc_prepare` (BSC'de charge komutu YOK) | SPEC'ler düzeltildi (2026-09-17); KOD değişikliği YOK — field `buildFieldManeuvers` yalnız PCS adımları üretiyor (doğru); konteyner adımı migrasyonla (Faz A-C) gelecek |
-| N2 | **I-1 test referansı:** `maneuver-command.spec.ts` "PCS forbid/allow" bloğu LEGACY `services/device-service/config/pcs-1.json`'a dayanıyor | K11 (Faz 1.6) bu config'i silince **test bloğu kaldırılmalı/güncellenmeli** — Wattox'ta `forbid_*` YOK; blok = `stop` + setpoint 0 |
+| N2 | **I-1 test referansı:** `maneuver-command.spec.ts` "PCS forbid/allow" bloğu LEGACY `services/device-service/deployment/sample-config/pcs-1.json`'a dayanıyor | K11 (Faz 1.6) bu config'i silince **test bloğu kaldırılmalı/güncellenmeli** — Wattox'ta `forbid_*` YOK; blok = `stop` + setpoint 0 |
 | N3 | **FL-03 Idle netleştirme:** impl `set_power_zero` (S06←0) yazar; SPEC §3.3 "standby (S19)" da der | Sapma DEĞİL — iki komut ayrıdır; mevcut davranış setpoint sıfırlamadır; standby adımı gerekirse ayrı komut olarak sonradan eklenir |
 | N4 | **R-06:** kurallar canlıya alınınca gizli manevra kartları (`FIELD_HIDDEN_MANEUVER_NAMES`) kural aksiyonlarıyla DEĞİŞTİRİLİR (KURAL-MOTORU-V2 `operation`/`maneuver` aksiyonları) | şimdilik katalog tamlığı için durur; K-M4 kanıtı değişmez |
 | N5 | **Sinyal kaynağı (R-07):** konteyner FL-09 (K7 defer) aynı synthetic-sinyal desenini bekliyor | iki taraf birlikte tasarlanırsa tek mekanizma — FIELD-MANEVRA REV.01.2 §5 çapraz referansı düşüldü |

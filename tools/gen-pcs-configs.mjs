@@ -398,8 +398,10 @@ console.log("canonical yazildi: pcs telemetry=%d bitfields=%d commands=%d; emu t
   emuCanonical.telemetry.length, emuCanonical.bitfieldConfigs.length);
 
 for (const dir of [
-  "packages/services/device-service/config",
-  "packages/services/device-service/deployment/config-docker",
+  "deployment/dev/field/device-configs",
+  "deployment/prod/field/device-configs",
+  "deployment/office/field/device-configs",
+  "deployment/aws/edge/field-device-configs",
 ]) {
   for (let n = 1; n <= PCS_COUNT; n++) {
     const inst = buildPcs(n, `PCS-${n}`, `PCS ${n}`, 5030 + n);

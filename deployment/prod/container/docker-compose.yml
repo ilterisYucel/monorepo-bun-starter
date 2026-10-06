@@ -1,0 +1,254 @@
+version: '3.8'
+
+name: container-stack
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: container-timescaledb
+    command:
+      - -cshared_buffers=4GB
+      - -cwork_mem=64MB
+      - -ceffective_cache_size=12GB
+      - -cmaintenance_work_mem=1GB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5437:5432"
+    volumes:
+      - container-timescale-data:/var/lib/postgresql/data
+    networks:
+      - container-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: container-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    ports:
+      - "6379:6379"
+    volumes:
+      - container-redis-data:/data
+    networks:
+      - container-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  device-service:
+    build:
+      context: ../../../
+      dockerfile: services/device-service/deployment/Dockerfile
+    container_name: container-device-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # Alarm durum tablosu (device_alarms) + logger timescale sink
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      # BSC→PCS connector BMS hedefi (BSC-PCS-CONNECTOR-MIMARISI §6):
+      # standalone'da field stack host'ta → host.docker.internal; aws-edge'de
+      # field-device-service (compose içi). Verilmezse mapping sabiti (dev).
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-host.docker.internal}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    volumes:
+      - ./device-configs:/app/config-docker:ro
+    networks:
+      - container-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  data-service:
+    build:
+      context: ../../../
+      dockerfile: services/data-service/deployment/Dockerfile
+    container_name: container-data-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Otomasyon/management servisi (MANAGEMENT-SERVICE-MIMARISI.md) —
+  # queue_management tüketicisi; kurallar config mount'undan okunur.
+  management-service:
+    build:
+      context: ../../../
+      dockerfile: services/management-service/deployment/Dockerfile
+    container_name: container-management-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      SERVICE_TIER: container
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      redis:
+        condition: service_healthy
+      device-service:
+        condition: service_started
+    volumes:
+      - ./rules:/app/config:ro
+      - ./device-configs:/app/config-docker:ro
+    networks:
+      - container-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web-service:
+    build:
+      context: ../../../
+      dockerfile: services/web-service/deployment/Dockerfile
+    container_name: container-web-service
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/config-docker
+      # KOMUT-MANEVRA-OPERASYON §5 — tier manevra/operasyon kayıt dizini
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # Faz 2 T2.3: FieldConnector bootstrap config (kapali varsayilan).
+      # Etkinlestirmek icin FIELD_CONNECT_ENABLED=true + FIELD_WS_URL +
+      # CONTAINER_TOKEN zorunludur (eksikse fail-fast).
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-false}
+      FIELD_WS_URL: ${FIELD_WS_URL:-}
+      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+    volumes:
+      - ./device-configs:/app/config-docker:ro
+      - ./maneuvers:/app/maneuver-config:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5001:5001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+    restart: unless-stopped
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5001/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ../../../
+      dockerfile: apps/container-web/deployment/Dockerfile
+    container_name: container-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "80:80"
+    depends_on:
+      - web-service
+    networks:
+      - container-network
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  container-timescale-data:
+  container-redis-data:
+
+networks:
+  container-network:
+    driver: bridge

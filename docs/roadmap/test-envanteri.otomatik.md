@@ -1,7 +1,7 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-10-05
-> Tarandı: 234 test dosyası, 2039 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-10-06
+> Tarandı: 236 test dosyası, 2049 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
@@ -39,6 +39,30 @@
 2. (maneuverApi (Faz D2)) **"list: boş katalog → [] (kademeli)"**
 3. (maneuverApi (Faz D2)) **"execute: POST gövdesi {params:{}} varsayılan"**
 4. (maneuverApi (Faz D2)) **"execute: params + deviceIds (grup kısıtı) taşınır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/container-web/src/features/hvac/utils/hvacHelpers.test.ts` (3 test)
+
+1. (hvacSkeleton) **"her HVAC cihazı için standby ünite üretir (telemetrisiz)"**
+2. (hvacSkeleton) **"oda bilgisi roomByDevice'dan gelir"**
+3. (hvacSkeleton) **"id çıkarılamayan cihaz atlanır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/container-web/src/features/racks/utils/rackHelpers.test.ts` (3 test)
+
+1. (rackHelpers — details accessor) **"rackCountOf details.rackCount okur"**
+2. (rackHelpers — details accessor) **"rackCountOf details yoksa DEFAULT_RACK_COUNT döner"**
+3. (rackHelpers — details accessor) **"detailsNumber string sayıyı çözer, geçersizse undefined"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/container-web/src/features/telemetry/utils/dedupeLatest.test.ts` (3 test)
+
+1. (dedupeLatest — en yeni kazanır) **"aynı (deviceId,name,rack_id) için yalnız en yeni satırı tutar"**
+2. (dedupeLatest — en yeni kazanır) **"rack_id farklıysa ayrı anahtar (farklı rack'ler korunur)"**
+3. (dedupeLatest — en yeni kazanır) **"telemetryKey rack_id içerir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -744,7 +768,7 @@
 4. (CommandJobBuilder.build) **"zorunlu olmayan param eksik → ok"**
 5. (CommandJobBuilder.build) **"{{param}} sayısal çözülür; -{{param}} negatif uygular; şablon olmayan aynen kalır"**
 6. (CommandJobBuilder.build) **"atomic belirtilmemişse true; false belirtilmişse false"**
-7. (CommandJobBuilder.build) **"gerçek config: bsc-1.json global 30264/30265 + dc-meter-1.json (K1)"**
+7. (CommandJobBuilder.build) **"gerçek config (source of truth): BSC global 30264/30265 + DC-METER voltage + stop (K1)"**
 8. (CommandJobBuilder.build) **"validate eşlemesi: reads + timeoutMs + minWaitMs"**
 9. (CommandJobBuilder.build) **"validate yoksa job.validate undefined; timeoutMs defaultu yalnızca validate ile birlikte anlamlı"**
 10. (CommandJobBuilder.build) **"jobId formatı: deviceId-command-timestamp (enjekte now)"**
@@ -1053,7 +1077,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/schemas/device-config.test.ts` (18 test)
+### `packages/shared-types/src/schemas/device-config.test.ts` (21 test)
 
 1. (bitfieldFieldSchema) **"accepts valid input"**
 2. (bitfieldFieldSchema) **"rejects bitStart > bitEnd"**
@@ -1073,6 +1097,9 @@
 16. (bitfieldFieldSchema > bitfieldConfigSchema > deviceConfigFileSchema) **"rejects invalid transport kind"**
 17. (bitfieldFieldSchema > bitfieldConfigSchema > deviceConfigFileSchema) **"accepts simulator transport (tip açık string — kayıt defteri çalışma zamanında doğrular)"**
 18. (bitfieldFieldSchema > bitfieldConfigSchema > deviceConfigFileSchema) **"accepts tcp and rtu transport kinds"**
+19. (bitfieldFieldSchema > bitfieldConfigSchema > deviceConfigFileSchema > deviceConfigFileSchema — details (REV.01)) **"accepts and preserves opaque details"**
+20. (bitfieldFieldSchema > bitfieldConfigSchema > deviceConfigFileSchema > deviceConfigFileSchema — details (REV.01)) **"top-level rackCount artık şemada yok — strip edilir"**
+21. (bitfieldFieldSchema > bitfieldConfigSchema > deviceConfigFileSchema > deviceConfigFileSchema — details (REV.01)) **"details opsiyoneldir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1619,6 +1646,15 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/ui/src/hooks/useTelemetryStream.test.ts` (4 test)
+
+1. (useTelemetryStream — çok-abone) **"mount'ta addDevices + connect; unmount'ta removeDevices (disconnect DEĞİL)"**
+2. (useTelemetryStream — çok-abone) **"observer verisi hook çıktısına yansır"**
+3. (useTelemetryStream — çok-abone) **"abone OLUNMAYAN cihazın verisi buffer'a alınmaz (filtreleme)"**
+4. (useTelemetryStream — çok-abone) **"names verilirse addDevices'e iletilir (sunucu filtresi)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/ui/src/logging/client-logger.test.ts` (10 test)
 
 1. (ClientLogger (T0.8)) **"batchSize dolunca tek send ile flush eder"**
@@ -1658,7 +1694,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/transports/WebSocketTransport.test.ts` (7 test)
+### `packages/ui/src/transports/WebSocketTransport.test.ts` (13 test)
 
 1. (WebSocketTransport (T2)) **"connect → open: connected + deviceId başına subscribe mesajı"**
 2. (WebSocketTransport (T2)) **"token varsa query'ye eklenir"**
@@ -1667,6 +1703,12 @@
 5. (WebSocketTransport (T2)) **"açılmadan kapanma → error + rejected; reconnect YOK"**
 6. (WebSocketTransport (T2)) **"açıldıktan sonra kapanma → üstel backoff reconnect (tavan 30 sn)"**
 7. (WebSocketTransport (T2)) **"disconnect: cancelled — kapanma sonrası reconnect OLMAZ, state idle"**
+8. (WebSocketTransport (T2) > WebSocketTransport — multipleks (component izolasyonu)) **"addDevices açık sokette subscribe gönderir (yeni soket açmaz)"**
+9. (WebSocketTransport (T2) > WebSocketTransport — multipleks (component izolasyonu)) **"aynı deviceId referans sayılır — bir abone çıkınca unsubscribe GİTMEZ"**
+10. (WebSocketTransport (T2) > WebSocketTransport — multipleks (component izolasyonu)) **"connect idempotent: açık sokette ikinci connect yeni soket açmaz"**
+11. (WebSocketTransport (T2) > WebSocketTransport — multipleks (component izolasyonu)) **"reconnect sonrası tüm abonelikler yeniden gönderilir"**
+12. (WebSocketTransport (T2) > WebSocketTransport — multipleks (component izolasyonu) > WebSocketTransport — names filtresi (panel spec)) **"addDevices names verilirse subscribe mesajına ekler"**
+13. (WebSocketTransport (T2) > WebSocketTransport — multipleks (component izolasyonu) > WebSocketTransport — names filtresi (panel spec)) **"reconnect sonrası names korunur"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1998,35 +2040,12 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/config-connector.test.ts` (5 test)
-
-1. (BSC-PCS connector config'leri) **"BSC-1 config'i connector bölümüyle şemadan geçer"**
-2. (BSC-PCS connector config'leri) **"mapping strict parse edilir; hedef adresler BMS bloğunda (768-790)"**
-3. (BSC-PCS connector config'leri) **"mapping B01-B23 tam kapsam: hedef adresler 768-790 aralığını doldurur"**
-4. (BSC-PCS connector config'leri) **"kaynak cihazlar config-docker'da mevcuttur (BSC-1; B19/B20 sabit)"**
-5. (BSC-PCS connector config'leri) **"connector telemetri adları benzersiz"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/device-service/src/config-field.test.ts` (8 test)
-
-1. (config-field/pcs-1.json (Wattox PCS)) **"şemadan geçer"**
-2. (config-field/pcs-1.json (Wattox PCS)) **"komut telemetri adları telemetri listesinde mevcuttur"**
-3. (config-field/pcs-1.json (Wattox PCS)) **"charge komutu şarj NEGATİF konvansiyonunu taşır"**
-4. (config-field/pcs-1.json (Wattox PCS)) **"validate ilişki sözcükleri: negative/positive/zero"**
-5. (config-field/pcs-1.json (Wattox PCS)) **"bitfield register'ları telemetri adreslerinde kayıtlı"**
-6. (config-field/pcs-1.json (Wattox PCS)) **"BMS bloğu B01-B23 tam kapsamda (768-790)"**
-7. (config-field/pcs-1.json (Wattox PCS)) **"alarm sözcükleri Appendix 3 bitfield'larına bölünmüş"**
-8. (config-field/pcs-1.json (Wattox PCS)) **"S-register'ları HOLDING_REGISTER olarak kayıtlı"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
 ### `services/device-service/src/config-loader.test.ts` (4 test)
 
 1. (DeviceConfigLoader > constructor) **"throws when configDir is empty"**
 2. (DeviceConfigLoader > constructor > parseFile (via public API)) **"throws when directory does not exist"**
-3. (DeviceConfigLoader > constructor > parseFile (via public API) > load() — gerçek config dizini) **"tüm cihaz config'lerini doğrular (bsc, dc-meter dahil — K11: PCS field tier)"**
-4. (DeviceConfigLoader > constructor > parseFile (via public API) > load() — gerçek config dizini) **"BSC global 30264/30265 config'te (WS2)"**
+3. (DeviceConfigLoader > constructor > parseFile (via public API) > load() — source of truth (kök configs/)) **"tüm cihaz config dosyalarını yükler ve şemadan geçirir"**
+4. (DeviceConfigLoader > constructor > parseFile (via public API) > load() — source of truth (kök configs/)) **"service.json yüklenir (global servis konfigürasyonu)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2076,17 +2095,6 @@
 19. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3) > bilinmeyen cihaz > cihaz alarm orkestrasyonu (Faz 0 eki)) **"sql yoksa yalnızca log çalışır (tablo yazımı atlanır)"**
 20. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3) > bilinmeyen cihaz > cihaz alarm orkestrasyonu (Faz 0 eki)) **"alarm kuralları yoksa hiçbir alarm işlemi yapılmaz"**
 21. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3) > bilinmeyen cihaz > cihaz alarm orkestrasyonu (Faz 0 eki)) **"start() restart sonrası bayat aktifleri kapatır + dedup sıfırlar"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/device-service/src/maneuver-command.spec.ts` (6 test)
-
-1. (manevra komut hattı (integration — gerçek simülatörler)) **"BSC stop → yazım + read-back doğrulama (validated)"**
-2. (manevra komut hattı (integration — gerçek simülatörler)) **"BSC open_contactors (FL-08 koruma komutu) → validated"**
-3. (manevra komut hattı (integration — gerçek simülatörler)) **"CB open → validated (FL-08 kesici)"**
-4. (manevra komut hattı (integration — gerçek simülatörler)) **"HVAC force_cool → validated (FL-05)"**
-5. (manevra komut hattı (integration — gerçek simülatörler)) **"CONTROL-PANEL-IO ışık komutu → COIL write + read-back (FL-07)"**
-6. (manevra komut hattı (integration — gerçek simülatörler)) **"bilinmeyen cihaz → success=false + reason"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2156,13 +2164,13 @@
 
 ### `services/management-service/src/automation-rules.spec.ts` (8 test)
 
-1. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1)) **"V>1500 + debounce 1 sn → CB open ×2 + BSC open_contactors ×2 + audit"**
-2. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1)) **"Voltage L-N Avg < 180 + debounce 5 sn → şalter AÇ + kontaktör AÇ"**
-3. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak) **"Max Pack Temp > 50 + debounce 5 dk → 8 force_cool + 2 BSC stop"**
+1. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1)) **"V>1500 + debounce 1 sn → CB open + BSC open_contactors (tüm aktif cihazlar) + audit"**
+2. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1)) **"Voltage L-N Avg < 180 + debounce 5 sn → şalter AÇ + kontaktör AÇ (tüm aktif cihazlar)"**
+3. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak) **"Max Pack Temp > 50 + debounce 5 dk → tüm HVAC force_cool + tüm BSC stop"**
 4. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis) **"HVAC-1 25.2°C → force_cool job'ı GERÇEK config'ten üretilir"**
-5. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io)) **"Battery Door Open 1 → ışık AÇ + BSC stop ×2"**
+5. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io)) **"Battery Door Open 1 → ışık AÇ + tüm BSC stop"**
 6. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io)) **"kenar-tetik: kapı kapalıyken KAPATMA kuralı ateşler (ışık söner)"**
-7. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io) > FL-11 — toprak direnci (IMD-1)) **"Insulation Alarm 4 + debounce 2 sn → CB open + kontaktör AÇ"**
+7. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io) > FL-11 — toprak direnci (IMD-1)) **"Insulation Alarm 4 + debounce 2 sn → CB open + kontaktör AÇ (tüm aktif cihazlar)"**
 8. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io) > FL-11 — toprak direnci (IMD-1) > fail-safe (K-A4)) **"FL-06/09/12 senaryosu kural üretmez — job listesi boş"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
@@ -2741,6 +2749,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `services/web-service/src/infrastructure/persistence/device-registry.test.ts` (3 test)
+
+1. (DeviceRegistry — refresh TTL cache) **"ttl içindeki ardışık refresh tek sorgu yapar"**
+2. (DeviceRegistry — refresh TTL cache) **"force=true ttl'i atlar"**
+3. (DeviceRegistry — refresh TTL cache) **"online() önbellekten döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `services/web-service/src/infrastructure/persistence/log-repository.test.ts` (4 test)
 
 1. (LogRepository (A1)) **"initialize hem system_logs hem log_events DDL'ini oluşturur"**
@@ -2796,7 +2812,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/realtime/realtime-manager.test.ts` (7 test)
+### `services/web-service/src/infrastructure/realtime/realtime-manager.test.ts` (11 test)
 
 1. (RealtimeManager (Faz 5.1 B1)) **"büyük parti (isim sayısı > RING_BUFFER_MAX) tamamen korunur — B1 regresyonu"**
 2. (RealtimeManager (Faz 5.1 B1)) **"küçük partiler RING_BUFFER_MAX'ta kesilir (geçmiş korunur)"**
@@ -2805,6 +2821,10 @@
 5. (RealtimeManager (Faz 5.1 B1)) **"ringBuffer bozuk JSON'u ham string olarak döndürür"**
 6. (RealtimeManager (Faz 5.1 B1)) **"broadcast yalnızca OPEN soketlere JSON gönderir"**
 7. (RealtimeManager (Faz 5.1 B1)) **"subscribe/unsubscribe abone defterini tutarlı tutar"**
+8. (RealtimeManager (Faz 5.1 B1) > RealtimeManager — isim filtresi (panel spec)) **"names ile broadcast yalnız istenen isimleri yollar"**
+9. (RealtimeManager (Faz 5.1 B1) > RealtimeManager — isim filtresi (panel spec)) **"names yoksa tüm satırlar gider (geriye uyumlu)"**
+10. (RealtimeManager (Faz 5.1 B1) > RealtimeManager — isim filtresi (panel spec)) **"eşleşen isim yoksa gönderim atlanır"**
+11. (RealtimeManager (Faz 5.1 B1) > RealtimeManager — isim filtresi (panel spec)) **"sendInitialData yalnız istenen isimlerin en yenisini yollar"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

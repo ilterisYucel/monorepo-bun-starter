@@ -90,7 +90,7 @@ const buildSubtitle = (
 
 export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
   provider, telemetryNames, title, yAxisLabel, height = 320, colors,
-  showLegend = true, tagFilters, eventAnnotations,
+  showLegend = true, tagFilters, showTagFilters = true, eventAnnotations,
   labels: rawLabels, locale: rawLocale = "tr",
   defaultMetric, defaultTagSelections,
 }) => {
@@ -100,6 +100,21 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
 
   // Single metric select
   const [selectedMetric, setSelectedMetric] = useState<string>(defaultMetric ?? telemetryNames[0] ?? "");
+
+  // Metrik listesi geç geldiğinde ilk geçerli metriği seç.
+  useEffect(() => {
+    if (telemetryNames.length === 0) return;
+    if (!selectedMetric || !telemetryNames.includes(selectedMetric)) {
+      setSelectedMetric(telemetryNames[0]!);
+    }
+  }, [telemetryNames, selectedMetric]);
+
+  // Seçilen metriği provider'a bildir — istek tek metrikle gider (tüm isim
+  // listesi querystring'e yazılıp URL şişmesi/istek kırılması olmaz).
+  useEffect(() => {
+    if (selectedMetric.length === 0) return;
+    provider.setSelectedName?.(selectedMetric);
+  }, [selectedMetric, provider.setSelectedName]);
 
   // Multi tag select
   const [selectedTags, setSelectedTags] = useState<Record<string, string[]>>(defaultTagSelections ?? {});
@@ -154,6 +169,26 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
       return { ...prev, [tagKey]: [...current, value] };
     });
   };
+
+  // Karşılaştırmalı grafiklerde (default seçim verilmeyen tag filtresi) tüm
+  // değerleri varsayılan seç → her cihaz ayrı seri olarak çizilir.
+  useEffect(() => {
+    if (!tagFilters || tagFilters.length === 0) return;
+    setSelectedTags((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const filter of tagFilters) {
+        const hasDefault = (defaultTagSelections?.[filter.tagKey]?.length ?? 0) > 0;
+        if (hasDefault) continue;
+        const values = tagOptions[filter.tagKey];
+        if (!values || values.length === 0) continue;
+        if ((prev[filter.tagKey]?.length ?? 0) > 0) continue;
+        next[filter.tagKey] = [...values];
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [tagFilters, tagOptions, defaultTagSelections]);
 
   // Etiket kombinasyonlarindan dogru chartData sutun adlari olustur
   const { seriesNames, sigMap } = useMemo(() => {
@@ -308,7 +343,7 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
           </S.ControlGroup>
 
           {/* Multi-select tag filters */}
-          {tagFilters?.map((filter) => {
+          {showTagFilters && tagFilters?.map((filter) => {
             const selected = selectedTags[filter.tagKey] ?? [];
             const open = tagsOpen[filter.tagKey] ?? false;
             const label = selected.length > 0 ? resolve(L.selected, { count: selected.length }) : "—";
@@ -336,20 +371,16 @@ export const SingleTelemetryChart: React.FC<TelemetryChartProps> = ({
         </S.Controls>
       </S.Header>
 
-      {isLoading || telemetries.length === 0 ? (
+      {isLoading ? (
         <S.SkeletonWrapper>
           <S.Skeleton style={{ width: "100%", height: `${height}px` }} />
           <S.LoadingOverlay>
             <S.LoadingRing />
             <S.LoadingText>
-              <span>{isLoading ? L.loading : L.noData}</span>
-              {isLoading && (
-                <>
-                  <S.LoadingDot>.</S.LoadingDot>
-                  <S.LoadingDot>.</S.LoadingDot>
-                  <S.LoadingDot>.</S.LoadingDot>
-                </>
-              )}
+              <span>{L.loading}</span>
+              <S.LoadingDot>.</S.LoadingDot>
+              <S.LoadingDot>.</S.LoadingDot>
+              <S.LoadingDot>.</S.LoadingDot>
             </S.LoadingText>
           </S.LoadingOverlay>
         </S.SkeletonWrapper>

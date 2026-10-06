@@ -1,0 +1,311 @@
+name: container-stack
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: container-timescaledb-dev
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=32MB
+      - -ceffective_cache_size=384MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5433:5432"
+    volumes:
+      - timescale-data-dev:/var/lib/postgresql/data
+    networks:
+      - container-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: container-redis-dev
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data-dev:/data
+    networks:
+      - container-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  device-service:
+    build:
+      context: ../../../
+      dockerfile: services/device-service/deployment/Dockerfile.dev
+    container_name: container-device-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # Alarm durum tablosu (device_alarms) + logger timescale sink
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      # BSC→PCS connector BMS hedefi — standalone'da field stack host'ta.
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-host.docker.internal}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../../../services/device-service/src:/app/services/device-service/src
+      - ../../../services/device-service/run.ts:/app/services/device-service/run.ts
+      - ./device-configs:/app/config-docker:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/simulators/src:/app/packages/simulators/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  data-service:
+    build:
+      context: ../../../
+      dockerfile: services/data-service/deployment/Dockerfile.dev
+    container_name: container-data-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    volumes:
+      - ../../../services/data-service/src:/app/services/data-service/src
+      - ../../../services/data-service/run.ts:/app/services/data-service/run.ts
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Otomasyon/management servisi (MANAGEMENT-SERVICE-MIMARISI.md) —
+  # queue_management tüketicisi; kurallar config mount'undan okunur.
+  management-service:
+    build:
+      context: ../../../
+      dockerfile: services/management-service/deployment/Dockerfile.dev
+    container_name: container-management-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      SERVICE_TIER: container
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ../../../services/management-service/src:/app/services/management-service/src
+      - ../../../services/management-service/run.ts:/app/services/management-service/run.ts
+      - ./rules:/app/config:ro
+      - ./device-configs:/app/config-docker:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/result/src:/app/packages/result/src
+      - ../../../packages/platform/messaging/src:/app/packages/platform/messaging/src
+      - ../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../../../packages/tamper-logger/src:/app/packages/tamper-logger/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      device-service:
+        condition: service_started
+    networks:
+      - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web-service:
+    build:
+      context: ../../../
+      dockerfile: services/web-service/deployment/Dockerfile.dev
+    container_name: container-web-service-dev
+    environment:
+      NODE_ENV: development
+      PORT: 5001
+      HOST: 0.0.0.0
+      # Faz 1 T1.6 env konvansiyonu: tier sırları .env.container'dan gelir
+      # (field/boss dev ile birebir — sert kodlanmış dev-secret KALDIRILDI).
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      # AUTH-REFRESH (A1): kısa TTL test stack'i — e2e specleri bu env ile
+      # koşar (ACCESS_TOKEN_EXPIRY_SECONDS=10). Varsayılan 900 sn (15 dk).
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      MFA_ENABLED: ${MFA_ENABLED:-true}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # Faz 2 T2.3: FieldConnector bootstrap config (kapali varsayilan)
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-false}
+      FIELD_WS_URL: ${FIELD_WS_URL:-ws://host.docker.internal:5002/ws/container}
+      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # Faz 3: tunnel loopback upstream'leri — dev'de web Vite (5173), prod'da nginx (80)
+      TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://web-service:5001}
+      # 2026-08-28: tünel static upstream'i dev'de build edilmiş SPA'yı servis
+      # eden web-static (nginx) servisine gider — Vite dev sunucusu subpath'te
+      # boot edemez (T4.1). Ön koşul: nx run container-web:build.
+      TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://web-static:80}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../../../services/web-service/src:/app/services/web-service/src
+      - ./device-configs:/app/config-docker:ro
+      - ./maneuvers:/app/maneuver-config:ro
+      - ../../../services/web-service/run.ts:/app/services/web-service/run.ts
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../packages/result/src:/app/packages/result/src
+      - ../../../packages/platform/logging/src:/app/packages/platform/logging/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ../../../
+      dockerfile: apps/container-web/deployment/Dockerfile.dev
+    container_name: container-web-dev
+    environment:
+      NODE_ENV: development
+      VITE_WEB_SERVICE_URL: http://web-service:5001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../../../apps/container-web/src:/app/apps/container-web/src
+      - ../../../apps/container-web/index.html:/app/apps/container-web/index.html
+      - ../../../apps/container-web/vite.config.ts:/app/apps/container-web/vite.config.ts
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/ui/src:/app/packages/ui/src
+      - ../../../tsconfig.base.json:/app/tsconfig.base.json
+      - /app/apps/container-web/node_modules
+      - /app/node_modules
+    depends_on:
+      web-service:
+        condition: service_healthy
+    networks:
+      - container-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # 2026-08-28: tünel static upstream'i — build edilmiş container SPA'yı
+  # (dist) servis eden nginx. Dev Vite sunucusu mutlak modül URL'leri ürettiği
+  # için tünel subpath'inde (/containers/:cid/ui/) kullanılamaz (T4.1).
+  # Ön koşul: nx run container-web:build (dist mount edilir).
+  web-static:
+    image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+    container_name: container-web-static-dev
+    ports:
+      - "4173:80"
+    volumes:
+      - ../../../apps/container-web/dist:/usr/share/nginx/html:ro
+      - ./container-web-static.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - container-network
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  timescale-data-dev:
+  redis-data-dev:
+
+networks:
+  container-network:
+    driver: bridge

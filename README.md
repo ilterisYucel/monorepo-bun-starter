@@ -174,15 +174,17 @@ Full documentation classification: **[docs/README.md](./docs/README.md)**.
 
 ## Deployment Stacks
 
-All stacks are Docker Compose files in `deployment/` — the **product layer** (capabilities composed via config). Docs are not bundled into product images.
+All stacks are Docker Compose files under `deployment/<site>/<tier>/` — the **product layer** (capabilities composed via config). Docs are not bundled into product images.
 
 | Stack | Compose file | Exposed ports |
 |-------|--------------|---------------|
-| Container (prod) | `docker-compose.container.yml` | timescaledb 5432, redis 6379, web-service 5001 |
-| Container (dev) | `docker-compose.container.dev.yml` | same + hot-reload |
-| Field | `docker-compose.field.yml` / `.dev.yml` | timescaledb 5434, redis 6381, web-service 5002 |
-| Boss | `docker-compose.boss.dev.yml` | timescaledb 5435, redis 6382, web-service 5003, superadmin 5175 |
-| Demo backend (legacy) | `docker-compose.demo-backend.yml` | demo-backend 3000 |
+| Container (prod) | `prod/container/docker-compose.yml` | timescaledb 5432, redis 6379, web-service 5001 |
+| Container (dev) | `dev/container/docker-compose.yml` | same + hot-reload |
+| Field (prod) | `prod/field/docker-compose.yml` | timescaledb 5434, redis 6381, web-service 5002 |
+| Field (dev) | `dev/field/docker-compose.yml` | same + hot-reload |
+| Boss (prod) | `prod/boss/docker-compose.yml` | timescaledb 5435, redis 6382, web-service 5003, superadmin 5175 |
+| Boss (dev) | `dev/boss/docker-compose.yml` | same + hot-reload |
+| Demo backend (legacy) | `dev/demo-backend/docker-compose.yml` | demo-backend 3000 |
 | **Wiki (docs)** | `docker-compose.wiki.yml` | wiki 8090, postgres 5436 |
 
 ```bash

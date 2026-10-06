@@ -38,7 +38,7 @@ Bağlı olduğu tasarım (SPEC): [MANAGEMENT-SERVICE-MIMARISI.md](./MANAGEMENT-S
 | T5 | `src/action-executor.ts` (YENİ) — command/log/notify; sıralı + kademeli bozulma; `auto_rule_*` eventCode'ları | SPEC §7 — aksiyonlar | `action-executor.test.ts` (16 test) | ✅ | — |
 | T6 | `src/device-catalog.ts` + `src/rule-config-loader.ts` (YENİ) | SPEC §5 — ids∪types çözümü + fail-fast yükleme | `device-catalog.test.ts` (7) + `rule-config-loader.test.ts` (9) | ✅ | — |
 | T7 | `src/management-service.ts` (YENİ) — worker + tick döngüsü + start/stop/health/runCycle; `src/index.ts`; `run.ts` (YENİ) — env bazlı bootstrap, `isRuleEventCode` validator (sözlük + `auto_rule_` öneki), TamperLogger `alertRules` wiring; `package.json`/`project.json`/`tsconfig.json`/`vitest.config.ts`; `deployment/Dockerfile` + `Dockerfile.dev` | SPEC §3, §9 | `management-service.test.ts` (5 test) | ✅ | queue_management'ın İLK tüketicisi canlı |
-| T8 | `deployment/docker-compose.container.{yml,dev.yml}` — `management-service` servisi (redis+device-service bağımlılığı, config mount'ları); `deployment/.env.container.example` — `MANAGEMENT_EVALUATION_INTERVAL_MS`, `LOG_LEVEL`; `services/management-service/deployment/config/rules.example.json` | SPEC §9 — container tier wiring | `docker compose config` dev ✅ prod ✅; K7 canlı demo (aşağıda) | ✅ | Container stack'e yeni servis; field/boss etkilenmedi |
+| T8 | `deployment/docker-compose.container.{yml,dev.yml}` — `management-service` servisi (redis+device-service bağımlılığı, config mount'ları); `deployment/.env.container.example` — `MANAGEMENT_EVALUATION_INTERVAL_MS`, `LOG_LEVEL`; `deployment/dev/container/rules/rules.example.json` | SPEC §9 — container tier wiring | `docker compose config` dev ✅ prod ✅; K7 canlı demo (aşağıda) | ✅ | Container stack'e yeni servis; field/boss etkilenmedi |
 | T8 (sözlük) | `packages/platform/logging/src/event-codes.ts:45-52` — `auto_rule_fired`/`auto_rule_action_ok`/`auto_rule_action_failed` eklendi + test satırları | Fail-closed sözlük — otomasyon olayları kayıtlı olmalı | `event-codes.test.ts` ✅ | ✅ | Yeni eventCode'lar denetlenebilir |
 | İş akışı | `AGENTS.md` TDD bölümü + `TESTING.md` §8.1/§8.7 — 6 aşamalı zorunlu iş akışı + hibrit test dokümantasyonu kuralı | Kullanıcı kararı (2026-09-15) — gözlemlenebilir geliştirme kapıları | — | ✅ | Yeni/dokunulan modüller 6 aşama ile geliştirilir |
 | Workspace | `vitest.workspace.ts` — `platform/commands` + `management-service` eklendi | Root test script'lerinin yeni paketleri koşması | `bun run test` | ✅ | — |
@@ -68,7 +68,7 @@ Bağlı olduğu tasarım (SPEC): [MANAGEMENT-SERVICE-MIMARISI.md](./MANAGEMENT-S
 
 ## 5. Gözle Kontrol (K7 — canlı docker demo, 2026-09-15)
 
-**Kurulum:** `docker compose -f deployment/docker-compose.container.dev.yml -f <ports-override> up -d redis timescaledb device-service management-service` (redis host-port çakışması nedeniyle override: `ports: !reset []`). Demo kuralı: `bsc` tipi, `soc >= 0`, debounce 5 sn, cooldown 120 sn → `BSC-1 stop` + log + notify.
+**Kurulum:** `docker compose -f deployment/dev/container/docker-compose.yml -f <ports-override> up -d redis timescaledb device-service management-service` (redis host-port çakışması nedeniyle override: `ports: !reset []`). Demo kuralı: `bsc` tipi, `soc >= 0`, debounce 5 sn, cooldown 120 sn → `BSC-1 stop` + log + notify.
 
 **Gözlenen log satırları (`docker logs container-management-service-dev`):**
 1. `[run] 1 kural, 17 cihaz kayitli` — kural + katalog yüklendi (fail-fast geçti).

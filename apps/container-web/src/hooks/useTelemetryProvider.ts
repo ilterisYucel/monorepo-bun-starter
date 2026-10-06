@@ -47,7 +47,9 @@ function rangeToDates(range: TimeRange): { from: string; to: string } {
 }
 
 export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryProviderOptions) => {
-  const [selectedName, setSelectedName] = useState<string>("all");
+  const [selectedName, setSelectedName] = useState<string>(
+    options.telemetryNames?.[0] ?? "all",
+  );
   const [range, setRange] = useState<TimeRange>(options.defaultRange || "1h");
   const [points, setPoints] = useState<number>(options.defaultPoints || DEFAULT_POINTS);
   const [customFrom, setCustomFrom] = useState<string>();
@@ -61,6 +63,15 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
     setCustomTo(to);
     setRange("custom");
   }, []);
+
+  // İsim listesi geç geldiğinde "all" yerine ilk metriği seç — böylece istek
+  // hiçbir zaman tüm isim listesiyle (URL şişmesi) gitmez.
+  useEffect(() => {
+    if (selectedName !== "all") return;
+    if (options.telemetryNames && options.telemetryNames.length > 0) {
+      setSelectedName(options.telemetryNames[0]!);
+    }
+  }, [options.telemetryNames, selectedName]);
 
   useEffect(() => {
     if (range === "custom") return;
@@ -76,7 +87,17 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
   }, [range]);
 
   const { data: httpData = [], isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["telemetry", "downsampled", range, points, selectedName, options.filters, customFrom, customTo],
+    queryKey: [
+      "telemetry",
+      "downsampled",
+      range,
+      points,
+      selectedName,
+      options.filters,
+      options.deviceIds,
+      customFrom,
+      customTo,
+    ],
     queryFn: async ({ signal }) => {
       const from = range === "custom" && customFrom ? customFrom : fromToRef.current.from;
       const to = range === "custom" && customTo ? customTo : fromToRef.current.to;
@@ -109,6 +130,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
       return response.data.telemetries || [];
     },
     staleTime: 30000,
+    enabled: selectedName !== "all",
     refetchInterval: range === "1m" ? LIVE_1M_REFRESH_MS : range === "1h" ? LIVE_1H_REFRESH_MS : STATIC_REFRESH_MS,
   });
 

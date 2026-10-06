@@ -29,7 +29,7 @@ Bağlı tasarım: [KURAL-MOTORU-V2-MIMARISI.md](./KURAL-MOTORU-V2-MIMARISI.md)
 | Delegasyon kanalı (HTTP + iç token + AbortController timeout + 202) | `services/management-service/src/maneuver-operation-channel.ts` (YENİ) | ✅ 7/7 |
 | ActionExecutor: `maneuverOperations` kanalı + iki aksiyon yolu | `services/management-service/src/action-executor.ts` | ✅ 22/22 |
 | Execute rotaları: 15 sn senkron üst sınır → 202 (arka plan yürütme) | `services/web-service/src/presentation/routes/maneuver-routes.ts` | ✅ 17/17 |
-| Field rules.json: r06 → maneuver(fl06_recovery); SOC örneği (disabled) | `services/management-service/deployment/config-field/rules.json` | ✅ 5/5 |
+| Field rules.json: r06 → maneuver(fl06_recovery); SOC örneği (disabled) | `deployment/dev/field/rules/rules.json` | ✅ 5/5 |
 | Field kural testi: manevra delegasyonu sözleşmesi | `services/management-service/src/field-rules.test.ts` | ✅ |
 | run.ts: HttpManeuverOperationChannel wiring (FIELD_WEB_SERVICE_URL + token) | `services/management-service/run.ts` | ✅ |
 

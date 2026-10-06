@@ -1,8 +1,10 @@
 # Cihaz Konfigürasyon Rehberi
 
 > **Hedef kitle:** Yazılım bilmeyen saha/konfigürasyon personeli.
-> **Kapsam:** `device-service/config/*.json` dosyalarında Modbus cihazlarının nasıl tanımlanacağı.
+> **Kapsam:** Kök `configs/*.json` (source of truth) ve `deployment/<site>/<tier>/device-configs/*.json` (proje kopyaları) dosyalarında Modbus cihazlarının nasıl tanımlanacağı.
 > **Temel fikir:** Bir cihaz dosyası = cihazın kimliği + bağlantı bilgisi + okunacak/yazılacak değerlerin listesi. Sistem gerisini halleder.
+>
+> **Akış (MANDATORY):** Yeni cihaz config'i **önce kök `configs/`'e gerçek alet adıyla** eklenir (örn. `flex-bsc.json`); register/bitfield/alarm/canonical burada sabitlenir. Projede kullanılırken buradan `deployment/<site>/<tier>/device-configs/`'e **kopyalanır** ve yalnız projeye özgü değişkenler (host, port, slaveId, instance adı/id) değiştirilir. Register listesi ve alarmlar projeye göre **değişmez**.
 
 ## 1. En küçük örnek
 

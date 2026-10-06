@@ -203,7 +203,7 @@ Fault sözcükleri (D01-D10) aynı adlandırmayla ("Fault occurred" semantiği) 
 
 ## 4. Device Config Tasarımı
 
-Dosya: `services/device-service/deployment/config-field/pcs-<N>.json` (field tier; N = konteyner indeksi, 1'den başlar).
+Dosya: `deployment/dev/field/device-configs/pcs-<N>.json` (field tier; N = konteyner indeksi, 1'den başlar).
 
 ```jsonc
 {

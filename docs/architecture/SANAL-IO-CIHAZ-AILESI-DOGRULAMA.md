@@ -21,7 +21,7 @@ review_date: 2026-09-16
 | C4 | `packages/simulators/src/imd/` — register-map + simulator + adapter + test | `imd-simulator.ts` | OTOMASYON FL-11 — izolasyon izleme |
 | C5 | `packages/simulators/src/index.ts` — 4 barrel export | — | paket dışı tüketim |
 | C6 | `services/device-service/src/simulator-registry.ts` — 4 kayıt (`registerDefaults`) | `aux-analyser`/`fss`/`control-panel-io`/`imd` blokları | config `transport.type` → transport üretimi |
-| C7 | Config'ler: `services/device-service/config/{aux-analyser-1,fss-1,control-panel-io-1,imd-1}.json` + `deployment/config-docker/` kopyaları | — | ayrı config per fiziksel cihaz (SPEC §1 kararı); compose değişikliği YOK (config-docker zaten mount'lu) |
+| C7 | Config'ler: `services/device-service/deployment/sample-config/{aux-analyser-1,fss-1,control-panel-io-1,imd-1}.json` + `deployment/dev/container/device-configs/` kopyaları | — | ayrı config per fiziksel cihaz (SPEC §1 kararı); compose değişikliği YOK (config-docker zaten mount'lu) |
 | C8 | BSC config'leri (5 dosya): +`Rack Max Diff Temp (Global)` 30264, +`Rack Max Diff Temp Pack (Global)` 30265 | `configs/bsc.json`, `config/bsc-1.json`, `config/bsc-2.json`, `config-docker/*` | Flex BSC map sheet9 satır 343-344 doğrulaması — WS2 |
 | C9 | PCS config'leri (3 dosya): +`allow_charge`/`allow_discharge` (Forbidden register'ına 0) | `config/pcs-1.json` vb. | OTOMASYON §4.6 — yeni register GEREKMEZ |
 | C10 | `packages/platform/commands/src/command-job-builder.test.ts` +3 test | — | allow job üretimi + gerçek config yükleme |
@@ -50,7 +50,7 @@ nx run platform-commands:test → 17 test YEŞİL (+3: allow komutları + gerçe
 
 - [x] `nx run simulators:test` yeşil; yeni modüller index barrel'dan export'lu.
 - [x] `nx run device-service:test` yeşil; config-loader yeni JSON'ları hatasız yükledi (log: "aux-analyser-1.json -> AUX-ANALYSER-1" vb.).
-- [x] `config-docker/` kopyaları compose mount'uyla uyumlu (docker-compose.container.yml:80 `config-docker` `:ro`).
+- [x] `config-docker/` kopyaları compose mount'uyla uyumlu (prod/container/docker-compose.yml:80 `config-docker` `:ro`).
 - [x] Jeneriklik: simülatör paketinde GD-PMS'ye özgü davranış YOK; register sözleşmeleri config'te.
 - [x] Elegant Object: simülatör sınıfları private state + tick(commut)/read(sorgu)/write(commut); komut metodları void.
 - [x] Bilinen sapma: `Rack Max Diff Temp R1`/`Rack Max Diff Temp Pack R1` mevcut config'te 30264/30265 adreslerini taşıyor (global register'lar) — R1-R8 serisi 30464+ deseniyle devam ediyor. Global girdiler AYRI adlarla eklendi; per-rack serisi KORUNDU (S9 mühendis sorusu — yeniden etiketleme ileride).

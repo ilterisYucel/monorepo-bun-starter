@@ -87,7 +87,7 @@ FIELD APP = SAHA PMS/PPC  ◄── bu dokümanın katmanı
 
 ### 3.0 Cihaz Komut-Register Sözlüğü (Wattox PCS)
 
-> `services/device-service/deployment/config-field/pcs-1.json` — UYGULANMIŞ komut seti.
+> `deployment/dev/field/device-configs/pcs-1.json` — UYGULANMIŞ komut seti.
 
 **Komutlar:**
 
@@ -321,7 +321,7 @@ fl06_recovery: { mode: "parallel", onFailure: "continue",
 ```
 
 ```jsonc
-// services/management-service/deployment/config-field/rules.json — ÇALIŞAN KURAL
+// deployment/dev/field/rules/rules.json — ÇALIŞAN KURAL
 { "name": "r06_recovery", "enabled": true, "cooldownMs": 60000,
   "when": { "all": [
     { "device": { "ids": ["PCS-1"] }, "telemetry": "Emergency Stop Button Status", "op": "eq", "threshold": 0, "debounceMs": 2000 },

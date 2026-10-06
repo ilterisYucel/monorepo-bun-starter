@@ -399,10 +399,10 @@ export const plugin = {
 
 ### 8.1 Docker Compose (boss dev stack)
 
-`deployment/docker-compose.boss.dev.yml` içinde `integration-service` servisi:
+`deployment/dev/boss/docker-compose.yml` içinde `integration-service` servisi:
 
 - **Env:** `INTEGRATION_PLUGIN_DIR=/app/customer-plugins`, `INTEGRATION_CONFIG_DIR=/app/config/plugins`, `INTEGRATION_STATE_DIR=/app/data/plugins` + Redis/Postgres bağlantıları.
-- **Volume'lar:** service src, plugin-sdk src, epias-client src, epias plugin src (HMR benzeri dev deneyimi), `services/integration-service/config` → `/app/config`, `deployment/customer-plugins` → `/app/customer-plugins`, state için named volume.
+- **Volume'lar:** service src, plugin-sdk src, epias-client src, epias plugin src (HMR benzeri dev deneyimi), `deployment/dev/boss/plugins` → `/app/config`, `deployment/customer-plugins` → `/app/customer-plugins`, state için named volume.
 - Redis + TimescaleDB healthcheck'e bağımlı.
 - `Dockerfile.dev` web-service pattern'iyle aynı (oven/bun + `bun --watch run.ts`).
 

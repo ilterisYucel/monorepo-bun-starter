@@ -77,6 +77,13 @@ export interface TelemetryChartProps {
   /** Tag bazlı filtreleme seçenekleri (client-side). Her config bir dropdown oluşturur */
   tagFilters?: TagFilterConfig[];
 
+  /**
+   * Tag filtre dropdown'ları gösterilsin mi? (Varsayılan: true)
+   * `false` iken filtreler yalnız `defaultTagSelections` ile uygulanır — tek
+   * cihazlı (karşılaştırmalı olmayan) grafiklerde seçim UI'si gösterilmez.
+   */
+  showTagFilters?: boolean;
+
   /** Olay/arıza anotasyonları (opsiyonel). Verilmezse checkbox'lar gösterilmez */
   eventAnnotations?: EventAnnotationsProvider;
 

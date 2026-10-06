@@ -48,7 +48,7 @@ bun-debug.log*
 .env.*
 !.env.example
 !.env.sample
-# Tier sablonlari commit'lenir; gercek tier env'leri (.env.field/.env.container/.env.boss) gitignore'lu kalir
+# Tier sablonlari commit'lenir (kök); gercek tier env'leri deployment/<site>/<tier>/.env olarak gitignore'lu kalir
 !.env.field.example
 !.env.container.example
 !.env.boss.example
@@ -124,8 +124,7 @@ __pycache__/
 # ============================================
 # SECRETS — deployment/servis konfigürasyonları
 # ============================================
-deployment/.env.container
-deployment/.env.field
-deployment/.env.boss
+# Gerçek tier env'leri compose'un yanında yaşar (deployment/<site>/<tier>/.env)
+deployment/**/.env
 # EPİAŞ canlı kimlik bilgileri (example şablonu commit'lidir)
-services/integration-service/config/plugins/epias-market-prices.json
+deployment/**/plugins/epias-market-prices.json

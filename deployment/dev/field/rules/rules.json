@@ -1,0 +1,85 @@
+{
+  "rules": [
+    {
+      "name": "r06_recovery",
+      "enabled": true,
+      "cooldownMs": 60000,
+      "when": {
+        "all": [
+          {
+            "device": {
+              "ids": [
+                "PCS-1"
+              ]
+            },
+            "telemetry": "Emergency Stop Button Status",
+            "op": "eq",
+            "threshold": 0,
+            "debounceMs": 2000
+          },
+          {
+            "device": {
+              "ids": [
+                "PCS-1"
+              ]
+            },
+            "telemetry": "PCS Fault Status",
+            "op": "eq",
+            "threshold": 0
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "maneuver",
+          "name": "fl06_recovery"
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_r06_recovery",
+          "message": "FL-06 Recovery: E-stop kalkti — sistem Standby'a dondu (manevra delegasyonu)"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    },
+    {
+      "name": "soc_discharge_example",
+      "enabled": false,
+      "cooldownMs": 300000,
+      "when": {
+        "all": [
+          {
+            "device": {
+              "ids": [
+                "PCS-1"
+              ]
+            },
+            "telemetry": "Grid Active Power",
+            "op": "gte",
+            "threshold": 100
+          }
+        ]
+      },
+      "then": [
+        {
+          "action": "operation",
+          "name": "field_discharge",
+          "params": {
+            "powerKw": 200
+          }
+        },
+        {
+          "action": "log",
+          "level": "info",
+          "eventCode": "auto_rule_soc_discharge"
+        },
+        {
+          "action": "notify"
+        }
+      ]
+    }
+  ]
+}

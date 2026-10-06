@@ -29,9 +29,9 @@ export const BscPage: React.FC = () => {
   const devices = useDevicesStore((s) => s.devices);
   const { data: realtimeData } = useRealtimeStream();
 
-  const bscDevices = useMemo(() => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")), [devices]);
+  const bscDevices = useMemo(() => devices.filter((d) => d.type !== "bsc-pcs-connector" && (d.type === "bsc" || d.id?.startsWith("BSC-"))), [devices]);
   const cbDevices = useMemo(() => devices.filter((d) => d.type === "cb" || d.id?.startsWith("CB-")), [devices]);
-  const dcDevices = useMemo(() => devices.filter((d) => d.type === "dc-output" || d.id?.startsWith("DC-")), [devices]);
+  const dcDevices = useMemo(() => devices.filter((d) => d.type !== "dc-meter" && (d.type === "dc-output" || d.id?.startsWith("DC-"))), [devices]);
 
   const bsc1Id = bscDevices[0]?.id ?? "BSC-1";
   const bsc2Id = bscDevices[1]?.id ?? "BSC-2";
@@ -199,7 +199,7 @@ export const BscPage: React.FC = () => {
           <SingleTelemetryChart provider={allBscProvider} telemetryNames={allBscNames}
             title="BSC Karşılaştırma" yAxisLabel="Değer" height={450}
             labels={chartLabels} locale={loc}
-            tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]} />
+            tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]} />
         </S.UnifiedChartWrap>
 
         {cbDevices.length > 0 && (
@@ -218,8 +218,9 @@ export const BscPage: React.FC = () => {
                 <SingleTelemetryChart key={id} provider={cbProvider} telemetryNames={cbNames}
                   title={id} yAxisLabel="Değer" height={350}
                   labels={chartLabels} locale={loc}
-                  tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]}
-                  defaultTagSelections={{ deviceId: [id] }} />
+                  tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]}
+                  showTagFilters={false}
+                  defaultTagSelections={{ device_id: [id] }} />
               ))}
             </S.ChartRow>
 
@@ -227,7 +228,7 @@ export const BscPage: React.FC = () => {
               <SingleTelemetryChart provider={cbProvider} telemetryNames={cbNames}
                 title="Circuit Breaker — Karşılaştırmalı" yAxisLabel="Değer" height={450}
                 labels={chartLabels} locale={loc}
-                tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]} />
+                tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]} />
             </S.UnifiedChartWrap>
           </>
         )}
@@ -251,8 +252,9 @@ export const BscPage: React.FC = () => {
                 <SingleTelemetryChart key={id} provider={dcProvider} telemetryNames={dcNames}
                   title={id} yAxisLabel="Değer" height={350}
                   labels={chartLabels} locale={loc}
-                  tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]}
-                  defaultTagSelections={{ deviceId: [id] }} />
+                  tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]}
+                  showTagFilters={false}
+                  defaultTagSelections={{ device_id: [id] }} />
               ))}
             </S.ChartRow>
 
@@ -260,7 +262,7 @@ export const BscPage: React.FC = () => {
               <SingleTelemetryChart provider={dcProvider} telemetryNames={dcNames}
                 title="DC Output — Karşılaştırmalı" yAxisLabel="Değer" height={450}
                 labels={chartLabels} locale={loc}
-                tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]} />
+                tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]} />
             </S.UnifiedChartWrap>
           </>
         )}

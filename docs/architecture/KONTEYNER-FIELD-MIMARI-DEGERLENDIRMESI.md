@@ -96,7 +96,7 @@ Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, out
 |---|----------|-------|------|
 | 1 | Container→Field WS istemcisi yok. Field'da `/ws/container` + `ContainerProxy` var ama `register` mesajı gönderen hiçbir container tarafı kod yok | `web-service/src/infrastructure/container-proxy/*` | PPC asla `true` olamaz |
 | 2 | PPC göstergesi container UI'ında beslenmiyor (prop default `false`) | `container-web/src/layouts/MainLayout.tsx:69` | Gereksinim 4 bloklu |
-| 3 | Field stack'te device-service ve data-service yok | `deployment/docker-compose.field.yml` | Field'dan PCS polling/komut imkansız |
+| 3 | Field stack'te device-service ve data-service yok | `deployment/prod/field/docker-compose.yml` | Field'dan PCS polling/komut imkansız |
 | 4 | Field komut yolu arka uçta yok: manevra adımları mock'ta dolu (`PCS-N` hedefli) ama field'da device-service/BullMQ consumer olmadığı için gerçek komut yürütülemez | `apps/field/src/features/field-control/maneuvers.ts` | Gereksinim 3 uygulanmamış |
 | 5 | Field UI'ı mock veride çalışıyor | `apps/field/src/features/**/hooks/*` | Gerçek API'ya bağlı değil |
 | 6 | Management servisi yok; kullanıcı yönetimi web-service içinde | `web-service/src/presentation/routes/auth-routes.ts` | Karar bekliyor |
@@ -106,7 +106,7 @@ Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, out
 7. **Service-to-service auth yok.** `/ws/container` doğrulamasız; `ContainerProxy.historical()` JWT'siz HTTP. Dışarıya açık field'a sahte container kaydı mümkün.
 8. **Field→Container komut kanalı tanımsızdı.** PCS komutları WS'ten geçmez (field device-service → Modbus). 2026-08-19'da uzaktan erişim tüneli kararıyla çözüldü: konteyner içi cihaz komutları oturumlu uzak UI üzerinden container API'siyle yürütülür (rol eşlemesi: admin/teknik → admin). Programatik (UI'sız) field→container komut frame'i gereksinimi açık kalıyor.
 9. **Redis kalıcılığı kapalı** (`--save "" --appendonly no`, `allkeys-lru` 64MB). Güç kesintisi = kayıp BullMQ job (komut/telemetri); `allkeys-lru` bellek baskısında pending job evict eder.
-10. **RevPi kaynak profiliyle uyumsuz prod ayarları**: `shared_buffers=4GB`, `effective_cache_size=12GB` (`docker-compose.container.yml`).
+10. **RevPi kaynak profiliyle uyumsuz prod ayarları**: `shared_buffers=4GB`, `effective_cache_size=12GB` (`prod/container/docker-compose.yml`).
 11. **Sırlar sabit**: `JWT_SECRET` compose içinde; seed kullanıcılar `admin/admin123` kodda (`web-service/src/config/default.ts`).
 12. **Image pinleme yok** (`timescale/timescaledb:latest-pg14`).
 13. **PPC semantiği belirsiz**: field header'da agrega (`onlineContainers > 0`), container'da beslenmiyor. Per-container mı global mı netleşmeli. Not: enerji endüstrisinde "PPC" = Power Plant Controller; adlandırma çakışması riski. **2026-08-19:** Kullanıcı arayüzünde "Field Bağlantısı" etiketi kullanılacak; kod tarafında PPC kısaltması kalabilir.

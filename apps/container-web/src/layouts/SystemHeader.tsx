@@ -9,8 +9,6 @@ interface SystemHeaderProps {
   flowDirection?: ChargeStatus;
   ppcConnected?: boolean;
   powerConsumption?: number;
-  ambientTemp?: number;
-  ambientHumidity?: number;
 }
 
 const ChargeIcon = SCADA_ICONS.batteryCharge;
@@ -21,7 +19,6 @@ const OnlineIcon = SCADA_ICONS.statusOnline;
 const OfflineIcon = SCADA_ICONS.statusOffline;
 const ClockIcon = SCADA_ICONS.timer;
 const PowerIcon = SCADA_ICONS.batteryDischarge;
-const TempIcon = SCADA_ICONS.temperature;
 const MenuIcon = SCADA_ICONS.menu;
 
 const powerColor = (kw: number): string => {
@@ -44,8 +41,6 @@ const Boxes: React.FC<{
   ppcConnected: boolean;
   powerConsumption: number;
   now: Date;
-  ambientTemp?: number;
-  ambientHumidity?: number;
 }> = ({
   t,
   locale,
@@ -54,8 +49,6 @@ const Boxes: React.FC<{
   ppcConnected,
   powerConsumption,
   now,
-  ambientTemp,
-  ambientHumidity,
 }) => {
   const chargeLabel = t(
     CHARGE_KEY[flowDirection] ?? "device.chargeStatus.Idle",
@@ -121,22 +114,6 @@ const Boxes: React.FC<{
           {t("device.powerConsumption")}: {powerConsumption.toFixed(1)} kW
         </S.Label>
       </S.Box>
-      {ambientTemp !== undefined && (
-        <S.Box>
-          <TempIcon size={16} />
-          <S.Label>
-            {t("header.ambient")}: {ambientTemp.toFixed(1)}°C
-          </S.Label>
-        </S.Box>
-      )}
-      {ambientHumidity !== undefined && (
-        <S.Box>
-          <TempIcon size={16} />
-          <S.Label>
-            {t("header.humidity")}: {ambientHumidity.toFixed(0)}%
-          </S.Label>
-        </S.Box>
-      )}
     </>
   );
 };
@@ -146,8 +123,6 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
   flowDirection = "Idle",
   ppcConnected = false,
   powerConsumption = 0,
-  ambientTemp,
-  ambientHumidity,
 }) => {
   const { t, locale } = useTranslation();
   const [now, setNow] = useState(new Date());
@@ -183,8 +158,6 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
           ppcConnected={ppcConnected}
           powerConsumption={powerConsumption}
           now={now}
-          ambientTemp={ambientTemp}
-          ambientHumidity={ambientHumidity}
         />
       </S.Grid>
       <S.Hamburger ref={menuRef}>
@@ -201,8 +174,6 @@ export const SystemHeader: React.FC<SystemHeaderProps> = ({
               ppcConnected={ppcConnected}
               powerConsumption={powerConsumption}
               now={now}
-              ambientTemp={ambientTemp}
-              ambientHumidity={ambientHumidity}
             />
           </S.Popup>
         )}

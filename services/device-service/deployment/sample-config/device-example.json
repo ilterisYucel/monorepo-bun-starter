@@ -1,0 +1,31 @@
+{
+  "deviceId": "EXAMPLE-DEVICE-1",
+  "name": "Example Device",
+  "manufacturer": "Example",
+  "model": "Example-1000",
+  "protocol": "MODBUS",
+  "type": "example",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 502,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "protocol": "MODBUS",
+      "name": "Example Voltage",
+      "description": "Ornek gerilim olcumu",
+      "unit": "V",
+      "registerAddress": 0,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "group": "status"
+      }
+    }
+  ]
+}

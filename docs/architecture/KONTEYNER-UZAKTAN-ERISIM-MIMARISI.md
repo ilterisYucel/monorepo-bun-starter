@@ -645,7 +645,7 @@ Not: `devices.status='offline'` bugün yalnızca `stop()`'ta yazılıyor (`devic
 | T1.3 | `fieldIds` → JWT payload + `field-routes` yetki tamiri | `token-adapter.ts`, `field-routes.ts` |
 | T1.4 | `ROUTE_PERMISSIONS`: `/api/commands` → admin/teknik; `/api/fields` mutasyonları → admin/boss | `rbac.ts` |
 | T1.5 | `historical()/health()`: registry URL + token'lı fetch (tünele kadar geçici) | `container-proxy.ts` |
-| T1.6 | Redis AOF, JWT_SECRET compose'dan çıkar, seed şifre zorunlu değişim | `docker-compose.field.yml`, `default.ts` |
+| T1.6 | Redis AOF, JWT_SECRET compose'dan çıkar, seed şifre zorunlu değişim | `prod/field/docker-compose.yml`, `default.ts` |
 
 **Kabul kriteri:** Sahte token ile register 401; `fieldIds`'siz token saha verisine erişemez; Redis yeniden başlatınca job'lar kaybolmaz. **TDD:** `rbac.ts`, `field-routes.ts`, `ws-routes.ts` karakterizasyon testleri değişiklikten önce yeşil olarak sabitlenir.
 

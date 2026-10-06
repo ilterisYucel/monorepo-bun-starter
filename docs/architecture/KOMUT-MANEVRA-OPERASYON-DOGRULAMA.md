@@ -37,9 +37,9 @@ Kapsam: **Faz A (A1-A3)** + **Faz B (B1-B5)** + **Faz C** + **Faz D** (2026-09-2
 | Barrel güncelleme | `packages/shared-types/src/commands/index.ts` | ✅ |
 | `ManeuverRegistry` (davranışsız kayıt) | `packages/platform/commands/src/maneuver-registry.ts` (YENİ) | ✅ 7/7 |
 | Barrel güncelleme | `packages/platform/commands/src/index.ts` | ✅ |
-| Konteyner `maneuvers.json` (11 kayıt: 8 katalog + fl_idle + bsc_stop + bsc_prepare) | `services/web-service/deployment/config-docker/maneuvers.json` (YENİ) | ✅ |
-| Field `maneuvers.json` (11 kayıt: fl01/03/04/05/06/07/10 + pcs_charge/discharge/stop) | `services/web-service/deployment/config-field/maneuvers.json` (YENİ) | ✅ |
-| Field `operations.json` (field_charge/field_discharge/field_maintenance) | `services/web-service/deployment/config-field/operations.json` (YENİ) | ✅ |
+| Konteyner `maneuvers.json` (11 kayıt: 8 katalog + fl_idle + bsc_stop + bsc_prepare) | `deployment/dev/container/maneuvers/maneuvers.json` (YENİ) | ✅ |
+| Field `maneuvers.json` (11 kayıt: fl01/03/04/05/06/07/10 + pcs_charge/discharge/stop) | `deployment/dev/field/maneuvers/maneuvers.json` (YENİ) | ✅ |
+| Field `operations.json` (field_charge/field_discharge/field_maintenance) | `deployment/dev/field/maneuvers/operations.json` (YENİ) | ✅ |
 
 ## 2b. Faz D2 — Frontend Migrasyonu (2026-09-22)
 

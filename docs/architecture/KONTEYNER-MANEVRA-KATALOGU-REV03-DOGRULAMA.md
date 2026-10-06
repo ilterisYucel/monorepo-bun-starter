@@ -30,9 +30,9 @@ Kapsam: **İP-1 — Faz 1.1-1.6 (cihaz katmanı rework)** + **İP-2 — Faz 2-3 
 | Değişiklik | Dosya(lar) | Geçme |
 |:-----------|:-----------|:------|
 | DC metre simülatör modülü (FLOAT32 BE + alarm word; salt okuma) | `packages/simulators/src/dc-meter/*` (YENİ) | ✅ 12/12 |
-| dc-meter config (iki dizin — K-A7) | `services/device-service/{config,deployment/config-docker}/dc-meter-1.json` (YENİ) | ✅ loader testi |
+| dc-meter config (iki dizin — K-A7) | `services/device-service/{config,deployment/dev/container/device-configs}/dc-meter-1.json` (YENİ) | ✅ loader testi |
 | EMU silme (simülatör + config + registry + mapping kaynağı) | `packages/simulators/src/emu/*`, `config-docker/emu-1.json`, `config/emu-1.json`, `simulator-registry.ts` | ✅ silindi |
-| B19/B20 sabit kaynak (A7) | `deployment/config-docker/mappings/bsc-pcs-mapping.json` (786/787 → constant 35000) | ✅ `config-connector.test.ts` |
+| B19/B20 sabit kaynak (A7) | `deployment/dev/container/device-configs/mappings/bsc-pcs-mapping.json` (786/787 → constant 35000) | ✅ `config-connector.test.ts` |
 | CB şalter rework (K2): register map + simülatör + config (SYW6GZ-4000) | `packages/simulators/src/cb/*`, `config-docker/cb-{1,2}.json` + `config/` | ✅ 9/9 + loader |
 | CBCard rework (trip/akım/sıcaklık kaldırıldı; aux kontak modeli) | `packages/ui/src/components/CBCard/*` | ✅ build |
 | CB tüketicileri: BscPage, DashBoardPage, DashBoardPageV2, ScadaDashboardPage | `apps/container-web/src/pages/*` | ✅ build |
@@ -43,7 +43,7 @@ Kapsam: **İP-1 — Faz 1.1-1.6 (cihaz katmanı rework)** + **İP-2 — Faz 2-3 
 | Bender Modbus eki indirildi | `docs/devices/isoPV1685RTU_D00007_A_XXEN_Modbus.pdf` (YENİ) | ✅ |
 | FSS → control-panel-io DI (K5): register map + simülatör + config + alarmlar | `packages/simulators/src/control-panel-io/*`, config'ler | ✅ 13/13 |
 | Legacy PCS silme (K11) | `packages/simulators/src/pcs/*`, `config-docker/pcs-1.json`, `config/pcs-1.json`, registry | ✅ silindi |
-| **İP-2: rules.json FL seti (43 kural — §3.1)** | `services/management-service/deployment/config/rules.json` (REWRITE) | ✅ 22/22 |
+| **İP-2: rules.json FL seti (43 kural — §3.1)** | `deployment/dev/container/rules/rules.json` (REWRITE) | ✅ 22/22 |
 | **İP-2: RuleEvaluator per-condition debounce (K-A1 3 kademeli koruma)** | `services/management-service/src/rule-evaluator.ts` | ✅ 17/17 (yeni test dahil) |
 | **İP-2: kural zinciri integration spec (K9)** | `services/management-service/src/automation-rules.spec.ts` (YENİ) | ✅ 8/8 |
 | **İP-2: e2e automation-rules** | `e2e/automation-rules.spec.ts` (YENİ) | ⏸ docker stack'te koşar (Playwright) |

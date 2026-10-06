@@ -32,7 +32,7 @@ jobs:
 
       - name: Start services
         run: |
-          docker compose -f deployment/docker-compose.container.dev.yml up -d --wait
+          docker compose -f deployment/dev/container/docker-compose.yml up -d --wait
           sleep 5
 
       - name: Run k6 tests
@@ -42,4 +42,4 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: docker compose -f deployment/docker-compose.container.dev.yml down -v
+        run: docker compose -f deployment/dev/container/docker-compose.yml down -v

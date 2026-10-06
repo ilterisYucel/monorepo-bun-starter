@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type { IMessageQueue } from "@gd-monorepo/core";
-import type { DeviceJob, TelemetryData } from "@gd-monorepo/shared-types";
-import {
-  CommandJobBuilder,
-  DeviceConfigFileSource,
-} from "@gd-monorepo/platform-commands";
+import type { DeviceConfigFile, DeviceJob, TelemetryData } from "@gd-monorepo/shared-types";
+import { CommandJobBuilder } from "@gd-monorepo/platform-commands";
 import { RuleConfigLoader } from "./rule-config-loader";
 import { CycleSnapshotStore } from "./cycle-snapshot-store";
 import { RuleEvaluator } from "./rule-evaluator";
@@ -26,11 +25,30 @@ import { ActionExecutor } from "./action-executor";
  */
 
 const RULES_PATH = fileURLToPath(
-  new URL("../deployment/config/rules.json", import.meta.url),
+  new URL("../../../deployment/dev/container/rules/rules.json", import.meta.url),
 );
 const DEVICE_CONFIG_DIR = fileURLToPath(
-  new URL("../../device-service/deployment/config-docker", import.meta.url),
+  new URL("../../../configs", import.meta.url),
 );
+
+/** Kök configs/ (source of truth) taraması — kanonik dosya adları alet adıdır;
+ *  testler dosya adına değil deviceId/içeriğe bakar. */
+function loadDeviceConfigs(dir: string): DeviceConfigFile[] {
+  return readdirSync(dir)
+    .filter((file) => file.endsWith(".json") && !file.startsWith("service."))
+    .map((file) => JSON.parse(readFileSync(join(dir, file), "utf-8")) as DeviceConfigFile);
+}
+
+function configSourceFrom(configs: DeviceConfigFile[]) {
+  const byId = new Map(configs.map((c) => [c.deviceId.toLowerCase(), c]));
+  return { load: (deviceId: string) => byId.get(deviceId.toLowerCase()) };
+}
+
+interface DeviceCounts {
+  cb: number;
+  bsc: number;
+  hvac: number;
+}
 
 interface Harness {
   evaluator: RuleEvaluator;
@@ -40,6 +58,15 @@ interface Harness {
   log: ReturnType<typeof vi.fn>;
   advance: (ms: number) => void;
   fire: (deviceId: string, rows: TelemetryData[]) => Promise<void>;
+  counts: DeviceCounts;
+}
+
+function countDevices(configs: DeviceConfigFile[]): DeviceCounts {
+  return {
+    cb: configs.filter((c) => c.deviceId.startsWith("CB-")).length,
+    bsc: configs.filter((c) => c.deviceId.startsWith("BSC-")).length,
+    hvac: configs.filter((c) => c.type === "hvac").length,
+  };
 }
 
 let nowMs = 0;
@@ -65,10 +92,12 @@ function harness(): Harness {
     deviceConfigDir: DEVICE_CONFIG_DIR,
   });
   const catalog = loader.loadCatalog();
+  const configs = loadDeviceConfigs(DEVICE_CONFIG_DIR);
+  const counts = countDevices(configs);
   const evaluator = new RuleEvaluator(catalog, { now: () => nowMs });
   const store = new CycleSnapshotStore({ maxAgeMs: 3600_000, now: () => nowMs });
   const builder = new CommandJobBuilder({
-    source: new DeviceConfigFileSource(DEVICE_CONFIG_DIR),
+    source: configSourceFrom(configs),
   });
   const jobs: DeviceJob[] = [];
   const mq: IMessageQueue = {
@@ -101,7 +130,7 @@ function harness(): Harness {
     }
   };
 
-  return { evaluator, executor, store, jobs, log, advance, fire };
+  return { evaluator, executor, store, jobs, log, advance, fire, counts };
 }
 
 describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
@@ -110,7 +139,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
   });
 
   describe("FL-08 — DC kısa devre (DC-METER-1)", () => {
-    it("V>1500 + debounce 1 sn → CB open ×2 + BSC open_contactors ×2 + audit", async () => {
+    it("V>1500 + debounce 1 sn → CB open + BSC open_contactors (tüm aktif cihazlar) + audit", async () => {
       const h = harness();
 
       await h.fire("DC-METER-1", [
@@ -125,17 +154,18 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
         telemetry("DC-METER-1", "DC Power", 75),
       ]);
 
-      // K-A10: job'lar GERÇEK config register yazımlarıdır.
+      // K-A10: job'lar GERÇEK config register yazımlarıdır. Beklenen adet,
+      // kaynak config setindeki CB/BSC cihaz sayısından türetilir (generic).
       const cbJobs = h.jobs.filter((j) => j.deviceId.startsWith("CB-"));
       const bscJobs = h.jobs.filter((j) => j.deviceId.startsWith("BSC-"));
-      expect(cbJobs.map((j) => j.telemetries[0])).toEqual([
-        expect.objectContaining({ name: "Open", value: 1 }),
-        expect.objectContaining({ name: "Open", value: 1 }),
-      ]);
-      expect(bscJobs.map((j) => j.telemetries[0])).toEqual([
-        expect.objectContaining({ name: "Command Request", value: 4 }),
-        expect.objectContaining({ name: "Command Request", value: 4 }),
-      ]);
+      expect(cbJobs).toHaveLength(h.counts.cb);
+      expect(
+        cbJobs.every(
+          (j) => j.telemetries[0]?.name === "Open" && j.telemetries[0]?.value === 1,
+        ),
+      ).toBe(true);
+      expect(bscJobs).toHaveLength(h.counts.bsc);
+      expect(bscJobs.every((j) => j.telemetries[0]?.value === 4)).toBe(true);
       // Audit zinciri: auto_rule_fired + aksiyon ok'ları
       expect(h.log).toHaveBeenCalledWith(
         expect.objectContaining({ eventCode: "auto_rule_fired" }),
@@ -150,7 +180,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
   });
 
   describe("FL-02 — AUX kaybı (PM5340-1)", () => {
-    it("Voltage L-N Avg < 180 + debounce 5 sn → şalter AÇ + kontaktör AÇ", async () => {
+    it("Voltage L-N Avg < 180 + debounce 5 sn → şalter AÇ + kontaktör AÇ (tüm aktif cihazlar)", async () => {
       const h = harness();
 
       await h.fire("PM5340-1", [
@@ -163,14 +193,14 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
 
       const cbJobs = h.jobs.filter((j) => j.deviceId.startsWith("CB-"));
       const bscJobs = h.jobs.filter((j) => j.deviceId.startsWith("BSC-"));
-      expect(cbJobs).toHaveLength(2);
-      expect(bscJobs).toHaveLength(2);
-      expect(bscJobs.map((j) => j.telemetries[0]!.value)).toEqual([4, 4]);
+      expect(cbJobs).toHaveLength(h.counts.cb);
+      expect(bscJobs).toHaveLength(h.counts.bsc);
+      expect(bscJobs.every((j) => j.telemetries[0]!.value === 4)).toBe(true);
     });
   });
 
   describe("FL-05 koruma — aşırı sıcak", () => {
-    it("Max Pack Temp > 50 + debounce 5 dk → 8 force_cool + 2 BSC stop", async () => {
+    it("Max Pack Temp > 50 + debounce 5 dk → tüm HVAC force_cool + tüm BSC stop", async () => {
       const h = harness();
 
       await h.fire("BSC-1", [telemetry("BSC-1", "Max Pack Temp", 51)]);
@@ -180,11 +210,11 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
       const cool = h.jobs.filter((j) =>
         j.telemetries.some((t) => t.name === "Cooling Setpoint"),
       );
-      expect(cool).toHaveLength(8);
+      expect(cool).toHaveLength(h.counts.hvac);
       const stops = h.jobs.filter(
         (j) => j.deviceId.startsWith("BSC-") && j.telemetries[0]!.value === 3,
       );
-      expect(stops).toHaveLength(2);
+      expect(stops).toHaveLength(h.counts.bsc);
     });
   });
 
@@ -211,7 +241,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
   });
 
   describe("FL-07 — kapı DI (control-panel-io)", () => {
-    it("Battery Door Open 1 → ışık AÇ + BSC stop ×2", async () => {
+    it("Battery Door Open 1 → ışık AÇ + tüm BSC stop", async () => {
       const h = harness();
 
       await h.fire("CONTROL-PANEL-IO-1", [
@@ -223,8 +253,8 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
         expect.objectContaining({ name: "Battery Room Light", value: true }),
       );
       const stops = h.jobs.filter((j) => j.deviceId.startsWith("BSC-"));
-      expect(stops).toHaveLength(2);
-      expect(stops.map((j) => j.telemetries[0]!.value)).toEqual([3, 3]);
+      expect(stops).toHaveLength(h.counts.bsc);
+      expect(stops.every((j) => j.telemetries[0]!.value === 3)).toBe(true);
     });
 
     it("kenar-tetik: kapı kapalıyken KAPATMA kuralı ateşler (ışık söner)", async () => {
@@ -243,7 +273,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
   });
 
   describe("FL-11 — toprak direnci (IMD-1)", () => {
-    it("Insulation Alarm 4 + debounce 2 sn → CB open + kontaktör AÇ", async () => {
+    it("Insulation Alarm 4 + debounce 2 sn → CB open + kontaktör AÇ (tüm aktif cihazlar)", async () => {
       const h = harness();
 
       await h.fire("IMD-1", [telemetry("IMD-1", "Insulation Alarm", 4)]);
@@ -252,8 +282,8 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
 
       const cbJobs = h.jobs.filter((j) => j.deviceId.startsWith("CB-"));
       const bscJobs = h.jobs.filter((j) => j.deviceId.startsWith("BSC-"));
-      expect(cbJobs).toHaveLength(2);
-      expect(bscJobs).toHaveLength(2);
+      expect(cbJobs).toHaveLength(h.counts.cb);
+      expect(bscJobs).toHaveLength(h.counts.bsc);
     });
   });
 

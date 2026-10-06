@@ -10,8 +10,9 @@ import { ManeuverRegistry } from "./maneuver-registry";
 /**
  * A3 migrasyon sözleşmesi (KOMUT-MANEVRA-OPERASYON §5, A3):
  *
- * - Tier config dosyaları (services/web-service/deployment/config-docker ve
- *   config-field) fail-fast yüklenir (bozuk kayıt → THROW; servis açılmaz).
+ * - Tier config dosyaları (deployment/dev/container/maneuvers ve
+ *   deployment/dev/field/maneuvers) fail-fast yüklenir (bozuk kayıt → THROW;
+ *   servis açılmaz).
  * - Konteyner kataloğu İP-1/İP-2 temizliğinin birebir yansımasıdır:
  *   BSC charge/discharge YOK (K12); koruma kartları kurallara taşındı (K-A5);
  *   bsc_prepare (K12: güç paramı YOK) + bsc_stop uzak adım kayıtları.
@@ -21,19 +22,19 @@ import { ManeuverRegistry } from "./maneuver-registry";
 
 const CONTAINER_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../services/web-service/deployment/config-docker/maneuvers.json",
+    "../../../../deployment/dev/container/maneuvers/maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../services/web-service/deployment/config-field/maneuvers.json",
+    "../../../../deployment/dev/field/maneuvers/maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_OPERATIONS_PATH = fileURLToPath(
   new URL(
-    "../../../../services/web-service/deployment/config-field/operations.json",
+    "../../../../deployment/dev/field/maneuvers/operations.json",
     import.meta.url,
   ),
 );

@@ -1,7 +1,17 @@
-import { ModbusDevice, CANBusDevice, MQTTDevice, ModbusRtuClient, ModbusClientTransport } from "@gd-monorepo/core";
-import type { IModbusTransport } from "@gd-monorepo/core";
-import type { IDevice, ModbusTelemetryData, DeviceConfigFile, TelemetryConfigEntry } from "@gd-monorepo/shared-types";
-import type { ModbusRtuConfig } from "@gd-monorepo/core";
+import {
+  ModbusDevice,
+  CANBusDevice,
+  MQTTDevice,
+  ModbusRtuClient,
+  ModbusClientTransport,
+} from "@gd-monorepo/core";
+import type { IModbusTransport, ModbusRtuConfig } from "@gd-monorepo/core";
+import type {
+  IDevice,
+  ModbusTelemetryData,
+  DeviceConfigFile,
+  TelemetryConfigEntry,
+} from "@gd-monorepo/shared-types";
 
 /**
  * DeviceFactory — config'ten `IDevice` üretir (yalnız TCP/RTU; simülatör dalı YOK).
@@ -57,9 +67,7 @@ export class DeviceFactory {
     return undefined;
   }
 
-  private buildModbusConfig(
-    config: DeviceConfigFile,
-  ): {
+  private buildModbusConfig(config: DeviceConfigFile): {
     id: string;
     name: string;
     manufacturer: string;
@@ -95,7 +103,7 @@ export class DeviceFactory {
     // Konfigürasyondaki canonical alanı tags.canonical olarak taşınır —
     // cihazdan bağımsız semantik eşleme frontend tarafında name'e bağlı kalmaz.
     const tags = entry.canonical
-      ? { ...(entry.tags ?? {}), canonical: entry.canonical }
+      ? { ...entry.tags, canonical: entry.canonical }
       : entry.tags;
 
     return {

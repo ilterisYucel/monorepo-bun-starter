@@ -194,7 +194,7 @@ ALTER TABLE users ADD CONSTRAINT valid_role CHECK (role IN ('admin', 'teknik', '
 #### Docker Deployment
 
 ```yaml
-# deployment/docker-compose.field.yml
+# deployment/prod/field/docker-compose.yml
 services:
   field-web-service:
     build: apps/field-backend

@@ -101,7 +101,7 @@ eşleştirilir; eşleşen tüm satırlar ve **Birlikte oku** sütunundaki dosyal
 | Dosya | Konu | Tetik (yol / sembol / görev) | Birlikte oku |
 |:------|:-----|:-----------------------------|:-------------|
 | `AGENTS-INFRA.md` | Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | Yeni paket/workspace; `nx.json`; tsconfig build; DI arayüzü; framework sürümü | — |
-| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `services/device-service/config/*.json`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
+| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `services/device-service/deployment/sample-config/*.json`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
 | `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
 | `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorRegistry` | `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |

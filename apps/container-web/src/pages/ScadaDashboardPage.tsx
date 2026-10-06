@@ -36,7 +36,7 @@ export const ScadaDashboardPage: React.FC = () => {
   const { data: realtimeData } = useRealtimeStream();
 
   const bscDevices = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")),
+    () => devices.filter((d) => d.type !== "bsc-pcs-connector" && (d.type === "bsc" || d.id?.startsWith("BSC-"))),
     [devices],
   );
 

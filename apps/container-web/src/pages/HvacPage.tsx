@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
-  HvacCard, SingleTelemetryChart, TelemetryChart,
+  HvacCard, SingleTelemetryChart,
   SummaryCard, SectionHeader, CardGrid,
   SCADA_ICONS, useTranslation,
 } from "@gd-monorepo/ui";
@@ -97,16 +97,17 @@ export const HvacPage: React.FC = () => {
               <SingleTelemetryChart key={id} provider={hvacProvider} telemetryNames={hvacNames}
                 title={id} yAxisLabel="Değer" height={350}
                 labels={chartLabels} locale={loc}
-                tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]}
-                defaultTagSelections={{ deviceId: [id] }} />
+                tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]}
+                showTagFilters={false}
+                defaultTagSelections={{ device_id: [id] }} />
             ))}
           </S.ChartRow>
 
           <S.UnifiedChartWrap>
-            <TelemetryChart provider={hvacProvider} telemetryNames={hvacNames}
+            <SingleTelemetryChart provider={hvacProvider} telemetryNames={hvacNames}
               title="HVAC — Karşılaştırmalı" yAxisLabel="Değer" height={450}
               labels={chartLabels} locale={loc}
-              tagFilters={[{ tagKey: "deviceId", label: "Cihaz" }]}
+              tagFilters={[{ tagKey: "device_id", label: "Cihaz" }]}
               eventAnnotations={eventAnnotations} />
           </S.UnifiedChartWrap>
         </>

@@ -5,7 +5,6 @@ import type { PageTypeV2 } from "./SidebarV2.types";
 import { SystemHeader } from "./SystemHeader";
 import { useChargeStatus } from "../hooks/useChargeStatus";
 import { useFieldConnection } from "../hooks/useFieldConnection";
-import { useHvacData } from "../features/hvac";
 import { useEnergyAnalyzerData } from "../features/energy-analyzer";
 import * as S from "./MainLayout.styles";
 
@@ -24,7 +23,6 @@ export const MainLayoutV2: React.FC<MainLayoutV2Props> = ({
   const location = useLocation();
   const { chargeStatus } = useChargeStatus();
   const { fieldConnected } = useFieldConnection();
-  const { averages: hvacAvg } = useHvacData();
   const { summaries: eaSummaries } = useEnergyAnalyzerData();
   const totalActivePower = useMemo(
     () => eaSummaries.reduce((sum, s) => sum + s.phaseA.activePower + s.phaseB.activePower + s.phaseC.activePower, 0),
@@ -74,8 +72,6 @@ export const MainLayoutV2: React.FC<MainLayoutV2Props> = ({
           flowDirection={chargeStatus}
           ppcConnected={fieldConnected}
           powerConsumption={totalActivePower}
-          ambientTemp={hvacAvg.avgCurrentTemp || undefined}
-          ambientHumidity={hvacAvg.avgReturnHumidity || undefined}
         />
         <S.PageContent>{children}</S.PageContent>
       </S.MainContent>

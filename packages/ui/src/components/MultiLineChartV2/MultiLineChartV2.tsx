@@ -393,11 +393,7 @@ export const MultiLineChartV2: React.FC<MultiLineChartV2Props> = ({
   }
 
   if (data.length === 0) {
-    return (
-      <S.Empty style={{ height: `${height}px` }}>
-        <p>{L.noData}</p>
-      </S.Empty>
-    );
+    return <S.EmptyPlot style={{ height: `${height}px` }} aria-hidden="true" />;
   }
 
   return (

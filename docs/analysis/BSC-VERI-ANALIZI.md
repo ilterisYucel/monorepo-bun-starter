@@ -104,7 +104,7 @@ Rack başına 6 flag bloğu: Disabled (1–N), Online (N+1–2N), Alarm (2N+1–
 ## Config Dosya Düzeni
 
 - **Canonical kök: `configs/`** — model adıyla: `bsc.json`, `hvac.json` (eski `*-simulator.json` adları kaldırıldı).
-- Uygulama kopyaları: `packages/services/device-service/config/` (bsc-1, bsc-2 — instance) ve `deployment/config-docker/` — canonical'den türetilir.
+- Uygulama kopyaları: `packages/services/device-service/deployment/sample-config/` (bsc-1, bsc-2 — instance) ve `deployment/dev/container/device-configs/` — canonical'den türetilir.
 - Config'ler "uygulama bazlı" değildir; aynı cihaz config'i hangi tier'da koşarsa koşsun geçerlidir — tier farkı runtime tag'lerinde (`container_id`/`field_id`) ortaya çıkar.
 
 ## Field'a Çekilecek Veriler (proxy + hafif aggregate)
@@ -259,7 +259,7 @@ Field UI/manevra → field web-service → BullMQ → field device-service
 | `configs/pcs.json` | PCS canonical (n=1 şablonu; n. instance `5000+300×(n−1)` ofsetiyle üretilir) |
 | `configs/emu.json` | EMU istasyon canonical |
 | `device-service/config/pcs-1..3.json`, `emu-1.json` | Instance kopyaları (port 5031–5033, 5030) |
-| `device-service/deployment/config-docker/*` | Docker kopyaları |
+| `device-service/deployment/dev/container/device-configs/*` | Docker kopyaları |
 
 - Simülatörler: `packages/simulators/src/pcs/` + `src/emu/` (input üretimi, setpoint kabulü, coil on/off, enerji sayaçları).
 - **Taşıma katmanı (Strategy):** Config'de `transport.kind` ile açık seçim — `"tcp"` (varsayılan) / `"rtu"` / `"simulator"` (tip alanı: `bsc|pcs|emu|...`). `ModbusDevice` yalnızca `IModbusTransport` sözleşmesini görür; simülatör tick'i `SimulatorTransport.connect()` ile başlar, `disconnect()` ile durur.
@@ -298,7 +298,7 @@ Dökümanda TTC Status&Alarm bit tablosu var (fan, aşırı sıcaklık trip/alar
 | 3 | Pencere→PCS kimlik doğrulaması | Her pencereyi oku: AC active power yönünü, o konteynerin BSC ChargeStatus'u ile karşılaştır (şarj eden konteynerin PCS'i negatif güç gösterir). Enerji sayaçları da kimlik ipucudur. |
 | 4 | 32-bit kelime sırası | Beklenen değerler: AC voltaj ≈ 400 V, frekans ≈ 50.000 Hz, nominal PCS gücü 240 kW. Sapma varsa kelime sırası (hi/lo) kontrol edilir. |
 | 5 | EMU bağlantı limiti | 9 eşzamanlı TCP bağlantı (1 EMU + N PCS) kullanılır; EMU üreticisinden maksimum eşzamanlı Modbus TCP bağlantı sınırını teyit et. Gerekirse tek bağlantı paylaşımı eklenir. |
-| 6 | Config deploy'u | Simülatör modda portlar ayrıdır; gerçek sahada tüm `connection` alanları aynı EMU IP:502'ye çevrilir (`deployment/config-docker` override'ları). `deviceId`'ler (PCS-1..N) UI eşlemesi için stabil kalmalıdır. |
+| 6 | Config deploy'u | Simülatör modda portlar ayrıdır; gerçek sahada tüm `connection` alanları aynı EMU IP:502'ye çevrilir (`deployment/dev/container/device-configs` override'ları). `deviceId`'ler (PCS-1..N) UI eşlemesi için stabil kalmalıdır. |
 | 7 | Firmware sürümü | EMU firmware sürümü V0.0.2 dışına çıkarsa (stride/base değişimi) `gen-pcs-configs` yeniden çalıştırılmalıdır. |
 | 8 | BSC tarafı | Controller Heartbeat (40000, 1 sn) yazılıyor olmalı; aksi halde S-C LOC ile kontaktörler açılır. |
 | 9 | Cihaz `type` alanı | Tüm config'lerde üst seviye `type` alanı zorunludur (`bsc`, `pcs`, `emu`, `hvac`, `cb`, `dc-output`, `energy-analyzer`, ...). Üretimde `transport.kind` "simulator" olmadığı için device-service cihaz tipini buradan alır (`c.type ?? c.transport?.type ?? "unknown"`). |

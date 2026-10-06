@@ -1,0 +1,130 @@
+{
+  "deviceId": "CB-2",
+  "name": "DC Switch-Disconnector 2",
+  "manufacturer": "Generic",
+  "model": "SYW6GZ-4000",
+  "protocol": "MODBUS",
+  "type": "cb",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 15522,
+    "slaveId": 1
+  },
+  "pollIntervalMs": 2000,
+  "transport": {
+    "kind": "simulator",
+    "type": "cb"
+  },
+  "telemetry": [
+    {
+      "name": "Is Closed",
+      "description": "Şalter kapalı (aux NC kontak)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "deviceId": "CB-2"
+      }
+    },
+    {
+      "name": "Is Open",
+      "description": "Şalter açık (aux NO kontak)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "deviceId": "CB-2"
+      }
+    },
+    {
+      "name": "Open",
+      "description": "Shunt trip bobini — uzaktan açma",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "deviceId": "CB-2"
+      }
+    },
+    {
+      "name": "Close",
+      "description": "Kapama bobini",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "deviceId": "CB-2"
+      }
+    }
+  ],
+  "commands": {
+    "open": {
+      "label": "Aç (Open)",
+      "telemetries": [
+        {
+          "name": "Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Is Open",
+            "expect": true
+          },
+          {
+            "name": "Is Closed",
+            "expect": false
+          }
+        ]
+      }
+    },
+    "close": {
+      "label": "Kapat (Close)",
+      "telemetries": [
+        {
+          "name": "Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Is Closed",
+            "expect": true
+          },
+          {
+            "name": "Is Open",
+            "expect": false
+          }
+        ]
+      }
+    }
+  }
+}

@@ -43,6 +43,19 @@ export const Empty = styled.div`
   color: ${COLORS.textDisabled};
 `;
 
+/** Veri yokken metin yerine çizilen boş grafik iskeleti (eksen + ızgara). */
+export const EmptyPlot = styled.div`
+  background: ${COLORS.bgPopup};
+  border-left: 1px solid ${COLORS.borderDefault};
+  border-bottom: 1px solid ${COLORS.borderDefault};
+  border-radius: 4px;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, ${COLORS.bgSkeleton} 1px, transparent 1px),
+    linear-gradient(to bottom, ${COLORS.bgSkeleton} 1px, transparent 1px);
+  background-size: 25% 25%;
+`;
+
 export const DEFAULT_COLORS = [
   COLORS.info, COLORS.error, COLORS.success, COLORS.warning, COLORS.chart5, COLORS.chart6,
   COLORS.chart7, COLORS.chart8, COLORS.chart9, COLORS.chart10, COLORS.chart11, COLORS.chart12,

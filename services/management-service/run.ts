@@ -73,7 +73,7 @@ async function main() {
 
   const rulesPath = process.env.MANAGEMENT_RULES_PATH ?? "config/rules.json";
   const deviceConfigDir =
-    process.env.DEVICE_CONFIG_DIR ?? "../device-service/config";
+    process.env.DEVICE_CONFIG_DIR ?? "../../deployment/dev/container/device-configs";
   const evaluationIntervalMs = Number(
     process.env.MANAGEMENT_EVALUATION_INTERVAL_MS ??
       DEFAULT_EVALUATION_INTERVAL_MS,

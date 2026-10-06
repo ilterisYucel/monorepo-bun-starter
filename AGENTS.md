@@ -42,7 +42,7 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 | Dosya | Konu | Tetik (yol / sembol / görev) | Birlikte oku |
 | :--- | :--- | :--- | :--- |
 | `AGENTS-INFRA.md` | Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | Yeni paket/workspace; `nx.json`; tsconfig build; DI arayüzü; framework sürümü | — |
-| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `services/device-service/config/*.json`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
+| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `deployment/**/device-configs/*.json`; `services/device-service/deployment/sample-config/`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
 | `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
 | `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorHost` | `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
@@ -137,9 +137,9 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 
 ## Docker / deployment
 
-- Compose files: `deployment/docker-compose.{field,boss,container}*.yml` (prod + dev) — the **product layer**.
+- Compose files: site/tier bazlı — `deployment/{dev,prod}/{container,field,boss}/docker-compose.yml`, `deployment/aws/{edge,boss}/docker-compose.yml` (prod + dev) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır.
 - Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
-- **Env convention (MANDATORY):** tier başına ayrı env dosyası — `deployment/.env.field`, `.env.container`, `.env.boss` (üçü de gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/.env.<tier>` ile geçer (script'ler `package.json`'da hazır). Commit'lenen şablonlar: `.env.<tier>.example` (sır yok; kopyalanıp doldurulur). Tier dosyalarına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `.env.container`'da; field token'ı register API'siyle hash olarak DB'de tutar).
+- **Env convention (MANDATORY):** env dosyası ilgili stack dizininde compose'un yanında yaşar — `deployment/<site>/<tier>/.env` (gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/<site>/<tier>/.env` ile geçer (script'ler `package.json`'da hazır). Kökte yalnızca commit'lenen şablonlar kalır: `deployment/.env.<tier>.example` (sır yok; tier dizinine `.env` olarak kopyalanıp doldurulur). Tier dosyasına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `container/.env`'de; field token'ı register API'siyle hash olarak DB'de tutar).
 - Backend Dockerfiles: `services/*/deployment/` (prod) + `Dockerfile.dev` (hot-reload).
 - Web Dockerfiles: `apps/container-web/deployment/`.
 - Customer plugins: `deployment/customer-plugins/` (mounted into integration-service at runtime).

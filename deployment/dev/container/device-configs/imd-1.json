@@ -1,0 +1,84 @@
+{
+  "deviceId": "IMD-1",
+  "name": "Insulation Monitoring Device 1",
+  "manufacturer": "Bender",
+  "model": "isoPV1685RTU",
+  "protocol": "MODBUS",
+  "type": "imd",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 15536,
+    "slaveId": 1
+  },
+  "pollIntervalMs": 2000,
+  "transport": {
+    "kind": "simulator",
+    "type": "imd"
+  },
+  "telemetry": [
+    {
+      "name": "Insulation Resistance",
+      "description": "İzolasyon direnci (Ω)",
+      "unit": "Ω",
+      "protocol": "MODBUS",
+      "registerAddress": 8192,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Insulation Prewarning",
+      "description": "Ön uyarı (0 OK / 4 Warning)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8196,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Insulation Alarm",
+      "description": "İzolasyon alarmı (0 OK / 4 Warning)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8197,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Device Error",
+      "description": "Cihaz hatası (0 yok / >0 kod)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8206,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "alarms": [
+    {
+      "telemetry": "Insulation Alarm",
+      "severity": "error",
+      "description": "İzolasyon değeri ideal değil (FL-11)"
+    },
+    {
+      "telemetry": "Device Error",
+      "severity": "error",
+      "description": "IMD cihaz hatası"
+    }
+  ]
+}

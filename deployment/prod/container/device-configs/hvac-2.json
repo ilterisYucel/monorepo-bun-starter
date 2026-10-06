@@ -1,0 +1,1004 @@
+{
+  "deviceId": "HVAC-2",
+  "name": "HVAC Unit 2",
+  "manufacturer": "HVAC",
+  "model": "MC90HDNC1R-L",
+  "protocol": "MODBUS",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 15512,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "name": "Equipment Status",
+      "description": "Equipment Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4096,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Electric Heating On",
+      "description": "Electric Heating On",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4097,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Indoor Fan Status",
+      "description": "Indoor Fan Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4098,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Supply Temp",
+      "description": "Supply Temp",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 4099,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "zone": "server_room",
+        "unit": "2",
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Outdoor Fan Status",
+      "description": "Outdoor Fan Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4100,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Return Humidity",
+      "description": "Return Humidity",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 4101,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "zone": "return_air",
+        "unit": "2",
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Compressor Status",
+      "description": "Compressor Status",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4102,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Current Temp",
+      "description": "Current Temp",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 4104,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "zone": "server_room",
+        "unit": "2",
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Outside Temp",
+      "description": "Outside Temp",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 4108,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Condenser Temp",
+      "description": "Condenser Temp",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 4110,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Evaporator Temp",
+      "description": "Evaporator Temp",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 4112,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Internal Fan Speed",
+      "description": "Internal Fan Speed",
+      "unit": "rpm",
+      "protocol": "MODBUS",
+      "registerAddress": 4114,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "External Fan Speed",
+      "description": "External Fan Speed",
+      "unit": "rpm",
+      "protocol": "MODBUS",
+      "registerAddress": 4116,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "AC Input Voltage",
+      "description": "AC Input Voltage",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 4118,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Equipment Runtime",
+      "description": "Equipment Runtime",
+      "unit": "hours",
+      "protocol": "MODBUS",
+      "registerAddress": 4124,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Compressor Runtime",
+      "description": "Compressor Runtime",
+      "unit": "hours",
+      "protocol": "MODBUS",
+      "registerAddress": 4128,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Internal Fan Runtime",
+      "description": "Internal Fan Runtime",
+      "unit": "hours",
+      "protocol": "MODBUS",
+      "registerAddress": 4132,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm",
+      "description": "High Temp Alarm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 768,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm 2",
+      "description": "High Temp Alarm 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 769,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm 3",
+      "description": "High Temp Alarm 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 770,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm 4",
+      "description": "High Temp Alarm 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 771,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm 5",
+      "description": "High Temp Alarm 5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 772,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm 6",
+      "description": "High Temp Alarm 6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 773,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Low Temp Alarm",
+      "description": "Low Temp Alarm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 774,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Low Temp Alarm 2",
+      "description": "Low Temp Alarm 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 775,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Low Temp Alarm 3",
+      "description": "Low Temp Alarm 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 776,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Over Voltage Alarm",
+      "description": "Over Voltage Alarm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 777,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Under Voltage Alarm",
+      "description": "Under Voltage Alarm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 778,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Over Voltage Alarm 2",
+      "description": "Over Voltage Alarm 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 779,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Under Voltage Alarm 2",
+      "description": "Under Voltage Alarm 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 780,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Compressor Fault",
+      "description": "Compressor Fault",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 781,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Fan Fault",
+      "description": "Fan Fault",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 782,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Heater Fault",
+      "description": "Heater Fault",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 783,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Sensor Fault",
+      "description": "Sensor Fault",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 784,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Pressure Alarm",
+      "description": "High Pressure Alarm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 786,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Low Pressure Alarm",
+      "description": "Low Pressure Alarm",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 787,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Condenser Fault",
+      "description": "Condenser Fault",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 790,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Evaporator Fault",
+      "description": "Evaporator Fault",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 791,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Slave Address",
+      "description": "Modbus slave address",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Baud Rate",
+      "description": "Communication baud rate",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Monitor Temp Mode",
+      "description": "Temperature monitoring mode",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 9,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Cooling Setpoint",
+      "description": "Target cooling temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 10,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 1,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Cooling Hysteresis",
+      "description": "Cooling hysteresis band",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 11,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Compressor Start Delay",
+      "description": "Delay before compressor start",
+      "unit": "s",
+      "protocol": "MODBUS",
+      "registerAddress": 12,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Restart Delay",
+      "description": "Restart delay after stop",
+      "unit": "s",
+      "protocol": "MODBUS",
+      "registerAddress": 13,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Alarm Set",
+      "description": "High temperature alarm threshold",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 14,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 2,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "High Temp Hysteresis",
+      "description": "High temp alarm hysteresis",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 15,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Low Temp Alarm Set",
+      "description": "Low temperature alarm threshold",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 16,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 2,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Low Temp Hysteresis",
+      "description": "Low temp alarm hysteresis",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 17,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Heating Setpoint",
+      "description": "Target heating temperature",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 28,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 1,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Heating Hysteresis",
+      "description": "Heating hysteresis band",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Remote On/Off",
+      "description": "Remote unit on/off control",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 514,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 1,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Reset Command",
+      "description": "Write 1 to reset all alarms",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 512,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 2,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Server Temp Max",
+      "description": "Maximum server temperature setting",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 8192,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Server Temp Min",
+      "description": "Minimum server temperature setting",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 8193,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    },
+    {
+      "name": "Server Temp Avg",
+      "description": "Average server temperature setting",
+      "unit": "°C",
+      "protocol": "MODBUS",
+      "registerAddress": 8194,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "INT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "room": "room1"
+      }
+    }
+  ],
+  "commands": {
+    "on": {
+      "label": "Aç (On)",
+      "telemetries": [
+        {
+          "name": "Remote On/Off",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Equipment Status",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "off": {
+      "label": "Kapat (Off)",
+      "telemetries": [
+        {
+          "name": "Remote On/Off",
+          "value": 0
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Equipment Status",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "force_cool": {
+      "label": "Soğutmayı Zorla",
+      "telemetries": [
+        {
+          "name": "Remote On/Off",
+          "value": 1
+        },
+        {
+          "name": "Cooling Setpoint",
+          "value": 10
+        }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Equipment Status",
+            "expect": 2
+          }
+        ]
+      }
+    },
+    "force_heat": {
+      "label": "Isıtmayı Zorla",
+      "telemetries": [
+        {
+          "name": "Remote On/Off",
+          "value": 1
+        },
+        {
+          "name": "Heating Setpoint",
+          "value": 500
+        }
+      ],
+      "timeoutMs": 3000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Equipment Status",
+            "expect": 2
+          }
+        ]
+      }
+    }
+  },
+  "pollIntervalMs": 2000,
+  "type": "hvac",
+  "transport": {
+    "kind": "simulator",
+    "type": "hvac"
+  }
+}

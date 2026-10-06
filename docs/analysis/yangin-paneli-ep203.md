@@ -119,7 +119,7 @@ EP203, **C-TEC** tarafından üretilen, hem konvansiyonel yangın ihbar paneli h
 
 ### 3.1 Cihaz Konfigürasyonu
 
-**Dosya:** `services/device-service/config/ep203.json`
+**Dosya:** `services/device-service/deployment/sample-config/ep203.json`
 
 Mevcut `device-factory.ts` içindeki `MODBUS` protokolü kullanılır — hiçbir kod değişikliği gerekmez. `device-service` bu konfigürasyonu otomatik okur ve `ModbusTcpClient` ile I/O modülüne bağlanır.
 
@@ -370,7 +370,7 @@ Fault DI = true (enerjili → sağlıklı).
 
 | Bileşen | Dosya |
 |---------|-------|
-| Cihaz konfigürasyonu | `services/device-service/config/ep203.json` |
+| Cihaz konfigürasyonu | `services/device-service/deployment/sample-config/ep203.json` |
 | Yangın paneli sayfası | `apps/container-web/src/pages/FirePanelPage.tsx` |
 | Sayfa stilleri | `apps/container-web/src/pages/FirePanelPage.styles.ts` |
 | React Query hook | `apps/container-web/src/features/fire/hooks/useFireAlarmData.ts` |

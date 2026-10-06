@@ -1,0 +1,84 @@
+{
+  "deviceId": "DC-METER-1",
+  "name": "DC Meter",
+  "manufacturer": "ACREL",
+  "model": "DJSF1352-RN",
+  "protocol": "MODBUS",
+  "type": "dc-meter",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 5030,
+    "slaveId": 1
+  },
+  "pollIntervalMs": 1000,
+  "transport": {
+    "kind": "simulator",
+    "type": "dc-meter"
+  },
+  "telemetry": [
+    {
+      "name": "Alarm Word",
+      "description": "DC metre alarm word (bit semantiği manual ile netleşir)",
+      "unit": "",
+      "protocol": "MODBUS",
+      "registerAddress": 19,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "component": "dc-meter"
+      }
+    },
+    {
+      "name": "DC Voltage",
+      "description": "DC bara gerilimi",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 50,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "component": "dc-meter"
+      }
+    },
+    {
+      "name": "DC Current",
+      "description": "DC bara akımı",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 52,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "component": "dc-meter"
+      }
+    },
+    {
+      "name": "DC Power",
+      "description": "DC bara gücü",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 54,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "component": "dc-meter"
+      }
+    }
+  ]
+}

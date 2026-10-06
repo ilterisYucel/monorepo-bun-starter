@@ -32,7 +32,7 @@ export const DashboardPage: React.FC = () => {
   const { units: hvacUnits, averages: hvacAvg } = useHvacData();
   const devices = useDevicesStore((s) => s.devices);
   const bscDevices = useMemo(
-    () => devices.filter((d) => d.type === "bsc" || d.id?.startsWith("BSC-")),
+    () => devices.filter((d) => d.type !== "bsc-pcs-connector" && (d.type === "bsc" || d.id?.startsWith("BSC-"))),
     [devices],
   );
 

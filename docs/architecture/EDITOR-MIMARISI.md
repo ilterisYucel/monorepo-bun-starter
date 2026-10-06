@@ -55,7 +55,7 @@ apps/editor/src/features/editor/device-catalog/
 
 | Katman | İçerik | Kaynak |
 |--------|--------|--------|
-| **Built-in seed'ler** | BSC/HVAC/CB/DC-Output/PCS/EMU gibi bilinen cihazların register-accurate tanımları | `services/device-service/config/*.json` (mevcut gerçek config'lerden üretilir — placeholder değil) |
+| **Built-in seed'ler** | BSC/HVAC/CB/DC-Output/PCS/EMU gibi bilinen cihazların register-accurate tanımları | `services/device-service/deployment/sample-config/*.json` (mevcut gerçek config'lerden üretilir — placeholder değil) |
 | **Kullanıcı cihazları** | Operatörün tanımladığı cihazlar (H1) | Editör içi `DeviceCatalogStore` (Zustand, persist); CRUD |
 | **Görsel meta** | icon, defaultSize, connectionPoints | Editor-local eşleme tablosu; kullanıcı cihazlarında kategori bazlı **fallback ikon** (ikon upload P6+) |
 

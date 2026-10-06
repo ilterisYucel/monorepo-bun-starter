@@ -124,7 +124,7 @@ awilix ile; management-service executor'ı KULLANMAZ — web-service REST'ini i�
 ## 5. Manevra Kaydı (`maneuvers.json`)
 
 Tier config dizininde (`services/web-service/deployment/config*` gibi; rules.json deseni —
-`management-service/deployment/config-field/rules.json`). Frontend kataloğu (`MANEUVERS`,
+`management-service/deployment/dev/field/device-configs/rules.json`). Frontend kataloğu (`MANEUVERS`,
 `FIELD_MANEUVERS`) bu dosyaya MİGRE EDİLİR; UI `GET /api/maneuvers` ile okur.
 
 ```jsonc

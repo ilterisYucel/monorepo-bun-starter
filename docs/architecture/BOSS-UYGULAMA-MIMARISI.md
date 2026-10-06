@@ -305,7 +305,7 @@ Not: Bu karar yalnızca **uzaktan görünüm iframe'i** içindir; boss uygulamas
 
 - `apps/superadmin` iskeleti: PWA, `MobileShell`, `AuthStore`, boss login (`boss123` seed, `mustChangePassword`).
 - `services/web-service` `SERVICE_TIER=boss`: `FieldPoller` (30 sn, `admin_fields`), `/api/admin/fields` CRUD.
-- `docker-compose.boss.dev.yml`: timescaledb + redis + web-service(5003) + superadmin(5175) + integration-service (EPİAŞ plugin'i).
+- `dev/boss/docker-compose.yml`: timescaledb + redis + web-service(5003) + superadmin(5175) + integration-service (EPİAŞ plugin'i).
 - `packages/ui`: `FieldMap` (Leaflet TR), `FieldCard`, `ContainerConnectionBadge`.
 
 ### 7.2 Field summary payload genişletmesi
@@ -440,7 +440,7 @@ Faz kapanışlarında [BOSS-UYGULAMA-DOGRULAMA.md](./BOSS-UYGULAMA-DOGRULAMA.md)
 | A3 | `screen.orientation.lock` iOS kısıtları — rotate overlay yeterli mi | Faz 3'te cihaz matrisiyle doğrulanır |
 | A4 | EPİAŞ dashboard özetlerinin `external_series`'e yazılmıyor oluşu (plugin seri seti) | Faz 2 başında kontrol; gerekirse plugin seri listesine eklenir |
 | A5 | Field app içi login: boss, uzaktan görünüm iframe'inde field uygulamasına **boss rolüyle** giriş yapar; tek-login (SSO) iyileştirme adayı | Faz 3 sonrası değerlendirilir |
-| A6 | Prod `docker-compose.boss.yml` henüz yok (yalnızca dev) | Faz kapanışlarında dev ortamda doğrulama; prod compose Faz 5 öncesi |
+| A6 | Prod `prod/boss/docker-compose.yml` henüz yok (yalnızca dev) | Faz kapanışlarında dev ortamda doğrulama; prod compose Faz 5 öncesi |
 | A7 | Uplink protokol sürümü/geriye uyumluluk (eski field sürümleri uplink'siz çalışmaya devam eder) | Faz 3 tasarımında sürüm alanıyla sabitlenir |
 | A8 | Çift katmanlı oturum token'ları: `field-session` etiketi `container-session` ile karışmamalı (`ITokenSigner` sözleşmesi) | Faz 3'te doğrulanır |
 | A9 | ws-tunnel arındırması: `peerId` genellemesi (protokol v2), `TUNNEL_*` nötr isimler, cookieName/allowlist config'i (F1-F7 envanteri) | Faz 3 tasarımında — uplink'i bloklamaz; bkz. [WS-TUNNEL-URUN-TESCILI.md](./WS-TUNNEL-URUN-TESCILI.md) |

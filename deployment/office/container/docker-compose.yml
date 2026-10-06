@@ -1,0 +1,219 @@
+# Office / RevPi deployment — container tier (timescale HARİÇ; harici DB sunucusuna bağlanır).
+#
+# RevPi'de: repo clone → .env.example'ı .env olarak kopyala/doldur →
+#   docker compose --env-file deployment/office/container/.env \
+#     -f deployment/office/container/docker-compose.yml up -d --build
+#
+# Ön koşul: harici TimescaleDB'de (POSTGRES_HOST) `revpi` kullanıcısı + `ems`
+# veritabanı mevcut olmalı. Tablolar/hypertable'lar servislerce otomatik kurulur.
+# Not: RevPi'de SSD yok — redis ephemeral (`--save ""`), timescale verisi harici DB'de.
+
+name: office-container-stack
+
+services:
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: office-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    ports:
+      - "6379:6379"
+    volumes:
+      - office-redis-data:/data
+    networks:
+      - office-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  device-service:
+    build:
+      context: ../../../
+      dockerfile: services/device-service/deployment/Dockerfile
+    container_name: office-device-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      CONTAINER_ID: ${CONTAINER_ID:-Revpi-1}
+      # Alarm durum tablosu (device_alarms) + logger timescale sink — harici DB
+      POSTGRES_HOST: ${POSTGRES_HOST:-192.168.1.113}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-revpi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-GD-Energy-2026}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-ems}
+      # BSC→PCS connector BMS hedefi (standalone'da field stack host'ta)
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-host.docker.internal}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./device-configs:/app/config-docker:ro
+    networks:
+      - office-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  data-service:
+    build:
+      context: ../../../
+      dockerfile: services/data-service/deployment/Dockerfile
+    container_name: office-data-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: ${POSTGRES_HOST:-192.168.1.113}
+      TIMESCALE_PORT: ${POSTGRES_PORT:-5432}
+      TIMESCALE_USER: ${POSTGRES_USER:-revpi}
+      TIMESCALE_PASSWORD: ${POSTGRES_PASSWORD:-GD-Energy-2026}
+      TIMESCALE_DATABASE: ${POSTGRES_DATABASE:-ems}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - office-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Otomasyon/management servisi — queue_management tüketicisi; kurallar config mount'undan okunur.
+  management-service:
+    build:
+      context: ../../../
+      dockerfile: services/management-service/deployment/Dockerfile
+    container_name: office-management-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      SERVICE_TIER: container
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      redis:
+        condition: service_healthy
+      device-service:
+        condition: service_started
+    volumes:
+      - ./rules:/app/config:ro
+      - ./device-configs:/app/config-docker:ro
+    networks:
+      - office-network
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web-service:
+    build:
+      context: ../../../
+      dockerfile: services/web-service/deployment/Dockerfile
+    container_name: office-web-service
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      MFA_ENABLED: ${MFA_ENABLED:-false}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: ${POSTGRES_HOST:-192.168.1.113}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-revpi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-GD-Energy-2026}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-ems}
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # FieldConnector bootstrap (kapali varsayilan).
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-false}
+      FIELD_WS_URL: ${FIELD_WS_URL:-}
+      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      CONTAINER_ID: ${CONTAINER_ID:-Revpi-1}
+    volumes:
+      - ./device-configs:/app/config-docker:ro
+      - ./maneuvers:/app/maneuver-config:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5001:5001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - office-network
+    restart: unless-stopped
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5001/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ../../../
+      dockerfile: apps/container-web/deployment/Dockerfile
+    container_name: office-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "80:80"
+    depends_on:
+      - web-service
+    networks:
+      - office-network
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  office-redis-data:
+
+networks:
+  office-network:
+    driver: bridge

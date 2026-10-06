@@ -1,0 +1,145 @@
+{
+  "maneuvers": [
+    {
+      "name": "fl01_start",
+      "label": "FL-01: Sistem Başlatma",
+      "description": "Şalter AÇ + BSC start + DC çıkış ON — önkoşul kapısı ileriki faz",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "CB-1", "command": "open" },
+        { "deviceId": "CB-2", "command": "open" },
+        { "deviceId": "BSC-1", "command": "start" },
+        { "deviceId": "BSC-2", "command": "start" },
+        { "deviceId": "DC-1", "command": "on" },
+        { "deviceId": "DC-2", "command": "on" }
+      ]
+    },
+    {
+      "name": "fl03_emergency_stop",
+      "label": "FL-03: Acil Durdurma",
+      "description": "BSC emergency (0x0001) + DC şalter AÇ — kuru kontakla mekanik açılır",
+      "mode": "sequential",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "emergency" },
+        { "deviceId": "BSC-2", "command": "emergency" },
+        { "deviceId": "CB-1", "command": "open" },
+        { "deviceId": "CB-2", "command": "open" }
+      ]
+    },
+    {
+      "name": "fl05_tms_cooling_force",
+      "label": "FL-05: TMS Soğutmayı Zorla",
+      "description": "8 HVAC force_cool (Remote On/Off ← 1 + Cooling Setpoint ← 10)",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "HVAC-1", "command": "force_cool" },
+        { "deviceId": "HVAC-2", "command": "force_cool" },
+        { "deviceId": "HVAC-3", "command": "force_cool" },
+        { "deviceId": "HVAC-4", "command": "force_cool" },
+        { "deviceId": "HVAC-5", "command": "force_cool" },
+        { "deviceId": "HVAC-6", "command": "force_cool" },
+        { "deviceId": "HVAC-7", "command": "force_cool" },
+        { "deviceId": "HVAC-8", "command": "force_cool" }
+      ]
+    },
+    {
+      "name": "fl05_tms_heating_force",
+      "label": "FL-05: TMS Isıtmayı Zorla",
+      "description": "8 HVAC force_heat (Remote On/Off ← 1 + Heating Setpoint ← 500)",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "HVAC-1", "command": "force_heat" },
+        { "deviceId": "HVAC-2", "command": "force_heat" },
+        { "deviceId": "HVAC-3", "command": "force_heat" },
+        { "deviceId": "HVAC-4", "command": "force_heat" },
+        { "deviceId": "HVAC-5", "command": "force_heat" },
+        { "deviceId": "HVAC-6", "command": "force_heat" },
+        { "deviceId": "HVAC-7", "command": "force_heat" },
+        { "deviceId": "HVAC-8", "command": "force_heat" }
+      ]
+    },
+    {
+      "name": "fl09_comm_loss",
+      "label": "FL-09: İletişim Kaybı — Durdur",
+      "description": "Kural DEFER (K7) — synthetic sinyal gelene kadar gizli kart",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "stop" },
+        { "deviceId": "BSC-2", "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    },
+    {
+      "name": "fl10_maintenance_shutdown",
+      "label": "FL-10: Bakım Modu — Güvenli Kapatma",
+      "description": "BSC open_contactors (0x0004) + DC şalter AÇ",
+      "mode": "sequential",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "open_contactors" },
+        { "deviceId": "BSC-2", "command": "open_contactors" },
+        { "deviceId": "CB-1", "command": "open" },
+        { "deviceId": "CB-2", "command": "open" }
+      ]
+    },
+    {
+      "name": "fl_dc_breaker_close",
+      "label": "DC Şalter Kapat",
+      "description": "DC şalter kapatma bobini (COIL 1 ← 1)",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "CB-1", "command": "close" },
+        { "deviceId": "CB-2", "command": "close" }
+      ]
+    },
+    {
+      "name": "fl_contactor_close",
+      "label": "Kontaktör Kapat",
+      "description": "BSC kontaktörleri kapat (HR 40010 ← 0x0005)",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "close_contactors" },
+        { "deviceId": "BSC-2", "command": "close_contactors" }
+      ]
+    },
+    {
+      "name": "fl_idle",
+      "label": "Durdur",
+      "description": "Tüm BSC'lerde şarj/deşarj işlemini durdurur",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "stop" },
+        { "deviceId": "BSC-2", "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    },
+    {
+      "name": "bsc_stop",
+      "label": "BSC Durdur",
+      "description": "Uzak operasyon kompanzasyon adımı (field rollback)",
+      "mode": "parallel",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "stop" },
+        { "deviceId": "BSC-2", "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    },
+    {
+      "name": "bsc_prepare",
+      "label": "BSC Hazırlık",
+      "description": "Kontaktörleri kapat + start — GÜÇ PARAMI YOK (K12: güç PCS S06'da)",
+      "mode": "parallel",
+      "onFailure": "stop",
+      "steps": [
+        { "deviceId": "BSC-1", "command": "close_contactors" },
+        { "deviceId": "BSC-2", "command": "close_contactors" },
+        { "deviceId": "BSC-1", "command": "start" },
+        { "deviceId": "BSC-2", "command": "start" }
+      ],
+      "rollbackSteps": [
+        { "deviceId": "BSC-1", "command": "stop" },
+        { "deviceId": "BSC-2", "command": "stop" }
+      ],
+      "ui": { "hidden": true }
+    }
+  ]
+}

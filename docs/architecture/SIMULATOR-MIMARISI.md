@@ -58,7 +58,7 @@ review_date: 2026-12-01
 | B1 | In-process `SimulatorTransport` deseni — gerçek TCP yolu bypass ediliyor (iki ayrı cihaz yolu) | `packages/simulators/src/simulator-transport.ts#SimulatorTransport` |
 | B2 | `BmsPortServer` kısıtlı FC seti (yalnız 03/06/10) — genel köprüye dönüşmesi gerek | `packages/simulators/src/wattox-pcs/bms-port-server.ts#BmsPortServer` |
 | B3 | `bmsTarget` deployment env'i registry'ye sızıyor | `services/device-service/src/simulator-registry.ts#SimulatorRegistry` |
-| B4 | Config'lerde `connection.port` bugün bypass — 502 çakışması (bsc-1, bsc-2, ep203, pm5340) | `services/device-service/config/bsc-1.json` |
+| B4 | Config'lerde `connection.port` bugün bypass — 502 çakışması (bsc-1, bsc-2, ep203, pm5340) | `services/device-service/deployment/sample-config/bsc-1.json` |
 
 ---
 
@@ -281,7 +281,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 
 **T Görev Listesi:**
 - [x] T-6: `SimulatorHost` — örnekleme + port indeksi + `stopAll()` (+testler)
-- [x] T-8: Config port düzeltmeleri — bsc-1:15501, bsc-2:15502, ep203:15503, pm5340:15504 (`config/` + `deployment/config-docker/` kopyaları)
+- [x] T-8: Config port düzeltmeleri — bsc-1:15501, bsc-2:15502, ep203:15503, pm5340:15504 (`config/` + `deployment/dev/container/device-configs/` kopyaları)
 - [x] T-9: E2E harness — `maneuver-command.spec.ts` config dizininden server'ları kaldırır (host.start → test → stopAll)
 
 **Edge Cases:**
@@ -295,7 +295,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 |:------|:----------------|
 | `packages/simulators/src/host.ts` | YENİ — SimulatorHost |
 | `packages/simulators/src/host.test.ts` | YENİ — UC-3 testleri |
-| `services/device-service/config/*.json` + `deployment/config-docker/*.json` | Port düzeltmeleri |
+| `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | Port düzeltmeleri |
 | `services/device-service/src/maneuver-command.spec.ts` | E2E harness güncellemesi |
 
 ### 6.4 UC-4 — Connector Sim (TCP Master)

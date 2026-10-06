@@ -193,7 +193,8 @@ export async function unifiedRoutes(
 
   fastify.get("/devices/:deviceId/telemetry-config", async (request, reply) => {
     const { deviceId } = request.params as { deviceId: string };
-    const configDir = process.env.DEVICE_CONFIG_DIR ?? "../device-service/config";
+    const configDir =
+      process.env.DEVICE_CONFIG_DIR ?? "../../deployment/dev/container/device-configs";
 
     const config = loadDeviceConfig(configDir, deviceId);
     if (!config) {

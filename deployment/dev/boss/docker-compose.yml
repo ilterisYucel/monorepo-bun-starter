@@ -1,0 +1,208 @@
+name: boss-stack
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: boss-timescaledb-dev
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    ports:
+      - "5435:5432"
+    volumes:
+      - boss-timescale-data-dev:/var/lib/postgresql/data
+    networks:
+      - boss-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: boss-redis-dev
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    ports:
+      - "6382:6379"
+    volumes:
+      - boss-redis-data-dev:/data
+    networks:
+      - boss-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web-service:
+    build:
+      context: ../../../
+      dockerfile: services/web-service/deployment/Dockerfile.dev
+    container_name: boss-web-service-dev
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: boss
+      PORT: 5003
+      HOST: 0.0.0.0
+      # Faz 6 T6.1 debug flag'i: false ise MFA zorunluluğu kapalı (üretimde true)
+      MFA_ENABLED: ${MFA_ENABLED:-true}
+      # Faz 1 T1.6: boss tier fail-fast — dev default secret ile acilis REDDEDILIR
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      # AUTH-REFRESH (A1): kısa TTL test stack'i — e2e specleri bu env ile
+      # koşar (ACCESS_TOKEN_EXPIRY_SECONDS=10). Varsayılan 900 sn (15 dk).
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      # Boss Faz 4: WireGuard yedek yol (opsiyonel — WG_CLIENT_PRIVATE_KEY yoksa kapalı)
+      WG_CONFIG_DIR: ${WG_CONFIG_DIR:-/etc/wireguard}
+      WG_CLIENT_PRIVATE_KEY: ${WG_CLIENT_PRIVATE_KEY:-}
+      WG_CLIENT_ADDRESS: ${WG_CLIENT_ADDRESS:-10.99.0.2/32}
+      WG_ALLOWED_IPS: ${WG_ALLOWED_IPS:-10.0.0.0/8}
+      # Boss Faz 5: lab görselliği — örnek bildirim seed'i (üretimde false)
+      FIELD_EVENTS_DEMO_SEED: ${FIELD_EVENTS_DEMO_SEED:-false}
+      # Boss Faz 3 (dev): field app Vite dev asset yolları tünel allowlist'e
+      # eklenir (üretimde field SPA /assets/* yapısındadır — ek gerekmez).
+      FIELD_TUNNEL_ALLOWED_PREFIXES: ${FIELD_TUNNEL_ALLOWED_PREFIXES:-/src/,/@vite/,/@react-refresh,/node_modules/,/@fs/,/@id/,/vite.svg}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5003:5003"
+    volumes:
+      - ../../../services/web-service/src:/app/services/web-service/src
+      - ../../../services/web-service/run.ts:/app/services/web-service/run.ts
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - boss-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ../../../
+      dockerfile: apps/superadmin/deployment/Dockerfile.dev
+    container_name: boss-web-dev
+    environment:
+      NODE_ENV: development
+      VITE_SUPERADMIN_SERVICE_URL: http://web-service:5003
+    ports:
+      - "5175:5175"
+    volumes:
+      - ../../../apps/superadmin/src:/app/apps/superadmin/src
+      - ../../../apps/superadmin/vite.config.ts:/app/apps/superadmin/vite.config.ts
+      - ../../../apps/superadmin/tsconfig.json:/app/apps/superadmin/tsconfig.json
+      - ../../../apps/superadmin/index.html:/app/apps/superadmin/index.html
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/ui/src:/app/packages/ui/src
+      - ../../../tsconfig.base.json:/app/tsconfig.base.json
+      - /app/apps/superadmin/node_modules
+      - /app/node_modules
+    depends_on:
+      - web-service
+    networks:
+      - boss-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  integration-service:
+    build:
+      context: ../../../
+      dockerfile: services/integration-service/deployment/Dockerfile.dev
+    container_name: boss-integration-service-dev
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      # integration-service TimescaleDB bağlantısı (external_series yazıcı)
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      INTEGRATION_PLUGIN_DIR: /app/customer-plugins
+      INTEGRATION_CONFIG_DIR: /app/config/plugins
+      INTEGRATION_STATE_DIR: /app/data/plugins
+    volumes:
+      - ../../../services/integration-service/src:/app/services/integration-service/src
+      - ../../../services/integration-service/run.ts:/app/services/integration-service/run.ts
+      - ./plugins:/app/config/plugins
+      - ../../../deployment/customer-plugins:/app/customer-plugins
+      - ../../../packages/plugin-sdk/src:/app/packages/plugin-sdk/src
+      - ../../../packages/epias-client/src:/app/packages/epias-client/src
+      - ../../../packages/plugins/epias-market-prices/src:/app/packages/plugins/epias-market-prices/src
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - integration-state-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - boss-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  boss-timescale-data-dev:
+  boss-redis-data-dev:
+  integration-state-data:
+
+networks:
+  boss-network:
+    driver: bridge

@@ -37,7 +37,7 @@ review_date: 2026-12-01
 | 17 | `packages/simulators/src/wattox-pcs/simulator.ts#WattoxPcsSimulator` | İki-bridge: EMS `network` + BMS `bmsPort`; `ensureBmsServer` → `createWattoxBmsBridge` | K2 istisna / UC-2 |
 | 18 | `packages/simulators/src/index.ts` | `SimulatorTransport`/`BmsPortServer` export kaldırıldı; `ModbusServerBridge`/`SimulatorServer`/`SimulatorHost`/`WattoxBmsFaceAdapter`/source-reader export'ları eklendi | purity 4 / UC-1..4 |
 | 19 | `packages/simulators/package.json` | `jsmodbus@^4.0.10` dep eklendi | K1 |
-| 20 | `services/device-service/config/*.json` + `deployment/config-docker/*.json` | Portlar ayrıcalıksız aralığa taşındı + `connection.host` 127.0.0.1 normalize | K7 / UC-3 / T-8 (sapmalar A.4) |
+| 20 | `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | Portlar ayrıcalıksız aralığa taşındı + `connection.host` 127.0.0.1 normalize | K7 / UC-3 / T-8 (sapmalar A.4) |
 | 21 | `services/device-service/src/maneuver-command.spec.ts` | E2E harness — `SimulatorHost.start()` → test → `stopAll()` | T-9 / SC-5 |
 | 22 | `packages/simulators/src/host.ts#detailNumber` | BSC builder `config.details?.rackCount` (default 8) — `transport.rackCount` referansı kaldırıldı | DEVICE-SERVICE-MIMARISI REV.01 K6 |
 

@@ -3,6 +3,10 @@ import { DeviceFactory } from "./device-factory";
 import { DcMeterSimulator } from "@gd-monorepo/simulators";
 import type { DeviceConfigFile, ModbusTelemetryData } from "@gd-monorepo/shared-types";
 
+/** Config girdisi (runtime value/timestamp/deviceId hariç) — literal'ların
+ *  bağlamsal tiplemesi için concrete Modbus tipi. */
+type ModbusConfigEntry = Omit<ModbusTelemetryData, "value" | "timestamp" | "deviceId">;
+
 function makeConfig(overrides: Partial<DeviceConfigFile>): DeviceConfigFile {
   const telemetry = [
     {
@@ -82,7 +86,7 @@ describe("DeviceFactory — transport seçimi (yalnız TCP/RTU)", () => {
           byteOrder: "BIG_ENDIAN",
           priority: 0,
         },
-      ] as DeviceConfigFile["telemetry"],
+      ] as Array<ModbusConfigEntry & { canonical?: string }>,
     });
 
     const device = new DeviceFactory().create(config);
@@ -139,7 +143,7 @@ describe("DeviceFactory — connector device-subset türetimi", () => {
               byteOrder: "BIG_ENDIAN",
               priority: 0,
             },
-          ] as DeviceConfigFile["telemetry"],
+          ] as ModbusConfigEntry[],
         },
       },
     });

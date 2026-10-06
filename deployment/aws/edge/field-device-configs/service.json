@@ -1,0 +1,16 @@
+{
+  "redis": {
+    "host": "redis",
+    "port": 6379
+  },
+  "postgresql": {
+    "host": "timescaledb",
+    "port": 5432,
+    "user": "postgres",
+    "password": "password",
+    "database": "battery"
+  },
+  "servicePollIntervalMs": 5000,
+  "workerConcurrency": 5,
+  "managementIntervalMs": 10000
+}

@@ -30,10 +30,10 @@ review_date: 2026-12-01
 | 9 | `services/device-service/run.ts#main` | SimulatorHost wiring + ops Logger wiring + `buildLogger` timescale dalı | K3/K4 / UC-4/5/6 / T-7/T-9/T-14 |
 | 10 | `services/device-service/package.json` | `@gd-monorepo/logger` + `@gd-monorepo/tamper-logger` dep | K4 / UC-6 |
 | 11 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | `ConnectorConfig`/`connector?` eklendi; `DeviceTransportConfig.rackCount` kaldırıldı | K5 / UC-5 / T-10 |
-| 12 | `services/device-service/config/bsc-1.json` + `deployment/config-docker/bsc-1.json` | `connector` bölümü gömüldü; `transport.rackCount` silindi; port/host normalize | K2/K5 / T-12 |
-| 13 | `services/device-service/deployment/config-docker/bsc-pcs-connector-1.json` | SİLİNDİ | K2 / T-12 |
-| 14 | `services/device-service/config/*.json` + `deployment/config-docker/*.json` | `transport.rackCount` girişleri silindi; port/host düzeltmeleri | K5/K7 / T-3 (+ SIMULATOR T-8) |
-| 15 | `services/device-service/config/mappings/bsc-pcs-mapping.json` | YENİ dizin — kanonik mapping (target 15502 + mappings) | K2 / UC-5 / T-12 |
+| 12 | `services/device-service/deployment/sample-config/bsc-1.json` + `deployment/dev/container/device-configs/bsc-1.json` | `connector` bölümü gömüldü; `transport.rackCount` silindi; port/host normalize | K2/K5 / T-12 |
+| 13 | `deployment/dev/container/device-configs/bsc-pcs-connector-1.json` | SİLİNDİ | K2 / T-12 |
+| 14 | `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | `transport.rackCount` girişleri silindi; port/host düzeltmeleri | K5/K7 / T-3 (+ SIMULATOR T-8) |
+| 15 | `services/device-service/deployment/sample-config/mappings/bsc-pcs-mapping.json` | YENİ dizin — kanonik mapping (target 15502 + mappings) | K2 / UC-5 / T-12 |
 | 16 | `services/web-service/src/infrastructure/persistence/device-registry.ts#DeviceRegistry` | ölü `rack_count` SELECT + `rackCount` alanı çıkarıldı | K6 / UC-1 / T-4 |
 | 17 | `apps/container-web/src/features/racks/utils/rackHelpers.ts` + `pages/*.tsx` | `DEFAULT_RACK_COUNT` sabiti (`?? 8` magic yerine) | K6 / UC-1 / T-5 |
 | 18 | `services/device-service/src/maneuver-command.spec.ts` | E2E harness — `SimulatorHost.start()` → test → `stopAll()` | T-13 (SIMULATOR T-9) |
@@ -47,7 +47,7 @@ review_date: 2026-12-01
 | 26 | `apps/field/src/features/field-devices/types/device.ts` + `hooks/useFieldDevices.ts` + `hooks/useContainerDevices.test.tsx` | `rack_count` → `details` | K6 / T-5 |
 | 27 | `packages/ui/src/components/DeviceTable/DeviceTable.tsx` + `DeviceTable.types.ts` + `DeviceTable.stories.tsx` | `rack_count` → `details` (rackCount hücresi `details?.rackCount`) | K6 / T-5 |
 | 28 | `packages/simulators/src/host.ts#detailNumber` | BSC builder `config.details?.rackCount` (default 8) — `transport.rackCount` referansı kaldırıldı | K6 / UC-1 |
-| 29 | `services/device-service/config/bsc-{1,2}.json` + `deployment/config-docker/bsc-{1,2}.json` | `transport.rackCount` + top-level `rackCount` → `details: { rackCount: 8 }` | K5 / UC-1 / T-3 |
+| 29 | `services/device-service/deployment/sample-config/bsc-{1,2}.json` + `deployment/dev/container/device-configs/bsc-{1,2}.json` | `transport.rackCount` + top-level `rackCount` → `details: { rackCount: 8 }` | K5 / UC-1 / T-3 |
 
 ### A.2 Test Kanıtları
 

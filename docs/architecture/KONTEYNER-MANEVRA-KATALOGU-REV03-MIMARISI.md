@@ -769,7 +769,7 @@ export const MANEUVER_CONTROLS = {
 - K-A4: Eksik FL'ler (⛔ FL-06/09/12) rules.json'da YOKTUR — yanlış veriyle kural çalışmaz (fail-safe).
 - K-A5: Gizli manevra tanımları (`HIDDEN_MANEUVER_NAMES` içeriği) kurallar canlıya alınınca kaldırılır; `fl_idle`/`ControlPanel.tsx` legacy bağımlılığı netleştirilir.
 - K-A6: Kapılar: yeni kod ≥%70 satır; kural seti spec'i ≥%90 branch; monorepo test yeşil.
-- K-A7: **Cihaz tutarlılığı:** EMU/aux-analyser/fss/legacy-PCS config+simülatör referansı repo'da KALMAZ (kod + config + registry); dc-meter config hem `services/device-service/config/` hem `deployment/config-docker/` içindedir.
+- K-A7: **Cihaz tutarlılığı:** EMU/aux-analyser/fss/legacy-PCS config+simülatör referansı repo'da KALMAZ (kod + config + registry); dc-meter config hem `services/device-service/deployment/sample-config/` hem `deployment/dev/container/device-configs/` içindedir.
 - K-A8: **Tier saflığı:** konteyner rules.json hiçbir PCS cihazına/komutuna referans VERMEZ (K10); konteyner config-docker'da `pcs-1.json` bulunmaz (K11).
 - K-A9: **K12 saflığı:** konteyner kataloğunda BSC `charge`/`discharge` komut referansı KALMAZ (manevralar + MANEUVER_CONTROLS); şarj/deşarj yalnız field FL-02 operasyonundan gider.
 - K-A10: **Register doğruluğu:** §2.0 sözlüğündeki her komut-register eşlemesi, uygulanan config'le birebir örtüşür (enerjici gözle kontrolü — DOGRULAMA'da satır satır kanıtlanır).
