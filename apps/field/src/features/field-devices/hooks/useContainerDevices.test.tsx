@@ -62,7 +62,7 @@ const tunnelDevice = (id: string, name: string): DeviceInfo => ({
   status: "online",
   manufacturer: "X",
   model: "Y",
-  rack_count: null,
+  details: null,
   poll_interval_ms: null,
   connection: null,
   last_seen: null,

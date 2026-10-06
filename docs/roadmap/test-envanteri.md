@@ -2733,8 +2733,8 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 
 ## 10. Wattox PCS · BSC-PCS Connector · REV.01 manevraları (2026-09-15)
 
-> **Kaynak:** PCS-WATTOX-MIMARISI.md, BSC-PCS-CONNECTOR-MIMARISI.md, FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md (6 aşamalı iş akışı).
-> **Senaryo matrisleri:** [PCS-WATTOX-TEST-KAPSAMI.md](../architecture/PCS-WATTOX-TEST-KAPSAMI.md) · [BSC-PCS-CONNECTOR-TEST-KAPSAMI.md](../architecture/BSC-PCS-CONNECTOR-TEST-KAPSAMI.md) · [FIELD-MANEVRA-REV01-TEST-KAPSAMI.md](../architecture/FIELD-MANEVRA-REV01-TEST-KAPSAMI.md)
+> **Kaynak:** PCS-WATTOX-MIMARISI.md, DEVICE-SERVICE-MIMARISI.md, FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md (6 aşamalı iş akışı).
+> **Senaryo matrisleri:** [PCS-WATTOX-TEST-KAPSAMI.md](../architecture/PCS-WATTOX-TEST-KAPSAMI.md) · [DEVICE-SERVICE-KAPANIS.md](../architecture/DEVICE-SERVICE-KAPANIS.md) · [FIELD-MANEVRA-REV01-TEST-KAPSAMI.md](../architecture/FIELD-MANEVRA-REV01-TEST-KAPSAMI.md)
 > **Doğrulama:** monorepo 1781/1781 test yeşil (2026-09-15).
 
 ### `packages/shared-types/src/commands/validate-expect.test.ts` (`7 test`)

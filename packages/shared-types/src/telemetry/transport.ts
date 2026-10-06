@@ -18,4 +18,13 @@ export interface ITelemetryTransport {
   disconnect(): Promise<void>;
   connectionState(): ConnectionState;
   subscribe(observer: TelemetryObserver): () => void;
+  /**
+   * Opsiyonel — çok-abone multipleks (component-bazlı izolasyon). Destekleyen
+   * transport TEK soketi paylaşır ve abonelikleri referans-sayarak ekler/çıkarır.
+   * `names` verilirse sunucu yalnız o telemetri isimlerini yollar (panel spec'i).
+   * Desteklemeyen transport'ta tüketici hook `connect(params)`/`disconnect()`
+   * fallback'ine düşer.
+   */
+  addDevices?(deviceIds: readonly string[], names?: readonly string[]): void;
+  removeDevices?(deviceIds: readonly string[]): void;
 }

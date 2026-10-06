@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { devicesApi } from "../features/devices/services/devicesApi";
 import type { DeviceInfo } from "../features/devices/types/device";
+import { detailsNumber } from "../features/racks/utils/rackHelpers";
 
 interface DevicesState {
   devices: DeviceInfo[];
@@ -38,5 +39,5 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
   totalRacks: () =>
     get()
       .bscDevices()
-      .reduce((s, d) => s + (d.rack_count ?? 0), 0),
+      .reduce((s, d) => s + (detailsNumber(d, "rackCount") ?? 0), 0),
 }));

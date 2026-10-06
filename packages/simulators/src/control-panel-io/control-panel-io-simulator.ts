@@ -2,6 +2,9 @@
 // (FL-07 Kapı Açık manevrasının veri kaynağı).
 
 import { COILS, DISCRETE } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { ControlPanelIoAdapter } from "./control-panel-io-modbus-adapter";
 
 interface ControlPanelIoState {
   batteryDoorOpen: boolean;
@@ -37,10 +40,17 @@ export interface FssStateInput {
  * - `setDoorState`/`setFssState` demo senaryo enjeksiyonudur.
  * - Bilinmeyen adres: DI false döner, COIL yazımı yok sayılır.
  */
+export interface ControlPanelIoSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class ControlPanelIoSimulator {
   private state: ControlPanelIoState;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
-  constructor() {
+  constructor(config: ControlPanelIoSimulatorConfig = {}) {
     this.state = {
       batteryDoorOpen: false,
       panelDoorOpen: false,
@@ -50,6 +60,29 @@ export class ControlPanelIoSimulator {
       fssDischarged: false,
       fss2ndStage: false,
     };
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new ControlPanelIoAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   /** Zaman adımı — durum sabit kalır (komut). */

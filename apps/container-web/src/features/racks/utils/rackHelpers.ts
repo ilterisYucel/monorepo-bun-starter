@@ -4,6 +4,33 @@ import type { Rack } from "@gd-monorepo/ui";
 import type { DeviceInfo } from "../../devices/types/device";
 import type { RackDetailData, RackExtendedTelemetry, RackNameplate, RackDiagnosticGroup } from "../components/RackDetailModal/RackDetailModal.types";
 
+/** Cihazın rack sayısı bilinmiyorsa varsayılan (magic `?? 8` yerine tek kaynak). */
+export const DEFAULT_RACK_COUNT = 8;
+
+/** Opak `details` objesini döner (yoksa boş obje). */
+export function deviceDetails(device: {
+  details?: Record<string, unknown> | null;
+}): Record<string, unknown> {
+  return device.details ?? {};
+}
+
+/** `details` içindeki bir niteliği sayı olarak okur (yoksa/geçersizse undefined). */
+export function detailsNumber(
+  device: { details?: Record<string, unknown> | null },
+  key: string,
+): number | undefined {
+  const raw = deviceDetails(device)[key];
+  const value = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+/** Cihazın rack sayısı — `details.rackCount`, yoksa `DEFAULT_RACK_COUNT`. */
+export function rackCountOf(device: {
+  details?: Record<string, unknown> | null;
+}): number {
+  return detailsNumber(device, "rackCount") ?? DEFAULT_RACK_COUNT;
+}
+
 /**
  * Canonical tag'i generic olarak rack alanina yazar.
  *
@@ -52,7 +79,7 @@ export const telemetriesToRacks = (
 
   let globalIndex = 0;
   for (const device of bscDevices) {
-    for (let i = 1; i <= (device.rack_count ?? 0); i++) {
+    for (let i = 1; i <= (detailsNumber(device, "rackCount") ?? 0); i++) {
       globalIndex++;
       const key = `${device.id}-${i}`;
       rackMap.set(key, {
@@ -225,7 +252,7 @@ export const telemetriesToRackDetailMap = (
     if (device) {
       np.manufacturer = device.manufacturer ?? undefined;
       np.model = device.model ?? undefined;
-      np.packCount = device.rack_count ?? undefined;
+      np.packCount = detailsNumber(device, "rackCount");
     }
 
     for (const t of telemetries) {

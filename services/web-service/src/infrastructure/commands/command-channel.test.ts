@@ -163,7 +163,6 @@ describe("DeviceRegistryTargets", () => {
           protocol: "MODBUS",
           status: "online",
           name: d.id,
-          rackCount: 0,
         })),
     } as unknown as DeviceRegistry;
   }

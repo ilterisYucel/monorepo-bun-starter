@@ -8,6 +8,8 @@ import type { IMessageQueue } from "@gd-monorepo/core";
 import type { DeviceJob, JobResult } from "@gd-monorepo/shared-types";
 import { CommandJobBuilder, DeviceConfigFileSource } from "@gd-monorepo/platform-commands";
 import { DeviceService } from "./device-service";
+import { DeviceConfigLoader } from "./config-loader";
+import { SimulatorHost } from "@gd-monorepo/simulators";
 
 /**
  * Manevra komut hattı — uçtan uca integration (Docker/Redis YOK):
@@ -79,6 +81,7 @@ function makeMq(): IMessageQueue & { handler: WorkerFn | undefined } {
 }
 
 let service: DeviceService;
+let host: SimulatorHost;
 let mq: IMessageQueue;
 const source = new DeviceConfigFileSource(CONFIG_DIR);
 const builder = new CommandJobBuilder({ source });
@@ -93,6 +96,10 @@ async function execute(deviceId: string, command: string, params?: Record<string
 
 beforeAll(async () => {
   mq = makeMq();
+  // Self-host simülatör sunucuları (TCP) — device-service artık TCP'den bağlanır.
+  const { devices: configs } = new DeviceConfigLoader(CONFIG_DIR).load();
+  host = new SimulatorHost(configs, { configDir: CONFIG_DIR });
+  await host.start();
   service = await DeviceService.fromConfigDir(CONFIG_DIR, mq);
   await service.start();
   // BSC simülatörü NOT_INITIALIZED → INITIALIZING → NORMAL geçişini tick
@@ -118,6 +125,7 @@ async function waitForBscNormal(): Promise<void> {
 
 afterAll(async () => {
   await service.stop();
+  await host.stopAll();
 });
 
 describe("manevra komut hattı (integration — gerçek simülatörler)", () => {

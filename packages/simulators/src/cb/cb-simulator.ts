@@ -1,6 +1,9 @@
 // CB Simülatörü — DC Şalter (SYW6GZ-4000) — K2 rework.
 
 import { COILS, DISCRETE } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { CbSimulatorAdapter } from "./cb-modbus-adapter";
 
 interface CbState {
   closed: boolean;
@@ -18,11 +21,41 @@ interface CbState {
  * - Trip/akım/sıcaklık/eşik/reset semantiği YOKTUR; input/holding okumaları 0.
  * - Bilinmeyen adres → 0/false (yok say).
  */
+export interface CbSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class CbSimulator {
   private state: CbState;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
-  constructor() {
+  constructor(config: CbSimulatorConfig = {}) {
     this.state = { closed: true, pendingOpen: false, pendingClose: false };
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new CbSimulatorAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   /** Zaman adımı — bekleyen coil darbelerini uygular (komut). */

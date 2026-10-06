@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo, useSyncExternalStore } from "react";
 import type { ITelemetryTransport, TelemetryData } from "@gd-monorepo/shared-types";
 
 export interface TelemetryEntry {
@@ -42,6 +42,12 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
 
   const bufferSizePerDevice = DEFAULT_BUFFER_SIZE_PER_DEVICE;
 
+  const requestedRef = useRef<ReadonlySet<string>>(new Set());
+  requestedRef.current = useMemo(
+    () => new Set(deviceId.split(",").filter((id) => id.length > 0)),
+    [deviceId],
+  );
+
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cancelledRef = useRef(false);
@@ -59,8 +65,10 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
     if (batch.length === 0) return;
     pendingBatchRef.current = [];
     const store = storeRef.current;
+    const allow = requestedRef.current;
 
     for (const entry of batch) {
+      if (allow.size > 0 && !allow.has(entry.deviceId)) continue;
       let entries = store.deviceBuffers.get(entry.deviceId);
       if (!entries) {
         entries = [];
@@ -126,12 +134,25 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
       },
     });
 
-    transport.connect({ deviceId });
+    const multiplex =
+      typeof transport.addDevices === "function" &&
+      typeof transport.removeDevices === "function";
+    const ids = deviceId.split(",").filter((id) => id.length > 0);
+    if (multiplex) {
+      transport.addDevices!(ids);
+      void transport.connect({ deviceId });
+    } else {
+      void transport.connect({ deviceId });
+    }
 
     return () => {
       cancelledRef.current = true;
       unsub();
-      transport.disconnect();
+      if (multiplex) {
+        transport.removeDevices!(ids);
+      } else {
+        void transport.disconnect();
+      }
 
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
@@ -141,8 +162,12 @@ export function useRealtimeTelemetry(options: UseRealtimeTelemetryOptions) {
   }, [transport, deviceId, enabled, flushBatch]);
 
   const reconnect = useCallback(() => {
-    transport.disconnect().then(() => {
-      transport.connect({ deviceId });
+    if (typeof transport.addDevices === "function") {
+      void transport.connect({ deviceId });
+      return;
+    }
+    void transport.disconnect().then(() => {
+      void transport.connect({ deviceId });
     });
   }, [transport, deviceId]);
 

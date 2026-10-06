@@ -6,6 +6,7 @@ export default defineWorkspace([
   "packages/result",
   "packages/core",
   "packages/tamper-logger",
+  "packages/logger",
   "packages/ws-tunnel",
   "packages/platform/messaging",
   "packages/platform/commands",

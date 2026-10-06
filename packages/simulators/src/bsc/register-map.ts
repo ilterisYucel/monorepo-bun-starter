@@ -127,6 +127,9 @@ export const RACK_NAMEPLATE = {
 // Summary base within each rack block: RACK_NAMEPLATE_BASE + 50 = 30220
 export const RACK_SUMMARY_BASE_OFFSET = 50;
 
+/** İlk rack'in summary blok başlangıcı (rackId: 1). */
+export const RACK_SUMMARY_BASE = RACK_NAMEPLATE_BASE + RACK_SUMMARY_BASE_OFFSET;
+
 export const RACK_SUMMARY = {
   STATE:                    0,  // uint16 (enum) — 0x09=Normal
   STATUS_FLAGS:             1,  // bit16  — charge/discharge/balancing/fault/warning

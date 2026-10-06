@@ -1,5 +1,8 @@
 // HVAC Simulator — Heating, Ventilation, Air Conditioning unit simulation
 import { HOLDING, INPUT, ALARMS } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { HvacSimulatorAdapter } from "./hvac-modbus-adapter";
 
 interface HvacState {
   remoteOn: boolean;
@@ -71,11 +74,41 @@ function defaultState(): HvacState {
   };
 }
 
+export interface HvacSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class HvacSimulator {
   private state: HvacState;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
-  constructor() {
+  constructor(config: HvacSimulatorConfig = {}) {
     this.state = defaultState();
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new HvacSimulatorAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   tick(elapsedSeconds: number): void {

@@ -2,15 +2,19 @@
 status: active
 space: architecture
 tags: [mimari, device-service, simulator, connector, alarm, log, refactor, spec]
-review_date: 2026-09-24
+review_date: 2026-12-01
 ---
 
 # Device Service — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
-> **İlişkili:** [SIMULATOR-MIMARISI.md](./SIMULATOR-MIMARISI.md) (self-host simülatör sunucuları + host — bu SPEC'in bağımlı eki), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md) (Wattox register seti), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (T0.11/Faz 0 alarm sözleşmesi + log kategorileri §522), [FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md](./FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md) (event yayılım zinciri), [SANAL-IO-CIHAZ-AILESI-MIMARISI.md](./SANAL-IO-CIHAZ-AILESI-MIMARISI.md) (simülatör aile deseni), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md) (komut kanalı).
-> **Yerine geçtiği dokümanlar (Aşama 4'te silinir):** `DEVICE-SERVICE-TRANSPORT-MIMARISI.md`, `BSC-PCS-CONNECTOR-MIMARISI.md`, `BSC-PCS-CONNECTOR-DOGRULAMA.md`, `BSC-PCS-CONNECTOR-TEST-KAPSAMI.md` (+ PDF kopyaları) — transport ve connector içerikleri bu tek dokümana emilmiştir; connector kanıtları yeni KAPANIŞ'ta özetlenir.
+> **Durum:** 🟢 Doğrulanmış (2026-10-05) — T-1…T-20 tamam, doğrulama DEVICE-SERVICE-KAPANIS.md'de.
+> **REV.01 (2026-10-05):** `rackCount` top-level alanı KALDIRILDI — cihaz-spesifik opsiyonel
+> nitelikler `DeviceConfigFile.details` (opak `Record<string, unknown>`) altına taşındı.
+> device-service/web-service `details`'i YORUMLAMAZ, yalnız taşır (decoupled); yorum tüketicide
+> (ön yüz `rackCountOf` + simülatör BSC builder). K5/K6 + UC-1 FR-1.3/AK-1.3/T-3..T-5 revize edildi.
+> **İlişkili:** [SIMULATOR-MIMARISI.md](./SIMULATOR-MIMARISI.md) (self-host simülatör sunucuları + host — bu SPEC'in bağımlı eki), [LOGGER-MIMARISI.md](./LOGGER-MIMARISI.md) (operasyonel log kanalı — UC-6 ilk tüketici), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md) (Wattox register seti), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (T0.11/Faz 0 alarm sözleşmesi + log kategorileri §522), [FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md](./FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md) (event yayılım zinciri), [SANAL-IO-CIHAZ-AILESI-MIMARISI.md](./SANAL-IO-CIHAZ-AILESI-MIMARISI.md) (simülatör aile deseni), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md) (komut kanalı).
+> **Yerine geçtiği dokümanlar (silindi — 2026-10-05):** DEVICE-SERVICE-TRANSPORT-MIMARISI.md, BSC-PCS-CONNECTOR-MIMARISI/DOGRULAMA/TEST-KAPSAMI (+PDF) — transport ve connector içerikleri bu dokümana emildi; kanıtlar DEVICE-SERVICE-KAPANIS.md'de özetlendi.
 
 ---
 
@@ -33,8 +37,8 @@ review_date: 2026-09-24
 |:-------|:------|:------|
 | device-service | Registry kaldırma, simulator dalı çekimi (yalnız TCP/RTU), connector device-subset türetimi, log sözleşmesi, TimescaleSink, rackCount tek kaynak | — |
 | packages/simulators | — | Self-host Modbus server'lar + host + connector master (SIMULATOR-MIMARISI kapsamı — bu SPEC DIŞI) |
-| shared-types | `ConnectorConfig` + `connector?` şeması; `DeviceTransportConfig.rackCount` kaldırılır | IDevice kontrat değişikliği (İleri İş §11) |
-| web-service | `DeviceRegistry`'den ölü rackCount çıkarılır | Relay, bildirim, alarm resolve akışı |
+| shared-types | `ConnectorConfig` + `connector?` şeması; top-level `rackCount` kaldırılır, `details` opak alan eklenir | IDevice kontrat değişikliği (İleri İş §11) |
+| web-service | `device-routes` SELECT `details` (opak geçir) | Relay, bildirim, alarm resolve akışı |
 | container-web | `DEFAULT_RACK_COUNT` sabiti | Rack grafik mantığı |
 
 ---
@@ -46,10 +50,10 @@ review_date: 2026-09-24
 | K1 | `SimulatorRegistry` sınıfı KALDIRILIR ve simulator dalı device-service'ten TAMAMEN çekilir — transport üretimi yalnız TCP/RTU; simülatör örnekleme/yaşam döngüsü `packages/simulators`'ta (SIMULATOR-MIMARISI K2/K4) | UC-5; yeni simülatör = modül + SimulatorHost'a 1 kayıt (SIMULATOR-MIMARISI) |
 | K2 | Connector config BSC config'inin `connector` bölümüdür; simulator ise ve bölüm varsa connector cihaz entry'si türetilir — 1. sınıf cihaz kalır (kendi telemetrisi + devices kaydı) | UC-5; `bsc-pcs-connector-1.json` silinir |
 | K3 | Alarm olay akışı: device-service geçişleri imzalı `LogEvent` olarak kendi TimescaleSink'iyle `log_events`'e yazar; yayılım mevcut zincirde kalır (web-service `UplinkEventRelay` → boss bildirim) | UC-4; MQ event rotası A1 açık kararı |
-| K4 | Logger opsiyonel kalır (`TamperLogger \| undefined`) — yoksa eski console davranışı birebir korunur (test/embedding uyumu) | UC-6 |
-| K5 | rackCount tek kaynak: top-level `DeviceConfigFile.rackCount`; `DeviceTransportConfig.rackCount` şema alanı KALDIRILIR | UC-1 |
-| K6 | Ölü rackCount tüketicileri kırpılır: web-service `DeviceRegistry` (SELECT + alan) çıkarılır; container-web `?? 8` magic number'ı `DEFAULT_RACK_COUNT` sabitine | UC-1 |
-| K7 | Log kategorileri kanonik (KONTEYNER-UZAKTAN-ERISIM-MIMARISI §522): `audit` = komut geçişleri (fail-closed), `security` = geçersiz istek (`request_rejected`), `app` = operasyon/alarm | UC-6 |
+| K4 | **İki log kanalı:** operasyonel/bilgi logları `@gd-monorepo/logger` (`Logger \| undefined` — yoksa eski console davranışı birebir fallback); audit/alarm/security geçişleri imzalı TamperLogger'da (fail-closed, zorunlu) | UC-6 |
+| K5 | Cihaz-spesifik opsiyonel nitelikler (örn. rackCount) top-level DEĞİL — `DeviceConfigFile.details` (opak `Record<string, unknown>`, REV.01) altında; `DeviceTransportConfig.rackCount` ve top-level `rackCount` şemada YOKTUR | UC-1 |
+| K6 | `details` DECOUPLED taşınır: device-service/web-service yorumlamaz; web-service SELECT `details`'i opak geçirir, container-web `rackCountOf` accessor + `DEFAULT_RACK_COUNT` fallback, simülatör BSC builder `details?.rackCount` (default 8) | UC-1 |
+| K7 | Log kategorileri kanonik (KONTEYNER-UZAKTAN-ERISIM-MIMARISI §522) — **TamperLogger kanalı:** `audit` = komut geçişleri (fail-closed), `security` = geçersiz istek (`request_rejected`), `app` = alarm. Operasyonel/bilgi logları TamperLogger'a GİTMEZ; `@gd-monorepo/logger` kanalına aittir (K4, LOGGER-MIMARISI) | UC-6 |
 | K8 | device-service simulator BİLMEZ: `kind` dallanması ve simulator import'u YOK — tüm cihazlar `connection` üzerinden TCP/RTU; `kind:"simulator"` şema alanı KALIR ama yalnız SimulatorHost'un sinyalidir (SIMULATOR-MIMARISI K7) | UC-5 |
 
 ---
@@ -89,7 +93,7 @@ DeviceService
    ├── poll (READ_DEVICE repeatable, saniye grid'i) → read() → TelemetryTagger → publish
    ├── COMMAND_DEVICE → write/writeAtomic → validate read-back → audit
    ├── alarm değerlendirmesi → device_alarms tablosu + TamperLogger → TimescaleSink → log_events
-   ├── devices tablosu (UPSERT, status, rack_count)
+   ├── devices tablosu (UPSERT, status, `details` JSONB)
    └── DeviceScheduler (repeatable job'lar, management job)
 ```
 
@@ -157,10 +161,10 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 
 ### 6.1 UC-1 — Cihaz Yaşam Döngüsü ve Kayıt
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
-- dahil: config yükleme → entry üretimi → connect/disconnect → `devices` tablosu kaydı (UPSERT, status geçişleri, rack_count)
+- dahil: config yükleme → entry üretimi → connect/disconnect → `devices` tablosu kaydı (UPSERT, status geçişleri, `details` passthrough)
 - hariç: poll içeriği (UC-2), alarm (UC-4), transport üretimi (UC-5)
 
 **Akış:**
@@ -175,13 +179,13 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 |:----|:-----------|:--------|
 | FR-1.1 | Config dizininden cihaz entry'leri üretilir; `connector` bölümlü simulator config 2 entry döner | AK-1.1 |
 | FR-1.2 | `start()` tüm cihazları connect eder; kısmi başarısızlık başlatmayı KESMEZ | AK-1.2 |
-| FR-1.3 | Her cihaz `devices` tablosuna UPSERT edilir; `rack_count` yalnızca top-level config alanından gelir | AK-1.3 |
+| FR-1.3 | Her cihaz `devices` tablosuna UPSERT edilir; `details` opak JSONB olarak taşınır (device-service yorumlamaz) | AK-1.3 |
 | FR-1.4 | `stop()`/okuma hatası `status='offline'`, başarılı okuma `status='online'` işaretler | AK-1.4 |
 
 **Kabul Senaryoları (GWT):**
 1. **AK-1.1 — GIVEN** connector bölümlü bir simulator config **WHEN** `fromConfigDir` çalışır **THEN** cihaz listesi BSC + Connector olmak üzere 2 entry içerir
 2. **AK-1.2 — GIVEN** bir cihazın connect'i hata döner **WHEN** `start()` çağrılır **THEN** diğer cihazlar bağlanır, uyarı loglanır, servis açılışı tamamlanır
-3. **AK-1.3 — GIVEN** config'te top-level `rackCount` tanımlı **WHEN** UPSERT çalışır **THEN** `devices.rack_count` bu değeri alır; `transport.rackCount` alanı şemada YOKTUR
+3. **AK-1.3 — GIVEN** config'te `details: { rackCount: 8 }` tanımlı **WHEN** UPSERT çalışır **THEN** `devices.details` bu objeyi alır; top-level `rackCount` alanı şemada YOKTUR
 4. **AK-1.4 — GIVEN** cihaz okuma hatası verir **WHEN** sonraki başarılı okuma gelir **THEN** offline→online geçiş logu + `status='online'` güncellemesi olur
 
 **Kabul Kriterleri:**
@@ -189,15 +193,15 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 |:----|:-------|:------|:------|
 | AK-1.1 | `DeviceFactory.createAll` connector bölümünden 2. entry üretir | unit | ⬜ |
 | AK-1.2 | `start()` connect allSettled davranışı korunur | unit | ⬜ |
-| AK-1.3 | UPSERT rack_count top-level'dan; schema'da transport.rackCount yok | unit | ⬜ |
+| AK-1.3 | UPSERT `details` passthrough; top-level `rackCount` şemada yok (REV.01) | unit | 🟢 |
 | AK-1.4 | offline↔online durum geçişleri (mevcut sözleşme) | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-1: `DeviceEntry` adlandırılmış tip; constructor anonim tipi kaldırılır; boş `types.ts` silinir
-- [ ] T-2: `start()` içi `this.sql!` non-null assertion'ları hoist ile kaldırılır
-- [ ] T-3: `DeviceTransportConfig.rackCount` şema alanı kaldırılır; config'lerden `transport.rackCount` silinir; fabrika top-level okur
-- [ ] T-4: web-service `DeviceRegistry`'den rack_count SELECT + `DeviceInfo.rackCount` çıkarılır (tüketici yok)
-- [ ] T-5: container-web `DEFAULT_RACK_COUNT = 8` sabiti (`rackHelpers`); `DashBoardPage`/`ScadaDashboardPage` `?? 8` yerine kullanır
+- [x] T-1: `DeviceEntry` adlandırılmış tip; constructor anonim tipi kaldırılır; boş `types.ts` silinir
+- [x] T-2: `start()` içi `this.sql!` non-null assertion'ları hoist ile kaldırılır
+- [x] T-3: `DeviceConfigFile.rackCount` kaldırılır; `details` opak alan eklenir; config'lerde `rackCount` → `details`; `DeviceEntry.details` passthrough; DDL `details JSONB` + `rack_count` DROP migrasyonu
+- [x] T-4: web-service `device-routes` SELECT `details` (`rack_count` yerine); `details` opak geçirilir
+- [x] T-5: container-web `details` tipi + `rackCountOf` accessor (`rackHelpers`); `bscHelpers`/`devicesStore`/`DashBoardPage`/`ScadaDashboardPage` accessor'a geçer; `DEFAULT_RACK_COUNT` fallback
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -209,16 +213,16 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `services/device-service/src/device-service.ts` | DeviceEntry tipi, hoist, rackCount kaynak |
+| `services/device-service/src/device-service.ts` | DeviceEntry `details` passthrough, hoist, DDL `details JSONB` + `rack_count` DROP |
 | `services/device-service/src/types.ts` | SİLİNİR |
-| `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | transport.rackCount kaldırılır |
-| `services/device-service/config/*.json` + `deployment/config-docker/*.json` | transport.rackCount girişleri silinir |
-| `services/web-service/src/infrastructure/persistence/device-registry.ts` | rack_count çıkarılır |
-| `apps/container-web/src/features/racks/utils/rackHelpers.ts` + `pages/DashBoardPage.tsx` + `pages/ScadaDashboardPage.tsx` | DEFAULT_RACK_COUNT |
+| `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | top-level `rackCount` kaldırılır; `details` eklenir |
+| `services/device-service/config/*.json` + `deployment/config-docker/*.json` | `rackCount` → `details.rackCount` |
+| `services/web-service/src/presentation/routes/device-routes.ts` | SELECT `details` |
+| `apps/container-web/src/features/devices/types/device.ts` + `features/racks/utils/rackHelpers.ts` + `bscHelpers.ts` + `stores/devicesStore.ts` + `pages/DashBoardPage.tsx` + `pages/ScadaDashboardPage.tsx` | `details` tipi + `rackCountOf` accessor |
 
 ### 6.2 UC-2 — Poll ve Job Üretimi
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: READ_DEVICE repeatable job planlama (saniye grid'i hizalı), read → tag → 3 downstream job üretimi, MANAGEMENT job
@@ -269,7 +273,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 
 ### 6.3 UC-3 — Komut Yürütme ve Audit
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: COMMAND_DEVICE → write/writeAtomic → komut sonrası okuma + publish → validate read-back döngüsü → audit (fail-closed)
@@ -305,7 +309,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | AK-3.4 | Validate timeout davranışı + `validateReadBack` metod ayrışması | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-6: `executeCommand` içi validate döngüsü özel `validateReadBack` metoduna çıkarılır
+- [x] T-6: `executeCommand` içi validate döngüsü özel `validateReadBack` metoduna çıkarılır
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -321,7 +325,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 
 ### 6.4 UC-4 — Alarm Değerlendirme ve Olay Akışı
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: `alarms[]` → samples → dedup dedektör → `device_alarms` durum tablosu + TamperLogger geçiş logları → TimescaleSink → `log_events`; restart reset
@@ -360,7 +364,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | AK-4.5 | Best-effort izolasyon (mevcut sözleşme — regresyon) | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-7: `run.ts#buildLogger` — `timescale` sink dalı (`LOG_EVENTS_DDL` + `TimescaleSink` — data-service deseni)
+- [x] T-7: `run.ts#buildLogger` — `timescale` sink dalı (`LOG_EVENTS_DDL` + `TimescaleSink` — data-service deseni)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -378,7 +382,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 
 ### 6.5 UC-5 — Transport Üretimi (TCP/RTU — simulator dalı YOK)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: protocol seçimi (MODBUS/CANBUS-stub/MQTT-stub), transport kind (yalnız tcp/rtu), connector device-subset'ten 2. entry türetimi
@@ -412,12 +416,12 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | AK-5.4 | Simulator referansı grep=0 | kod inceleme | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-8: `simulator-registry.ts` + 2 testi silinir; DeviceFactory simulator dalı TAMAMEN çekilir (yalnız tcp/rtu — SIMULATOR-MIMARISI T-6 referanslı)
-- [ ] T-9: `run.ts` wiring — SimulatorHost start/stop entegrasyonu (SIMULATOR-MIMARISI K4/T-6)
-- [ ] T-10: `ConnectorConfig` + `DeviceConfigFile.connector?` (zod şema + test — shared-types; device/sim subset ayrımı)
-- [ ] T-11: Connector device-subset türetimi (2. entry — sim-subset SIMULATOR-MIMARISI UC-4'te)
-- [ ] T-12: Config migrasyonu — `config-docker/bsc-1.json`'a `connector` bölümü; `bsc-pcs-connector-1.json` silinir; port düzeltmeleri SIMULATOR-MIMARISI T-8'de
-- [ ] T-13: `device-factory.test.ts` + `maneuver-command.spec.ts` regresyon güncellemeleri (TCP E2E — SIMULATOR-MIMARISI T-9 referanslı)
+- [x] T-8: `simulator-registry.ts` + 2 testi silinir; DeviceFactory simulator dalı TAMAMEN çekilir (yalnız tcp/rtu — SIMULATOR-MIMARISI T-6 referanslı)
+- [x] T-9: `run.ts` wiring — SimulatorHost start/stop entegrasyonu (SIMULATOR-MIMARISI K4/T-6)
+- [x] T-10: `ConnectorConfig` + `DeviceConfigFile.connector?` (zod şema + test — shared-types; device/sim subset ayrımı)
+- [x] T-11: Connector device-subset türetimi (2. entry — sim-subset SIMULATOR-MIMARISI UC-4'te)
+- [x] T-12: Config migrasyonu — `config-docker/bsc-1.json`'a `connector` bölümü; `bsc-pcs-connector-1.json` silinir; port düzeltmeleri SIMULATOR-MIMARISI T-8'de
+- [x] T-13: `device-factory.test.ts` + `maneuver-command.spec.ts` regresyon güncellemeleri (TCP E2E — SIMULATOR-MIMARISI T-9 referanslı)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -439,66 +443,68 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/deployment/config-docker/bsc-pcs-connector-1.json` | SİLİNİR |
 | `services/device-service/run.ts` | SimulatorHost wiring (T-9) |
 
-### 6.6 UC-6 — Log Sözleşmesi
+### 6.6 UC-6 — Log Sözleşmesi (iki kanal)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟡 Geliştirmede
 
 **Kapsam:**
-- dahil: kategori tablosu (audit/security/app), eventCode'lar (LOG_EVENT_CODES), opsiyonel logger + console fallback, bileşenlere logger enjeksiyonu
-- hariç: sink konfigürasyonu (tier defaults — platform/logging), relay, bildirim UI
+- dahil: operasyonel `@gd-monorepo/logger` kanalı (imzasız; console/file sink) + console fallback; TamperLogger kanalı kategori tablosu (audit/security/app) + eventCode'lar (`LOG_EVENT_CODES`); bileşenlere logger enjeksiyonu
+- hariç: sink konfigürasyonu (tier defaults — platform/logging), relay, bildirim UI, paket içi logger implementasyonu (LOGGER-MIMARISI)
 
 **Akış:**
-1. Tüm operasyonel loglar TamperLogger'a gider (K7 kategori tablosu)
-2. Logger yoksa (K4) → eski console davranışı birebir (fallback)
-3. Yeni eventCode'lar önce `LOG_EVENT_CODES`'a eklenir (validator fail-closed)
-4. Audit kategorisi fail-closed; app kategorisi best-effort
+1. Operasyonel/bilgi logları (bağlantı özeti, upsert, schedule, komut bilgisi) `@gd-monorepo/logger` `Logger` üzerinden yazılır (imzasız zincir; `logger.child("<Bileşen>")`)
+2. Audit (komut geçişleri), security (`request_rejected`), alarm geçişleri TamperLogger'a gider (imzalı, fail-closed) — K7 kategori tablosu
+3. Operasyonel logger yoksa (K4) → eski console davranışı birebir (fallback)
+4. Yeni eventCode'lar önce `LOG_EVENT_CODES`'a eklenir (TamperLogger validator fail-closed)
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-6.1 | Komut geçişleri `audit` kategorisinde, fail-closed (mevcut korunur) | AK-6.1 |
-| FR-6.2 | `request_rejected` → `security` kategorisi (K7) | AK-6.2 |
-| FR-6.3 | Operasyonel loglar (bağlantı, upsert, schedule, komut bilgisi) logger varsa logger'a; yoksa console fallback | AK-6.3 |
-| FR-6.4 | Kullanılan her yeni eventCode `LOG_EVENT_CODES`'da tanımlıdır | AK-6.4 |
+| FR-6.1 | Komut geçişleri TamperLogger `audit` kategorisinde, fail-closed (mevcut korunur) | AK-6.1 |
+| FR-6.2 | `request_rejected` → TamperLogger `security` kategorisi (K7) | AK-6.2 |
+| FR-6.3 | Operasyonel/bilgi logları `@gd-monorepo/logger` ile yazılır (`child` bileşen etiketi); logger yoksa console fallback | AK-6.3 |
+| FR-6.4 | TamperLogger kanalında kullanılan her yeni eventCode `LOG_EVENT_CODES`'da tanımlıdır | AK-6.4 |
+| FR-6.5 | Operasyonel loglar TamperLogger imzalı zincirine YAZILMAZ (kategori sınırı — LOGGER-MIMARISI B1 kapanır) | AK-6.5 |
 
 **Kabul Senaryoları (GWT):**
 1. **AK-6.1 — GIVEN** komut yürütülür **WHEN** audit yazılır **THEN** kategori `audit`, audit hatası komutu fail eder
-2. **AK-6.2 — GIVEN** bilinmeyen cihaza istek gelir **WHEN** red loglanır **THEN** kategori `security`
-3. **AK-6.3 — GIVEN** logger yok **WHEN** uyarı koşulu oluşur **THEN** eski console mesajı birebir basılır (regresyon testi)
-4. **AK-6.4 — GIVEN** yeni kod loglar **WHEN** eventCode doğrulanır **THEN** sözlükte kayıtlıdır (bilinmeyen kod reddedilir)
+2. **AK-6.2 — GIVEN** bilinmeyen cihaza istek gelir **WHEN** red loglanır **THEN** TamperLogger kategorisi `security`
+3. **AK-6.3 — GIVEN** operasyonel uyarı koşulu oluşur **WHEN** loglanır **THEN** `@gd-monorepo/logger` sink'ine yazılır; logger yoksa eski console mesajı birebir basılır (fallback testi)
+4. **AK-6.4 — GIVEN** yeni kod TamperLogger'a loglar **WHEN** eventCode doğrulanır **THEN** sözlükte kayıtlıdır (bilinmeyen kod reddedilir)
+5. **AK-6.5 — GIVEN** operasyonel log yazılır **WHEN** TamperLogger `log_events` zinciri incelenir **THEN** operasyonel mesaj zincirde YOKTUR (imzasız kanal)
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
 | AK-6.1 | Audit fail-closed (mevcut sözleşme — regresyon) | unit | ⬜ |
 | AK-6.2 | request_rejected kategori değişimi + test | unit | ⬜ |
-| AK-6.3 | Koşulsuz console.* kalmadı (grep) + fallback testleri | kod inceleme + unit | ⬜ |
+| AK-6.3 | Operasyonel logger kanalı + console fallback testleri | unit | ⬜ |
 | AK-6.4 | LOG_EVENT_CODES ekleri + validator testi | unit | ⬜ |
+| AK-6.5 | Operasyonel log TamperLogger zincirinde yok + koşulsuz console.* yok | kod inceleme + unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-14: `LOG_EVENT_CODES` ekleri: `device_connect_summary`, `device_schedule_failed`, `device_upsert_failed`, `job_enqueue_failed`, `command_received`
-- [ ] T-15: `device-service.ts` koşulsuz console'lar → logger + fallback (B3)
-- [ ] T-16: `config-loader.ts` + `device-scheduler.ts` + fabrika uyarıları → logger enjeksiyonu (fromConfigDir zinciri)
-- [ ] T-17: `request_rejected` kategori düzeltmesi (security) + test güncellemesi
+- [x] T-14: `run.ts` operasyonel `Logger` (`@gd-monorepo/logger`) wiring + `LOG_EVENT_CODES` gözden geçirme (TamperLogger yalnız audit/security/alarm)
+- [x] T-15: `device-service.ts` koşulsuz console'lar → operasyonel `Logger` (yoksa birebir console fallback); audit/security TamperLogger'da kalır (B3)
+- [x] T-16: `config-loader.ts` + `device-scheduler.ts` + fabrika uyarıları → operasyonel `Logger` enjeksiyonu (fromConfigDir zinciri)
+- [x] T-17: `request_rejected` kategori düzeltmesi (TamperLogger `security`) + test güncellemesi
 
 **Edge Cases:**
 | Durum | Davranış |
 |:------|:---------|
-| `logger.log` app kategorisinde throw | Fallback console (best-effort) |
-| Audit kategorisinde throw | Yukarı yayılır (fail-closed) |
+| Operasyonel logger sink hatası | Fail-open (LOGGER-MIMARISI K5) — akış kesilmez |
+| TamperLogger audit kategorisinde throw | Yukarı yayılır (fail-closed) |
 | Logger yok + audit gerekli | Komut reddi job hatası verir (mevcut davranış) |
+| Logger yok + operasyonel log | Birebir console fallback (K4) |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `packages/platform/logging/src/event-codes.ts` | Yeni kodlar |
-| `services/device-service/src/device-service.ts` | Logger geçişi + kategori |
-| `services/device-service/src/device-scheduler.ts` | Logger enjeksiyonu |
-| `services/device-service/src/config-loader.ts` | Logger enjeksiyonu |
-| `services/device-service/src/device-factory.ts` | Fabrika uyarıları |
-| `services/device-service/run.ts` | (T-7 ile birlikte sink wiring) |
-
----
+| `packages/platform/logging/src/event-codes.ts` | TamperLogger kodları gözden geçirme |
+| `services/device-service/src/device-service.ts` | Operasyonel logger geçişi + kategori sınırı |
+| `services/device-service/src/device-scheduler.ts` | Operasyonel logger enjeksiyonu |
+| `services/device-service/src/config-loader.ts` | Operasyonel logger enjeksiyonu |
+| `services/device-service/src/device-factory.ts` | Fabrika uyarıları → operasyonel logger |
+| `services/device-service/run.ts` | Operasyonel `@gd-monorepo/logger` wiring (T-7 ile birlikte) |
 
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
@@ -573,9 +579,9 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 |:--|:------|:---|
 | T-1 | `DeviceEntry` adlandırılmış tip + anonim constructor tipi kaldırma + `types.ts` silme | UC-1 |
 | T-2 | `this.sql!` hoist | UC-1 |
-| T-3 | `DeviceTransportConfig.rackCount` şema kaldırma + config temizliği + fabrika top-level okuma | UC-1 |
-| T-4 | web-service `DeviceRegistry` rackCount çıkarımı | UC-1 |
-| T-5 | container-web `DEFAULT_RACK_COUNT` sabiti | UC-1 |
+| T-3 | `DeviceConfigFile.rackCount` kaldır + `details` opak alan + config migrasyonu + `DeviceEntry.details` + DDL `details JSONB`/`rack_count` DROP | UC-1 |
+| T-4 | web-service `device-routes` SELECT `details` (opak geçir) | UC-1 |
+| T-5 | container-web `details` tipi + `rackCountOf` accessor + `DEFAULT_RACK_COUNT` fallback | UC-1 |
 | T-6 | `validateReadBack` metod çıkarımı | UC-3 |
 | T-7 | `run.ts#buildLogger` TimescaleSink dalı | UC-4 |
 | T-8 | `simulator-registry.ts` silme + DeviceFactory simulator dalı tamamen çekilir (yalnız tcp/rtu) | UC-5 |
@@ -584,10 +590,10 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | T-11 | Connector device-subset türetimi (2. entry) | UC-5 |
 | T-12 | Config migrasyonu (bsc-1.json connector bölümü; bsc-pcs-connector-1.json silme) | UC-5 |
 | T-13 | device-factory/maneuver spec regresyon güncellemeleri (TCP E2E) | UC-5 |
-| T-14 | `LOG_EVENT_CODES` ekleri (5 kod) | UC-6 |
-| T-15 | device-service.ts console → logger + fallback | UC-6 |
-| T-16 | config-loader/scheduler/fabrika logger enjeksiyonu | UC-6 |
-| T-17 | `request_rejected` → security kategorisi | UC-6 |
+| T-14 | `run.ts` operasyonel `@gd-monorepo/logger` wiring + `LOG_EVENT_CODES` gözden geçirme | UC-6 |
+| T-15 | device-service.ts console → operasyonel logger + fallback | UC-6 |
+| T-16 | config-loader/scheduler/fabrika operasyonel logger enjeksiyonu | UC-6 |
+| T-17 | `request_rejected` → TamperLogger `security` kategorisi | UC-6 |
 | T-18 | 6 eski doküman silme + link düzeltmeleri | — (dokümantasyon) |
 | T-19 | AGENTS.md güncellemeleri (registry/simulator referansları → SIMULATOR-MIMARISI/SimulatorHost) | — (dokümantasyon) |
 | T-20 | `DEVICE-SERVICE-KAPANIS.md` + spec:check + test:inventory | — (kapanış) |

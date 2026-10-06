@@ -11,12 +11,14 @@ import { expectHolds } from "@gd-monorepo/shared-types";
 
 import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { Logger } from "@gd-monorepo/logger";
+import { createOpsLog } from "./ops-log";
+import type { OpsLog } from "./ops-log";
 
 import { PostgresAdapter } from "@gd-monorepo/core";
 
 import { DeviceConfigLoader } from "./config-loader";
 import { DeviceFactory } from "./device-factory";
-import { SimulatorRegistry } from "./simulator-registry";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
 import {
@@ -33,7 +35,7 @@ interface DeviceEntry {
   model: string | undefined;
   protocol: string;
   type: string;
-  rackCount?: number;
+  details?: Record<string, unknown>;
   configConnection: Record<string, unknown>;
   alarms?: DeviceAlarmRule[];
 }
@@ -46,7 +48,7 @@ const CREATE_DEVICES_TABLE = `
     model             VARCHAR(255),
     protocol          VARCHAR(50) NOT NULL,
     type              VARCHAR(50) DEFAULT 'unknown',
-    rack_count        INTEGER DEFAULT 0,
+    details           JSONB DEFAULT '{}'::jsonb,
     status            VARCHAR(50) DEFAULT 'offline',
     poll_interval_ms  INTEGER,
     connection        JSONB DEFAULT '{}',
@@ -57,15 +59,15 @@ const CREATE_DEVICES_TABLE = `
 `;
 
 const UPSERT_DEVICE = `
-  INSERT INTO devices (id, name, manufacturer, model, protocol, type, rack_count, status, poll_interval_ms, connection, last_seen, updated_at)
-  VALUES ($1, $2, $3, $4, $5, $6, $7, 'online', $8, $9::jsonb, NOW(), NOW())
+  INSERT INTO devices (id, name, manufacturer, model, protocol, type, details, status, poll_interval_ms, connection, last_seen, updated_at)
+  VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, 'online', $8, $9::jsonb, NOW(), NOW())
   ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     manufacturer = EXCLUDED.manufacturer,
     model = EXCLUDED.model,
     protocol = EXCLUDED.protocol,
     type = EXCLUDED.type,
-    rack_count = EXCLUDED.rack_count,
+    details = EXCLUDED.details,
     status = 'online',
     poll_interval_ms = EXCLUDED.poll_interval_ms,
     connection = EXCLUDED.connection,
@@ -85,7 +87,7 @@ export class DeviceService {
   private running: boolean;
   private readonly mq: IMessageQueue;
   private readonly scheduler: DeviceScheduler;
-  private readonly simulators: SimulatorRegistry;
+
   private readonly sql: ISqlDatabase | undefined;
   private readonly taggers: Map<string, TelemetryTagger>;
   private readonly logger: TamperLogger | undefined;
@@ -93,33 +95,25 @@ export class DeviceService {
   private readonly lastReminderAt: Map<string, number>;
   private readonly alarmDetector: AlarmTransitionDetector;
   private readonly alarmRepository: AlarmStateRepository | undefined;
+  private readonly ops: OpsLog;
 
   constructor(
-    devices: {
-      device: IDevice;
-      pollIntervalMs: number;
-      name: string;
-      manufacturer: string | undefined;
-      model: string | undefined;
-      protocol: string;
-      type: string;
-      rackCount?: number;
-      configConnection: Record<string, unknown>;
-      alarms?: DeviceAlarmRule[];
-    }[],
+    devices: DeviceEntry[],
     mq: IMessageQueue,
     scheduler: DeviceScheduler,
-    simulators: SimulatorRegistry,
+
     sql?: ISqlDatabase,
     identity?: { containerId?: string; fieldId?: string },
     logger?: TamperLogger,
+    opsLogger?: Logger,
   ) {
     this.devices = new Map();
     this.taggers = new Map();
     this.running = false;
     this.mq = mq;
     this.scheduler = scheduler;
-    this.simulators = simulators;
+    this.ops = createOpsLog(opsLogger, "DeviceService");
+
     this.sql = sql;
     this.logger = logger;
     this.offlineSince = new Map();
@@ -141,9 +135,9 @@ export class DeviceService {
     mq: IMessageQueue,
     identity?: { containerId?: string; fieldId?: string },
     logger?: TamperLogger,
-    options?: { bmsTarget?: { host?: string; port?: number } },
+    opsLogger?: Logger,
   ): Promise<DeviceService> {
-    const loader = new DeviceConfigLoader(configDir);
+    const loader = new DeviceConfigLoader(configDir, opsLogger);
     const { service, devices: configs } = loader.load();
 
     // Config dizini bağıl registerMap yollarını mutlak yap — simülatör
@@ -161,50 +155,54 @@ export class DeviceService {
       }
     }
 
-    const simulators = new SimulatorRegistry(options);
-    simulators.createFromConfigs(configs);
+    const factory = new DeviceFactory();
+    const scheduler = new DeviceScheduler(mq, service, opsLogger);
 
-    const factory = new DeviceFactory(simulators);
-    const scheduler = new DeviceScheduler(mq, service);
-
-    const sql = await this.buildSqlAdapter(service);
+    const sql = await this.buildSqlAdapter(service, createOpsLog(opsLogger, "DeviceService"));
 
     const defaultInterval = service.servicePollIntervalMs ?? 5000;
 
-    const deviceEntries = configs.map((c) => {
-      const device = factory.create(c);
-      const pollIntervalMs = c.pollIntervalMs ?? defaultInterval;
-      // Cihaz tipi ve rack sayısı config'in kendi alanlarıdır —
-      // generic servis transport/simülatör bilgisine DOKUNMAZ.
+    const deviceEntries: DeviceEntry[] = configs.flatMap((c) => {
+      // Cihaz tipi ve rack sayısı config'in kendi alanlarıdır.
       const type = c.type ?? "unknown";
-      const rackCount = c.rackCount;
-      return {
-        device,
-        pollIntervalMs,
-        name: c.name,
-        manufacturer: c.manufacturer,
-        model: c.model,
-        protocol: c.protocol,
-        type,
-        rackCount,
-        configConnection: c.connection,
-        alarms: c.alarms,
-      };
+      const entries: DeviceEntry[] = [
+        {
+          device: factory.create(c),
+          pollIntervalMs: c.pollIntervalMs ?? defaultInterval,
+          name: c.name,
+          manufacturer: c.manufacturer,
+          model: c.model,
+          protocol: c.protocol,
+          type,
+          details: c.details,
+          configConnection: c.connection,
+          alarms: c.alarms,
+        },
+      ];
+
+      // Connector bölümü varsa türetilmiş 2. MODBUS cihazı eklenir (K2).
+      const connectorDevice = factory.createConnector(c);
+      if (connectorDevice !== undefined && c.connector !== undefined) {
+        entries.push({
+          device: connectorDevice,
+          pollIntervalMs: c.connector.device.pollIntervalMs ?? defaultInterval,
+          name: c.connector.device.name,
+          manufacturer: c.manufacturer,
+          model: c.model,
+          protocol: "MODBUS",
+          type: c.connector.device.type,
+          configConnection: c.connector.device.connection,
+        });
+      }
+      return entries;
     });
 
-    return new DeviceService(
-      deviceEntries,
-      mq,
-      scheduler,
-      simulators,
-      sql,
-      identity,
-      logger,
-    );
+    return new DeviceService(deviceEntries, mq, scheduler, sql, identity, logger, opsLogger);
   }
 
   private static async buildSqlAdapter(
     service: ServiceConfigFile,
+    ops: OpsLog,
   ): Promise<ISqlDatabase | undefined> {
     if (!service.postgresql) return undefined;
 
@@ -214,7 +212,12 @@ export class DeviceService {
     await sql.execute(
       "CREATE INDEX IF NOT EXISTS idx_devices_status ON devices (status)",
     );
-    console.log("[DeviceService] Cihaz tablosu hazir");
+    // Migrasyon: rack_count → details (JSONB, opak passthrough).
+    await sql.execute(
+      "ALTER TABLE devices ADD COLUMN IF NOT EXISTS details JSONB DEFAULT '{}'::jsonb",
+    );
+    await sql.execute("ALTER TABLE devices DROP COLUMN IF EXISTS rack_count");
+    ops.info("Cihaz tablosu hazir");
     return sql;
   }
 
@@ -228,11 +231,11 @@ export class DeviceService {
     const connected = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
     if (failed > 0) {
-      console.warn(
-        `[DeviceService] ${failed}/${entries.length} cihaza baglanilamadi, ${connected} baglandi`,
+      this.ops.warn(
+        `${failed}/${entries.length} cihaza baglanilamadi, ${connected} baglandi`,
       );
     } else {
-      console.log(`[DeviceService] ${entries.length} cihaza baglanildi`);
+      this.ops.info(`${entries.length} cihaza baglanildi`);
     }
 
     // Tüm cihazlar saniye sınırına hizalanır (generic):
@@ -255,22 +258,21 @@ export class DeviceService {
       (r) => r.status === "rejected",
     ).length;
     if (scheduleFailed > 0) {
-      console.warn(
-        `[DeviceService] ${scheduleFailed}/${entries.length} cihaz zamanlanamadi`,
-      );
+      this.ops.warn(`${scheduleFailed}/${entries.length} cihaz zamanlanamadi`);
     }
 
     if (this.sql) {
+      const sql = this.sql;
       const upsertResults = await Promise.allSettled(
         entries.map((entry) =>
-          this.sql!.execute(UPSERT_DEVICE, [
+          sql.execute(UPSERT_DEVICE, [
             entry.device.id,
             entry.name,
             entry.manufacturer ?? null,
             entry.model ?? null,
             entry.protocol,
             entry.type,
-            entry.rackCount ?? null,
+            JSON.stringify(entry.details ?? {}),
             entry.pollIntervalMs,
             JSON.stringify(entry.configConnection),
           ]),
@@ -280,9 +282,7 @@ export class DeviceService {
         (r) => r.status === "rejected",
       ).length;
       if (upsertFailed > 0) {
-        console.warn(
-          `[DeviceService] ${upsertFailed}/${entries.length} cihaz kaydi yapilamadi`,
-        );
+        this.ops.warn(`${upsertFailed}/${entries.length} cihaz kaydi yapilamadi`);
       }
     }
 
@@ -311,7 +311,7 @@ export class DeviceService {
       { concurrency: 10 },
     );
 
-    console.log(`[DeviceService] ${this.devices.size} cihaz baslatildi`);
+    this.ops.info(`${this.devices.size} cihaz baslatildi`);
   }
 
   async stop(): Promise<void> {
@@ -323,17 +323,13 @@ export class DeviceService {
           try {
             await this.sql.execute(SET_DEVICE_OFFLINE, [entry.device.id]);
           } catch {
-            console.warn(
-              `[DeviceService] Status update failed for ${entry.device.id}`,
-            );
+            this.ops.warn("Status update failed", { deviceId: entry.device.id });
           }
         }
         try {
           await entry.device.disconnect();
         } catch {
-          console.warn(
-            `[DeviceService] Disconnect failed for ${entry.device.id}`,
-          );
+          this.ops.warn("Disconnect failed", { deviceId: entry.device.id });
         }
       },
     );
@@ -346,7 +342,7 @@ export class DeviceService {
     }
 
     this.devices.clear();
-    console.log("[DeviceService] Tum cihazlar durduruldu");
+    this.ops.info("Tum cihazlar durduruldu");
   }
 
   health(): boolean {
@@ -359,7 +355,7 @@ export class DeviceService {
       await this.logOrWarn(
         {
           level: "warn",
-          category: "app",
+          category: "security",
           eventCode: "request_rejected",
           message: "Bilinmeyen cihaz okuma isteği",
           context: { deviceId: job.deviceId },
@@ -509,7 +505,7 @@ export class DeviceService {
   private async logOrWarn(
     event: {
       level: "warn" | "error";
-      category: "app";
+      category: "security";
       eventCode: "request_rejected";
       message: string;
       context: Record<string, unknown>;
@@ -524,7 +520,7 @@ export class DeviceService {
         // app kategorisi fail-closed değildir
       }
     }
-    console.warn(`[DeviceService] ${warnMessage}`);
+    this.ops.warn(warnMessage);
   }
 
   private async publish(
@@ -545,7 +541,7 @@ export class DeviceService {
       await this.logOrWarn(
         {
           level: "warn",
-          category: "app",
+          category: "security",
           eventCode: "request_rejected",
           message: "Bilinmeyen cihaza komut isteği",
           context: { deviceId: job.deviceId },
@@ -555,9 +551,7 @@ export class DeviceService {
       return { success: false, reason: msg };
     }
 
-    console.log(
-      `[DeviceService] Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`,
-    );
+    this.ops.info(`Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`);
 
     try {
       if (job.atomic && entry.device.writeAtomic) {
@@ -578,7 +572,7 @@ export class DeviceService {
           context: { deviceId: job.deviceId, error: String(err) },
         });
       } else {
-        console.error(`[DeviceService] ${msg}`);
+        this.ops.error(msg, { deviceId: job.deviceId });
       }
       return { success: false, reason: msg };
     }
@@ -602,30 +596,39 @@ export class DeviceService {
 
     const validate = job.validate;
     if (validate) {
-      const minWaitMs = validate.minWaitMs ?? 0;
-      if (minWaitMs > 0) {
-        await new Promise((r) => setTimeout(r, minWaitMs));
-      }
-      const start = Date.now();
-      while (Date.now() - start < validate.timeoutMs) {
-        try {
-          const readBack = await entry.device.read();
-          const allMatch = validate.reads.every((expected) => {
-            const actual = readBack.find((r) => r.name === expected.name);
-            return (
-              actual !== undefined && expectHolds(actual.value, expected.expect)
-            );
-          });
-          if (allMatch) return { success: true, validated: true };
-        } catch {
-          // ELEGANT-EXCEPTION: validation read-back failure; retry in next poll cycle
-        }
-        await new Promise((r) => setTimeout(r, 50));
-      }
-      return { success: true, validated: false, reason: "Validation timeout" };
+      return await this.validateReadBack(entry, validate);
     }
 
     return { success: true };
+  }
+
+  /**
+   * Komut sonrası read-back doğrulaması — `minWaitMs` bekle, `timeoutMs` boyunca
+   * 50 ms aralıkla oku; eşleşme → `validated:true`, timeout → `validated:false`.
+   */
+  private async validateReadBack(
+    entry: DeviceEntry,
+    validate: NonNullable<CommandDeviceJob["validate"]>,
+  ): Promise<{ success: boolean; validated?: boolean; reason?: string }> {
+    const minWaitMs = validate.minWaitMs ?? 0;
+    if (minWaitMs > 0) {
+      await new Promise((r) => setTimeout(r, minWaitMs));
+    }
+    const start = Date.now();
+    while (Date.now() - start < validate.timeoutMs) {
+      try {
+        const readBack = await entry.device.read();
+        const allMatch = validate.reads.every((expected) => {
+          const actual = readBack.find((r) => r.name === expected.name);
+          return actual !== undefined && expectHolds(actual.value, expected.expect);
+        });
+        if (allMatch) return { success: true, validated: true };
+      } catch {
+        // ELEGANT-EXCEPTION: validation read-back failure; retry in next poll cycle
+      }
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return { success: true, validated: false, reason: "Validation timeout" };
   }
 
   /** Komut audit'i (T0.11) — kim/hangi komut/sonuç; audit fail-closed'dur. */

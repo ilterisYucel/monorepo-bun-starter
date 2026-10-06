@@ -46,7 +46,14 @@ export async function telemetryWsRoutes(
           const msg = JSON.parse(raw.toString());
 
           if (msg.type === "subscribe" && msg.deviceId) {
-            realtime.subscribe(msg.deviceId, socket);
+            const names = Array.isArray(msg.names)
+              ? (msg.names as unknown[]).filter((n): n is string => typeof n === "string")
+              : undefined;
+            if (names !== undefined && names.length > 0) {
+              realtime.subscribe(msg.deviceId, socket, names);
+            } else {
+              realtime.subscribe(msg.deviceId, socket);
+            }
             await realtime.sendInitialData(msg.deviceId, socket);
             socket.send(
               JSON.stringify({

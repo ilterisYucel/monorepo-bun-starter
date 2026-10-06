@@ -275,7 +275,7 @@ Alternatif olarak, TimescaleDB'nin tiered storage (data tiering) özelliği kull
 Gerekçeler:
 - Relasyonel veri zaten gerekli (users, devices, system_logs, field kayıtları) → PG şart. PG + Influx aynı RevPi'de = tek ayarlı PG+Timescale'den daha fazla RAM. İkinci motor erişim maliyetini düşürmez, toplam RAM'i artırır.
 - Darboğaz RAM'dir, sıkıştırma oranı değil. 90 günlük retention ile disk ihtiyacı yönetilebilir (§4); Influx'un disk avantajı bu kurulumda belirleyici değildir.
-- Kontrat (`ITimeseriesDatabase`) zaten var — Influx'a geçiş gerektiğinde implementasyon katmanında yapılır (`core/src/timeseries/implementations/influxdb/`, bkz. DEVICE-SERVICE-TRANSPORT-MIMARISI.md ile aynı Strategy yaklaşımı). Yazılım tarafı buna hazırdır; donanım kararı şimdilik Timescale'dir.
+- Kontrat (`ITimeseriesDatabase`) zaten var — Influx'a geçiş gerektiğinde implementasyon katmanında yapılır (`core/src/timeseries/implementations/influxdb/`, bkz. DEVICE-SERVICE-MIMARISI.md ile aynı Strategy yaklaşımı). Yazılım tarafı buna hazırdır; donanım kararı şimdilik Timescale'dir.
 
 ### 8.2 RAM bütçesi (8 GB toplam)
 

@@ -59,6 +59,6 @@ Bağlı tasarım: [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md)
 
 - Field device-service yerel çalıştırıldı (config-field + wattox-pcs sim): "1 cihaz, PCS-1 (wattox-pcs)" + READ_DEVICE repeatable + MANAGEMENT/WS_BROADCAST/WRITE_TELEMETRY job akışı redis'te gözlendi.
 - İlk çalıştırmada S16 raw-word dönüşüm hatası (`modbus_read_failed` — "Received -1725") yakalandı ve düzeltildi (raw16 dönüşümü) — düzeltme sonrası hata logu YOK.
-- BMS bloğu connector Faz 2 ile doğrulandı (bkz. BSC-PCS-CONNECTOR-DOGRULAMA).
+- BMS bloğu connector Faz 2 ile doğrulandı (bkz. DEVICE-SERVICE-MIMARISI.md + DEVICE-SERVICE-KAPANIS.md).
 
 `review_date: 2026-09-15`

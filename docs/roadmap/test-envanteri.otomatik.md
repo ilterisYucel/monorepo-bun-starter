@@ -1,7 +1,7 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-09-23
-> Tarandı: 231 test dosyası, 2003 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-10-05
+> Tarandı: 234 test dosyası, 2039 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
@@ -703,6 +703,39 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/logger/src/logger.test.ts` (15 test)
+
+1. (Logger — UC-1 temel loglama ve format) **"AK-1.1 — info kaydı ts/level/service/message/context taşır"**
+2. (Logger — UC-1 temel loglama ve format) **"AK-1.1 — context'siz kayıt da üretilir"**
+3. (Logger — UC-1 temel loglama ve format) **"AK-1.2 — eşiğin altındaki seviye sink'e ulaşmaz"**
+4. (Logger — UC-1 temel loglama ve format) **"AK-1.3 — level verilmezse info varsayılan olur"**
+5. (Logger — UC-1 temel loglama ve format) **"AK-1.4 — level altı çağrıda sink'e kayıt üretilmez (no-op)"**
+6. (Logger — UC-1 temel loglama ve format) **"boş service constructor'da throw eder"**
+7. (Logger — UC-1 temel loglama ve format) **"edge — fonksiyon/sembol içeren context güvenle elenir"**
+8. (Logger — UC-1 temel loglama ve format) **"edge — döngüsel context throw etmez, kayıt üretilir"**
+9. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger) **"AK-3.2 — child component taşır, service parent'ınkidir"**
+10. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger) **"AK-3.1 — parent'a sonradan eklenen sink child kayıtlarını da alır"**
+11. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger) **"child parent'ın level'ini devralır"**
+12. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger) **"edge — boş component kaydı etiketsiz üretir"**
+13. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger > Logger — close ve hata izolasyonu) **"AK-2.2 — bir sink throw edince diğeri yazar, logger throw etmez"**
+14. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger > Logger — close ve hata izolasyonu) **"AK-2.2 — async sink reddederse logger throw etmez"**
+15. (Logger — UC-1 temel loglama ve format > Logger — UC-3 child logger > Logger — close ve hata izolasyonu) **"close tüm sink'lerin close'unu çağırır, hata yutulur"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/logger/src/sinks.test.ts` (8 test)
+
+1. (Logger — UC-2 sink yönetimi) **"AK-2.1 — removeSink sonrası kayıt yalnız kalan sink'e gider"**
+2. (Logger — UC-2 sink yönetimi) **"edge — aynı sink iki kez eklenirse tek sayılır"**
+3. (Logger — UC-2 sink yönetimi) **"edge — listede olmayan sink'i çıkarmak no-op'tur"**
+4. (Logger — UC-2 sink yönetimi > FileSink — UC-2) **"AK-2.3 — JSON satırları append eder; close stream'i kapatır"**
+5. (Logger — UC-2 sink yönetimi > FileSink — UC-2) **"edge — üst dizin yoksa oluşturur"**
+6. (Logger — UC-2 sink yönetimi > FileSink — UC-2) **"close sonrası yazma reddedilir"**
+7. (Logger — UC-2 sink yönetimi > FileSink — UC-2 > ConsoleSink) **"insan-okur tek satırı seviye metoduna yazar"**
+8. (Logger — UC-2 sink yönetimi > FileSink — UC-2 > ConsoleSink) **"seviyeyi doğru console metoduna eşler"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/platform/commands/src/command-job-builder.test.ts` (16 test)
 
 1. (CommandJobBuilder.build) **"config yok → err device_not_found"**
@@ -1136,9 +1169,18 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/simulators/src/bsc-pcs-connector/source-reader.test.ts` (4 test)
+
+1. (TcpSourceReader) **"tek register'ı TCP'den okur"**
+2. (TcpSourceReader) **"size>1 kelimeleri big-endian birleştirir"**
+3. (TcpSourceReader) **"bilinmeyen deviceId → throw"**
+4. (TcpSourceReader) **"combineWords signed işaretleme"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/simulators/src/bsc-pcs-connector/tcp-target.test.ts` (4 test)
 
-1. (TcpBmsTarget) **"BmsPortServer'a FC 0x10 yazar; simülatör deposu güncellenir"**
+1. (TcpBmsTarget) **"BMS-yüzü bridge'e FC 0x10 yazar; simülatör deposu güncellenir"**
 2. (TcpBmsTarget) **"sunucu kapalıyken connect throw eder"**
 3. (TcpBmsTarget) **"close sonrası yeniden connect + yazım çalışır (retry deseni)"**
 4. (TcpBmsTarget) **"BMS bloğu dışına yazım → Modbus exception throw"**
@@ -1219,6 +1261,16 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/simulators/src/host.test.ts` (5 test)
+
+1. (SimulatorHost — UC-3) **"AK-3.1 — yalnız simulator config'ler için sunucu açar; TCP okunur"**
+2. (SimulatorHost — UC-3) **"AK-3.2 — deviceId→port indeksi kurulur"**
+3. (SimulatorHost — UC-3) **"edge — bilinmeyen simülatör tipi fail-fast"**
+4. (SimulatorHost — UC-3) **"edge — port çakışması fail-fast (kısmen açılanlar kapanır)"**
+5. (SimulatorHost — UC-3) **"edge — stopAll idempotent"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/simulators/src/hvac/hvac.test.ts` (11 test)
 
 1. (HvacSimulator > initial state) **"starts in standby"**
@@ -1250,25 +1302,39 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/simulator-transport.test.ts` (4 test)
+### `packages/simulators/src/server/modbus-server-bridge.test.ts` (13 test)
 
-1. (SimulatorTransport) **"connect ticker'ı başlatır, disconnect durdurur"**
-2. (SimulatorTransport) **"çift connect ticker'ı çoğaltmaz"**
-3. (SimulatorTransport) **"okuma/yazmaları simulator adapter'ına delege eder"**
-4. (SimulatorTransport) **"isConnected her zaman true, reconnect no-op"**
+1. (ModbusServerBridge — UC-1) **"AK-1.1 — FC 03/04/01/02 adapter'dan anlık değer döner"**
+2. (ModbusServerBridge — UC-1) **"AK-1.1 — çoklu holding okuma sıralı değer döner"**
+3. (ModbusServerBridge — UC-1) **"AK-1.2 — korunan holding aralığına yazım 0x02 döner, adapter'a GİTMEZ"**
+4. (ModbusServerBridge — UC-1) **"AK-1.2 — korunmayan holding adresine yazım adapter'a gider"**
+5. (ModbusServerBridge — UC-1) **"AK-1.2 — çoklu holding yazımı korunan aralıkla kesişirse reddedilir"**
+6. (ModbusServerBridge — UC-1) **"AK-1.2 — coil koruması korunan coil adresine yazımı reddeder"**
+7. (ModbusServerBridge — UC-1) **"AK-1.4 — readProtected dışı holding okuma 0x02, korunmayan adres okunur"**
+8. (ModbusServerBridge — UC-1) **"AK-1.4 — readProtected ranges yoksa tüm holding tablosu korunur"**
+9. (ModbusServerBridge — UC-1) **"AK-1.4 — readProtected coil tablosunda da okumayı reddeder"**
+10. (ModbusServerBridge — UC-1) **"AK-1.3 — adapter hatası (aralık dışı) exception döner, server ayakta kalır"**
+11. (ModbusServerBridge — UC-1) **"yazma — tek register/çoklu register/coil adapter'a iletilir (FC 06/10/05/0F)"**
+12. (ModbusServerBridge — UC-1) **"edge — port doğrulaması: port<=0 throw eder"**
+13. (ModbusServerBridge — UC-1) **"edge — stop() idempotent; start/stop/start yeniden açılır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/wattox-pcs/bms-port-server.test.ts` (8 test)
+### `packages/simulators/src/server/simulator-server.test.ts` (3 test)
 
-1. (BmsPortServer) **"start port döner; FC 0x03 BMS bloğunu okur"**
-2. (BmsPortServer) **"FC 0x06 yazımı simülatör deposuna uygular (EMS yüzü görür)"**
-3. (BmsPortServer) **"FC 0x10 çoklu yazım uygulanır"**
-4. (BmsPortServer) **"BMS bloğu DIŞI yazım → exception 0x02"**
-5. (BmsPortServer) **"BMS bloğu DIŞI okuma → exception 0x02"**
-6. (BmsPortServer) **"bilinmeyen fonksiyon → exception 0x01"**
-7. (BmsPortServer) **"start idempotent: ikinci çağrı aynı port"**
-8. (BmsPortServer) **"stop sonrası bağlantı reddedilir"**
+1. (SimulatorServer — UC-2 self-host) **"AK-2.1 — network config ile start() sonrası TCP'den okuma"**
+2. (SimulatorServer — UC-2 self-host) **"AK-2.2 — stop idempotent; start sonrası yeniden açılır"**
+3. (SimulatorServer — UC-2 self-host) **"network yoksa start() no-op'tur"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/wattox-pcs/bms-face.test.ts` (5 test)
+
+1. (Wattox BMS yüzü (ModbusServerBridge)) **"BMS bloğu FC 03 okuması anlık değeri döner"**
+2. (Wattox BMS yüzü (ModbusServerBridge)) **"BMS bloğu FC 06 yazımı simülatör deposuna uygulanır"**
+3. (Wattox BMS yüzü (ModbusServerBridge)) **"BMS bloğu FC 10 çoklu yazım uygulanır"**
+4. (Wattox BMS yüzü (ModbusServerBridge)) **"AK-2.3 — BMS bloğu DIŞI yazım 0x02 (767 ve 791)"**
+5. (Wattox BMS yüzü (ModbusServerBridge)) **"AK-2.4 — BMS bloğu DIŞI okuma 0x02"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1934,7 +2000,7 @@
 
 ### `services/device-service/src/config-connector.test.ts` (5 test)
 
-1. (BSC-PCS connector config'leri) **"connector cihaz config'i şemadan geçer"**
+1. (BSC-PCS connector config'leri) **"BSC-1 config'i connector bölümüyle şemadan geçer"**
 2. (BSC-PCS connector config'leri) **"mapping strict parse edilir; hedef adresler BMS bloğunda (768-790)"**
 3. (BSC-PCS connector config'leri) **"mapping B01-B23 tam kapsam: hedef adresler 768-790 aralığını doldurur"**
 4. (BSC-PCS connector config'leri) **"kaynak cihazlar config-docker'da mevcuttur (BSC-1; B19/B20 sabit)"**
@@ -1964,14 +2030,15 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/device-factory.test.ts` (6 test)
+### `services/device-service/src/device-factory.test.ts` (7 test)
 
-1. (DeviceFactory — transport seçimi (Strategy)) **"simulator transport'lu config, kayıtlı simülatör transport'uyla cihaz üretir"**
-2. (DeviceFactory — transport seçimi (Strategy)) **"bilinmeyen simulator tipi cihaz üretimini engellemez (varsayılan TCP)"**
-3. (DeviceFactory — transport seçimi (Strategy)) **"transport olmayan config varsayılan TCP ile çalışır"**
-4. (DeviceFactory — transport seçimi (Strategy)) **"rtu transport'lu config cihaz üretir (bağlantı kurmaz)"**
-5. (DeviceFactory — transport seçimi (Strategy)) **"canonical alanı tags.canonical olarak taşınır (AGENTS MANDATORY sözleşmesi)"**
-6. (DeviceFactory — transport seçimi (Strategy)) **"canonical verilmeyen telemetride tags.canonical YOKTUR"**
+1. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"transport olmayan config varsayılan TCP ile çalışır"**
+2. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"rtu transport'lu config cihaz üretir (bağlantı kurmaz)"**
+3. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"kind:'simulator' config yine TCP cihaz üretir (simulator dalı YOK)"**
+4. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"canonical alanı tags.canonical olarak taşınır (AGENTS MANDATORY sözleşmesi)"**
+5. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"canonical verilmeyen telemetride tags.canonical YOKTUR"**
+6. (DeviceFactory — transport seçimi (yalnız TCP/RTU) > DeviceFactory — connector device-subset türetimi) **"connector bölümü varsa 2. MODBUS cihazı üretir"**
+7. (DeviceFactory — transport seçimi (yalnız TCP/RTU) > DeviceFactory — connector device-subset türetimi) **"connector bölümü yoksa undefined döner"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2020,22 +2087,6 @@
 4. (manevra komut hattı (integration — gerçek simülatörler)) **"HVAC force_cool → validated (FL-05)"**
 5. (manevra komut hattı (integration — gerçek simülatörler)) **"CONTROL-PANEL-IO ışık komutu → COIL write + read-back (FL-07)"**
 6. (manevra komut hattı (integration — gerçek simülatörler)) **"bilinmeyen cihaz → success=false + reason"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/device-service/src/simulator-registry-bms-target.test.ts` (4 test)
-
-1. (SimulatorRegistry — bmsTarget override) **"bmsTarget verilmezse mapping hedefi AYNEN geçer"**
-2. (SimulatorRegistry — bmsTarget override) **"bmsTarget.host verilirse yalnızca host ezilir; port + mappings korunur"**
-3. (SimulatorRegistry — bmsTarget override) **"bmsTarget.port verilirse yalnızca port ezilir"**
-4. (SimulatorRegistry — bmsTarget override) **"diğer simülatör tipleri override'tan ETKİLENMEZ"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/device-service/src/simulator-registry.test.ts` (2 test)
-
-1. (SimulatorRegistry — sanal IO cihaz ailesi) **"kayıtlı olmayan tip transport üretmez"**
-2. (SimulatorRegistry — sanal IO cihaz ailesi) **"simulator olmayan transport config'i yok sayılır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

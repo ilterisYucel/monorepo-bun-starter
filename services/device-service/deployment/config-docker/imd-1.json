@@ -7,7 +7,7 @@
   "type": "imd",
   "connection": {
     "host": "127.0.0.1",
-    "port": 536,
+    "port": 15536,
     "slaveId": 1
   },
   "pollIntervalMs": 2000,

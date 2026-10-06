@@ -7,7 +7,7 @@
   "type": "control-panel-io",
   "connection": {
     "host": "127.0.0.1",
-    "port": 535,
+    "port": 15535,
     "slaveId": 1
   },
   "telemetry": [

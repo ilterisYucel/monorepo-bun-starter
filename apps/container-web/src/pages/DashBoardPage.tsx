@@ -16,6 +16,7 @@ import { useDevicesStore } from "../stores/devicesStore";
 import { useRealtimeStream } from "../contexts/RealtimeContext";
 import * as S from "./DashboardPage.styles";
 import { useFilteredLogProvider } from "../hooks/useFilteredLogProvider";
+import { DEFAULT_RACK_COUNT, rackCountOf } from "../features/racks/utils/rackHelpers";
 
 const BatteryIcon = SCADA_ICONS.batteryCharge;
 const ShieldIcon = SCADA_ICONS.health;
@@ -178,13 +179,13 @@ export const DashboardPage: React.FC = () => {
   const bscUnits: BSCUnit[] = useMemo(() => {
     const offsets = bscDevices.reduce<number[]>((acc, d, i) => {
       acc.push(
-        i === 0 ? 0 : acc[i - 1]! + (bscDevices[i - 1]!.rack_count ?? 8),
+        i === 0 ? 0 : acc[i - 1]! + (rackCountOf(bscDevices[i - 1]!)),
       );
       return acc;
     }, []);
 
     return bscDevices.map((device, idx) => {
-      const rackCount = device.rack_count ?? 8;
+      const rackCount = rackCountOf(device);
       const bscRacks = racks.slice(offsets[idx]!, offsets[idx]! + rackCount);
       const onlineCount = bscRacks.filter(r => r.status === "online").length;
       return {

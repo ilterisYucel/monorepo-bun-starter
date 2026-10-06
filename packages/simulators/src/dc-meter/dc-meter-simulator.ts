@@ -1,6 +1,9 @@
 // DC Metre Simülatörü — DJSF1352-RN (FL-08 DC kısa devre koruması kaynağı).
 
 import { INPUT } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { DcMeterAdapter } from "./dc-meter-modbus-adapter";
 
 /** float32 → BE kelime çifti (Modbus register çifti kodlaması). */
 function floatToWords(value: number): [number, number] {
@@ -20,11 +23,44 @@ function floatToWords(value: number): [number, number] {
  * - `tick()` etkisizdir — değerler deterministik kalır (salt okuma cihazı).
  * - Bilinmeyen adres → 0.
  */
+export interface DcMeterSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class DcMeterSimulator {
   private voltage = 750.0;
   private current = 100.0;
   private power = 75.0;
   private alarmWord = 0;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
+
+  constructor(config: DcMeterSimulatorConfig = {}) {
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new DcMeterAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
+  }
 
   /** Zaman adımı — etkisiz: ölçümler deterministik kalır (sorgu değil, komut boş). */
   tick(_elapsedSeconds: number): void {

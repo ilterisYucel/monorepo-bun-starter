@@ -3,7 +3,8 @@ export interface DeviceTableRow {
   name: string;
   type: string;
   protocol: string;
-  rack_count: number | null;
+  /** Opak cihaz-spesifik nitelikler (örn. `{ rackCount: 8 }`). */
+  details: Record<string, unknown> | null;
   model: string | null;
   status: "online" | "offline";
   poll_interval_ms: number | null;

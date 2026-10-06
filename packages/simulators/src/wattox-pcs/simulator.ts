@@ -1,7 +1,11 @@
 // WattoxPcsSimulator — MPCS serisi register-accurate simülatör.
 // Kaynak: docs/architecture/PCS-WATTOX-MIMARISI.md §5 + Wattox Modbus V1.0.
 
-import { BmsPortServer } from "./bms-port-server";
+import { ModbusServerBridge } from "../server";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { WattoxPcsAdapter } from "./modbus-adapter";
+import { createWattoxBmsBridge } from "./bms-face-adapter";
 import {
   REG_RATED_POWER,
   REG_RATED_VOLTAGE,
@@ -102,8 +106,10 @@ export interface WattoxPcsSimulatorConfig {
   ratedPowerKw?: number;
   ratedVoltageV?: number;
   ratedCurrentA?: number;
-  /** BMS port sunucu portu (BmsPortServer — Faz 2); verilmezse port açılmaz. */
+  /** BMS yüzü bridge portu (ModbusServerBridge); verilmezse port açılmaz. */
   bmsPort?: number;
+  /** Verilirse EMS self-host Modbus TCP sunucusu açılır (`start()`). */
+  network?: SimulatorNetworkConfig;
 }
 
 const toUint16 = (v: number): number => v & 0xffff;
@@ -122,7 +128,7 @@ const raw16 = (v: number): number => (v < 0 ? v + 0x10000 : v) & 0xffff;
  * AGENTS simülatör kuralı): setpoint yazılınca grid aktif güç birebir
  * setpoint olur.
  *
- * EMS yüzü BMS bloğunu DEĞİŞTİREMEZ (RO); BMS port tarafı (BmsPortServer)
+ * EMS yüzü BMS bloğunu DEĞİŞTİREMEZ (RO); BMS yüzü bridge (ModbusServerBridge)
  * `setBmsRegister` ile yazar — gerçek donanımın EMS/BMS link ayrımı.
  */
 export class WattoxPcsSimulator {
@@ -130,6 +136,8 @@ export class WattoxPcsSimulator {
   private readonly ratedVoltageV: number;
   private readonly ratedCurrentA: number;
   readonly bmsPort: number | undefined;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private mainServer: SimulatorServer | undefined;
 
   private opStatus = OP_STOP;
   private setpointRaw = 0; // S16 kW — şarj negatif
@@ -154,8 +162,32 @@ export class WattoxPcsSimulator {
     this.ratedVoltageV = config.ratedVoltageV ?? 1500;
     this.ratedCurrentA = config.ratedCurrentA ?? 1900;
     this.bmsPort = config.bmsPort;
+    this.network = config.network;
     this.initBms();
     this.initSettings();
+  }
+
+  /** Komut — EMS self-host sunucusu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.mainServer || this.network === undefined) return;
+    this.mainServer = new SimulatorServer({
+      adapter: new WattoxPcsAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.mainServer.start();
+  }
+
+  /** Komut — EMS + BMS sunucularını durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.mainServer?.stop();
+    this.mainServer = undefined;
+    await this.stopBmsServer();
+  }
+
+  /** Sorgu — EMS self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.mainServer?.port() ?? this.network?.port ?? 0;
   }
 
   private initBms(): void {
@@ -250,24 +282,25 @@ export class WattoxPcsSimulator {
     this.doorOpen = open;
   }
 
-  private bmsServer: import("./bms-port-server").BmsPortServer | undefined;
+  private bmsBridge: ModbusServerBridge | undefined;
 
   /**
-   * Komut — BMS port sunucusunu tembel başlatır (bmsPort config'liyse).
-   * tick() içinden çağrılır — idempotent.
+   * Komut — BMS yüzü bridge'ini tembel başlatır (bmsPort config'liyse).
+   * tick() içinden çağrılır — idempotent. BMS bloğu dışı okuma/yazma
+   * `readProtected`/`writeProtected` ile 0x02 reddedilir.
    */
   ensureBmsServer(): void {
-    if (this.bmsPort === undefined || this.bmsServer) return;
-    this.bmsServer = new BmsPortServer({ simulator: this, port: this.bmsPort });
-    this.bmsServer.start().catch((err: unknown) => {
+    if (this.bmsPort === undefined || this.bmsBridge) return;
+    this.bmsBridge = createWattoxBmsBridge(this, { port: this.bmsPort });
+    this.bmsBridge.start().catch((err: unknown) => {
       console.warn(`[WattoxPcs] BMS port acilamadi: ${String(err)}`);
     });
   }
 
-  /** Komut — BMS port sunucusunu durdurur (device-service shutdown). */
+  /** Komut — BMS yüzü bridge'ini durdurur (device-service shutdown). */
   async stopBmsServer(): Promise<void> {
-    await this.bmsServer?.stop();
-    this.bmsServer = undefined;
+    await this.bmsBridge?.stop();
+    this.bmsBridge = undefined;
   }
 
   tick(_elapsedSeconds: number): void {

@@ -6,7 +6,7 @@ export interface DeviceInfo {
   status: "online" | "offline";
   manufacturer: string | null;
   model: string | null;
-  rack_count: number | null;
+  details: Record<string, unknown> | null;
   poll_interval_ms: number | null;
   connection: Record<string, unknown> | null;
   last_seen: string | null;

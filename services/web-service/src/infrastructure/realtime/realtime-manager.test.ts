@@ -138,3 +138,86 @@ describe("RealtimeManager (Faz 5.1 B1)", () => {
     expect(manager.subscriberCount()).toBe(0);
   });
 });
+
+/**
+ * İsim filtresi (panel spec) — `subscribe(deviceId, ws, names?)`:
+ * socket başına yalnız istenen telemetri isimleri yollanır; `initial` snapshot
+ * istenen isimlerin EN YENİSİDİR. names yoksa eski davranış (tüm satırlar).
+ */
+describe("RealtimeManager — isim filtresi (panel spec)", () => {
+  function makeFilterRedis() {
+    const lists = new Map<string, string[]>();
+    const client = {
+      lPush: vi.fn(async (key: string, ...values: unknown[]) => {
+        const list = lists.get(key) ?? [];
+        for (const v of (values.flat() as string[])) list.unshift(v);
+        lists.set(key, list);
+        return list.length;
+      }),
+      lTrim: vi.fn(async () => "OK"),
+      expire: vi.fn(async () => true),
+      lRange: vi.fn(async (key: string) => lists.get(key) ?? []),
+    };
+    return { client, lists };
+  }
+  function makeFilterManager(client: unknown): RealtimeManager {
+    return new RealtimeManager({ client: () => client } as unknown as RedisConnection);
+  }
+  const openWs = () => ({ readyState: 1, OPEN: 1, CLOSED: 3, CLOSING: 2, send: vi.fn() });
+
+  it("names ile broadcast yalnız istenen isimleri yollar", () => {
+    const { client } = makeFilterRedis();
+    const manager = makeFilterManager(client);
+    const ws = openWs();
+    manager.subscribe("BSC-1", ws as never, ["SOC"]);
+
+    manager.broadcast("BSC-1", {
+      type: "telemetry",
+      deviceId: "BSC-1",
+      data: [
+        { name: "SOC", value: 80 },
+        { name: "Voltage", value: 700 },
+      ],
+    });
+
+    expect(ws.send).toHaveBeenCalledTimes(1);
+    const msg = JSON.parse(ws.send.mock.calls[0]![0] as string);
+    expect(msg.data.map((r: { name: string }) => r.name)).toEqual(["SOC"]);
+  });
+
+  it("names yoksa tüm satırlar gider (geriye uyumlu)", () => {
+    const { client } = makeFilterRedis();
+    const manager = makeFilterManager(client);
+    const ws = openWs();
+    manager.subscribe("BSC-1", ws as never);
+    manager.broadcast("BSC-1", { type: "telemetry", data: [{ name: "SOC" }, { name: "Voltage" }] });
+    expect(JSON.parse(ws.send.mock.calls[0]![0] as string).data).toHaveLength(2);
+  });
+
+  it("eşleşen isim yoksa gönderim atlanır", () => {
+    const { client } = makeFilterRedis();
+    const manager = makeFilterManager(client);
+    const ws = openWs();
+    manager.subscribe("BSC-1", ws as never, ["Yok"]);
+    manager.broadcast("BSC-1", { type: "telemetry", data: [{ name: "SOC" }] });
+    expect(ws.send).not.toHaveBeenCalled();
+  });
+
+  it("sendInitialData yalnız istenen isimlerin en yenisini yollar", async () => {
+    const { client } = makeFilterRedis();
+    const manager = makeFilterManager(client);
+    const ws = openWs();
+    manager.subscribe("BSC-1", ws as never, ["SOC"]);
+    await manager.writeBatchToRingBuffer("BSC-1", [
+      { name: "SOC", value: 1, timestamp: "2026-10-05T10:00:00.000Z" },
+      { name: "SOC", value: 9, timestamp: "2026-10-05T10:00:05.000Z" },
+      { name: "Voltage", value: 700, timestamp: "2026-10-05T10:00:05.000Z" },
+    ]);
+    await manager.sendInitialData("BSC-1", ws as never);
+
+    const msg = JSON.parse(ws.send.mock.calls[0]![0] as string);
+    expect(msg.type).toBe("initial");
+    expect(msg.data).toHaveLength(1);
+    expect(msg.data[0]).toMatchObject({ name: "SOC", value: 9 });
+  });
+});

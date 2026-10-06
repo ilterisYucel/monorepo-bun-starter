@@ -6,7 +6,7 @@
   "protocol": "MODBUS",
   "connection": {
     "host": "127.0.0.1",
-    "port": 533,
+    "port": 15532,
     "slaveId": 1
   },
   "telemetry": [

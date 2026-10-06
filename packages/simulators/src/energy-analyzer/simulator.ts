@@ -2,6 +2,9 @@
 // Register adresleri resmi PM53xx Register List'e dayalı
 
 import { INPUT } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { EnergyAnalyzerSimulatorAdapter } from "./modbus-adapter";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -92,11 +95,41 @@ function updatePhase(p: PhaseValues, baseCurrent: number, secs: number): void {
   p.thdVoltage += (1.0 + randomFloat() * 2.0 - p.thdVoltage) * 0.1 * secs;
 }
 
+export interface EnergyAnalyzerSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class EnergyAnalyzerSimulator {
   private state: EnergyAnalyzerState;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
-  constructor() {
+  constructor(config: EnergyAnalyzerSimulatorConfig = {}) {
     this.state = defaultState();
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new EnergyAnalyzerSimulatorAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   tick(elapsedSeconds: number): void {

@@ -2,13 +2,20 @@
 status: active
 space: architecture
 tags: [mimari, simulator, modbus-server, jsmodbus, self-host, spec]
-review_date: 2026-09-24
+review_date: 2026-12-01
 ---
 
 # Simülatör Altyapısı — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
+> **Durum:** 🟢 Doğrulanmış (2026-10-05) — T-1…T-9 tamam, doğrulama SIMULATOR-KAPANIS.md'de.
+> **REV.01 (2026-10-05):** UC-1 köprü mekanizması jsmodbus **event modeline** çevrildi
+> (hook modeli yazma reddini/exception 0x02'yi desteklemiyor); `writeProtected` holding/coil
+> **aralık listesi** olarak netleştirildi; AK-1.2 buna göre yeniden yazıldı. Gerekçe: jsmodbus
+> server yanıtı hook'tan üretmeden önce yazar ve `postWrite` yazma uygulandıktan sonra çalışır.
+> **REV.02 (2026-10-05):** Okuma koruması `readProtected` olarak eklendi (BMS bloğu dışı okuma
+> 0x02 — eski `BmsPortServer` davranışı korunur); Wattox PCS için K2'ye **iki-bridge istisnası**
+> (EMS `connection.port` + BMS `bmsPort`) tanımlandı.
 > **İlişkili:** [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) (bağımlı değişiklikler — K8/UC-5), [SANAL-IO-CIHAZ-AILESI-MIMARISI.md](./SANAL-IO-CIHAZ-AILESI-MIMARISI.md) (simülatör aile deseni), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md) (`BmsPortServer` kaynağı — bu SPEC'te genel köprüye dönüşür).
 
 ---
@@ -35,8 +42,8 @@ review_date: 2026-09-24
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
 | K1 | **jsmodbus** server tarafı kullanılır (TCP şimdi, RTU aynı kütüphaneyle — A1). `packages/simulators`'a `jsmodbus` dep'i eklenir; yeni kütüphane YOK (core'da zaten client olarak var) | UC-1 |
-| K2 | **1 simülatör = 1 self-host server:** örneklenen simülatör config'in `connection.host/port`'una bind eder; `start()` server+tick birlikte açar, `stop()` kapatır (`BmsPortServer` deseni tüm aileye genellenir) | UC-2 |
-| K3 | **`ModbusServerBridge`:** jsmodbus event-hook'ları (`preRead*`/`postWrite*`) ↔ `IModbusSimulatorAdapter`; yazma koruması/aralık reddi (exception 0x02) bridge konfigürasyonudur | UC-1 |
+| K2 | **1 simülatör = 1 self-host server:** örneklenen simülatör config'in `connection.host/port`'una bind eder; `start()` server+tick birlikte açar, `stop()` kapatır (`BmsPortServer` deseni tüm aileye genellenir). **İstisna — Wattox PCS (REV.02):** iki mantıksal yüz → `connection.port` (EMS) + `bmsPort` (BMS); her yüz kendi `ModbusServerBridge`'i (EMS adapter / BMS-yüzü adapter) | UC-2 |
+| K3 | **`ModbusServerBridge` (REV.01 — event modeli):** jsmodbus server **buffer'sız** kurulur; `readCoils/readDiscreteInputs/readHoldingRegisters/readInputRegisters` + `writeSingleCoil/writeSingleRegister/writeMultipleCoils/writeMultipleRegisters` event'leri ↔ `IModbusSimulatorAdapter`; yanıt `ModbusTCPResponse.fromRequest` + `responses.*` ile üretilir; `writeProtected` **aralık listesi** dışındaki holding/coil yazımı `ExceptionResponseBody(fc, 0x02)` ile reddedilir; **REV.02:** `readProtected` aralık listesi dışındaki okuma da aynı biçimde 0x02 ile reddedilir | UC-1 |
 | K4 | **Host eşlemesi:** config listesi → `kind === "simulator"` olanlar örneklenir; deviceId→port indeksi connector kaynak çözümü için kurulur; "yeni simülatör = modül + host'a 1 kayıt satırı" | UC-3 |
 | K5 | **Tick simülatörün kendisine taşınır** (`start()` içinde setInterval; opsiyonel `tickIntervalMs`, default 1000 ms) | UC-2 |
 | K6 | **Connector sim-stack master'ı olur:** TCP master (kaynak BSC server'ına + hedef PCS BMS'ye) + kendi server portu; `from.deviceId` host port indeksinden çözülür; `PCS_BMS_TARGET_*` env'i host option'ı; master jsmodbus client API'si kullanır (core sarmalayıcısı DEĞİL — simulators core'a bağımlı OLMAZ) | UC-4 |
@@ -84,12 +91,13 @@ interface ModbusServerBridgeConfig {
   adapter: IModbusSimulatorAdapter;      // veri kaynağı — mevcut sözleşme korunur
   host?: string;                          // bind adresi (default 127.0.0.1)
   port: number;                           // config connection.port
-  writeProtected?: { table: "input" | "coil" | "discrete" | "holding"; ranges?: [number, number][] };
+  writeProtected?: { table: "holding" | "coil"; ranges?: [number, number][] }; // ranges yoksa tüm tablo korunur
+  readProtected?: { table: "holding" | "coil" | "discrete" | "input"; ranges?: [number, number][] }; // REV.02
 }
 
 class ModbusServerBridge {
   constructor(config: ModbusServerBridgeConfig)   // birincil constructor (doğrulama: port>0)
-  start(): Promise<void>                          // jsmodbus server bind + hook'lar
+  start(): Promise<void>                          // net server + ModbusTCPServer (buffer'sız) + event handler'lar
   stop(): Promise<void>                           // server kapatma (idempotent)
 }
 
@@ -103,8 +111,9 @@ class SimulatorHost {
 }
 ```
 
-- Okuma hook'ları: `preReadInputRegisters/preReadHoldingRegisters/preReadCoils/preReadDiscreteInputs` → adapter'dan anlık değerler buffer'a yazılır (register-accurate).
-- Yazma hook'ları: `postWriteSingleRegister/postWriteMultipleRegisters/postWriteSingleCoil/postWriteMultipleCoils` → adapter'a iletilir; korunan tablo/aralık ise istek REDDEDİLİR (exception 0x02).
+- **Okuma (event modeli):** `readCoils` / `readDiscreteInputs` / `readHoldingRegisters` / `readInputRegisters` event'i yayılır (server buffer'ı YOK) → adapter'dan **anlık** değerler alınıp `responses.*` + `ModbusTCPResponse.fromRequest` ile yanıt üretilir (register-accurate).
+- **Yazma (event modeli):** `writeSingleCoil` / `writeSingleRegister` / `writeMultipleCoils` / `writeMultipleRegisters` event'i → `writeProtected` aralık kontrolü; izinliyse adapter'a yazılır + normal yanıt, korunuyorsa `ExceptionResponseBody(fc, 0x02)` döner (adapter'a yazım GİTMEZ).
+- **Okuma koruması (REV.02):** `readProtected` eşleşen aralık → `ExceptionResponseBody(fc, 0x02)` döner (adapter'a okuma GİTMEZ); eşleşmiyorsa normal akış.
 
 ### 4.3 Simülatör deseni (self-host)
 
@@ -126,7 +135,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 
 ### 6.1 UC-1 — ModbusServerBridge
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: jsmodbus TCP server sarmalayıcı, tam FC seti, adapter sarımı, yazma koruması, exception 0x02
@@ -134,21 +143,23 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 
 **Akış:**
 1. `new ModbusServerBridge({ adapter, port, writeProtected? })` — doğrulama
-2. `start()` → jsmodbus server bind + okuma/yazma hook'ları
-3. Okuma isteği → hook → adapter'dan anlık register değerleri → cevap
-4. Yazma isteği → korunan aralık kontrolü → adapter'a uygula VEYA exception 0x02
+2. `start()` → net server + `ModbusTCPServer` (buffer'sız) + event handler'lar (tam FC seti)
+3. Okuma event'i → adapter'dan (async) anlık register değerleri → `responses.*` + `ModbusTCPResponse` ile yanıt
+4. Yazma event'i → `writeProtected` aralık kontrolü → adapter'a uygula VEYA `ExceptionResponseBody(0x02)`
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-1.1 | FC 01/02/03/04/05/06/0F/10 desteklenir; okumalar adapter'dan ANLIK değer döner | AK-1.1 |
-| FR-1.2 | Yazımlar adapter'a iletilir; korunan tablo/aralığa yazım exception 0x02 ile reddedilir | AK-1.2 |
+| FR-1.1 | FC 01/02/03/04/05/06/0F/10 desteklenir; okumalar adapter'dan ANLIK değer döner (event modeli — server buffer'ı yok) | AK-1.1 |
+| FR-1.2 | Yazımlar adapter'a iletilir; `writeProtected` (holding/coil aralık) yazımı `ExceptionResponseBody` 0x02 ile reddedilir — adapter'a GİTMEZ | AK-1.2 |
 | FR-1.3 | Adres dışı/geçersiz istek bridge'i KIRMAZ — exception döner, server ayakta kalır | AK-1.3 |
+| FR-1.4 | `readProtected` aralığındaki okuma `ExceptionResponseBody` 0x02 ile reddedilir — adapter'a okuma GİTMEZ (REV.02) | AK-1.4 |
 
 **Kabul Senaryoları (GWT):**
 1. **AK-1.1 — GIVEN** köprü start'lı ve adapter'da değer set'li **WHEN** istemci FC 03/04/01/02 ile okur **THEN** anlık register değerleri doğru döner
-2. **AK-1.2 — GIVEN** `writeProtected: { table:"input" }` **WHEN** istemci input register'a yazar **THEN** exception 0x02 döner, adapter'a yazım GİTMEZ
+2. **AK-1.2 — GIVEN** `writeProtected: { table:"holding", ranges:[[0,99]] }` **WHEN** istemci 5. holding register'a yazar **THEN** exception 0x02 döner, adapter'a yazım GİTMEZ
 3. **AK-1.3 — GIVEN** aralık dışı adres isteği **WHEN** gelir **THEN** exception döner, sonraki geçerli istek normal yanıtlanır
+4. **AK-1.4 — GIVEN** `readProtected: { table:"holding", ranges:[[100,199]] }` **WHEN** istemci 150. holding register'ı okur **THEN** exception 0x02 döner; korunmayan adres normal okunur
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
@@ -156,11 +167,12 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | AK-1.1 | Tam FC seti + anlık değer (gerçek `ModbusTcpClient` ile) | unit | ⬜ |
 | AK-1.2 | Yazma koruması + 0x02 | unit | ⬜ |
 | AK-1.3 | Hata izolasyonu | unit | ⬜ |
+| AK-1.4 | Okuma koruması + 0x02 (REV.02) | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-1: `jsmodbus` dep'i + bridge JSDoc/tipler (`server/modbus-server-bridge.ts`)
-- [ ] T-2: Kırmızı testler — FC seti, yazma koruması, 0x02 (`modbus-server-bridge.test.ts`)
-- [ ] T-3: Bridge implementasyonu
+- [x] T-1: `jsmodbus` dep'i + bridge JSDoc/tipler (`server/modbus-server-bridge.ts`)
+- [x] T-2: Kırmızı testler — FC seti, yazma/okuma koruması, 0x02 (`modbus-server-bridge.test.ts`)
+- [x] T-3: Bridge implementasyonu
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -168,6 +180,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | Port dolu | `start()` reddeder (fail-fast — açılış hatası) |
 | İstemci kopması | jsmodbus per-connection — diğer bağlantılar etkilenmez |
 | `stop()` start'sız çağrı | No-op (idempotent) |
+| Adapter okuma/yazma hatası | `ExceptionResponseBody(fc, 0x04 SLAVE DEVICE FAILURE)` döner, server ayakta kalır |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
@@ -178,7 +191,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 
 ### 6.2 UC-2 — Self-Host Yaşam Döngüsü
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: simülatör sınıflarının `start()`/`stop()` kazanması (köprü + tick), `BmsPortServer`'ın genel köprüye migrasyonu
@@ -195,12 +208,14 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 |:----|:-----------|:--------|
 | FR-2.1 | Örneklenen simülatör config'in `connection.host/port`'una bind eder; `start()` server+tick açar | AK-2.1 |
 | FR-2.2 | `stop()` server+tick kapatır; tekrar `start()` güvenlidir | AK-2.2 |
-| FR-2.3 | Wattox PCS `BmsPortServer` genel köprüye geçer (BMS yazma koruması bridge config'ine dönüşür) — davranış aynı kalır | AK-2.3 |
+| FR-2.3 | Wattox PCS iki bridge'e ayrılır (EMS `connection.port` + BMS `bmsPort`); `BmsPortServer` → BMS-yüzü `ModbusServerBridge` + BMS adapter — davranış aynı kalır | AK-2.3 |
+| FR-2.4 | BMS bloğu dışı okuma `readProtected` ile 0x02 reddedilir (eski `BmsPortServer` davranışı) | AK-2.4 |
 
 **Kabul Senaryoları (GWT):**
 1. **AK-2.1 — GIVEN** BSC simülatörü `{host:"127.0.0.1", port:15501}` ile örneklenir **WHEN** `start()` çağrılır **THEN** istemci 127.0.0.1:15501'den register okur
 2. **AK-2.2 — GIVEN** simülatör start'lı **WHEN** `stop()` sonra tekrar `start()` **THEN** server aynı portta yeniden açılır
 3. **AK-2.3 — GIVEN** Wattox PCS start'lı **WHEN** BMS bloğu dışına yazım gelir **THEN** exception 0x02 — eski `BmsPortServer` davranışı korunur
+4. **AK-2.4 — GIVEN** Wattox BMS bridge start'lı **WHEN** istemci BMS bloğu dışı holding okur **THEN** exception 0x02
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
@@ -208,10 +223,11 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | AK-2.1 | Self-host bind + okuma | unit (gerçek TCP) | ⬜ |
 | AK-2.2 | stop/start döngüsü | unit | ⬜ |
 | AK-2.3 | BmsPortServer migrasyonu — davranış eşitliği | unit | ⬜ |
+| AK-2.4 | BMS dışı okuma 0x02 (readProtected) | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-4: `BmsPortServer` migrasyonu — Wattox PCS genel köprüye geçer, eski sınıf silinir
-- [ ] T-5: Tüm simülatör ailesine self-host entegrasyonu (bsc, xrack, hvac, cb, dc-output, dc-meter, energy-analyzer, control-panel-io, imd, wattox-pcs) + `SimulatorTransport` silinir
+- [x] T-4: `BmsPortServer` migrasyonu — Wattox PCS genel köprüye geçer, eski sınıf silinir
+- [x] T-5: Tüm simülatör ailesine self-host entegrasyonu (bsc, xrack, hvac, cb, dc-output, dc-meter, energy-analyzer, control-panel-io, imd, wattox-pcs) + `SimulatorTransport` silinir
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -223,12 +239,13 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
 | `packages/simulators/src/<tip>/<tip>-simulator.ts` | start/stop + tick taşınması |
-| `packages/simulators/src/wattox-pcs/bms-port-server.ts` | SİLİNİR (köprüye dönüşür) |
+| `packages/simulators/src/wattox-pcs/bms-port-server.ts` | SİLİNİR (BMS-yüzü bridge'e dönüşür) |
+| `packages/simulators/src/wattox-pcs/bms-face-adapter.ts` | YENİ — `IModbusSimulatorAdapter` BMS yüzü (holding→BMS read/setBms) |
 | `packages/simulators/src/simulator-transport.ts` | SİLİNİR |
 
 ### 6.3 UC-3 — Host Eşlemesi
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: config listesi → örnekleme (`kind` sinyali), deviceId→port indeksi, 1 kayıt kuralı, config port düzeltmeleri
@@ -263,9 +280,9 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | AK-3.4 | Benzersiz portlar | unit (config denetim testi) | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-6: `SimulatorHost` — örnekleme + port indeksi + `stopAll()` (+testler)
-- [ ] T-8: Config port düzeltmeleri — bsc-1:15501, bsc-2:15502, ep203:15503, pm5340:15504 (`config/` + `deployment/config-docker/` kopyaları)
-- [ ] T-9: E2E harness — `maneuver-command.spec.ts` config dizininden server'ları kaldırır (host.start → test → stopAll)
+- [x] T-6: `SimulatorHost` — örnekleme + port indeksi + `stopAll()` (+testler)
+- [x] T-8: Config port düzeltmeleri — bsc-1:15501, bsc-2:15502, ep203:15503, pm5340:15504 (`config/` + `deployment/config-docker/` kopyaları)
+- [x] T-9: E2E harness — `maneuver-command.spec.ts` config dizininden server'ları kaldırır (host.start → test → stopAll)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -283,7 +300,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 
 ### 6.4 UC-4 — Connector Sim (TCP Master)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: BSC-PCS connector'ın sim-stack master'ına dönüşümü — TCP master (kaynak BSC + hedef PCS BMS) + kendi server portu
@@ -316,7 +333,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | AK-4.3 | İzleme register yayını | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-7: `BscPcsConnectorAdapter` → sim-stack master dönüşümü (jsmodbus client; adapters map ölür; kaynak portlar host indeksinden)
+- [x] T-7: `BscPcsConnectorAdapter` → sim-stack master dönüşümü (jsmodbus client; adapters map ölür; kaynak portlar host indeksinden)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -394,7 +411,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | T | Görev | UC |
 |:--|:------|:---|
 | T-1 | `jsmodbus` dep'i + bridge JSDoc/tipler | UC-1 |
-| T-2 | Kırmızı testler — FC seti, yazma koruması, 0x02 | UC-1 |
+| T-2 | Kırmızı testler — FC seti, yazma/okuma koruması, 0x02 | UC-1 |
 | T-3 | Bridge implementasyonu | UC-1 |
 | T-4 | BmsPortServer migrasyonu (genel köprüye) | UC-2 |
 | T-5 | Tüm simülatör ailesine self-host entegrasyonu + SimulatorTransport silinir | UC-2 |

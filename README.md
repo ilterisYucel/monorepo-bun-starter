@@ -148,7 +148,7 @@ Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` 
 | Three-layer model (platform / capabilities / products) | AGENTS.md |
 | Command config system (device JSONs, validation reads, atomic writes) | AGENTS.md + `docs/architecture/MANEVRA-SISTEMI-MIMARISI.md` |
 | Maneuver system (18 named multi-device chains, rollback) | `docs/architecture/MANEVRA-SISTEMI-MIMARISI.md` |
-| Device transport strategy (`transport.kind`: tcp/rtu/simulator, Strategy pattern) | `docs/architecture/DEVICE-SERVICE-TRANSPORT-MIMARISI.md` |
+| Device transport strategy (`transport.kind`: tcp/rtu/simulator, Strategy pattern) | `docs/architecture/DEVICE-SERVICE-MIMARISI.md` |
 | Telemetry tagging & canonical metrics (`tags.canonical`, TelemetryTagger) | AGENTS.md |
 | Plugin architecture (integration-service, EPIAŞ client) | `docs/architecture/PLUGIN-MIMARISI.md` |
 | Editor architecture (product-layer composer) | `docs/architecture/EDITOR-MIMARISI.md` |

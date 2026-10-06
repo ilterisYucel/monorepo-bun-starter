@@ -34,18 +34,20 @@ No root `lint` or `format` scripts exist. Linting is per-project.
 
 ## Detay referansları (ihtiyaç anında oku)
 
-Bu dosya yalnızca **her göreve uygulanan kuralları** taşır. Aşağıdaki konulara
-dokunacaksan ilgili referansı ayrıca oku (her oturumda yüklenmez):
+Bu dosya yalnızca **her göreve uygulanan kuralları** taşır. Aşağıdaki referanslar
+her oturumda yüklenmez; **görev başında dokunulacak yollar/semboller tablonun Tetik
+sütunuyla eşleştirilir; eşleşen TÜM satırlar ve `Birlikte oku` sütunundakiler okunur.**
+Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük).
 
-| Konu                                                    | Dosya                      |
-| :------------------------------------------------------ | :------------------------- |
-| Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | `AGENTS-INFRA.md`          |
-| Telemetry tagging & canonical metrics                   | `AGENTS-DEVICE-CONFIG.md`  |
-| Tunnel / TunnelConnector sözleşmeleri                   | `AGENTS-WS-TUNNEL.md`      |
-| Device transport strategy                               | `AGENTS-DEVICE-SERVICE.md` |
-| Komut config / manevra / operasyon                      | `AGENTS-KOMUT-MANEVRA.md`  |
-| Frontend transport & provider kontratları               | `AGENTS-FRONTEND.md`       |
-| Icon / renk token / sprite pipeline                     | `AGENTS-UI.md`             |
+| Dosya | Konu | Tetik (yol / sembol / görev) | Birlikte oku |
+| :--- | :--- | :--- | :--- |
+| `AGENTS-INFRA.md` | Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | Yeni paket/workspace; `nx.json`; tsconfig build; DI arayüzü; framework sürümü | — |
+| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `services/device-service/config/*.json`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
+| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
+| `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorHost` | `AGENTS-DEVICE-CONFIG.md` |
+| `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
+| `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
+| `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
 
 ## Testing
 
@@ -72,6 +74,7 @@ dokunacaksan ilgili referansı ayrıca oku (her oturumda yüklenmez):
 
 - **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; KAPANIŞ güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
 - **SPEC onay kapısı (MANDATORY):** SPEC dokümanı yazıldıktan/revize edildikten sonra implementasyon **developer onayı BEKLER** — onay alınmadan test/implementasyon başlamaz. SPEC'i yazan ajan, developer'ı dokümanı incelemesi için **açıkça uyarır** (doküman yolu + "onay bekliyor" durumuyla); iş ancak developer onayı sonrası sürer.
+- **SPEC revizyon kapısı (MANDATORY):** Build modunda (flash) SPEC içerik kararları (K-x, FR-x, AK-x, GWT) yeniden yazılmaz — flash SPEC'i yalnızca tüketir. Implementasyon sırasında revize ihtiyacı doğarsa iş durur; developer plan moduna (pro) döner, SPEC orada revize edilir ve **SPEC onay kapısı** yeniden işletilir.
 - **SPEC formatı (kanonik):** Tüm yeni/revize SPEC'ler `docs/architecture/SPEC-SABLONU.md` şablonunu kullanır — doküman iskeleti (metadata, kararlar K-x, purity, yaşam döngüsü, başarı kriterleri SC-x, aşama eşlemesi, açık kararlar A-x) + use-case blokları (Status, Kapsam dahil/hariç, Akış, **FR-x gereksinim tablosu**, **GWT kabul senaryoları** — her AK için en az 1 Given/When/Then —, AK tablosu Kanıt+Durum sütunlu, T görevleri, Edge Cases, Involved Files). **Status değerleri:** `✏️ Specified` (onay bekliyor) → `✅ Approved` → `🟡 Geliştirmede` → `🟢 Doğrulanmış` → `⛔ Defer`. Geriye dönük dönüşüm YOKTUR — yalnızca yeni/dokunulan SPEC'ler.
 - **KAPANIŞ otomasyonu:** Aşama 5 (KAPANIŞ) başladığında ana agent, `@reviewer` subagent'ını otomatik çağırır. Reviewer, diff'i analiz eder ve `<MODUL>-KAPANIS.md` dosyasını §A DOĞRULAMA + §B TEST KAPSAMI formatında üretir. Ana agent reviewer çıktısını doğrudan kullanır.
 - **Kod referansı (MANDATORY):** Dokümanlarda kod `#sembol` çapasıyla referanslanır — `path/file.ts#fonksiyonAdı` (+ denetim için opsiyonel `@<git-short-hash>`). **Satır numarası referansı (`file.ts:123`) YASAKTIR** — edit sonrası bayatlar (yalnızca aynı PR içi geçici analiz notlarında serbest).

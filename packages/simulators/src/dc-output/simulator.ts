@@ -1,5 +1,8 @@
 // DC Output Simulator — DC Power Supply simulation
 import { COILS, DISCRETE, INPUT, HOLDING } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { DcOutputSimulatorAdapter } from "./modbus-adapter";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -41,11 +44,41 @@ function defaultState(): DcOutputState {
   };
 }
 
+export interface DcOutputSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class DcOutputSimulator {
   private state: DcOutputState;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
-  constructor() {
+  constructor(config: DcOutputSimulatorConfig = {}) {
     this.state = defaultState();
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new DcOutputSimulatorAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   tick(elapsedSeconds: number): void {

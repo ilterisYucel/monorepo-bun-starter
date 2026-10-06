@@ -4,6 +4,9 @@ import { parse as parseToml } from "smol-toml";
 import { parse as parseYaml } from "yaml";
 import type { DeviceConfigFile, ServiceConfigFile } from "@gd-monorepo/shared-types";
 import { validateOrThrow, deviceConfigFileSchema, serviceConfigFileSchema } from "@gd-monorepo/shared-types";
+import type { Logger } from "@gd-monorepo/logger";
+import { createOpsLog } from "./ops-log";
+import type { OpsLog } from "./ops-log";
 
 interface LoadedConfig {
   service: ServiceConfigFile;
@@ -12,10 +15,12 @@ interface LoadedConfig {
 
 export class DeviceConfigLoader {
   private readonly configDir: string;
+  private readonly ops: OpsLog;
 
-  constructor(configDir: string) {
+  constructor(configDir: string, opsLogger?: Logger) {
     if (!configDir) throw new Error("[DeviceConfigLoader] configDir bos olamaz");
     this.configDir = configDir;
+    this.ops = createOpsLog(opsLogger, "DeviceConfigLoader");
   }
 
   load(): LoadedConfig {
@@ -40,11 +45,11 @@ export class DeviceConfigLoader {
 
       if (entry.startsWith("service.")) {
         service = validateOrThrow<ServiceConfigFile>(serviceConfigFileSchema, parsed, `Dosya: ${entry}`);
-        console.log(`[DeviceConfigLoader] Global servis konfigurasyonu: ${entry}`);
+        this.ops.info(`Global servis konfigurasyonu: ${entry}`);
       } else {
         const deviceConfig = validateOrThrow<DeviceConfigFile>(deviceConfigFileSchema, parsed, `Dosya: ${entry}`);
         devices.push(deviceConfig);
-        console.log(`[DeviceConfigLoader] Cihaz konfigurasyonu: ${entry} -> ${deviceConfig.deviceId}`);
+        this.ops.info(`Cihaz konfigurasyonu: ${entry} -> ${deviceConfig.deviceId}`);
       }
     }
 
@@ -52,7 +57,7 @@ export class DeviceConfigLoader {
       throw new Error("[DeviceConfigLoader] service.{json,toml,yaml} bulunamadi");
     }
 
-    console.log(`[DeviceConfigLoader] ${devices.length} cihaz, 1 servis konfigurasyonu yuklendi`);
+    this.ops.info(`${devices.length} cihaz, 1 servis konfigurasyonu yuklendi`);
     return { service, devices };
   }
 

@@ -158,3 +158,22 @@ export function telemetriesToHvacUnits(
 
   return Array.from(unitMap.values()).sort((a, b) => a.id - b.id);
 }
+
+/**
+ * Katalog-tabanlı HVAC iskeleti (component izolasyonu): her HVAC cihazı için
+ * telemetriden BAĞIMSIZ bir `standby` ünite üretir; oda bilgisi `roomByDevice`
+ * (telemetry-config tags.room) varsa oradan. Böylece telemetri kesilince
+ * bileşenler unmount olmaz, yer tutucuyla kalır.
+ */
+export function hvacSkeleton(
+  deviceIds: readonly string[],
+  roomByDevice: ReadonlyMap<string, string> = new Map(),
+): HvacUnit[] {
+  const units: HvacUnit[] = [];
+  for (const deviceId of deviceIds) {
+    const unitId = extractUnitId(deviceId);
+    if (unitId === undefined) continue;
+    units.push(defaultUnit(unitId, deviceId, roomByDevice.get(deviceId) ?? "unknown"));
+  }
+  return units.sort((a, b) => a.id - b.id);
+}

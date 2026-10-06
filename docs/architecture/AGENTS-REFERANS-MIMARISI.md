@@ -8,13 +8,17 @@ review_date: 2026-12-01
 # AGENTS Referans Sistemi — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ✅ Approved (2026-10-01) — geliştirme sürüyor (T-1…T-8).
+> **Durum:** ✅ Approved (2026-10-01) — T-1…T-8 tamam. **REV.02 🟢 Doğrulanmış (2026-10-05) — T-9/T-10 tamam, doğrulama KAPANIŞ'ta.**
 >
 > **REV.01 (2026-10-01):** SC-1 satır-sayısı hedefinden "alan-detayı başlığı yok"
 > denetimine çevrildi. Gerekçe: büyük satır kısalması (893→293) bu SPEC'ten önceki
 > ayrı görevde yapıldı; bu paketin ölçüsü **sahiplik/ayrışma**dır, ham satır sayısı değil.
 > Onay sahibine bildirilir (bkz. KAPANIŞ §A.4).
-> **İlişkili:** [SPEC-SABLONU.md](SPEC-SABLONU.md), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](KOMUT-MANEVRA-OPERASYON-MIMARISI.md), [DEVICE-SERVICE-TRANSPORT-MIMARISI.md](DEVICE-SERVICE-TRANSPORT-MIMARISI.md), [DEVICE-SERVICE-MIMARISI.md](DEVICE-SERVICE-MIMARISI.md), [WS-TUNNEL-URUN-TESCILI.md](WS-TUNNEL-URUN-TESCILI.md).
+> **REV.02 (2026-10-05):** Referans tablosu **yönlendirme tablosuna** genişletilir —
+> her satıra yol/sembol/görev **Tetik** ve **Birlikte oku** sütunları eklenir. Amaç:
+> referansın doğru görevde context'e katılması (keşfedilebilirlik → yönlendirme).
+> Karar K-9; hedef tablo §4.3; yeni UC-5; T-9/T-10.
+> **İlişkili:** [SPEC-SABLONU.md](SPEC-SABLONU.md), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](KOMUT-MANEVRA-OPERASYON-MIMARISI.md), [DEVICE-SERVICE-MIMARISI.md](DEVICE-SERVICE-MIMARISI.md), [WS-TUNNEL-URUN-TESCILI.md](WS-TUNNEL-URUN-TESCILI.md).
 
 ## 1. Amaç ve Bağlam
 
@@ -51,6 +55,7 @@ kapsam tablosu:
 | K-6 | Cihaz alarm sözleşmesi AGENTS.md'de kısa MANDATORY özet olarak kalır | Detay `DEVICE-SERVICE-MIMARISI.md` §4.2'de; güvenlik kuralı görünür kalır |
 | K-7 | Her referans dosyasında `review_date`; AGENTS.md tablo satırı ↔ dosya başlığı birebir | Eskime kapısı ve keşfedilebilirlik |
 | K-8 | AGENTS dosyaları kökte yaşar | `docs/architecture/` yalnız mimari dokümanlara ayrılır |
+| K-9 | Referans yükleme yönlendirmesi tablo **Tetik** sütununa dayanır | Görev başında dokunulacak yol/sembol/anahtar kelimeler tablo ile eşleştirilir; eşleşen TÜM satırlar + **Birlikte oku** sütunundakiler okunur. Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük) |
 
 ## 3. Mevcut Durum / Kök Nedenler
 
@@ -82,23 +87,26 @@ AGENTS-UI.md                      # icon / renk token / sprite
 |:-----|:------------|:--------------|
 | Telemetry tagging + canonical | `AGENTS-DEVICE-CONFIG.md` | — |
 | TunnelConnector + tünel sözleşmesi | `AGENTS-WS-TUNNEL.md` | `WS-TUNNEL-URUN-TESCILI.md` |
-| Device transport | `AGENTS-DEVICE-SERVICE.md` | `DEVICE-SERVICE-TRANSPORT-MIMARISI.md` |
+| Device transport | `AGENTS-DEVICE-SERVICE.md` | `DEVICE-SERVICE-MIMARISI.md` |
 | Komut / manevra / operasyon | `AGENTS-KOMUT-MANEVRA.md` | `KOMUT-MANEVRA-OPERASYON-MIMARISI.md` |
 | Cihaz alarm özeti | `AGENTS.md` (kısa) | `DEVICE-SERVICE-MIMARISI.md` §4.2 |
 | Frontend veri akışı | `AGENTS-FRONTEND.md` | — |
 | Icon / renk / sprite | `AGENTS-UI.md` | `SPRITE-URETIMI.md`, `SPRITE-STYLE-KIT.md` |
 
-### 4.3 Referans tablosu (AGENTS.md'de görünecek hedef)
+### 4.3 Yönlendirme tablosu (AGENTS.md'de görünecek hedef — REV.02)
 
-| Konu | Dosya |
-|:-----|:------|
-| Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | `AGENTS-INFRA.md` |
-| Telemetry tagging & canonical metrics | `AGENTS-DEVICE-CONFIG.md` |
-| Tunnel / TunnelConnector sözleşmeleri | `AGENTS-WS-TUNNEL.md` |
-| Device transport strategy | `AGENTS-DEVICE-SERVICE.md` |
-| Komut config / manevra / operasyon | `AGENTS-KOMUT-MANEVRA.md` |
-| Frontend transport & provider kontratları | `AGENTS-FRONTEND.md` |
-| Icon / renk token / sprite pipeline | `AGENTS-UI.md` |
+Yükleme kuralı (K-9): görev başında dokunulacak yollar/semboller **Tetik** sütunuyla
+eşleştirilir; eşleşen tüm satırlar ve **Birlikte oku** sütunundaki dosyalar okunur.
+
+| Dosya | Konu | Tetik (yol / sembol / görev) | Birlikte oku |
+|:------|:-----|:-----------------------------|:-------------|
+| `AGENTS-INFRA.md` | Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | Yeni paket/workspace; `nx.json`; tsconfig build; DI arayüzü; framework sürümü | — |
+| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `services/device-service/config/*.json`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
+| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
+| `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorRegistry` | `AGENTS-DEVICE-CONFIG.md` |
+| `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
+| `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
+| `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
 
 ## 5. Purity Kuralları (ZORUNLU)
 
@@ -128,14 +136,14 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
 | FR-1.1 | System MUST remove `AGENTS-INTEGRATION.md`; TunnelConnector + Tünel sözleşmesi `AGENTS-WS-TUNNEL.md`'de olmalı | AK-1.1 |
-| FR-1.2 | Device transport strategy `AGENTS-DEVICE-SERVICE.md`'de olmalı ve `DEVICE-SERVICE-TRANSPORT-MIMARISI.md`'ye link içermeli | AK-1.2 |
+| FR-1.2 | Device transport strategy `AGENTS-DEVICE-SERVICE.md`'de olmalı ve `DEVICE-SERVICE-MIMARISI.md`'ye link içermeli | AK-1.2 |
 | FR-1.3 | System MUST remove `AGENTS-DOMAIN.md`; yerine `AGENTS-KOMUT-MANEVRA.md` geçmeli | AK-1.3 |
 | FR-1.4 | `AGENTS-KOMUT-MANEVRA.md` bayat `maneuvers.ts`/`MANEUVERS` anlatımı İÇERMEMELİ; registry/executor akışını özetlemeli | AK-1.4 |
 
 **Kabul Senaryoları (GWT):**
 
 1. **AK-1.1 — GIVEN** repo kökü **WHEN** `AGENTS-INTEGRATION.md` aranır **THEN** dosya yoktur ve `AGENTS-WS-TUNNEL.md` her iki tünel sözleşmesini taşır
-2. **AK-1.2 — GIVEN** `AGENTS-DEVICE-SERVICE.md` **WHEN** incelenir **THEN** device transport strategy ve `DEVICE-SERVICE-TRANSPORT-MIMARISI.md` linki bulunur
+2. **AK-1.2 — GIVEN** `AGENTS-DEVICE-SERVICE.md` **WHEN** incelenir **THEN** device transport strategy ve `DEVICE-SERVICE-MIMARISI.md` linki bulunur
 3. **AK-1.3 — GIVEN** repo kökü **WHEN** manevra referansı aranır **THEN** `AGENTS-DOMAIN.md` yoktur, `AGENTS-KOMUT-MANEVRA.md` vardır
 4. **AK-1.4 — GIVEN** `AGENTS-KOMUT-MANEVRA.md` **WHEN** `MANEUVERS` için taranır **THEN** yalnızca kayıt (registry) bağlamındaki ifadeler geçer, frontend katalog anlatımı yoktur
 
@@ -308,6 +316,59 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | `docs/architecture/AGENTS-REFERANS-KAPANIS.md` | Yeni: doğrulama + test kapsamı |
 | `tools/spec-check.mjs` | Değişmez (kapı olarak kullanılır) |
 
+### 6.5 UC-5 — Yönlendirme tablosu
+
+**Status:** 🟢 Doğrulanmış
+
+**Kapsam:**
+- dahil: AGENTS.md referans tablosunun **Tetik** (yol/sembol/görev) + **Birlikte oku** sütunlarıyla genişletilmesi; yükleme kuralı (K-9)
+- hariç: referans dosyalarının içerik otoritesi; KAPANIŞ kanıt satırı; SPEC şablonu alanı (ileri iş)
+
+**Akış:**
+1. §4.3 hedef tablosu AGENTS.md'deki mevcut 2 sütunlu tablonun yerine geçer.
+2. Yükleme kuralı (K-9) tablonun üstünde tek paragraf olarak yazılır.
+3. `bun run spec:check` ile SPEC doğrulanır; KAPANIŞ (REV.02) güncellenir.
+
+**Gereksinimler (FR-x):**
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-5.1 | AGENTS.md referans tablosu her satırda **Tetik** sütunu taşımalı (yol veya sembol veya görev anahtar kelimesi) | AK-5.1 |
+| FR-5.2 | Tablo her satırda **Birlikte oku** sütunu taşımalı (boş = `—`) | AK-5.2 |
+| FR-5.3 | Tablo üstünde K-9 yükleme kuralı görünür olmalı (eşleşen tüm satırlar + kombinasyon okunur) | AK-5.3 |
+| FR-5.4 | `bun run spec:check` bu SPEC için 0 hata vermeli | AK-5.4 |
+
+**Kabul Senaryoları (GWT):**
+
+1. **AK-5.1 — GIVEN** görev `packages/ws-tunnel/src/codec` dosyasına dokunacak **WHEN** tablo Tetik sütununa bakılır **THEN** `AGENTS-WS-TUNNEL.md` satırı eşleşir
+2. **AK-5.2 — GIVEN** `AGENTS-DEVICE-CONFIG.md` satırı **WHEN** okunur **THEN** Birlikte oku hücresinde `AGENTS-DEVICE-SERVICE.md` görünür
+3. **AK-5.3 — GIVEN** AGENTS.md referans bölümü **WHEN** okunur **THEN** yükleme kuralı paragrafı ve 4 sütunlu tablo birlikte bulunur
+4. **AK-5.4 — GIVEN** SPEC dosyası **WHEN** `bun run spec:check` çalıştırılır **THEN** 0 hata raporlanır
+
+**Kabul Kriterleri:**
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-5.1 | Tetik sütunu yol/sembol/anahtar kelime içerir | dosya | 🟢 |
+| AK-5.2 | Birlikte oku sütunu dolu veya `—` | dosya | 🟢 |
+| AK-5.3 | Yükleme kuralı paragrafı + 4 sütunlu tablo birlikte | dosya | 🟢 |
+| AK-5.4 | spec:check 0 hata | komut | 🟢 |
+
+**T Görev Listesi:**
+- [x] T-9: AGENTS.md referans tablosunu §4.3 4 sütunlu yönlendirme tablosuna güncelle + K-9 yükleme kuralı paragrafını ekle
+- [x] T-10: `AGENTS-REFERANS-KAPANIS.md`'yi REV.02 için güncelle (A.1 matrisi + doğrulama)
+
+**Edge Cases:**
+| Durum | Davranış |
+|:------|:---------|
+| Hiçbir satır eşleşmezse | Referans yüklenmez; dosya küçük olduğundan şüphe halinde okumak güvenlidir (K-9) |
+| Birden fazla satır eşleşirse | Eşleşen tüm satırlar + Birlikte oku kombinasyonları okunur |
+| Tablo hücresinde `|` karakteri gerekirse | Kaçışlanır veya virgülle ayrılır — tablo bozulmaz |
+
+**Involved Files:**
+| Dosya | Rol / Değişiklik |
+|:------|:----------------|
+| `AGENTS.md` | Referans tablosu → yönlendirme tablosu + kural paragrafı |
+| `docs/architecture/AGENTS-REFERANS-KAPANIS.md` | REV.02 doğrulaması |
+
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
 | Durum | Davranış |
@@ -330,6 +391,7 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | SC-3 | Kırık göreli md linki yok | link tarama komutu |
 | SC-4 | `spec:check` SPEC + KAPANIŞ için 0 hata | `bun run spec:check` |
 | SC-5 | Bayat referans (frontend `MANEUVERS` katalog anlatımı) kalmadı | grep |
+| SC-6 | AGENTS.md referans tablosu 4 sütunlu yönlendirme tablosudur (Dosya, Konu, Tetik, Birlikte oku) ve yükleme kuralı görünür | tablo başlık denetimi |
 
 ## 9. Aşama Eşlemesi (iş akışı)
 
@@ -338,8 +400,8 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | 1. SPEC | Bu doküman |
 | 2. JSDoc | YOK — doküman/konfigürasyon işi (kod davranışı yok) |
 | 3. TEST | Doğrulama komutları: `spec:check` + link tarama (T-7) |
-| 4. IMPL | T-1…T-6 dosya işlemleri |
-| 5. KAPANIŞ | `docs/architecture/AGENTS-REFERANS-KAPANIS.md` (Doğrulama + Test Kapsamı) |
+| 4. IMPL | T-1…T-6 dosya işlemleri; **REV.02: T-9 yönlendirme tablosu** |
+| 5. KAPANIŞ | `docs/architecture/AGENTS-REFERANS-KAPANIS.md` (Doğrulama + Test Kapsamı); **REV.02: T-10 güncelleme** |
 
 ## 10. Açık Kararlar
 
@@ -348,6 +410,7 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | A-1 | Dosya adı `AGENTS-CONFIG` yerine `AGENTS-DEVICE-CONFIG` seçildi | ✅ Kapalı — kullanıcı kararı |
 | A-2 | Alarm sözleşmesinin tüm detayının taşınması | ✅ Kapalı — AGENTS.md'de kısa özet kalır (K-6) |
 | A-3 | Link bütünlüğünün otomatik CI kapısına bağlanması | §11 ileri iş |
+| A-4 | Yönlendirme sinyali seçimi (yol + sembol + görev anahtar kelimesi) | ✅ Kapalı — K-9 (REV.02) |
 
 ## 11. İleri İş (bu pakette YAPILMAZ — referans)
 
@@ -366,7 +429,9 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | T-6 | Tüm AGENTS-*.md frontmatter'ı `review_date` + `space: agents` hizala | UC-3 |
 | T-7 | Doğrulamayı çalıştır (spec:check + link bütünlüğü), kanıtları topla | UC-4 |
 | T-8 | `AGENTS-REFERANS-KAPANIS.md` üret (A.1-A.6 + B.1-B.2) | UC-4 |
+| T-9 | AGENTS.md referans tablosunu 4 sütunlu yönlendirme tablosuna güncelle + K-9 kuralı | UC-5 |
+| T-10 | `AGENTS-REFERANS-KAPANIS.md`'yi REV.02 için güncelle | UC-5 |
 
 ---
 
-*review_date: 2026-12-01 — ✅ Approved (2026-10-01). T-1…T-8 tamam; doğrulama [AGENTS-REFERANS-KAPANIS.md](AGENTS-REFERANS-KAPANIS.md).*
+*review_date: 2026-12-01 — ✅ Approved (2026-10-01) T-1…T-8; REV.02 🟢 Doğrulanmış (2026-10-05, T-9/T-10). Doğrulama: [AGENTS-REFERANS-KAPANIS.md](AGENTS-REFERANS-KAPANIS.md).*

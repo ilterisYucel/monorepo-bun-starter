@@ -22,6 +22,10 @@ interface ITelemetryTransport {
   disconnect(): Promise<void>;
   connectionState(): ConnectionState;
   subscribe(observer: TelemetryObserver): () => void;
+  // OPSİYONEL — multipleks (component izolasyonu). Destekleyen transport tek
+  // soketi paylaşır ve abonelikleri referans-sayarak ekler/çıkarır.
+  addDevices?(deviceIds: readonly string[]): void;
+  removeDevices?(deviceIds: readonly string[]): void;
 }
 
 type ConnectionState = "idle" | "connecting" | "connected" | "error";
@@ -35,11 +39,20 @@ interface TelemetryObserver {
 
 **This is the Strategy pattern for frontend data.** Swap WebSocket, HTTP polling, SSE, or Mock without changing any UI code.
 
+### Multipleks + component izolasyonu (MANDATORY)
+
+- `WebSocketTransport` **multiplekstir**: TEK soket; `addDevices`/`removeDevices` referans sayar, `connect()` idempotenttir (açık soketi yeniden açmaz), soket açılışında/reconnect'te tüm abonelikler yeniden gönderilir.
+- **İsim filtresi (panel spec):** her abonelik `{deviceId, names?}` bildirir; sunucu (`RealtimeManager`) socket başına yalnız istenen telemetri isimlerini yollar; `initial` snapshot istenen isimlerin en yenisidir. `names` boşsa eski davranış (tüm satırlar). Böylece panel-başına ayrı soket GEREKMEZ (tünelde tek stream).
+- Hook'lar (yaşam döngüsü) `addDevices`/`removeDevices` kullanır; **`disconnect()` yalnız provider unmount teardown'ında** çağrılır. Aksi halde bir bileşenin unmount'u diğer bileşenlerin akışını keser.
+- Her bileşen verisini **kendi kapsamıyla** çeker (Grafana deseni): `useTelemetryStream({transport, deviceIds})` (ui, çok-abone) + app katmanı `useDeviceTelemetry({deviceIds, names?, intervalMs})` (REST `keepPreviousData` + WS + **en-yeni-kazanır dedup**). Sayfa-seviyesi küresel birleştirme YASAKTIR.
+- **Dedup kuralı:** birleşik kayıtlar `(deviceId, name, rack_id)` başına **en yeni timestamp**'li tek satıra indirilir (`dedupeLatest`); eski satır güncel değeri ezemez.
+- **Yapı vs değer:** bileşen iskeleti/oda-ünite yapısı CİHAZ KATALOĞUNDAN (`devices` + `/unified/devices/:id/telemetry-config`) kurulur; telemetri yalnız değerleri overlay eder — veri kesilince bileşen unmount olmaz (yer tutucu kalır).
+
 ## Transport implementations (`packages/ui/src/transports/`)
 
 | Transport              | Use Case                | Constructor                                                      |
 | ---------------------- | ----------------------- | ---------------------------------------------------------------- |
-| `WebSocketTransport`   | Production realtime     | `new WebSocketTransport(wsUrl, getToken?)`                       |
+| `WebSocketTransport`   | Production realtime (multipleks — tek soket, çok-abone) | `new WebSocketTransport(wsUrl, getToken?)`                       |
 | `HttpPollingTransport` | Fallback, simple setup  | `new HttpPollingTransport({ endpoint, intervalMs?, getToken? })` |
 | `MockTransport`        | Storybook, tests, demos | `new MockTransport(definitions, intervalMs?)`                    |
 
@@ -123,6 +136,8 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 | `TelemetryProvider`        | `ui/src/interfaces/telemetry-provider.ts` | `useTelemetryProvider` (in `apps/container-web/src/hooks/`)                            |
 | `LogProvider`              | `ui/src/interfaces/log-provider.ts`       | `useLogStore` (Zustand, in `apps/container-web/src/stores/`)                           |
 | `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts`  | `useEventAnnotations` (in `apps/container-web/src/hooks/`)                             |
+| `useTelemetryStream`       | `ui/src/hooks/useTelemetryStream.ts`      | Çok-abone WS hook (multipleks; per-device buffer)                                      |
+| `useDeviceTelemetry`       | `apps/container-web/src/features/telemetry/hooks/useDeviceTelemetry.ts` | Component-kapsamlı: REST (`keepPreviousData`) + WS + `dedupeLatest` |
 
 ## Adding a new data source
 

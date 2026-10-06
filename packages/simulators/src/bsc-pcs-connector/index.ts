@@ -11,3 +11,5 @@ export { BscPcsConnectorAdapter } from "./connector";
 export type { BscPcsConnectorAdapterConfig } from "./connector";
 export { TcpBmsTarget } from "./tcp-target";
 export type { IBmsTarget } from "./tcp-target";
+export { AdapterSourceReader, TcpSourceReader, combineWords } from "./source-reader";
+export type { ISourceReader, SourceEndpoint } from "./source-reader";

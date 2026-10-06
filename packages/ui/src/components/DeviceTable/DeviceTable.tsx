@@ -53,7 +53,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                 <S.TypeBadge>{typeLabel(device.type)}</S.TypeBadge>
               </S.Td>
               <S.Td>{device.protocol}</S.Td>
-              <S.Td>{device.rack_count ?? "-"}</S.Td>
+              <S.Td>{(device.details?.rackCount as number | undefined) ?? "-"}</S.Td>
               <S.Td>{device.model ?? "-"}</S.Td>
               <S.Td>
                 <S.StatusBadge $online={device.status === "online"}>

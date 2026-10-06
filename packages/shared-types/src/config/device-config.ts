@@ -37,7 +37,6 @@ export interface DeviceTransportConfig {
   kind: "tcp" | "rtu" | "simulator";
   /** Simülatör tipi (kind === "simulator" iken zorunlu) */
   type?: string;
-  rackCount?: number;
   registerMap?: string;
   pcsCount?: number;
   /** Wattox PCS simülatörü BMS port sunucu portu (yalnızca wattox-pcs + simulator) */
@@ -53,6 +52,29 @@ export interface SimulatorConfig {
   bmsPort?: number;
 }
 
+/** Connector device-subset — device-service'in gördüğü türetilmiş MODBUS cihazı. */
+export interface ConnectorDeviceSubset {
+  deviceId: string;
+  name: string;
+  type: string;
+  pollIntervalMs?: number;
+  connection: Record<string, unknown>;
+  telemetry: TelemetryConfigEntry[];
+}
+
+/** Connector sim-subset — yalnız SimulatorHost'un okuduğu sim tarafı. */
+export interface ConnectorSimSubset {
+  registerMap: string;
+  target?: { host?: string; port?: number };
+  intervalMs?: number;
+}
+
+/** BSC config'i içindeki `connector` bölümü (BSC→PCS link simülasyonu). */
+export interface ConnectorConfig {
+  device: ConnectorDeviceSubset;
+  sim?: ConnectorSimSubset;
+}
+
 /**
  * Bir cihaza ait konfigürasyon dosyasının yapısı.
  * Her cihaz için bir dosya, konfigürasyon dizininde yer alır.
@@ -65,13 +87,17 @@ export interface DeviceConfigFile {
   protocol: "MODBUS" | "CANBUS" | "MQTT";
   /** Cihaz tipi (örn. "bsc", "pcs", "emu", "hvac", "cb", "dc-output") — simulator'dan bağımsız, üretimde de gereklidir */
   type?: string;
-  /** Rack sayısı (cihaz özelliği — örn. BSC: 8). UI rack grafikleri ve cihaz kaydı için. */
-  rackCount?: number;
+  /**
+   * Cihaz-spesifik opsiyonel nitelikler (örn. `{ rackCount: 8 }`). OPAK passthrough:
+   * device-service/web-service YORUMLAMAZ, yalnız taşır; yorum tüketicide (ön yüz / sim).
+   */
+  details?: Record<string, unknown>;
   connection: Record<string, unknown>;
   telemetry: TelemetryConfigEntry[];
   bitfieldConfigs?: BitfieldConfig[];
   alarms?: DeviceAlarmRule[];
   pollIntervalMs?: number;
   transport?: DeviceTransportConfig;
+  connector?: ConnectorConfig;
   commands?: Record<string, CommandConfig>;
 }

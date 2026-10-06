@@ -6,7 +6,6 @@ import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
 import { TamperLogger } from "@gd-monorepo/tamper-logger";
 
 import type { DeviceScheduler } from "./device-scheduler";
-import type { SimulatorRegistry } from "./simulator-registry";
 
 /**
  * device-service sözleşmesi (Faz 0 T0.11):
@@ -132,7 +131,6 @@ function buildService(
     }],
     mq,
     scheduler,
-    {} as SimulatorRegistry,
     deps.sql,
     undefined,
     deps.logger,

@@ -5,18 +5,23 @@
 // - kendi izleme register'larını (link/sayaçlar) device-service'e sunar.
 
 import type { IModbusSimulatorAdapter } from "@gd-monorepo/shared-types";
-import type { BscPcsMapping, BscPcsSourceRef } from "./mapping";
+import type { BscPcsMapping } from "./mapping";
 import { TcpBmsTarget } from "./tcp-target";
 import type { IBmsTarget } from "./tcp-target";
+import type { ISourceReader } from "./source-reader";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
 
 /** BscPcsConnectorAdapter yapılandırması — tek obje (DI kuralı 3). */
 export interface BscPcsConnectorAdapterConfig {
   mapping: BscPcsMapping;
-  /** deviceId → kaynak simülatör adapter'ı (SimulatorRegistry'den). */
-  adapters: ReadonlyMap<string, IModbusSimulatorAdapter>;
+  /** Kaynak okuma kanalı — üretimde `TcpSourceReader` (gerçek Modbus TCP). */
+  source: ISourceReader;
   /** Test enjeksiyonu — verilmezse mapping.target üzerinden TcpBmsTarget kurulur. */
   target?: IBmsTarget;
   now?: () => number;
+  /** Verilirse connector kendi izleme register'larını self-host sunucuda yayınlar. */
+  network?: SimulatorNetworkConfig;
 }
 
 /** İzleme register'ları (kendi config telemetrisi bunları okur). */
@@ -40,9 +45,11 @@ const REG_FAIL_COUNT_HIGH = 0x0007;
  */
 export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
   private readonly mapping: BscPcsMapping;
-  private readonly adapters: ReadonlyMap<string, IModbusSimulatorAdapter>;
+  private readonly source: ISourceReader;
   private readonly target: IBmsTarget;
   private readonly now: () => number;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
   private readonly mirror = new Map<number, number>(); // to → son bilinen kelime
   private readonly lastWritten = new Map<number, number>(); // to → son yazılan değer
@@ -55,8 +62,9 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
 
   constructor(config: BscPcsConnectorAdapterConfig) {
     this.mapping = config.mapping;
-    this.adapters = config.adapters;
+    this.source = config.source;
     this.now = config.now ?? (() => Date.now());
+    this.network = config.network;
     if (config.target) {
       this.target = config.target;
     } else {
@@ -76,13 +84,8 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
         this.applyMirror(entry.to, entry.value);
         continue;
       }
-      const adapter = this.adapters.get(entry.from.deviceId);
-      if (!adapter) {
-        readFailures++;
-        continue;
-      }
       try {
-        const raw = await this.readSource(entry.from);
+        const raw = await this.source.read(entry.from);
         if (entry.kind === "register") {
           const transformed = Math.round(raw * entry.ratio + entry.offset);
           this.applyMirror(entry.to, transformed);
@@ -148,36 +151,34 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
     }
   }
 
-  /** Komut — hedef bağlantısını kapatır (SimulatorTransport onDisconnect). */
+  /** Komut — hedef + kaynak bağlantılarını kapatır (SimulatorTransport onDisconnect). */
   async closeTarget(): Promise<void> {
     this.connected = false;
     await this.target.close();
+    await this.source.close?.();
   }
 
-  /** Kaynak register değerini okur — size>1 ise big-endian kelime birleştirir. */
-  private async readSource(from: BscPcsSourceRef): Promise<number> {
-    const adapter = this.adapters.get(from.deviceId);
-    if (!adapter) {
-      throw new Error(`Kaynak adapter yok: ${from.deviceId}`);
-    }
-    const size = from.size ?? 1;
-    if (size === 1) {
-      return from.table === "input"
-        ? adapter.readInputRegister(from.address)
-        : adapter.readHoldingRegister(from.address);
-    }
-    const words =
-      from.table === "input"
-        ? await adapter.readInputRegisters(from.address, size)
-        : await adapter.readHoldingRegisters(from.address, size);
-    let value = 0;
-    for (const word of words) {
-      value = value * 0x10000 + (word & 0xffff);
-    }
-    if (from.signed && value >= 2 ** (16 * size - 1)) {
-      value -= 2 ** (16 * size);
-    }
-    return value;
+  /** Komut — kendi izleme sunucusunu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: this,
+      network: this.network,
+      tick: (seconds) => void this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — izleme sunucusunu durdurur + kaynak/hedef bağlantılarını kapatır (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+    await this.closeTarget();
+  }
+
+  /** Sorgu — izleme sunucusu dinlenen port. */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   private applyMirror(address: number, value: number): void {

@@ -80,7 +80,7 @@ Bugün mock'tan gelen `connected` alanı, gerçekte bu endpoint'in `connectionSt
 
 Mimari yön doğru ve endüstriyel kalıplarla uyumlu (ISA-95 edge autonomy, outbound-only gateway, supervision tier'ları). Ancak uygulama durumu tamamlanmış değil — PPC bağlantısını ve field'dan yönetimi bloklayan kritik boşluklar var.
 
-İlgili: [DEVICE-SERVICE-TRANSPORT-MIMARISI.md](./DEVICE-SERVICE-TRANSPORT-MIMARISI.md) — device-service taşıma katmanı (Strategy + Adapter, `transport.kind` config modeli, simülatör altyapısı).
+İlgili: [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) — device-service taşıma katmanı (Strategy + Adapter, `transport.kind` config modeli, simülatör altyapısı).
 
 ## Uzaktan Konteyner UI Erişimi (2026-08-19 kararı)
 

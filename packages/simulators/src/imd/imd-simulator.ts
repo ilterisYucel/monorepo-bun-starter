@@ -1,6 +1,9 @@
 // IMD Simulator — isoPV1685RTU (FL-11 toprak direnci hatası) — K4 gerçek map.
 
 import { INPUT } from "./register-map";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { ImdAdapter } from "./imd-modbus-adapter";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -33,16 +36,46 @@ const WARNING = 4;
  * - Direnç UInt32 (2 kelime BE): okuma adres çiftiyle kelime kelime yapılır.
  * - Bilinmeyen adres → 0.
  */
+export interface ImdSimulatorConfig {
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  readonly network?: SimulatorNetworkConfig;
+}
+
 export class ImdSimulator {
   private state: ImdState;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
-  constructor() {
+  constructor(config: ImdSimulatorConfig = {}) {
     this.state = {
       resistance: HEALTHY_RESISTANCE,
       prewarning: false,
       alarm: false,
       deviceError: 0,
     };
+    this.network = config.network;
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new ImdAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   /** Zaman adımı — jitter üretir; fault'ta direnci düşük tutar (komut). */

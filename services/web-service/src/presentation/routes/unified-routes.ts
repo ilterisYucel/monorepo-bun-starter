@@ -20,7 +20,7 @@ export async function unifiedRoutes(
   fastify.get("/telemetry/latest", async (request, reply) => {
     await registry.refresh();
 
-    const { deviceIds, names } = request.query as { deviceIds?: string; names?: string };
+    const { deviceIds, names, limit } = request.query as { deviceIds?: string; names?: string; limit?: string };
     const ids = deviceIds ? deviceIds.split(",") : [];
     const nameFilter = names ? names.split(",") : undefined;
 
@@ -28,7 +28,11 @@ export async function unifiedRoutes(
       (d) => ids.length === 0 || ids.includes(d.id),
     );
 
-    const LATEST_TELEMETRY_LIMIT = 2000;
+    const parsedLimit = Number(limit);
+    const LATEST_TELEMETRY_LIMIT =
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.min(2000, Math.floor(parsedLimit))
+        : 2000;
     const results = await Promise.allSettled(
       targetDevices.map((d) =>
         timescale.getLatestN(d.id, LATEST_TELEMETRY_LIMIT, nameFilter),

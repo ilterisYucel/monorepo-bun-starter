@@ -211,3 +211,39 @@ describe("deviceConfigFileSchema", () => {
     }
   });
 });
+
+describe("deviceConfigFileSchema — details (REV.01)", () => {
+  const base = {
+    deviceId: "bsc-1",
+    name: "BSC",
+    manufacturer: "X",
+    model: "Y",
+    protocol: "MODBUS" as const,
+    connection: { host: "127.0.0.1", port: 15501 },
+    telemetry: [{ name: "Voltage", protocol: "MODBUS" as const }],
+  };
+
+  it("accepts and preserves opaque details", () => {
+    const r = deviceConfigFileSchema.safeParse({
+      ...base,
+      details: { rackCount: 8, vendor: "acme" },
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.details).toEqual({ rackCount: 8, vendor: "acme" });
+  });
+
+  it("top-level rackCount artık şemada yok — strip edilir", () => {
+    const r = deviceConfigFileSchema.safeParse({ ...base, rackCount: 8 });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect("rackCount" in r.data).toBe(false);
+      expect(r.data.details).toBeUndefined();
+    }
+  });
+
+  it("details opsiyoneldir", () => {
+    const r = deviceConfigFileSchema.safeParse(base);
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.details).toBeUndefined();
+  });
+});

@@ -45,6 +45,7 @@
       "@gd-monorepo/platform-container-access": ["./packages/platform/container-access/src"],
       "@gd-monorepo/platform-logging": ["./packages/platform/logging/src"],
       "@gd-monorepo/tamper-logger": ["./packages/tamper-logger/src"],
+      "@gd-monorepo/logger": ["./packages/logger/src"],
       "@gd-monorepo/ws-tunnel": ["./packages/ws-tunnel/src"]
     }
   },

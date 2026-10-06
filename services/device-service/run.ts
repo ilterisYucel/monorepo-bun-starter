@@ -1,5 +1,12 @@
-import { RedisConnection } from "@gd-monorepo/core";
-import { TamperLogger, ConsoleSink, FileSink, resolveSigningKey } from "@gd-monorepo/tamper-logger";
+import { RedisConnection, PostgresAdapter } from "@gd-monorepo/core";
+import {
+  TamperLogger,
+  ConsoleSink,
+  FileSink,
+  TimescaleSink,
+  resolveSigningKey,
+  LOG_EVENTS_DDL,
+} from "@gd-monorepo/tamper-logger";
 
 import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
 import { loggerConfigForTier, isLogEventCode } from "@gd-monorepo/platform-logging";
@@ -9,10 +16,24 @@ import type { ILogSink } from "@gd-monorepo/tamper-logger";
 import type { LogLevel } from "@gd-monorepo/tamper-logger";
 
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
+import { Logger } from "@gd-monorepo/logger";
+import type { LogLevel as OpsLevel } from "@gd-monorepo/logger";
+import { SimulatorHost } from "@gd-monorepo/simulators";
 import { DeviceService } from "./src/device-service";
+import { DeviceConfigLoader } from "./src/config-loader";
 
-/** ConfigLoader'dan TamperLogger üretir (T0.5/T0.11 wiring). */
-async function buildLogger(config: ConfigLoader): Promise<TamperLogger> {
+/** TamperLogger seviyesini operasyonel logger seviyesine eşler (fatal → error). */
+function toOpsLevel(level: string): OpsLevel {
+  if (level === "fatal") return "error";
+  if (level === "debug" || level === "warn" || level === "error") return level;
+  return "info";
+}
+
+/** ConfigLoader'dan TamperLogger üretir; field/boss tier'da timescale sink ekler (B1). */
+async function buildLogger(
+  config: ConfigLoader,
+  postgres: PostgresAdapter,
+): Promise<TamperLogger> {
   const tier = config.get<ServiceTier>("service.tier");
   const filePath = config.get<string | undefined>("log.filePath");
   const cfg = loggerConfigForTier(tier, {
@@ -28,6 +49,10 @@ async function buildLogger(config: ConfigLoader): Promise<TamperLogger> {
   if (cfg.sinks.includes("console")) sinks.push(new ConsoleSink());
   if (cfg.sinks.includes("file") && cfg.filePath !== undefined) {
     sinks.push(new FileSink({ path: cfg.filePath }));
+  }
+  if (cfg.sinks.includes("timescale")) {
+    await postgres.execute(LOG_EVENTS_DDL);
+    sinks.push(new TimescaleSink({ executor: postgres }));
   }
   return new TamperLogger({
     signingKey,
@@ -52,8 +77,13 @@ async function main() {
   config.load();
   console.log("[run] Konfigürasyon:", config.redacted());
 
+  const opsLogger = new Logger({
+    service: "device-service",
+    level: toOpsLevel(config.get<string>("log.level")),
+  });
+
   const configDir = config.get<string>("device.configDir");
-  console.log(`[run] Konfigurasyon dizini: ${configDir}`);
+  opsLogger.info(`Konfigurasyon dizini: ${configDir}`);
 
   const redis = new RedisConnection({
     host: config.get<string>("redis.host"),
@@ -63,7 +93,18 @@ async function main() {
   });
   const mq = new PlatformMessageQueue(redis);
 
-  const logger = await buildLogger(config);
+  // PostgreSQL — alarm durum tablosu (DeviceService içi) + timescale log sink (B1).
+  const postgres = new PostgresAdapter({
+    host: config.get<string>("postgresql.host"),
+    port: config.get<number>("postgresql.port"),
+    user: config.get<string>("postgresql.user"),
+    password: config.get<string>("postgresql.password"),
+    database: config.get<string>("postgresql.database"),
+    maxConnections: config.get<number>("postgresql.maxConnections"),
+  });
+  await postgres.connect();
+
+  const logger = await buildLogger(config, postgres);
 
   // Site kimligi: container-level app CONTAINER_ID, field-level app FIELD_ID
   // env'i ile telemetriye otomatik tag olarak eklenir (bkz. TelemetryTagger).
@@ -82,21 +123,25 @@ async function main() {
       ? { host: bmsTargetHost, port: bmsTargetPort }
       : undefined;
 
-  const service = await DeviceService.fromConfigDir(
+  // Self-host simülatörler (BSC/… + BSC→PCS connector) — device-service TCP okur.
+  const { devices: deviceConfigs } = new DeviceConfigLoader(configDir, opsLogger).load();
+  const host = new SimulatorHost(deviceConfigs, {
     configDir,
-    mq,
-    identity,
-    logger,
-    bmsTarget ? { bmsTarget } : undefined,
-  );
+    ...(bmsTarget ? { bmsTarget } : {}),
+  });
+  await host.start();
+
+  const service = await DeviceService.fromConfigDir(configDir, mq, identity, logger, opsLogger);
 
   let stopping = false;
   const shutdown = async (signal: string) => {
     if (stopping) return;
     stopping = true;
-    console.log(`[run] ${signal} alindi, kapatiliyor...`);
+    opsLogger.info(`${signal} alindi, kapatiliyor...`);
     await service.stop();
+    await host.stopAll();
     await logger.close();
+    await opsLogger.close();
     process.exit(0);
   };
 
@@ -104,7 +149,7 @@ async function main() {
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   await service.start();
-  console.log("[run] Hazir. BullMQ job'lari bekleniyor...");
+  opsLogger.info("Hazir. BullMQ job'lari bekleniyor...");
 }
 
 main().catch((err) => {

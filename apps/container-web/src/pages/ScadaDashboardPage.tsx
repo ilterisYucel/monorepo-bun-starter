@@ -12,6 +12,7 @@ import { useEnergyAnalyzerData } from "../features/energy-analyzer";
 import { useFirePanelData } from "../features/fire-panel";
 import { useDevicesStore } from "../stores/devicesStore";
 import { useRealtimeStream } from "../contexts/RealtimeContext";
+import { DEFAULT_RACK_COUNT, rackCountOf } from "../features/racks/utils/rackHelpers";
 import * as S from "./DashboardPage.styles";
 
 const DEFAULT_EA: EnergyAnalyzerData = {
@@ -87,11 +88,11 @@ export const ScadaDashboardPage: React.FC = () => {
 
   const bscUnits: BSCUnitWithSummary[] = useMemo(() => {
     const offsets = bscDevices.reduce<number[]>((acc, d, i) => {
-      acc.push(i === 0 ? 0 : acc[i - 1]! + (bscDevices[i - 1]!.rack_count ?? 8));
+      acc.push(i === 0 ? 0 : acc[i - 1]! + (rackCountOf(bscDevices[i - 1]!)));
       return acc;
     }, []);
     return bscDevices.map((device, idx) => {
-      const rackCount = device.rack_count ?? 8;
+      const rackCount = rackCountOf(device);
       const bscRacks = racks.slice(offsets[idx]!, offsets[idx]! + rackCount);
       const onlineCount = bscRacks.filter((r) => r.status === "online").length;
       return {

@@ -270,6 +270,13 @@
         "eslint": ">=9.0.0",
       },
     },
+    "packages/logger": {
+      "name": "@gd-monorepo/logger",
+      "version": "1.0.0",
+      "dependencies": {
+        "pino": "^10.3.1",
+      },
+    },
     "packages/platform/commands": {
       "name": "@gd-monorepo/platform-commands",
       "version": "1.0.0",
@@ -368,6 +375,7 @@
         "@gd-monorepo/result": "*",
         "@gd-monorepo/shared-types": "*",
         "bun-types": "^1.3.14",
+        "jsmodbus": "^4.0.10",
       },
       "devDependencies": {
         "typescript": "^5.4.0",
@@ -464,9 +472,11 @@
       "version": "1.0.0",
       "dependencies": {
         "@gd-monorepo/core": "*",
+        "@gd-monorepo/logger": "*",
         "@gd-monorepo/shared-types": "*",
         "@gd-monorepo/shared-utils": "*",
         "@gd-monorepo/simulators": "*",
+        "@gd-monorepo/tamper-logger": "*",
         "smol-toml": "^1.1.0",
         "yaml": "^2.4.0",
       },
@@ -982,6 +992,8 @@
     "@gd-monorepo/field": ["@gd-monorepo/field@workspace:apps/field"],
 
     "@gd-monorepo/integration-service": ["@gd-monorepo/integration-service@workspace:services/integration-service"],
+
+    "@gd-monorepo/logger": ["@gd-monorepo/logger@workspace:packages/logger"],
 
     "@gd-monorepo/management-service": ["@gd-monorepo/management-service@workspace:services/management-service"],
 

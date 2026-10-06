@@ -183,3 +183,94 @@ describe("WebSocketTransport (T2)", () => {
     expect(FakeWebSocket.instances).toHaveLength(1);
   });
 });
+
+describe("WebSocketTransport — multipleks (component izolasyonu)", () => {
+  it("addDevices açık sokette subscribe gönderir (yeni soket açmaz)", async () => {
+    const transport = new WebSocketTransport("ws://x/ws/telemetry");
+    await transport.connect({ deviceId: "BSC-1" });
+    const ws = FakeWebSocket.instances[0]!;
+    ws.emitOpen();
+    ws.sent = [];
+
+    transport.addDevices(["HVAC-1"]);
+    expect(ws.sent).toEqual([JSON.stringify({ type: "subscribe", deviceId: "HVAC-1" })]);
+    expect(FakeWebSocket.instances.length).toBe(1);
+    await transport.disconnect();
+  });
+
+  it("aynı deviceId referans sayılır — bir abone çıkınca unsubscribe GİTMEZ", async () => {
+    const transport = new WebSocketTransport("ws://x/ws/telemetry");
+    await transport.connect({ deviceId: "X" });
+    const ws = FakeWebSocket.instances[0]!;
+    ws.emitOpen();
+    ws.sent = [];
+
+    transport.addDevices(["X"]); // ikinci abone (refcount 2)
+    transport.removeDevices(["X"]); // bir abone çıktı (refcount 1)
+    expect(ws.sent).toEqual([]);
+
+    transport.removeDevices(["X"]); // son abone çıktı
+    expect(ws.sent).toEqual([JSON.stringify({ type: "unsubscribe", deviceId: "X" })]);
+    await transport.disconnect();
+  });
+
+  it("connect idempotent: açık sokette ikinci connect yeni soket açmaz", async () => {
+    const transport = new WebSocketTransport("ws://x/ws/telemetry");
+    await transport.connect({ deviceId: "BSC-1" });
+    const ws = FakeWebSocket.instances[0]!;
+    ws.emitOpen();
+
+    await transport.connect({ deviceId: "BSC-1,CB-1" });
+    expect(FakeWebSocket.instances.length).toBe(1);
+
+    await transport.disconnect();
+  });
+
+  it("reconnect sonrası tüm abonelikler yeniden gönderilir", async () => {
+    const transport = new WebSocketTransport("ws://x/ws/telemetry");
+    await transport.connect({ deviceId: "BSC-1,CB-1" });
+    const ws = FakeWebSocket.instances[0]!;
+    ws.emitOpen();
+    ws.emitClose();
+
+    await vi.advanceTimersByTimeAsync(3000);
+    const ws2 = FakeWebSocket.instances[1]!;
+    ws2.emitOpen();
+    expect(ws2.sent).toEqual([
+      JSON.stringify({ type: "subscribe", deviceId: "BSC-1" }),
+      JSON.stringify({ type: "subscribe", deviceId: "CB-1" }),
+    ]);
+    await transport.disconnect();
+  });
+});
+
+describe("WebSocketTransport — names filtresi (panel spec)", () => {
+  it("addDevices names verilirse subscribe mesajına ekler", async () => {
+    const transport = new WebSocketTransport("ws://x/ws/telemetry");
+    await transport.connect({ deviceId: "BSC-1" });
+    const ws = FakeWebSocket.instances[0]!;
+    ws.emitOpen();
+    ws.sent = [];
+
+    transport.addDevices(["HVAC-1"], ["Current Temp", "Equipment Status"]);
+    expect(ws.sent).toEqual([
+      JSON.stringify({ type: "subscribe", deviceId: "HVAC-1", names: ["Current Temp", "Equipment Status"] }),
+    ]);
+    await transport.disconnect();
+  });
+
+  it("reconnect sonrası names korunur", async () => {
+    const transport = new WebSocketTransport("ws://x/ws/telemetry");
+    await transport.connect({ deviceId: "BSC-1" });
+    transport.addDevices(["BSC-1"], ["SOC"]);
+    const ws = FakeWebSocket.instances[0]!;
+    ws.emitOpen();
+    ws.emitClose();
+
+    await vi.advanceTimersByTimeAsync(3000);
+    const ws2 = FakeWebSocket.instances[1]!;
+    ws2.emitOpen();
+    expect(ws2.sent).toContain(JSON.stringify({ type: "subscribe", deviceId: "BSC-1", names: ["SOC"] }));
+    await transport.disconnect();
+  });
+});

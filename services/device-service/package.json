@@ -20,6 +20,8 @@
     "@gd-monorepo/shared-utils": "*",
     "@gd-monorepo/core": "*",
     "@gd-monorepo/simulators": "*",
+    "@gd-monorepo/logger": "*",
+    "@gd-monorepo/tamper-logger": "*",
     "smol-toml": "^1.1.0",
     "yaml": "^2.4.0"
   },

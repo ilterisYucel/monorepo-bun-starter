@@ -7,7 +7,7 @@
   "type": "cb",
   "connection": {
     "host": "127.0.0.1",
-    "port": 531,
+    "port": 15522,
     "slaveId": 1
   },
   "pollIntervalMs": 2000,

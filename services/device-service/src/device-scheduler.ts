@@ -1,14 +1,22 @@
 import type { IMessageQueue } from "@gd-monorepo/core";
 import type { ReadDeviceJob, ManagementJob, TelemetryData, ServiceConfigFile } from "@gd-monorepo/shared-types";
+import type { Logger } from "@gd-monorepo/logger";
+import { createOpsLog } from "./ops-log";
+import type { OpsLog } from "./ops-log";
 
 const DEFAULT_POLL_INTERVAL_MS = 5000;
 const DEFAULT_MANAGEMENT_INTERVAL_MS = 10000;
 
 export class DeviceScheduler {
+  private readonly ops: OpsLog;
+
   constructor(
     private readonly mq: IMessageQueue,
     private readonly config: ServiceConfigFile,
-  ) {}
+    opsLogger?: Logger,
+  ) {
+    this.ops = createOpsLog(opsLogger, "DeviceScheduler");
+  }
 
   scheduleRead(deviceId: string, intervalMs: number, startDate?: Date): Promise<void> {
     const jobName = `read-${deviceId}`;
@@ -75,9 +83,7 @@ export class DeviceScheduler {
     ]);
     const failed = results.filter((r) => r.status === "rejected").length;
     if (failed > 0) {
-      console.warn(
-        `[DeviceScheduler] ${deviceId} icin ${failed}/3 job kuyruga eklenemedi`,
-      );
+      this.ops.warn(`${deviceId} icin ${failed}/3 job kuyruga eklenemedi`);
     }
   }
 

@@ -10,7 +10,7 @@ review_date: 2026-09-22
 > **İş akışı aşaması:** 1/6 — SPEC. **İP-1 (Faz 1.1-1.6) + İP-2 (Faz 2-3) ONAYLANDI ve TAMAMLANDI (2026-09-22)** —
 > [DOGRULAMA](./KONTEYNER-MANEVRA-KATALOGU-REV03-DOGRULAMA.md) + [TEST-KAPSAMI](./KONTEYNER-MANEVRA-KATALOGU-REV03-TEST-KAPSAMI.md).
 > **Geçmiş:** REV.01/02 — OTOMASYON-KURALLARI-MIMARISI (kural seti taslağı); REV.03 (2026-09-17) — konteyner cihaz envanteri sabitlendi, 11 karar, FL veri kaynakları revize edildi, kural seti `command` aksiyon modeline çevrildi, PCS mimari düzeltmesi (K10/K11), S9/S10 kapanışı, BSC→PCS connector EMU çapraz etkisi (A7). REV.03 yeniden adlandırma ile katalog dokümanına dönüştü: §2 her FL için algoritma (pseudo-code) + komut/manevra veri yapıları + register eşlemesi; §3.2 manuel tetik yapıları eklendi.
-> **İlişkili:** [MANAGEMENT-SERVICE-MIMARISI.md](./MANAGEMENT-SERVICE-MIMARISI.md) (kural motoru altyapısı — Faz 0 tamamlandı), [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) (field tier kataloğu — PCS/Wattox), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md), [BSC-PCS-CONNECTOR-MIMARISI.md](./BSC-PCS-CONNECTOR-MIMARISI.md), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md).
+> **İlişkili:** [MANAGEMENT-SERVICE-MIMARISI.md](./MANAGEMENT-SERVICE-MIMARISI.md) (kural motoru altyapısı — Faz 0 tamamlandı), [FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md](./FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md) (field tier kataloğu — PCS/Wattox), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md), [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md).
 
 ---
 

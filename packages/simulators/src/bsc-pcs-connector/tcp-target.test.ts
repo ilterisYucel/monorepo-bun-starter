@@ -1,28 +1,34 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { WattoxPcsSimulator } from "../wattox-pcs/simulator";
-import { BmsPortServer } from "../wattox-pcs/bms-port-server";
+import { createWattoxBmsBridge } from "../wattox-pcs/bms-face-adapter";
 import { TcpBmsTarget } from "./tcp-target";
 import { BMS_SOC } from "../wattox-pcs/register-map";
+import type { ModbusServerBridge } from "../server";
 
 /**
- * TcpBmsTarget uçtan uca sözleşmesi — gerçek BmsPortServer'a FC 0x10 yazımı:
+ * TcpBmsTarget uçtan uca sözleşmesi — gerçek BMS-yüzü ModbusServerBridge'e FC 0x10:
  * - connect + writeRegisters + close yaşam döngüsü.
  * - Sunucu kapalıyken connect throw → yazım başarısız (connector fail sayar).
  * - Yeniden bağlanma: close sonrası tekrar connect + yazım.
  */
 
-let server: BmsPortServer | undefined;
+let bridge: ModbusServerBridge | undefined;
 
 afterEach(async () => {
-  await server?.stop();
-  server = undefined;
+  await bridge?.stop();
+  bridge = undefined;
 });
 
+const startBridge = async (sim: WattoxPcsSimulator): Promise<number> => {
+  bridge = createWattoxBmsBridge(sim, { host: "127.0.0.1", port: 0 });
+  await bridge.start();
+  return bridge.port();
+};
+
 describe("TcpBmsTarget", () => {
-  it("BmsPortServer'a FC 0x10 yazar; simülatör deposu güncellenir", async () => {
+  it("BMS-yüzü bridge'e FC 0x10 yazar; simülatör deposu güncellenir", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim, port: 0 });
-    const port = await server.start();
+    const port = await startBridge(sim);
 
     const target = new TcpBmsTarget("127.0.0.1", port);
     await target.connect();
@@ -33,10 +39,9 @@ describe("TcpBmsTarget", () => {
 
   it("sunucu kapalıyken connect throw eder", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim, port: 0 });
-    const port = await server.start();
-    await server.stop();
-    server = undefined;
+    const port = await startBridge(sim);
+    await bridge!.stop();
+    bridge = undefined;
 
     const target = new TcpBmsTarget("127.0.0.1", port);
     await expect(target.connect()).rejects.toThrow();
@@ -45,8 +50,7 @@ describe("TcpBmsTarget", () => {
 
   it("close sonrası yeniden connect + yazım çalışır (retry deseni)", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim, port: 0 });
-    const port = await server.start();
+    const port = await startBridge(sim);
 
     const target = new TcpBmsTarget("127.0.0.1", port);
     await target.connect();
@@ -60,8 +64,7 @@ describe("TcpBmsTarget", () => {
 
   it("BMS bloğu dışına yazım → Modbus exception throw", async () => {
     const sim = new WattoxPcsSimulator({});
-    server = new BmsPortServer({ simulator: sim, port: 0 });
-    const port = await server.start();
+    const port = await startBridge(sim);
 
     const target = new TcpBmsTarget("127.0.0.1", port);
     await target.connect();

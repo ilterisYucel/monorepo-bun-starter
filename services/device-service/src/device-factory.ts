@@ -1,12 +1,13 @@
 import { ModbusDevice, CANBusDevice, MQTTDevice, ModbusRtuClient, ModbusClientTransport } from "@gd-monorepo/core";
 import type { IModbusTransport } from "@gd-monorepo/core";
 import type { IDevice, ModbusTelemetryData, DeviceConfigFile, TelemetryConfigEntry } from "@gd-monorepo/shared-types";
-import type { SimulatorRegistry } from "./simulator-registry";
 import type { ModbusRtuConfig } from "@gd-monorepo/core";
 
+/**
+ * DeviceFactory — config'ten `IDevice` üretir (yalnız TCP/RTU; simülatör dalı YOK).
+ * Connector bölümü varsa `createConnector` ile türetilmiş 2. MODBUS cihazı üretilir.
+ */
 export class DeviceFactory {
-  constructor(private readonly simulators: SimulatorRegistry) {}
-
   create(config: DeviceConfigFile): IDevice {
     const transport = this.transportFor(config);
 
@@ -19,18 +20,29 @@ export class DeviceFactory {
     return new MQTTDevice(config.deviceId);
   }
 
+  /** `config.connector.device` varsa türetilmiş connector cihazını üretir. */
+  createConnector(config: DeviceConfigFile): IDevice | undefined {
+    const subset = config.connector?.device;
+    if (subset === undefined) return undefined;
+    return new ModbusDevice({
+      id: subset.deviceId,
+      name: subset.name,
+      manufacturer: config.manufacturer,
+      model: config.model,
+      connection: subset.connection,
+      telemetryList: subset.telemetry.map((entry) =>
+        this.toModbusTelemetry(subset.deviceId, entry),
+      ),
+    });
+  }
+
   /**
-   * Taşıma katmanı seçimi (Strategy):
-   * - transport.kind === "simulator" → SimulatorRegistry'den SimulatorTransport
-   * - transport.kind === "rtu" → gerçek RTU transport'u
-   * - aksi halde undefined → ModbusDevice kendi varsayılan TCP transport'unu kurar
+   * Taşıma katmanı seçimi (Strategy): yalnız RTU özel transport gerektirir;
+   * aksi halde undefined → ModbusDevice kendi varsayılan TCP transport'unu kurar.
    */
   private transportFor(config: DeviceConfigFile): IModbusTransport | undefined {
-    const simulated = this.simulators.transportFor(config.deviceId);
-    if (simulated) return simulated;
-
     if (config.transport?.kind === "rtu") {
-      const connection = config.connection as Record<string, unknown>;
+      const connection = config.connection;
       const rtuConfig: ModbusRtuConfig = {
         path: (connection.path as string) ?? "/dev/ttyUSB0",
         baudRate: (connection.baudRate as number) ?? 19200,
@@ -42,7 +54,6 @@ export class DeviceFactory {
       };
       return new ModbusClientTransport(new ModbusRtuClient(rtuConfig));
     }
-
     return undefined;
   }
 

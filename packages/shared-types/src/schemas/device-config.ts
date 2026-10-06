@@ -23,11 +23,35 @@ const simulatorConfigSchema = z.object({
 const deviceTransportConfigSchema = z.object({
   kind: z.enum(["tcp", "rtu", "simulator"]),
   type: z.string().min(1).optional(),
-  rackCount: z.number().int().positive().optional(),
   registerMap: z.string().optional(),
   pcsCount: z.number().int().positive().optional(),
   // Wattox PCS simülatörü BMS port sunucu portu (BSC-PCS-CONNECTOR-MIMARISI.md T-C2)
   bmsPort: z.number().int().positive().optional(),
+});
+
+const connectorDeviceSubsetSchema = z.object({
+  deviceId: z.string().min(1),
+  name: z.string().min(1),
+  type: z.string().min(1),
+  pollIntervalMs: z.number().int().positive().optional(),
+  connection: z.record(z.unknown()),
+  telemetry: z.array(telemetryEntrySchema).min(1),
+});
+
+const connectorSimSubsetSchema = z.object({
+  registerMap: z.string().min(1),
+  target: z
+    .object({
+      host: z.string().optional(),
+      port: z.number().int().positive().optional(),
+    })
+    .optional(),
+  intervalMs: z.number().int().positive().optional(),
+});
+
+const connectorConfigSchema = z.object({
+  device: connectorDeviceSubsetSchema,
+  sim: connectorSimSubsetSchema.optional(),
 });
 
 export const bitfieldFieldSchema = z.object({
@@ -69,11 +93,12 @@ export const deviceConfigFileSchema = z.object({
   model: z.string(),
   protocol: z.enum(["MODBUS", "CANBUS", "MQTT"]),
   type: z.string().min(1).optional(),
-  rackCount: z.number().int().positive().optional(),
+  details: z.record(z.unknown()).optional(),
   connection: z.record(z.unknown()),
   telemetry: z.array(telemetryEntrySchema).min(1),
   bitfieldConfigs: z.array(bitfieldConfigSchema).optional(),
   alarms: z.array(deviceAlarmRuleSchema).optional(),
   pollIntervalMs: z.number().int().positive().optional(),
   transport: deviceTransportConfigSchema.optional(),
+  connector: connectorConfigSchema.optional(),
 });

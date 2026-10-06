@@ -25,6 +25,9 @@ import {
   MAX_SOC_PERCENT,
   MIN_SOC_PERCENT,
 } from "./bsc-math";
+import { SimulatorServer } from "../server";
+import type { SimulatorNetworkConfig } from "../server";
+import { BSCSimulatorAdapter } from "./bsc-modbus-adapter";
 
 // ─── types ──────────────────────────────────────────────────────────────────
 
@@ -53,6 +56,8 @@ export interface BSCSimulatorConfig {
   rackCount: number;
   registers: RegisterDef[];
   initialSocPercent?: number;
+  /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
+  network?: SimulatorNetworkConfig;
 }
 
 const SECONDS_PER_HOUR = 3600;
@@ -109,13 +114,38 @@ export class BSCSimulator {
   private acknowledge: number = ACKNOWLEDGE.NONE;
   private lastControllerHeartbeat = 0;
   private controllerHeartbeatValue = 0;
+  private readonly network: SimulatorNetworkConfig | undefined;
+  private server: SimulatorServer | undefined;
 
   constructor(config: BSCSimulatorConfig) {
     this.config = config;
     this.rackCount = config.rackCount;
     this.registers = config.registers;
+    this.network = config.network;
     this.initRegisters();
     this.initRackStates(config.initialSocPercent ?? 50);
+  }
+
+  /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
+  async start(): Promise<void> {
+    if (this.server || this.network === undefined) return;
+    this.server = new SimulatorServer({
+      adapter: new BSCSimulatorAdapter(this),
+      network: this.network,
+      tick: (seconds) => this.tick(seconds),
+    });
+    await this.server.start();
+  }
+
+  /** Komut — sunucu + tick'i durdurur (idempotent). */
+  async stop(): Promise<void> {
+    await this.server?.stop();
+    this.server = undefined;
+  }
+
+  /** Sorgu — self-host server dinlenen port (start öncesi config portu). */
+  port(): number {
+    return this.server?.port() ?? this.network?.port ?? 0;
   }
 
   // ── register init ───────────────────────────────────────────────────────

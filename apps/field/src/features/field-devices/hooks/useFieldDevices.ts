@@ -66,7 +66,7 @@ export function deriveDevicesFromSnapshot(
         status: "online",
         manufacturer: null,
         model: null,
-        rack_count: null,
+        details: null,
         poll_interval_ms: null,
         connection: null,
         last_seen: item.timestamp ?? null,

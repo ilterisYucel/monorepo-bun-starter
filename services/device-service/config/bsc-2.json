@@ -6,7 +6,7 @@
   "protocol": "MODBUS",
   "connection": {
     "host": "127.0.0.1",
-    "port": 502,
+    "port": 15510,
     "slaveId": 1
   },
   "telemetry": [
@@ -13054,10 +13054,9 @@
   "type": "bsc",
   "transport": {
     "kind": "simulator",
-    "type": "bsc",
-    "rackCount": 8
+    "type": "bsc"
   },
-  "rackCount": 8,
+  "details": { "rackCount": 8 },
   "alarms": [
     {
       "telemetry": "BSC Alarm",

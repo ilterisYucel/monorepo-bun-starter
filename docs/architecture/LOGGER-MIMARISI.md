@@ -2,13 +2,13 @@
 status: active
 space: architecture
 tags: [mimari, logger, log, sink, spec]
-review_date: 2026-09-24
+review_date: 2026-12-01
 ---
 
 # Logger — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
+> **Durum:** 🟢 Doğrulanmış (2026-10-05) — T-1…T-5 tamam; doğrulama [LOGGER-KAPANIS.md](./LOGGER-KAPANIS.md)'de.
 > **İlişkili:** [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) (ilk tüketici — UC-6 bilgi logları), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (§522 log kategorileri — TamperLogger'da kalır).
 > **TamperLogger ile ilişki:** Bu paket `@gd-monorepo/tamper-logger`'ın YERİNE GEÇMEZ — imzasız, hafif, sink-pluggable genel logger'dır. Önemli/denetlenebilir loglar (alarm, audit, security, hata geçişleri) TamperLogger'da kalır; operasyonel/bilgi logları bu pakete taşınır.
 
@@ -121,7 +121,7 @@ class Logger {
 
 ### 6.1 UC-1 — Temel Loglama ve Format
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: seviye filtresi, JSON kayıt yapısı, default ConsoleSink, komut metodları (debug/info/warn/error)
@@ -150,15 +150,15 @@ class Logger {
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-1.1 | Kayıt yapısı + yazım | unit | ⬜ |
-| AK-1.2 | Seviye filtresi (tüm seviye kombinasyonları) | unit | ⬜ |
-| AK-1.3 | Default level | unit | ⬜ |
-| AK-1.4 | Level-altı sıfır maliyet (spy) | unit | ⬜ |
+| AK-1.1 | Kayıt yapısı + yazım | unit | 🟢 |
+| AK-1.2 | Seviye filtresi (tüm seviye kombinasyonları) | unit | 🟢 |
+| AK-1.3 | Default level | unit | 🟢 |
+| AK-1.4 | Level-altı sıfır maliyet (spy) | unit | 🟢 |
 
 **T Görev Listesi:**
-- [ ] T-1: JSDoc + tipler (`LogLevel`, `LoggerConfig`, `LogRecord`, `ILogSink`) — `packages/logger/src/`
-- [ ] T-2: Kırmızı testler — format, seviye filtresi, default level, level-altı sıfır maliyet (`logger.test.ts`)
-- [ ] T-3: `Logger` implementasyonu + `ConsoleSink` (insan-okur tek satır)
+- [x] T-1: JSDoc + tipler (`LogLevel`, `LoggerConfig`, `LogRecord`, `ILogSink`) — `packages/logger/src/`
+- [x] T-2: Kırmızı testler — format, seviye filtresi, default level, level-altı sıfır maliyet (`logger.test.ts`)
+- [x] T-3: `Logger` implementasyonu + `ConsoleSink` (insan-okur tek satır)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -176,7 +176,7 @@ class Logger {
 
 ### 6.2 UC-2 — Sink Yönetimi
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: `addSink`/`removeSink` (pino-multi-stream üzerinden dinamik hedefler), çoklu sink, sink hata izolasyonu (fail-open), `close()` yayılımı, `FileSink`
@@ -203,12 +203,12 @@ class Logger {
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-2.1 | add/remove davranışı | unit | ⬜ |
-| AK-2.2 | Hata izolasyonu | unit | ⬜ |
-| AK-2.3 | FileSink append + close | unit | ⬜ |
+| AK-2.1 | add/remove davranışı | unit | 🟢 |
+| AK-2.2 | Hata izolasyonu | unit | 🟢 |
+| AK-2.3 | FileSink append + close | unit | 🟢 |
 
 **T Görev Listesi:**
-- [ ] T-4: `FileSink` + sink yönetimi testleri (`sinks.test.ts`)
+- [x] T-4: `FileSink` + sink yönetimi testleri (`sinks.test.ts`)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -227,7 +227,7 @@ class Logger {
 
 ### 6.3 UC-3 — Child Logger (Component Etiketi)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış
 
 **Kapsam:**
 - dahil: `child(component)` — devralınan service/level, eklenen component; sink paylaşımı
@@ -251,11 +251,11 @@ class Logger {
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-3.1 | Sink paylaşımı + config devri | unit | ⬜ |
-| AK-3.2 | Component etiketi | unit | ⬜ |
+| AK-3.1 | Sink paylaşımı + config devri | unit | 🟢 |
+| AK-3.2 | Component etiketi | unit | 🟢 |
 
 **T Görev Listesi:**
-- [ ] T-5: `child` implementasyonu + testler
+- [x] T-5: `child` implementasyonu + testler
 
 **Edge Cases:**
 | Durum | Davranış |

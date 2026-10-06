@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import type { IModbusSimulatorAdapter } from "@gd-monorepo/shared-types";
 import { parseBscPcsMapping } from "./mapping";
 import { BscPcsConnectorAdapter } from "./connector";
+import { AdapterSourceReader } from "./source-reader";
 import type { IBmsTarget } from "./tcp-target";
 
 /**
@@ -69,7 +70,7 @@ function adapter(overrides: { target?: IBmsTarget; mapping?: ReturnType<typeof p
   };
   return new BscPcsConnectorAdapter({
     mapping: overrides.mapping ?? parseBscPcsMapping(VALID_MAPPING_JSON),
-    adapters: new Map(Object.entries(sources)),
+    source: new AdapterSourceReader(new Map(Object.entries(sources))),
     target: overrides.target,
     now: () => clock,
   });

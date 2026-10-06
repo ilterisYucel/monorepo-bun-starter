@@ -1,6 +1,7 @@
 import type { TelemetryData, ChargeStatus } from "@gd-monorepo/shared-types";
 import type { BSCCardProps } from "@gd-monorepo/ui";
 import type { DeviceInfo } from "../../devices/types/device";
+import { detailsNumber } from "./rackHelpers";
 
 const num = (v: unknown): number | null => {
   if (v === null || v === undefined) return null;
@@ -93,7 +94,7 @@ export const telemetriesToBscSummaries = (
       chargeStatus: globalChargeStatus,
       soc,
       soh,
-      rackCount: device.rack_count ?? 0,
+      rackCount: detailsNumber(device, "rackCount") ?? 0,
       onlineRackCount,
       systemPowerKw: chargePowerKw,
       voltage,
