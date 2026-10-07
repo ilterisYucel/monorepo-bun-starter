@@ -181,6 +181,9 @@ docker compose --env-file deployment/aws/demo-edge/.env \
 
 ### 8.3 Doğrulama (API smoke)
 ```bash
+# Konteyner token kaydı + bağlantı doğrulaması (tek komut, renkli çıktı):
+tools/register-container.sh --env deployment/aws/demo-edge/.env --url http://localhost:88
+
 B=http://localhost:88
 TOKEN=$(curl -s -X POST $B/api/auth/login -H 'content-type: application/json' \
   -d '{"username":"admin","password":"<SEED_ADMIN_PASSWORD>"}' | \
@@ -197,7 +200,13 @@ curl -s -H "authorization: Bearer $TOKEN" \
 ```
 - `rolled_back` görülürse: konteyner field'a bağlanmamıştır →
   `.env` `FIELD_CONNECT_ENABLED=true` + `CONTAINER_TOKEN` dolu mu, container
-  token'ı field'a kayıtlı mı kontrol et (§4.2).
+  token'ı field'a kayıtlı mı kontrol et (§4.2) — yani `tools/register-container.sh`.
+- **`relation "devices" does not exist` / Faults boş:** merged AWS network'ünde
+  `timescaledb` alias'ı YALNIZCA `container-timescaledb`'de tanımlıdır. Bu yüzden
+  `field-device-configs/service.json` → `postgresql.host` **`field-timescaledb`**
+  olmalıdır (`timescaledb` kalırsa field-device-service yanlışlıkla konteyner
+  DB'sine yazar → field `devices`/`device_alarms` oluşmaz). Değiştirdikten sonra:
+  `docker compose ... up -d --force-recreate field-device-service`.
 - Konteyner management-service kural ÇALIŞTIRMAZ (demo no-op rules) — gerçek
   kural seti test edilmeden aktive edilmez.
 

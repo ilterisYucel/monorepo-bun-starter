@@ -91,6 +91,8 @@ review_date: 2026-10-07
 | 70 | `e2e/demo-operations-data.spec.ts` | **I-1 canlı e2e**: kesiciyi aç → toprak kapat → charge `503 interlock_earthed` → toprak aç + kesici kapat → charge `completed` | UC-10/FR-10.2..10.3, AK-10.2/10.3 |
 | 71 | `deployment/aws/demo-edge/docker-compose.yml` | **m6i.large canlı hazırlık**: `FIELD_CONNECT_ENABLED` varsayılanı `true` (konteyner→field linki; aksi halde charge rollback), `MFA_ENABLED` varsayılanı `false`, field-web-service `mem_limit 512m` | A.4#13 |
 | 72 | `deployment/.env.aws-edge.example` + `deployment/aws/demo-edge/plugins/epias-market-prices.json` + `docs/process/AWS-DEPLOYMENT.md` | demo-edge standalone runbook (§8): env şablon yolu düzeltildi (demo-edge), `FIELD_UPLINK_ENABLED=false`, EPİAŞ json notu + `intervalMs=300000` | A.4#13 |
+| 73 | `deployment/aws/demo-edge/field-device-configs/service.json` | **Kritik merged-network fix:** `postgresql.host` `timescaledb`→`field-timescaledb`. AWS tek edge-network'te `timescaledb` alias yalnız konteyner DB'sinde → field-device-service yanlış DB'ye yazıyordu (`devices`/`device_alarms` field DB'de oluşmuyordu) | A.4#14 |
+| 74 | `tools/register-container.sh` | Konteyner service-token kaydı + bağlantı doğrulaması için tek-komut, renkli çıktılı script (elle curl yerine) | A.4#14 |
 
 ### A.2 Test Kanıtları
 
@@ -160,6 +162,7 @@ review_date: 2026-10-07
 | 11 | e2e helper bug'ı (uygulama sağlam) | `/api/data/:id/latest` aynı isimden çok satır döndürüyor (`Grid Active Power: [-50, 0]`); helper `Object.fromEntries` ile **sonuncu** (bayat) değeri alıyordu → charge/discharge testleri yanlış "0" görüp düşüyordu. Fix: `latestByName` (en yeni timestamp). Uygulamada sorun yoktu. |
 | 12 | demo-MV toprak coil adres bug'ı (config) | `demo-mv-1.json`'da H01/H04/H05 toprak **Close/Open coil adresleri simülatörle ters**ti (config `Earth Close` → sim `ES_OPEN`): "toprağı kapat" aslında açıyordu. `register-map` (`H05_ES_OPEN=12/H05_ES_CLOSE=13` vb.) ile hizalandı (dev+aws). Aksi halde canlı I-1 testi kurulamıyordu. |
 | 13 | AWS demo-edge (m6i.large) canlı hazırlık | `FIELD_CONNECT_ENABLED` default `false→true` (kritik: aksi halde AWS'te charge rollback), `MFA_ENABLED` default `true→false`, field-web-service `mem_limit 256→512m`; env şablonu demo-edge yoluna düzeltildi; EPİAŞ AWS `intervalMs=300000`; `AWS-DEPLOYMENT.md` §8 standalone runbook + API smoke. TLS/backup/MFA-geçişi §7 FLAG (demo kabulü). |
+| 14 | AWS merged-network `timescaledb` alias çakışması | `device-service`, SQL bağlantısını `service.json`'dan kurar; field kopyasında `postgresql.host="timescaledb"` tek edge-network'te container DB'sine çözülüyordu → field `devices`/`device_alarms` oluşmuyor, Field `DeviceRegistry` "relation does not exist" basıyordu. Fix: `field-device-configs/service.json` → `field-timescaledb` (container kopyası `timescaledb` alias'ıyla doğru kalır). Ayrıca tek-komut kayıt/doğrulama script'i `tools/register-container.sh` eklendi. |
 
 ### A.5 Gözle Kontrol Maddeleri
 
