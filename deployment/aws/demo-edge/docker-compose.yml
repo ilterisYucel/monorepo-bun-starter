@@ -262,7 +262,7 @@ services:
     image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
     container_name: aws-field-timescaledb
     command:
-      - -cshared_buffers=256MB
+      - -cshared_buffers=384MB
       - -cwork_mem=4MB
       - -ceffective_cache_size=2GB
       - -cmaintenance_work_mem=64MB
@@ -284,7 +284,7 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    mem_limit: 512m
+    mem_limit: 1g
     logging:
       driver: json-file
       options:

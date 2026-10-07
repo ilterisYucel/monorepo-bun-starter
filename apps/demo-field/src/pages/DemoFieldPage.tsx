@@ -22,7 +22,7 @@ import { useDemoFieldTelemetry } from "../features/demo-data/useDemoFieldTelemet
 import { demoApi } from "../features/demo-data/demoApi";
 import { demoLogApi } from "../features/demo-data/demoLogApi";
 import { mapFieldToMimicState } from "../features/demo-data/mapFieldToMimicState";
-import { buildTrendSeries } from "../features/demo-data/buildTrendSeries";
+import { buildTrendSeries, TREND_SOURCE_NAMES } from "../features/demo-data/buildTrendSeries";
 import { DEMO_MV_DEVICE_ID, DEMO_TOPOLOGY, FIELD_DEVICE_IDS, cellCommandName } from "../features/demo-data/demo-topology";
 import { deriveKpis } from "../features/demo-data/deriveKpis";
 import { deriveAlerts } from "../features/demo-data/deriveAlerts";
@@ -91,6 +91,7 @@ export const DemoFieldPage: React.FC = () => {
         from: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
         to: new Date().toISOString(),
         points: 200,
+        names: [...TREND_SOURCE_NAMES],
       }),
     refetchInterval: 30000,
     refetchOnWindowFocus: false,

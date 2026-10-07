@@ -207,6 +207,13 @@ curl -s -H "authorization: Bearer $TOKEN" \
   olmalıdır (`timescaledb` kalırsa field-device-service yanlışlıkla konteyner
   DB'sine yazar → field `devices`/`device_alarms` oluşmaz). Değiştirdikten sonra:
   `docker compose ... up -d --force-recreate field-device-service`.
+- **Trend grafikleri boş (Network'te 0 B / status yok):** downsampled sorgusu
+  `names` filtresi olmadan tüm isimler için dev sorgu üretir → 60 sn
+  `statementTimeoutMs` aşılır. Güncel SPA sorguyu
+  `names=Battery Pack SOC,Grid Active Power,Highest Cell Temperature` ile yapar;
+  boşsa `field-web` imajı güncel mi (repo'da bu değişiklik var mı) kontrol et ve
+  `docker compose ... build field-web && up -d field-web`. Ayrıca compose'da
+  `field-timescaledb` `mem_limit 1g` + `shared_buffers 384MB` olmalı.
 - Konteyner management-service kural ÇALIŞTIRMAZ (demo no-op rules) — gerçek
   kural seti test edilmeden aktive edilmez.
 

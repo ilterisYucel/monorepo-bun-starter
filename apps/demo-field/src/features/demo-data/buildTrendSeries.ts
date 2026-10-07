@@ -40,9 +40,22 @@ const max = (xs: number[]): number => Math.max(...xs);
 
 const isNumber = (v: unknown): v is number => typeof v === "number";
 
-/** Kanonik `max_cell_temp` veya raf sıcaklık adı (container fallback). */
+/**
+ * Trendlerin çektiği field-tier telemetri adları (downsampled `names` filtresi).
+ * Bu filtre olmadan adapter tüm isimler için AVG üretir → dev sorgu > 60 sn
+ * statement timeout (trend grafiği boş kalır). Kanonik eşleme aşağıda tags ile.
+ */
+export const TREND_SOURCE_NAMES = [
+  "Battery Pack SOC",
+  "Grid Active Power",
+  "Highest Cell Temperature",
+] as const;
+
+/** Kanonik `max_cell_temp`, raf sıcaklık adı veya PCS hücre sıcaklığı. */
 const isTempRow = (r: TelemetryData): boolean =>
-  r.tags?.canonical === "max_cell_temp" || /Rack Max Pack Temp R\d+$/.test(r.name);
+  r.tags?.canonical === "max_cell_temp" ||
+  /Rack Max Pack Temp R\d+$/.test(r.name) ||
+  r.name === "Highest Cell Temperature";
 
 export function buildTrendSeries(rows: TelemetryData[]): DemoTrendData {
   const soc = aggregate(

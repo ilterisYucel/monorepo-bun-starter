@@ -93,6 +93,7 @@ review_date: 2026-10-07
 | 72 | `deployment/.env.aws-edge.example` + `deployment/aws/demo-edge/plugins/epias-market-prices.json` + `docs/process/AWS-DEPLOYMENT.md` | demo-edge standalone runbook (§8): env şablon yolu düzeltildi (demo-edge), `FIELD_UPLINK_ENABLED=false`, EPİAŞ json notu + `intervalMs=300000` | A.4#13 |
 | 73 | `deployment/aws/demo-edge/field-device-configs/service.json` | **Kritik merged-network fix:** `postgresql.host` `timescaledb`→`field-timescaledb`. AWS tek edge-network'te `timescaledb` alias yalnız konteyner DB'sinde → field-device-service yanlış DB'ye yazıyordu (`devices`/`device_alarms` field DB'de oluşmuyordu) | A.4#14 |
 | 74 | `tools/register-container.sh` | Konteyner service-token kaydı + bağlantı doğrulaması için tek-komut, renkli çıktılı script (elle curl yerine) | A.4#14 |
+| 75 | `apps/demo-field/src/features/demo-data/demoApi.ts` + `DemoFieldPage.tsx` + `buildTrendSeries.ts` (+test) + `deployment/aws/demo-edge/docker-compose.yml` | **Trend grafiği düzeltmesi:** downsampled sorgusuna `names` filtresi (tüm isimler yerine 3 kaynak → dev sorgu >60 sn timeout'u kalkar); temp eşleştiricisine PCS `Highest Cell Temperature`; aws `field-timescaledb` `mem_limit 1g` + `shared_buffers 384MB` | A.4#15 |
 
 ### A.2 Test Kanıtları
 
@@ -163,6 +164,7 @@ review_date: 2026-10-07
 | 12 | demo-MV toprak coil adres bug'ı (config) | `demo-mv-1.json`'da H01/H04/H05 toprak **Close/Open coil adresleri simülatörle ters**ti (config `Earth Close` → sim `ES_OPEN`): "toprağı kapat" aslında açıyordu. `register-map` (`H05_ES_OPEN=12/H05_ES_CLOSE=13` vb.) ile hizalandı (dev+aws). Aksi halde canlı I-1 testi kurulamıyordu. |
 | 13 | AWS demo-edge (m6i.large) canlı hazırlık | `FIELD_CONNECT_ENABLED` default `false→true` (kritik: aksi halde AWS'te charge rollback), `MFA_ENABLED` default `true→false`, field-web-service `mem_limit 256→512m`; env şablonu demo-edge yoluna düzeltildi; EPİAŞ AWS `intervalMs=300000`; `AWS-DEPLOYMENT.md` §8 standalone runbook + API smoke. TLS/backup/MFA-geçişi §7 FLAG (demo kabulü). |
 | 14 | AWS merged-network `timescaledb` alias çakışması | `device-service`, SQL bağlantısını `service.json`'dan kurar; field kopyasında `postgresql.host="timescaledb"` tek edge-network'te container DB'sine çözülüyordu → field `devices`/`device_alarms` oluşmuyor, Field `DeviceRegistry` "relation does not exist" basıyordu. Fix: `field-device-configs/service.json` → `field-timescaledb` (container kopyası `timescaledb` alias'ıyla doğru kalır). Ayrıca tek-komut kayıt/doğrulama script'i `tools/register-container.sh` eklendi. |
+| 15 | Trend grafikleri boş (AWS) | `getDownsampledData` **tüm isimler** için (~150 sütun) `GROUP BY bucket, tags` dev sorgusu üretiyordu; 714k satır × 3 cihaz → PG >60 sn `statementTimeoutMs` → web-service iptal → tarayıcı 0 B. Fix (app): Saha trend sorgusuna `names` filtresi (`Battery Pack SOC`, `Grid Active Power`, `Highest Cell Temperature`) → saniyeler altı. Ayrıca "Hücre sıcaklığı" grafiği kaynağı PCS `Highest Cell Temperature` ile dolduruldu (önceden hiç dolmuyordu). Altyapı: aws `field-timescaledb` `mem_limit 512m→1g`, `shared_buffers 256→384MB`. **Çekirdek adapter'daki `GROUP BY tags` patlaması + varsayılan isim filtresi ayrı gap (G13).** |
 
 ### A.5 Gözle Kontrol Maddeleri
 
@@ -249,5 +251,6 @@ nötr; env bayrağı YOK — geliştirici kararı). Kök servis ayrıca bir **bu
 | G10 | `graphify update .` koşulamadı — bu ortamda `graphify` CLI PATH'te kurulu değil (yalnız opencode plugin hatırlatıcısı) | düşük | graphify CLI kurulu ortamda `graphify update .` koş |
 | G11 | redis bellek kapasitesi izlenmiyor (BullMQ retention sınırlı ama 256mb da uzun koşuda dolabilir) | düşük | `used_memory` alarmı + gerekirse retention/kapasite ayarı (A.4#9) |
 | G12 | Platform: tüketicisiz kuyruk sınırsız büyür (MANAGEMENT `prioritized` 6005 job) — `removeOnComplete` yalnız tamamlananları budar, bekleyenleri budamaz | orta | Ürün: tier'da ilgili tüketici zorunlu (deploy kontrolü) veya bekleyen kuyruk üst sınırı (A.4#10) |
+| G13 | Platform: `getDownsampledData` varsayılan olarak tüm isimler için `AVG(CASE…)` + `GROUP BY tags` dev sorgu üretir (isim filtresi yoksa >60 sn timeout) | orta | Çekirdek adapter: `GROUP BY`'dan tags'i çıkar (tags'i isim→tag haritasından ekle), makul varsayılan isim limiti; ayrı PR (A.4#15) |
 
 **review_date:** 2026-10-07

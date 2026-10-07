@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
-import { buildTrendSeries } from "./buildTrendSeries";
+import { buildTrendSeries, TREND_SOURCE_NAMES } from "./buildTrendSeries";
 
 const T = (
   name: string,
@@ -48,6 +48,23 @@ describe("buildTrendSeries (FR-6.1 / AK-6.1)", () => {
     const { temp } = buildTrendSeries(rows);
     expect(temp).toHaveLength(1);
     expect(temp[0].value).toBe(26);
+  });
+
+  it("PCS 'Highest Cell Temperature' kanoniksiz de sıcaklık serisine girer", () => {
+    const { temp } = buildTrendSeries([
+      T("Highest Cell Temperature", 27, t1),
+      T("Highest Cell Temperature", 29, t1, undefined, "PCS-2"),
+    ]);
+    expect(temp).toHaveLength(1);
+    expect(temp[0].value).toBe(29);
+  });
+
+  it("TREND_SOURCE_NAMES 3 field-tier kaynağı içerir", () => {
+    expect(TREND_SOURCE_NAMES).toEqual([
+      "Battery Pack SOC",
+      "Grid Active Power",
+      "Highest Cell Temperature",
+    ]);
   });
 
   it("boş veride boş seriler döner (AK-6.3)", () => {

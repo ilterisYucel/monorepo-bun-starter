@@ -68,7 +68,7 @@ export const demoApi = {
   /** Field-tier cihazların tarihsel (downsampled) telemetrisi — trend kaynağı. */
   unifiedDownsampled: async (
     deviceIds: string[],
-    opts: { from: string; to: string; points: number },
+    opts: { from: string; to: string; points: number; names?: string[] },
     signal?: AbortSignal,
   ): Promise<TelemetryData[]> => {
     const { data } = await apiClient.get<{ telemetries: TelemetryData[] }>(
@@ -79,6 +79,7 @@ export const demoApi = {
           from: opts.from,
           to: opts.to,
           points: opts.points,
+          ...(opts.names && opts.names.length > 0 ? { names: opts.names.join(",") } : {}),
         },
         signal,
       },
