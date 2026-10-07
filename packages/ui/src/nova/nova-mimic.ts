@@ -159,6 +159,9 @@ const cbH = (id: string, cx: number, y: number): string =>
   `<g id="${id}" class="nm-sw nm-cb"><line class="nm-tm" x1="${cx - 10}" y1="${y}" x2="${cx - 5}" y2="${y}"/><line class="nm-tm" x1="${cx + 5}" y1="${y}" x2="${cx + 10}" y2="${y}"/><rect class="nm-bd" x="${cx - 5}" y="${y - 5}" width="10" height="10" rx="1"/></g>`;
 const cbV = (id: string, x: number, cy: number): string =>
   `<g id="${id}" class="nm-sw nm-cb"><line class="nm-tm" x1="${x}" y1="${cy - 12}" x2="${x}" y2="${cy - 6}"/><line class="nm-tm" x1="${x}" y1="${cy + 6}" x2="${x}" y2="${cy + 12}"/><rect class="nm-bd" x="${x - 6}" y="${cy - 6}" width="12" height="12" rx="1"/></g>`;
+/** Motorlu kumanda mekanizması işareti ("M", K2). */
+const motorMarker = (x: number, y: number): string =>
+  `<g class="nm-motor"><circle cx="${x}" cy="${y}" r="5.2"/><text x="${x}" y="${y + 3}" text-anchor="middle">M</text></g>`;
 
 function buildStation(topo: NovaTopology, p: string): string {
   const st = topo.station;
@@ -171,6 +174,7 @@ function buildStation(topo: NovaTopology, p: string): string {
     if (c.kind === "cb") {
       h += seg(id + "a", cx, 62, cx, 93, "nm-mv") + cbV(id, cx, 105) + seg(id + "b", cx, 117, cx, 170, "nm-mv");
       if (c.ct) h += `<circle class="nm-ct" cx="${cx}" cy="131" r="5.5"/><text class="nm-tv" id="${id}I" x="${cx + 9}" y="134"></text>`;
+      if (c.motor) h += motorMarker(x + 88, 118);
       if (c.es) {
         h += `<g id="${id}es" class="nm-esw"><line class="nm-esl" x1="${cx}" y1="150" x2="${cx - 14}" y2="150"/><circle class="nm-esd" cx="${cx - 14}" cy="150" r="1.8"/><line class="nm-esl nm-bc" x1="${cx - 14}" y1="150" x2="${cx - 14}" y2="160"/><line class="nm-esl nm-bo" x1="${cx - 14}" y1="150" x2="${cx - 21}" y2="158"/><line class="nm-esl" x1="${cx - 20}" y1="161" x2="${cx - 8}" y2="161"/><line class="nm-esl" x1="${cx - 18}" y1="164" x2="${cx - 10}" y2="164"/><line class="nm-esl" x1="${cx - 16}" y1="167" x2="${cx - 12}" y2="167"/></g>`;
       }
@@ -196,6 +200,7 @@ function buildStation(topo: NovaTopology, p: string): string {
   const inc = st.cells.findIndex((c) => c.role === "incomer");
   const icx = 420 + inc * 100;
   h += `<path id="${p}poiL" class="nm-cond nm-mv nm-live" d="M${icx} 170V200H196"/><circle cx="192" cy="200" r="4" class="nm-poi"/>`;
+  h += `<path id="${p}flPoi" class="nm-flow flowline" d="M${icx} 170V200H196"/>`;
   h += `<text class="nm-th" x="182" y="196" text-anchor="end">${st.poiLabel}</text><text class="nm-tv" id="${p}poiTxt" x="182" y="211" text-anchor="end"></text>`;
   h += `<text class="nm-t8" x="${(icx + 196) / 2}" y="194" text-anchor="middle">${st.poiCable}</text>`;
   const lanes: Record<string, number> = { L: 604, R: 636 };
@@ -213,6 +218,7 @@ function buildStation(topo: NovaTopology, p: string): string {
     d += crosses ? `H${lanes.R + 8}a8 8 0 0 0 -16 0H${lane}` : `H${lane}`;
     d += "V250";
     h += `<path id="${p}fd${f}" class="nm-cond nm-mv" d="${d}"/>`;
+    h += `<path id="${p}fl${f}" class="nm-flow flowline" d="${d}"/>`;
     const L = fd.side === "L";
     const tx = L ? 596 : 644;
     const a = L ? "end" : "start";
@@ -479,6 +485,23 @@ export function createNovaMimic(
       vt.textContent = `${fmt(st.kV, 2)} kV`;
       const hz = el("hzTxt");
       if (hz) hz.textContent = `${fmt(st.hz, 2)} Hz`;
+    }
+
+    // K2: POI'ye kadar yönlü akış animasyonu (deşarj turuncu / şarj teal).
+    const poiMW = state.poiMW ?? 0;
+    const flowDir = poiMW > 0.05 ? "flow-discharge" : poiMW < -0.05 ? "flow-charge" : "";
+    const flowOn = Math.abs(poiMW) > 0.05;
+    for (const f of Object.keys(topo.feeders)) {
+      const fe = el("fl" + f);
+      if (fe) {
+        cls(fe, "nm-flow flowline", flowDir);
+        fe.classList.toggle("nm-on", flowOn);
+      }
+    }
+    const fp = el("flPoi");
+    if (fp) {
+      cls(fp, "nm-flow flowline", flowDir);
+      fp.classList.toggle("nm-on", flowOn);
     }
 
     for (const meta of units) {

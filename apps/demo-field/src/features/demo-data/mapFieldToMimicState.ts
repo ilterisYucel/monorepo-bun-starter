@@ -25,7 +25,7 @@ import {
 /**
  * Telemetri → mimic state eşlemesi (SPEC UC-2, FR-2.2..FR-2.6).
  *
- * Tek gerçek konteyner prototipini 6 sanal üniteye fan-out eder; bütün
+ * Tek gerçek konteyner prototipini 9 sanal üniteye fan-out eder; bütün
  * türetmeler saftır (IO/rastgele yok). Beklenen eksik veri → güvenli
  * varsayılan; throw yok.
  */
@@ -68,6 +68,9 @@ function buildBank(
   const minTemps = rowsMatching(bscRows, /Rack Min Pack Temp R\d+$/);
   const maxCells = rowsMatching(bscRows, /Rack Max Cell Voltage R\d+$/);
   const minCells = rowsMatching(bscRows, /Rack Min Cell Voltage R\d+$/);
+  const rackSocRows = rowsMatching(bscRows, /Rack SOC R\d+$/);
+  const rackVoltRows = rowsMatching(bscRows, /Rack Cell Sum Voltage R\d+$/);
+  const rackCurrRows = rowsMatching(bscRows, /Rack Current R\d+$/);
 
   const rackTemps =
     maxTemps.length > 0
@@ -97,6 +100,9 @@ function buildBank(
     tmin,
     dvmV,
     racks: rackTemps,
+    ...(rackSocRows.length > 0 ? { rackSoc: rackSocRows.map((r) => r.value) } : {}),
+    ...(rackVoltRows.length > 0 ? { rackV: rackVoltRows.map((r) => r.value) } : {}),
+    ...(rackCurrRows.length > 0 ? { rackI: rackCurrRows.map((r) => r.value) } : {}),
     dcb: dcBreaker(cbRows),
   };
 }

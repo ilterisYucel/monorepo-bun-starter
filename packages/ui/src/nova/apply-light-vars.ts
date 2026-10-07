@@ -19,6 +19,8 @@ export function novaVarMap(): Record<string, string> {
     "--nm-live": COLORS_LIGHT.live,
     "--nm-dead": COLORS_LIGHT.dead,
     "--nm-sel": COLORS_LIGHT.sel,
+    "--nm-flow-dis": COLORS_LIGHT.discharge,
+    "--nm-flow-chg": COLORS_LIGHT.charge,
     "--nm-alarm": COLORS_LIGHT.alarm,
     "--nm-warn": COLORS_LIGHT.warn,
     "--nm-maint": COLORS_LIGHT.maint,

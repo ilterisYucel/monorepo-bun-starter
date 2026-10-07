@@ -21,6 +21,22 @@ import type {
   ResolvedCommandStep,
 } from "./operation-executor-contracts";
 
+/** Yürütme öncesi koşul değerlendirmesi sonucu (interlock vb.). */
+export type OperationPreconditionVerdict =
+  | { allowed: true }
+  | { allowed: false; reason: string };
+
+/**
+ * Eklemeli ön koşul hook'u (SPEC UC-10/K10). Tanımsızsa yürütme davranışı
+ * BİREBİR korunur (Open-Closed). Hook reddederse `rejected` döner ve koşu
+ * kalıcılaştırılmaz.
+ */
+export type OperationPrecondition = (
+  kind: "maneuver" | "operation",
+  name: string,
+  params: Record<string, unknown>,
+) => Promise<OperationPreconditionVerdict> | OperationPreconditionVerdict;
+
 /** OperationExecutor yapılandırması — tek obje (DI kuralı 3). */
 export interface OperationExecutorConfig {
   registry: ManeuverRegistry;
@@ -29,6 +45,8 @@ export interface OperationExecutorConfig {
   runs: IOperationRunStore;
   /** Uzak adım kanalı (Faz C) — yoksa `system` adımı kademeli fail. */
   remoteChannel?: IRemoteCommandChannel;
+  /** Eklemeli ön koşul hook'u (interlock) — yoksa davranış birebir (K10). */
+  preconditions?: OperationPrecondition;
   logger?: TamperLogger;
   /** Zaman kaynağı — deterministik test için enjekte edilir. */
   now?: () => Date;
@@ -93,6 +111,7 @@ export class OperationExecutor {
   private readonly channel: ICommandChannel;
   private readonly runs: IOperationRunStore;
   private readonly remoteChannel: IRemoteCommandChannel | undefined;
+  private readonly preconditions: OperationPrecondition | undefined;
   private readonly logger: TamperLogger | undefined;
   private readonly now: () => Date;
   private readonly generateId: () => string;
@@ -103,6 +122,7 @@ export class OperationExecutor {
     this.channel = config.channel;
     this.runs = config.runs;
     this.remoteChannel = config.remoteChannel;
+    this.preconditions = config.preconditions;
     this.logger = config.logger;
     this.now = config.now ?? (() => new Date());
     this.generateId = config.generateId ?? (() => crypto.randomUUID());
@@ -127,6 +147,23 @@ export class OperationExecutor {
     const record = resolved.unwrap();
     if (!this.validateDivideTotal(record, params)) {
       return this.rejected(name, kind, "missing_param");
+    }
+
+    if (this.preconditions !== undefined) {
+      let verdict: OperationPreconditionVerdict;
+      try {
+        verdict = await this.preconditions(kind, name, params);
+      } catch {
+        verdict = { allowed: false, reason: "precondition_error" };
+      }
+      if (!verdict.allowed) {
+        await this.audit("operation_precondition_rejected", "warn", {
+          name,
+          kind,
+          reason: verdict.reason,
+        });
+        return this.rejected(name, kind, verdict.reason);
+      }
     }
 
     const runId = this.generateId();

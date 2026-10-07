@@ -111,6 +111,50 @@ describe("unified-routes (T0.6)", () => {
     expect(res.json().telemetries).toHaveLength(1);
   });
 
+  it("GET /timeseries/external → 200 {points} (AK-9.2)", async () => {
+    const postgres = makePostgres({
+      query: vi.fn().mockResolvedValue([
+        { timestamp: "2026-10-07T00:00:00.000Z", value: 3450, unit: "TRY/MWh" },
+      ]),
+    });
+    const app = await buildApp({ postgres });
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/unified/timeseries/external?source=epias&series=ptf",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().points).toEqual([
+      { timestamp: "2026-10-07T00:00:00.000Z", value: 3450, unit: "TRY/MWh" },
+    ]);
+  });
+
+  it("GET /timeseries/external — eksik/geçersiz param 400 (whitelist)", async () => {
+    const app = await buildApp();
+    const missing = await app.inject({
+      method: "GET",
+      url: "/api/unified/timeseries/external?source=epias",
+    });
+    expect(missing.statusCode).toBe(400);
+    const injected = await app.inject({
+      method: "GET",
+      url: "/api/unified/timeseries/external?source=epias&series=ptf%3BDROP",
+    });
+    expect(injected.statusCode).toBe(400);
+  });
+
+  it("GET /timeseries/external — tablo yoksa boş döner (uydurma yok)", async () => {
+    const postgres = makePostgres({
+      query: vi.fn().mockRejectedValue(new Error("relation \"external_series\" does not exist")),
+    });
+    const app = await buildApp({ postgres });
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/unified/timeseries/external?source=epias&series=ptf",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().points).toEqual([]);
+  });
+
   it("GET /telemetry/latest — kısmi başarı: cihaz hatası warn + boş sonuç (allSettled korunur)", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {

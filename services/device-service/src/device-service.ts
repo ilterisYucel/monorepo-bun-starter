@@ -298,15 +298,22 @@ export class DeviceService {
       this.alarmDetector.reset(entry.device.id);
     }
 
-    await this.mq.registerWorker(
+    // Yalnız cihaz job tiplerine worker kaydı — `registerWorker` (tüm tipler)
+    // kullanılırsa başka tüketiciye ait FETCH_EXTERNAL/WRITE_TELEMETRY job'ları
+    // bu servis tarafından no-op "completed" işaretlenir (çoklu-tüketici hatası).
+    await this.mq.registerWorkerFor(
+      "READ_DEVICE",
       async (job) => {
         if (!this.running) return;
-
-        if (job.type === "READ_DEVICE") {
-          await this.readDevice(job);
-        } else if (job.type === "COMMAND_DEVICE") {
-          return await this.executeCommand(job);
-        }
+        await this.readDevice(job as ReadDeviceJob);
+      },
+      { concurrency: 10 },
+    );
+    await this.mq.registerWorkerFor(
+      "COMMAND_DEVICE",
+      async (job) => {
+        if (!this.running) return;
+        return await this.executeCommand(job as CommandDeviceJob);
       },
       { concurrency: 10 },
     );

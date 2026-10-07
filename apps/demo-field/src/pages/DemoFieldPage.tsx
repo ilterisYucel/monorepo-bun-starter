@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   DemoAlertList,
   DemoCellDialog,
+  DemoContainerScada,
+  DemoEventLog,
   DemoKpiStrip,
   DemoMimic,
   DemoTrendChart,
@@ -17,12 +20,14 @@ import {
 import { useDemoFieldData } from "../features/demo-data/useDemoFieldData";
 import { useDemoFieldTelemetry } from "../features/demo-data/useDemoFieldTelemetry";
 import { demoApi } from "../features/demo-data/demoApi";
+import { demoLogApi } from "../features/demo-data/demoLogApi";
 import { mapFieldToMimicState } from "../features/demo-data/mapFieldToMimicState";
 import { buildTrendSeries } from "../features/demo-data/buildTrendSeries";
 import { DEMO_MV_DEVICE_ID, DEMO_TOPOLOGY, FIELD_DEVICE_IDS, cellCommandName } from "../features/demo-data/demo-topology";
 import { deriveKpis } from "../features/demo-data/deriveKpis";
 import { deriveAlerts } from "../features/demo-data/deriveAlerts";
 import { siteFieldId } from "../lib/site-field";
+import { isTunnelMode } from "../lib/api-base";
 
 const f = (v: number, d = 1): string =>
   (Math.round(v * 10 ** d) / 10 ** d).toFixed(d).replace(".", ",");
@@ -40,6 +45,7 @@ const OVERLAYS: Array<{ id: OverlayMode; label: string }> = [
  */
 export const DemoFieldPage: React.FC = () => {
   const fieldId = siteFieldId();
+  const navigate = useNavigate();
   const { data, isLoading, isError, error } = useDemoFieldData();
   const fieldTelemetry = useDemoFieldTelemetry();
   const [overlay, setOverlay] = useState<OverlayMode>("status");
@@ -73,6 +79,11 @@ export const DemoFieldPage: React.FC = () => {
     [cellId],
   );
 
+  const openDevices = (n: number) => {
+    const base = isTunnelMode() ? `/fields/${fieldId}/ui` : `/field/${fieldId}`;
+    navigate(`${base}/cihazlar?tab=battery&unit=${n}`);
+  };
+
   const trends = useQuery({
     queryKey: ["demo-trends", fieldId],
     queryFn: () =>
@@ -89,6 +100,14 @@ export const DemoFieldPage: React.FC = () => {
     () => buildTrendSeries(trends.data ?? []),
     [trends.data],
   );
+
+  const logs = useQuery({
+    queryKey: ["demo-logs", fieldId],
+    queryFn: ({ signal }) => demoLogApi.list({ limit: 50 }, signal),
+    refetchInterval: 15000,
+    refetchOnWindowFocus: false,
+    enabled: fieldId.length > 0,
+  });
 
   const handleCellCommand = async (id: string, action: DemoCellAction) => {
     setCellBusy(true);
@@ -280,8 +299,49 @@ export const DemoFieldPage: React.FC = () => {
                 borderRadius: 6,
               }}
             >
+              {selectedUnit ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    padding: "8px 12px 0",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => openDevices(selectedUnit.n)}
+                    style={{
+                      border: `1px solid ${COLORS_LIGHT.line}`,
+                      borderRadius: 4,
+                      background: "none",
+                      color: COLORS_LIGHT.sel,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      padding: "4px 9px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cihazlar › Batarya
+                  </button>
+                </div>
+              ) : null}
               <DemoUnitDetail unit={selectedUnit} topology={DEMO_TOPOLOGY} />
             </section>
+
+            {selectedUnit ? (
+              <section
+                style={{
+                  background: COLORS_LIGHT.panel,
+                  border: `1px solid ${COLORS_LIGHT.line}`,
+                  borderRadius: 6,
+                }}
+              >
+                <DemoContainerScada
+                  unit={selectedUnit}
+                  topology={DEMO_TOPOLOGY}
+                />
+              </section>
+            ) : null}
           </aside>
         </div>
 
@@ -340,6 +400,30 @@ export const DemoFieldPage: React.FC = () => {
               ]}
             />
           </div>
+        </section>
+
+        <section
+          style={{
+            background: COLORS_LIGHT.panel,
+            border: `1px solid ${COLORS_LIGHT.line}`,
+            borderRadius: 6,
+          }}
+        >
+          <header
+            style={{
+              padding: "10px 14px",
+              borderBottom: `1px solid ${COLORS_LIGHT.line2}`,
+              fontWeight: 700,
+              fontSize: 15,
+              color: COLORS_LIGHT.fg,
+            }}
+          >
+            Olay kaydı
+            <small style={{ marginLeft: 8, fontWeight: 500, color: COLORS_LIGHT.muted }}>
+              log_events ∪ system_logs
+            </small>
+          </header>
+          <DemoEventLog events={logs.data ?? []} />
         </section>
       </div>
 

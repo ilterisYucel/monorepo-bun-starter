@@ -24,8 +24,16 @@ export function scopeToDeviceIds(_scope: number[]): string[] {
   return ["PCS-1", "PCS-2"];
 }
 
-/** Sihirbazda gösterilen demo kayıtları (mevcut `field_charge` vb. gizlenir). */
+/**
+ * Sihirbazda gösterilen demo kayıtları (mevcut `field_charge` vb. gizlenir).
+ * FL-01…FL-05 kayıtları demo manevralarıyla birlikte listelenir (UC-7, FR-7.1).
+ */
 export const DEMO_CATALOG_NAMES = [
+  "fl01_startup",
+  "fl01_shutdown",
+  "fl03_idle",
+  "fl04_calibration",
+  "fl05_emergency_stop",
   "charge",
   "discharge",
   "full_charge",

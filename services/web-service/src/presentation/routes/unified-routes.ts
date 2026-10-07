@@ -17,6 +17,63 @@ export async function unifiedRoutes(
 ) {
   const { registry, timescale, mvManager, postgres } = options;
 
+  /**
+   * Eklemeli okuma ucu (SPEC UC-9/T-23, K9/K11): `external_series` serileri.
+   * `source`/`series` whitelist + parametreli sorgu (SQL injection yok);
+   * tablo/seri yoksa veya hata olursa boş döner (uydurma veri YOK).
+   */
+  fastify.get("/timeseries/external", async (request, reply) => {
+    const { source, series, from, to, limit } = request.query as {
+      source?: string;
+      series?: string;
+      from?: string;
+      to?: string;
+      limit?: string;
+    };
+    const token = (v?: string): string | undefined =>
+      typeof v === "string" && /^[A-Za-z0-9_]{1,64}$/.test(v) ? v : undefined;
+    const src = token(source);
+    const ser = token(series);
+    if (!src || !ser) {
+      return reply.status(400).send({ error: "source ve series gerekli" });
+    }
+    const parsedLimit = Number(limit);
+    const cap =
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.min(2000, Math.floor(parsedLimit))
+        : 500;
+    const toDate = typeof to === "string" && !Number.isNaN(Date.parse(to)) ? new Date(to) : new Date();
+    const fromDate =
+      typeof from === "string" && !Number.isNaN(Date.parse(from))
+        ? new Date(from)
+        : new Date(toDate.getTime() - 7 * 24 * 3600 * 1000);
+    try {
+      const rows = await postgres.query<{
+        timestamp: Date | string;
+        value: number;
+        unit: string;
+      }>(
+        `SELECT timestamp, value, unit
+         FROM external_series
+         WHERE source = $1 AND series = $2 AND timestamp >= $3 AND timestamp <= $4
+         ORDER BY timestamp ASC
+         LIMIT $5`,
+        [src, ser, fromDate.toISOString(), toDate.toISOString(), cap],
+      );
+      return reply.send({
+        source: src,
+        series: ser,
+        points: rows.map((r) => ({
+          timestamp: new Date(r.timestamp).toISOString(),
+          value: r.value,
+          unit: r.unit,
+        })),
+      });
+    } catch {
+      return reply.send({ source: src, series: ser, points: [] });
+    }
+  });
+
   fastify.get("/telemetry/latest", async (request, reply) => {
     await registry.refresh();
 

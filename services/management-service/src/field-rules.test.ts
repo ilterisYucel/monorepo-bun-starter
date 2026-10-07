@@ -11,6 +11,8 @@ import type { RuleAction } from "@gd-monorepo/shared-types";
  *   MANEVRASI (delegasyon — KURAL-MOTORU-V2 §3.1) + log + notify.
  * - SOC dengeleme ÖRNEĞİ (soc_discharge_example — enabled: false): operation
  *   aksiyon delegasyonu (field_discharge).
+ * - Demo dinlenme kuralları (demo_full_charge_rest / demo_full_discharge_rest —
+ *   enabled): SOC ≥97 / ≤3.5 → `standby` operasyonu (tam şarj/deşarj sonrası).
  * - Şarj/deşarj ASLA otomatik geri yüklenmez — K-M4: hiçbir kural doğrudan
  *   setpoint/charge/discharge KOMUT aksiyonu içermez.
  */
@@ -24,11 +26,13 @@ function loadFieldRules() {
 }
 
 describe("field rules.json (R-06 + SOC örneği)", () => {
-  it("geçerli: r06_recovery + soc_discharge_example (disabled)", () => {
+  it("geçerli: r06_recovery + soc_discharge_example + demo dinlenme kuralları", () => {
     const file = loadFieldRules();
     expect(file.rules.map((r) => r.name)).toEqual([
       "r06_recovery",
       "soc_discharge_example",
+      "demo_full_charge_rest",
+      "demo_full_discharge_rest",
     ]);
     expect(file.rules[1]!.enabled).toBe(false);
   });
@@ -71,5 +75,25 @@ describe("field rules.json (R-06 + SOC örneği)", () => {
     expect(operations).toHaveLength(1);
     expect(operations[0]!.name).toBe("field_discharge");
     expect(operations[0]!.params).toEqual({ powerKw: 200 });
+  });
+
+  it("demo dinlenme: SOC ≥97 / ≤3.5 → standby operation (enabled)", () => {
+    const rules = loadFieldRules().rules;
+    const full = rules.find((r) => r.name === "demo_full_charge_rest")!;
+    const empty = rules.find((r) => r.name === "demo_full_discharge_rest")!;
+
+    expect(full.enabled).toBe(true);
+    expect(empty.enabled).toBe(true);
+
+    const fullWhen = (full.when.all ?? [])[0]!;
+    expect(fullWhen.telemetry).toBe("Battery Pack SOC");
+    expect(fullWhen.op).toBe("gte");
+    expect(fullWhen.threshold).toBe(97);
+    expect(full.then.some((a) => a.action === "operation" && a.name === "standby")).toBe(true);
+
+    const emptyWhen = (empty.when.all ?? [])[0]!;
+    expect(emptyWhen.op).toBe("lte");
+    expect(emptyWhen.threshold).toBe(3.5);
+    expect(empty.then.some((a) => a.action === "operation" && a.name === "standby")).toBe(true);
   });
 });

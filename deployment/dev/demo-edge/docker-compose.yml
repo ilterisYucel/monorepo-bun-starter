@@ -52,7 +52,7 @@ services:
     container_name: demo-container-redis
     command: >
       redis-server
-      --maxmemory 64mb
+      --maxmemory 256mb
       --maxmemory-policy noeviction
       --save ""
       --appendonly no
@@ -129,6 +129,44 @@ services:
         condition: service_healthy
       container-timescaledb:
         condition: service_healthy
+    networks:
+      - container-network
+    logging: *logging
+
+  # Konteyner tier management-service — DEMO'da kural ÇALIŞTIRMAZ (boş rules.json);
+  # yalnızca MANAGEMENT kuyruğunu tüketip loglar (queue_management sınırsız
+  # birikimini önler). Gerçek kural seti test edilmeden aktive edilmez.
+  container-management-service:
+    build:
+      context: ../../../
+      dockerfile: services/management-service/deployment/Dockerfile.dev
+    container_name: demo-container-management-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: container
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ../../../services/management-service/src:/app/services/management-service/src
+      - ../../../services/management-service/run.ts:/app/services/management-service/run.ts
+      - ./container-rules:/app/config:ro
+      - ../container/device-configs:/app/config-docker:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/result/src:/app/packages/result/src
+      - ../../../packages/platform/messaging/src:/app/packages/platform/messaging/src
+      - ../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../../../packages/tamper-logger/src:/app/packages/tamper-logger/src
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-device-service:
+        condition: service_started
     networks:
       - container-network
     logging: *logging
@@ -228,7 +266,7 @@ services:
     container_name: demo-field-redis
     command: >
       redis-server
-      --maxmemory 64mb
+      --maxmemory 256mb
       --maxmemory-policy noeviction
       --save ""
       --appendonly no
@@ -412,6 +450,43 @@ services:
       - demo-bridge
     logging: *logging
 
+  # Piyasa köprüsü — EPİAŞ plugin'i field `external_series` tablosunu besler
+  # (SPEC UC-9/T-22, K9). Kimlik yoksa plugin aktive olmaz → Market boş kalır
+  # (uydurma veri üretilmez). Config: ./plugins/epias-market-prices.json.
+  field-integration-service:
+    build:
+      context: ../../../
+      dockerfile: services/integration-service/deployment/Dockerfile.dev
+    container_name: demo-field-integration-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      TIMESCALE_HOST: field-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      INTEGRATION_PLUGIN_DIR: /app/customer-plugins
+      INTEGRATION_CONFIG_DIR: /app/config/plugins
+      INTEGRATION_STATE_DIR: /app/data/plugins
+    volumes:
+      - ./plugins:/app/config/plugins:ro
+      - demo-integration-state-data:/app/data
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging: *logging
+
   # demo-field SPA (nginx) — AWS `field-web` slotunun birebir dev karşılığı.
   field-web:
     build:
@@ -436,6 +511,7 @@ volumes:
   demo-container-redis-data:
   demo-field-timescale-data:
   demo-field-redis-data:
+  demo-integration-state-data:
 
 networks:
   container-network:

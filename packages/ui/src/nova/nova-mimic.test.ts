@@ -26,7 +26,7 @@ const topo: NovaTopology = {
       { id: "H01", label: "Gelen", kind: "cb", role: "incomer", es: true, ct: "750/5" },
       { id: "H02", label: "Aux", kind: "lbs", role: "aux" },
       { id: "H03", label: "Ölçü", kind: "vt", role: "measurement", ct: "750/5" },
-      { id: "H04", label: "Fider B", kind: "cb", role: "feeder", feeder: "B", es: true, ct: "400/5" },
+      { id: "H04", label: "Fider B", kind: "cb", role: "feeder", feeder: "B", motor: true, es: true, ct: "400/5" },
       { id: "H05", label: "Fider A", kind: "cb", role: "feeder", feeder: "A", es: true, ct: "300/5" },
     ],
   },
@@ -153,6 +153,47 @@ describe("createNovaMimic (AK-3.1)", () => {
     expect(mimic.getOverlay()).toBe("temp");
     mimic.destroy();
     expect(svg.innerHTML).toBe("");
+    svg.remove();
+  });
+});
+
+describe("nova-mimic akış/motor/ES (UC-2, AK-2.1..2.3)", () => {
+  function mount() {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    document.body.appendChild(svg);
+    return svg;
+  }
+
+  it("AK-2.1: deşarjda (poiMW>0) akış flow-discharge, şarjda (poiMW<0) flow-charge sınıfı taşır", () => {
+    const svg = mount();
+    const mimic = createNovaMimic(svg, topo);
+    mimic.update({ ...state, poiMW: 1.2 });
+    expect(svg.querySelector(".flow-discharge")).not.toBeNull();
+    expect(svg.querySelector(".flow-charge")).toBeNull();
+    mimic.update({ ...state, poiMW: -1.2 });
+    expect(svg.querySelector(".flow-charge")).not.toBeNull();
+    expect(svg.querySelector(".flow-discharge")).toBeNull();
+    mimic.update({ ...state, poiMW: 0 });
+    expect(svg.querySelector(".flowline.nm-on")).toBeNull();
+    mimic.destroy();
+    svg.remove();
+  });
+
+  it("AK-2.2: motorlu hücrede M işareti render edilir", () => {
+    const svg = mount();
+    createNovaMimic(svg, topo);
+    expect(svg.querySelector(".nm-motor")).not.toBeNull();
+    expect(svg.querySelector(".nm-motor text")?.textContent).toBe("M");
+    svg.remove();
+  });
+
+  it("AK-2.3: RMU toprak ayırıcısı kapalıyken görünür", () => {
+    const svg = mount();
+    const mimic = createNovaMimic(svg, topo);
+    mimic.update({ ...state, units: state.units.map((u) => ({ ...u, rmu: { ...u.rmu, es: true } })) });
+    const es = svg.querySelector(".nm-es") as HTMLElement;
+    expect(es.style.display).not.toBe("none");
+    mimic.destroy();
     svg.remove();
   });
 });

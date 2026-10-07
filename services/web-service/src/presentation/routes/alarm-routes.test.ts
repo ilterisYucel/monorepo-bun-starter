@@ -124,6 +124,19 @@ describe("alarm-routes (Faz 0 eki)", () => {
     expect(update[1]).toEqual(["bsc-1", "BSC Fault", "teknikci"]);
   });
 
+  it("POST /alarms/resolve — not audit context'ine yazılır", async () => {
+    const { logger, log } = mockLogger();
+    const app = await buildApp({ logger, user: mockUser("teknik") });
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/unified/alarms/resolve",
+      payload: { deviceId: "bsc-1", alarmName: "BSC Fault", note: "  saha kontrol edildi  " },
+    });
+    expect(res.statusCode).toBe(200);
+    const audit = log.mock.calls.map((c) => c[0])[0];
+    expect(audit.context.note).toBe("saha kontrol edildi");
+  });
+
   it("POST /alarms/resolve — admin de çözebilir", async () => {
     const app = await buildApp({ user: mockUser("admin") });
     const res = await app.inject({

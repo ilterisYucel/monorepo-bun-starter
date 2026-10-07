@@ -14,7 +14,14 @@ export interface NovaCellConfig {
   kind: "cb" | "lbs" | "vt";
   role: string;
   feeder?: "A" | "B";
+  /** Motorlu kumanda mekanizması (uzaktan açma/kapama). */
+  motor?: boolean;
+  /** Kablo tarafı toprak ayırıcısı. */
   es?: boolean;
+  /** Toprak ayırıcı motorlu mu (uzaktan kumanda). */
+  esMotor?: boolean;
+  /** İç ihtiyaç (AUX) trafosu bu hücreden beslenir (H02). */
+  auxTr?: boolean;
   ct?: string;
   vt?: string;
   ctPrimary?: number;
@@ -33,7 +40,53 @@ export interface NovaStationConfig {
 export interface NovaRmuCellConfig {
   id: string;
   label: string;
-  kind: "lbs" | "cb";
+  kind: "lbs" | "cb" | "es";
+  /** Motorlu kumanda mekanizması. */
+  motor?: boolean;
+}
+
+/** Konteyner DC bara/koruma künyesi (UC-4 SCADA). */
+export interface NovaBusConfig {
+  ratingA: number;
+  rackFuseA: number;
+  dcCB: string;
+  imd: string;
+}
+
+/** HVAC bölümü: 2 HVAC → 4 raf (gdems S-001). */
+export interface NovaSectionConfig {
+  id: number;
+  bank: string;
+  racks: number[];
+  hvac: number[];
+}
+
+/** Raf iç yapısı: 17 pack + BPU (E-001 Detail-1). */
+export interface NovaRackConfig {
+  packs: number;
+  bpu: boolean;
+  packKWh?: number;
+  cellsPerPack?: number;
+}
+
+/** Konteyner AUX yükü (Calculation_BESS — UC-5 AUX paneli). */
+export interface NovaAuxLoadConfig {
+  key: string;
+  label: string;
+  kVA: number;
+  peakKVA?: number;
+  ups: boolean;
+}
+
+/** Yangın söndürme paneli (Sigma XT — UC-4 FSS). */
+export interface NovaFssConfig {
+  panel: string;
+  zones: string[];
+  releaseDelayS: number;
+  detectors: number;
+  detector: string;
+  h2AlarmLEL: number;
+  vents: string;
 }
 
 export interface NovaUnitConfig {
@@ -41,7 +94,18 @@ export interface NovaUnitConfig {
   containerMWh: number;
   banks: string[];
   racksPerBank: number;
+  rackKWh?: number;
   cellsSeries: number;
+  /** Konteyner DC bara/koruma künyesi (UC-4). */
+  bus?: NovaBusConfig;
+  /** HVAC bölümleri (UC-4). */
+  sections?: NovaSectionConfig[];
+  /** Raf iç yapısı (UC-5 pack sütunu). */
+  rack?: NovaRackConfig;
+  /** Konteyner AUX yükleri (UC-5 AUX paneli). */
+  auxLoads?: NovaAuxLoadConfig[];
+  /** Yangın söndürme paneli (UC-4 FSS). */
+  fss?: NovaFssConfig;
   dcRangeV: [number, number];
   pcsAcV: number;
   pcsKVA: number;
@@ -63,6 +127,21 @@ export interface NovaLimits {
   dTdtWarn: number;
   dvWarn: number;
   sohInfo: number;
+  /** Raf aşırı sıcaklık → blok trip (gdems limits.tripC). */
+  tripC?: number;
+  /** Idle "güç eşiği altında" sınırı (MW). */
+  zeroPowerMW?: number;
+  /** Periyodik kalibrasyon aralığı (gün). */
+  calibrationIntervalDays?: number;
+}
+
+/** İç ihtiyaç trafosu ve AUX dağıtımı (UC-5 AUX paneli). */
+export interface NovaAuxConfig {
+  trKVA: number;
+  trRatio: string;
+  trVector: string;
+  lvV: number;
+  station: string;
 }
 
 export interface NovaFeederConfig {
@@ -80,6 +159,8 @@ export interface NovaTopology {
   station: NovaStationConfig;
   feeders: Record<string, NovaFeederConfig>;
   unit: NovaUnitConfig;
+  /** İç ihtiyaç trafosu/AUX dağıtımı (UC-5). */
+  aux?: NovaAuxConfig;
   limits: NovaLimits;
 }
 
@@ -92,7 +173,14 @@ export interface NovaBankState {
   tmin?: number;
   dTdt10?: number;
   dvmV: number;
+  /** Raf başına maks pack sıcaklığı (°C). */
   racks: number[];
+  /** Raf başına SOC (%) — UC-5 Devices › Battery. */
+  rackSoc?: number[];
+  /** Raf başına DC gerilim (V). */
+  rackV?: number[];
+  /** Raf başına akım (A). */
+  rackI?: number[];
   dcb: NovaSwitchPos;
 }
 

@@ -1,7 +1,7 @@
 # Test Envanteri (otomatik)
 
 > Üretim: `bun run test:inventory` — 2026-10-07
-> Tarandı: 251 test dosyası, 2118 test bloğu.
+> Tarandı: 256 test dosyası, 2168 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
@@ -168,10 +168,22 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demo-topology.test.ts` (2 test)
+### `apps/demo-field/src/features/demo-data/demo-topology.test.ts` (7 test)
 
-1. (demo-topology (UC-2/T-6)) **"6 ünite tanımlar (fider A 1-3, B 4-6)"**
-2. (demo-topology (UC-2/T-6)) **"hücre aksiyonunu demo-MV komut adına eşler"**
+1. (demo-topology (UC-1/T-1, K1)) **"9 ünite tanımlar (fider A 1-5, B 6-9)"**
+2. (demo-topology (UC-1/T-1, K1)) **"fider yönü gdems ile aynı: A→H04, B→H05"**
+3. (demo-topology (UC-1/T-1, K1)) **"hücre motor/esMotor/auxTr bayraklarını taşır"**
+4. (demo-topology (UC-1/T-1, K1)) **"RMU toprak ayırıcısını (ES) ve motorlu H02'yi taşır"**
+5. (demo-topology (UC-1/T-1, K1)) **"konteyner künyesini (bus/rack/sections/aux/fss) taşır"**
+6. (demo-topology (UC-1/T-1, K1)) **"limitlerde tripC/zeroPowerMW taşır"**
+7. (demo-topology (UC-1/T-1, K1)) **"hücre aksiyonunu demo-MV komut adına eşler"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/features/demo-data/demoManeuverApi.test.ts` (2 test)
+
+1. (demoManeuverApi (UC-7, FR-7.1)) **"FL-01…FL-05 kayıtları demo kataloğunda listelenir"**
+2. (demoManeuverApi (UC-7, FR-7.1)) **"kapsam gerçek PCS cihaz setine indirgenir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -183,18 +195,20 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/mapFieldToMimicState.test.ts` (10 test)
+### `apps/demo-field/src/features/demo-data/mapFieldToMimicState.test.ts` (12 test)
 
 1. (fanOutUnits (FR-2.1)) **"verilen sayıda ünite üretir ve deterministiktir"**
 2. (fanOutUnits (FR-2.1)) **"PCS gücünü ünite sayısına böler"**
-3. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"tek konteyneri 6 üniteye fan-out eder"**
-4. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)"**
-5. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"PCS durum kodlarını eşler (2→chg, 3→dis)"**
-6. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"saha toplam gücünü korur (POI işaretli)"**
-7. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"hücre ΔV türetir (3.400−3.350 V → 50 mV)"**
-8. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"demo-MV telemetrisinden station pozisyonu okur"**
-9. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"MV telemetrisi yokken varsayılan kapalı + nominal kV"**
-10. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"boş konteynerde boş ünite listesi döner"**
+3. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"tek konteyneri 9 üniteye fan-out eder"**
+4. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"her fiderin son ünitesinde H03 (hat sonu) yoktur"**
+5. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)"**
+6. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"PCS durum kodlarını eşler (2→chg, 3→dis)"**
+7. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"saha toplam gücünü korur (POI işaretli)"**
+8. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"hücre ΔV türetir (3.400−3.350 V → 50 mV)"**
+9. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"raf başına SOC/V/I türetir (UC-5, FR-5.2)"**
+10. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"demo-MV telemetrisinden station pozisyonu okur"**
+11. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"MV telemetrisi yokken varsayılan kapalı + nominal kV"**
+12. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"boş konteynerde boş ünite listesi döner"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -880,31 +894,36 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/commands/src/operation-executor.test.ts` (23 test)
+### `packages/platform/commands/src/operation-executor.test.ts` (28 test)
 
-1. (OperationExecutor — manevra yürütme) **"kayıt yok → rejected; begin/kanal ÇALIŞMAZ"**
-2. (OperationExecutor — manevra yürütme) **"deviceTypes çözümleme + divideTotal: 200 kW → 2 PCS × 100 kW"**
-3. (OperationExecutor — manevra yürütme) **"grup kısıtı (deviceIds) seçici çözümünü KESER"**
-4. (OperationExecutor — manevra yürütme) **"çözüm boş → adım başarısız → failed (kademeli bozulma)"**
-5. (OperationExecutor — manevra yürütme) **"sequential + onFailure stop: ilk hata kalan adımları ATLAR"**
-6. (OperationExecutor — manevra yürütme) **"onFailure continue: hata sonrası devam; sonuç failed"**
-7. (OperationExecutor — manevra yürütme) **"rollback: yalnızca BAŞARILI adımların kompanzasyonu, ters sıra"**
-8. (OperationExecutor — manevra yürütme) **"rollback best-effort: kompanzasyon hatası diğerlerini durdurmaz"**
-9. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"begin FAIL-CLOSED: throw → rejected (run_persist_failed), kanal çalışmaz"**
-10. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"başarılı koşu: begin(running) → finish(completed) + audit zinciri"**
-11. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"finish best-effort: throw → sonuç yine döner + operation_state_update_failed"**
-12. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"timer: başarılı adımda stop planlanır (best-effort + timer_scheduled)"**
-13. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"timer: ana komut BAŞARISIZSA planlama YAPILMAZ"**
-14. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"timer schedule hatası → timer_schedule_failed; akış durmaz"**
-15. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"manevra adımı + ham zincir adımı sırayla çalışır"**
-16. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"uzak adım (system) B1'de kanal YOK → fail (kademeli bozulma)"**
-17. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"operasyon onFailure rollback: üst rollback listesi çalışır"**
-18. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"remoteChannel VARSA uzak adım kanala delege edilir (param aktarımıyla)"**
-19. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adıma timer iletilir (options.timer → 4. argüman)"**
-20. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adım fail → operasyon failed (kademeli)"**
-21. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak rollback adımı: yalnızca BAŞARILI adımlar kompanse edilir (ok → rollback_step_ok)"**
-22. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"options.timer TÜM yerel ana adımlara uygulanır; rollback adımlarına UYGULANMAZ"**
-23. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"kayıt adımının kendi timer'ı options.timer'ı EZER"**
+1. (OperationExecutor — preconditions hook (K10)) **"hook yokken davranış birebir (yürütür)"**
+2. (OperationExecutor — preconditions hook (K10)) **"hook izin verirse yürütür"**
+3. (OperationExecutor — preconditions hook (K10)) **"hook reddederse rejected + reason; begin/kanal ÇALIŞMAZ"**
+4. (OperationExecutor — preconditions hook (K10)) **"hook throw ederse precondition_error"**
+5. (OperationExecutor — preconditions hook (K10)) **"hook adı ve params'ı alır"**
+6. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"kayıt yok → rejected; begin/kanal ÇALIŞMAZ"**
+7. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"deviceTypes çözümleme + divideTotal: 200 kW → 2 PCS × 100 kW"**
+8. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"grup kısıtı (deviceIds) seçici çözümünü KESER"**
+9. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"çözüm boş → adım başarısız → failed (kademeli bozulma)"**
+10. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"sequential + onFailure stop: ilk hata kalan adımları ATLAR"**
+11. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"onFailure continue: hata sonrası devam; sonuç failed"**
+12. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"rollback: yalnızca BAŞARILI adımların kompanzasyonu, ters sıra"**
+13. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme) **"rollback best-effort: kompanzasyon hatası diğerlerini durdurmaz"**
+14. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"begin FAIL-CLOSED: throw → rejected (run_persist_failed), kanal çalışmaz"**
+15. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"başarılı koşu: begin(running) → finish(completed) + audit zinciri"**
+16. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"finish best-effort: throw → sonuç yine döner + operation_state_update_failed"**
+17. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"timer: başarılı adımda stop planlanır (best-effort + timer_scheduled)"**
+18. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"timer: ana komut BAŞARISIZSA planlama YAPILMAZ"**
+19. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer) **"timer schedule hatası → timer_schedule_failed; akış durmaz"**
+20. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"manevra adımı + ham zincir adımı sırayla çalışır"**
+21. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"uzak adım (system) B1'de kanal YOK → fail (kademeli bozulma)"**
+22. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"operasyon onFailure rollback: üst rollback listesi çalışır"**
+23. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"remoteChannel VARSA uzak adım kanala delege edilir (param aktarımıyla)"**
+24. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adıma timer iletilir (options.timer → 4. argüman)"**
+25. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adım fail → operasyon failed (kademeli)"**
+26. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak rollback adımı: yalnızca BAŞARILI adımlar kompanse edilir (ok → rollback_step_ok)"**
+27. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"options.timer TÜM yerel ana adımlara uygulanır; rollback adımlarına UYGULANMAZ"**
+28. (OperationExecutor — preconditions hook (K10) > OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"kayıt adımının kendi timer'ı options.timer'ı EZER"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1782,16 +1801,48 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/nova-components.test.tsx` (4 test)
+### `packages/ui/src/nova/demo-market.test.tsx` (6 test)
+
+1. (demo-market (UC-9, FR-9.4 — TEİAŞ)) **"PFK P–f: ölü bantta 0, ±200 mHz'de tam rezerv"**
+2. (demo-market (UC-9, FR-9.4 — TEİAŞ)) **"AK-9.4: R=10 MW → Δf/ΔP eğimi 50 MW/Hz + 1,25 h enerji kontrolü"**
+3. (demo-market (UC-9, FR-9.4 — TEİAŞ)) **"P–Q kabiliyeti eşiği (0,4 / 1,0 pu)"**
+4. (demo-market (UC-9, FR-9.4 — TEİAŞ)) **"frekans aralığı tablosu"**
+5. (demo-market (UC-9, FR-9.4 — TEİAŞ) > DemoMarketView (UC-9, FR-9.3)) **"seri boşsa 'veri yok' gösterir (uydurma yok)"**
+6. (demo-market (UC-9, FR-9.4 — TEİAŞ) > DemoMarketView (UC-9, FR-9.3)) **"seri varsa grafik + TEİAŞ kartlarını gösterir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ui/src/nova/demo-readiness.test.tsx` (7 test)
+
+1. (demo-readiness (UC-7, FR-7.3, K7)) **"DEMO_REST_MINUTES 30 dk'dır (2026-10-07 kararı)"**
+2. (demo-readiness (UC-7, FR-7.3, K7)) **"lastFullRunFinishedAt en yeni tam şarj/deşarj bitişini seçer"**
+3. (demo-readiness (UC-7, FR-7.3, K7)) **"deriveRestState eşik dolunca complete olur"**
+4. (demo-readiness (UC-7, FR-7.3, K7)) **"thermalReady tüm bankalar bantta ise true"**
+5. (demo-readiness (UC-7, FR-7.3, K7)) **"AK-7.3: 30 dk önce biten full_charge + bant içi raflar → dinlenme tamam + hazır"**
+6. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"AK-7.3: kart 'dinlenme tamam' + 'hazır' gösterir"**
+7. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"AK-7.2: DemoSequence adımları durumlarıyla listeler"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ui/src/nova/nova-components.test.tsx` (13 test)
 
 1. (DemoCellDialog (FR-4.4 / AK-4.4)) **"ölçü hücresinde V/Hz/I gösterir"**
 2. (DemoCellDialog (FR-4.4 / AK-4.4)) **"toprak kapalıyken kesici kapatmayı kilitler (AK-4.5)"**
 3. (DemoCellDialog (FR-4.4 / AK-4.4)) **"geçerli komutta onCommand'ı çağırır"**
 4. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3)) **"2 PCS ve 2 banka tablosu gösterir"**
+5. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3)) **"AK-4.1: 2 DC bara × 8 raf gösterir"**
+6. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3)) **"AK-4.2: 2 PCS ve DC kesici gösterir"**
+7. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3)) **"AK-4.3: 4 HVAC bölümü ve FSS paneli gösterir"**
+8. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3) > DemoDevicePanels (UC-5, FR-5.1..5.2)) **"AK-5.1: 6 bölüm sekmesi tanımlıdır"**
+9. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3) > DemoDevicePanels (UC-5, FR-5.1..5.2)) **"AK-5.2: batarya bölümü raf SOC/V/I/sıcaklık hücrelerini gösterir"**
+10. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3) > DemoDevicePanels (UC-5, FR-5.1..5.2) > DemoFaultList / DemoFaultResolve (UC-6, FR-6.1..6.2)) **"AK-6.1: aktif filtre yalnızca aktif alarmları gösterir"**
+11. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3) > DemoDevicePanels (UC-5, FR-5.1..5.2) > DemoFaultList / DemoFaultResolve (UC-6, FR-6.1..6.2)) **"çözülmüş filtre resolve butonu göstermez"**
+12. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3) > DemoDevicePanels (UC-5, FR-5.1..5.2) > DemoFaultList / DemoFaultResolve (UC-6, FR-6.1..6.2)) **"AK-6.2: notu onConfirm'e iletir"**
+13. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3) > DemoContainerScada (UC-4, FR-4.1..4.3) > DemoDevicePanels (UC-5, FR-5.1..5.2) > DemoFaultList / DemoFaultResolve (UC-6, FR-6.1..6.2) > DemoEventLog (UC-8, FR-8.1)) **"severity filtresi yalnızca ilgili kayıtları gösterir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/nova-mimic.test.ts` (7 test)
+### `packages/ui/src/nova/nova-mimic.test.ts` (10 test)
 
 1. (nova-mimic saf yardımcılar (T-14)) **"computeEnergization fiderleri anahtarlardan hesaplar"**
 2. (nova-mimic saf yardımcılar (T-14)) **"bankSeverity eşiklerini uygular"**
@@ -1800,6 +1851,9 @@
 5. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars) **"token'lardan CSS değişkeni üretir"**
 6. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars) **"bir elemana uygular"**
 7. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars > createNovaMimic (AK-3.1)) **"6 ünite çizer ve destroy temizler"**
+8. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars > createNovaMimic (AK-3.1) > nova-mimic akış/motor/ES (UC-2, AK-2.1..2.3)) **"AK-2.1: deşarjda (poiMW>0) akış flow-discharge, şarjda (poiMW<0) flow-charge sınıfı taşır"**
+9. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars > createNovaMimic (AK-3.1) > nova-mimic akış/motor/ES (UC-2, AK-2.1..2.3)) **"AK-2.2: motorlu hücrede M işareti render edilir"**
+10. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars > createNovaMimic (AK-3.1) > nova-mimic akış/motor/ES (UC-2, AK-2.1..2.3)) **"AK-2.3: RMU toprak ayırıcısı kapalıyken görünür"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2371,13 +2425,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/field-rules.test.ts` (5 test)
+### `services/management-service/src/field-rules.test.ts` (6 test)
 
-1. (field rules.json (R-06 + SOC örneği)) **"geçerli: r06_recovery + soc_discharge_example (disabled)"**
+1. (field rules.json (R-06 + SOC örneği)) **"geçerli: r06_recovery + soc_discharge_example + demo dinlenme kuralları"**
 2. (field rules.json (R-06 + SOC örneği)) **"tetikleyici: E-stop 0 + fault 0 (all)"**
 3. (field rules.json (R-06 + SOC örneği)) **"aksiyonlar: maneuver(fl06_recovery) + log + notify — KOMUT aksiyonu YOK (KURAL-MOTORU-V2)"**
 4. (field rules.json (R-06 + SOC örneği)) **"debounce: E-stop düşen kenarı 2 sn doğrulanır"**
 5. (field rules.json (R-06 + SOC örneği)) **"SOC örneği: operation(field_discharge) + params delegasyonu"**
+6. (field rules.json (R-06 + SOC örneği)) **"demo dinlenme: SOC ≥97 / ≤3.5 → standby operation (enabled)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2884,6 +2939,15 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `services/web-service/src/infrastructure/interlock/demo-earthing-interlock.spec.ts` (4 test)
+
+1. (DemoEarthingInterlock + OperationExecutor (UC-10)) **"AK-10.2: H05 toprak kapalı → charge reddedilir (interlock_earthed)"**
+2. (DemoEarthingInterlock + OperationExecutor (UC-10)) **"AK-10.3: toprak açık → charge completed"**
+3. (DemoEarthingInterlock + OperationExecutor (UC-10)) **"toprak kapalı ama adım şarj/deşarj değil → izin (stop)"**
+4. (DemoEarthingInterlock + OperationExecutor (UC-10)) **"MV telemetrisi okunamazsa nötr (izin) — kademeli"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `services/web-service/src/infrastructure/market/market-series.test.ts` (4 test)
 
 1. (MarketSeries (Faz 2)) **"points kronolojik noktaları ISO timestamp'e çevirir"**
@@ -3103,15 +3167,16 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/alarm-routes.test.ts` (7 test)
+### `services/web-service/src/presentation/routes/alarm-routes.test.ts` (8 test)
 
 1. (alarm-routes (Faz 0 eki)) **"GET /alarms — aktif + kapananlar birleşik döner"**
 2. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — teknik: audit log + DB güncellemesi"**
-3. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — admin de çözebilir"**
-4. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — guest 403"**
-5. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — aktif olmayan alarm 409"**
-6. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — audit log fail-closed: yazılamazsa 500 + DB'ye GİDİLMEZ"**
-7. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — eksik gövde 400"**
+3. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — not audit context'ine yazılır"**
+4. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — admin de çözebilir"**
+5. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — guest 403"**
+6. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — aktif olmayan alarm 409"**
+7. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — audit log fail-closed: yazılamazsa 500 + DB'ye GİDİLMEZ"**
+8. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — eksik gövde 400"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3185,6 +3250,13 @@
 11. (data-routes karakterizasyon (mevcut davranış) > data-routes T0.6 sözleşmesi (DomainError propagasyonu)) **"geçerli tags JSON ayrıştırılır ve sorguya iletilir"**
 12. (data-routes karakterizasyon (mevcut davranış) > data-routes T0.6 sözleşmesi (DomainError propagasyonu)) **"route içinde console hata logu yoktur — altyapı hatası sınıra ulaşır"**
 13. (data-routes karakterizasyon (mevcut davranış) > data-routes T0.6 sözleşmesi (DomainError propagasyonu)) **"sınır logu altyapı hatasını request_failed olarak kaydeder"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/presentation/routes/demo-maneuver-integration.spec.ts` (2 test)
+
+1. (demo-maneuver-integration.spec — FL-01…FL-05 zinciri (Z)) **"config FL-01…FL-05 kayıtlarını taşır"**
+2. (demo-maneuver-integration.spec — FL-01…FL-05 zinciri (Z)) **"${c.name}: beklenen komutları çözer ve completed olur"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3346,25 +3418,28 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/unified-routes.test.ts` (17 test)
+### `services/web-service/src/presentation/routes/unified-routes.test.ts` (20 test)
 
 1. (unified-routes (T0.6)) **"GET /telemetry/latest → 200 {telemetries}"**
-2. (unified-routes (T0.6)) **"GET /telemetry/latest — kısmi başarı: cihaz hatası warn + boş sonuç (allSettled korunur)"**
-3. (unified-routes (T0.6)) **"GET /telemetry/downsampled — from/to yoksa 400"**
-4. (unified-routes (T0.6)) **"GET /telemetry/downsampled → 200"**
-5. (unified-routes (T0.6)) **"GET /telemetry/:deviceId → 200 {deviceId, interval, dataPointCount, data}"**
-6. (unified-routes (T0.6)) **"GET /devices/:deviceId/telemetry-config — config yoksa 404"**
-7. (unified-routes (T0.6)) **"GET /devices/:deviceId/telemetry-config → 200"**
-8. (unified-routes (T0.6)) **"GET /timeseries/hypertables → 200 {hypertables}"**
-9. (unified-routes (T0.6)) **"GET /timeseries/hypertables/:name → 200"**
-10. (unified-routes (T0.6)) **"GET /timeseries/materialized-views → 200"**
-11. (unified-routes (T0.6)) **"POST /timeseries/materialized-views — hypertable yoksa 400"**
-12. (unified-routes (T0.6)) **"POST /timeseries/materialized-views → 200"**
-13. (unified-routes (T0.6)) **"GET /projects → 200 {projects}"**
-14. (unified-routes (T0.6)) **"POST /projects → 201 {id}"**
-15. (unified-routes (T0.6)) **"PUT /projects/:id → 200"**
-16. (unified-routes (T0.6)) **"DELETE /projects/:id → 200 {success}"**
-17. (unified-routes (T0.6)) **"altyapı hatası sınıra ulaşır — console.error yok, 500"**
+2. (unified-routes (T0.6)) **"GET /timeseries/external → 200 {points} (AK-9.2)"**
+3. (unified-routes (T0.6)) **"GET /timeseries/external — eksik/geçersiz param 400 (whitelist)"**
+4. (unified-routes (T0.6)) **"GET /timeseries/external — tablo yoksa boş döner (uydurma yok)"**
+5. (unified-routes (T0.6)) **"GET /telemetry/latest — kısmi başarı: cihaz hatası warn + boş sonuç (allSettled korunur)"**
+6. (unified-routes (T0.6)) **"GET /telemetry/downsampled — from/to yoksa 400"**
+7. (unified-routes (T0.6)) **"GET /telemetry/downsampled → 200"**
+8. (unified-routes (T0.6)) **"GET /telemetry/:deviceId → 200 {deviceId, interval, dataPointCount, data}"**
+9. (unified-routes (T0.6)) **"GET /devices/:deviceId/telemetry-config — config yoksa 404"**
+10. (unified-routes (T0.6)) **"GET /devices/:deviceId/telemetry-config → 200"**
+11. (unified-routes (T0.6)) **"GET /timeseries/hypertables → 200 {hypertables}"**
+12. (unified-routes (T0.6)) **"GET /timeseries/hypertables/:name → 200"**
+13. (unified-routes (T0.6)) **"GET /timeseries/materialized-views → 200"**
+14. (unified-routes (T0.6)) **"POST /timeseries/materialized-views — hypertable yoksa 400"**
+15. (unified-routes (T0.6)) **"POST /timeseries/materialized-views → 200"**
+16. (unified-routes (T0.6)) **"GET /projects → 200 {projects}"**
+17. (unified-routes (T0.6)) **"POST /projects → 201 {id}"**
+18. (unified-routes (T0.6)) **"PUT /projects/:id → 200"**
+19. (unified-routes (T0.6)) **"DELETE /projects/:id → 200 {success}"**
+20. (unified-routes (T0.6)) **"altyapı hatası sınıra ulaşır — console.error yok, 500"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

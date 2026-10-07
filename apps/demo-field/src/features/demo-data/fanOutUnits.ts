@@ -19,7 +19,13 @@ export function fanOutUnits(
       n: i + 1,
       rmu: { ...proto.rmu },
       ...(proto.status ? { status: proto.status } : {}),
-      banks: proto.banks.map((b) => ({ ...b, racks: [...b.racks] })),
+      banks: proto.banks.map((b) => ({
+        ...b,
+        racks: [...b.racks],
+        ...(b.rackSoc ? { rackSoc: [...b.rackSoc] } : {}),
+        ...(b.rackV ? { rackV: [...b.rackV] } : {}),
+        ...(b.rackI ? { rackI: [...b.rackI] } : {}),
+      })),
       pcs: proto.pcs.map((p) => ({ ...p, pMW: p.pMW / count })),
     });
   }

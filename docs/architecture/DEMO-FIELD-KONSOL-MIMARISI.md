@@ -8,7 +8,10 @@ review_date: 2026-10-21
 # DEMO-FIELD-KONSOL — gdems Console Parity Ekleri Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
+> **Durum:** ✅ Approved (2026-10-07) — implementasyon başlayabilir.
+> **Revizyon (2026-10-07):** gdems kaynağı (`src/topology.js`, `src/maneuvers.js`, `src/mimic.js`,
+> `demo/market-view.js`, `docs/REQUIREMENTS.md`) ile karşılaştırıldı. K1 hizası hücre/RMU
+> `motor`/`auxTr`/`es`, `bus`/`sections`/`auxLoads`/`fss` ve `pcsMaxMW 1.725` ile genişletildi (bkz. B6).
 > **İlişkili:** [DEMO-FIELD-MIMARISI.md](./DEMO-FIELD-MIMARISI.md) (temel uygulama),
 > [DEMO-FIELD-KAPANIS.md](./DEMO-FIELD-KAPANIS.md), `AGENTS-UI.md`, `AGENTS-FRONTEND.md`,
 > `AGENTS-KOMUT-MANEVRA.md`, `FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md`.
@@ -30,17 +33,17 @@ Temel demo-field zaten onaylı ve çalışıyor; bu SPEC yalnızca **eksikleri**
 
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
-| K1 | **Topoloji gdems gerçeğine hizalanır** | 9 sanal ünite; Fider **A→H04 (BESS#1–5)**, **B→H05 (#6–9)**; site = ÜNSAL DGES GDE-202030; cellsSeries 408; `motor/esMotor` bayrakları; RMU ES; 3-sargılı Dy11y11; limits `tripC:32`, `zeroPowerMW` |
+| K1 | **Topoloji gdems gerçeğine hizalanır** | 9 sanal ünite; Fider **A→H04 (BESS#1–5)**, **B→H05 (#6–9)**; site = ÜNSAL DGES GDE-202030 (Polatlı); cellsSeries 408; hücre `motor`/`esMotor`/`auxTr` + RMU `motor`/`es`; 3-sargılı Dy11y11; `pcsKVA 1725`/`pcsMaxMW 1.725`; `bus` 2000 A · 220 A sigorta · IMD; `sections`/`auxLoads`/`fss`; limits `tripC:32`, `zeroPowerMW:0.2` |
 | K2 | **Mimic tam hat güç akışı + motor işaretleri** | Deşarj→şebeke turuncu, şarj←teal akış animasyonu (POI'ye kadar); motorlu CB'de "M"; RMU toprak ayırıcısı gösterilir |
 | K3 | **GDEMS logosu** | `logo-light.png` demo-field asset'ine; header + footer |
 | K4 | **Container SCADA** `ui/nova` bileşeni | 3-sargılı TR → 2 PCS → DC CB → DC BUS#1/#2 (2000 A, IMD) → 16 raf (220 A sigorta + kontaktör) → 4 HVAC bölümü → FSS; canlı BSC/PCS/CB/HVAC/PM5340 telemetrisi |
 | K5 | **Devices sayfası** | MV hücreleri · Battery (raf başına SOC/V/I/sıcaklık haritası) · PCS · 8×HVAC · RMU&TR · AUX paneli; mimic tıklaması ilgili bölüme atlar |
 | K6 | **Faults = mevcut alarm uçları** | `GET /api/unified/alarms` (aktif/çözülmüş) + `POST /api/unified/alarms/resolve` (notlu); FL-06 recovery backend `r06_recovery` kuralı |
-| K7 | **Operations FL-01…FL-05 + sequence + Ready/Rest** | Mevcut backend manevraları listelenir; permissive'ler telemetriden; sequence = `operation_runs` adımları; dinlenme sayacı `full_charge`/`full_discharge` run `finishedAt`'inden, hazırlık raf sıcaklıklarından türetilir |
+| K7 | **Operations FL-01…FL-05 + sequence + Ready/Rest** | Mevcut backend manevraları listelenir; permissive'ler telemetriden; sequence = `operation_runs` adımları; dinlenme sayacı `full_charge`/`full_discharge` run `finishedAt`'inden (**demo eşiği 30 dk**), hazırlık raf sıcaklıklarından türetilir |
 | K8 | **Event log** | `GET /api/logs` (log_events ∪ system_logs), alt tam genişlik + severity filtresi |
 | K9 | **Grid & Market = mevcut EPİAŞ entegrasyonu** | Demo stack'e `integration-service` + `epias-market-prices` plugin; `external_series` hypertable; eklemeli okuma ucu `GET /api/unified/timeseries/external`; TEİAŞ P–f/P–Q/LVRT statik hesap (UI) |
 | K10 | **I-1 toprak interlock executor'da (eklemeli)** | `OperationExecutor`'a opsiyonel `preconditions` hook; field web-service bunu demo-MV toprak durumundan besler; toprak kapalıyken şarj/deşarj reddedilir |
-| K11 | **Open-Closed** | Kök servis/platform yalnız **ekler**: `external_series` okuma ucu + `preconditions` hook + integration-service config; hook/uca yokken davranış birebir |
+| K11 | **Open-Closed** | Kök servis/platform yalnız **ekler**: `external_series` okuma ucu + `preconditions` hook + alarm resolve `note` (additive) + integration-service config; hook/uca yokken davranış birebir. Ayrıca kapsam düzeltmesi (bugfix): device-service worker yalnız kendi job tiplerine (`READ_DEVICE`/`COMMAND_DEVICE`) kaydolur — aksi halde `FETCH_EXTERNAL`/`WRITE_TELEMETRY` no-op tüketiliyordu (çoklu-tüketici) |
 | K12 | **Konvansiyon** | `Demo` prefix, `ui/nova`, ışık tema, Turkish JSDoc, TDD (JSDoc→kırmızı test→impl) |
 
 ## 3. Mevcut Durum / Kök Nedenler
@@ -52,6 +55,7 @@ Temel demo-field zaten onaylı ve çalışıyor; bu SPEC yalnızca **eksikleri**
 | B3 | `external_series` için seri okuma ucu yok (yalnız hypertable meta) | `unified-routes.ts#hypertables` |
 | B4 | Şarj/deşarj toprak interlock'u (I-1) yaptırımı yok | FIELD-MANEVRA I-1 (tasarım) |
 | B5 | gdems `sim.js` dispatcher/POI/termal/FSS simülasyon içerir; demo canlı telemetri kullanır | fark kararı §1 |
+| B6 | demo-topology'de hücre `motor`/`auxTr`, RMU `motor`/`es`/ES ve `bus`/`sections`/`auxLoads`/`fss` alanları yok; `pcsMaxMW` 1.7 (gdems 1.725) | `demo-topology.ts`, `mimic-types.ts` |
 
 ## 4. Mimari
 
@@ -60,7 +64,10 @@ Temel demo-field zaten onaylı ve çalışıyor; bu SPEC yalnızca **eksikleri**
 ```
 feeders: A → H04 (side L) units [1..5] · B → H05 (side R) units [6..9]
 cells: H01 cb incomer(motor,es) · H02 lbs aux(auxTr) · H03 vt · H04 cb feeder A(motor,es) · H05 cb feeder B(motor,es)
-unit: 2 busbar × 8 raf · rackKWh 223 · cellsSeries 408 · 17 pack + BPU · TR 3750 kVA Dy11y11 · 8×MC90 HVAC
+unit: 2 busbar × 8 raf · rackKWh 223 · cellsSeries 408 · 17 pack + BPU · TR 3750 kVA Dy11y11 · 8×MC90 HVAC · pcsMaxMW 1.725
+rmu: H01 lbs(motor) · H02 cb(motor) · H03 lbs · ES es
+bus: 2000 A · rackFuse 220 A · DC CB SYW6GZ-4000 · IMD Bender isoPV1685RTU
+sections: 4 × (4 raf + 2 HVAC) · auxLoads/fss: UC-4/UC-5 panel verisi
 ```
 
 ### 4.2 Yeni `ui/nova` bileşenleri
@@ -88,10 +95,10 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.1 UC-1 — Saha topolojisi hizası (9 ünite)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
-- dahil: 9 ünite, fider A→H04/B→H05, hücre motor/esMotor, RMU ES, limitler, site künyesi
+- dahil: 9 ünite, fider A→H04/B→H05, hücre motor/esMotor/auxTr, RMU motor/ES, `bus`/`sections`/`auxLoads`/`fss`, pcsMaxMW 1.725, limitler, site künyesi
 - hariç: gdems sim sıralayıcı davranışları
 
 **Akış:**
@@ -102,24 +109,24 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
 | FR-1.1 | Sistem, fider A→H04 (ünite 1–5) ve B→H05 (ünite 6–9) tanımlamalıdır. | AK-1.1 |
-| FR-1.2 | Sistem, hücrelerde `motor`/`esMotor` ve RMU'da `es` alanlarını taşımalıdır. | AK-1.2 |
+| FR-1.2 | Sistem; hücrelerde `motor`/`esMotor`/`auxTr`, RMU'da `motor`/`es`, `bus` ve `sections` alanlarını taşımalıdır. | AK-1.2 |
 | FR-1.3 | Sistem, 9 sanal ünite üretmeli; güç 9'a bölünerek toplam korunmalıdır. | AK-1.3 |
 
 **Kabul Senaryoları (GWT):**
 
 1. **AK-1.1 — GIVEN** `demoTopology` **WHEN** fiderler okunur **THEN** A.cell='H04' units [1,2,3,4,5], B.cell='H05' units [6,7,8,9]
-2. **AK-1.2 — GIVEN** H04 hücresi **WHEN** okunur **THEN** `motor=true`, `es=true`; RMU'da `es` hücresi vardır
+2. **AK-1.2 — GIVEN** H04/H02 hücreleri ve RMU **WHEN** okunur **THEN** H04 `motor=true`, `es=true`; H02 `auxTr=true`; RMU'da `motor` ve `es` alanları vardır; `bus` 2000 A tanımlıdır
 3. **AK-1.3 — GIVEN** gerçek PCS toplamı 1.8 MW **WHEN** fan-out edilir **THEN** 9 ünite döner ve ΣpMW = 1.8 MW
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
 | AK-1.1 | fider yönü A→H04/B→H05 | unit | ⬜ |
-| AK-1.2 | motor/es bayrakları | unit | ⬜ |
+| AK-1.2 | motor/esMotor/auxTr + RMU motor/es | unit | ⬜ |
 | AK-1.3 | 9 ünite + güç korunumu | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-1: `demo-topology.ts` gdems hizası
+- [ ] T-1: `demo-topology.ts` + `NovaTopology` gdems hizası (motor/auxTr/RMU es, bus/sections/auxLoads/fss, pcsMaxMW 1.725)
 - [ ] T-2: topoloji/fan-out testleri (9 ünite)
 
 **Edge Cases:**
@@ -130,12 +137,14 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `apps/demo-field/src/features/demo-data/demo-topology.ts` #demoTopology | 9 ünite + fider/motor/limit |
+| `apps/demo-field/src/features/demo-data/demo-topology.ts` #demoTopology | 9 ünite + fider/motor/bus/sections/aux/fss/limit |
+| `apps/demo-field/src/features/demo-data/demo-topology.test.ts` | 9 ünite + hiza doğrulamaları |
+| `packages/ui/src/nova/mimic-types.ts` #NovaTopology | hücre/RMU `motor`/`auxTr`/`es`, `bus`/`sections`/`auxLoads`/`fss` alanları |
 | `apps/demo-field/src/features/demo-data/mapFieldToMimicState.test.ts` | 9 ünite testleri |
 
 ### 6.2 UC-2 — Mimic güç akışı, motor ve RMU-ES
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: tam hat akış yönü (turuncu/teal), motor "M" işareti, RMU ES
@@ -183,7 +192,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.3 UC-3 — Logo ve header
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: GDEMS logo asset'i, header/footer
@@ -223,7 +232,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.4 UC-4 — Container SCADA tek hat
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: `DemoContainerScada` (3-sargılı TR, 2 PCS, DC CB, BUS#1/#2 + IMD, 16 raf, 4 HVAC bölümü, FSS)
@@ -270,7 +279,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.5 UC-5 — Devices sayfası
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: MV/Battery/PCS/HVAC/RMU&TR/AUX bölümleri + mimic'ten atlama
@@ -318,7 +327,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.6 UC-6 — Faults sayfası (alarm + resolve + recovery)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: aktif/çözülmüş alarm listesi, notlu resolve, FL-06 recovery açıklaması
@@ -366,16 +375,17 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.7 UC-7 — Operations FL-01…FL-05 + sequence + Ready/Rest
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
-- dahil: FL kataloğu listesi, permissive, sequence görünümü, Ready/Rest kartı
-- hariç: FL-06/07/10 (arka planda), FL-08/09 (doküman bekliyor)
+- dahil: FL kataloğu listesi, permissive, sequence görünümü, Ready/Rest kartı, yeni manevraların entegrasyon testi + telemetri verisiyle doğrulaması
+- hariç: FL-06/07/10 (arka planda), FL-08/09 (doküman bekliyor), FL-04 e2e veri kontrolü (takvim S14 — Z'de sabitlenir)
 
 **Akış:**
 1. Mevcut manevralar (fl01_startup, fl01_shutdown, fl03_idle, fl04_calibration, fl05_emergency_stop) listelenir.
 2. Aktif operasyon adımları `operation_runs`'tan gösterilir.
 3. Ready/Rest kartı full_charge/full_discharge run'larından ve raf sıcaklıklarından türetilir.
+4. Yeni manevralar demo-edge stack'te yürütülür; etki `/api/data/<PCS>/latest` telemetrisiyle doğrulanır.
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
@@ -383,12 +393,16 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | FR-7.1 | Sistem, FL-01…FL-05 kayıtlarını demo manevralarıyla birlikte listemelidir. | AK-7.1 |
 | FR-7.2 | Sistem, aktif operasyonun adımlarını durumlarıyla göstermelidir. | AK-7.2 |
 | FR-7.3 | Sistem, dinlenme süresini son tam şarj/deşarj run'ından ve termal hazırlığı raf sıcaklıklarından türetmelidir. | AK-7.3 |
+| FR-7.4 | Sistem, yeni manevraların (FL-01…FL-05) yürütmesini uçtan uca entegrasyon testiyle sabitlemelidir. | AK-7.4 |
+| FR-7.5 | Sistem, manevra etkisini canlı telemetri verisiyle doğrulamalıdır (`/api/data/<PCS>/latest` + `operation_runs` terminal durumu). | AK-7.5 |
 
 **Kabul Senaryoları (GWT):**
 
 1. **AK-7.1 — GIVEN** katalog **WHEN** Operations açılır **THEN** FL-01…FL-05 kayıtları görünür
 2. **AK-7.2 — GIVEN** çalışan operasyon **WHEN** poll edilir **THEN** adım listesi durumlarıyla görünür
 3. **AK-7.3 — GIVEN** `full_charge` 30 dk önce bitti ve tüm raflar 19–25 °C **WHEN** Ready/Rest render edilir **THEN** "dinlenme tamam" ve "hazır" gösterir
+4. **AK-7.4 — GIVEN** demo-edge FL config'i **WHEN** entegrasyon spec'i fl01_startup/fl03_idle/fl04_calibration/fl05_emergency_stop yürütür **THEN** her kayıt komut zincirini çözer ve run terminal duruma ulaşır
+5. **AK-7.5 — GIVEN** demo stack ayakta **WHEN** FL-03 idle yürütülür ve `/api/data/PCS-1/latest` poll edilir **THEN** aktif güç setpoint'i 0'a düşer; FL-05 sonrası PCS durumu durduruldu olur
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
@@ -396,27 +410,35 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | AK-7.1 | FL listesi | unit | ⬜ |
 | AK-7.2 | sequence adımları | unit | ⬜ |
 | AK-7.3 | rest/readiness türevi | unit | ⬜ |
+| AK-7.4 | FL-01…FL-05 uçtan uca yürütme | integration | ⬜ |
+| AK-7.5 | telemetri veri kontrolü (PCS setpoint/durum) | e2e | ⬜ |
 
 **T Görev Listesi:**
 - [ ] T-16: FL kataloğu (allowlist genişletme)
 - [ ] T-17: `DemoSequence` görünümü
 - [ ] T-18: `DemoReadyCard` (rest + readiness saf türev)
 - [ ] T-19: operations testleri
+- [ ] T-30: `demo-maneuver-integration.spec.ts` (Z — gerçek FL config'li executor zinciri)
+- [ ] T-31: e2e veri kontrolü (FL-01/03/05 yürütme + `/api/data/PCS-1/latest` doğrulaması)
 
 **Edge Cases:**
 | Durum | Davranış |
 |:------|:---------|
 | Hiç full şarj yok | dinlenme "—" |
+| FL-04 kalibrasyon veri kontrolü | takvim S14 açık → Z katmanında sabitlenir, e2e kapsam dışı |
+| Telemetri gecikmesi | poll retry — veri gelene kadar asserción yeşile dönmez |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
 | `apps/demo-field/src/features/demo-data/demoManeuverApi.ts` #DEMO_CATALOG_NAMES | FL ekleme |
 | `packages/ui/src/nova/DemoReadyCard.tsx` #DemoReadyCard | rest/readiness |
+| `services/web-service/src/presentation/routes/demo-maneuver-integration.spec.ts` #demo-maneuver-integration | FL-01…FL-05 Z zinciri |
+| `e2e/field-maneuver.spec.ts` #field-maneuver | FL-01/03/05 yürütme + telemetri veri kontrolü |
 
 ### 6.8 UC-8 — Event log
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: alt tam genişlik log + severity filtresi
@@ -456,7 +478,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.9 UC-9 — Grid & Market (mevcut EPİAŞ entegrasyonu)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: integration-service + epias plugin (demo stack), `external_series` okuma ucu, market UI (PTF/AOF/SMF), TEİAŞ P–f/P–Q/LVRT statik hesap
@@ -510,7 +532,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 ### 6.10 UC-10 — I-1 toprak interlock (executor eklemeli)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved
 
 **Kapsam:**
 - dahil: `OperationExecutor` eklemeli `preconditions` hook + field wiring (demo-MV toprak durumu)
@@ -584,7 +606,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 |:------|:-----|
 | 1. SPEC | Bu doküman |
 | 2. JSDoc | T-1, T-7, T-10, T-18, T-24, T-26 sözleşmeleri |
-| 3. TEST | T-2, T-5, T-9, T-12, T-15, T-19, T-21, T-23, T-25, T-28 kırmızı testleri |
+| 3. TEST | T-2, T-5, T-9, T-12, T-15, T-19, T-21, T-23, T-25, T-28, T-30, T-31 kırmızı testleri |
 | 4. IMPL | T-1..T-29 |
 | 5. KAPANIŞ | `DEMO-FIELD-KONSOL-KAPANIS.md` |
 
@@ -593,10 +615,10 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | # | Konu | Durum |
 |:--|:-----|:------|
 | A1 | gdems termal iki-düğüm modeli / FSS sim / fault-inject | ⛔ Defer — canlı telemetri kullanılır |
-| A2 | EPİAŞ API kimliklerinin yerel demo için temini | ⏳ Açık — kimlik yoksa Market boş |
+| A2 | EPİAŞ API kimliklerinin yerel demo için temini | ✅ Kapandı — kimlik sağlandı; Market canlı veriyle dolu (`external_series` ptf/gip_wap/smf) |
 | A3 | Admin (data mapping/site params) | ⛔ Defer — boss/superadmin scope |
 | A4 | Fault isolation per-group (RMU H02 trip) sim davranışı | ⛔ Defer |
-| A5 | Rest süresi varsayılanı (2 h) admin-config | ⏳ Açık — sabit 2 h |
+| A5 | Rest süresi varsayılanı admin-config | ✅ Kapandı — demo sabit **30 dk** (2026-10-07 kararı) |
 
 ## 11. İleri İş (bu pakette YAPILMAZ — referans)
 
@@ -608,7 +630,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 
 | Kod | Görev | UC | Aşama |
 |:----|:------|:---|:------|
-| T-1 | `demo-topology.ts` gdems hizası | UC-1 | IMPL |
+| T-1 | `demo-topology.ts` + `NovaTopology` gdems hizası | UC-1 | IMPL |
 | T-2 | topoloji/fan-out testleri | UC-1 | TEST |
 | T-3 | `nova-mimic.ts` akış/motor/ES | UC-2 | IMPL |
 | T-4 | `nova-mimic.css` flow renkleri | UC-2 | IMPL |
@@ -637,3 +659,5 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | T-27 | field web-service wiring | UC-10 | IMPL |
 | T-28 | executor unit testleri | UC-10 | TEST |
 | T-29 | entegrasyon testi (toprak red/izin) | UC-10 | TEST |
+| T-30 | `demo-maneuver-integration.spec.ts` (Z — FL zinciri) | UC-7 | TEST |
+| T-31 | e2e veri kontrolü (FL-01/03/05 + `/latest`) | UC-7 | TEST |

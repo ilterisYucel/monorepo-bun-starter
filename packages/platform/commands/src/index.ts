@@ -14,7 +14,12 @@ export type {
   ManeuverRegistryError,
 } from "./maneuver-registry";
 export { OperationExecutor } from "./operation-executor";
-export type { OperationExecutorConfig, ExecuteOptions } from "./operation-executor";
+export type {
+  OperationExecutorConfig,
+  ExecuteOptions,
+  OperationPrecondition,
+  OperationPreconditionVerdict,
+} from "./operation-executor";
 export type {
   ResolvedCommandStep,
   CommandStepResult,

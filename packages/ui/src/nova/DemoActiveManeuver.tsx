@@ -1,6 +1,7 @@
 import React from "react";
 import { COLORS_LIGHT } from "../colors/tokensLight";
 import { NOVA_ICONS } from "../icons/demo-icons";
+import { DemoSequence } from "./DemoSequence";
 import type { DemoActiveRun } from "./maneuver-types";
 
 /**
@@ -38,31 +39,7 @@ export const DemoActiveManeuver: React.FC<DemoActiveManeuverProps> = ({
       <DemoStopButton onStop={onStop} disabled={!run || busy} />
     </div>
 
-    {run ? (
-      <ol style={{ display: "grid", gap: 4, margin: 0, padding: 0, listStyle: "none" }}>
-        {run.steps.map((s, i) => (
-          <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: s.status === "done" || s.status === "active" ? COLORS_LIGHT.fg : COLORS_LIGHT.muted, fontWeight: s.status === "active" ? 600 : 400 }}>
-            <span
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                display: "grid",
-                placeItems: "center",
-                fontSize: 11,
-                border: `1px solid ${s.status === "active" ? COLORS_LIGHT.sel : COLORS_LIGHT.line}`,
-                background: s.status === "done" ? COLORS_LIGHT.live : "none",
-                color: s.status === "done" ? COLORS_LIGHT.panel : s.status === "active" ? COLORS_LIGHT.sel : COLORS_LIGHT.muted,
-                fontFamily: '"IBM Plex Mono", monospace',
-              }}
-            >
-              {s.status === "done" ? "✓" : i + 1}
-            </span>
-            {s.label}
-          </li>
-        ))}
-      </ol>
-    ) : null}
+    {run ? <DemoSequence steps={run.steps} /> : null}
   </div>
 );
 

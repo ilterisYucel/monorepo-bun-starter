@@ -3,12 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   DemoActiveManeuver,
   DemoManeuverWizard,
+  DemoReadyCard,
   COLORS_LIGHT,
   listNovaUnits,
   type DemoExecutePayload,
   type DemoScopeUnit,
 } from "@gd-monorepo/ui";
 import { demoManeuverApi } from "../features/demo-data/demoManeuverApi";
+import { demoApi } from "../features/demo-data/demoApi";
 import { useDemoFieldData } from "../features/demo-data/useDemoFieldData";
 import { useDemoFieldTelemetry } from "../features/demo-data/useDemoFieldTelemetry";
 import { mapFieldToMimicState } from "../features/demo-data/mapFieldToMimicState";
@@ -36,6 +38,13 @@ export const DemoManeuverPage: React.FC = () => {
     queryKey: ["demo-active-run"],
     queryFn: ({ signal }) => demoManeuverApi.activeRun(signal),
     refetchInterval: 2000,
+    refetchOnWindowFocus: false,
+  });
+
+  const runs = useQuery({
+    queryKey: ["demo-runs"],
+    queryFn: ({ signal }) => demoApi.listRuns(signal),
+    refetchInterval: 10000,
     refetchOnWindowFocus: false,
   });
 
@@ -93,7 +102,21 @@ export const DemoManeuverPage: React.FC = () => {
 
   return (
     <div style={{ background: COLORS_LIGHT.bg, padding: 10, minHeight: "100%" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.25fr) minmax(0,1fr)", gap: 10, alignItems: "start" }}>
+      <div style={{ display: "grid", gap: 10 }}>
+        <section
+          style={{
+            background: COLORS_LIGHT.panel,
+            border: `1px solid ${COLORS_LIGHT.line}`,
+            borderRadius: 6,
+          }}
+        >
+          <DemoReadyCard
+            runs={runs.data ?? []}
+            banks={state.units.flatMap((u) => u.banks)}
+            limits={DEMO_TOPOLOGY.limits}
+          />
+        </section>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.25fr) minmax(0,1fr)", gap: 10, alignItems: "start" }}>
         <section>
           {catalog.isLoading ? (
             <Panel>Katalog yükleniyor…</Panel>
@@ -132,6 +155,7 @@ export const DemoManeuverPage: React.FC = () => {
           </header>
           <DemoActiveManeuver run={active.data} onStop={handleStop} busy={busy} />
         </aside>
+        </div>
       </div>
     </div>
   );

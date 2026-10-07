@@ -30,7 +30,17 @@
 .nm .nm-flow { fill: none; stroke: var(--nm-live); stroke-width: 2.6; stroke-dasharray: 2 7; stroke-linecap: round; opacity: 0; }
 .nm .nm-flow.nm-on { opacity: .9; animation: nm-flow .8s linear infinite; }
 .nm .nm-flow.nm-on.nm-rev { animation-direction: reverse; }
+/* K2: deşarj→şebeke turuncu, şarj←teal (POI'ye kadar) */
+.nm .nm-flow.flow-discharge { stroke: var(--nm-flow-dis); }
+.nm .nm-flow.flow-charge { stroke: var(--nm-flow-chg); }
+.nm .nm-flow.flow-charge.nm-on { animation-direction: reverse; }
+.nm .nm-flowtag.nm-dis { fill: var(--nm-flow-dis); }
+.nm .nm-flowtag.nm-chg { fill: var(--nm-flow-chg); }
 @keyframes nm-flow { to { stroke-dashoffset: -9; } }
+
+/* motorlu kumanda mekanizması işareti (K2) */
+.nm .nm-motor circle { fill: var(--nm-sym); stroke: var(--nm-muted); stroke-width: 1.2; }
+.nm .nm-motor text { font-size: 8px; font-weight: 700; fill: var(--nm-fg); }
 
 /* station */
 .nm .nm-cell { fill: var(--nm-panel2); stroke: var(--nm-line); stroke-width: 1; }

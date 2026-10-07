@@ -3,7 +3,7 @@
     {
       "name": "bsc_charge",
       "label": "BSC Şarj",
-      "description": "DEMO — BSC şarj gücü setpointi + şarj modu (START). BSC simülatörü SOC'yi yükseltir.",
+      "description": "BSC şarj gücü setpointi + şarj modu (START). BSC simülatörü SOC'yi yükseltir.",
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [
@@ -14,7 +14,7 @@
     {
       "name": "bsc_discharge",
       "label": "BSC Deşarj",
-      "description": "DEMO — BSC deşarj gücü setpointi + deşarj modu. BSC simülatörü SOC'yi düşürür.",
+      "description": "BSC deşarj gücü setpointi + deşarj modu. BSC simülatörü SOC'yi düşürür.",
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [

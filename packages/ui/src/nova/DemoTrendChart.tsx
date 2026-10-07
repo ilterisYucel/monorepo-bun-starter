@@ -33,6 +33,10 @@ export interface DemoTrendChartProps {
   yMin?: number;
   yMax?: number;
   decimals?: number;
+  /** Sol eksen payı (px) — uzun y-ekseni etiketleri için artırılabilir (varsayılan 34). */
+  padLeft?: number;
+  /** Grafik azami genişliği (px) — tam genişlikte SVG ölçeklenince yazılar büyümesin. */
+  maxWidth?: number;
 }
 
 const CW = 360;
@@ -50,7 +54,10 @@ export const DemoTrendChart: React.FC<DemoTrendChartProps> = ({
   yMin,
   yMax,
   decimals = 1,
+  padLeft,
+  maxWidth,
 }) => {
+  const L = padLeft ?? PAD.l;
   const allPoints = series.flatMap((s) => s.points);
   const hasData = allPoints.length > 0;
   const ts = allPoints.map((p) => p.t);
@@ -62,11 +69,11 @@ export const DemoTrendChart: React.FC<DemoTrendChartProps> = ({
   const span = hi - lo || 1;
   const tSpan = t1 - t0 || 1;
 
-  const px = (t: number): number => PAD.l + ((t - t0) / tSpan) * (CW - PAD.l - PAD.r);
+  const px = (t: number): number => L + ((t - t0) / tSpan) * (CW - L - PAD.r);
   const py = (v: number): number => PAD.t + (1 - (v - lo) / span) * (CH - PAD.t - PAD.b);
 
   return (
-    <div style={{ minWidth: 0 }}>
+    <div style={{ minWidth: 0, ...(maxWidth !== undefined ? { maxWidth } : {}) }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: COLORS_LIGHT.fg }}>{title}</span>
         <span style={{ fontSize: 11.5, color: COLORS_LIGHT.muted }}>{unit}</span>
@@ -79,8 +86,8 @@ export const DemoTrendChart: React.FC<DemoTrendChartProps> = ({
             const val = hi - f * span;
             return (
               <g key={f}>
-                <line x1={PAD.l} x2={CW - PAD.r} y1={y} y2={y} stroke={COLORS_LIGHT.line2} strokeWidth={1} />
-                <text x={PAD.l - 4} y={y + 3} textAnchor="end" fontSize={9} fill={COLORS_LIGHT.muted} fontFamily='"IBM Plex Mono", monospace'>
+                <line x1={L} x2={CW - PAD.r} y1={y} y2={y} stroke={COLORS_LIGHT.line2} strokeWidth={1} />
+                <text x={L - 4} y={y + 3} textAnchor="end" fontSize={9} fill={COLORS_LIGHT.muted} fontFamily='"IBM Plex Mono", monospace'>
                   {fmt(val, decimals)}
                 </text>
               </g>
@@ -93,7 +100,7 @@ export const DemoTrendChart: React.FC<DemoTrendChartProps> = ({
             const color = l.cls === "hot" ? COLORS_LIGHT.alarm : l.cls === "cold" ? COLORS_LIGHT.cold : COLORS_LIGHT.muted;
             return (
               <g key={`lim${i}`}>
-                <line x1={PAD.l} x2={CW - PAD.r} y1={y} y2={y} stroke={color} strokeDasharray="5 4" strokeWidth={1} />
+                <line x1={L} x2={CW - PAD.r} y1={y} y2={y} stroke={color} strokeDasharray="5 4" strokeWidth={1} />
                 <text x={CW - PAD.r} y={y - 2} textAnchor="end" fontSize={9} fill={color} fontFamily='"IBM Plex Mono", monospace'>
                   {l.label}
                 </text>

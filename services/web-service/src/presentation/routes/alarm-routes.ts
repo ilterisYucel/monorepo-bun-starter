@@ -74,9 +74,10 @@ export async function alarmRoutes(
         .send({ error: "Alarm cozme yetkiniz yok" });
     }
 
-    const { deviceId, alarmName } = request.body as {
+    const { deviceId, alarmName, note } = request.body as {
       deviceId?: string;
       alarmName?: string;
+      note?: string;
     };
     if (typeof deviceId !== "string" || deviceId.length === 0 ||
         typeof alarmName !== "string" || alarmName.length === 0) {
@@ -84,6 +85,7 @@ export async function alarmRoutes(
         .status(400)
         .send({ error: "deviceId ve alarmName gerekli" });
     }
+    const cleanNote = typeof note === "string" ? note.trim().slice(0, 500) : "";
 
     // Fail-closed: audit kaydı tutulamazsa çözme işlemi reddedilir (NIS-2).
     try {
@@ -92,7 +94,12 @@ export async function alarmRoutes(
         category: "audit",
         eventCode: "alarm_resolved",
         message: "Cihaz alarmi cozuldu isaretlendi",
-        context: { deviceId, alarmName, resolvedBy: user.username },
+        context: {
+          deviceId,
+          alarmName,
+          resolvedBy: user.username,
+          ...(cleanNote.length > 0 ? { note: cleanNote } : {}),
+        },
       });
     } catch {
       return reply

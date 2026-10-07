@@ -47,6 +47,7 @@ import { JoseTokenSigner } from "../infrastructure/auth/jose-token-signer";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
+import { DemoEarthingInterlock } from "../infrastructure/interlock/demo-earthing-interlock";
 import { TunnelManeuverChannel } from "../infrastructure/container-session/tunnel-maneuver-channel";
 import { OperationResponder } from "../infrastructure/field-uplink/operation-responder";
 import { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
@@ -562,6 +563,7 @@ export function buildContainer() {
         mq,
         deviceRegistry,
         tunnelManeuverChannel,
+        timescale,
         logger,
       }) => {
         const targets = new DeviceRegistryTargets(deviceRegistry);
@@ -571,6 +573,15 @@ export function buildContainer() {
           }),
           mq,
         });
+        // Field tier: I-1 toprak interlock (SPEC UC-10) — boss/diğer tier'da
+        // hook YOK → davranış birebir (Open-Closed).
+        const preconditions =
+          serviceTier(config) === "field"
+            ? new DemoEarthingInterlock(timescale, {
+                mvDeviceId: "DEMO-MV-1",
+                earthingTelemetry: ["H04 Earth", "H05 Earth"],
+              }).hook()
+            : undefined;
         return new OperationExecutor({
           registry: maneuverRegistry,
           targets,
@@ -579,6 +590,7 @@ export function buildContainer() {
           ...(tunnelManeuverChannel
             ? { remoteChannel: tunnelManeuverChannel }
             : {}),
+          ...(preconditions ? { preconditions } : {}),
           logger,
         });
       },

@@ -1,37 +1,41 @@
 import type { NovaTopology } from "@gd-monorepo/ui";
 
 /**
- * DEMO-FIELD site topolojisi (SPEC UC-2/T-6). 6 sanal ünite: fider A = 1–3,
- * fider B = 4–6. Banka↔BSC↔PCS eşlemesi mapFieldToMimicState'te uygulanır.
+ * DEMO-FIELD site topolojisi (SPEC UC-1/T-1, K1). gdems `SITE_TOPOLOGY`
+ * (ÜNSAL DGES GDE-202030) ile hizalıdır: 9 sanal ünite, fider **A→H04 (1–5)**,
+ * **B→H05 (6–9)**. Banka↔BSC↔PCS eşlemesi mapFieldToMimicState'te uygulanır.
  * Gerçek MV modeli olmadığından station hücreleri burada tanımlıdır; canlı
  * pozisyonlar demo-MV cihazı telemetrisinden gelir (yoksa 'closed' varsayılan).
+ *
+ * `unit.bus`/`sections`/`rack`/`auxLoads`/`fss` alanları UC-4 (Container SCADA)
+ * ve UC-5 (Devices/AUX) panellerinin veri kaynağıdır.
  */
 export const DEMO_TOPOLOGY: NovaTopology = {
-  id: "DEMO-FIELD",
-  name: "GD-PMS · SAHA DEMO",
-  location: "Demo",
+  id: "GDE-202030",
+  name: "ÜNSAL DGES",
+  location: "Polatlı, Ankara",
   powerMW: 30,
   energyMWh: 32.112,
 
   station: {
-    name: "OG KÖŞK #1",
+    name: "MV STATION #1",
     rating: "36 kV · 630 A · 16 kA · SF6",
-    busLabel: "BARA 34,5 kV · 630 A",
+    busLabel: "BUSBAR 34,5 kV · 630 A",
     nominalKV: 34.5,
-    poiLabel: "OG POI",
+    poiLabel: "MV POI",
     poiCable: "2×(1×400/25) NA2XSY",
     cells: [
-      { id: "H01", label: "Gelen hücre", kind: "cb", role: "incomer", es: true, ct: "750/5 A · 5P10", ctPrimary: 750 },
-      { id: "H02", label: "İç ihtiyaç ayr.", kind: "lbs", role: "aux" },
+      { id: "H01", label: "Gelen hücre", kind: "cb", role: "incomer", motor: true, es: true, esMotor: false, ct: "750/5 A · 5P10", ctPrimary: 750 },
+      { id: "H02", label: "İç ihtiyaç ayr.", kind: "lbs", role: "aux", motor: false, auxTr: true },
       { id: "H03", label: "Ölçü", kind: "vt", role: "measurement", ct: "750/5 A · Cl 0,5 Fs5", vt: "36/√3 – 0,1/√3 kV · Cl 0,5 · 60 VA", ctPrimary: 750 },
-      { id: "H04", label: "Fider B kesici", kind: "cb", role: "feeder", feeder: "B", es: true, ct: "400/5 A · 5P10", ctPrimary: 400 },
-      { id: "H05", label: "Fider A kesici", kind: "cb", role: "feeder", feeder: "A", es: true, ct: "300/5 A · 5P10", ctPrimary: 300 },
+      { id: "H04", label: "Fider A kesici", kind: "cb", role: "feeder", feeder: "A", motor: true, es: true, esMotor: false, ct: "400/5 A · 5P10", ctPrimary: 400 },
+      { id: "H05", label: "Fider B kesici", kind: "cb", role: "feeder", feeder: "B", motor: true, es: true, esMotor: false, ct: "300/5 A · 5P10", ctPrimary: 300 },
     ],
   },
 
   feeders: {
-    A: { cell: "H05", side: "L", units: [1, 2, 3] },
-    B: { cell: "H04", side: "R", units: [4, 5, 6] },
+    A: { cell: "H04", side: "L", units: [1, 2, 3, 4, 5] },
+    B: { cell: "H05", side: "R", units: [6, 7, 8, 9] },
   },
 
   unit: {
@@ -39,20 +43,57 @@ export const DEMO_TOPOLOGY: NovaTopology = {
     containerMWh: 3.568,
     banks: ["A", "B"],
     racksPerBank: 8,
-    cellsSeries: 416,
+    rackKWh: 223,
+    cellsSeries: 408,
+    bus: { ratingA: 2000, rackFuseA: 220, dcCB: "SYW6GZ-4000", imd: "Bender isoPV1685RTU" },
+    rack: { packs: 17, bpu: true, packKWh: 13.118, cellsPerPack: 24 },
+    sections: [
+      { id: 1, bank: "A", racks: [1, 2, 3, 4], hvac: [1, 2] },
+      { id: 2, bank: "A", racks: [5, 6, 7, 8], hvac: [3, 4] },
+      { id: 3, bank: "B", racks: [9, 10, 11, 12], hvac: [5, 6] },
+      { id: 4, bank: "B", racks: [13, 14, 15, 16], hvac: [7, 8] },
+    ],
+    auxLoads: [
+      { key: "hvac", label: "HVAC · 8 × MC90HDNC1R (220 VAC)", kVA: 32.8, peakKVA: 45.76, ups: false },
+      { key: "fans", label: "Raf fanları · 8 × SMPS 24 VDC", kVA: 4.7, ups: false },
+      { key: "rackCtl", label: "Raf kontrol · SMPS 24 VDC", kVA: 0.557, ups: true },
+      { key: "ctl", label: "Kontrol paneli", kVA: 1.0, ups: true },
+      { key: "dccb", label: "DC kesiciler · 2 × SYW6GZ-4000", kVA: 0.88, ups: true },
+      { key: "fss", label: "Yangın söndürme sistemi", kVA: 0.178, ups: true },
+      { key: "bsc", label: "BSC IPC · ağ · IMD", kVA: 0.267, ups: true },
+      { key: "light", label: "Aydınlatma · 5 × 30 W LED", kVA: 0.15, ups: true },
+    ],
+    fss: {
+      panel: "Sigma XT (K11031M2)",
+      zones: ["Duman algılama", "Isı algılama", "Gaz algılama (H₂)"],
+      releaseDelayS: 30,
+      detectors: 2,
+      detector: "Vigilex VIGI-DT1",
+      h2AlarmLEL: 10,
+      vents: "Vigilex patlama tahliye panelleri",
+    },
     dcRangeV: [1000, 1500],
     pcsAcV: 690,
     pcsKVA: 1725,
-    pcsMaxMW: 1.7,
+    pcsMaxMW: 1.725,
     trKVA: 3750,
     trRatio: "34,5/0,69 kV",
-    trVector: "Dy11",
+    trVector: "Dy11y11",
     lvLabel: "690 V",
     rmu: [
-      { id: "H01", label: "Ayırıcı", kind: "lbs" },
-      { id: "H02", label: "Trafo kesici", kind: "cb" },
-      { id: "H03", label: "Ayırıcı", kind: "lbs" },
+      { id: "H01", label: "Yük ayırıcı (giriş)", kind: "lbs", motor: false },
+      { id: "H02", label: "Trafo kesici", kind: "cb", motor: true },
+      { id: "H03", label: "Yük ayırıcı (çıkış)", kind: "lbs", motor: false },
+      { id: "ES", label: "Toprak ayırıcı (TR tarafı)", kind: "es", motor: false },
     ],
+  },
+
+  aux: {
+    trKVA: 400,
+    trRatio: "34,5/0,4 kV",
+    trVector: "Dyn11",
+    lvV: 400,
+    station: "İstasyon iç ihtiyaç (koruma, SCADA, RMU motorları, aydınlatma)",
   },
 
   limits: {
@@ -65,11 +106,14 @@ export const DEMO_TOPOLOGY: NovaTopology = {
     dTdtWarn: 2,
     dvWarn: 50,
     sohInfo: 95,
+    tripC: 32,
+    zeroPowerMW: 0.2,
+    calibrationIntervalDays: 30,
   },
 };
 
-/** Demo sanal ünite sayısı (SPEC K6). */
-export const DEMO_UNIT_COUNT = 6;
+/** Demo sanal ünite sayısı (SPEC K1 — 9 ünite). */
+export const DEMO_UNIT_COUNT = 9;
 
 /** Demo MV istasyon cihazı (canlı station pozisyonu/kV/Hz + komutlar). */
 export const DEMO_MV_DEVICE_ID = "DEMO-MV-1";

@@ -6,6 +6,7 @@ import type {
 } from "@gd-monorepo/shared-types";
 import { ManeuverRegistry } from "./maneuver-registry";
 import { OperationExecutor } from "./operation-executor";
+import type { OperationPrecondition } from "./operation-executor";
 import type {
   ICommandChannel,
   ICommandTargetResolver,
@@ -90,6 +91,7 @@ interface Harness {
 function harness(config: {
   maneuvers?: ManeuverRecord[];
   operations?: OperationRecord[];
+  preconditions?: OperationPrecondition;
 } = {}): Harness {
   const registry = new ManeuverRegistry(config);
   const channelExecute = vi.fn(
@@ -123,6 +125,7 @@ function harness(config: {
     } as ICommandChannel,
     runs: { begin, finish } as unknown as IOperationRunStore,
     logger: { log } as never,
+    ...(config.preconditions !== undefined ? { preconditions: config.preconditions } : {}),
     now: () => new Date("2026-09-22T10:00:00.000Z"),
     generateId: () => "run-1",
   });
@@ -144,6 +147,65 @@ function calledDevices(channel: { execute: ReturnType<typeof vi.fn> }): string[]
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe("OperationExecutor — preconditions hook (K10)", () => {
+  it("hook yokken davranış birebir (yürütür)", async () => {
+    const h = harness({ maneuvers: [maneuver()] });
+    const result = await h.executor.execute("maneuver", "pcs_charge");
+    expect(result.status).toBe("completed");
+  });
+
+  it("hook izin verirse yürütür", async () => {
+    const h = harness({
+      maneuvers: [maneuver()],
+      preconditions: () => ({ allowed: true }),
+    });
+    const result = await h.executor.execute("maneuver", "pcs_charge");
+    expect(result.status).toBe("completed");
+    expect(h.channel.execute).toHaveBeenCalled();
+  });
+
+  it("hook reddederse rejected + reason; begin/kanal ÇALIŞMAZ", async () => {
+    const h = harness({
+      maneuvers: [maneuver()],
+      preconditions: () => ({ allowed: false, reason: "interlock_earthed" }),
+    });
+    const result = await h.executor.execute("maneuver", "pcs_charge");
+    expect(result.status).toBe("rejected");
+    expect(result.reason).toBe("interlock_earthed");
+    expect(h.runs.begin).not.toHaveBeenCalled();
+    expect(h.channel.execute).not.toHaveBeenCalled();
+  });
+
+  it("hook throw ederse precondition_error", async () => {
+    const h = harness({
+      maneuvers: [maneuver()],
+      preconditions: () => {
+        throw new Error("telemetri yok");
+      },
+    });
+    const result = await h.executor.execute("maneuver", "pcs_charge");
+    expect(result.status).toBe("rejected");
+    expect(result.reason).toBe("precondition_error");
+  });
+
+  it("hook adı ve params'ı alır", async () => {
+    const seen: Array<Record<string, unknown>> = [];
+    const h = harness({
+      maneuvers: [maneuver()],
+      preconditions: (kind, name, params) => {
+        seen.push({ kind, name, params });
+        return { allowed: true };
+      },
+    });
+    await h.executor.execute("maneuver", "pcs_charge", { powerKw: 100 });
+    expect(seen[0]).toEqual({
+      kind: "maneuver",
+      name: "pcs_charge",
+      params: { powerKw: 100 },
+    });
+  });
 });
 
 describe("OperationExecutor — manevra yürütme", () => {

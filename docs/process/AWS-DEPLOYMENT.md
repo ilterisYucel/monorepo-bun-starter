@@ -3,6 +3,9 @@
 **Kapsam:** container + field + boss tier'larının AWS EC2 üzerinde ayağa kaldırılması.
 **Durum:** DEMO — TLS'siz `ws://` kabulüyle (FLAG; üretim geçişi §7'de).
 
+> **Tek makine demo-edge (boss YOK, m6i.large):** §8 — `deployment/aws/demo-edge/`
+> standalone stack (container+field + demo-field UI). Boss/uplink gerektirmez.
+
 ## 1. Topoloji
 
 ```
@@ -139,3 +142,65 @@ politikası kurulmalı.
 - WireGuard yedek yol etkinleştirilecekse `web-service` Dockerfile'ında
   `wg-quick` bulunmalı; compose'da `cap_add: NET_ADMIN` + `/dev/net/tun`
   hazırdır (şu an `WG_CLIENT_PRIVATE_KEY` boş → modül kapalı).
+
+## 8. Demo-Edge — standalone (tek makine, m6i.large, boss YOK)
+
+`deployment/aws/demo-edge/` container+field tier'larını **tek compose projesinde**
+(`aws-edge-stack`) çalıştırır; boss ve uplink YOKTUR. UI: `apps/demo-field`
+(nginx, `:88`). TLS yok (`ws://` + HTTP), MFA kapalı — demo kabulü.
+
+### 8.1 EC2 / güvenlik grubu
+- Tip: **m6i.large** (2 vCPU / 8GB), EBS gp3 100GB.
+- SG: **22** (ofis IP), **88** (demo UI; demo boyunca açık).
+- Açılmaz: 5432/5434 (PG), 6379/6381 (Redis) — host `127.0.0.1`'e bağlı;
+  5001/5002/5003 — yalnızca network içi.
+- Mem bütçesi: compose `mem_limit` toplamı ≈ 6.9GB → 8GB'a sığar (container PG 2g,
+  diğer servisler 128–512m).
+
+### 8.2 Kurulum
+```bash
+sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 git
+sudo usermod -aG docker $USER   # yeniden giriş
+git clone <repo-url> ~/gd-pms-monorepo && cd ~/gd-pms-monorepo
+
+# Env (SIRLAR repo'ya girmez — makinede üret):
+cp deployment/.env.aws-edge.example deployment/aws/demo-edge/.env
+#  doldur: JWT_SECRET, FIELD_JWT_SECRET, SEED_* (>=8), FIELD_ID (uuidgen),
+#          CONTAINER_TOKEN (openssl rand -hex 32), FIELD_INTERNAL_API_TOKEN
+#  standalone demo: FIELD_UPLINK_ENABLED=false, MFA_ENABLED=false
+
+# EPİAŞ kimlikleri (gitignored — makinede oluştur):
+cp deployment/aws/demo-edge/plugins/epias-market-prices.example.json \
+   deployment/aws/demo-edge/plugins/epias-market-prices.json
+#  username/password doldur; intervalMs=300000 önerilir.
+
+# Ayağa kaldır (EC2'de build — tek seferlik, 2 vCPU'da ~10-20 dk):
+docker compose --env-file deployment/aws/demo-edge/.env \
+  -f deployment/aws/demo-edge/docker-compose.yml up -d --build
+```
+
+### 8.3 Doğrulama (API smoke)
+```bash
+B=http://localhost:88
+TOKEN=$(curl -s -X POST $B/api/auth/login -H 'content-type: application/json' \
+  -d '{"username":"admin","password":"<SEED_ADMIN_PASSWORD>"}' | \
+  python3 -c 'import sys,json;print(json.load(sys.stdin)["accessToken"])')
+
+curl -s $B/ | grep -o '<title>[^<]*</title>'                 # → GD-PMS — ÜNSAL DGES
+curl -s -H "authorization: Bearer $TOKEN" "$B/api/data/PCS-1/latest?limit=5" | head -c 200
+# charge: 200 + status "completed" (rolled_back İSE: FIELD_CONNECT_ENABLED/CONTAINER_TOKEN)
+curl -s -X POST "$B/api/operations/charge/execute" -H "authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' -d '{"params":{"powerKw":100}}'
+curl -s -H "authorization: Bearer $TOKEN" "$B/api/unified/alarms"                 # {"alarms":[...]}
+curl -s -H "authorization: Bearer $TOKEN" \
+  "$B/api/unified/timeseries/external?source=epias&series=ptf&limit=5"            # points dolu
+```
+- `rolled_back` görülürse: konteyner field'a bağlanmamıştır →
+  `.env` `FIELD_CONNECT_ENABLED=true` + `CONTAINER_TOKEN` dolu mu, container
+  token'ı field'a kayıtlı mı kontrol et (§4.2).
+- Konteyner management-service kural ÇALIŞTIRMAZ (demo no-op rules) — gerçek
+  kural seti test edilmeden aktive edilmez.
+
+### 8.4 FLAG (demo kabulü)
+- `ws://` (TLS'siz) + `:88` HTTP; MFA kapalı; DB yedekleme yok.
+- Üretim geçişi: §7 (TLS/ACM, MFA=true, yedekleme) + field/kontrol kuralları.

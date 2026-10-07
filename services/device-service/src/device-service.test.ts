@@ -45,15 +45,20 @@ function fakeDevice(overrides: Partial<IDevice> = {}): IDevice {
 }
 
 function mockMq(capture: { processor?: (job: never) => Promise<unknown> }): IMessageQueue {
+  const byType: Record<string, (job: never) => Promise<unknown>> = {};
   return {
     addJob: vi.fn(),
     executeAndWait: vi.fn(),
     addRepeatableJob: vi.fn(),
     addRepeatableJobEvery: vi.fn(),
-    registerWorker: vi.fn().mockImplementation((processor: (job: never) => Promise<unknown>) => {
-      capture.processor = processor;
-    }),
-    registerWorkerFor: vi.fn(),
+    registerWorker: vi.fn(),
+    registerWorkerFor: vi.fn().mockImplementation(
+      (type: string, processor: (job: never) => Promise<unknown>) => {
+        byType[type] = processor;
+        capture.processor = (job: never) =>
+          byType[(job as { type: string }).type](job);
+      },
+    ),
     close: vi.fn(),
     queueStatus: vi.fn(),
     queueStats: vi.fn(),
@@ -153,6 +158,15 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
     warn.mockRestore();
     error.mockRestore();
     vi.useRealTimers();
+  });
+
+  it("start(): yalnız READ_DEVICE/COMMAND_DEVICE worker kaydeder (çoklu-tüketici koruması)", async () => {
+    const device = fakeDevice();
+    const { service, mq } = buildService(device);
+    await service.start();
+    expect(mq.registerWorker).not.toHaveBeenCalled();
+    const types = (mq.registerWorkerFor as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+    expect(types).toEqual(["READ_DEVICE", "COMMAND_DEVICE"]);
   });
 
   describe("readDevice hata yolu (Açık 1 kapanışı)", () => {

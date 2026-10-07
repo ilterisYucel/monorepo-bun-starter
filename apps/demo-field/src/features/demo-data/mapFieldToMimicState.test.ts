@@ -39,6 +39,9 @@ const REAL_TELEMETRY: TelemetryData[] = [
   T("BSC-1", "Rack Min Pack Temp R1", 20, { rack_id: "1" }),
   T("BSC-1", "Rack Max Cell Voltage R1", 3.4),
   T("BSC-1", "Rack Min Cell Voltage R1", 3.35),
+  T("BSC-1", "Rack SOC R1", 61),
+  T("BSC-1", "Rack Cell Sum Voltage R1", 1298),
+  T("BSC-1", "Rack Current R1", 120),
   T("BSC-2", "SOC", 55, { canonical: "soc", rack_id: "system" }),
   T("BSC-2", "SOH", 97, { canonical: "soh", rack_id: "system" }),
   T("BSC-2", "Voltage", 1290, { canonical: "voltage", rack_id: "system" }),
@@ -61,24 +64,32 @@ describe("fanOutUnits (FR-2.1)", () => {
   };
 
   it("verilen sayıda ünite üretir ve deterministiktir", () => {
-    const a = fanOutUnits(proto, 6);
-    const b = fanOutUnits(proto, 6);
-    expect(a).toHaveLength(6);
+    const a = fanOutUnits(proto, 9);
+    const b = fanOutUnits(proto, 9);
+    expect(a).toHaveLength(9);
     expect(a).toEqual(b);
     expect(a[0].n).toBe(1);
-    expect(a[5].n).toBe(6);
+    expect(a[8].n).toBe(9);
   });
 
   it("PCS gücünü ünite sayısına böler", () => {
-    const [u] = fanOutUnits(proto, 6);
-    expect(u.pcs[0].pMW).toBeCloseTo(1.2 / 6, 6);
+    const [u] = fanOutUnits(proto, 9);
+    expect(u.pcs[0].pMW).toBeCloseTo(1.2 / 9, 6);
   });
 });
 
 describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
-  it("tek konteyneri 6 üniteye fan-out eder", () => {
+  it("tek konteyneri 9 üniteye fan-out eder", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(6);
+    expect(state.units).toHaveLength(9);
+  });
+
+  it("her fiderin son ünitesinde H03 (hat sonu) yoktur", () => {
+    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
+    const byN = new Map(state.units.map((u) => [u.n, u]));
+    expect(byN.get(5)?.rmu.H03).toBeNull();
+    expect(byN.get(9)?.rmu.H03).toBeNull();
+    expect(byN.get(4)?.rmu.H03).toBe("closed");
   });
 
   it("banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)", () => {
@@ -103,6 +114,14 @@ describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
   it("hücre ΔV türetir (3.400−3.350 V → 50 mV)", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
     expect(state.units[0].banks[0].dvmV).toBe(50);
+  });
+
+  it("raf başına SOC/V/I türetir (UC-5, FR-5.2)", () => {
+    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
+    const b = state.units[0].banks[0];
+    expect(b.rackSoc).toEqual([61]);
+    expect(b.rackV).toEqual([1298]);
+    expect(b.rackI).toEqual([120]);
   });
 
   it("demo-MV telemetrisinden station pozisyonu okur", () => {

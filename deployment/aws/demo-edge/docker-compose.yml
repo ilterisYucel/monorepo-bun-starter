@@ -72,7 +72,7 @@ services:
     container_name: aws-container-redis
     command: >
       redis-server
-      --maxmemory 64mb
+      --maxmemory 256mb
       --maxmemory-policy noeviction
       --save ""
       --appendonly no
@@ -163,6 +163,41 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Konteyner tier management-service — DEMO'da kural ÇALIŞTIRMAZ (boş rules.json);
+  # yalnızca MANAGEMENT kuyruğunu tüketip loglar. Gerçek kural seti test edilmeden
+  # aktive edilmez.
+  container-management-service:
+    build:
+      context: ../../../
+      dockerfile: services/management-service/deployment/Dockerfile
+    container_name: aws-container-management-service
+    environment:
+      NODE_ENV: production
+      SERVICE_TIER: container
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./container-rules:/app/config:ro
+      - ./container-device-configs:/app/config-docker:ro
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-device-service:
+        condition: service_started
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   container-web-service:
     build:
       context: ../../../
@@ -187,8 +222,9 @@ services:
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "1 day"
       TIMESCALE_RETENTION_AFTER: "90 days"
-      # FieldConnector bootstrap — .env.aws-edge'de true + URL + token zorunlu.
-      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-false}
+      # FieldConnector bootstrap — varsayılan AÇIK (konteyner→field linki;
+      # kapatılırsa charge/discharge uzak BSC adımı rollback olur).
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-true}
       FIELD_WS_URL: ${FIELD_WS_URL:-ws://field-web-service:5002/ws/container}
       CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
       CONTAINER_ID: ${CONTAINER_ID:-container-1}
@@ -260,7 +296,7 @@ services:
     container_name: aws-field-redis
     command: >
       redis-server
-      --maxmemory 64mb
+      --maxmemory 256mb
       --maxmemory-policy noeviction
       --appendonly yes
       --appendfsync everysec
@@ -400,7 +436,7 @@ services:
       # Tek saha modeli — FIELD_ID env'den zorunlu (UUID).
       FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID — uuidgen)}
       FIELD_NAME: ${FIELD_NAME:-Saha}
-      MFA_ENABLED: ${MFA_ENABLED:-true}
+      MFA_ENABLED: ${MFA_ENABLED:-false}
       # Field tier fail-fast — dev default secret ile açılış REDDEDİLİR.
       JWT_SECRET: ${FIELD_JWT_SECRET:?FIELD_JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
@@ -442,13 +478,56 @@ services:
     networks:
       - edge-network
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 512m
     healthcheck:
       test: ["CMD-SHELL", "bun -e 'fetch(\"http://localhost:5002/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Piyasa köprüsü — EPİAŞ plugin'i field `external_series` tablosunu besler
+  # (SPEC UC-9/T-22, K9). Kimlik yoksa plugin aktive olmaz → Market boş kalır.
+  # Config: ./plugins/epias-market-prices.json (host — imaja pişmez).
+  field-integration-service:
+    build:
+      context: ../../../
+      dockerfile: services/integration-service/deployment/Dockerfile
+    container_name: aws-demo-field-integration-service
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      TIMESCALE_HOST: field-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      INTEGRATION_PLUGIN_DIR: /app/customer-plugins
+      INTEGRATION_CONFIG_DIR: /app/config/plugins
+      INTEGRATION_STATE_DIR: /app/data/plugins
+    volumes:
+      - ./plugins:/app/config/plugins:ro
+      - aws-integration-state-data:/app/data
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - edge-network
+    restart: unless-stopped
+    mem_limit: 256m
     logging:
       driver: json-file
       options:
@@ -489,6 +568,7 @@ volumes:
   aws-container-redis-data:
   aws-field-timescale-data:
   aws-field-redis-data:
+  aws-integration-state-data:
 
 networks:
   edge-network:
