@@ -1,0 +1,1 @@
+import"./SpriteTextureProvider-nT_kBMIG.js";
