@@ -21,6 +21,11 @@ export type {
 export { ControlPanelIoSimulator, ControlPanelIoAdapter, IO_COILS, IO_DISCRETE } from "./control-panel-io";
 export type { DoorStateInput, FssStateInput } from "./control-panel-io";
 export { ImdSimulator, ImdAdapter, IMD_INPUT } from "./imd";
+export {
+  DemoMvStationSimulator,
+  DemoMvStationAdapter,
+} from "./demo-mv-station";
+export type { DemoMvStationConfig } from "./demo-mv-station";
 export { ModbusServerBridge } from "./server";
 export type {
   ModbusServerBridgeConfig,

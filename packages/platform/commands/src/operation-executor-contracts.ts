@@ -200,5 +200,6 @@ export interface IRemoteCommandChannel {
     system: string,
     maneuver: string,
     params?: Record<string, unknown>,
+    timer?: { durationSeconds: number },
   ): Promise<{ ok: boolean; reason?: string }>;
 }

@@ -9,6 +9,7 @@ import {
   RACK_SUMMARY_BASE,
   RACK_STRIDE,
   RACK_SUMMARY,
+  SYSTEM_SUMMARY,
 } from "./register-map";
 
 /**
@@ -80,5 +81,27 @@ describe("BSCSimulator (T4)", () => {
       const socRaw = sim.readInputRegister(base + RACK_SUMMARY.SOC);
       expect(socRaw).toBeGreaterThanOrEqual(0);
     }
+  });
+});
+
+describe("BSCSimulator SOC limitleri (97 / 3,5)", () => {
+  it("şarjda SOC %97'yi aşamaz (clamp)", () => {
+    const sim = makeReadySim(96);
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
+    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000); // 50 kW
+    for (let i = 0; i < 200; i++) sim.tick(60);
+    const socRaw = sim.readInputRegister(SYSTEM_SUMMARY.BSC_SOC); // scale 0.01 → 9700 = %97
+    expect(socRaw).toBeGreaterThanOrEqual(9600);
+    expect(socRaw).toBeLessThanOrEqual(9700);
+  });
+
+  it("deşarjda SOC %3,5'in altına inemez (clamp)", () => {
+    const sim = makeReadySim(5);
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.DISCHARGE);
+    sim.writeHoldingRegister(CONTROLLER.DISCHARGE_POWER_SETPOINT, 5000);
+    for (let i = 0; i < 200; i++) sim.tick(60);
+    const socRaw = sim.readInputRegister(SYSTEM_SUMMARY.BSC_SOC);
+    expect(socRaw).toBeLessThanOrEqual(500);
+    expect(socRaw).toBeGreaterThanOrEqual(350); // %3,5
   });
 });

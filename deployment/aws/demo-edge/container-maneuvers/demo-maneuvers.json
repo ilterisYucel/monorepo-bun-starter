@@ -1,0 +1,26 @@
+{
+  "maneuvers": [
+    {
+      "name": "bsc_charge",
+      "label": "BSC Şarj",
+      "description": "DEMO — BSC şarj gücü setpointi + şarj modu (START). BSC simülatörü SOC'yi yükseltir.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "set_charge_power", "params": { "powerKw": "{{divideTotal}}" } },
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "charge" }
+      ]
+    },
+    {
+      "name": "bsc_discharge",
+      "label": "BSC Deşarj",
+      "description": "DEMO — BSC deşarj gücü setpointi + deşarj modu. BSC simülatörü SOC'yi düşürür.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "set_discharge_power", "params": { "powerKw": "{{divideTotal}}" } },
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "discharge" }
+      ]
+    }
+  ]
+}

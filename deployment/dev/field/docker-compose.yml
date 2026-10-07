@@ -80,6 +80,7 @@ services:
     # (host.docker.internal) BSC→PCS connector'ın bağlanması için host'a açılır.
     ports:
       - "15502:15502"
+      - "15503:15503"
     volumes:
       - ../../../services/device-service/src:/app/services/device-service/src
       - ../../../services/device-service/run.ts:/app/services/device-service/run.ts

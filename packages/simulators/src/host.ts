@@ -20,6 +20,7 @@ import { EnergyAnalyzerSimulator } from "./energy-analyzer";
 import { ControlPanelIoSimulator } from "./control-panel-io";
 import { ImdSimulator } from "./imd";
 import { WattoxPcsSimulator } from "./wattox-pcs";
+import { DemoMvStationSimulator } from "./demo-mv-station";
 import { BscPcsConnectorAdapter, parseBscPcsMapping, TcpSourceReader } from "./bsc-pcs-connector";
 import type { BscPcsMapping } from "./bsc-pcs-connector";
 
@@ -104,6 +105,10 @@ export class SimulatorHost {
       (ctx) => new ControlPanelIoSimulator({ network: ctx.network }),
     );
     this.builders.set("imd", (ctx) => new ImdSimulator({ network: ctx.network }));
+    this.builders.set(
+      "demo-mv-station",
+      (ctx) => new DemoMvStationSimulator({ network: ctx.network }),
+    );
     this.builders.set(
       "wattox-pcs",
       (ctx) =>
@@ -200,8 +205,10 @@ export class SimulatorHost {
       if (mappingPath === undefined) {
         throw new Error(`[SimulatorHost] ${config.deviceId}: connector registerMap yok`);
       }
-      const mapping = this.applyBmsTarget(
+      const mapping = resolveBscPcsTarget(
         parseBscPcsMapping(readFileSync(mappingPath, "utf-8")),
+        connector.sim.target,
+        this.options.bmsTarget,
       );
       const sourceIds = new Set<string>();
       for (const entry of mapping.mappings) {
@@ -230,19 +237,34 @@ export class SimulatorHost {
     if (isAbsolute(path)) return path;
     return resolve(this.options.configDir ?? ".", path);
   }
+}
 
-  private applyBmsTarget(mapping: BscPcsMapping): BscPcsMapping {
-    const bmsTarget = this.options.bmsTarget;
-    if (bmsTarget === undefined) return mapping;
-    return {
-      ...mapping,
-      target: {
-        ...mapping.target,
-        ...(bmsTarget.host !== undefined ? { host: bmsTarget.host } : {}),
-        ...(bmsTarget.port !== undefined ? { port: bmsTarget.port } : {}),
-      },
-    };
-  }
+/**
+ * BSC→PCS connector hedef çözümü (SPEC K12/T-36): env (`bmsTarget`) uygulanır,
+ * ardından connector config (`connector.sim.target`) env'i EZER. Her ikisi de
+ * tanımsızsa mapping dosyasının hedefi aynen korunur.
+ */
+export function resolveBscPcsTarget(
+  mapping: BscPcsMapping,
+  connectorTarget: { host?: string; port?: number } | undefined,
+  envTarget: { host?: string; port?: number } | undefined,
+): BscPcsMapping {
+  return mergeTarget(mergeTarget(mapping, envTarget), connectorTarget);
+}
+
+function mergeTarget(
+  mapping: BscPcsMapping,
+  target: { host?: string; port?: number } | undefined,
+): BscPcsMapping {
+  if (target === undefined) return mapping;
+  return {
+    ...mapping,
+    target: {
+      ...mapping.target,
+      ...(target.host !== undefined ? { host: target.host } : {}),
+      ...(target.port !== undefined ? { port: target.port } : {}),
+    },
+  };
 }
 
 function readNetwork(config: DeviceConfigFile, deviceId: string): SimulatorNetworkConfig {

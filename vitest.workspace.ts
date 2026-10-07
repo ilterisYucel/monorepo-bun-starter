@@ -31,4 +31,5 @@ export default defineWorkspace([
   // script'leri artık field/superadmin'i de koşar (önceden nx ile ayrı).
   "apps/field",
   "apps/superadmin",
+  "apps/demo-field",
 ]);

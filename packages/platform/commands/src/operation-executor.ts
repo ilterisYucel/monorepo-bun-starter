@@ -298,6 +298,9 @@ export class OperationExecutor {
         step.system,
         step.maneuver,
         step.params ?? params,
+        defaultTimer !== undefined
+          ? { durationSeconds: defaultTimer.durationMs / 1000 }
+          : undefined,
       );
       return {
         stepIndex: index,
@@ -689,12 +692,16 @@ export class OperationExecutor {
     system: string,
     maneuver: string,
     params: Record<string, unknown>,
+    timer?: { durationSeconds: number },
   ): Promise<{ ok: boolean; reason?: string }> {
     if (!this.remoteChannel) {
       return { ok: false, reason: "remote_channel_not_available" };
     }
     try {
-      const result = await this.remoteChannel.execute(system, maneuver, params);
+      const result =
+        timer !== undefined
+          ? await this.remoteChannel.execute(system, maneuver, params, timer)
+          : await this.remoteChannel.execute(system, maneuver, params);
       return result;
     } catch (err) {
       return { ok: false, reason: String(err) };

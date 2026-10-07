@@ -1,7 +1,7 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-10-06
-> Tarandı: 236 test dosyası, 2049 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-10-07
+> Tarandı: 251 test dosyası, 2118 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
@@ -143,6 +143,72 @@
 ### `apps/demo-backend/src/demo-backend.test.ts` (1 test)
 
 1. (demo-backend) **"exports application modules"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/integration/demo-maneuver.integration.test.ts` (8 test)
+
+1. (demo manevra kataloğu (AK-10.1/10.2)) **"6 demo operasyonu yüklü; mevcut katalog korunuyor"**
+2. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1)) **"girilen güç BSC şarj setpointine yansır (powerKw/2 BSC)"**
+3. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"charge → PCS gücü negatif + SOC artar; standby durdurur"**
+4. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"discharge → PCS gücü pozitif + SOC düşer"**
+5. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"full_charge / full_discharge operasyonları tamamlanır"**
+6. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"calibration çok adımlı operasyon tamamlanır"**
+7. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3)) **"charge + timer 5 sn → BSC stop komutu + güç 0 + SOC durur"**
+8. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3) > MV interlock (AK-10.5)) **"kesici kapalıyken toprak kapatma reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/features/demo-data/buildTrendSeries.test.ts` (4 test)
+
+1. (buildTrendSeries (FR-6.1 / AK-6.1)) **"SOC'yi zaman kovasında ortalar"**
+2. (buildTrendSeries (FR-6.1 / AK-6.1)) **"gücü toplar (kW→MW)"**
+3. (buildTrendSeries (FR-6.1 / AK-6.1)) **"sıcaklıkta maks değeri alır"**
+4. (buildTrendSeries (FR-6.1 / AK-6.1)) **"boş veride boş seriler döner (AK-6.3)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/features/demo-data/demo-topology.test.ts` (2 test)
+
+1. (demo-topology (UC-2/T-6)) **"6 ünite tanımlar (fider A 1-3, B 4-6)"**
+2. (demo-topology (UC-2/T-6)) **"hücre aksiyonunu demo-MV komut adına eşler"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/features/demo-data/deriveKpis.test.ts` (3 test)
+
+1. (deriveKpis (FR-4.1 / AK-4.1)) **"ortalama SOC/SOH ve mod türetir"**
+2. (deriveKpis (FR-4.1 / AK-4.1) > deriveAlerts (FR-4.2 / AK-4.2)) **"severite sırasına göre sıralar ve alarmı öne alır"**
+3. (deriveKpis (FR-4.1 / AK-4.1) > deriveAlerts (FR-4.2 / AK-4.2)) **"uyarı yoksa boş döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/features/demo-data/mapFieldToMimicState.test.ts` (10 test)
+
+1. (fanOutUnits (FR-2.1)) **"verilen sayıda ünite üretir ve deterministiktir"**
+2. (fanOutUnits (FR-2.1)) **"PCS gücünü ünite sayısına böler"**
+3. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"tek konteyneri 6 üniteye fan-out eder"**
+4. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)"**
+5. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"PCS durum kodlarını eşler (2→chg, 3→dis)"**
+6. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"saha toplam gücünü korur (POI işaretli)"**
+7. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"hücre ΔV türetir (3.400−3.350 V → 50 mV)"**
+8. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"demo-MV telemetrisinden station pozisyonu okur"**
+9. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"MV telemetrisi yokken varsayılan kapalı + nominal kV"**
+10. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"boş konteynerde boş ünite listesi döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/lib/site-field.test.ts` (2 test)
+
+1. (postLoginDestination) **"fieldId varsa saha rotasına yönlendirir"**
+2. (postLoginDestination) **"fieldId boşsa açık hata döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/src/pages/DemoFieldPage.test.tsx` (2 test)
+
+1. (DemoFieldPage — boş/hata durumları (FR-1.3 / AK-1.3)) **"hata yanıtında hata mesajı gösterir"**
+2. (DemoFieldPage — boş/hata durumları (FR-1.3 / AK-1.3)) **"boş listede saha yerleşimini boş üniteyle render eder"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -814,7 +880,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/commands/src/operation-executor.test.ts` (22 test)
+### `packages/platform/commands/src/operation-executor.test.ts` (23 test)
 
 1. (OperationExecutor — manevra yürütme) **"kayıt yok → rejected; begin/kanal ÇALIŞMAZ"**
 2. (OperationExecutor — manevra yürütme) **"deviceTypes çözümleme + divideTotal: 200 kW → 2 PCS × 100 kW"**
@@ -834,10 +900,11 @@
 16. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"uzak adım (system) B1'de kanal YOK → fail (kademeli bozulma)"**
 17. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme) **"operasyon onFailure rollback: üst rollback listesi çalışır"**
 18. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"remoteChannel VARSA uzak adım kanala delege edilir (param aktarımıyla)"**
-19. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adım fail → operasyon failed (kademeli)"**
-20. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak rollback adımı: yalnızca BAŞARILI adımlar kompanse edilir (ok → rollback_step_ok)"**
-21. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"options.timer TÜM yerel ana adımlara uygulanır; rollback adımlarına UYGULANMAZ"**
-22. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"kayıt adımının kendi timer'ı options.timer'ı EZER"**
+19. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adıma timer iletilir (options.timer → 4. argüman)"**
+20. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak adım fail → operasyon failed (kademeli)"**
+21. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C)) **"uzak rollback adımı: yalnızca BAŞARILI adımlar kompanse edilir (ok → rollback_step_ok)"**
+22. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"options.timer TÜM yerel ana adımlara uygulanır; rollback adımlarına UYGULANMAZ"**
+23. (OperationExecutor — manevra yürütme > OperationExecutor — kalıcılık + timer > OperationExecutor — operasyon yürütme > OperationExecutor — uzak adım kanalı (Faz C) > OperationExecutor — UI zamanlı çalıştırma (§10)) **"kayıt adımının kendi timer'ı options.timer'ı EZER"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1214,13 +1281,15 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc/bsc-simulator.test.ts` (5 test)
+### `packages/simulators/src/bsc/bsc-simulator.test.ts` (7 test)
 
 1. (BSCSimulator (T4)) **"otomatik init: 6 tick sonrası NORMAL duruma geçer"**
 2. (BSCSimulator (T4)) **"START komutu → charge status bitleri (BSC_INFO 30037)"**
 3. (BSCSimulator (T4)) **"DISCHARGE komutu → discharge status bitleri (BSC_INFO 30037)"**
 4. (BSCSimulator (T4)) **"EMERGENCY komutu durumu EMERGENCY'ye geçirir"**
 5. (BSCSimulator (T4)) **"deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)"**
+6. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"şarjda SOC %97'yi aşamaz (clamp)"**
+7. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"deşarjda SOC %3,5'in altına inemez (clamp)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1285,6 +1354,24 @@
 8. (DcOutputSimulator > initial state > on/off via coils > voltage and current drift > overvoltage fault > energy counter > temperature) **"drifts toward target when on"**
 9. (DcOutputSimulator > initial state > on/off via coils > voltage and current drift > overvoltage fault > energy counter > temperature > setpoints via holding registers) **"reads back written setpoints"**
 10. (DcOutputSimulator > initial state > on/off via coils > voltage and current drift > overvoltage fault > energy counter > temperature > setpoints via holding registers) **"can change setpoints at runtime"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/demo-mv-station/demo-mv-simulator.test.ts` (5 test)
+
+1. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"başlangıç: kesiciler kapalı, topraklar açık (AK-9.1)"**
+2. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"kesici kapalıyken toprak kapanmaz (AK-9.2)"**
+3. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"kesici açıkken toprak kapanır, sonra kesici kapanmaz"**
+4. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"H01 toprak ayırıcısı her zaman kilitli"**
+5. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"toprak açma serbest"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/host-connector-target.test.ts` (3 test)
+
+1. (resolveBscPcsTarget (SPEC T-36 / AK-8.3/8.4)) **"env hedefi uygulanır (mevcut davranış)"**
+2. (resolveBscPcsTarget (SPEC T-36 / AK-8.3/8.4)) **"connector.sim.target env'i EZER (per-connector port)"**
+3. (resolveBscPcsTarget (SPEC T-36 / AK-8.3/8.4)) **"ikisi de tanımsızsa dosya hedefi korunur"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1574,6 +1661,15 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/ui/src/colors/tokensLight.test.ts` (4 test)
+
+1. (light tokens (nova paleti)) **"alarm token'ı nova light değerini taşır"**
+2. (light tokens (nova paleti)) **"tüm token'lar için sayısal karşılık üretilir"**
+3. (light tokens (nova paleti) > hexToRgbTriple) **"hex'i CSS üçlüsüne çevirir"**
+4. (light tokens (nova paleti) > hexToRgbTriple) **"geçersiz hex'te hata fırlatır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/ui/src/components/FieldCard/FieldCard.test.tsx` (3 test)
 
 1. (FieldCard @ui) **"saha adını ve metrikleri gösterir"**
@@ -1655,6 +1751,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/ui/src/icons/demo-icons.test.tsx` (3 test)
+
+1. (NOVA demo ikonları (T-32 / AK-7.2)) **"SCADA_ICONS'a nova* anahtarlarıyla kaydedilir"**
+2. (NOVA demo ikonları (T-32 / AK-7.2)) **"tam 19 nova ikonu içerir"**
+3. (NOVA demo ikonları (T-32 / AK-7.2)) **"mevcut Tabler ikonları korunur (Open-Closed)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/ui/src/logging/client-logger.test.ts` (10 test)
 
 1. (ClientLogger (T0.8)) **"batchSize dolunca tek send ile flush eder"**
@@ -1667,6 +1771,35 @@
 8. (ClientLogger (T0.8) > installGlobalErrorHandlers (T0.8)) **"window.onerror olayını logger'a iletir"**
 9. (ClientLogger (T0.8) > installGlobalErrorHandlers (T0.8)) **"unhandledrejection'ı logger'a iletir"**
 10. (ClientLogger (T0.8) > installGlobalErrorHandlers (T0.8)) **"temizleme fonksiyonu listener'ları kaldırır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ui/src/nova/DemoManeuverWizard.test.tsx` (3 test)
+
+1. (DemoManeuverWizard (FR-5.1/5.3/5.4)) **"hidden kaydı göstermez (AK-5.1)"**
+2. (DemoManeuverWizard (FR-5.1/5.3/5.4)) **"onay akışıyla scope + params gönderir (AK-5.3/5.4)"**
+3. (DemoManeuverWizard (FR-5.1/5.3/5.4)) **"kapsam temizlenince gönderim devre dışı (edge)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ui/src/nova/nova-components.test.tsx` (4 test)
+
+1. (DemoCellDialog (FR-4.4 / AK-4.4)) **"ölçü hücresinde V/Hz/I gösterir"**
+2. (DemoCellDialog (FR-4.4 / AK-4.4)) **"toprak kapalıyken kesici kapatmayı kilitler (AK-4.5)"**
+3. (DemoCellDialog (FR-4.4 / AK-4.4)) **"geçerli komutta onCommand'ı çağırır"**
+4. (DemoCellDialog (FR-4.4 / AK-4.4) > DemoUnitDetail (FR-4.3 / AK-4.3)) **"2 PCS ve 2 banka tablosu gösterir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ui/src/nova/nova-mimic.test.ts` (7 test)
+
+1. (nova-mimic saf yardımcılar (T-14)) **"computeEnergization fiderleri anahtarlardan hesaplar"**
+2. (nova-mimic saf yardımcılar (T-14)) **"bankSeverity eşiklerini uygular"**
+3. (nova-mimic saf yardımcılar (T-14)) **"tempFill sıcak/soğuk renk üretir"**
+4. (nova-mimic saf yardımcılar (T-14)) **"defaultUnitStatus arıza durumunu bildirir"**
+5. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars) **"token'lardan CSS değişkeni üretir"**
+6. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars) **"bir elemana uygular"**
+7. (nova-mimic saf yardımcılar (T-14) > applyNovaLightVars > createNovaMimic (AK-3.1)) **"6 ünite çizer ve destroy temizler"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2519,6 +2652,15 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `services/web-service/src/infrastructure/commands/load-maneuver-records.test.ts` (4 test)
+
+1. (loadTierManeuverRecords (SPEC T-41 / FR-10.1)) **"demo dosyaları yokken yalnız mevcut katalog yüklenir (AK-10.7)"**
+2. (loadTierManeuverRecords (SPEC T-41 / FR-10.1)) **"demo dosyaları mevcutsa eklemeli birleştirir (AK-10.1)"**
+3. (loadTierManeuverRecords (SPEC T-41 / FR-10.1)) **"bozuk demo dosyası fail-fast fırlatır"**
+4. (loadTierManeuverRecords (SPEC T-41 / FR-10.1)) **"hiçbir dosya yoksa boş döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `services/web-service/src/infrastructure/container-proxy/container-connection-telemetry-publisher.test.ts` (4 test)
 
 1. (ContainerConnectionTelemetryPublisher) **"connected → value 1 MANAGEMENT job'ı (deviceId=field)"**
@@ -2629,14 +2771,16 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/container-session/tunnel-maneuver-channel.test.ts` (6 test)
+### `services/web-service/src/infrastructure/container-session/tunnel-maneuver-channel.test.ts` (8 test)
 
 1. (TunnelManeuverChannel (C1)) **"connected + 200 yanıt → ok"**
-2. (TunnelManeuverChannel (C1)) **"bağlantı connected değilse system_unreachable — stream açılmaz"**
-3. (TunnelManeuverChannel (C1)) **"stream: POST /api/maneuvers/:name/execute + params gövdesi + oturum cookie"**
-4. (TunnelManeuverChannel (C1)) **"upstream 404 → ok:false + reason gövdeden"**
-5. (TunnelManeuverChannel (C1)) **"stream hatası → ok:false (tunnel_stream_failed)"**
-6. (TunnelManeuverChannel (C1)) **"oturum yoksa programatik açılır; varsa yeniden kullanılır"**
+2. (TunnelManeuverChannel (C1)) **"timer verilince gövdeye eklenir (additive)"**
+3. (TunnelManeuverChannel (C1)) **"timer YOKKEN gövde yalnızca params (mevcut davranış)"**
+4. (TunnelManeuverChannel (C1)) **"bağlantı connected değilse system_unreachable — stream açılmaz"**
+5. (TunnelManeuverChannel (C1)) **"stream: POST /api/maneuvers/:name/execute + params gövdesi + oturum cookie"**
+6. (TunnelManeuverChannel (C1)) **"upstream 404 → ok:false + reason gövdeden"**
+7. (TunnelManeuverChannel (C1)) **"stream hatası → ok:false (tunnel_stream_failed)"**
+8. (TunnelManeuverChannel (C1)) **"oturum yoksa programatik açılır; varsa yeniden kullanılır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

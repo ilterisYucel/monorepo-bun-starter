@@ -1,0 +1,102 @@
+/* NOVA mimic stilleri (SPEC K4). Tüm renkler `--nm-*` değişkenleri;
+   applyNovaLightVars :root'a COLORS_LIGHT'tan yazar. Normal ekipman gri,
+   renk yalnızca anormal durumda (ISA-101). */
+.nm {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: "Barlow Semi Condensed", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+}
+
+.nm text { font-family: inherit; }
+.nm .nm-t { font-size: 10.5px; fill: var(--nm-muted); font-weight: 500; }
+.nm .nm-t8 { font-size: 9px; fill: var(--nm-dim); font-weight: 600; letter-spacing: .04em; }
+.nm .nm-th { font-size: 13px; fill: var(--nm-fg); font-weight: 700; letter-spacing: .02em; }
+.nm .nm-tv { font-family: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 10.2px; fill: var(--nm-fg); }
+.nm .nm-tvm { font-family: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 10.2px; fill: var(--nm-muted); }
+.nm .nm-tst { font-size: 10px; font-weight: 700; letter-spacing: .05em; fill: var(--nm-fg); }
+.nm .nm-ust { font-size: 10px; font-weight: 700; letter-spacing: .07em; fill: var(--nm-dim); }
+.nm .nm-ust.nm-sev-cold { fill: var(--nm-cold); }
+.nm .nm-ust.nm-sev-alarm { fill: var(--nm-alarm); }
+.nm .nm-ust.nm-sev-warn { fill: var(--nm-warn); }
+.nm .nm-ust.nm-sev-maint { fill: var(--nm-maint); }
+
+/* conductors */
+.nm .nm-cond { fill: none; stroke: var(--nm-dead); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.nm .nm-cond.nm-live { stroke: var(--nm-live); stroke-dasharray: none; }
+.nm .nm-cond.nm-earthed { stroke: var(--nm-maint); stroke-dasharray: 2 3; }
+.nm .nm-mv { stroke-width: 2.4; }
+.nm .nm-bus { stroke-width: 3.4; }
+.nm .nm-flow { fill: none; stroke: var(--nm-live); stroke-width: 2.6; stroke-dasharray: 2 7; stroke-linecap: round; opacity: 0; }
+.nm .nm-flow.nm-on { opacity: .9; animation: nm-flow .8s linear infinite; }
+.nm .nm-flow.nm-on.nm-rev { animation-direction: reverse; }
+@keyframes nm-flow { to { stroke-dashoffset: -9; } }
+
+/* station */
+.nm .nm-cell { fill: var(--nm-panel2); stroke: var(--nm-line); stroke-width: 1; }
+.nm .nm-cellhit { fill: transparent; stroke: transparent; stroke-width: 2; cursor: pointer; outline: none; }
+.nm .nm-cellhit:hover, .nm .nm-cellhit:focus-visible { stroke: var(--nm-sel); }
+.nm .nm-vt { fill: none; stroke: var(--nm-live); stroke-width: 1.3; }
+.nm .nm-ct { fill: none; stroke: var(--nm-live); stroke-width: 1.3; }
+.nm .nm-poi { fill: var(--nm-sym); stroke: var(--nm-live); stroke-width: 1.6; }
+.nm .nm-esl { stroke: var(--nm-dim); stroke-width: 1.6; stroke-linecap: round; }
+.nm .nm-esd { fill: var(--nm-dim); }
+.nm .nm-esw:not(.nm-closed) .nm-bc, .nm .nm-esw.nm-closed .nm-bo { display: none; }
+.nm .nm-esw.nm-closed .nm-esl { stroke: var(--nm-maint); stroke-width: 2; }
+.nm .nm-esw.nm-closed .nm-esd { fill: var(--nm-maint); }
+
+/* switches */
+.nm .nm-sw .nm-bd { stroke: var(--nm-live); stroke-width: 1.4; fill: var(--nm-live); }
+.nm .nm-sw .nm-tm { stroke: var(--nm-live); stroke-width: 1.6; }
+.nm .nm-sw.nm-open .nm-bd { fill: var(--nm-sym); }
+.nm .nm-sw.nm-tripped .nm-bd { fill: var(--nm-sym); stroke: var(--nm-warn); stroke-width: 2; }
+.nm .nm-sw.nm-tripped { animation: nm-blink 1.2s steps(2, start) infinite; }
+.nm .nm-lbs .nm-bl { stroke: var(--nm-live); stroke-width: 2; stroke-linecap: round; }
+.nm .nm-lbs .nm-dot { fill: var(--nm-live); }
+.nm .nm-lbs.nm-open .nm-bc, .nm .nm-lbs:not(.nm-open) .nm-bo { display: none; }
+.nm .nm-es line { stroke: var(--nm-maint); stroke-width: 1.6; fill: none; }
+
+/* equipment */
+.nm .nm-cont { fill: var(--nm-panel2); stroke: var(--nm-muted); stroke-width: 1.3; }
+.nm .nm-cast { fill: var(--nm-muted); }
+.nm .nm-div { stroke: var(--nm-muted); stroke-width: 1; }
+.nm .nm-pcsbox { fill: var(--nm-panel2); stroke: var(--nm-muted); stroke-width: 1.2; transition: stroke .3s; }
+.nm .nm-rmubox { fill: none; stroke: var(--nm-line); stroke-width: 1; stroke-dasharray: 3 2; }
+.nm .nm-isym { fill: none; stroke: var(--nm-muted); stroke-width: 1; }
+.nm .nm-trc { fill: none; stroke: var(--nm-dead); stroke-width: 1.6; }
+.nm .nm-trc.nm-live { stroke: var(--nm-live); }
+.nm .nm-trc.nm-earthed { stroke: var(--nm-maint); }
+.nm .nm-bankfill { fill: transparent; transition: fill .6s; }
+.nm .nm-bankfill.nm-sev-warn { fill: color-mix(in srgb, var(--nm-warn) 15%, transparent); }
+.nm .nm-bankfill.nm-sev-alarm { fill: color-mix(in srgb, var(--nm-alarm) 17%, transparent); }
+.nm .nm-bankfill.nm-sev-cold { fill: color-mix(in srgb, var(--nm-cold) 15%, transparent); }
+.nm .nm-bo { fill: none; stroke-width: 2; opacity: 0; }
+.nm .nm-bo.nm-sev-warn { stroke: var(--nm-warn); opacity: 1; }
+.nm .nm-bo.nm-sev-cold { stroke: var(--nm-cold); opacity: 1; }
+.nm .nm-bo.nm-sev-alarm { stroke: var(--nm-alarm); opacity: 1; animation: nm-pulse 1.4s ease-in-out infinite; }
+.nm .nm-socbg { fill: var(--nm-line2); }
+.nm .nm-socfg { fill: var(--nm-live); transition: width .6s; }
+.nm .nm-rack { stroke: var(--nm-line); stroke-width: .8; }
+.nm .nm-rack.nm-sev-cold { stroke: var(--nm-cold); stroke-width: 1.6; }
+.nm .nm-rack.nm-sev-alarm { stroke: var(--nm-alarm); stroke-width: 2; }
+.nm .nm-pcs.nm-fault .nm-pcsbox { stroke: var(--nm-alarm); stroke-width: 2; fill: color-mix(in srgb, var(--nm-alarm) 12%, var(--nm-panel2)); }
+.nm .nm-pcs.nm-fault .nm-tst { fill: var(--nm-alarm); }
+.nm .nm-pcs.nm-lim .nm-pcsbox { stroke: var(--nm-warn); stroke-width: 1.8; }
+.nm .nm-pcs.nm-lim .nm-tst { fill: var(--nm-warn); }
+.nm .nm-pcs.nm-off { opacity: .5; }
+
+/* units */
+.nm .nm-unit { cursor: pointer; outline: none; }
+.nm .nm-hit { fill: transparent; }
+.nm .nm-selbox { fill: none; stroke: var(--nm-sel); stroke-width: 1.6; opacity: 0; }
+.nm .nm-unit:hover .nm-selbox { opacity: .35; }
+.nm .nm-unit:focus-visible .nm-selbox { opacity: .7; }
+.nm .nm-unit.nm-sel .nm-selbox { opacity: 1; }
+.nm .nm-unit.nm-maint .nm-cont, .nm .nm-unit.nm-maint .nm-pcsbox { stroke-dasharray: 4 3; }
+.nm .nm-hatch { opacity: 0; }
+.nm .nm-unit.nm-maint .nm-hatch { opacity: 1; }
+.nm .nm-hatchline { stroke: var(--nm-maint); stroke-width: 1.2; opacity: .35; }
+
+@keyframes nm-pulse { 50% { opacity: .35; } }
+@keyframes nm-blink { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .nm * { animation: none !important; transition: none !important; } }

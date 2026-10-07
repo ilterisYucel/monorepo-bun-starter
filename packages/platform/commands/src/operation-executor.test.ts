@@ -527,6 +527,20 @@ describe("OperationExecutor — uzak adım kanalı (Faz C)", () => {
     );
   });
 
+  it("uzak adıma timer iletilir (options.timer → 4. argüman)", async () => {
+    const { executor, remoteExecute } = remoteHarness();
+    const result = await executor.execute("operation", "field_charge", {}, {
+      timer: { durationSeconds: 5 },
+    });
+    expect(result.status).toBe("completed");
+    expect(remoteExecute).toHaveBeenCalledWith(
+      "container-1",
+      "bsc_prepare",
+      expect.any(Object),
+      { durationSeconds: 5 },
+    );
+  });
+
   it("uzak adım fail → operasyon failed (kademeli)", async () => {
     const { executor, remoteExecute } = remoteHarness();
     remoteExecute.mockResolvedValue({ ok: false, reason: "maneuver_not_found" });

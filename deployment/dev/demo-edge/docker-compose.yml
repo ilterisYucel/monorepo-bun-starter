@@ -1,0 +1,446 @@
+name: demo-integration
+
+# DEMO-FIELD — yerel demo/entegrasyon stack'i (SPEC DEMO-FIELD UC-11 dev karşılığı).
+#
+# Düzen AWS `deployment/aws/demo-edge` ile birebir: UI'suz konteyner + field
+# backend + demo-field SPA.
+#
+#   UI'suz konteyner: container-web YOK (timescaledb/redis/device/data/web-service)
+#   demo-field UI:     field-web (apps/demo-field nginx, :8088)
+#
+# Network düzeni: device-service mount edilen `service.json`'dan `timescaledb`/
+# `redis` host'larını okur → her tier KENDİ network'ünde bu alias'ları taşır
+# (aynı isim iki tier'da çakışmasın diye tier'lar ayrı network'te). Çapraz
+# katman trafiği (BSC→PCS connector, konteyner→field uplink) `demo-bridge`'te.
+#
+# Config mount'ları mevcut dev dizinlerine bakar (çoğaltma yok).
+# .env: deployment/dev/demo-edge/.env  (şablon: deployment/dev/demo-edge/.env.example)
+
+services:
+  # ─────────────────────────── KONTEYNER (UI'suz) ───────────────────────────
+  container-timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: demo-container-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=32MB
+      - -ceffective_cache_size=384MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    volumes:
+      - demo-container-timescale-data:/var/lib/postgresql/data
+    networks:
+      container-network:
+        aliases: [timescaledb]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: demo-container-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    volumes:
+      - demo-container-redis-data:/data
+    networks:
+      container-network:
+        aliases: [redis]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *logging
+
+  container-device-service:
+    build:
+      context: ../../../
+      dockerfile: services/device-service/deployment/Dockerfile.dev
+    container_name: demo-container-device-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      POSTGRES_HOST: container-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+    volumes:
+      - ../../../services/device-service/src:/app/services/device-service/src
+      - ../../../services/device-service/run.ts:/app/services/device-service/run.ts
+      - ../container/device-configs:/app/config-docker:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/simulators/src:/app/packages/simulators/src
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+      - demo-bridge
+    logging: *logging
+
+  container-data-service:
+    build:
+      context: ../../../
+      dockerfile: services/data-service/deployment/Dockerfile.dev
+    container_name: demo-container-data-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: container-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    volumes:
+      - ../../../services/data-service/src:/app/services/data-service/src
+      - ../../../services/data-service/run.ts:/app/services/data-service/run.ts
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+    logging: *logging
+
+  container-web-service:
+    build:
+      context: ../../../
+      dockerfile: services/web-service/deployment/Dockerfile.dev
+    container_name: demo-container-web-service
+    environment:
+      NODE_ENV: development
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      MFA_ENABLED: ${MFA_ENABLED:-false}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: container-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-true}
+      FIELD_WS_URL: ${FIELD_WS_URL:-ws://field-web-service:5002/ws/container}
+      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      # Tünel HTTP köprüsü hedefleri (session/stream + komut proxy):
+      # field → konteyner kontrol frame'leri bu upstream'e iletilir.
+      TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container-web-service:5001}
+      TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://container-web-service:5001}
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../../../services/web-service/src:/app/services/web-service/src
+      - ../../../services/web-service/run.ts:/app/services/web-service/run.ts
+      - ../container/device-configs:/app/config-docker:ro
+      - ../container/maneuvers:/app/maneuver-config:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../packages/result/src:/app/packages/result/src
+      - ../../../packages/platform/logging/src:/app/packages/platform/logging/src
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - container-network
+      - demo-bridge
+    logging: *logging
+
+  # ─────────────────────────────── FIELD ────────────────────────────────────
+  field-timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: demo-field-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    volumes:
+      - demo-field-timescale-data:/var/lib/postgresql/data
+    networks:
+      field-network:
+        aliases: [timescaledb]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *logging
+
+  field-redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: demo-field-redis
+    command: >
+      redis-server
+      --maxmemory 64mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    volumes:
+      - demo-field-redis-data:/data
+    networks:
+      field-network:
+        aliases: [redis]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *logging
+
+  field-device-service:
+    build:
+      context: ../../../
+      dockerfile: services/device-service/deployment/Dockerfile.dev
+    container_name: demo-field-device-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+    volumes:
+      - ../../../services/device-service/src:/app/services/device-service/src
+      - ../../../services/device-service/run.ts:/app/services/device-service/run.ts
+      - ../field/device-configs:/app/config-field:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/simulators/src:/app/packages/simulators/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+      - demo-bridge
+    logging: *logging
+
+  # Field-tier telemetri tüketicisi — queue_write_telemetry → field timescale
+  # (unified latest/downsampled buradan beslenir).
+  field-data-service:
+    build:
+      context: ../../../
+      dockerfile: services/data-service/deployment/Dockerfile.dev
+    container_name: demo-field-data-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: field-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+    volumes:
+      - ../../../services/data-service/src:/app/services/data-service/src
+      - ../../../services/data-service/run.ts:/app/services/data-service/run.ts
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging: *logging
+
+  field-management-service:
+    build:
+      context: ../../../
+      dockerfile: services/management-service/deployment/Dockerfile.dev
+    container_name: demo-field-management-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      FIELD_WEB_SERVICE_URL: ${FIELD_WEB_SERVICE_URL:-http://field-web-service:5002}
+      FIELD_ID: ${FIELD_ID:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
+    volumes:
+      - ../../../services/management-service/src:/app/services/management-service/src
+      - ../../../services/management-service/run.ts:/app/services/management-service/run.ts
+      - ../field/rules:/app/config:ro
+      - ../field/device-configs:/app/config-field:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/result/src:/app/packages/result/src
+      - ../../../packages/platform/messaging/src:/app/packages/platform/messaging/src
+      - ../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../../../packages/tamper-logger/src:/app/packages/tamper-logger/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-device-service:
+        condition: service_started
+    networks:
+      - field-network
+    logging: *logging
+
+  field-web-service:
+    build:
+      context: ../../../
+      dockerfile: services/web-service/deployment/Dockerfile.dev
+    container_name: demo-field-web-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      PORT: 5002
+      HOST: 0.0.0.0
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+      FIELD_NAME: ${FIELD_NAME:-Saha Demo}
+      MFA_ENABLED: ${MFA_ENABLED:-false}
+      JWT_SECRET: ${FIELD_JWT_SECRET:?FIELD_JWT_SECRET zorunlu (>=32 karakter)}
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "1 day"
+      TIMESCALE_RETENTION_AFTER: "90 days"
+      FIELD_UPLINK_ENABLED: ${FIELD_UPLINK_ENABLED:-false}
+      FIELD_UPLINK_WS_URL: ${FIELD_UPLINK_WS_URL:-}
+      FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
+      TUNNEL_FIELD_API_UPSTREAM: ${TUNNEL_FIELD_API_UPSTREAM:-http://field-web-service:5002}
+      TUNNEL_FIELD_STATIC_UPSTREAM: ${TUNNEL_FIELD_STATIC_UPSTREAM:-http://field-web:80}
+    ports:
+      - "5002:5002"
+    volumes:
+      - ../../../services/web-service/src:/app/services/web-service/src
+      - ../../../services/web-service/run.ts:/app/services/web-service/run.ts
+      - ../field/device-configs:/app/config-field:ro
+      - ../field/maneuvers:/app/maneuver-config:ro
+      - ../../../packages/core/src:/app/packages/core/src
+      - ../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../packages/result/src:/app/packages/result/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - field-network
+      - demo-bridge
+    logging: *logging
+
+  # demo-field SPA (nginx) — AWS `field-web` slotunun birebir dev karşılığı.
+  field-web:
+    build:
+      context: ../../../
+      dockerfile: apps/demo-field/deployment/Dockerfile
+      args:
+        VITE_FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+    container_name: demo-field-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "8088:80"
+    depends_on:
+      field-web-service:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging: *logging
+
+volumes:
+  demo-container-timescale-data:
+  demo-container-redis-data:
+  demo-field-timescale-data:
+  demo-field-redis-data:
+
+networks:
+  container-network:
+    driver: bridge
+  field-network:
+    driver: bridge
+  demo-bridge:
+    driver: bridge

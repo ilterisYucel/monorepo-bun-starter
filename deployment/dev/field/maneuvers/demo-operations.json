@@ -1,0 +1,127 @@
+{
+  "operations": [
+    {
+      "name": "charge",
+      "label": "Şarj",
+      "description": "DEMO — BSC şarj modu (uzak) + PCS şarj setpointi (yerel). Güç iki katmana da uygulanır; SOC yükselir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        { "system": "container-1", "maneuver": "bsc_charge" },
+        { "maneuver": "pcs_charge" }
+      ],
+      "rollback": [
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "discharge",
+      "label": "Deşarj",
+      "description": "DEMO — BSC deşarj modu (uzak) + PCS deşarj setpointi (yerel). Güç iki katmana da uygulanır; SOC düşer.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        { "system": "container-1", "maneuver": "bsc_discharge" },
+        { "maneuver": "pcs_discharge" }
+      ],
+      "rollback": [
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "full_charge",
+      "label": "Tam Şarj",
+      "description": "DEMO — %97'ye şarj; SOC eşiği kuralı dinlenmeye (standby) geçirir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        { "system": "container-1", "maneuver": "bsc_charge" },
+        { "maneuver": "pcs_charge" }
+      ],
+      "rollback": [
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "full_discharge",
+      "label": "Tam Deşarj",
+      "description": "DEMO — %3,5'e deşarj; SOC eşiği kuralı dinlenmeye (standby) geçirir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        { "system": "container-1", "maneuver": "bsc_discharge" },
+        { "maneuver": "pcs_discharge" }
+      ],
+      "rollback": [
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "calibration",
+      "label": "SOC Kalibrasyonu",
+      "description": "DEMO — tam şarj → dinlenme → tam deşarj → dinlenme (kapasite/SOH ölçümü) → hedef SOC.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        { "system": "container-1", "maneuver": "bsc_charge" },
+        { "maneuver": "pcs_charge" },
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" },
+        { "system": "container-1", "maneuver": "bsc_discharge" },
+        { "maneuver": "pcs_discharge" },
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" }
+      ],
+      "ui": {
+        "inputs": [
+          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+        ],
+        "hidden": false
+      }
+    },
+    {
+      "name": "standby",
+      "label": "Bekleme",
+      "description": "DEMO — aktif manevrayı durdurur: PCS setpoint 0 + BSC stop.",
+      "mode": "sequential",
+      "onFailure": "continue",
+      "steps": [
+        { "maneuver": "pcs_stop" },
+        { "system": "container-1", "maneuver": "bsc_stop" }
+      ],
+      "ui": { "hidden": false }
+    }
+  ]
+}

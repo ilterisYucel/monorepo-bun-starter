@@ -1,0 +1,230 @@
+{
+  "deviceId": "CONTROL-PANEL-IO-1",
+  "name": "Control Panel IO 1",
+  "manufacturer": "Generic",
+  "model": "CP-IO-01",
+  "protocol": "MODBUS",
+  "type": "control-panel-io",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 15535,
+    "slaveId": 1
+  },
+  "telemetry": [
+    {
+      "name": "Battery Door Open",
+      "description": "Batarya kapısı açık",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Panel Door Open",
+      "description": "Panel kapısı açık",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Battery Room Light",
+      "description": "Batarya odası ışığı",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Panel Room Light",
+      "description": "Panel odası ışığı",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "System OK",
+      "description": "FSS sağlıklı (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fault",
+      "description": "FSS arıza (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Discharged",
+      "description": "Söndürme aktive edildi (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "2nd Stage",
+      "description": "2. aşama aktive (EP203 kuru kontak — K5)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "commands": {
+    "battery_light_on": {
+      "label": "Batarya Işığı AÇ",
+      "telemetries": [
+        {
+          "name": "Battery Room Light",
+          "value": true
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Battery Room Light",
+            "expect": true
+          }
+        ]
+      }
+    },
+    "battery_light_off": {
+      "label": "Batarya Işığı KAPAT",
+      "telemetries": [
+        {
+          "name": "Battery Room Light",
+          "value": false
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Battery Room Light",
+            "expect": false
+          }
+        ]
+      }
+    },
+    "panel_light_on": {
+      "label": "Panel Işığı AÇ",
+      "telemetries": [
+        {
+          "name": "Panel Room Light",
+          "value": true
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Panel Room Light",
+            "expect": true
+          }
+        ]
+      }
+    },
+    "panel_light_off": {
+      "label": "Panel Işığı KAPAT",
+      "telemetries": [
+        {
+          "name": "Panel Room Light",
+          "value": false
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "Panel Room Light",
+            "expect": false
+          }
+        ]
+      }
+    }
+  },
+  "alarms": [
+    {
+      "telemetry": "Battery Door Open",
+      "severity": "warning",
+      "description": "Batarya kapısı açık"
+    },
+    {
+      "telemetry": "Panel Door Open",
+      "severity": "warning",
+      "description": "Panel kapısı açık"
+    },
+    {
+      "telemetry": "System OK",
+      "severity": "warning",
+      "description": "FSS sağlıklı sinyali kayıp (K5)",
+      "activeLow": true
+    },
+    {
+      "telemetry": "Fault",
+      "severity": "error",
+      "description": "FSS arıza (K5)"
+    },
+    {
+      "telemetry": "Discharged",
+      "severity": "error",
+      "description": "Söndürme aktive edildi (K5)"
+    },
+    {
+      "telemetry": "2nd Stage",
+      "severity": "error",
+      "description": "FSS 2. aşama aktive (K5)"
+    }
+  ],
+  "transport": {
+    "kind": "simulator",
+    "type": "control-panel-io"
+  }
+}

@@ -50,6 +50,7 @@ import {
   TbCoins,
 } from "react-icons/tb";
 import type { ScadaIconName } from "./types";
+import { NOVA_ICONS } from "./demo-icons";
 
 export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   dashboard:         TbLayoutDashboard,
@@ -104,4 +105,24 @@ export const SCADA_ICONS: Record<ScadaIconName, IconType> = {
   map:               TbMap2,
   notification:      TbBell,
   market:            TbCoins,
+  // NOVA demo ikonları (SPEC T-31) — mevcut Tabler ikonları DEĞİŞMEZ.
+  novaBolt:          NOVA_ICONS.bolt,
+  novaChg:           NOVA_ICONS.chg,
+  novaDis:           NOVA_ICONS.dis,
+  novaFullChg:       NOVA_ICONS.fullChg,
+  novaFullDis:       NOVA_ICONS.fullDis,
+  novaRest:          NOVA_ICONS.rest,
+  novaStby:          NOVA_ICONS.stby,
+  novaCalib:         NOVA_ICONS.calib,
+  novaStop:          NOVA_ICONS.stop,
+  novaHealth:        NOVA_ICONS.health,
+  novaThermo:        NOVA_ICONS.thermo,
+  novaUnits:         NOVA_ICONS.units,
+  novaBell:          NOVA_ICONS.bell,
+  novaGrid:          NOVA_ICONS.grid,
+  novaMeter:         NOVA_ICONS.meter,
+  novaBreaker:       NOVA_ICONS.breaker,
+  novaEarth:         NOVA_ICONS.earth,
+  novaCt:            NOVA_ICONS.ct,
+  novaBattery:       NOVA_ICONS.battery,
 };

@@ -30,3 +30,6 @@ export * from "./i18n"
 
 // Logging (ClientLogger — Faz 0 T0.8)
 export * from "./logging"
+
+// NOVA demo bileşenleri (SPEC K2)
+export * from "./nova"

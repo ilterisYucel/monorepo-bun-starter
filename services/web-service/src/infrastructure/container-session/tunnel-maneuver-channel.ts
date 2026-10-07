@@ -72,6 +72,7 @@ export class TunnelManeuverChannel implements IRemoteCommandChannel {
     system: string,
     maneuver: string,
     params?: Record<string, unknown>,
+    timer?: { durationSeconds: number },
   ): Promise<{ ok: boolean; reason?: string }> {
     const state = this.containerProxy.connectionStatus().get(system);
     if (state !== "connected") {
@@ -110,7 +111,10 @@ export class TunnelManeuverChannel implements IRemoteCommandChannel {
         },
         raw: sink,
         requestBody: Buffer.from(
-          JSON.stringify({ params: params ?? {} }),
+          JSON.stringify({
+            params: params ?? {},
+            ...(timer !== undefined ? { timer } : {}),
+          }),
         ),
       });
       const collected = await sink.completed();

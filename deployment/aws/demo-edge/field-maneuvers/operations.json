@@ -1,0 +1,120 @@
+{
+  "operations": [
+    {
+      "name": "field_charge",
+      "label": "Saha Şarj",
+      "description": "Konteyner BSC hazırlığı (UZAK — güç paramı YOK, K12) + yerel PCS setpoint (S06 ← −powerKw)",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "system": "container-2",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_charge",
+          "params": {
+            "powerKw": 200
+          }
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        },
+        {
+          "system": "container-2",
+          "maneuver": "bsc_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "field_discharge",
+      "label": "Saha Deşarj",
+      "description": "Konteyner BSC hazırlığı (UZAK) + yerel PCS deşarj setpoint (S06 ← +powerKw)",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "system": "container-2",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_discharge",
+          "params": {
+            "powerKw": 200
+          }
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        },
+        {
+          "system": "container-2",
+          "maneuver": "bsc_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "field_maintenance",
+      "label": "Saha Bakım Modu",
+      "description": "FL-11: uzak konteyner bakım kapatması + yerel PCS stop",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "fl10_maintenance_shutdown"
+        },
+        {
+          "maneuver": "pcs_stop"
+        }
+      ]
+    }
+  ]
+}

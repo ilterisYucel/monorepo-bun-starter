@@ -59,6 +59,24 @@ describe("TunnelManeuverChannel (C1)", () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it("timer verilince gövdeye eklenir (additive)", async () => {
+    const { channel, startHttpStream } = makeDeps();
+    await channel.execute("container-1", "bsc_charge", { powerKw: 100 }, { durationSeconds: 5 });
+    const body = JSON.parse(
+      String((startHttpStream.mock.calls[0]![0] as { requestBody: Buffer }).requestBody),
+    );
+    expect(body).toEqual({ params: { powerKw: 100 }, timer: { durationSeconds: 5 } });
+  });
+
+  it("timer YOKKEN gövde yalnızca params (mevcut davranış)", async () => {
+    const { channel, startHttpStream } = makeDeps();
+    await channel.execute("container-1", "bsc_prepare", { powerKw: 100 });
+    const body = JSON.parse(
+      String((startHttpStream.mock.calls[0]![0] as { requestBody: Buffer }).requestBody),
+    );
+    expect(body).toEqual({ params: { powerKw: 100 } });
+  });
+
   it("bağlantı connected değilse system_unreachable — stream açılmaz", async () => {
     const deps = makeDeps({ status: "stale" });
     const result = await deps.channel.execute("container-1", "bsc_prepare");
