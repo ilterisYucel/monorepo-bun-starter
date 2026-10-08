@@ -27,6 +27,7 @@ export { DemoPackDetail } from "./DemoPackDetail";
 export type { DemoPackDetailProps } from "./DemoPackDetail";
 export {
   packData,
+  packFill,
   rackPacks,
   packMarkers,
   rackRegisters,

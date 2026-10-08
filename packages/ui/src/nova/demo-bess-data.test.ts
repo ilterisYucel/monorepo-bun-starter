@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CELLS_PER_PACK, PACKS_PER_RACK, packData, packMarkers, rackPacks, rackRegisters, tcMap18 } from "./demo-bess-data";
+import { CELLS_PER_PACK, PACKS_PER_RACK, packData, packFill, packMarkers, rackPacks, rackRegisters, tcMap18 } from "./demo-bess-data";
 
 const input = { no: 3, soc: 60, soh: 98, v: 1300, temp: 24, cellsSeries: 408 };
 
@@ -36,10 +36,21 @@ describe("demo-bess-data (UC-4, D-1 türetim)", () => {
     expect(m.tMaxPack).toBeLessThanOrEqual(17);
   });
 
-  it("rack register tablosu ~30 satır ve değerler dolu", () => {
+  it("rack register tablosu referans listesi (30 satır) + adresler", () => {
     const rows = rackRegisters(input, 3, { soc: 60, soh: 98, vdc: 1300, chgLimitKw: 160, disLimitKw: 160 });
-    expect(rows.length).toBeGreaterThanOrEqual(20);
+    expect(rows).toHaveLength(30);
     expect(rows.every((r) => r.value.length > 0)).toBe(true);
-    expect(rows.some((r) => r.name === "SOC")).toBe(true);
+    expect(rows.some((r) => r.name === "Rack SOC")).toBe(true);
+    // base = 30170 + 150·(3−1) = 30470; offset 50 → 30520
+    expect(rows.find((r) => r.name === "Rack State")?.address).toBe("30520");
+    expect(rows.find((r) => r.name === "Rack SOC")?.address).toBe("30528");
+  });
+
+  it("packFill bant altı mavi, üstü kırmızı, ortada kademeli", () => {
+    expect(packFill(10, 19, 25)).toContain("--nm-cold-rgb");
+    expect(packFill(40, 19, 25)).toContain("--nm-hot-rgb");
+    const mid = packFill(22, 19, 25);
+    expect(mid).toContain("--nm-hot-rgb");
+    expect(mid).not.toEqual(packFill(24, 19, 25));
   });
 });

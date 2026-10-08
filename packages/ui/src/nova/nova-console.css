@@ -574,9 +574,18 @@ pre.eq { font-family: var(--mono); font-size: 12.5px; line-height: 1.7; backgrou
 /* ── Pack detail ── */
 .link { background: none; border: 0; padding: 0; color: var(--nm-sel); cursor: pointer; font-weight: 600; font-size: inherit; }
 .packdet { display: grid; gap: 8px; border-top: 1px solid var(--nm-line2); padding-top: 10px; }
+.rackdet { display: grid; gap: 10px; }
+.rackgrid { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 14px; align-items: start; }
 .pkrow { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 14px; align-items: start; }
-.pkcol { width: 100%; max-width: 230px; height: auto; }
+.pkcol { width: 100%; max-width: 250px; height: auto; }
+.pkcol text { font-family: var(--sans); fill: var(--nm-fg); }
+.pkcol .bx-t8 { font-size: 9px; fill: var(--nm-muted); font-weight: 600; }
+.pkcol .bx-t8.hot { fill: var(--nm-alarm); }
+.pkcol .bx-t8.cold { fill: var(--nm-cold); }
+.pkcol .bx-pk { stroke: var(--nm-line); stroke-width: 0.8; }
+.pkcol .bx-bpu { fill: var(--nm-panel2); stroke: var(--nm-line); }
 .pkcol .pkclk { cursor: pointer; }
+.pkcol .pkclk.sel .bx-pk { stroke: var(--nm-sel); stroke-width: 2.4; }
 .pkcol .pkclk:hover .bx-pk { stroke: var(--nm-sel); }
 .cellbars { width: 100%; height: auto; }
 .cellbars text { font-family: var(--mono); font-size: 9px; fill: var(--nm-muted); }
@@ -587,6 +596,8 @@ pre.eq { font-family: var(--mono); font-size: 12.5px; line-height: 1.7; backgrou
 .tsens { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
 .tsens span { font-family: var(--mono); font-size: 13px; border: 1px solid var(--nm-line2); border-radius: 4px; padding: 6px 8px; }
 .tsens small { display: block; font-family: var(--sans); font-size: 10.5px; color: var(--nm-muted); }
-.tcmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; max-width: 220px; }
+.tcmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; max-width: 200px; }
 .tcmap i { font-style: normal; font-family: var(--mono); font-size: 10px; text-align: center; padding: 3px 0; border-radius: 2px; border: 1px solid var(--nm-line2); }
-@media (max-width: 860px) { .pkrow { grid-template-columns: minmax(0, 1fr); } }
+.rackgrid h4, .rackdet h4 { margin-top: 12px; }
+.rackgrid > div > h4:first-child { margin-top: 0; }
+@media (max-width: 860px) { .pkrow, .rackgrid { grid-template-columns: minmax(0, 1fr); } }

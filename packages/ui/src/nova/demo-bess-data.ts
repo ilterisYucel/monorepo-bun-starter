@@ -96,6 +96,21 @@ export function rackPacks(input: PackInput): PackData[] {
   return Array.from({ length: PACKS_PER_RACK }, (_, k) => packData(input, k));
 }
 
+/**
+ * Referans `packFill` (bess-scada.js): sıcaklık bandına göre kademeli
+ * `rgba` dolgu — bant altı mavi, üstü kırmızı, ortada hot-rgb rampası.
+ * Renk değişkenleri `--nm-cold-rgb` / `--nm-hot-rgb`.
+ */
+export function packFill(t: number, lo: number, hi: number): string {
+  if (t < lo) {
+    return `rgba(var(--nm-cold-rgb),${Math.min(0.9, 0.4 + (lo - t) * 0.12).toFixed(2)})`;
+  }
+  if (t > hi) {
+    return `rgba(var(--nm-hot-rgb),${Math.min(0.95, 0.45 + (t - hi) * 0.1).toFixed(2)})`;
+  }
+  return `rgba(var(--nm-hot-rgb),${(0.06 + (0.3 * (t - lo)) / (hi - lo)).toFixed(2)})`;
+}
+
 /** JF1 TC map: 6 seviye × 3 pozisyon = 18 sensör (deterministik türetim). */
 export const TC_LEVELS = 6;
 export const TC_COLS = 3;
@@ -141,50 +156,53 @@ export interface RackRegisterRow {
 }
 
 /**
- * Raf register tablosu satırları (referans BSC_RACK_REGISTERS düzeni).
- * Canlı raf telemetrisi + deterministik türetim; kalan alanlar referans
- * değerleriyle doldurulur (gerçek simülatör sonra).
+ * Raf register tablosu satırları — referans `BSC_RACK_REGISTERS` listesiyle
+ * birebir (isim + offset). Adres = 30170 + 150·(raf−1) + offset; `rackNo`
+ * BSC-içi raf numarasıdır (1..8). Değerler canlı raf telemetrisi + deterministik
+ * türetimden gelir.
  */
 export function rackRegisters(
   input: PackInput,
   rackNo: number,
   bank: { soc: number; soh: number; vdc: number; chgLimitKw?: number; disLimitKw?: number; online?: number },
 ): RackRegisterRow[] {
-  const rooms = Math.max(1, Math.round((100 - input.soh) * 0.4) + 20);
   const base = 30170 + 150 * (rackNo - 1);
   const addr = (off: number): string => String(base + off);
   const chg = (bank.chgLimitKw ?? 160) / 8;
   const dis = (bank.disLimitKw ?? 160) / 8;
+  const avgV = input.v / input.cellsSeries;
+  const m = packMarkers(input);
+  const balancing = Math.abs(input.soc - bank.soc) > 0.15;
   return [
-    { name: "Pack count", address: addr(0), value: String(PACKS_PER_RACK) },
-    { name: "Rack state", address: addr(2), value: "3 · Running" },
-    { name: "Status flags", address: addr(4), value: "idle · DC line closed · ready" },
-    { name: "Component status", address: addr(6), value: "PC open · MC+ closed · MC− closed · CB closed · pack fans idle · BPU fan idle" },
-    { name: "Component feedback", address: addr(8), value: "fuse closed · MC+/MC− closed · CB closed" },
-    { name: "Heartbeat", address: addr(10), value: "counting" },
-    { name: "Live units", address: addr(12), value: String(PACKS_PER_RACK) },
-    { name: "Balancing time", address: addr(14), value: `${rooms * 12} s` },
-    { name: "SOC", address: addr(16), value: `${input.soc.toFixed(2)} %` },
-    { name: "SOH", address: addr(18), value: `${input.soh.toFixed(2)} %` },
-    { name: "Charge limit", address: addr(20), value: `${chg.toFixed(1)} kW` },
-    { name: "Discharge limit", address: addr(22), value: `${dis.toFixed(1)} kW` },
-    { name: "Voltage", address: addr(24), value: `${input.v.toFixed(1)} V` },
-    { name: "Current", address: addr(26), value: `${(input.soc - 50 > 0 ? 20 : -20).toFixed(1)} A` },
-    { name: "Diagnosis voltage", address: addr(28), value: "0x0000" },
-    { name: "Diagnosis temperature", address: addr(30), value: "0x0000" },
-    { name: "Cell V avg", address: addr(32), value: `${(input.v / input.cellsSeries).toFixed(4)} V` },
-    { name: "Cell V max", address: addr(34), value: `${(input.v / input.cellsSeries + 0.012).toFixed(4)} V` },
-    { name: "Cell V min", address: addr(36), value: `${(input.v / input.cellsSeries - 0.012).toFixed(4)} V` },
-    { name: "Cell Vmax location", address: addr(38), value: `pack ${packMarkers(input).vMaxPack} · cell 7` },
-    { name: "Cell Vmin location", address: addr(40), value: `pack ${packMarkers(input).vMinPack} · cell 19` },
-    { name: "T max", address: addr(42), value: `${input.temp.toFixed(1)} °C` },
-    { name: "T min", address: addr(44), value: `${(input.tmin ?? input.temp - 1.4).toFixed(1)} °C` },
-    { name: "T avg", address: addr(46), value: `${(input.temp - 0.7).toFixed(1)} °C` },
-    { name: "T max location", address: addr(48), value: `pack ${packMarkers(input).tMaxPack}` },
-    { name: "T min location", address: addr(50), value: `pack ${packMarkers(input).tMinPack}` },
-    { name: "ΔT rack", address: addr(52), value: `${(input.temp - (input.tmin ?? input.temp - 1.4) + 1.4).toFixed(1)} °C` },
-    { name: "ΔT pack", address: addr(54), value: "2.4 °C" },
-    { name: "MC open count", address: addr(56), value: String(38 + rackNo * 3) },
-    { name: "Calibration info", address: addr(58), value: "0" },
+    { name: "Rack State", address: addr(50), value: "9 · Normal" },
+    { name: "Rack Status Flags", address: addr(51), value: `${balancing ? "balancing · " : ""}idle · DC line closed · ready` },
+    { name: "Pack Count", address: addr(23), value: `${PACKS_PER_RACK}` },
+    { name: "Component Status (PC/MC+/MC−/CB, pack fans, BPU fan)", address: addr(52), value: "PC open · MC+ closed · MC− closed · CB closed · pack fans idle · BPU fan idle" },
+    { name: "Component Feedback (MC+/MC−/CB/fans/fuse)", address: addr(53), value: "fuse closed · MC+/MC− closed · CB closed" },
+    { name: "Heart Beat (from RBMS)", address: addr(54), value: "counting" },
+    { name: "Live Unit Count (awake PBMS)", address: addr(55), value: `${PACKS_PER_RACK}` },
+    { name: "Remaining Balancing Time", address: addr(56), value: balancing ? `${Math.round(Math.abs(input.soc - bank.soc) * 9000)} s` : "0 s" },
+    { name: "Rack SOC", address: addr(58), value: `${input.soc.toFixed(2)} %` },
+    { name: "Rack SOH", address: addr(59), value: `${input.soh.toFixed(2)} %` },
+    { name: "Rack Charge Power Limit", address: addr(60), value: `${chg.toFixed(1)} kW` },
+    { name: "Rack Discharge Power Limit", address: addr(62), value: `${dis.toFixed(1)} kW` },
+    { name: "Rack Cell Sum Voltage", address: addr(64), value: `${input.v.toFixed(1)} V` },
+    { name: "Rack Current", address: addr(66), value: `${(input.soc - 50 > 0 ? 20 : -20).toFixed(1)} A` },
+    { name: "Diag: Rack/Pack Deviation, Under/Over Voltage", address: addr(68), value: "0x0000" },
+    { name: "Diag: Under/Over Temperature, Over Discharge Current", address: addr(70), value: "0x0000" },
+    { name: "Rack Max Cell Voltage", address: addr(84), value: `${(avgV + 0.012).toFixed(4)} V` },
+    { name: "Rack Min Cell Voltage", address: addr(85), value: `${(avgV - 0.012).toFixed(4)} V` },
+    { name: "Rack Avg Cell Voltage", address: addr(86), value: `${avgV.toFixed(4)} V` },
+    { name: "Max Cell Location (pack / cell)", address: addr(87), value: `pack ${m.vMaxPack} · cell 7` },
+    { name: "Min Cell Location (pack / cell)", address: addr(88), value: `pack ${m.vMinPack} · cell 19` },
+    { name: "Rack Max Pack Temperature", address: addr(89), value: `${input.temp.toFixed(1)} °C` },
+    { name: "Rack Min Pack Temperature", address: addr(90), value: `${(input.tmin ?? input.temp - 1.4).toFixed(1)} °C` },
+    { name: "Rack Avg Pack Temperature", address: addr(91), value: `${(input.temp - 0.7).toFixed(1)} °C` },
+    { name: "Max Temperature Location (pack / sensor)", address: addr(92), value: `pack ${m.tMaxPack}` },
+    { name: "Min Temperature Location (pack / sensor)", address: addr(93), value: `pack ${m.tMinPack}` },
+    { name: "Max Difference of Temperature in Rack", address: addr(94), value: `${(input.temp - (input.tmin ?? input.temp - 1.4) + 1.4).toFixed(1)} °C` },
+    { name: "Max Difference of Temperature in Pack", address: addr(95), value: "2.4 °C" },
+    { name: "MC Open Count", address: addr(100), value: String(38 + rackNo * 3) },
+    { name: "Calibration Information", address: addr(101), value: "0" },
   ];
 }

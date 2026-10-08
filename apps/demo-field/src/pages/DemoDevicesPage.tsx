@@ -12,7 +12,9 @@ import {
   DemoPackDetail,
   DemoTrendChart,
   POS_TEXT,
+  packFill,
   packMarkers,
+  rackPacks,
   rackRegisters,
   tcMap18,
   type DemoDeviceSection,
@@ -303,9 +305,11 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
   const L = DEMO_TOPOLOGY.limits;
   const U = DEMO_TOPOLOGY.unit;
   const [sel, setSel] = useState<{ bank: number; r: number } | null>({ bank: 0, r: 0 });
+  const [packSel, setPackSel] = useState(0);
   const bank = sel ? unit.banks[sel.bank] : undefined;
   const pcs = sel ? unit.pcs[sel.bank] : undefined;
   const rackNo = sel ? sel.bank * U.racksPerBank + sel.r + 1 : 1;
+  const bscRack = sel ? sel.r + 1 : 1;
   const temp = bank?.racks[sel?.r ?? 0] ?? 25;
   const input = bank && sel
     ? {
@@ -318,6 +322,7 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
         cellsSeries: U.cellsSeries,
       }
     : undefined;
+  const packs = useMemo(() => (input ? rackPacks(input) : []), [input]);
 
   return (
     <>
@@ -327,7 +332,6 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
       <div className="bsum">
         {unit.banks.map((b, i) => {
           const p = unit.pcs[i];
-          const run = p && (p.state === "chg" || p.state === "dis");
           return (
             <div key={b.id}>
               <h4>
@@ -368,24 +372,129 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
 
       <DemoBessScada unit={unit} topology={DEMO_TOPOLOGY} />
       <ContainerThermal />
-      <RackTable unit={unit} sel={sel} onSelect={(s) => setSel(s)} />
 
       {input && bank && sel ? (
-        <>
-          <h4>Hottest pack · JF1 TC map (18 sensors)</h4>
-          <Tcmap values={tcMap18({ ...input, packIndex: sel.r })} />
-          <RackRegisterTable rows={rackRegisters(input, rackNo, bank)} />
-          <DemoPackDetail rackNo={rackNo} input={input} tempMin={L.tempMin} tempMax={L.tempMax} />
-        </>
+        <div className="rackdet">
+          <div className="dh">
+            <div>
+              <h3>
+                Rack#{rackNo} · BSC-{unit.n}
+                {bank.id} rack {bscRack}
+              </h3>
+              <p className="dsub">
+                Input registers FC 0x04 · base {30170 + 150 * (bscRack - 1)} (= 30170 + 150·({bscRack}−1)) ·{" "}
+                {U.rack?.packs ?? 17} packs + BPU · {U.rackKWh} kWh
+              </p>
+            </div>
+          </div>
+          <div className="rackgrid">
+            <div>
+              <PackColumn
+                packs={packs}
+                markers={packMarkers(input)}
+                selected={packSel}
+                onSelect={setPackSel}
+                tempMin={L.tempMin}
+                tempMax={L.tempMax}
+              />
+              <h4>Hottest pack · JF1 TC map (18 sensors)</h4>
+              <Tcmap values={tcMap18(input)} tempMin={L.tempMin} tempMax={L.tempMax} />
+            </div>
+            <RackRegisterTable rows={rackRegisters(input, bscRack, bank)} />
+          </div>
+          <DemoPackDetail
+            rackNo={rackNo}
+            input={input}
+            tempMin={L.tempMin}
+            tempMax={L.tempMax}
+            selected={packSel}
+            onSelect={setPackSel}
+          />
+        </div>
       ) : null}
+
+      <RackTable
+        unit={unit}
+        sel={sel}
+        onSelect={(s) => {
+          setSel(s);
+          setPackSel(0);
+        }}
+      />
     </>
   );
 };
 
-const Tcmap: React.FC<{ values: number[] }> = ({ values }) => (
+/** Raf pack kolonu (referans `rackDetail` sol sütunu): BPU + 17 pack, ▲/▼ işaretçileri. */
+const PackColumn: React.FC<{
+  packs: Array<{ no: number; tmax: number }>;
+  markers: { tMaxPack: number; tMinPack: number; vMaxPack: number; vMinPack: number };
+  selected: number;
+  onSelect: (k: number) => void;
+  tempMin: number;
+  tempMax: number;
+}> = ({ packs, markers, selected, onSelect, tempMin, tempMax }) => {
+  const ph = 15;
+  const top = 34;
+  const H = top + packs.length * ph + 20;
+  return (
+    <svg className="pkcol" viewBox={`0 0 230 ${H}`} role="img" aria-label="Rack packs">
+      <rect className="bx-bpu" x={58} y={6} width={80} height={20} rx={2} />
+      <text className="bx-t8" x={98} y={20} textAnchor="middle">
+        BPU · fuse · MC± · PC
+      </text>
+      {packs
+        .map((p, k) => ({ p, k }))
+        .reverse()
+        .map(({ p, k }) => {
+          const y = top + (packs.length - 1 - k) * ph;
+          const t = p.tmax;
+          const no = p.no;
+          const mx = markers.tMaxPack === no;
+          const mn = markers.tMinPack === no;
+          const vx = markers.vMaxPack === no;
+          const vn = markers.vMinPack === no;
+          const tags = [mx && "▲Tmax", mn && "▼Tmin", vx && "Vmax", vn && "Vmin"].filter(Boolean).join(" ");
+          return (
+            <g
+              key={no}
+              className={`pkclk${k === selected ? " sel" : ""}`}
+              data-pack={k}
+              onClick={() => onSelect(k)}
+            >
+              <rect
+                className="bx-pk"
+                x={58}
+                y={y}
+                width={80}
+                height={ph - 3}
+                style={{ fill: packFill(t, tempMin, tempMax) }}
+              />
+              <text className="bx-t8" x={50} y={y + 10} textAnchor="end">
+                P{String(no).padStart(2, "0")}
+              </text>
+              <text className="bx-tv" x={98} y={y + 10} textAnchor="middle" style={{ fontSize: 9 }}>
+                {f(t)} °C
+              </text>
+              {tags ? (
+                <text className={`bx-t8${mx ? " hot" : mn ? " cold" : ""}`} x={144} y={y + 10}>
+                  {tags}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+      <text className="bx-t8" x={98} y={H - 4} textAnchor="middle">
+        {packs.length} × {DEMO_TOPOLOGY.unit.rackKWh} kWh · 24S3P
+      </text>
+    </svg>
+  );
+};
+
+const Tcmap: React.FC<{ values: number[]; tempMin: number; tempMax: number }> = ({ values, tempMin, tempMax }) => (
   <div className="tcmap">
     {values.map((t, i) => (
-      <i key={i} style={{ background: `color-mix(in srgb, ${t > 28 ? "var(--nm-alarm)" : t < 19 ? "var(--nm-cold)" : "var(--nm-seq-rgb)"} 30%, transparent)` }}>
+      <i key={i} style={{ background: packFill(t, tempMin, tempMax) }}>
         {f(t)}
       </i>
     ))}
@@ -453,7 +562,7 @@ const RackTable: React.FC<{
   const U = DEMO_TOPOLOGY.unit;
   return (
     <>
-      <h4>Racks · click for detail</h4>
+      <h4>Racks · register base 30170 + 150·(rack−1) per BSC</h4>
       <div className="tblwrap">
         <table className="dt">
           <thead>

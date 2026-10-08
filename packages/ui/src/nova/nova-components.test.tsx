@@ -12,6 +12,7 @@ import { DemoEventLog } from "./DemoEventLog";
 import { DemoBessScada } from "./DemoBessScada";
 import { DemoFaultsView } from "./DemoFaultsView";
 import { DemoUnitDetail } from "./DemoUnitDetail";
+import { DemoPackDetail } from "./DemoPackDetail";
 import type { NovaCellConfig, NovaStationState, NovaTopology, NovaUnitState } from "./mimic-types";
 
 const station = (over: Partial<NovaStationState> = {}): NovaStationState => ({
@@ -122,6 +123,30 @@ describe("DemoUnitDetail (FR-4.3 / AK-4.3)", () => {
   it("seçim yoksa 'Select a unit.' gösterir", () => {
     render(<DemoUnitDetail unit={undefined} topology={topo} />);
     expect(screen.getByText("Select a unit.")).toBeTruthy();
+  });
+});
+
+describe("DemoPackDetail (UC-4, D-1)", () => {
+  const input = { no: 1, soc: 60, soh: 98, v: 1300, temp: 24, cellsSeries: 408 };
+
+  it("pack ölçümleri + hücre çubukları + sıcaklık sensörleri + tüm pack tablosu", () => {
+    render(
+      <DemoPackDetail rackNo={1} input={input} tempMin={19} tempMax={25} selected={0} onSelect={() => {}} />,
+    );
+    expect(screen.getByText("Pack P01 · Rack#1")).toBeTruthy();
+    expect(screen.getByText(/Cell voltages · 24 cells \(red max, blue min, hatched = balancing\)/)).toBeTruthy();
+    expect(screen.getByText("Pack temperature sensors")).toBeTruthy();
+    expect(screen.getByText("All packs · Rack#1")).toBeTruthy();
+    expect(screen.getByText("LGES diagnosis thresholds · JF1 1CP Turkey (v1.1.0)")).toBeTruthy();
+  });
+
+  it("pack tablosunda tıklama onSelect'i tetikler", () => {
+    const onSelect = vi.fn();
+    render(
+      <DemoPackDetail rackNo={1} input={input} tempMin={19} tempMax={25} selected={0} onSelect={onSelect} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "P05" }));
+    expect(onSelect).toHaveBeenCalledWith(4);
   });
 });
 
