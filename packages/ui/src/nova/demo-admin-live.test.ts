@@ -54,7 +54,7 @@ describe("demo-registers (UC-8 veri bütünlüğü)", () => {
 
   it("addrText rack ve PCS adreslerini doğru yazar", () => {
     expect(addrText(ALL_DEMO_REGISTERS["rack.state"])).toContain("+ 150·(rack−1)");
-    expect(addrText(ALL_DEMO_REGISTERS["pcs.cmdSource"])).toBe("0x0E00");
+    expect(addrText(ALL_DEMO_REGISTERS["pcs.cmdSource"])).toBe("3584");
     expect(addrText(ALL_DEMO_REGISTERS["bsc.soc"])).toBe(String(ALL_DEMO_REGISTERS["bsc.soc"].addr));
   });
 
@@ -99,7 +99,7 @@ describe("commandTraceRows (B-2 türetim)", () => {
       [run({ name: "charge", steps: { params: {}, definition: { steps: [{ command: "charge", deviceTypes: ["pcs"] }] } } as never })],
       [{ id: "l1", timestamp: "2026-10-08T09:01:00.000Z", type: "info", source: "system", message: "operation_completed" }],
     );
-    expect(rows[0].addr).toBe("0x0E19");
+    expect(rows[0].addr).toBe("3609");
     expect(rows.some((r) => r.meaning === "operation_completed")).toBe(true);
   });
 
@@ -108,7 +108,7 @@ describe("commandTraceRows (B-2 türetim)", () => {
       [run({ name: "standby", kind: "operation", steps: { params: {}, definition: { steps: [{ maneuver: "pcs_standby" }, { system: "container-1", maneuver: "bsc_stop" }] } } as never })],
       [],
     );
-    expect(rows[0].addr).toBe("0x0E17");
+    expect(rows[0].addr).toBe("3607");
     expect(rows[0].meaning).toBe("S19 Standby");
     expect(rows[1].device).toBe("BSC");
     expect(rows[1].addr).toBe("40010");

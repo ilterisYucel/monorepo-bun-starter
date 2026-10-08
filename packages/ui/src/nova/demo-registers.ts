@@ -143,12 +143,11 @@ export const ALL_DEMO_REGISTERS: Record<string, DemoRegister> = Object.fromEntri
     .map((r) => [r.id, r]),
 );
 
-/** Adres metni — rack ise stride, PCS/HVAC ise hex, aksi decimal. */
+/** Adres metni — rack ise stride, aksi sabit decimal (hex yok). */
 export function addrText(r: DemoRegister | undefined): string {
   if (!r) return "—";
   if (r.offset !== undefined) return `${rackAddr(1, r.offset)} + 150·(rack−1)`;
   if (r.addr === undefined) return "—";
-  if (r.src === "PCS" || r.src === "HVAC") return `0x${r.addr.toString(16).toUpperCase().padStart(4, "0")}`;
   return String(r.addr);
 }
 

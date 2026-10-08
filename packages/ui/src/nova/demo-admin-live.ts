@@ -157,12 +157,7 @@ const FC_BY_TABLE: Record<string, string> = {
   DISCRETE_INPUT: "2",
 };
 
-const addrHex = (addr: number, table: string | null): string =>
-  table === "HOLDING_REGISTER" || table === "COIL" || addr < 10000
-    ? addr >= 40000
-      ? String(addr)
-      : `0x${addr.toString(16).toUpperCase().padStart(4, "0")}`
-    : String(addr);
+const addrHex = (addr: number, _table: string | null): string => String(addr);
 
 /** Gerçek Modbus yazma izi → trace satırları (en yeni önce). */
 export function commandWriteTraceRows(writes: DemoCommandWrite[], limit = 100): TraceRow[] {
@@ -217,6 +212,10 @@ const hhmmss = (iso: string | undefined): string => {
     : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
 };
 
+/** "0x0E19" → "3609"; decimal string aynen kalır. */
+const decAddr = (addr: string | undefined): string =>
+  addr === undefined ? "—" : /^0x/i.test(addr) ? String(Number.parseInt(addr, 16)) : addr;
+
 /**
  * Modbus trace satırları — run adım tanımları (komut → register eşlemesi) +
  * log olayları. Yeni→eski; en çok `limit` satır. Ham register trace yok (B-2).
@@ -242,7 +241,7 @@ export function commandTraceRows(runs: OperationRunRecord[], logs: LogEntry[], l
         time: hhmmss(run.startedAt),
         device: dev,
         fc: "6",
-        addr: map?.addr ?? "—",
+        addr: decAddr(map?.addr),
         value,
         meaning: map?.meaning ?? cmd,
       });

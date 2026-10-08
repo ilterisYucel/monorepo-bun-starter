@@ -87,7 +87,7 @@ describe("DemoAdminView (UC-8)", () => {
       />,
     );
     fireEvent.click(screen.getByText("Modbus trace"));
-    expect(screen.getByText("0x0E17")).toBeTruthy();
+    expect(screen.getByText("3607")).toBeTruthy();
     expect(screen.getByText("PCS-1")).toBeTruthy();
   });
 });

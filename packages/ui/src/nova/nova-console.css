@@ -195,6 +195,7 @@
 .dt td { padding: 4px 6px 4px 0; border-top: 1px solid var(--nm-line2); vertical-align: top; }
 .dt td:not(:first-child) { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .dt td.txt { font-family: var(--sans); text-align: left; }
+.dt th.txt { text-align: left; }
 .dt td small { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--nm-dim); }
 .dt td.sev-warn { color: var(--nm-warn); font-weight: 600; }
 .dt td.sev-alarm { color: var(--nm-alarm); font-weight: 600; }
