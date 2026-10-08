@@ -149,8 +149,33 @@ export const demoApi = {
   ): Promise<{ success?: boolean; reason?: string }> => {
     const { data } = await apiClient.post<{ success?: boolean; reason?: string }>(
       "/commands/execute",
-      { deviceId, command, ...(params !== undefined ? { params } : {}) },
+      { deviceId, command, ...(params ? { params } : {}) },
     );
     return data;
   },
+
+  /** Modbus yazma izi (Admin › Modbus trace, İş 1) — `GET /commands/writes`. */
+  listCommandWrites: async (
+    limit = 100,
+    deviceId?: string,
+    signal?: AbortSignal,
+  ): Promise<CommandWrite[]> => {
+    const { data } = await apiClient.get<{ writes: CommandWrite[] }>("/commands/writes", {
+      params: { limit, ...(deviceId ? { deviceId } : {}) },
+      signal,
+    });
+    return data.writes ?? [];
+  },
 };
+
+export interface CommandWrite {
+  ts: string;
+  deviceId: string;
+  command: string;
+  label: string | null;
+  name: string;
+  registerAddress: number | null;
+  registerTableType: string | null;
+  value: string;
+  success: boolean;
+}

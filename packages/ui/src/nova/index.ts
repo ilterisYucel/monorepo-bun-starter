@@ -116,8 +116,8 @@ export type {
   DemoAdminStateShape,
   DemoAdminActions,
 } from "./DemoAdminView";
-export { adminLiveValue, commandTraceRows, thermalRow } from "./demo-admin-live";
-export type { TraceRow } from "./demo-admin-live";
+export { adminLiveValue, commandTraceRows, commandWriteTraceRows, thermalRow } from "./demo-admin-live";
+export type { TraceRow, DemoCommandWrite } from "./demo-admin-live";
 export {
   DEMO_BSC,
   DEMO_PCS,

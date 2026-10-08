@@ -16,7 +16,8 @@ import {
   type DemoRegister,
   typeText,
 } from "./demo-registers";
-import { adminLiveValue, commandTraceRows, thermalRow } from "./demo-admin-live";
+import { adminLiveValue, commandTraceRows, commandWriteTraceRows, thermalRow } from "./demo-admin-live";
+import type { DemoCommandWrite } from "./demo-admin-live";
 
 /**
  * DemoAdminView — Master admin (SPEC UC-8), referans konsol düzeni:
@@ -60,6 +61,8 @@ export interface DemoAdminViewProps {
   state: NovaMimicState;
   runs: OperationRunRecord[];
   logs: LogEntry[];
+  /** Gerçek Modbus yazma izi (varsa trace'in birincil kaynağı). */
+  writes?: DemoCommandWrite[];
   admin: DemoAdminStateShape;
   actions: DemoAdminActions;
   copyLabel?: string;
@@ -94,6 +97,7 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
   state,
   runs,
   logs,
+  writes,
   admin,
   actions,
   copyLabel,
@@ -133,7 +137,10 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
     );
   }, [allRegs, catQ]);
 
-  const traceRows = useMemo(() => commandTraceRows(runs, logs), [runs, logs]);
+  const traceRows = useMemo(
+    () => (writes && writes.length ? commandWriteTraceRows(writes) : commandTraceRows(runs, logs)),
+    [writes, runs, logs],
+  );
 
   return (
     <div className="card" data-testid="demo-admin">
@@ -558,8 +565,9 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
       {tab === "trace" ? (
         <>
           <p className="dsub pad">
-            Every write the PMS sequencer performs (newest first). Raw register-level trace is pending in the backend
-            (B-2); rows are derived from run step definitions and log events.
+            Every write the PMS performs on command execution (newest first). Direct `POST /commands/execute`
+            writes carry the real register address and value; maneuver step writes and container-tier writes are
+            added in the next iteration.
           </p>
           <div className="tblwrap">
             <table className="dt trace">

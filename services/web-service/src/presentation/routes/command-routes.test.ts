@@ -63,6 +63,7 @@ async function buildApp(
   mq: IMessageQueue,
   logger?: TamperLogger,
   configSource?: IDeviceConfigSource,
+  writes?: { initialize: () => Promise<void>; record: (...a: unknown[]) => Promise<void>; list: (...a: unknown[]) => Promise<unknown[]> },
 ) {
   const app = Fastify();
   const context = new RequestContext();
@@ -82,6 +83,7 @@ async function buildApp(
         configSource: configSource ?? {
           load: (id: string) => (id === "bsc-1" ? bscConfig : undefined),
         },
+        ...(writes ? { writes: writes as never } : {}),
       });
     },
     { prefix: "/api/commands" },
@@ -310,5 +312,85 @@ describe("command-routes (T0.6)", () => {
       expect(failed).toBeDefined();
       expect(failed.category).toBe("audit");
     });
+  });
+});
+
+describe("command-routes — Modbus yazma izi (İş 1)", () => {
+  const writesConfigSource: IDeviceConfigSource = {
+    load: (id: string) =>
+      id === "pcs-1"
+        ? ({
+            ...bscConfig,
+            deviceId: "pcs-1",
+            telemetry: [
+              { name: "Command Request", registerAddress: 3607, registerTableType: "HOLDING_REGISTER" },
+            ],
+            commands: { standby: { label: "Bekleme", telemetries: [{ name: "Command Request", value: 1 }] } },
+          } as unknown as DeviceConfigFile)
+        : undefined,
+  };
+
+  it("başarılı komut → tabloya adres+değer yazılır", async () => {
+    const record = vi.fn().mockResolvedValue(undefined);
+    const app = await buildApp(mockMq(), undefined, writesConfigSource, {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      record,
+      list: vi.fn().mockResolvedValue([]),
+    });
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/commands/execute",
+      payload: { deviceId: "pcs-1", command: "standby" },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(record).toHaveBeenCalledTimes(1);
+    const entries = record.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(entries[0]).toMatchObject({
+      deviceId: "pcs-1",
+      command: "standby",
+      label: "Bekleme",
+      name: "Command Request",
+      registerAddress: 3607,
+      registerTableType: "HOLDING_REGISTER",
+      value: "1",
+      success: true,
+    });
+  });
+
+  it("başarısız komut → success=false satırı", async () => {
+    const record = vi.fn().mockResolvedValue(undefined);
+    const mq = mockMq({ executeAndWait: vi.fn().mockResolvedValue({ success: false, reason: "x" }) });
+    const app = await buildApp(mq, undefined, writesConfigSource, {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      record,
+      list: vi.fn().mockResolvedValue([]),
+    });
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/commands/execute",
+      payload: { deviceId: "pcs-1", command: "standby" },
+    });
+    expect(res.statusCode).toBe(422);
+    expect((record.mock.calls[0][0] as Array<{ success: boolean }>)[0].success).toBe(false);
+  });
+
+  it("GET /writes → depodan liste", async () => {
+    const list = vi.fn().mockResolvedValue([{ deviceId: "pcs-1", name: "Command Request" }]);
+    const app = await buildApp(mockMq(), undefined, writesConfigSource, {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      record: vi.fn().mockResolvedValue(undefined),
+      list,
+    });
+    const res = await app.inject({ method: "GET", url: "/api/commands/writes?limit=5&deviceId=pcs-1" });
+    expect(res.statusCode).toBe(200);
+    expect(list).toHaveBeenCalledWith(5, "pcs-1");
+    expect(res.json().writes).toHaveLength(1);
+  });
+
+  it("depo yoksa /writes boş döner", async () => {
+    const app = await buildApp(mockMq());
+    const res = await app.inject({ method: "GET", url: "/api/commands/writes" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ writes: [] });
   });
 });

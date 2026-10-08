@@ -66,9 +66,28 @@ describe("DemoAdminView (UC-8)", () => {
     expect(screen.getByText("Flex BSC poll plan")).toBeTruthy();
   });
 
-  it("Modbus trace sekmesi B-2 notu gösterir", () => {
+  it("Modbus trace sekmesi gerçek yazma izi notunu gösterir", () => {
     render(<DemoAdminView topology={topology} state={state} runs={[]} logs={[]} admin={admin} actions={actions} />);
     fireEvent.click(screen.getByText("Modbus trace"));
-    expect(screen.getByText(/Raw register-level trace is pending/)).toBeTruthy();
+    expect(screen.getByText(/real register address/)).toBeTruthy();
+  });
+
+  it("gerçek yazma izi verilirse adresli satırları gösterir", () => {
+    render(
+      <DemoAdminView
+        topology={topology}
+        state={state}
+        runs={[]}
+        logs={[]}
+        writes={[
+          { ts: "2026-10-08T10:00:00.000Z", deviceId: "PCS-1", command: "standby", label: "Bekleme", name: "Standby Command", registerAddress: 3607, registerTableType: "HOLDING_REGISTER", value: "1", success: true },
+        ]}
+        admin={admin}
+        actions={actions}
+      />,
+    );
+    fireEvent.click(screen.getByText("Modbus trace"));
+    expect(screen.getByText("0x0E17")).toBeTruthy();
+    expect(screen.getByText("PCS-1")).toBeTruthy();
   });
 });

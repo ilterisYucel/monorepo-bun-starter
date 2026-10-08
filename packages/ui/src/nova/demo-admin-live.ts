@@ -137,6 +137,45 @@ export interface TraceRow {
   meaning: string;
 }
 
+/** Backend `GET /commands/writes` satırı (Modbus yazma izi). */
+export interface DemoCommandWrite {
+  ts: string;
+  deviceId: string;
+  command: string;
+  label: string | null;
+  name: string;
+  registerAddress: number | null;
+  registerTableType: string | null;
+  value: string;
+  success: boolean;
+}
+
+const FC_BY_TABLE: Record<string, string> = {
+  HOLDING_REGISTER: "6",
+  COIL: "5",
+  INPUT_REGISTER: "4",
+  DISCRETE_INPUT: "2",
+};
+
+const addrHex = (addr: number, table: string | null): string =>
+  table === "HOLDING_REGISTER" || table === "COIL" || addr < 10000
+    ? addr >= 40000
+      ? String(addr)
+      : `0x${addr.toString(16).toUpperCase().padStart(4, "0")}`
+    : String(addr);
+
+/** Gerçek Modbus yazma izi → trace satırları (en yeni önce). */
+export function commandWriteTraceRows(writes: DemoCommandWrite[], limit = 100): TraceRow[] {
+  return writes.slice(0, limit).map((w) => ({
+    time: hhmmss(w.ts),
+    device: w.deviceId,
+    fc: w.registerTableType ? (FC_BY_TABLE[w.registerTableType] ?? "—") : "—",
+    addr: w.registerAddress !== null ? addrHex(w.registerAddress, w.registerTableType) : "—",
+    value: `${w.value}${w.success ? "" : " (rejected)"}`,
+    meaning: w.label ? `${w.label} · ${w.name} = ${w.value}` : `${w.name} = ${w.value}`,
+  }));
+}
+
 /** Backend komut adı → { fc, addr, meaning } (PCS/BSC command registerları). */
 const PCS_CMD: Record<string, { addr: string; value?: string; meaning: string }> = {
   start: { addr: "0x0E14", value: "1", meaning: "S16 Start" },

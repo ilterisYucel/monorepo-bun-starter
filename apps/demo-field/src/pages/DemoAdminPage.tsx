@@ -1,14 +1,26 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DemoAdminView, ALL_DEMO_REGISTERS, type DemoAdminActions } from "@gd-monorepo/ui";
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
 import { useDemoAdminStore } from "../features/demo-data/stores/DemoAdminStore";
+import { demoApi } from "../features/demo-data/demoApi";
+import { siteFieldId } from "../lib/site-field";
 
 /** DemoAdminPage — Master admin (SPEC UC-8); tarayıcı-durumu store'undan beslenir. */
 export const DemoAdminPage: React.FC = () => {
+  const fieldId = siteFieldId();
   const { state, runs, logs } = useDemoProjectContext();
   const admin = useDemoAdminStore();
   const [copyLabel, setCopyLabel] = useState("");
+
+  const writes = useQuery({
+    queryKey: ["demo-command-writes", fieldId],
+    queryFn: ({ signal }) => demoApi.listCommandWrites(200, undefined, signal),
+    refetchInterval: 10000,
+    refetchOnWindowFocus: false,
+    enabled: fieldId.length > 0,
+  });
 
   const actions: DemoAdminActions = {
     setMapping: admin.setMapping,
@@ -47,6 +59,7 @@ export const DemoAdminPage: React.FC = () => {
       state={state}
       runs={runs}
       logs={logs}
+      writes={writes.data ?? []}
       admin={{
         mapping: admin.mapping,
         devices: admin.devices,

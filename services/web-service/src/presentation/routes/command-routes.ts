@@ -10,6 +10,7 @@ import {
   DeviceConfigFileSource,
 } from "@gd-monorepo/platform-commands";
 import type { IDeviceConfigSource } from "@gd-monorepo/platform-commands";
+import type { CommandWriteStore } from "../../infrastructure/persistence/command-write-store";
 
 const telemetryEntrySchema = z.object({
   name: z.string().min(1),
@@ -59,12 +60,55 @@ export async function makeCommandRoutes(
     logger?: TamperLogger;
     /** Test enjeksiyonu — verilmezse `DeviceConfigFileSource(configDir)`. */
     configSource?: IDeviceConfigSource;
+    /** Modbus yazma izi deposu (Admin › Modbus trace, İş 1). Opsiyonel. */
+    writes?: CommandWriteStore;
   },
 ) {
   const { mq, logger } = options;
   const configSource =
     options.configSource ?? new DeviceConfigFileSource(options.configDir);
   const commandJobs = new CommandJobBuilder({ source: configSource });
+
+  /**
+   * Başarılı/başarısız komut yazımlarını iz tablosuna kaydeder (best-effort):
+   * her `telemetries` girdisi için config'ten register adresi çözülür.
+   */
+  async function recordWrites(
+    deviceId: string,
+    commandName: string,
+    label: string | undefined,
+    telemetries: TelemetryData[],
+    success: boolean,
+  ): Promise<void> {
+    if (!options.writes) return;
+    try {
+      const config = configSource.load(deviceId);
+      const addressOf = (name: string): { addr?: number; table?: string } => {
+        const entry = (config?.telemetry ?? []).find((t) => t.name === name);
+        const row = entry as unknown as
+          | { registerAddress?: number; registerTableType?: string }
+          | undefined;
+        return { addr: row?.registerAddress, table: row?.registerTableType };
+      };
+      await options.writes.record(
+        telemetries.map((t) => {
+          const { addr, table } = addressOf(t.name);
+          return {
+            deviceId,
+            command: commandName,
+            ...(label !== undefined ? { label } : {}),
+            name: t.name,
+            ...(addr !== undefined ? { registerAddress: addr } : {}),
+            ...(table !== undefined ? { registerTableType: table } : {}),
+            value: String(t.value),
+            success,
+          };
+        }),
+      );
+    } catch {
+      // İz yazımı komut akışını bozmaz (komut zaten yürütülmüştür).
+    }
+  }
 
   fastify.post("/execute", async (request, reply) => {
     const body = commandStepSchema.parse(request.body);
@@ -125,6 +169,14 @@ export async function makeCommandRoutes(
         ...(jobValidate ? { validate: jobValidate } : undefined),
       },
       timeoutMs,
+    );
+
+    await recordWrites(
+      deviceId,
+      commandName ?? "raw",
+      commandConfig?.label,
+      telemetries,
+      result.success,
     );
 
     return reply.status(result.success ? 200 : 422).send({
@@ -193,6 +245,14 @@ export async function makeCommandRoutes(
             : undefined),
         },
         timeoutMs,
+      );
+
+      await recordWrites(
+        deviceId,
+        commandName ?? "raw",
+        commandConfig?.label,
+        telemetries,
+        result.success,
       );
 
       // REV.03 §10 — zamanlı stop: ana komut BAŞARILIYSA stopCommand
@@ -288,6 +348,17 @@ export async function makeCommandRoutes(
       // audit başarısız olsa da komut akışı bozulmaz
     }
   }
+
+  fastify.get("/writes", async (request, reply) => {
+    if (!options.writes) return reply.send({ writes: [] });
+    const { limit, deviceId } = request.query as { limit?: string; deviceId?: string };
+    const limitNum = limit ? Number.parseInt(limit, 10) : 100;
+    const writes = await options.writes.list(
+      Number.isFinite(limitNum) ? limitNum : 100,
+      deviceId,
+    );
+    return reply.send({ writes });
+  });
 
   fastify.get("/:deviceId/commands", async (request, reply) => {
     const { deviceId } = request.params as { deviceId: string };
