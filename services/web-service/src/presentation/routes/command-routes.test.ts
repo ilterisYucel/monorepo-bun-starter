@@ -343,7 +343,8 @@ describe("command-routes — Modbus yazma izi (İş 1)", () => {
       payload: { deviceId: "pcs-1", command: "standby" },
     });
     expect(res.statusCode).toBe(200);
-    expect(record).toHaveBeenCalledTimes(1);
+    // Fire-and-forget: yanıt döndükten sonra arka planda yazılır.
+    await vi.waitFor(() => expect(record).toHaveBeenCalledTimes(1));
     const entries = record.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(entries[0]).toMatchObject({
       deviceId: "pcs-1",
@@ -371,6 +372,7 @@ describe("command-routes — Modbus yazma izi (İş 1)", () => {
       payload: { deviceId: "pcs-1", command: "standby" },
     });
     expect(res.statusCode).toBe(422);
+    await vi.waitFor(() => expect(record).toHaveBeenCalledTimes(1));
     expect((record.mock.calls[0][0] as Array<{ success: boolean }>)[0].success).toBe(false);
   });
 

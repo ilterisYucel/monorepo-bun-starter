@@ -171,7 +171,8 @@ export async function makeCommandRoutes(
       timeoutMs,
     );
 
-    await recordWrites(
+    // Fire-and-forget: yanıtı geciktirmez; hata recordWrites içinde yutulur.
+    void recordWrites(
       deviceId,
       commandName ?? "raw",
       commandConfig?.label,
@@ -247,7 +248,8 @@ export async function makeCommandRoutes(
         timeoutMs,
       );
 
-      await recordWrites(
+      // Fire-and-forget: yanıtı geciktirmez.
+      void recordWrites(
         deviceId,
         commandName ?? "raw",
         commandConfig?.label,
