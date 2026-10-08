@@ -76,6 +76,9 @@
 .nm .nm-trc { fill: none; stroke: var(--nm-dead); stroke-width: 1.6; }
 .nm .nm-trc.nm-live { stroke: var(--nm-live); }
 .nm .nm-trc.nm-earthed { stroke: var(--nm-maint); }
+.nm .nm-auxbox { fill: var(--nm-panel, transparent); stroke: var(--nm-line); stroke-width: 1.2; }
+.nm .nm-auxp { cursor: pointer; }
+.nm .nm-auxp:hover .nm-auxbox, .nm .nm-auxp:focus-visible .nm-auxbox { stroke: var(--nm-sel, #2f7dd1); stroke-width: 2; }
 .nm .nm-bankfill { fill: transparent; transition: fill .6s; }
 .nm .nm-bankfill.nm-sev-warn { fill: color-mix(in srgb, var(--nm-warn) 15%, transparent); }
 .nm .nm-bankfill.nm-sev-alarm { fill: color-mix(in srgb, var(--nm-alarm) 17%, transparent); }

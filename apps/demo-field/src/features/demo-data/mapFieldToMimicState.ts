@@ -98,6 +98,9 @@ function buildBank(
     dvmV = Math.max(0, Math.round(dV * 1000));
   }
 
+  const bscState = num(byName(bscRows, "BSC State")?.value);
+  const online = num(byName(bscRows, "Online Rack No")?.value);
+
   return {
     id,
     soc,
@@ -110,6 +113,8 @@ function buildBank(
     ...(rackSocRows.length > 0 ? { rackSoc: rackSocRows.map((r) => r.value) } : {}),
     ...(rackVoltRows.length > 0 ? { rackV: rackVoltRows.map((r) => r.value) } : {}),
     ...(rackCurrRows.length > 0 ? { rackI: rackCurrRows.map((r) => r.value) } : {}),
+    ...(bscState !== undefined ? { bscState } : {}),
+    ...(online !== undefined ? { online } : {}),
     dcb: dcBreaker(cbRows),
   };
 }

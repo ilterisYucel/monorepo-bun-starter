@@ -155,6 +155,29 @@ describe("createNovaMimic (AK-3.1)", () => {
     expect(svg.innerHTML).toBe("");
     svg.remove();
   });
+
+  it("AUX hücresi: AUX TR + L iletken + AUX PANEL kutusu çizilir", () => {
+    const auxTopo: NovaTopology = {
+      ...topo,
+      aux: { trKVA: 400, trRatio: "34.5/0.4 kV", trVector: "Dyn11", lvV: 400, station: "s" },
+      station: {
+        ...topo.station,
+        cells: topo.station.cells.map((c) => (c.id === "H02" ? { ...c, auxTr: true } : c)),
+      },
+    };
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    document.body.appendChild(svg);
+    const mimic = createNovaMimic(svg, auxTopo);
+    mimic.update(state);
+    const labels = [...svg.querySelectorAll("text")].map((t) => t.textContent);
+    expect(labels).toContain("AUX TR 400 kVA");
+    expect(labels).toContain("AUX PANEL 400 V");
+    expect(svg.querySelector('[data-target="aux"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="atr1"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="atr2"]')).not.toBeNull();
+    mimic.destroy();
+    svg.remove();
+  });
 });
 
 describe("nova-mimic akış/motor/ES (UC-2, AK-2.1..2.3)", () => {

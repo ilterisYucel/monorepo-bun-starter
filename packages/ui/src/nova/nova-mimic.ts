@@ -76,18 +76,18 @@ export const rackSeverity = (
 ): Severity => (t > L.tempMax ? "alarm" : t < L.tempMin ? "cold" : null);
 
 export const PCS_TEXT: Record<NovaPcsState["state"], string> = {
-  dis: "DEŞARJ",
-  chg: "ŞARJ",
-  stby: "BEKLEME",
-  rest: "DİNLENME",
-  fault: "ARIZA",
-  off: "KAPALI",
+  dis: "DISCHARGE",
+  chg: "CHARGE",
+  stby: "STANDBY",
+  rest: "REST",
+  fault: "FAULT",
+  off: "OFF",
 };
 
 export const POS_TEXT: Record<NovaSwitchPos, string> = {
-  closed: "Kapalı",
-  open: "Açık",
-  tripped: "Açtı",
+  closed: "Closed",
+  open: "Open",
+  tripped: "Tripped",
 };
 
 const fmt = (v: number, d = 1): string =>
@@ -101,33 +101,33 @@ export function defaultUnitStatus(
   L: NovaTopology["limits"],
 ): { text: string; sev: Severity } {
   if (u.rmu.H02 !== "closed" && u.rmu.es) {
-    return { text: "BAKIMDA · TOPRAKLI", sev: "maint" };
+    return { text: "MAINTENANCE · EARTHED", sev: "maint" };
   }
   const fault = u.pcs.find((p) => p.state === "fault");
-  if (fault) return { text: `KISMİ · PCS-${u.n}${fault.id} ARIZA`, sev: "alarm" };
+  if (fault) return { text: `PCS-${u.n}${fault.id} FAULT`, sev: "alarm" };
   const sv = u.banks.map((b) => bankSeverity(b, L));
   if (sv.includes("alarm")) {
     return {
-      text: `SICAKLIK YÜKSEK · ${fmt(Math.max(...u.banks.map((b) => b.tmax)))} °C`,
+      text: `TEMP HIGH · ${fmt(Math.max(...u.banks.map((b) => b.tmax)))} °C`,
       sev: "alarm",
     };
   }
   if (sv.includes("cold")) {
     return {
-      text: `SICAKLIK DÜŞÜK · ${fmt(Math.min(...u.banks.map((b) => b.tmin ?? b.tmax)))} °C`,
+      text: `TEMP LOW · ${fmt(Math.min(...u.banks.map((b) => b.tmin ?? b.tmax)))} °C`,
       sev: "cold",
     };
   }
   if (u.banks.some((b) => (b.dTdt10 ?? 0) >= L.dTdtWarn)) {
-    return { text: "SICAKLIK ARTIŞI", sev: "warn" };
+    return { text: "TEMP RISING", sev: "warn" };
   }
-  if (sv.includes("warn")) return { text: "HÜCRE DENGESİZLİĞİ", sev: "warn" };
+  if (sv.includes("warn")) return { text: "CELL DEVIATION", sev: "warn" };
   const run = u.pcs.filter((p) => p.state === "chg" || p.state === "dis");
   if (run.length) {
     return { text: `${PCS_TEXT[run[0].state]} · ${run.length}/${u.pcs.length} PCS`, sev: null };
   }
-  if (u.pcs.some((p) => p.state === "rest")) return { text: "DİNLENME", sev: null };
-  return { text: "BEKLEMEDE", sev: null };
+  if (u.pcs.some((p) => p.state === "rest")) return { text: "REST", sev: null };
+  return { text: "STANDBY", sev: null };
 }
 
 /** Uzaklaşan sıcaklık dolgusu: bant altı mavi, üstü kırmızı, ortada nötr. */
@@ -180,7 +180,19 @@ function buildStation(topo: NovaTopology, p: string): string {
       }
     }
     if (c.kind === "lbs") {
-      h += seg(id + "a", cx, 62, cx, 93, "nm-mv") + `<g id="${id}" class="nm-sw nm-lbs"><circle class="nm-dot" cx="${cx}" cy="${117}" r="2.6"/><line class="nm-bl" x1="${cx - 5}" y1="93" x2="${cx + 5}" y2="93"/><line class="nm-bl nm-bc" x1="${cx}" y1="93" x2="${cx}" y2="117"/><line class="nm-bl nm-bo" x1="${cx}" y1="93" x2="${cx + 9}" y2="114"/></g>` + seg(id + "b", cx, 117, cx, 150, "nm-mv") + `<text class="nm-t8" x="${cx}" y="162" text-anchor="middle">→ AUX</text>`;
+      const auxTr = !!c.auxTr && !!topo.aux;
+      h += seg(id + "a", cx, 62, cx, 93, "nm-mv") + `<g id="${id}" class="nm-sw nm-lbs"><circle class="nm-dot" cx="${cx}" cy="${117}" r="2.6"/><line class="nm-bl" x1="${cx - 5}" y1="93" x2="${cx + 5}" y2="93"/><line class="nm-bl nm-bc" x1="${cx}" y1="93" x2="${cx}" y2="117"/><line class="nm-bl nm-bo" x1="${cx}" y1="93" x2="${cx + 9}" y2="114"/></g>` + seg(id + "b", cx, 117, cx, auxTr ? 170 : 150, "nm-mv");
+      if (auxTr && topo.aux) {
+        // AUX transformer + LV AUX panel (referans mimic: hücrenin altından L iletken → AUX PANEL)
+        h += `<circle class="nm-trc" id="${p}atr1" cx="${cx}" cy="178" r="8"/><circle class="nm-trc" id="${p}atr2" cx="${cx}" cy="190" r="8"/>`;
+        h += `<text class="nm-t8" x="${cx - 13}" y="181" text-anchor="end">AUX TR ${topo.aux.trKVA} kVA</text><text class="nm-t8" x="${cx - 13}" y="192" text-anchor="end">${topo.aux.trRatio}</text>`;
+        h += `<path class="nm-cond" id="${id}lv" d="M${cx} 198V223H470"/>`;
+        h += `<path id="${p}flAux" class="nm-flow flowline" d="M${cx} 62V223H470"/>`;
+        h += `<g class="nm-auxp" data-target="aux" tabindex="0" role="button" aria-label="AUX panel"><rect class="nm-auxbox" x="372" y="206" width="98" height="34" rx="2"/>` +
+          `<text class="nm-t8" x="421" y="219" text-anchor="middle">AUX PANEL ${topo.aux.lvV} V</text><text class="nm-tv" id="${p}auxTxt" x="421" y="233" text-anchor="middle"></text></g>`;
+      } else {
+        h += `<text class="nm-t8" x="${cx}" y="162" text-anchor="middle">→ AUX</text>`;
+      }
     }
     if (c.kind === "vt") {
       h += seg(id + "a", cx, 62, cx, 88, "nm-mv") + `<rect x="${cx - 3}" y="88" width="6" height="11" class="nm-vt"/>` + seg(id + "b", cx, 99, cx, 106, "nm-mv");
@@ -223,7 +235,7 @@ function buildStation(topo: NovaTopology, p: string): string {
     const tx = L ? 596 : 644;
     const a = L ? "end" : "start";
     h += `<text class="nm-t8" x="${tx}" y="250" text-anchor="${a}">${fd.cell} · BESS#${fd.units[0]}–${fd.units[fd.units.length - 1]}</text>`;
-    h += `<text class="nm-th" x="${tx}" y="262" text-anchor="${a}" style="font-size:11px">FİDER ${f}</text><text class="nm-tvm" id="${p}fd${f}txt" x="${tx}" y="274" text-anchor="${a}"></text>`;
+    h += `<text class="nm-th" x="${tx}" y="262" text-anchor="${a}" style="font-size:11px">FEEDER ${f}</text><text class="nm-tvm" id="${p}fd${f}txt" x="${tx}" y="274" text-anchor="${a}"></text>`;
   });
   return h;
 }
@@ -243,7 +255,7 @@ function buildUnit(
   const cx0 = RX(s, 20, 260);
   const lane = X(s, 604);
   const hx = s === "L" ? 10 : 642;
-  let h = `<g id="${p}u${n}" class="nm-unit demo-unit" tabindex="0" role="button" aria-label="BESS#${n} ayrıntıları" data-unit="${n}">`;
+  let h = `<g id="${p}u${n}" class="nm-unit demo-unit" tabindex="0" role="button" aria-label="BESS#${n} details" data-unit="${n}">`;
   h += `<rect class="nm-hit" x="${hx}" y="${top - 4}" width="588" height="128"/><rect class="nm-selbox" x="${hx}" y="${top - 4}" width="588" height="128" rx="6"/>`;
   h += `<text class="nm-th" x="${cx0}" y="${top + 11}">BESS#${n}</text><text class="nm-ust" id="${p}ust${n}" x="${cx0 + 56}" y="${top + 11}"></text>`;
   h += `<rect class="nm-cont" x="${cx0}" y="${top + 18}" width="260" height="100" rx="2"/>`;
@@ -318,6 +330,8 @@ export interface NovaMimicOptions {
   selected?: number | null;
   onSelect?: (n: number) => void;
   onCellSelect?: (cellId: string) => void;
+  /** AUX panel kutusu tıklaması (Devices › AUX). */
+  onAuxSelect?: () => void;
 }
 
 export interface NovaMimic {
@@ -370,6 +384,10 @@ export function createNovaMimic(
     const c = target.closest(".nm-cellhit");
     if (c) {
       opts.onCellSelect?.((c as HTMLElement).dataset.cell ?? "");
+      return;
+    }
+    if (target.closest('[data-target="aux"]')) {
+      opts.onAuxSelect?.();
       return;
     }
     const g = target.closest(".nm-unit");
@@ -437,7 +455,17 @@ export function createNovaMimic(
         live(id + "b", true);
       }
       if (c.role === "feeder") live(id + "b", E.feeders[c.feeder ?? ""] ?? false);
-      if (c.role === "aux") live(id + "b", E.aux);
+      if (c.role === "aux") {
+        live(id + "b", E.aux);
+        live(id + "lv", E.aux);
+        live("atr1", E.aux);
+        live("atr2", E.aux);
+        const auxTxt = el("auxTxt");
+        if (auxTxt) {
+          const kw = state.units[0]?.aux?.kW;
+          auxTxt.textContent = E.aux ? `${fmt(kw ?? 0, 1)} kW` : "NO SUPPLY";
+        }
+      }
     }
     const earthed: Record<number, { inE: boolean; busE: boolean; outE: boolean; trE: boolean }> = {};
     for (const [f, fd] of Object.entries(topo.feeders)) {

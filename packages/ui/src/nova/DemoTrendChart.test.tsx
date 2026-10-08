@@ -67,6 +67,24 @@ describe("DemoTrendChart (UC-3)", () => {
     const { container } = render(<DemoTrendChart title="x" unit="%" series={[]} />);
     expect(container.querySelector(".tc-empty")?.textContent).toBe("No data");
   });
+
+  it("yTicks verilirse y-ekseni o min/max/step tiklerini etiketler", () => {
+    const series: TrendSeries[] = [
+      { label: "P", color: "var(--nm-c-pow)", points: [line(0, -20), line(100, 25)] },
+    ];
+    const { container } = render(
+      <DemoTrendChart
+        title="Power at POI"
+        unit="MW"
+        series={series}
+        yMin={-32}
+        yMax={32}
+        yTicks={[-30, -15, 0, 15, 30]}
+      />,
+    );
+    const labels = [...container.querySelectorAll("text.tc-ax")].map((t) => t.textContent);
+    for (const v of ["-30", "-15", "0", "15", "30"]) expect(labels).toContain(v);
+  });
 });
 
 describe("nearestIndex", () => {

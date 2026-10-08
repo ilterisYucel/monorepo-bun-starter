@@ -73,7 +73,25 @@ const unit: NovaUnitState = {
   ],
 };
 
-const topo = { limits: { socMin: 3.5, socMax: 97, tempMin: 19, tempMax: 25, derateC: 28, derateReleaseC: 24, dTdtWarn: 2, dvWarn: 50, sohInfo: 95 }, unit: { banks: ["A", "B"] } } as unknown as NovaTopology;
+const topo = {
+  limits: { socMin: 3.5, socMax: 97, tempMin: 19, tempMax: 25, derateC: 28, derateReleaseC: 24, dTdtWarn: 2, dvWarn: 50, sohInfo: 95 },
+  feeders: { A: { cell: "H04", side: "L", units: [3] } },
+  unit: {
+    container: "LGES 40 ft",
+    containerMWh: 3.568,
+    banks: ["A", "B"],
+    racksPerBank: 8,
+    pcsKVA: 1725,
+    trKVA: 3750,
+    trRatio: "34.5/0.69 kV",
+    rmu: [
+      { id: "H01", label: "Load-break switch (in)", kind: "lbs", motor: false },
+      { id: "H02", label: "Transformer CB", kind: "cb", motor: true },
+      { id: "H03", label: "Load-break switch (out)", kind: "lbs", motor: false },
+      { id: "ES", label: "Earthing switch (TR side)", kind: "es", motor: false },
+    ],
+  },
+} as unknown as NovaTopology;
 
 describe("DemoUnitDetail (FR-4.3 / AK-4.3)", () => {
   it("2 PCS ve 2 banka tablosu gösterir", () => {
@@ -81,8 +99,29 @@ describe("DemoUnitDetail (FR-4.3 / AK-4.3)", () => {
     expect(screen.getByText("BESS#3")).toBeTruthy();
     expect(screen.getByText("PCS-3A")).toBeTruthy();
     expect(screen.getByText("PCS-3B")).toBeTruthy();
-    expect(screen.getByText("Banka A")).toBeTruthy();
-    expect(screen.getByText("Banka B")).toBeTruthy();
+    expect(screen.getByText("Bank A")).toBeTruthy();
+    expect(screen.getByText("Bank B")).toBeTruthy();
+  });
+
+  it("referans kart bölümlerini gösterir (RMU / PCS model / AC V / batarya satırları)", () => {
+    render(<DemoUnitDetail unit={unit} topology={topo} />);
+    expect(screen.getByText("RMU positions")).toBeTruthy();
+    expect(screen.getByText("PCS · Wattox MPCS-1725-S")).toBeTruthy();
+    expect(screen.getByText("AC V")).toBeTruthy();
+    expect(screen.getByText("H01 · LBS")).toBeTruthy();
+    expect(screen.getByText("H02 · CB · M")).toBeTruthy();
+    expect(screen.getByText("ES · Earth")).toBeTruthy();
+    expect(screen.getByText("Battery sections · Flex BSC")).toBeTruthy();
+    expect(screen.getByText("BSC state (30036)")).toBeTruthy();
+    expect(screen.getByText("Racks online (30038)")).toBeTruthy();
+    expect(screen.getByText("Charge limit (30063)")).toBeTruthy();
+    expect(screen.getByText("Discharge limit (30065)")).toBeTruthy();
+    expect(screen.getByText(/Band 19–25 °C/)).toBeTruthy();
+  });
+
+  it("seçim yoksa 'Select a unit.' gösterir", () => {
+    render(<DemoUnitDetail unit={undefined} topology={topo} />);
+    expect(screen.getByText("Select a unit.")).toBeTruthy();
   });
 });
 

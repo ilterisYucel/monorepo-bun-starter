@@ -181,6 +181,10 @@ export interface NovaBankState {
   rackV?: number[];
   /** Raf başına akım (A). */
   rackI?: number[];
+  /** BSC durumu (30036) — 3 = Normal. */
+  bscState?: number;
+  /** Çevrimiçi raf sayısı (30038). */
+  online?: number;
   dcb: NovaSwitchPos;
 }
 

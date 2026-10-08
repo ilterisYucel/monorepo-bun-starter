@@ -124,6 +124,21 @@ describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
     expect(b.rackI).toEqual([120]);
   });
 
+  it("BSC state (30036) ve çevrimiçi raf (30038) telemetrisini banka durumuna taşır", () => {
+    const tel = [
+      ...REAL_TELEMETRY,
+      T("BSC-1", "BSC State", 3),
+      T("BSC-1", "Online Rack No", 8),
+      T("BSC-2", "BSC State", 5),
+      T("BSC-2", "Online Rack No", 0),
+    ];
+    const state = mapFieldToMimicState([container(tel)], DEMO_TOPOLOGY);
+    expect(state.units[0].banks[0].bscState).toBe(3);
+    expect(state.units[0].banks[0].online).toBe(8);
+    expect(state.units[0].banks[1].bscState).toBe(5);
+    expect(state.units[0].banks[1].online).toBe(0);
+  });
+
   it("demo-MV telemetrisinden station pozisyonu okur", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
     expect(state.station.H05).toBe("closed");

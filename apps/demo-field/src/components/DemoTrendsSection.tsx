@@ -36,6 +36,9 @@ export const DemoTrendsSection: React.FC = () => {
         <DemoTrendChart
           title="Power at POI (+ discharge / − charge)"
           unit="MW"
+          yMin={-32}
+          yMax={32}
+          yTicks={[-30, -15, 0, 15, 30]}
           series={[{ label: "Measured", points: trendData.power, color: "var(--nm-c-pow)", area: true }]}
           phases={restPhases}
           shade={["rest"]}
@@ -44,6 +47,9 @@ export const DemoTrendsSection: React.FC = () => {
         <DemoTrendChart
           title="Cell temperature"
           unit="°C"
+          yMin={10}
+          yMax={35}
+          yTicks={[10, 15, 20, 25, 30, 35]}
           series={[{ label: "Highest", points: trendData.temp, color: "var(--nm-c-hot)" }]}
           limits={[
             { value: L.tempMax, label: `Upper ${L.tempMax} °C`, cls: "hot" },

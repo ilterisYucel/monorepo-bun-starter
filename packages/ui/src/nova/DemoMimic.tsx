@@ -14,6 +14,8 @@ export interface DemoMimicProps {
   selected?: number | null;
   onSelect?: (n: number) => void;
   onCellSelect?: (cellId: string) => void;
+  /** AUX panel kutusu tıklaması (Devices › AUX). */
+  onAuxSelect?: () => void;
 }
 
 /**
@@ -28,14 +30,17 @@ export const DemoMimic: React.FC<DemoMimicProps> = ({
   selected = null,
   onSelect,
   onCellSelect,
+  onAuxSelect,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const mimicRef = useRef<NovaMimic | null>(null);
 
   const onSelectRef = useRef(onSelect);
   const onCellRef = useRef(onCellSelect);
+  const onAuxRef = useRef(onAuxSelect);
   onSelectRef.current = onSelect;
   onCellRef.current = onCellSelect;
+  onAuxRef.current = onAuxSelect;
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -43,6 +48,7 @@ export const DemoMimic: React.FC<DemoMimicProps> = ({
     const mimic = createNovaMimic(svg, topology, {
       onSelect: (n) => onSelectRef.current?.(n),
       onCellSelect: (id) => onCellRef.current?.(id),
+      onAuxSelect: () => onAuxRef.current?.(),
     });
     mimicRef.current = mimic;
     return () => {

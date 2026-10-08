@@ -87,6 +87,7 @@ export const DemoFieldPage: React.FC = () => {
                 setCellId(id);
                 setCellMsg("");
               }}
+              onAuxSelect={() => openDevices(1, "aux")}
             />
           </div>
           <DemoLegend />
@@ -111,18 +112,13 @@ export const DemoFieldPage: React.FC = () => {
             />
           </section>
           <section className="card">
-            {selectedUnit ? (
-              <div className="qa" style={{ padding: "8px 12px 0", justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  className="btn sm"
-                  onClick={() => openDevices(selectedUnit.n, "battery")}
-                >
-                  Devices › Battery
-                </button>
-              </div>
-            ) : null}
-            <DemoUnitDetail unit={selectedUnit} topology={DEMO_TOPOLOGY} />
+            <DemoUnitDetail
+              unit={selectedUnit}
+              topology={DEMO_TOPOLOGY}
+              onOpenDevices={(section) => {
+                if (selectedUnit) openDevices(selectedUnit.n, section);
+              }}
+            />
           </section>
         </aside>
 
