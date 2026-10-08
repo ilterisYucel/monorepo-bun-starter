@@ -220,3 +220,46 @@ curl -s -H "authorization: Bearer $TOKEN" \
 ### 8.4 FLAG (demo kabulü)
 - `ws://` (TLS'siz) + `:88` HTTP; MFA kapalı; DB yedekleme yok.
 - Üretim geçişi: §7 (TLS/ACM, MFA=true, yedekleme) + field/kontrol kuralları.
+
+### 8.5 Telemetri disk hacmi (retention + compression)
+
+Demo-edge iki tier birden telemetri yazar; baskın hacim **BSC-1/2 ve PCS-1/2**'dir
+(6 saatlik tek ham chunk ≈ 5.5 GB; iki tier toplamı ≈ **80 GB/gün**). EPİAŞ
+`external_series` ihmal edilebilir (≈144 kB). 96 GB EBS'te retention/compression
+olmadan disk ~1 günde dolar.
+
+**Ayarlar** (`deployment/aws/demo-edge/docker-compose.yml` + `deployment/dev/demo-edge/docker-compose.yml`;
+hem `*-data-service` hem `*-web-service`, her iki tier):
+- `TIMESCALE_RETENTION_AFTER: "24 hours"` — chunk bu süreden sonra silinir.
+- `TIMESCALE_COMPRESS_AFTER: "6 hours"` — chunk kapanınca sıkışır (chunk = 6s).
+
+Retention artık `TimescaleDBAdapter.ensureTableExists` içinde kurulur (compression
+ile aynı yerde) — böylece her tier'da ve yeni cihaz tablolarında otomatik uygulanır;
+eski `index.ts` container-tier guard'ı field DB'sini atlıyordu. Beklenen sabit
+boyut ≈ **10-15 GB** (raw 6-12s + sıkışık geri kalan).
+
+**Mevcut stack'e uygulama (tek seferlik — politikaları düzelt + veriyi hemen geri kazan):**
+
+```bash
+cd ~/gd-pms-monorepo && git pull
+docker compose --env-file deployment/aws/demo-edge/.env \
+  -f deployment/aws/demo-edge/docker-compose.yml \
+  up -d --build container-web-service container-data-service \
+  field-web-service field-data-service
+
+# Her iki DB: politikaları 24s/6s'e sabitle + >6s chunk'ları sıkıştır
+for db in container field; do
+  docker exec aws-$db-timescaledb psql -U postgres -d battery -c "DO \$\$ DECLARE r record; BEGIN
+    FOR r IN SELECT hypertable_name FROM timescaledb_information.hypertables WHERE hypertable_name LIKE 'device_%' LOOP
+      BEGIN PERFORM remove_retention_policy(r.hypertable_name::regclass, true); EXCEPTION WHEN OTHERS THEN NULL; END;
+      PERFORM add_retention_policy(r.hypertable_name::regclass, INTERVAL '24 hours', true);
+      BEGIN PERFORM remove_compression_policy(r.hypertable_name::regclass, true); EXCEPTION WHEN OTHERS THEN NULL; END;
+      PERFORM add_compression_policy(r.hypertable_name::regclass, INTERVAL '6 hours', true);
+      BEGIN EXECUTE format('SELECT compress_chunk(c, true) FROM show_chunks(%L, older_than => INTERVAL ''6 hours'') c', r.hypertable_name); EXCEPTION WHEN OTHERS THEN NULL; END;
+    END LOOP; END \$\$;"
+  docker exec aws-$db-timescaledb psql -U postgres -d battery -tAc "select pg_size_pretty(pg_database_size('battery'));"
+done
+df -h /
+```
+
+Yerelde aynı işlem sonucu: container **51 GB → 11 GB**, field **10 GB → 3.4 GB**.
