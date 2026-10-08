@@ -22,6 +22,32 @@ export const DemoAdminPage: React.FC = () => {
     enabled: fieldId.length > 0,
   });
 
+  const containers = useQuery({
+    queryKey: ["demo-containers-status", fieldId],
+    queryFn: ({ signal }) => demoApi.containers(fieldId, signal),
+    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    enabled: fieldId.length > 0,
+  });
+  const containerStatus = (containers.data ?? []).map((c) => ({
+    containerId: c.containerId,
+    connectionStatus: c.connectionStatus,
+    telemetryCount: c.latestTelemetry?.length ?? 0,
+  }));
+
+  const registerContainer = async (containerId: string, token: string): Promise<string | undefined> => {
+    try {
+      await demoApi.registerContainer(fieldId, containerId, token);
+      await containers.refetch();
+      return undefined;
+    } catch (e) {
+      const status = (e as { response?: { status?: number } }).response?.status;
+      if (status === 403) return "not authorised (admin/boss; password change or MFA may be pending)";
+      if (status === 400) return "invalid token (at least 32 characters)";
+      return (e as Error).message;
+    }
+  };
+
   const actions: DemoAdminActions = {
     setMapping: admin.setMapping,
     resetMapping: admin.resetMapping,
@@ -60,6 +86,8 @@ export const DemoAdminPage: React.FC = () => {
       runs={runs}
       logs={logs}
       writes={writes.data ?? []}
+      registerContainer={registerContainer}
+      containerStatus={containerStatus}
       admin={{
         mapping: admin.mapping,
         devices: admin.devices,

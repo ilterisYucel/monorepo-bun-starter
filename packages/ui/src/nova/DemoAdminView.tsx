@@ -63,10 +63,16 @@ export interface DemoAdminViewProps {
   logs: LogEntry[];
   /** Gerçek Modbus yazma izi (varsa trace'in birincil kaynağı). */
   writes?: DemoCommandWrite[];
+  /** Konteyner kayıt callback'i — hata mesajı döner (başarıda undefined). */
+  registerContainer?: (containerId: string, token: string) => Promise<string | undefined>;
+  /** Kayıtlı konteyner bağlantı durumları (Add container sekmesi). */
+  containerStatus?: Array<{ containerId: string; connectionStatus: string; telemetryCount: number }>;
   admin: DemoAdminStateShape;
   actions: DemoAdminActions;
   copyLabel?: string;
 }
+
+type AdminTab = "add" | "map" | "par" | "dev" | "cat" | "trace";
 
 const f = (v: number, d = 1): string => (Math.round(v * 10 ** d) / 10 ** d).toFixed(d);
 
@@ -98,15 +104,22 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
   runs,
   logs,
   writes,
+  registerContainer,
+  containerStatus,
   admin,
   actions,
   copyLabel,
 }) => {
-  const [tab, setTab] = useState<"map" | "par" | "dev" | "cat" | "trace">("map");
+  const [tab, setTab] = useState<AdminTab>("map");
   const [catQ, setCatQ] = useState("");
+  const [containerId, setContainerId] = useState("container-1");
+  const [token, setToken] = useState("");
+  const [regBusy, setRegBusy] = useState(false);
+  const [regMsg, setRegMsg] = useState("");
   const L = topology.limits;
 
-  const tabs: Array<[typeof tab, string]> = [
+  const tabs: Array<[AdminTab, string]> = [
+    ["add", "Add container"],
     ["map", "Data mapping"],
     ["par", "Site parameters"],
     ["dev", "Devices"],
@@ -154,6 +167,96 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
           ))}
         </div>
       </header>
+
+      {/* ── Add container ── */}
+      {tab === "add" ? (
+        <>
+          <p className="dsub pad">
+            Register a container service token. Copy the <code>CONTAINER_TOKEN</code> you set in the container's
+            <code>.env</code>, paste it here and press Register — the container then connects to this field over the
+            tunnel (WS). No shell script needed.
+          </p>
+          <div className="atools">
+            <label className="inl">
+              <span className="dsub">Container ID</span>
+              <input
+                data-testid="add-container-id"
+                value={containerId}
+                onChange={(e) => setContainerId(e.target.value)}
+              />
+            </label>
+            <label className="inl">
+              <span className="dsub">Token</span>
+              <input
+                data-testid="add-container-token"
+                type="password"
+                value={token}
+                placeholder="CONTAINER_TOKEN from the container .env"
+                style={{ minWidth: 320 }}
+                onChange={(e) => setToken(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              data-testid="add-container-register"
+              className="btn btn-primary"
+              disabled={regBusy || token.trim().length < 32 || containerId.trim() === ""}
+              onClick={async () => {
+                setRegBusy(true);
+                setRegMsg("");
+                try {
+                  const err = await registerContainer?.(containerId.trim(), token.trim());
+                  setRegMsg(
+                    err
+                      ? `Failed: ${err}`
+                      : "Registered. The connection appears within a few seconds (backoff).",
+                  );
+                  if (!err) setToken("");
+                } catch (e) {
+                  setRegMsg(`Failed: ${(e as Error).message}`);
+                } finally {
+                  setRegBusy(false);
+                }
+              }}
+            >
+              Register
+            </button>
+            {regMsg ? <span className={regMsg.startsWith("Failed") ? "c-alarm" : "okmsg"}>{regMsg}</span> : null}
+          </div>
+          {token.trim().length > 0 && token.trim().length < 32 ? (
+            <p className="dsub pad">Token must be at least 32 characters.</p>
+          ) : null}
+          <h4 style={{ padding: "0 14px" }}>Containers</h4>
+          <div className="tblwrap">
+            <table className="dt">
+              <thead>
+                <tr>
+                  <th className="txt">Container</th>
+                  <th className="txt">Connection</th>
+                  <th className="txt">Telemetry rows</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(containerStatus ?? []).length ? (
+                  (containerStatus ?? []).map((c) => (
+                    <tr key={c.containerId} className={c.containerId === containerId.trim() ? "focus" : ""}>
+                      <td className="txt">{c.containerId}</td>
+                      <td className="txt">{c.connectionStatus}</td>
+                      <td className="txt">{c.telemetryCount}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="txt" colSpan={3}>
+                      No containers registered yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : null}
 
       {/* ── Data mapping ── */}
       {tab === "map" ? (

@@ -28,9 +28,10 @@ export interface ExecuteBody {
 }
 
 export const demoApi = {
-  containers: async (fieldId: string): Promise<FieldContainer[]> => {
+  containers: async (fieldId: string, signal?: AbortSignal): Promise<FieldContainer[]> => {
     const { data } = await apiClient.get<FieldContainer[]>(
       `/fields/${fieldId}/containers`,
+      { ...(signal ? { signal } : {}) },
     );
     return data;
   },
@@ -165,6 +166,18 @@ export const demoApi = {
       signal,
     });
     return data.writes ?? [];
+  },
+
+  /** Konteyner service-token kaydı (Admin › Add container) — mevcut register ucu. */
+  registerContainer: async (
+    fieldId: string,
+    containerId: string,
+    token: string,
+  ): Promise<void> => {
+    await apiClient.post(
+      `/fields/${fieldId}/containers/${containerId}/register`,
+      { token },
+    );
   },
 };
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { DemoAdminView, type DemoAdminActions, type DemoAdminStateShape } from "./DemoAdminView";
 import { DEMO_DEVICES, DEMO_MAPPING } from "./demo-registers";
@@ -52,11 +52,40 @@ const actions: DemoAdminActions = {
 describe("DemoAdminView (UC-8)", () => {
   it("5 sekme + mapping tablosu + canlı değer gösterir", () => {
     render(<DemoAdminView topology={topology} state={state} runs={[]} logs={[]} admin={admin} actions={actions} />);
+    expect(screen.getByText("Add container")).toBeTruthy();
     expect(screen.getByText("Data mapping")).toBeTruthy();
     expect(screen.getByText("Site parameters")).toBeTruthy();
     expect(screen.getByText("Modbus trace")).toBeTruthy();
     // ilk mapping satırı (Bank SOC) canlı değer
     expect(screen.getByText("61.50 %")).toBeTruthy();
+  });
+
+  it("Add container sekmesi form + register çağrısı", async () => {
+    const registerContainer = vi.fn().mockResolvedValue(undefined);
+    render(
+      <DemoAdminView
+        topology={topology}
+        state={state}
+        runs={[]}
+        logs={[]}
+        admin={admin}
+        actions={actions}
+        registerContainer={registerContainer}
+        containerStatus={[{ containerId: "container-1", connectionStatus: "connected", telemetryCount: 1580 }]}
+      />,
+    );
+    fireEvent.click(screen.getByText("Add container"));
+    expect(screen.getByTestId("add-container-id")).toBeTruthy();
+    // token kısa → buton pasif
+    const btn = screen.getByTestId("add-container-register") as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    fireEvent.change(screen.getByTestId("add-container-token"), { target: { value: "a".repeat(64) } });
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    await vi.waitFor(() => expect(registerContainer).toHaveBeenCalledWith("container-1", "a".repeat(64)));
+    expect(await screen.findByText(/Registered/)).toBeTruthy();
+    expect(screen.getByText("connected")).toBeTruthy();
+    expect(screen.getByText("1580")).toBeTruthy();
   });
 
   it("Register catalogue araması + poll planları", () => {
