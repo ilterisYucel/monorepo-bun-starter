@@ -82,6 +82,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
       await this.pool.query(query);
       await this.setupCompression(tableName);
+      await this.runRetention(deviceId);
       this.tableCache.add(tableName);
     })();
 

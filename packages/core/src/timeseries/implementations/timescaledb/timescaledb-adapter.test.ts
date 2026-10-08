@@ -110,6 +110,25 @@ describe("TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)", () => {
     );
     expect(ddlCalls).toHaveLength(1);
   });
+
+  it("ensureTableExists → retention politikasını da kurar (her tier; tablo başına bir kez)", async () => {
+    const { pool, poolQuery } = makeWritePool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await adapter.write([point("PCS-1", "SOC", 80)]);
+    const retention = poolQuery.mock.calls
+      .map((c) => String(c[0]))
+      .find((s) => s.includes("add_retention_policy"));
+    expect(retention).toContain("device_PCS_1");
+    expect(retention).toContain("90 days");
+
+    // tablo önbelleği: ikinci yazımda yeniden kurulmaz
+    await adapter.write([point("PCS-1", "SOC", 81)]);
+    const retentionCalls = poolQuery.mock.calls.filter((c) =>
+      String(c[0]).includes("add_retention_policy"),
+    );
+    expect(retentionCalls).toHaveLength(1);
+  });
 });
 
 describe("TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı)", () => {

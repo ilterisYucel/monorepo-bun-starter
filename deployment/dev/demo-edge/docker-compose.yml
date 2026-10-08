@@ -118,6 +118,8 @@ services:
       TIMESCALE_USER: postgres
       TIMESCALE_PASSWORD: password
       TIMESCALE_DATABASE: battery
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
     volumes:
       - ../../../services/data-service/src:/app/services/data-service/src
       - ../../../services/data-service/run.ts:/app/services/data-service/run.ts
@@ -196,8 +198,8 @@ services:
       DEVICE_CONFIG_DIR: /app/config-docker
       MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
-      TIMESCALE_COMPRESS_AFTER: "1 day"
-      TIMESCALE_RETENTION_AFTER: "90 days"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+      TIMESCALE_RETENTION_AFTER: "24 hours"
       FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-true}
       FIELD_WS_URL: ${FIELD_WS_URL:-ws://field-web-service:5002/ws/container}
       CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
@@ -333,6 +335,8 @@ services:
       TIMESCALE_USER: postgres
       TIMESCALE_PASSWORD: password
       TIMESCALE_DATABASE: battery
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
     volumes:
       - ../../../services/data-service/src:/app/services/data-service/src
       - ../../../services/data-service/run.ts:/app/services/data-service/run.ts
@@ -413,8 +417,8 @@ services:
       DEVICE_CONFIG_DIR: /app/config-field
       MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
-      TIMESCALE_COMPRESS_AFTER: "1 day"
-      TIMESCALE_RETENTION_AFTER: "90 days"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+      TIMESCALE_RETENTION_AFTER: "24 hours"
       FIELD_UPLINK_ENABLED: ${FIELD_UPLINK_ENABLED:-false}
       FIELD_UPLINK_WS_URL: ${FIELD_UPLINK_WS_URL:-}
       FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}

@@ -148,6 +148,8 @@ services:
       TIMESCALE_USER: postgres
       TIMESCALE_PASSWORD: password
       TIMESCALE_DATABASE: battery
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
     depends_on:
       container-redis:
         condition: service_healthy
@@ -220,8 +222,8 @@ services:
       DEVICE_CONFIG_DIR: /app/config-docker
       MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
-      TIMESCALE_COMPRESS_AFTER: "1 day"
-      TIMESCALE_RETENTION_AFTER: "90 days"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+      TIMESCALE_RETENTION_AFTER: "24 hours"
       # FieldConnector bootstrap — varsayılan AÇIK (konteyner→field linki;
       # kapatılırsa charge/discharge uzak BSC adımı rollback olur).
       FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-true}
@@ -372,6 +374,8 @@ services:
       TIMESCALE_USER: postgres
       TIMESCALE_PASSWORD: password
       TIMESCALE_DATABASE: battery
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
     depends_on:
       field-redis:
         condition: service_healthy
@@ -454,8 +458,8 @@ services:
       DEVICE_CONFIG_DIR: /app/config-field
       MANEUVER_CONFIG_DIR: /app/maneuver-config
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
-      TIMESCALE_COMPRESS_AFTER: "1 day"
-      TIMESCALE_RETENTION_AFTER: "90 days"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+      TIMESCALE_RETENTION_AFTER: "24 hours"
       # WS4 D3: programatik kanal (management-service) gizli token'ı —
       # env yoksa internal yol KAPALI (fail-closed; Bearer admin/teknik açık)
       FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
