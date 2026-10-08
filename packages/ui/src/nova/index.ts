@@ -110,11 +110,35 @@ export type {
 export { DemoCellDialog } from "./DemoCellDialog";
 export type { DemoCellDialogProps, DemoCellAction } from "./DemoCellDialog";
 export { DemoAdminView } from "./DemoAdminView";
-export type { DemoAdminViewProps, DemoAdminTab } from "./DemoAdminView";
-export { ADMIN_DEVICES, ADMIN_MAPPING } from "./demo-admin";
-export type { AdminMappingRow } from "./demo-admin";
-export { DEMO_REGISTERS } from "./demo-registers";
-export type { RegisterRow } from "./demo-registers";
+export type {
+  DemoAdminViewProps,
+  DemoAdminParams,
+  DemoAdminStateShape,
+  DemoAdminActions,
+} from "./DemoAdminView";
+export { adminLiveValue, commandTraceRows, thermalRow } from "./demo-admin-live";
+export type { TraceRow } from "./demo-admin-live";
+export {
+  DEMO_BSC,
+  DEMO_PCS,
+  DEMO_HVAC,
+  DEMO_MAPPING,
+  DEMO_DEVICES,
+  DEMO_THERMAL,
+  ALL_DEMO_REGISTERS,
+  demoCatalog,
+  addrText,
+  typeText,
+  rackAddr,
+} from "./demo-registers";
+export type {
+  DemoRegister,
+  DemoDeviceMeta,
+  DemoMappingEntry,
+  DemoDevicePlan,
+  DemoPollPlan,
+  DemoCatalogKey,
+} from "./demo-registers";
 export * from "./maneuver-types";
 export { DemoManeuverCard } from "./DemoManeuverCard";
 export type { DemoManeuverCardProps } from "./DemoManeuverCard";

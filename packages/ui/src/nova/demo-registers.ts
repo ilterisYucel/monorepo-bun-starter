@@ -1,39 +1,175 @@
+import raw from "./demo-registers.json";
+
 /**
- * Demo register kataloğu (SPEC UC-8, FR-8.4) — referans kayıt haritalarından
- * KIRPILMIŞ, yalnız demo ekranlarında gösterilen kayıtlar. Gerçek harita
- * backend cihaz config'lerindedir; bu yalnız görüntüleme verisidir.
+ * Admin veri kataloğu — referans konsol `dist/registers.json` portu (SPEC UC-8).
+ * BSC/PCS/HVAC register katalogları + rack registerları + komutlar + alarmlar +
+ * poll planları + ekran öğesi eşlemesi (49) + cihaz IP planı (54, referans).
+ * Saf veri + saf yardımcılar; IO yok.
  */
 
-export interface RegisterRow {
-  group: "BSC" | "PCS" | "HVAC" | "AUX" | "FSS" | "IMD";
+export interface DemoRegister {
+  id: string;
   name: string;
-  address: string;
-  note: string;
+  addr?: number;
+  offset?: number;
+  fc?: number;
+  type?: string;
+  scale?: number;
+  unit?: string;
+  prio: string;
+  note?: string;
+  access?: string;
+  param?: string;
+  enum?: Record<string, string>;
+  /** Kaynak katalog (bsc/pcs/hvac/BSC rack). */
+  src?: string;
 }
 
-export const DEMO_REGISTERS: RegisterRow[] = [
-  { group: "BSC", name: "SOC", address: "30042", note: "State of charge (%)" },
-  { group: "BSC", name: "SOH", address: "30044", note: "State of health (%)" },
-  { group: "BSC", name: "DC Voltage", address: "30051", note: "V" },
-  { group: "BSC", name: "DC Current", address: "30052", note: "A" },
-  { group: "BSC", name: "Charge power limit", address: "30063", note: "kW" },
-  { group: "BSC", name: "Discharge power limit", address: "30065", note: "kW" },
-  { group: "BSC", name: "Rack base", address: "30170 + 150·(R−1)", note: "Rack registers" },
-  { group: "PCS", name: "Operation status", address: "0x2F7D", note: "0 off · 1 stby · 2 chg · 3 dis · 6 fault" },
-  { group: "PCS", name: "Active power", address: "0x2F7E", note: "kW" },
-  { group: "PCS", name: "Grid line voltage AB", address: "0x2F4F", note: "V" },
-  { group: "PCS", name: "IGBT temperature", address: "0x2F54", note: "°C" },
-  { group: "PCS", name: "AC breaker", address: "0x2F5B", note: "open/closed" },
-  { group: "PCS", name: "Emergency stop", address: "0x2F60", note: "bits" },
-  { group: "HVAC", name: "Equipment status", address: "0x1000", note: "0/1/3" },
-  { group: "HVAC", name: "Supply air temp", address: "0x1003", note: "°C" },
-  { group: "HVAC", name: "Compressor", address: "0x1006", note: "run/stop + %" },
-  { group: "HVAC", name: "Return/room temp", address: "0x1008", note: "°C" },
-  { group: "AUX", name: "Active power total", address: "PM5340", note: "kW" },
-  { group: "AUX", name: "Voltage L-L avg", address: "PM5340", note: "V" },
-  { group: "FSS", name: "Panel status", address: "IR 0", note: "0 normal · 1 fire · 2 fault" },
-  { group: "FSS", name: "Released", address: "IR 3", note: "extinguishant released" },
-  { group: "FSS", name: "Detector H₂", address: "IR 9/13", note: "%LEL ×10" },
-  { group: "IMD", name: "Insulation resistance", address: "0x2000", note: "Ω (UInt32)" },
-  { group: "IMD", name: "Insulation alarm", address: "0x2005", note: "0 OK · 4 Warning" },
-];
+export interface DemoDeviceMeta {
+  id: string;
+  vendor: string;
+  model: string;
+  protocol: string;
+  port: number;
+  unitId: number;
+  doc?: string;
+}
+
+export interface DemoMappingEntry {
+  key: string;
+  label: string;
+  shownOn: string;
+  device: string;
+  register: string;
+}
+
+export interface DemoDevicePlan {
+  id: string;
+  kind: string;
+  unit: number;
+  bank?: string;
+  ip: string;
+  port: number;
+  unitId: number;
+}
+
+export interface DemoPollPlan {
+  fc: number;
+  from: number;
+  count: number;
+  every: string;
+  what: string;
+}
+
+export type DemoCatalogKey = "bsc" | "pcs" | "hvac" | "cmd-bsc" | "cmd-pcs" | "cmd-hvac";
+
+const R = raw as unknown as {
+  bsc: {
+    device: DemoDeviceMeta;
+    registers: DemoRegister[];
+    rack: { base: number; stride: number; registers: Array<Omit<DemoRegister, "prio">> };
+    commands: Record<string, number>;
+    pollPlan: DemoPollPlan[];
+  };
+  pcs: {
+    device: DemoDeviceMeta;
+    registers: DemoRegister[];
+    faultBits: Record<string, Record<string, string>>;
+    pollPlan: DemoPollPlan[];
+  };
+  hvac: {
+    device: DemoDeviceMeta;
+    registers: DemoRegister[];
+    alarms: DemoRegister[];
+    pollPlan: DemoPollPlan[];
+    powerEstimate: Record<string, unknown>;
+  };
+  mapping: DemoMappingEntry[];
+  devices: DemoDevicePlan[];
+};
+
+export const DEMO_BSC = R.bsc;
+export const DEMO_PCS = R.pcs;
+export const DEMO_HVAC = R.hvac;
+export const DEMO_MAPPING: DemoMappingEntry[] = R.mapping;
+export const DEMO_DEVICES: DemoDevicePlan[] = R.devices;
+
+/** Rack register adresi: base + 150·(rack−1) + offset. */
+export const rackAddr = (rack: number, offset: number): number =>
+  R.bsc.rack.base + R.bsc.rack.stride * (rack - 1) + offset;
+
+const rackRegisters: DemoRegister[] = R.bsc.rack.registers.map((r) => ({
+  ...r,
+  fc: 4,
+  prio: "rack",
+  src: "BSC rack",
+}));
+
+const withSrc = (regs: DemoRegister[], src: string): DemoRegister[] => regs.map((r) => ({ ...r, src }));
+
+const BSC_MAIN = withSrc(R.bsc.registers.filter((r) => r.prio !== "command"), "BSC");
+const BSC_CMD = withSrc(R.bsc.registers.filter((r) => r.prio === "command"), "BSC");
+const PCS_MAIN = withSrc(R.pcs.registers.filter((r) => r.prio !== "command"), "PCS");
+const PCS_CMD = withSrc(R.pcs.registers.filter((r) => r.prio === "command"), "PCS");
+const HVAC_MAIN = withSrc(R.hvac.registers.filter((r) => r.prio !== "command"), "HVAC").concat(
+  withSrc(R.hvac.alarms, "HVAC"),
+);
+const HVAC_CMD = withSrc(R.hvac.registers.filter((r) => r.prio === "command"), "HVAC");
+
+/** Mapping dropdown'u için katalog grupları (referans `CATALOG`). */
+export function demoCatalog(key: DemoCatalogKey): DemoRegister[] {
+  switch (key) {
+    case "bsc":
+      return [...BSC_MAIN, ...rackRegisters];
+    case "cmd-bsc":
+      return BSC_CMD;
+    case "pcs":
+      return PCS_MAIN;
+    case "cmd-pcs":
+      return PCS_CMD;
+    case "hvac":
+      return HVAC_MAIN;
+    case "cmd-hvac":
+      return HVAC_CMD;
+    default:
+      return [];
+  }
+}
+
+/** Tüm register id → kayıt (live value + trace eşlemesi). */
+export const ALL_DEMO_REGISTERS: Record<string, DemoRegister> = Object.fromEntries(
+  (["bsc", "cmd-bsc", "pcs", "cmd-pcs", "hvac", "cmd-hvac"] as DemoCatalogKey[])
+    .flatMap((k) => demoCatalog(k))
+    .map((r) => [r.id, r]),
+);
+
+/** Adres metni — rack ise stride, PCS/HVAC ise hex, aksi decimal. */
+export function addrText(r: DemoRegister | undefined): string {
+  if (!r) return "—";
+  if (r.offset !== undefined) return `${rackAddr(1, r.offset)} + 150·(rack−1)`;
+  if (r.addr === undefined) return "—";
+  if (r.src === "PCS" || r.src === "HVAC") return `0x${r.addr.toString(16).toUpperCase().padStart(4, "0")}`;
+  return String(r.addr);
+}
+
+/** Type · scale · unit metni. */
+export function typeText(r: DemoRegister | undefined): string {
+  if (!r) return "";
+  const scale = r.scale ? ` × ${r.scale}` : "";
+  const unit = r.unit ? ` · ${r.unit}` : "";
+  return `${r.type ?? ""}${scale}${unit}`;
+}
+
+/** Termal model sabitleri (referans topology `thermal`). */
+export const DEMO_THERMAL = {
+  cBattKJK: 16 * 1954 * 1.0,
+  cAirKJK: 2500,
+  uaBattAirKWK: 20,
+  uaWallKWK: 0.46,
+  solarKW: 1.84,
+  intKW: 0.47,
+  coolKW: 80,
+  heatKW: 24,
+  airflowKWK: 0.97,
+  pcsMaxMW: 1.725,
+} as const;
