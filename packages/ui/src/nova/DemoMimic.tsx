@@ -5,7 +5,6 @@ import {
   type NovaMimic,
   type OverlayMode,
 } from "./nova-mimic";
-import { applyNovaLightVars } from "./apply-nova-vars";
 import type { NovaMimicState, NovaTopology } from "./mimic-types";
 
 export interface DemoMimicProps {
@@ -37,10 +36,6 @@ export const DemoMimic: React.FC<DemoMimicProps> = ({
   const onCellRef = useRef(onCellSelect);
   onSelectRef.current = onSelect;
   onCellRef.current = onCellSelect;
-
-  useEffect(() => {
-    applyNovaLightVars();
-  }, []);
 
   useEffect(() => {
     const svg = svgRef.current;

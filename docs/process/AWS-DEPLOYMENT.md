@@ -263,3 +263,5 @@ df -h /
 ```
 
 Yerelde aynı işlem sonucu: container **51 GB → 11 GB**, field **10 GB → 3.4 GB**.
+Taze stack'te (>6 saat veri yoksa) sıkıştırma adımı no-op'tur; yalnızca politika
+tesisi ileriyi sınırlar — bu durumda recreate yeterlidir.

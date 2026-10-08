@@ -23,7 +23,14 @@ export function initialTheme(): NovaTheme {
 }
 
 export function useDemoTheme(): [NovaTheme, (t: NovaTheme) => void] {
-  const [theme, setThemeState] = useState<NovaTheme>(initialTheme);
+  // İlk render'da senkron uygula: tema sürücüsü yalnızca bu hook. Alt
+  // bileşenlerin (ör. DemoMimic) mount efektleri ebeveynden ÖNCE koştuğu için,
+  // değişkenler effect'e bırakılırsa ilk boyamada eksik kalır.
+  const [theme, setThemeState] = useState<NovaTheme>(() => {
+    const t = initialTheme();
+    applyNovaVars(t);
+    return t;
+  });
 
   useEffect(() => {
     applyNovaVars(theme);

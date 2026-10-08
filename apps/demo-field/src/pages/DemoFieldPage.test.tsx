@@ -101,4 +101,11 @@ describe("DemoFieldPage — site layout (UC-4)", () => {
     expect(screen.getByText(/Project data error/)).toBeTruthy();
     expect(screen.getByText("Site layout")).toBeTruthy();
   });
+
+  it("DemoMimic mount olurken tema değişkenlerini light'a EZMEZ (dark korunur)", () => {
+    document.documentElement.setAttribute("data-theme", "dark");
+    renderPage();
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    document.documentElement.removeAttribute("data-theme");
+  });
 });
