@@ -13,6 +13,13 @@ import type { FieldContainer } from "./demoApi";
 import { BANK_DEVICE_MAP, DEMO_MV_DEVICE_ID, DEMO_UNIT_COUNT } from "./demo-topology";
 import { fanOutUnits } from "./fanOutUnits";
 import {
+  buildAux,
+  buildDc,
+  buildFss,
+  buildHvacList,
+  buildImd,
+} from "./buildDevices";
+import {
   byCanonical,
   byName,
   canonicalNumber,
@@ -107,7 +114,7 @@ function buildBank(
   };
 }
 
-/** PCS satırlarından PCS durumu. */
+/** PCS satırlarından PCS durumu (canlı PCS telemetrisi — UC-4). */
 function buildPcs(
   pcsRows: TelemetryData[] | undefined,
   id: string,
@@ -130,7 +137,57 @@ function buildPcs(
     truthy(byName(pcsRows, "Derated Operation")?.value) ||
     truthy(byCanonical(pcsRows, "derated")?.value);
 
-  return { id, state, pMW: Math.abs(powerKw) / 1000, igbtC, limited };
+  const faultWords = (pcsRows ?? [])
+    .filter((r) => /^Fault Status Word \d+$/.test(r.name))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+    .map((r) => num(r.value) ?? 0);
+
+  const setpoint = num(byName(pcsRows, "Active Power Setpoint")?.value);
+  const signedSetpoint =
+    setpoint !== undefined ? (state === "chg" ? -Math.abs(setpoint) : setpoint) : undefined;
+
+  return {
+    id,
+    state,
+    pMW: Math.abs(powerKw) / 1000,
+    igbtC,
+    limited,
+    ...(num(byName(pcsRows, "Grid Voltage AB")?.value) !== undefined
+      ? { vac: num(byName(pcsRows, "Grid Voltage AB")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Grid Frequency")?.value) !== undefined
+      ? { freq: num(byName(pcsRows, "Grid Frequency")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "DC Current")?.value) !== undefined
+      ? { idc: num(byName(pcsRows, "DC Current")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Battery Voltage")?.value) !== undefined
+      ? { dcVoltage: num(byName(pcsRows, "Battery Voltage")?.value) }
+      : {}),
+    ...(byName(pcsRows, "AC Circuit Breaker Status")?.value !== undefined
+      ? { acCb: swPos(byName(pcsRows, "AC Circuit Breaker Status")?.value) }
+      : {}),
+    ...(byName(pcsRows, "DC Circuit Breaker Status 1")?.value !== undefined
+      ? { dcCb: swPos(byName(pcsRows, "DC Circuit Breaker Status 1")?.value) }
+      : {}),
+    ...(byName(pcsRows, "Emergency Stop Button Status")?.value !== undefined
+      ? { estop: truthy(byName(pcsRows, "Emergency Stop Button Status")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Max Allowable Charging Power")?.value) !== undefined
+      ? { chgLimitKw: num(byName(pcsRows, "Max Allowable Charging Power")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Max Allowable Discharging Power")?.value) !== undefined
+      ? { disLimitKw: num(byName(pcsRows, "Max Allowable Discharging Power")?.value) }
+      : {}),
+    ...(signedSetpoint !== undefined ? { setpointKw: signedSetpoint } : {}),
+    ...(num(byName(pcsRows, "Grid Reactive Power")?.value) !== undefined
+      ? { reactiveKvar: num(byName(pcsRows, "Grid Reactive Power")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Power Factor")?.value) !== undefined
+      ? { pf: num(byName(pcsRows, "Power Factor")?.value) }
+      : {}),
+    ...(faultWords.length > 0 ? { faultWords } : {}),
+  };
 }
 
 function n(v: number, d = 1): number {
@@ -239,6 +296,16 @@ export function mapFieldToMimicState(
 
   const byDevice = indexByDevice(rows);
 
+  const hvac = buildHvacList(byDevice);
+  const aux = buildAux(byDevice.get("PM5340-1"));
+  const fss = buildFss(
+    byDevice.get("CONTROL-PANEL-IO-1"),
+    byDevice.get("FSS-1"),
+    topo.unit.fss,
+  );
+  const imdMOhm = buildImd(byDevice.get("IMD-1"));
+  const dc = buildDc(byDevice.get("DC-METER-1"));
+
   const proto: Omit<NovaUnitState, "n"> = {
     rmu: { H01: "closed", H02: "closed", H03: "closed", es: false },
     banks: [
@@ -249,6 +316,11 @@ export function mapFieldToMimicState(
       buildPcs(byDevice.get(BANK_DEVICE_MAP.A.pcs), "A"),
       buildPcs(byDevice.get(BANK_DEVICE_MAP.B.pcs), "B"),
     ],
+    ...(hvac.length > 0 ? { hvac } : {}),
+    ...(aux ? { aux } : {}),
+    ...(fss ? { fss } : {}),
+    ...(imdMOhm !== undefined ? { imdMOhm } : {}),
+    ...(dc ? { dc } : {}),
   };
 
   const units = fanOutUnits(proto, unitCount);
@@ -266,5 +338,13 @@ export function mapFieldToMimicState(
   const { poiMW, feederMW, iA } = derivePower(units, topo, station);
   station.iA = iA;
 
-  return { station, poiMW, feederMW, units };
+  const ambient = num(byName(byDevice.get("HVAC-1"), "Outside Temp")?.value);
+
+  return {
+    station,
+    poiMW,
+    feederMW,
+    units,
+    ...(ambient !== undefined ? { ambient } : {}),
+  };
 }

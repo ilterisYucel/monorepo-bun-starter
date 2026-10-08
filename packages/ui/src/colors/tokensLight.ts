@@ -38,9 +38,9 @@ const lightTokens = {
   dead: "#adb6be",
   sel: "#1d6fd0",
 
-  // ---- Power flow (K2): deşarj turuncu, şarj teal ----
-  discharge: "#d0781c",
-  charge: "#0f9a88",
+  // ---- Power flow (K-2): deşarj turuncu, şarj teal (referans paleti) ----
+  discharge: "#c46d12",
+  charge: "#0b8a7a",
 
   // ---- Chart series ----
   cSoc: "#1f6aa8",

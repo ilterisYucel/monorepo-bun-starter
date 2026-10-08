@@ -26,7 +26,26 @@ export function fanOutUnits(
         ...(b.rackV ? { rackV: [...b.rackV] } : {}),
         ...(b.rackI ? { rackI: [...b.rackI] } : {}),
       })),
-      pcs: proto.pcs.map((p) => ({ ...p, pMW: p.pMW / count })),
+      pcs: proto.pcs.map((p) => ({
+        ...p,
+        pMW: p.pMW / count,
+        ...(p.faultWords ? { faultWords: [...p.faultWords] } : {}),
+      })),
+      ...(proto.hvac
+        ? { hvac: proto.hvac.map((h) => ({ ...h, alarms: [...h.alarms] })) }
+        : {}),
+      ...(proto.aux ? { aux: { ...proto.aux } } : {}),
+      ...(proto.fss
+        ? {
+            fss: {
+              ...proto.fss,
+              zones: proto.fss.zones.map((z) => ({ ...z })),
+              detectors: proto.fss.detectors.map((d) => ({ ...d })),
+            },
+          }
+        : {}),
+      ...(proto.imdMOhm !== undefined ? { imdMOhm: proto.imdMOhm } : {}),
+      ...(proto.dc ? { dc: { ...proto.dc } } : {}),
     });
   }
   return out;

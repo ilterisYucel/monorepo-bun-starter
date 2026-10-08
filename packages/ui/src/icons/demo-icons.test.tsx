@@ -7,8 +7,8 @@ describe("NOVA demo ikonları (T-32 / AK-7.2)", () => {
     expect(typeof SCADA_ICONS.novaBattery).toBe("function");
   });
 
-  it("tam 19 nova ikonu içerir", () => {
-    expect(Object.keys(NOVA_ICONS)).toHaveLength(19);
+  it("tam 29 nova ikonu içerir", () => {
+    expect(Object.keys(NOVA_ICONS)).toHaveLength(29);
   });
 
   it("mevcut Tabler ikonları korunur (Open-Closed)", () => {

@@ -1,5 +1,4 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import { NOVA_ICONS } from "../icons/demo-icons";
 import type { DemoManeuverItem } from "./maneuver-types";
 
@@ -42,20 +41,20 @@ export const DemoManeuverCard: React.FC<DemoManeuverCardProps> = ({
       gap: "2px 10px",
       alignItems: "center",
       textAlign: "left",
-      border: `1px solid ${selected ? COLORS_LIGHT.sel : COLORS_LIGHT.line}`,
-      boxShadow: selected ? `inset 0 0 0 1px ${COLORS_LIGHT.sel}` : "none",
-      background: COLORS_LIGHT.panel,
+      border: `1px solid ${selected ? "var(--nm-sel)" : "var(--nm-line)"}`,
+      boxShadow: selected ? `inset 0 0 0 1px ${"var(--nm-sel)"}` : "none",
+      background: "var(--nm-panel)",
       borderRadius: 6,
       padding: "10px 12px",
       cursor: "pointer",
       minWidth: 0,
     }}
   >
-    <span style={{ gridRow: "1 / 3", color: selected ? COLORS_LIGHT.sel : COLORS_LIGHT.muted }}>
+    <span style={{ gridRow: "1 / 3", color: selected ? "var(--nm-sel)" : "var(--nm-muted)" }}>
       {iconFor(item)}
     </span>
-    <b style={{ fontSize: 14.5, color: COLORS_LIGHT.fg }}>{item.label}</b>
-    <small style={{ fontSize: 11.5, color: COLORS_LIGHT.muted, lineHeight: 1.3 }}>
+    <b style={{ fontSize: 14.5, color: "var(--nm-fg)" }}>{item.label}</b>
+    <small style={{ fontSize: 11.5, color: "var(--nm-muted)", lineHeight: 1.3 }}>
       {item.description ?? "—"}
     </small>
   </button>

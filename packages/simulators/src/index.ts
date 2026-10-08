@@ -21,6 +21,8 @@ export type {
 export { ControlPanelIoSimulator, ControlPanelIoAdapter, IO_COILS, IO_DISCRETE } from "./control-panel-io";
 export type { DoorStateInput, FssStateInput } from "./control-panel-io";
 export { ImdSimulator, ImdAdapter, IMD_INPUT } from "./imd";
+export { FssSimulator, FssAdapter, FSS_INPUT, FSS_COILS, FSS_DISCRETE } from "./fss";
+export type { FssSimulatorConfig } from "./fss";
 export {
   DemoMvStationSimulator,
   DemoMvStationAdapter,

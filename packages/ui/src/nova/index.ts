@@ -1,6 +1,12 @@
 export * from "./mimic-types";
 export * from "./nova-mimic";
-export * from "./apply-light-vars";
+export * from "./apply-nova-vars";
+import "./nova-console.css";
+export { DemoProjectStrip } from "./DemoProjectStrip";
+export type {
+  DemoProjectStripProps,
+  DemoProjectStripItem,
+} from "./DemoProjectStrip";
 export { DemoMimic } from "./DemoMimic";
 export type { DemoMimicProps } from "./DemoMimic";
 export { DemoKpiStrip, DemoKpiTile } from "./DemoKpiStrip";
@@ -15,12 +21,28 @@ export { DemoUnitDetail } from "./DemoUnitDetail";
 export type { DemoUnitDetailProps } from "./DemoUnitDetail";
 export { DemoContainerScada } from "./DemoContainerScada";
 export type { DemoContainerScadaProps } from "./DemoContainerScada";
+export { DemoBessScada } from "./DemoBessScada";
+export type { DemoBessScadaProps } from "./DemoBessScada";
+export { DemoPackDetail } from "./DemoPackDetail";
+export type { DemoPackDetailProps } from "./DemoPackDetail";
+export {
+  packData,
+  rackPacks,
+  packMarkers,
+  rackRegisters,
+  tcMap18,
+  PACKS_PER_RACK,
+  CELLS_PER_PACK,
+  TC_PER_PACK,
+} from "./demo-bess-data";
+export type { PackData, PackInput, PackMarkers, RackRegisterRow } from "./demo-bess-data";
 export {
   DEMO_DEVICE_TABS,
   DemoMvPanel,
   DemoBatteryPanel,
   DemoPcsPanel,
   DemoHvacPanel,
+  DemoFssPanel,
   DemoRmuTrPanel,
   DemoAuxPanel,
 } from "./DemoDevicePanels";
@@ -35,15 +57,26 @@ export type {
   DemoFaultListProps,
   DemoFaultResolveProps,
 } from "./DemoFaultList";
+export { DemoFaultsView } from "./DemoFaultsView";
+export type { DemoFaultsViewProps } from "./DemoFaultsView";
+export { DemoOperationsView } from "./DemoOperationsView";
+export type {
+  DemoOperationsViewProps,
+  DemoOpDef,
+  DemoOpUnit,
+  DemoOpSequenceStep,
+  DemoPermission,
+} from "./DemoOperationsView";
 export {
   DEMO_REST_MINUTES,
   deriveRestState,
   lastFullRunFinishedAt,
+  restPhasesForRuns,
   thermalReady,
 } from "./demo-readiness";
-export type { RestState } from "./demo-readiness";
+export type { RestState, RestPhase } from "./demo-readiness";
 export { DemoReadyCard } from "./DemoReadyCard";
-export type { DemoReadyCardProps } from "./DemoReadyCard";
+export type { DemoReadyCardProps, DemoReadyUnit } from "./DemoReadyCard";
 export { DemoSequence } from "./DemoSequence";
 export type { DemoSequenceProps, DemoSequenceStep } from "./DemoSequence";
 export { DemoEventLog } from "./DemoEventLog";
@@ -63,16 +96,25 @@ export {
   pfEnergyCheck,
   pqWithinCapability,
   freqRangeOf,
+  buildMarketDay,
+  arbitragePlan,
 } from "./demo-market";
-export type { FreqRange } from "./demo-market";
+export type { FreqRange, MarketHour } from "./demo-market";
 export { DemoMarketView } from "./DemoMarketView";
 export type {
   DemoMarketPoint,
   DemoMarketSeries,
   DemoMarketViewProps,
+  DemoTeiasRow,
 } from "./DemoMarketView";
 export { DemoCellDialog } from "./DemoCellDialog";
 export type { DemoCellDialogProps, DemoCellAction } from "./DemoCellDialog";
+export { DemoAdminView } from "./DemoAdminView";
+export type { DemoAdminViewProps, DemoAdminTab } from "./DemoAdminView";
+export { ADMIN_DEVICES, ADMIN_MAPPING } from "./demo-admin";
+export type { AdminMappingRow } from "./demo-admin";
+export { DEMO_REGISTERS } from "./demo-registers";
+export type { RegisterRow } from "./demo-registers";
 export * from "./maneuver-types";
 export { DemoManeuverCard } from "./DemoManeuverCard";
 export type { DemoManeuverCardProps } from "./DemoManeuverCard";

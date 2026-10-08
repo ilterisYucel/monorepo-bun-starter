@@ -42,25 +42,26 @@ describe("demo-market (UC-9, FR-9.4 — TEİAŞ)", () => {
   });
 });
 
-describe("DemoMarketView (UC-9, FR-9.3)", () => {
-  it("seri boşsa 'veri yok' gösterir (uydurma yok)", () => {
+describe("DemoMarketView (UC-6, FR-6.1/6.2/6.3)", () => {
+  it("seri boşsa 'No market data' gösterir (uydurma yok)", () => {
     render(<DemoMarketView series={[]} />);
-    expect(screen.getByText(/veri yok/)).toBeTruthy();
+    expect(screen.getByText(/No market data/)).toBeTruthy();
   });
 
-  it("3 seri → 3 grafik + TEİAŞ kartlarını gösterir", () => {
+  it("fiyat serisi → kartlar + fiyat grafiği + TEİAŞ panelleri", () => {
     render(
       <DemoMarketView
         series={[
           {
-            label: "PTF · GÖP (gün öncesi)",
+            key: "ptf",
+            label: "PTF",
             points: [
               { timestamp: "2026-10-07T00:00:00.000Z", value: 3450, unit: "TRY/MWh" },
               { timestamp: "2026-10-07T01:00:00.000Z", value: 3200, unit: "TRY/MWh" },
             ],
           },
-          { label: "GİP AOF (gün içi)", points: [] },
-          { label: "SMF · DGP (dengeleme)", points: [] },
+          { key: "gip_wap", label: "GİP AOF", points: [] },
+          { key: "smf", label: "SMF", points: [] },
         ]}
         reserveMW={10}
         availableMWh={13}
@@ -68,10 +69,9 @@ describe("DemoMarketView (UC-9, FR-9.3)", () => {
       />,
     );
     expect(screen.getByTestId("demo-market")).toBeTruthy();
-    expect(screen.getAllByText("PTF · GÖP (gün öncesi)").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("GİP AOF (gün içi)").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("SMF · DGP (dengeleme)").length).toBeGreaterThan(0);
-    expect(screen.getByText("10,00 MW")).toBeTruthy();
+    expect(screen.getByText(/Market · EPİAŞ/)).toBeTruthy();
+    expect(screen.getAllByText(/PFK/).length).toBeGreaterThan(0);
+    expect(screen.getByText("10.00 MW")).toBeTruthy();
     expect(screen.getByText("OK")).toBeTruthy();
   });
 });
@@ -84,7 +84,7 @@ describe("DemoTrendChart padLeft (UC-9 düzeltme)", () => {
         { t: 1, value: 1 },
         { t: 2, value: 2 },
       ],
-      color: COLORS_LIGHT.cPow,
+      color: "var(--nm-c-pow)",
     },
   ];
   const labelX = (container: HTMLElement) =>

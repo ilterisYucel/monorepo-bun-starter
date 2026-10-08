@@ -19,6 +19,7 @@ import { DcMeterSimulator } from "./dc-meter";
 import { EnergyAnalyzerSimulator } from "./energy-analyzer";
 import { ControlPanelIoSimulator } from "./control-panel-io";
 import { ImdSimulator } from "./imd";
+import { FssSimulator } from "./fss";
 import { WattoxPcsSimulator } from "./wattox-pcs";
 import { DemoMvStationSimulator } from "./demo-mv-station";
 import { BscPcsConnectorAdapter, parseBscPcsMapping, TcpSourceReader } from "./bsc-pcs-connector";
@@ -105,6 +106,7 @@ export class SimulatorHost {
       (ctx) => new ControlPanelIoSimulator({ network: ctx.network }),
     );
     this.builders.set("imd", (ctx) => new ImdSimulator({ network: ctx.network }));
+    this.builders.set("fss", (ctx) => new FssSimulator({ network: ctx.network }));
     this.builders.set(
       "demo-mv-station",
       (ctx) => new DemoMvStationSimulator({ network: ctx.network }),

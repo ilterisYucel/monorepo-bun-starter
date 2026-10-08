@@ -251,6 +251,6 @@ nötr; env bayrağı YOK — geliştirici kararı). Kök servis ayrıca bir **bu
 | G10 | `graphify update .` koşulamadı — bu ortamda `graphify` CLI PATH'te kurulu değil (yalnız opencode plugin hatırlatıcısı) | düşük | graphify CLI kurulu ortamda `graphify update .` koş |
 | G11 | redis bellek kapasitesi izlenmiyor (BullMQ retention sınırlı ama 256mb da uzun koşuda dolabilir) | düşük | `used_memory` alarmı + gerekirse retention/kapasite ayarı (A.4#9) |
 | G12 | Platform: tüketicisiz kuyruk sınırsız büyür (MANAGEMENT `prioritized` 6005 job) — `removeOnComplete` yalnız tamamlananları budar, bekleyenleri budamaz | orta | Ürün: tier'da ilgili tüketici zorunlu (deploy kontrolü) veya bekleyen kuyruk üst sınırı (A.4#10) |
-| G13 | Platform: `getDownsampledData` varsayılan olarak tüm isimler için `AVG(CASE…)` + `GROUP BY tags` dev sorgu üretir (isim filtresi yoksa >60 sn timeout) | orta | Çekirdek adapter: `GROUP BY`'dan tags'i çıkar (tags'i isim→tag haritasından ekle), makul varsayılan isim limiti; ayrı PR (A.4#15) |
+| G13 | Platform: `getDownsampledData` varsayılan olarak tüm isimler için `AVG(CASE…)` + `GROUP BY tags` dev sorgu üretir (isim filtresi yoksa >60 sn timeout) | orta | Çekirdek adapter: `GROUP BY`'dan tags'i çıkar (tags'i isim→tag haritasından ekle), makul varsayılan isim limiti; ayrı PR (A.4#15) — SPEC kaydı: `TELEMETRI-SORGU-PERFORMANS-MIMARISI.md` (UC-1) |
 
 **review_date:** 2026-10-07

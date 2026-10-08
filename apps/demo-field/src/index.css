@@ -1,18 +1,26 @@
-/* Demo-field — NOVA ışık tema (COLORS_LIGHT ile hizalı). */
+/* Demo-field — NOVA light/dark tema kökü (referans konsol paleti, SPEC K-2).
+   Ham palet değerleri tek kaynaktan (tokensLight.ts / tokensDark.ts) JS ile
+   --nm-* değişkenlerine yazılır; burada yalnız font ve ilk-boyama fallback'i. */
 :root {
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --sans: "Barlow Semi Condensed", "Roboto Condensed", "Arial Narrow", system-ui,
+    sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas,
+    monospace;
 
   font-family: var(--sans);
-  line-height: 1.5;
+  line-height: 1.4;
   font-weight: 400;
   color-scheme: light;
-  color: #18212a;
-  background-color: #e4e8eb;
+  color: var(--nm-fg, #18212a);
+  background-color: var(--nm-bg, #e4e8eb);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 *,
@@ -27,7 +35,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #e4e8eb;
+  background-color: var(--nm-bg, #e4e8eb);
+  color: var(--nm-fg, #18212a);
 }
 
 #root {
@@ -41,4 +50,10 @@ a {
 
 button {
   font-family: inherit;
+  color: inherit;
+}
+
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
 }

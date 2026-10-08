@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import { DemoManeuverCard } from "./DemoManeuverCard";
 import type {
   DemoManeuverInput,
@@ -96,7 +95,7 @@ export const DemoManeuverWizard: React.FC<DemoManeuverWizardProps> = ({
   };
 
   return (
-    <div style={{ display: "grid", background: COLORS_LIGHT.panel, border: `1px solid ${COLORS_LIGHT.line}`, borderRadius: 6 }}>
+    <div style={{ display: "grid", background: "var(--nm-panel)", border: `1px solid ${"var(--nm-line)"}`, borderRadius: 6 }}>
       <Step title="1 · Kapsam" right={
         <span>
           <button type="button" style={linkStyle} onClick={() => { setScope(new Set(units.filter((u) => !u.disabled).map((u) => u.n))); setConfirm(false); }}>Tümü</button>
@@ -116,17 +115,17 @@ export const DemoManeuverWizard: React.FC<DemoManeuverWizardProps> = ({
                 onClick={() => toggleScope(u.n)}
                 style={{
                   textAlign: "left",
-                  border: `1px solid ${on ? COLORS_LIGHT.sel : COLORS_LIGHT.line}`,
-                  boxShadow: on ? `inset 0 0 0 1px ${COLORS_LIGHT.sel}` : "none",
-                  background: on ? `color-mix(in srgb, ${COLORS_LIGHT.sel} 8%, ${COLORS_LIGHT.panel})` : COLORS_LIGHT.panel,
+                  border: `1px solid ${on ? "var(--nm-sel)" : "var(--nm-line)"}`,
+                  boxShadow: on ? `inset 0 0 0 1px ${"var(--nm-sel)"}` : "none",
+                  background: on ? `color-mix(in srgb, ${"var(--nm-sel)"} 8%, ${"var(--nm-panel)"})` : "var(--nm-panel)",
                   borderRadius: 5,
                   padding: "6px 9px",
                   cursor: u.disabled ? "not-allowed" : "pointer",
                   opacity: u.disabled ? 0.45 : 1,
                 }}
               >
-                <b style={{ display: "block", fontSize: 13, color: COLORS_LIGHT.fg }}>BESS#{u.n}</b>
-                <small style={{ fontSize: 11.5, color: COLORS_LIGHT.muted }}>{u.note}</small>
+                <b style={{ display: "block", fontSize: 13, color: "var(--nm-fg)" }}>BESS#{u.n}</b>
+                <small style={{ fontSize: 11.5, color: "var(--nm-muted)" }}>{u.note}</small>
               </button>
             );
           })}
@@ -148,7 +147,7 @@ export const DemoManeuverWizard: React.FC<DemoManeuverWizardProps> = ({
           ))}
           {selected?.timer ? (
             <label style={{ display: "grid", gap: 4 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: COLORS_LIGHT.fg }}>Zamanlı durdurma (sn)</span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--nm-fg)" }}>Zamanlı durdurma (sn)</span>
               <input
                 type="number"
                 min={0}
@@ -157,28 +156,28 @@ export const DemoManeuverWizard: React.FC<DemoManeuverWizardProps> = ({
                 onChange={(e) => { setTimerSeconds(Number(e.target.value) || 0); setConfirm(false); }}
                 style={numStyle}
               />
-              <small style={{ fontSize: 11.5, color: COLORS_LIGHT.muted }}>0 = süre yok (saniye)</small>
+              <small style={{ fontSize: 11.5, color: "var(--nm-muted)" }}>0 = süre yok (saniye)</small>
             </label>
           ) : null}
           {(selected?.inputs ?? []).length === 0 && !selected?.timer ? (
-            <p style={{ margin: 0, fontSize: 12.5, color: COLORS_LIGHT.muted }}>Bu kayıt parametre almaz.</p>
+            <p style={{ margin: 0, fontSize: 12.5, color: "var(--nm-muted)" }}>Bu kayıt parametre almaz.</p>
           ) : null}
         </div>
       </Step>
 
       <div style={{ padding: "12px 14px 14px", display: "grid", gap: 8, justifyItems: "start" }}>
-        <p style={{ margin: 0, fontSize: 13.5, color: COLORS_LIGHT.fg }}>
+        <p style={{ margin: 0, fontSize: 13.5, color: "var(--nm-fg)" }}>
           <b>{selected?.label ?? "—"}</b> · {scopeList.length ? `BESS#${scopeList.join(", #")}` : "kapsam seçilmedi"}
         </p>
-        {error ? <p style={{ margin: 0, color: COLORS_LIGHT.alarm, fontSize: 12.5 }}>{error}</p> : null}
+        {error ? <p style={{ margin: 0, color: "var(--nm-alarm)", fontSize: 12.5 }}>{error}</p> : null}
         {!confirm ? (
           <button type="button" disabled={!canSend || busy} onClick={() => setConfirm(true)} style={primaryBtn(canSend && !busy)}>
             Komutu gönder
           </button>
         ) : (
-          <div style={{ border: `1px solid ${COLORS_LIGHT.warn}`, background: `color-mix(in srgb, ${COLORS_LIGHT.warn} 8%, ${COLORS_LIGHT.panel})`, borderRadius: 6, padding: "10px 12px", display: "grid", gap: 6 }}>
-            <b style={{ color: COLORS_LIGHT.fg }}>Komutu onaylıyor musunuz?</b>
-            <p style={{ margin: 0, fontSize: 12.5, color: COLORS_LIGHT.muted }}>
+          <div style={{ border: `1px solid ${"var(--nm-warn)"}`, background: `color-mix(in srgb, ${"var(--nm-warn)"} 8%, ${"var(--nm-panel)"})`, borderRadius: 6, padding: "10px 12px", display: "grid", gap: 6 }}>
+            <b style={{ color: "var(--nm-fg)" }}>Komutu onaylıyor musunuz?</b>
+            <p style={{ margin: 0, fontSize: 12.5, color: "var(--nm-muted)" }}>
               Onayladığınızda EMS sıralamayı başlatır; aktif manevra varsa yerini alır.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -187,7 +186,7 @@ export const DemoManeuverWizard: React.FC<DemoManeuverWizardProps> = ({
             </div>
           </div>
         )}
-        {message ? <p style={{ margin: 0, fontSize: 12.5, color: COLORS_LIGHT.ok }}>{message}</p> : null}
+        {message ? <p style={{ margin: 0, fontSize: 12.5, color: "var(--nm-ok)" }}>{message}</p> : null}
       </div>
     </div>
   );
@@ -201,14 +200,14 @@ const InputField: React.FC<{
   if (input.type === "boolean") {
     return (
       <label style={{ display: "grid", gap: 4 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: COLORS_LIGHT.fg }}>{input.label ?? input.name}</span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--nm-fg)" }}>{input.label ?? input.name}</span>
         <input type="checkbox" checked={!!value} onChange={(e) => onChange(input.name, e.target.checked)} />
       </label>
     );
   }
   return (
     <label style={{ display: "grid", gap: 4 }}>
-      <span style={{ fontSize: 12.5, fontWeight: 600, color: COLORS_LIGHT.fg }}>{input.label ?? input.name}</span>
+      <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--nm-fg)" }}>{input.label ?? input.name}</span>
       <input
         type={input.type === "string" ? "text" : "number"}
         min={input.min}
@@ -226,9 +225,9 @@ const InputField: React.FC<{
 };
 
 const Step: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> = ({ title, right, children }) => (
-  <div style={{ padding: "12px 14px 14px", borderTop: `1px solid ${COLORS_LIGHT.line2}` }}>
+  <div style={{ padding: "12px 14px 14px", borderTop: `1px solid ${"var(--nm-line2)"}` }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
-      <h4 style={{ margin: 0, fontSize: 11.5, letterSpacing: "0.09em", textTransform: "uppercase", color: COLORS_LIGHT.muted, fontWeight: 600 }}>
+      <h4 style={{ margin: 0, fontSize: 11.5, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--nm-muted)", fontWeight: 600 }}>
         {title}
       </h4>
       {right}
@@ -237,11 +236,11 @@ const Step: React.FC<{ title: string; right?: React.ReactNode; children: React.R
   </div>
 );
 
-const linkStyle: React.CSSProperties = { background: "none", border: 0, padding: 0, color: COLORS_LIGHT.sel, cursor: "pointer", fontSize: 12.5, fontWeight: 600 };
-const numStyle: React.CSSProperties = { width: 110, fontFamily: '"IBM Plex Mono", monospace', padding: "6px 8px", border: `1px solid ${COLORS_LIGHT.line}`, borderRadius: 4, background: COLORS_LIGHT.panel, color: COLORS_LIGHT.fg };
+const linkStyle: React.CSSProperties = { background: "none", border: 0, padding: 0, color: "var(--nm-sel)", cursor: "pointer", fontSize: 12.5, fontWeight: 600 };
+const numStyle: React.CSSProperties = { width: 110, fontFamily: '"IBM Plex Mono", monospace', padding: "6px 8px", border: `1px solid ${"var(--nm-line)"}`, borderRadius: 4, background: "var(--nm-panel)", color: "var(--nm-fg)" };
 function primaryBtn(enabled: boolean): React.CSSProperties {
-  return { display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${COLORS_LIGHT.fg}`, background: COLORS_LIGHT.fg, color: COLORS_LIGHT.panel, borderRadius: 5, padding: "7px 13px", fontWeight: 600, fontSize: 13.5, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.45 };
+  return { display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${"var(--nm-fg)"}`, background: "var(--nm-fg)", color: "var(--nm-panel)", borderRadius: 5, padding: "7px 13px", fontWeight: 600, fontSize: 13.5, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.45 };
 }
 function plainBtn(): React.CSSProperties {
-  return { display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${COLORS_LIGHT.line}`, background: COLORS_LIGHT.panel2, color: COLORS_LIGHT.fg, borderRadius: 5, padding: "7px 13px", fontWeight: 600, fontSize: 13.5, cursor: "pointer" };
+  return { display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${"var(--nm-line)"}`, background: "var(--nm-panel2)", color: "var(--nm-fg)", borderRadius: 5, padding: "7px 13px", fontWeight: 600, fontSize: 13.5, cursor: "pointer" };
 }

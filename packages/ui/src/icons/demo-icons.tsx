@@ -151,6 +151,38 @@ const CT: Body = (
     <path d="M2 12h20" />
   </>
 );
+const POWER: Body = (
+  <>
+    <path d="M12 3v9" />
+    <path d="M6.3 6.5a8 8 0 1 0 11.4 0" />
+  </>
+);
+const WRENCH: Body = (
+  <path d="M14.5 6.5a4 4 0 0 0 5 5L21 13l-8 8-3-3 8-8-1.5-1.5a4 4 0 0 0-5-5L14 6Z" />
+);
+const SLIDERS: Body = (
+  <>
+    <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+    <circle cx="16" cy="7" r="2" />
+    <circle cx="10" cy="17" r="2" />
+  </>
+);
+const PLUS: Body = <path d="M12 5v14M5 12h14" />;
+const FOLDER: Body = (
+  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+);
+const SUN: Body = (
+  <>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+  </>
+);
+const MOON: Body = <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />;
+const CHECK: Body = <path d="m5 12 4.5 4.5L19 7" />;
+const X: Body = <path d="M6 6l12 12M18 6 6 18" />;
+const HAND: Body = (
+  <path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13c0 4-2.5 7-6 7s-5.5-2-7-5l-1-2a1.5 1.5 0 0 1 2.6-1.5L8 13" />
+);
 
 export const NovaIconBolt = makeIcon(BOLT);
 export const NovaIconChg = makeIcon(CHG);
@@ -170,6 +202,16 @@ export const NovaIconMeter = makeIcon(METER);
 export const NovaIconBreaker = makeIcon(BREAKER);
 export const NovaIconEarth = makeIcon(EARTH);
 export const NovaIconCt = makeIcon(CT);
+export const NovaIconPower = makeIcon(POWER);
+export const NovaIconWrench = makeIcon(WRENCH);
+export const NovaIconSliders = makeIcon(SLIDERS);
+export const NovaIconPlus = makeIcon(PLUS);
+export const NovaIconFolder = makeIcon(FOLDER);
+export const NovaIconSun = makeIcon(SUN);
+export const NovaIconMoon = makeIcon(MOON);
+export const NovaIconCheck = makeIcon(CHECK);
+export const NovaIconX = makeIcon(X);
+export const NovaIconHand = makeIcon(HAND);
 
 /** Dinamik dolgu seviyeli batarya (level 0…1). */
 export function NovaIconBattery(
@@ -213,6 +255,16 @@ export const NOVA_ICONS = {
   breaker: NovaIconBreaker,
   earth: NovaIconEarth,
   ct: NovaIconCt,
+  power: NovaIconPower,
+  wrench: NovaIconWrench,
+  sliders: NovaIconSliders,
+  plus: NovaIconPlus,
+  folder: NovaIconFolder,
+  sun: NovaIconSun,
+  moon: NovaIconMoon,
+  check: NovaIconCheck,
+  x: NovaIconX,
+  hand: NovaIconHand,
   battery: NovaIconBattery,
 } as const;
 

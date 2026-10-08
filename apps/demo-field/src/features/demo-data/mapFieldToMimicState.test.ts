@@ -142,3 +142,49 @@ describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
     expect(state.units).toEqual([]);
   });
 });
+
+describe("mapFieldToMimicState — container cihazları (UC-9)", () => {
+  const WITH_DEVICES: TelemetryData[] = [
+    ...REAL_TELEMETRY,
+    T("HVAC-1", "Equipment Status", 1),
+    T("HVAC-1", "Compressor Status", true),
+    T("HVAC-1", "Supply Temp", 21),
+    T("HVAC-1", "Current Temp", 23),
+    T("HVAC-1", "Outside Temp", 14),
+    T("PM5340-1", "Active Power Total", 20),
+    T("PM5340-1", "Frequency", 50),
+    T("CONTROL-PANEL-IO-1", "System OK", true),
+    T("CONTROL-PANEL-IO-1", "Fault", false),
+    T("IMD-1", "Insulation Resistance", 900000),
+    T("DC-METER-1", "DC Voltage", 1300),
+    T("DC-METER-1", "DC Current", 100),
+  ];
+
+  it("AK-9.1: HVAC/AUX/FSS/IMD/DC ünite durumuna bağlanır", () => {
+    const state = mapFieldToMimicState([container(WITH_DEVICES)], DEMO_TOPOLOGY);
+    const u = state.units[0];
+    expect(u.hvac?.[0].id).toBe(1);
+    expect(u.hvac?.[0].supplyT).toBe(21);
+    expect(u.aux?.kW).toBe(20);
+    expect(u.fss?.systemOk).toBe(true);
+    expect(u.imdMOhm).toBe(900000);
+    expect(u.dc?.voltage).toBe(1300);
+  });
+
+  it("AK-9.2: fan-out yeni cihazları 9 üniteye kopyalar; ambient outside temp", () => {
+    const state = mapFieldToMimicState([container(WITH_DEVICES)], DEMO_TOPOLOGY);
+    expect(state.units).toHaveLength(9);
+    expect(state.units.every((u) => u.hvac?.[0].supplyT === 21)).toBe(true);
+    expect(state.units.every((u) => u.aux?.kW === 20)).toBe(true);
+    expect(state.ambient).toBe(14);
+  });
+
+  it("AK-9.3: cihaz telemetrisi yoksa alanlar tanımsız, throw yok", () => {
+    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
+    const u = state.units[0];
+    expect(u.hvac).toBeUndefined();
+    expect(u.aux).toBeUndefined();
+    expect(u.fss).toBeUndefined();
+    expect(state.ambient).toBeUndefined();
+  });
+});

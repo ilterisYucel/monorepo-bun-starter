@@ -28,7 +28,7 @@ export const LoginPage: React.FC = () => {
             background: COLORS_LIGHT.bg,
           }}
         >
-          <div style={{ color: COLORS_LIGHT.alarm, fontSize: "14px" }}>
+          <div style={{ color: "var(--nm-alarm)", fontSize: "14px" }}>
             {destination.error}
           </div>
         </div>
@@ -71,8 +71,8 @@ export const LoginPage: React.FC = () => {
       <form
         onSubmit={pendingMfaToken ? handleMfaSubmit : handleSubmit}
         style={{
-          background: COLORS_LIGHT.panel,
-          border: `1px solid ${COLORS_LIGHT.line}`,
+          background: "var(--nm-panel)",
+          border: `1px solid ${"var(--nm-line)"}`,
           borderRadius: "14px",
           padding: "40px",
           width: "360px",
@@ -81,12 +81,12 @@ export const LoginPage: React.FC = () => {
           gap: "16px",
         }}
       >
-        <h2 style={{ color: COLORS_LIGHT.fg, textAlign: "center", marginBottom: "8px" }}>
+        <h2 style={{ color: "var(--nm-fg)", textAlign: "center", marginBottom: "8px" }}>
           {pendingMfaToken ? t("auth.mfaTitle") : t("auth.loginTitle.field")}
         </h2>
 
         {error && (
-          <div style={{ color: COLORS_LIGHT.alarm, fontSize: "13px", textAlign: "center" }}>
+          <div style={{ color: "var(--nm-alarm)", fontSize: "13px", textAlign: "center" }}>
             {error}
           </div>
         )}
@@ -101,10 +101,10 @@ export const LoginPage: React.FC = () => {
             onChange={(e) => setMfaCode(e.target.value)}
             style={{
               padding: "10px 12px",
-              background: COLORS_LIGHT.panel2,
-              border: `1px solid ${COLORS_LIGHT.line}`,
+              background: "var(--nm-panel2)",
+              border: `1px solid ${"var(--nm-line)"}`,
               borderRadius: "8px",
-              color: COLORS_LIGHT.fg,
+              color: "var(--nm-fg)",
               fontSize: "14px",
               outline: "none",
               textAlign: "center",
@@ -115,15 +115,16 @@ export const LoginPage: React.FC = () => {
           <>
             <input
               type="text"
+              data-testid="login-username"
               placeholder={t("auth.usernamePlaceholder")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               style={{
                 padding: "10px 12px",
-                background: COLORS_LIGHT.panel2,
-                border: `1px solid ${COLORS_LIGHT.line}`,
+                background: "var(--nm-panel2)",
+                border: `1px solid ${"var(--nm-line)"}`,
                 borderRadius: "8px",
-                color: COLORS_LIGHT.fg,
+                color: "var(--nm-fg)",
                 fontSize: "14px",
                 outline: "none",
               }}
@@ -131,15 +132,16 @@ export const LoginPage: React.FC = () => {
 
             <input
               type="password"
+              data-testid="login-password"
               placeholder={t("auth.passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{
                 padding: "10px 12px",
-                background: COLORS_LIGHT.panel2,
-                border: `1px solid ${COLORS_LIGHT.line}`,
+                background: "var(--nm-panel2)",
+                border: `1px solid ${"var(--nm-line)"}`,
                 borderRadius: "8px",
-                color: COLORS_LIGHT.fg,
+                color: "var(--nm-fg)",
                 fontSize: "14px",
                 outline: "none",
               }}
@@ -149,12 +151,13 @@ export const LoginPage: React.FC = () => {
 
         <button
           type="submit"
+          data-testid="login-submit"
           style={{
             padding: "10px",
-            background: COLORS_LIGHT.sel,
+            background: "var(--nm-sel)",
             border: "none",
             borderRadius: "8px",
-            color: COLORS_LIGHT.panel,
+            color: "var(--nm-panel)",
             fontWeight: 600,
             fontSize: "14px",
             cursor: "pointer",

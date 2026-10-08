@@ -7,7 +7,7 @@ import {
   defaultUnitStatus,
   tempFill,
 } from "./nova-mimic";
-import { applyNovaLightVars, novaVarMap } from "./apply-light-vars";
+import { applyNovaLightVars, novaVarMap } from "./apply-nova-vars";
 
 const topo: NovaTopology = {
   id: "t",

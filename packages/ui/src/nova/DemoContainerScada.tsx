@@ -1,5 +1,4 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import type { NovaTopology, NovaUnitState } from "./mimic-types";
 import { PCS_TEXT, POS_TEXT, rackSeverity, tempFill } from "./nova-mimic";
 
@@ -34,7 +33,7 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
       data-testid="container-scada"
       style={{ padding: "12px 14px 14px", display: "grid", gap: 12 }}
     >
-      <h3 style={{ fontSize: 17, fontWeight: 700, color: COLORS_LIGHT.fg }}>
+      <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--nm-fg)" }}>
         Konteyner SCADA · BESS#{unit.n}
       </h3>
 
@@ -51,13 +50,13 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
                 key={p.id}
                 data-testid="scada-pcs"
                 style={{
-                  border: `1px solid ${COLORS_LIGHT.line}`,
+                  border: `1px solid ${"var(--nm-line)"}`,
                   borderRadius: 4,
                   padding: "6px 8px",
                 }}
               >
-                <b style={{ color: COLORS_LIGHT.fg }}>PCS-{p.id}</b>
-                <div style={{ fontSize: 11.5, color: COLORS_LIGHT.muted }}>
+                <b style={{ color: "var(--nm-fg)" }}>PCS-{p.id}</b>
+                <div style={{ fontSize: 11.5, color: "var(--nm-muted)" }}>
                   {PCS_TEXT[p.state]}
                 </div>
                 <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }}>
@@ -86,7 +85,7 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
           title={`DC BUS#${i + 1}${bus ? ` · ${bus.ratingA} A · sigorta ${bus.rackFuseA} A` : ""}`}
         >
           {bus ? (
-            <div style={{ fontSize: 11.5, color: COLORS_LIGHT.muted, marginBottom: 5 }}>
+            <div style={{ fontSize: 11.5, color: "var(--nm-muted)", marginBottom: 5 }}>
               IMD · {bus.imd}
             </div>
           ) : null}
@@ -100,7 +99,7 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
             {Array.from({ length: U.racksPerBank }).map((_, r) => {
               const t = b.racks[r];
               const sev = t !== undefined ? rackSeverity(t, L) : null;
-              const border = sev === "alarm" ? COLORS_LIGHT.alarm : sev === "cold" ? COLORS_LIGHT.cold : COLORS_LIGHT.line;
+              const border = sev === "alarm" ? "var(--nm-alarm)" : sev === "cold" ? "var(--nm-cold)" : "var(--nm-line)";
               return (
                 <span
                   key={r}
@@ -113,7 +112,7 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
                     borderRadius: 3,
                     border: `1px solid ${border}`,
                     background: t !== undefined ? tempFill(t, L) : "none",
-                    color: COLORS_LIGHT.fg,
+                    color: "var(--nm-fg)",
                   }}
                 >
                   {t !== undefined ? f(t) : "—"}
@@ -131,7 +130,7 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
               key={s.id}
               data-testid="scada-section"
               style={{
-                border: `1px solid ${COLORS_LIGHT.line}`,
+                border: `1px solid ${"var(--nm-line)"}`,
                 borderRadius: 4,
                 padding: "5px 7px",
                 fontSize: 12,
@@ -145,7 +144,7 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
       </Section>
 
       <Section title="Yangın söndürme (FSS)">
-        <div style={{ fontSize: 12.5, color: COLORS_LIGHT.fg }}>
+        <div style={{ fontSize: 12.5, color: "var(--nm-fg)" }}>
           {U.fss?.panel ?? "—"}
         </div>
       </Section>
@@ -156,10 +155,10 @@ export const DemoContainerScada: React.FC<DemoContainerScadaProps> = ({
         onClick={() => onOpen?.()}
         style={{
           width: "100%",
-          border: `1px solid ${COLORS_LIGHT.sel}`,
+          border: `1px solid ${"var(--nm-sel)"}`,
           borderRadius: 5,
-          background: COLORS_LIGHT.panel2,
-          color: COLORS_LIGHT.sel,
+          background: "var(--nm-panel2)",
+          color: "var(--nm-sel)",
           fontWeight: 600,
           fontSize: 13,
           padding: "9px 12px",
@@ -182,7 +181,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
         fontSize: 11.5,
         letterSpacing: "0.09em",
         textTransform: "uppercase",
-        color: COLORS_LIGHT.muted,
+        color: "var(--nm-muted)",
         fontWeight: 600,
         margin: "0 0 6px",
       }}
@@ -199,11 +198,11 @@ const Chips: React.FC<{ items: string[] }> = ({ items }) => (
       <span
         key={it}
         style={{
-          border: `1px solid ${COLORS_LIGHT.line}`,
+          border: `1px solid ${"var(--nm-line)"}`,
           borderRadius: 4,
           padding: "3px 7px",
           fontSize: 12,
-          color: COLORS_LIGHT.fg,
+          color: "var(--nm-fg)",
         }}
       >
         {it}

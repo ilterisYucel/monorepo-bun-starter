@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 
 /**
  * Fault listesi + resolve (SPEC UC-6/T-13, FR-6.1..FR-6.2). Aktif/çözülmüş
@@ -31,9 +30,9 @@ export interface DemoFaultListProps {
 }
 
 const SEV_COLOR: Record<string, string> = {
-  error: COLORS_LIGHT.alarm,
-  warning: COLORS_LIGHT.warn,
-  info: COLORS_LIGHT.info,
+  error: "var(--nm-alarm)",
+  warning: "var(--nm-warn)",
+  info: "var(--nm-info)",
 };
 
 const fmtTime = (iso?: string): string => {
@@ -56,7 +55,7 @@ export const DemoFaultList: React.FC<DemoFaultListProps> = ({
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 4, padding: "8px 12px", borderBottom: `1px solid ${COLORS_LIGHT.line2}` }}>
+      <div style={{ display: "flex", gap: 4, padding: "8px 12px", borderBottom: `1px solid ${"var(--nm-line2)"}` }}>
         {(
           [
             ["active", "Aktif"],
@@ -70,15 +69,15 @@ export const DemoFaultList: React.FC<DemoFaultListProps> = ({
             data-testid={`fault-filter-${id}`}
             onClick={() => onFilterChange(id)}
             style={{
-              border: `1px solid ${COLORS_LIGHT.line}`,
+              border: `1px solid ${"var(--nm-line)"}`,
               borderRadius: 4,
               padding: "4px 10px",
               fontSize: 12,
               fontWeight: 600,
               cursor: "pointer",
-              background: filter === id ? COLORS_LIGHT.panel2 : "none",
-              color: filter === id ? COLORS_LIGHT.fg : COLORS_LIGHT.muted,
-              boxShadow: filter === id ? `inset 0 -2px 0 ${COLORS_LIGHT.sel}` : "none",
+              background: filter === id ? "var(--nm-panel2)" : "none",
+              color: filter === id ? "var(--nm-fg)" : "var(--nm-muted)",
+              boxShadow: filter === id ? `inset 0 -2px 0 ${"var(--nm-sel)"}` : "none",
             }}
           >
             {label}
@@ -87,7 +86,7 @@ export const DemoFaultList: React.FC<DemoFaultListProps> = ({
       </div>
 
       {shown.length === 0 ? (
-        <p style={{ padding: 24, textAlign: "center", color: COLORS_LIGHT.muted }}>
+        <p style={{ padding: 24, textAlign: "center", color: "var(--nm-muted)" }}>
           Kayıt yok.
         </p>
       ) : (
@@ -99,7 +98,7 @@ export const DemoFaultList: React.FC<DemoFaultListProps> = ({
                   key={i}
                   style={{
                     textAlign: i === 0 ? "left" : i === 5 ? "right" : "left",
-                    color: COLORS_LIGHT.muted,
+                    color: "var(--nm-muted)",
                     fontWeight: 600,
                     fontSize: 11.5,
                     padding: "6px 12px",
@@ -117,7 +116,7 @@ export const DemoFaultList: React.FC<DemoFaultListProps> = ({
                 <tr key={`${a.deviceId}:${a.alarmName}`}>
                   <td style={td}>{a.deviceId}</td>
                   <td style={td}>{a.alarmName}</td>
-                  <td style={{ ...td, color: SEV_COLOR[a.severity] ?? COLORS_LIGHT.fg, fontWeight: 700 }}>
+                  <td style={{ ...td, color: SEV_COLOR[a.severity] ?? "var(--nm-fg)", fontWeight: 700 }}>
                     {a.severity}
                   </td>
                   <td style={td}>
@@ -131,10 +130,10 @@ export const DemoFaultList: React.FC<DemoFaultListProps> = ({
                         data-testid={`fault-resolve-${a.deviceId}-${a.alarmName}`}
                         onClick={() => onResolve(a)}
                         style={{
-                          border: `1px solid ${COLORS_LIGHT.line}`,
+                          border: `1px solid ${"var(--nm-line)"}`,
                           borderRadius: 4,
                           background: "none",
-                          color: COLORS_LIGHT.sel,
+                          color: "var(--nm-sel)",
                           fontSize: 12,
                           fontWeight: 600,
                           padding: "3px 9px",
@@ -188,8 +187,8 @@ export const DemoFaultResolve: React.FC<DemoFaultResolveProps> = ({
     >
       <div
         style={{
-          background: COLORS_LIGHT.panel,
-          border: `1px solid ${COLORS_LIGHT.line}`,
+          background: "var(--nm-panel)",
+          border: `1px solid ${"var(--nm-line)"}`,
           borderRadius: 6,
           width: 380,
           padding: 16,
@@ -197,14 +196,14 @@ export const DemoFaultResolve: React.FC<DemoFaultResolveProps> = ({
           gap: 10,
         }}
       >
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: COLORS_LIGHT.fg }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--nm-fg)" }}>
           Alarmı çöz · {alarm.alarmName}
         </h3>
-        <p style={{ fontSize: 12.5, color: COLORS_LIGHT.muted }}>
+        <p style={{ fontSize: 12.5, color: "var(--nm-muted)" }}>
           {alarm.deviceId} · {alarm.severity}
           {alarm.description ? ` · ${alarm.description}` : ""}
         </p>
-        <label style={{ fontSize: 12, color: COLORS_LIGHT.muted }}>
+        <label style={{ fontSize: 12, color: "var(--nm-muted)" }}>
           Not
           <textarea
             data-testid="fault-note"
@@ -215,7 +214,7 @@ export const DemoFaultResolve: React.FC<DemoFaultResolveProps> = ({
               display: "block",
               width: "100%",
               marginTop: 4,
-              border: `1px solid ${COLORS_LIGHT.line}`,
+              border: `1px solid ${"var(--nm-line)"}`,
               borderRadius: 4,
               padding: 6,
               fontFamily: "inherit",
@@ -224,7 +223,7 @@ export const DemoFaultResolve: React.FC<DemoFaultResolveProps> = ({
           />
         </label>
         {message ? (
-          <p style={{ fontSize: 12.5, color: COLORS_LIGHT.alarm }}>{message}</p>
+          <p style={{ fontSize: 12.5, color: "var(--nm-alarm)" }}>{message}</p>
         ) : null}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button type="button" onClick={onClose} style={btnGhost}>
@@ -246,22 +245,22 @@ export const DemoFaultResolve: React.FC<DemoFaultResolveProps> = ({
 
 const td: React.CSSProperties = {
   padding: "6px 12px",
-  borderTop: `1px solid ${COLORS_LIGHT.line2}`,
-  color: COLORS_LIGHT.fg,
+  borderTop: `1px solid ${"var(--nm-line2)"}`,
+  color: "var(--nm-fg)",
 };
 const btnGhost: React.CSSProperties = {
-  border: `1px solid ${COLORS_LIGHT.line}`,
+  border: `1px solid ${"var(--nm-line)"}`,
   borderRadius: 5,
   background: "none",
-  color: COLORS_LIGHT.muted,
+  color: "var(--nm-muted)",
   padding: "5px 12px",
   cursor: "pointer",
 };
 const btnPrimary: React.CSSProperties = {
-  border: `1px solid ${COLORS_LIGHT.sel}`,
+  border: `1px solid ${"var(--nm-sel)"}`,
   borderRadius: 5,
-  background: COLORS_LIGHT.sel,
-  color: COLORS_LIGHT.sym,
+  background: "var(--nm-sel)",
+  color: "var(--nm-sym)",
   padding: "5px 12px",
   fontWeight: 600,
   cursor: "pointer",

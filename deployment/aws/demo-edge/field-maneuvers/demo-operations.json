@@ -7,16 +7,33 @@
       "mode": "sequential",
       "onFailure": "rollback",
       "steps": [
-        { "system": "container-1", "maneuver": "bsc_charge" },
-        { "maneuver": "pcs_charge" }
+        {
+          "system": "container-1",
+          "maneuver": "bsc_charge"
+        },
+        {
+          "maneuver": "pcs_charge"
+        }
       ],
       "rollback": [
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" }
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
         ],
         "timer": true,
         "hidden": false
@@ -29,16 +46,33 @@
       "mode": "sequential",
       "onFailure": "rollback",
       "steps": [
-        { "system": "container-1", "maneuver": "bsc_discharge" },
-        { "maneuver": "pcs_discharge" }
+        {
+          "system": "container-1",
+          "maneuver": "bsc_discharge"
+        },
+        {
+          "maneuver": "pcs_discharge"
+        }
       ],
       "rollback": [
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" }
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
         ],
         "timer": true,
         "hidden": false
@@ -51,16 +85,33 @@
       "mode": "sequential",
       "onFailure": "rollback",
       "steps": [
-        { "system": "container-1", "maneuver": "bsc_charge" },
-        { "maneuver": "pcs_charge" }
+        {
+          "system": "container-1",
+          "maneuver": "bsc_charge"
+        },
+        {
+          "maneuver": "pcs_charge"
+        }
       ],
       "rollback": [
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" }
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
         ],
         "timer": true,
         "hidden": false
@@ -73,16 +124,33 @@
       "mode": "sequential",
       "onFailure": "rollback",
       "steps": [
-        { "system": "container-1", "maneuver": "bsc_discharge" },
-        { "maneuver": "pcs_discharge" }
+        {
+          "system": "container-1",
+          "maneuver": "bsc_discharge"
+        },
+        {
+          "maneuver": "pcs_discharge"
+        }
       ],
       "rollback": [
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" }
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
         ],
         "timer": true,
         "hidden": false
@@ -95,18 +163,45 @@
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [
-        { "system": "container-1", "maneuver": "bsc_charge" },
-        { "maneuver": "pcs_charge" },
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" },
-        { "system": "container-1", "maneuver": "bsc_discharge" },
-        { "maneuver": "pcs_discharge" },
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" }
+        {
+          "system": "container-1",
+          "maneuver": "bsc_charge"
+        },
+        {
+          "maneuver": "pcs_charge"
+        },
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_discharge"
+        },
+        {
+          "maneuver": "pcs_discharge"
+        },
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 200, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
         ],
         "hidden": false
       }
@@ -114,14 +209,21 @@
     {
       "name": "standby",
       "label": "Bekleme",
-      "description": "aktif manevrayı durdurur: PCS setpoint 0 + BSC stop.",
+      "description": "aktif manevrayı durdurur: PCS setpoint 0 + Standby (S19, enerjili) + BSC stop.",
       "mode": "sequential",
       "onFailure": "continue",
       "steps": [
-        { "maneuver": "pcs_stop" },
-        { "system": "container-1", "maneuver": "bsc_stop" }
+        {
+          "maneuver": "pcs_standby"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
       ],
-      "ui": { "hidden": false }
+      "ui": {
+        "hidden": false
+      }
     }
   ]
 }

@@ -9,6 +9,8 @@ import {
 import { DemoFaultList, DemoFaultResolve } from "./DemoFaultList";
 import type { DemoFault } from "./DemoFaultList";
 import { DemoEventLog } from "./DemoEventLog";
+import { DemoBessScada } from "./DemoBessScada";
+import { DemoFaultsView } from "./DemoFaultsView";
 import { DemoUnitDetail } from "./DemoUnitDetail";
 import type { NovaCellConfig, NovaStationState, NovaTopology, NovaUnitState } from "./mimic-types";
 
@@ -148,15 +150,16 @@ describe("DemoContainerScada (UC-4, FR-4.1..4.3)", () => {
   });
 });
 
-describe("DemoDevicePanels (UC-5, FR-5.1..5.2)", () => {
-  it("AK-5.1: 6 bölüm sekmesi tanımlıdır", () => {
-    expect(DEMO_DEVICE_TABS).toHaveLength(6);
+describe("DemoDevicePanels (UC-4, FR-4.1..4.5)", () => {
+  it("AK-5.1: Devices bölüm sekmeleri tanımlıdır", () => {
+    expect(DEMO_DEVICE_TABS).toHaveLength(7);
     expect(DEMO_DEVICE_TABS.map((t) => t.id)).toEqual([
-      "mv",
       "battery",
       "pcs",
       "hvac",
+      "fss",
       "rmutr",
+      "mv",
       "aux",
     ]);
   });
@@ -171,9 +174,9 @@ describe("DemoDevicePanels (UC-5, FR-5.1..5.2)", () => {
       ],
     };
     render(<DemoBatteryPanel unit={u} topology={scadaTopo} />);
-    expect(screen.getByText("DC BUS A · SOC 60,0 % · SOH 98,0 % · 1300 V")).toBeTruthy();
-    expect(screen.getAllByText("R1")).toHaveLength(2);
-    expect(screen.getAllByText("61,0")).toHaveLength(8);
+    expect(screen.getByText(/DC BUS A · SOC 60.0 % · SOH 98.0 % · 1300 V/)).toBeTruthy();
+    expect(screen.getAllByText("Rack#1")).toHaveLength(2);
+    expect(screen.getAllByText("61.0")).toHaveLength(8);
     expect(screen.getAllByText("1298")).toHaveLength(8);
     expect(screen.getAllByText("120")).toHaveLength(8);
   });
@@ -239,6 +242,58 @@ describe("DemoFaultList / DemoFaultResolve (UC-6, FR-6.1..6.2)", () => {
   });
 });
 
+describe("DemoBessScada (UC-4, FR-4.3)", () => {
+  it("AK-4.3: TR/PCS/DC CB/BUS/raf/HVAC/FSS çizilir", () => {
+    const u: NovaUnitState = {
+      ...scadaUnit,
+      hvac: [
+        { id: 1, on: true, mode: "cool", comp: true, heater: false, supplyT: 22, returnT: 24, alarms: [] },
+      ],
+      fss: {
+        status: "normal",
+        systemOk: true,
+        fault: false,
+        discharged: false,
+        secondStage: false,
+        mode: "auto",
+        released: false,
+        imminent: false,
+        ventsOpen: false,
+        disablements: { dE: false, dt: false, dc: false, dP: false, dA: false, db: false },
+        zones: [{ id: 1, name: "Smoke", state: "normal" }],
+        detectors: [{ id: 1, lel: 0, voc: 0, rh: 45, t: 22, alarm: false, fault: false }],
+      },
+    };
+    const { container } = render(<DemoBessScada unit={u} topology={scadaTopo} />);
+    expect(container.querySelector("svg.bx")).toBeTruthy();
+    expect(screen.getAllByText(/DC BUS#1/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/HVAC-1/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/FSS ·/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("DemoFaultsView (UC-7, FR-7.1/7.2)", () => {
+  const alarms = [
+    { deviceId: "PCS-1", alarmName: "OverTemp", severity: "error" as const, active: true, resolved: false, lastChangedAt: "2026-10-08T10:00:00Z" },
+    { deviceId: "BSC-2", alarmName: "CommLoss", severity: "warning" as const, active: false, resolved: true, lastChangedAt: "2026-10-08T09:00:00Z" },
+  ];
+
+  it("AK-7.1: Active filtresi yalnız aktif alarmı gösterir", () => {
+    render(<DemoFaultsView alarms={alarms} onResolve={() => {}} />);
+    expect(screen.getByText(/PCS-1 · OverTemp/)).toBeTruthy();
+    expect(screen.queryByText(/BSC-2 · CommLoss/)).toBeNull();
+  });
+
+  it("AK-7.2: not girip çözme çağrısı yapılır", () => {
+    const onResolve = vi.fn();
+    render(<DemoFaultsView alarms={alarms} onResolve={onResolve} />);
+    fireEvent.click(screen.getByTestId("fault-row-PCS-1-OverTemp"));
+    fireEvent.change(screen.getByTestId("fault-note"), { target: { value: "fan replaced" } });
+    fireEvent.click(screen.getByRole("button", { name: /Mark resolved/ }));
+    expect(onResolve).toHaveBeenCalledWith("PCS-1", "OverTemp", "fan replaced");
+  });
+});
+
 describe("DemoEventLog (UC-8, FR-8.1)", () => {
   it("severity filtresi yalnızca ilgili kayıtları gösterir", () => {
     render(
@@ -250,7 +305,7 @@ describe("DemoEventLog (UC-8, FR-8.1)", () => {
       />,
     );
     expect(screen.getAllByTestId("event-row")).toHaveLength(2);
-    fireEvent.click(screen.getByTestId("event-filter-error"));
+    fireEvent.click(screen.getByTestId("event-filter-alarm"));
     expect(screen.getAllByTestId("event-row")).toHaveLength(1);
     expect(screen.getByText("hata var")).toBeTruthy();
   });

@@ -5,7 +5,7 @@ import {
   type NovaMimic,
   type OverlayMode,
 } from "./nova-mimic";
-import { applyNovaLightVars } from "./apply-light-vars";
+import { applyNovaLightVars } from "./apply-nova-vars";
 import type { NovaMimicState, NovaTopology } from "./mimic-types";
 
 export interface DemoMimicProps {

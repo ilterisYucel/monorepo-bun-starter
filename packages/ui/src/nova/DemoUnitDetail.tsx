@@ -1,5 +1,4 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import type { NovaTopology, NovaUnitState } from "./mimic-types";
 import { PCS_TEXT, POS_TEXT, defaultUnitStatus, rackSeverity, tempFill } from "./nova-mimic";
 
@@ -22,7 +21,7 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
 }) => {
   if (!unit) {
     return (
-      <div style={{ padding: 14, color: COLORS_LIGHT.muted, fontSize: 13 }}>
+      <div style={{ padding: 14, color: "var(--nm-muted)", fontSize: 13 }}>
         Bir ünite seçin.
       </div>
     );
@@ -30,15 +29,15 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
   const status = unit.status ?? defaultUnitStatus(unit, topology.limits);
   const L = topology.limits;
   const tsv = (t: number): string =>
-    t > L.tempMax ? COLORS_LIGHT.alarm : t < L.tempMin ? COLORS_LIGHT.cold : COLORS_LIGHT.fg;
+    t > L.tempMax ? "var(--nm-alarm)" : t < L.tempMin ? "var(--nm-cold)" : "var(--nm-fg)";
 
   return (
     <div style={{ padding: "12px 14px 14px", display: "grid", gap: 12 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 700, color: COLORS_LIGHT.fg }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--nm-fg)" }}>
           BESS#{unit.n}
         </h3>
-        <span style={{ fontSize: 12, fontWeight: 700, color: COLORS_LIGHT.muted }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--nm-muted)" }}>
           {status.text}
         </span>
       </div>
@@ -88,7 +87,7 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
         <div style={{ display: "grid", gap: 4 }}>
           {unit.banks.map((b) => (
             <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 20, fontSize: 12, color: COLORS_LIGHT.muted, fontWeight: 600 }}>
+              <span style={{ width: 20, fontSize: 12, color: "var(--nm-muted)", fontWeight: 600 }}>
                 {b.id}
               </span>
               {b.racks.map((t, r) => {
@@ -103,7 +102,7 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
                       fontSize: 11,
                       padding: "5px 0",
                       borderRadius: 3,
-                      border: `1px solid ${sev ? (sev === "alarm" ? COLORS_LIGHT.alarm : COLORS_LIGHT.cold) : COLORS_LIGHT.line}`,
+                      border: `1px solid ${sev ? (sev === "alarm" ? "var(--nm-alarm)" : "var(--nm-cold)") : "var(--nm-line)"}`,
                       background: tempFill(t, L),
                       color: tsv(t),
                     }}
@@ -127,7 +126,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
         fontSize: 11.5,
         letterSpacing: "0.09em",
         textTransform: "uppercase",
-        color: COLORS_LIGHT.muted,
+        color: "var(--nm-muted)",
         fontWeight: 600,
         margin: "0 0 6px",
       }}
@@ -139,9 +138,9 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 );
 
 const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div style={{ border: `1px solid ${COLORS_LIGHT.line}`, borderRadius: 4, padding: "5px 7px", minWidth: 0 }}>
-    <small style={{ display: "block", fontSize: 11, color: COLORS_LIGHT.muted }}>{label}</small>
-    <b style={{ display: "block", fontSize: 13, color: COLORS_LIGHT.fg }}>{value}</b>
+  <div style={{ border: `1px solid ${"var(--nm-line)"}`, borderRadius: 4, padding: "5px 7px", minWidth: 0 }}>
+    <small style={{ display: "block", fontSize: 11, color: "var(--nm-muted)" }}>{label}</small>
+    <b style={{ display: "block", fontSize: 13, color: "var(--nm-fg)" }}>{value}</b>
   </div>
 );
 
@@ -154,7 +153,7 @@ const Table: React.FC<{ head: string[]; rows: string[][] }> = ({ head, rows }) =
             key={i}
             style={{
               fontWeight: 600,
-              color: COLORS_LIGHT.muted,
+              color: "var(--nm-muted)",
               textAlign: i === 0 ? "left" : "right",
               padding: "3px 0",
               fontSize: 11.5,
@@ -173,9 +172,9 @@ const Table: React.FC<{ head: string[]; rows: string[][] }> = ({ head, rows }) =
               key={ci}
               style={{
                 padding: "3px 0",
-                borderTop: `1px solid ${COLORS_LIGHT.line2}`,
+                borderTop: `1px solid ${"var(--nm-line2)"}`,
                 textAlign: ci === 0 ? "left" : "right",
-                color: COLORS_LIGHT.fg,
+                color: "var(--nm-fg)",
                 fontFamily: ci === 0 ? undefined : '"IBM Plex Mono", monospace',
               }}
             >

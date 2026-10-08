@@ -7,7 +7,12 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "start" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "start"
+        }
       ]
     },
     {
@@ -17,7 +22,12 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "stop" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        }
       ]
     },
     {
@@ -27,7 +37,12 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "set_power_zero" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "set_power_zero"
+        }
       ]
     },
     {
@@ -37,9 +52,16 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "standby" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "standby"
+        }
       ],
-      "ui": { "timer": true }
+      "ui": {
+        "timer": true
+      }
     },
     {
       "name": "fl05_emergency_stop",
@@ -48,8 +70,18 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "stop" },
-        { "deviceTypes": ["pcs"], "command": "set_power_zero" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "set_power_zero"
+        }
       ]
     },
     {
@@ -59,10 +91,22 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "fault_reset" },
-        { "deviceTypes": ["pcs"], "command": "standby" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "fault_reset"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "standby"
+        }
       ],
-      "ui": { "hidden": true }
+      "ui": {
+        "hidden": true
+      }
     },
     {
       "name": "fl07_comm_loss",
@@ -71,9 +115,16 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "stop" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        }
       ],
-      "ui": { "hidden": true }
+      "ui": {
+        "hidden": true
+      }
     },
     {
       "name": "fl10_islanding",
@@ -82,9 +133,16 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "stop" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        }
       ],
-      "ui": { "hidden": true }
+      "ui": {
+        "hidden": true
+      }
     },
     {
       "name": "pcs_charge",
@@ -94,17 +152,33 @@
       "onFailure": "stop",
       "steps": [
         {
-          "deviceTypes": ["pcs"],
+          "deviceTypes": [
+            "pcs"
+          ],
           "command": "charge",
-          "params": { "powerKw": "{{divideTotal}}" }
+          "params": {
+            "powerKw": "{{divideTotal}}"
+          }
         }
       ],
       "rollbackSteps": [
-        { "deviceTypes": ["pcs"], "command": "stop" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 50, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 50,
+            "label": "Güç (kW)"
+          }
         ],
         "timer": true,
         "transform": "divideTotal",
@@ -119,17 +193,33 @@
       "onFailure": "stop",
       "steps": [
         {
-          "deviceTypes": ["pcs"],
+          "deviceTypes": [
+            "pcs"
+          ],
           "command": "discharge",
-          "params": { "powerKw": "{{divideTotal}}" }
+          "params": {
+            "powerKw": "{{divideTotal}}"
+          }
         }
       ],
       "rollbackSteps": [
-        { "deviceTypes": ["pcs"], "command": "stop" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        }
       ],
       "ui": {
         "inputs": [
-          { "name": "powerKw", "type": "number", "min": 0, "max": 3568, "default": 50, "label": "Güç (kW)" }
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 50,
+            "label": "Güç (kW)"
+          }
         ],
         "timer": true,
         "transform": "divideTotal",
@@ -143,9 +233,37 @@
       "mode": "parallel",
       "onFailure": "continue",
       "steps": [
-        { "deviceTypes": ["pcs"], "command": "stop" }
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "stop"
+        }
       ],
-      "ui": { "hidden": true }
+      "ui": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "pcs_standby",
+      "label": "PCS: Standby",
+      "description": "Setpoint sıfırlama (S06 ← 0) + Standby (S19 ← 1) — PCS enerjili kalır",
+      "mode": "sequential",
+      "onFailure": "continue",
+      "steps": [
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "set_power_zero"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "standby"
+        }
+      ]
     }
   ]
 }
