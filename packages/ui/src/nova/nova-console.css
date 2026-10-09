@@ -573,10 +573,11 @@ pre.eq { font-family: var(--mono); font-size: 12.5px; line-height: 1.7; backgrou
 
 /* ── Pack detail ── */
 .link { background: none; border: 0; padding: 0; color: var(--nm-sel); cursor: pointer; font-weight: 600; font-size: inherit; }
+.dbody h4 { font-size: 13px; font-weight: 700; }
 .packdet { display: grid; gap: 8px; border-top: 1px solid var(--nm-line2); padding-top: 10px; }
-.rackdet { display: grid; gap: 10px; }
+.rackdet { border: 1px solid var(--nm-line2); border-radius: 6px; padding: 10px 12px; display: grid; gap: 8px; }
 .rackgrid { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 14px; align-items: start; }
-.pkrow { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 14px; align-items: start; }
+.pkrow { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .pkcol { width: 100%; max-width: 250px; height: auto; }
 .pkcol text { font-family: var(--sans); fill: var(--nm-fg); }
 .pkcol .bx-t8 { font-size: 9px; fill: var(--nm-muted); font-weight: 600; }

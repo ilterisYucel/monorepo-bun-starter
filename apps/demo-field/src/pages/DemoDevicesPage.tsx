@@ -400,7 +400,9 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
               <h4>Hottest pack · JF1 TC map (18 sensors)</h4>
               <Tcmap values={tcMap18(input)} tempMin={L.tempMin} tempMax={L.tempMax} />
             </div>
-            <RackRegisterTable rows={rackRegisters(input, bscRack, bank)} />
+            <div>
+              <RackRegisterTable rows={rackRegisters(input, bscRack, bank)} />
+            </div>
           </div>
           <DemoPackDetail
             rackNo={rackNo}
