@@ -29,6 +29,16 @@ export type TelemetryConfigEntry = (
    * TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak.
    */
   canonical?: string;
+  /**
+   * Yazma politikası — mutlak değişim eşiği (opt-in). Sayı pozitif olmalı;
+   * `"auto"` ise ham değeri tam sayı olan girdilerde scale'dan türetilir.
+   */
+  deadband?: number | "auto";
+  /**
+   * Yazma politikası — bayatlama sınırı (TTL). `deadband` tanımlıysa zorunlu;
+   * değer değişmese bile bu süre sonunda satır garantilenir.
+   */
+  maxStaleMs?: number;
 };
 
 /**

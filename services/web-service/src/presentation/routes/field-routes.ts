@@ -198,11 +198,15 @@ export async function fieldRoutes(
       to?: string;
       points?: string;
       containerIds?: string;
+      tag?: string;
     };
 
     const user = (request as unknown as { user: User }).user;
     if (!userCanAccessField(user, fieldId)) {
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
+    }
+    if (query.tag !== undefined && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(query.tag)) {
+      return reply.status(400).send({ error: "geçersiz tag anahtarı" });
     }
 
     const containerRows = await deps.db.query<FieldContainerRow>(
@@ -224,7 +228,7 @@ export async function fieldRoutes(
     const toDate = query.to ? new Date(query.to) : new Date();
     const points = query.points ? Number.parseInt(query.points, 10) : 120;
 
-    const params = { from: fromDate, to: toDate, points };
+    const params = { from: fromDate, to: toDate, points, tag: query.tag };
     const results = await deps.containerProxy.allHistorical(
       containerIds,
       params,

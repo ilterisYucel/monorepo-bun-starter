@@ -23,7 +23,8 @@ import { navigateToLogin } from "./auth-navigation";
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl(),
-  timeout: 15000,
+  // Faz-1 (K8): ağır downsampled sorguları >15 sn'de iptal edilmesin — 60 sn.
+  timeout: 60000,
   headers: { "Content-Type": "application/json" },
 });
 

@@ -12,6 +12,8 @@ export interface TelemetrySeriesQuery {
   points: number;
   deviceIds?: string[];
   names?: string[];
+  /** Grup anahtarı tag adı (ör. "rack_id") — serileri ayırır. */
+  tag?: string;
 }
 
 export interface ITelemetrySeriesSource {

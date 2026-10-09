@@ -61,6 +61,8 @@ export const RacksPage: React.FC = () => {
     defaultRange: "1h",
     defaultPoints: 200,
     deviceIds: bscIds,
+    // Jenerik grup anahtarı: rafları ayrı seri olarak çiz (BSC tag'i).
+    tag: "rack_id",
   });
   const eventAnnotations = useEventAnnotations(rackTelemetryProvider.range);
   const [detailData, setDetailData] = useState<RackDetailData | null>(null);

@@ -70,7 +70,7 @@ function mockScheduler(): DeviceScheduler {
   return {
     scheduleRead: vi.fn().mockResolvedValue(undefined),
     scheduleManagement: vi.fn().mockResolvedValue(undefined),
-    publishTelemetry: vi.fn().mockResolvedValue(undefined),
+    publishTelemetry: vi.fn().mockResolvedValue({ writeEnqueued: true }),
     close: vi.fn().mockResolvedValue(undefined),
   } as unknown as DeviceScheduler;
 }

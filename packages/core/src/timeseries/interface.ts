@@ -24,6 +24,12 @@ export interface DownsampleOptions {
   deviceId: string;
   names?: string[];
   tags?: Record<string, string>;
+  /**
+   * Serileri ayıran tag ANAHTARI (jenerik). Verilirse `GROUP BY bucket, name, tags->>'<tag>'`;
+   * verilmezse `GROUP BY bucket, name`. Cihaza özgü değer (BSC: "rack_id") ÇAĞIRAN tarafından
+   * geçirilir — çekirdek cihaz bilmez. Güvenlik: `^[a-zA-Z_][a-zA-Z0-9_]*$`.
+   */
+  tag?: string;
 }
 
 export interface ITimeseriesDatabase {

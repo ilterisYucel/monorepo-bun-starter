@@ -294,6 +294,8 @@ export class ContainerProxy implements IContainerProxy {
       from: (params.from ?? new Date(Date.now() - 86400000)).toISOString(),
       to: (params.to ?? new Date()).toISOString(),
       points: params.points ?? 120,
+      ...(params.names !== undefined ? { names: params.names } : {}),
+      ...(params.tag !== undefined ? { tag: params.tag } : {}),
     };
 
     return await new Promise<TelemetryData[]>((resolve) => {

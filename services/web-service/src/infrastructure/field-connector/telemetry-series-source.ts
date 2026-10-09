@@ -32,6 +32,7 @@ export class TelemetrySeriesSource implements ITelemetrySeriesSource {
           from: query.from,
           to: query.to,
           points: query.points,
+          ...(query.tag !== undefined ? { tag: query.tag } : {}),
         }),
       ),
     );

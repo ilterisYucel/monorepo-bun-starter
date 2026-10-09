@@ -94,6 +94,7 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
       points,
       selectedName,
       options.filters,
+      options.tag,
       options.deviceIds,
       customFrom,
       customTo,
@@ -116,6 +117,11 @@ export const useTelemetryProvider: UseTelemetryProvider = (options: TelemetryPro
         for (const [key, value] of Object.entries(options.filters)) {
           params.append(key, String(value));
         }
+      }
+
+      // Jenerik grup anahtarı (ör. "rack_id") — serileri ayırır (K2/tag).
+      if (options.tag) {
+        params.append("tag", options.tag);
       }
 
       if (options.deviceIds?.length) {

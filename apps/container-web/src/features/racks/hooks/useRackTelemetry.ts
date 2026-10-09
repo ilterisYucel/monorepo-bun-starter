@@ -8,7 +8,8 @@ export const useRackTelemetry = (rackId: number) => {
     telemetryNames,
     defaultRange: "1h",
     defaultPoints: 120,
-    // 🔥 filters ile rack_id gönder
+    // Belirli rafa filtre + serileri rack_id ile ayır (BSC tag'i).
     filters: { rack_id: rackId.toString() },
+    tag: "rack_id",
   });
 };

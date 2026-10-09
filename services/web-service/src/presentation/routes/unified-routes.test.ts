@@ -189,6 +189,28 @@ describe("unified-routes (T0.6)", () => {
     expect(res.statusCode).toBe(200);
   });
 
+  it("GET /telemetry/downsampled?tag=rack_id → getDownsampledData tag taşır (jenerik)", async () => {
+    const timescale = makeTimescale();
+    const app = await buildApp({ timescale });
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/unified/telemetry/downsampled?from=2026-08-01T00:00:00Z&to=2026-08-02T00:00:00Z&tag=rack_id",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(timescale.getDownsampledData).toHaveBeenCalledWith(
+      expect.objectContaining({ tag: "rack_id" }),
+    );
+  });
+
+  it("GET /telemetry/downsampled — geçersiz tag anahtarı → 400", async () => {
+    const app = await buildApp();
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/unified/telemetry/downsampled?from=2026-08-01T00:00:00Z&to=2026-08-02T00:00:00Z&tag=rack_id.x",
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
   it("GET /telemetry/:deviceId → 200 {deviceId, interval, dataPointCount, data}", async () => {
     const app = await buildApp();
     const res = await app.inject({ method: "GET", url: "/api/unified/telemetry/bsc-1" });

@@ -6364,7 +6364,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "BSC Alarm",
-          "dataTag": "bsc_alarm",
           "description": "BSC Alarm",
           "unit": "-",
           "scale": 1,
@@ -6376,7 +6375,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "BSC Warning",
-          "dataTag": "bsc_warning",
           "description": "BSC Warning",
           "unit": "-",
           "scale": 1,
@@ -6388,7 +6386,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "BSC Fault",
-          "dataTag": "bsc_fault",
           "description": "BSC Fault",
           "unit": "-",
           "scale": 1,
@@ -6400,7 +6397,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "ChargeStatus",
-          "dataTag": "charge_status",
           "description": "Charge Status",
           "unit": "-",
           "scale": 1,
@@ -6411,7 +6407,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "PreVPC",
-          "dataTag": "prevpc",
           "description": "PreVPC",
           "unit": "-",
           "scale": 1,
@@ -6422,7 +6417,6 @@
           "bitStart": 11,
           "bitEnd": 11,
           "name": "VPC",
-          "dataTag": "vpc",
           "description": "VPC",
           "unit": "-",
           "scale": 1,
@@ -6433,7 +6427,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SPC",
-          "dataTag": "spc",
           "description": "SPC",
           "unit": "-",
           "scale": 1,
@@ -6444,7 +6437,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "TPC",
-          "dataTag": "tpc",
           "description": "TPC",
           "unit": "-",
           "scale": 1,
@@ -6461,7 +6453,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Controller LOC Alarm",
-          "dataTag": "controller_loc_alarm",
           "description": "Controller LOC Alarm",
           "unit": "-",
           "scale": 1,
@@ -6473,7 +6464,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Controller LOC Warning",
-          "dataTag": "controller_loc_warning",
           "description": "Controller LOC Warning",
           "unit": "-",
           "scale": 1,
@@ -6485,7 +6475,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Controller LOC Fault",
-          "dataTag": "controller_loc_fault",
           "description": "Controller LOC Fault",
           "unit": "-",
           "scale": 1,
@@ -6497,7 +6486,6 @@
           "bitStart": 6,
           "bitEnd": 6,
           "name": "Under SOC Alarm",
-          "dataTag": "under_soc_alarm",
           "description": "Under SOC Alarm",
           "unit": "-",
           "scale": 1,
@@ -6509,7 +6497,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "Under SOC Warning",
-          "dataTag": "under_soc_warning",
           "description": "Under SOC Warning",
           "unit": "-",
           "scale": 1,
@@ -6521,7 +6508,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Under SOC Fault",
-          "dataTag": "under_soc_fault",
           "description": "Under SOC Fault",
           "unit": "-",
           "scale": 1,
@@ -6533,7 +6519,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Over SOC Alarm",
-          "dataTag": "over_soc_alarm",
           "description": "Over SOC Alarm",
           "unit": "-",
           "scale": 1,
@@ -6545,7 +6530,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Over SOC Warning",
-          "dataTag": "over_soc_warning",
           "description": "Over SOC Warning",
           "unit": "-",
           "scale": 1,
@@ -6557,7 +6541,6 @@
           "bitStart": 11,
           "bitEnd": 11,
           "name": "Over SOC Fault",
-          "dataTag": "over_soc_fault",
           "description": "Over SOC Fault",
           "unit": "-",
           "scale": 1,
@@ -6569,7 +6552,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Over Discharge Power Alarm",
-          "dataTag": "over_discharge_power_alarm",
           "description": "Over Discharge Power Alarm",
           "unit": "-",
           "scale": 1,
@@ -6581,7 +6563,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Over Discharge Power Warning",
-          "dataTag": "over_discharge_power_warning",
           "description": "Over Discharge Power Warning",
           "unit": "-",
           "scale": 1,
@@ -6593,7 +6574,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Over Discharge Power Fault",
-          "dataTag": "over_discharge_power_fault",
           "description": "Over Discharge Power Fault",
           "unit": "-",
           "scale": 1,
@@ -6611,7 +6591,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Over Charge Power Alarm",
-          "dataTag": "over_charge_power_alarm",
           "description": "Over Charge Power Alarm",
           "unit": "-",
           "scale": 1,
@@ -6623,7 +6602,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Over Charge Power Warning",
-          "dataTag": "over_charge_power_warning",
           "description": "Over Charge Power Warning",
           "unit": "-",
           "scale": 1,
@@ -6635,7 +6613,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Over Charge Power Fault",
-          "dataTag": "over_charge_power_fault",
           "description": "Over Charge Power Fault",
           "unit": "-",
           "scale": 1,
@@ -6653,7 +6630,6 @@
           "bitStart": 6,
           "bitEnd": 6,
           "name": "SLF (System Logging Failure) Alarm",
-          "dataTag": "slf_system_logging_failure_alarm",
           "description": "SLF (System Logging Failure) Alarm",
           "unit": "-",
           "scale": 1,
@@ -6665,7 +6641,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "SLF (System Logging Failure) Warning",
-          "dataTag": "slf_system_logging_failure_warning",
           "description": "SLF (System Logging Failure) Warning",
           "unit": "-",
           "scale": 1,
@@ -6677,7 +6652,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "SLF (System Logging Failure) Fault",
-          "dataTag": "slf_system_logging_failure_fault",
           "description": "SLF (System Logging Failure) Fault",
           "unit": "-",
           "scale": 1,
@@ -6694,8 +6668,7 @@
         {
           "bitStart": 0,
           "bitEnd": 14,
-          "name": "Reserved",
-          "dataTag": "reserved_diag_4",
+          "name": "Reserved 30046",
           "description": "Reserved",
           "unit": "-",
           "scale": 1,
@@ -6712,7 +6685,6 @@
           "bitStart": 3,
           "bitEnd": 3,
           "name": "MFRD (Multiple Fault Rack) Alarm",
-          "dataTag": "mfrd_multiple_fault_rack_alarm",
           "description": "MFRD (Multiple Fault Rack) Alarm",
           "unit": "-",
           "scale": 1,
@@ -6724,7 +6696,6 @@
           "bitStart": 4,
           "bitEnd": 4,
           "name": "MFRD (Multiple Fault Rack) Warning",
-          "dataTag": "mfrd_multiple_fault_rack_warning",
           "description": "MFRD (Multiple Fault Rack) Warning",
           "unit": "-",
           "scale": 1,
@@ -6736,7 +6707,6 @@
           "bitStart": 5,
           "bitEnd": 5,
           "name": "MFRD (Multiple Fault Rack) Fault",
-          "dataTag": "mfrd_multiple_fault_rack_fault",
           "description": "MFRD (Multiple Fault Rack) Fault",
           "unit": "-",
           "scale": 1,
@@ -6748,7 +6718,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Over Offline Rack Alarm",
-          "dataTag": "over_offline_rack_alarm",
           "description": "Over Offline Rack Alarm",
           "unit": "-",
           "scale": 1,
@@ -6760,7 +6729,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Over Offline Rack Warning",
-          "dataTag": "over_offline_rack_warning",
           "description": "Over Offline Rack Warning",
           "unit": "-",
           "scale": 1,
@@ -6772,7 +6740,6 @@
           "bitStart": 11,
           "bitEnd": 11,
           "name": "Over Offline Rack Fault",
-          "dataTag": "over_offline_rack_fault",
           "description": "Over Offline Rack Fault",
           "unit": "-",
           "scale": 1,
@@ -6790,7 +6757,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "RBMS SW Version Mismatch Alarm",
-          "dataTag": "RBMS SW Version Mismatch_alarm",
           "description": "RBMS SW Version Mismatch Alarm",
           "unit": "-",
           "scale": 1,
@@ -6802,7 +6768,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "RBMS SW Version Mismatch Warning",
-          "dataTag": "RBMS SW Version Mismatch_warning",
           "description": "RBMS SW Version Mismatch Warning",
           "unit": "-",
           "scale": 1,
@@ -6814,7 +6779,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "RBMS SW Version Mismatch Fault",
-          "dataTag": "RBMS SW Version Mismatch_fault",
           "description": "RBMS SW Version Mismatch Fault",
           "unit": "-",
           "scale": 1,
@@ -6831,8 +6795,7 @@
         {
           "bitStart": 0,
           "bitEnd": 14,
-          "name": "Reserved",
-          "dataTag": "reserved_diag_7",
+          "name": "Reserved 30049",
           "description": "Reserved",
           "unit": "-",
           "scale": 1,
@@ -6848,8 +6811,7 @@
         {
           "bitStart": 0,
           "bitEnd": 14,
-          "name": "Reserved",
-          "dataTag": "reserved_diag_8",
+          "name": "Reserved 30050",
           "description": "Reserved",
           "unit": "-",
           "scale": 1,
@@ -6866,7 +6828,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r1_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -6877,7 +6838,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r1_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -6889,7 +6849,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r1_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -6901,7 +6860,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r1_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -6912,7 +6870,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r1_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -6923,7 +6880,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r1_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -6934,7 +6890,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r1_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -6946,7 +6901,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r1_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -6957,7 +6911,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r1_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -6977,7 +6930,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r1_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -6988,7 +6940,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r1_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -6999,7 +6950,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r1_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -7010,7 +6960,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r1_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -7021,7 +6970,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r1_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -7032,7 +6980,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r1_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -7043,7 +6990,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r1_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -7063,7 +7009,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r2_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -7074,7 +7019,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r2_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -7086,7 +7030,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r2_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -7098,7 +7041,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r2_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -7109,7 +7051,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r2_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -7120,7 +7061,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r2_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -7131,7 +7071,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r2_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -7143,7 +7082,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r2_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -7154,7 +7092,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r2_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -7174,7 +7111,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r2_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -7185,7 +7121,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r2_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -7196,7 +7131,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r2_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -7207,7 +7141,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r2_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -7218,7 +7151,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r2_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -7229,7 +7161,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r2_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -7240,7 +7171,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r2_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -7260,7 +7190,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r3_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -7271,7 +7200,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r3_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -7283,7 +7211,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r3_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -7295,7 +7222,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r3_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -7306,7 +7232,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r3_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -7317,7 +7242,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r3_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -7328,7 +7252,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r3_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -7340,7 +7263,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r3_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -7351,7 +7273,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r3_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -7371,7 +7292,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r3_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -7382,7 +7302,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r3_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -7393,7 +7312,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r3_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -7404,7 +7322,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r3_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -7415,7 +7332,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r3_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -7426,7 +7342,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r3_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -7437,7 +7352,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r3_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -7457,7 +7371,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r4_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -7468,7 +7381,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r4_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -7480,7 +7392,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r4_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -7492,7 +7403,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r4_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -7503,7 +7413,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r4_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -7514,7 +7423,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r4_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -7525,7 +7433,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r4_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -7537,7 +7444,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r4_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -7548,7 +7454,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r4_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -7568,7 +7473,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r4_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -7579,7 +7483,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r4_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -7590,7 +7493,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r4_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -7601,7 +7503,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r4_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -7612,7 +7513,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r4_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -7623,7 +7523,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r4_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -7634,7 +7533,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r4_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -7654,7 +7552,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r5_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -7665,7 +7562,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r5_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -7677,7 +7573,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r5_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -7689,7 +7584,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r5_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -7700,7 +7594,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r5_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -7711,7 +7604,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r5_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -7722,7 +7614,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r5_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -7734,7 +7625,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r5_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -7745,7 +7635,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r5_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -7765,7 +7654,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r5_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -7776,7 +7664,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r5_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -7787,7 +7674,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r5_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -7798,7 +7684,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r5_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -7809,7 +7694,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r5_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -7820,7 +7704,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r5_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -7831,7 +7714,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r5_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -7851,7 +7733,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r6_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -7862,7 +7743,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r6_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -7874,7 +7754,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r6_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -7886,7 +7765,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r6_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -7897,7 +7775,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r6_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -7908,7 +7785,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r6_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -7919,7 +7795,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r6_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -7931,7 +7806,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r6_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -7942,7 +7816,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r6_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -7962,7 +7835,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r6_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -7973,7 +7845,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r6_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -7984,7 +7855,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r6_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -7995,7 +7865,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r6_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -8006,7 +7875,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r6_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -8017,7 +7885,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r6_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -8028,7 +7895,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r6_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -8048,7 +7914,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r7_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -8059,7 +7924,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r7_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -8071,7 +7935,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r7_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -8083,7 +7946,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r7_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -8094,7 +7956,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r7_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -8105,7 +7966,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r7_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -8116,7 +7976,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r7_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -8128,7 +7987,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r7_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -8139,7 +7997,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r7_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -8159,7 +8016,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r7_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -8170,7 +8026,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r7_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -8181,7 +8036,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r7_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -8192,7 +8046,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r7_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -8203,7 +8056,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r7_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -8214,7 +8066,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r7_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -8225,7 +8076,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r7_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -8245,7 +8095,6 @@
           "bitStart": 0,
           "bitEnd": 0,
           "name": "Cell Balancing",
-          "dataTag": "r8_cell_balancing",
           "description": "Cell Balancing",
           "unit": "-",
           "scale": 1,
@@ -8256,7 +8105,6 @@
           "bitStart": 1,
           "bitEnd": 1,
           "name": "Warning",
-          "dataTag": "r8_warning",
           "description": "Warning",
           "unit": "-",
           "scale": 1,
@@ -8268,7 +8116,6 @@
           "bitStart": 2,
           "bitEnd": 2,
           "name": "Fault",
-          "dataTag": "r8_fault",
           "description": "Fault",
           "unit": "-",
           "scale": 1,
@@ -8280,7 +8127,6 @@
           "bitStart": 3,
           "bitEnd": 4,
           "name": "Charge/Discharge Status",
-          "dataTag": "r8_charge_status",
           "description": "Charge/Discharge Status",
           "unit": "-",
           "scale": 1,
@@ -8291,7 +8137,6 @@
           "bitStart": 5,
           "bitEnd": 6,
           "name": "CER Status",
-          "dataTag": "r8_cer",
           "description": "CER Status",
           "unit": "-",
           "scale": 1,
@@ -8302,7 +8147,6 @@
           "bitStart": 7,
           "bitEnd": 7,
           "name": "DC Line Closed",
-          "dataTag": "r8_dc_line",
           "description": "DC Line Closed",
           "unit": "-",
           "scale": 1,
@@ -8313,7 +8157,6 @@
           "bitStart": 8,
           "bitEnd": 8,
           "name": "Battery Ready",
-          "dataTag": "r8_battery_ready",
           "description": "Battery Ready",
           "unit": "-",
           "scale": 1,
@@ -8325,7 +8168,6 @@
           "bitStart": 9,
           "bitEnd": 9,
           "name": "Charge Power Derating",
-          "dataTag": "r8_pwr_derate",
           "description": "Charge Power Derating",
           "unit": "-",
           "scale": 1,
@@ -8336,7 +8178,6 @@
           "bitStart": 10,
           "bitEnd": 10,
           "name": "Current Sensor Type",
-          "dataTag": "r8_current_sensor",
           "description": "Current Sensor Type",
           "unit": "-",
           "scale": 1,
@@ -8356,7 +8197,6 @@
           "bitStart": 0,
           "bitEnd": 1,
           "name": "PC Status",
-          "dataTag": "r8_pc",
           "description": "PC Status",
           "unit": "-",
           "scale": 1,
@@ -8367,7 +8207,6 @@
           "bitStart": 2,
           "bitEnd": 3,
           "name": "MC(+) Status",
-          "dataTag": "r8_mc_plus",
           "description": "MC(+) Status",
           "unit": "-",
           "scale": 1,
@@ -8378,7 +8217,6 @@
           "bitStart": 4,
           "bitEnd": 5,
           "name": "MC(-) Status",
-          "dataTag": "r8_mc_minus",
           "description": "MC(-) Status",
           "unit": "-",
           "scale": 1,
@@ -8389,7 +8227,6 @@
           "bitStart": 6,
           "bitEnd": 7,
           "name": "CB Status",
-          "dataTag": "r8_cb",
           "description": "CB Status",
           "unit": "-",
           "scale": 1,
@@ -8400,7 +8237,6 @@
           "bitStart": 8,
           "bitEnd": 9,
           "name": "Pack Fan1",
-          "dataTag": "r8_fan1",
           "description": "Pack Fan1",
           "unit": "-",
           "scale": 1,
@@ -8411,7 +8247,6 @@
           "bitStart": 10,
           "bitEnd": 11,
           "name": "Pack Fan2",
-          "dataTag": "r8_fan2",
           "description": "Pack Fan2",
           "unit": "-",
           "scale": 1,
@@ -8422,7 +8257,6 @@
           "bitStart": 12,
           "bitEnd": 13,
           "name": "BPU Fan",
-          "dataTag": "r8_bpu_fan",
           "description": "BPU Fan",
           "unit": "-",
           "scale": 1,
@@ -8442,7 +8276,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8454,7 +8287,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8466,7 +8298,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8478,7 +8309,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8486,7 +8316,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30239,
@@ -8496,7 +8329,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8508,7 +8340,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8520,7 +8351,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8532,7 +8362,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8540,7 +8369,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30240,
@@ -8550,7 +8382,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8562,7 +8393,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8574,7 +8404,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8586,7 +8415,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8594,7 +8422,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30241,
@@ -8604,7 +8435,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8616,7 +8446,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8628,7 +8457,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8640,7 +8468,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8648,7 +8475,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30242,
@@ -8658,7 +8488,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8670,7 +8499,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8682,7 +8510,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8694,7 +8521,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8702,7 +8528,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30243,
@@ -8712,7 +8541,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8724,7 +8552,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8736,7 +8563,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8748,7 +8574,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8756,7 +8581,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30247,
@@ -8766,7 +8594,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8778,7 +8605,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8790,7 +8616,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8802,7 +8627,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8810,7 +8634,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30248,
@@ -8820,7 +8647,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8832,7 +8658,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8844,7 +8669,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8856,7 +8680,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8864,7 +8687,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30250,
@@ -8874,7 +8700,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8886,7 +8711,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8898,7 +8722,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8910,7 +8733,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8918,7 +8740,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30251,
@@ -8928,7 +8753,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8940,7 +8764,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8952,7 +8775,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8964,7 +8786,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8972,7 +8793,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30223,
@@ -8982,7 +8806,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -8991,8 +8814,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -9001,8 +8823,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -9011,8 +8832,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -9021,8 +8841,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -9031,8 +8850,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 1)",
           "unit": "-",
           "scale": 1,
@@ -9041,14 +8859,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 1)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "1"
+      }
     },
     {
       "registerAddress": 30388,
@@ -9058,7 +8878,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9070,7 +8889,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9082,7 +8900,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9094,7 +8911,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9102,7 +8918,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30389,
@@ -9112,7 +8931,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9124,7 +8942,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9136,7 +8953,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9148,7 +8964,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9156,7 +8971,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30390,
@@ -9166,7 +8984,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9178,7 +8995,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9190,7 +9006,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9202,7 +9017,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9210,7 +9024,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30391,
@@ -9220,7 +9037,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9232,7 +9048,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9244,7 +9059,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9256,7 +9070,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9264,7 +9077,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30392,
@@ -9274,7 +9090,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9286,7 +9101,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9298,7 +9112,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9310,7 +9123,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9318,7 +9130,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30393,
@@ -9328,7 +9143,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9340,7 +9154,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9352,7 +9165,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9364,7 +9176,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9372,7 +9183,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30397,
@@ -9382,7 +9196,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9394,7 +9207,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9406,7 +9218,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9418,7 +9229,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9426,7 +9236,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30398,
@@ -9436,7 +9249,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9448,7 +9260,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9460,7 +9271,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9472,7 +9282,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9480,7 +9289,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30400,
@@ -9490,7 +9302,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9502,7 +9313,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9514,7 +9324,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9526,7 +9335,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9534,7 +9342,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30401,
@@ -9544,7 +9355,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9556,7 +9366,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9568,7 +9377,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9580,7 +9388,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9588,7 +9395,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30373,
@@ -9598,7 +9408,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9607,8 +9416,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9617,8 +9425,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9627,8 +9434,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9637,8 +9443,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9647,8 +9452,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 2)",
           "unit": "-",
           "scale": 1,
@@ -9657,14 +9461,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 2)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "2"
+      }
     },
     {
       "registerAddress": 30538,
@@ -9674,7 +9480,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9686,7 +9491,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9698,7 +9502,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9710,7 +9513,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9718,7 +9520,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30539,
@@ -9728,7 +9533,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9740,7 +9544,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9752,7 +9555,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9764,7 +9566,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9772,7 +9573,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30540,
@@ -9782,7 +9586,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9794,7 +9597,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9806,7 +9608,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9818,7 +9619,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9826,7 +9626,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30541,
@@ -9836,7 +9639,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9848,7 +9650,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9860,7 +9661,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9872,7 +9672,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9880,7 +9679,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30542,
@@ -9890,7 +9692,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9902,7 +9703,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9914,7 +9714,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9926,7 +9725,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9934,7 +9732,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30543,
@@ -9944,7 +9745,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9956,7 +9756,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9968,7 +9767,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9980,7 +9778,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -9988,7 +9785,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30547,
@@ -9998,7 +9798,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10010,7 +9809,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10022,7 +9820,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10034,7 +9831,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10042,7 +9838,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30548,
@@ -10052,7 +9851,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10064,7 +9862,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10076,7 +9873,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10088,7 +9884,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10096,7 +9891,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30550,
@@ -10106,7 +9904,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10118,7 +9915,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10130,7 +9926,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10142,7 +9937,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10150,7 +9944,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30551,
@@ -10160,7 +9957,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10172,7 +9968,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10184,7 +9979,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10196,7 +9990,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10204,7 +9997,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30523,
@@ -10214,7 +10010,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10223,8 +10018,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10233,8 +10027,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10243,8 +10036,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10253,8 +10045,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10263,8 +10054,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 3)",
           "unit": "-",
           "scale": 1,
@@ -10273,14 +10063,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 3)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "3"
+      }
     },
     {
       "registerAddress": 30688,
@@ -10290,7 +10082,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10302,7 +10093,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10314,7 +10104,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10326,7 +10115,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10334,7 +10122,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30689,
@@ -10344,7 +10135,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10356,7 +10146,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10368,7 +10157,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10380,7 +10168,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10388,7 +10175,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30690,
@@ -10398,7 +10188,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10410,7 +10199,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10422,7 +10210,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10434,7 +10221,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10442,7 +10228,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30691,
@@ -10452,7 +10241,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10464,7 +10252,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10476,7 +10263,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10488,7 +10274,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10496,7 +10281,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30692,
@@ -10506,7 +10294,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10518,7 +10305,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10530,7 +10316,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10542,7 +10327,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10550,7 +10334,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30693,
@@ -10560,7 +10347,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10572,7 +10358,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10584,7 +10369,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10596,7 +10380,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10604,7 +10387,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30697,
@@ -10614,7 +10400,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10626,7 +10411,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10638,7 +10422,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10650,7 +10433,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10658,7 +10440,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30698,
@@ -10668,7 +10453,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10680,7 +10464,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10692,7 +10475,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10704,7 +10486,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10712,7 +10493,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30700,
@@ -10722,7 +10506,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10734,7 +10517,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10746,7 +10528,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10758,7 +10539,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10766,7 +10546,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30701,
@@ -10776,7 +10559,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10788,7 +10570,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10800,7 +10581,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10812,7 +10592,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10820,7 +10599,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30673,
@@ -10830,7 +10612,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10839,8 +10620,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10849,8 +10629,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10859,8 +10638,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10869,8 +10647,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10879,8 +10656,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 4)",
           "unit": "-",
           "scale": 1,
@@ -10889,14 +10665,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 4)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "4"
+      }
     },
     {
       "registerAddress": 30838,
@@ -10906,7 +10684,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10918,7 +10695,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10930,7 +10706,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10942,7 +10717,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10950,7 +10724,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30839,
@@ -10960,7 +10737,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10972,7 +10748,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10984,7 +10759,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -10996,7 +10770,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11004,7 +10777,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30840,
@@ -11014,7 +10790,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11026,7 +10801,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11038,7 +10812,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11050,7 +10823,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11058,7 +10830,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30841,
@@ -11068,7 +10843,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11080,7 +10854,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11092,7 +10865,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11104,7 +10876,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11112,7 +10883,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30842,
@@ -11122,7 +10896,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11134,7 +10907,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11146,7 +10918,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11158,7 +10929,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11166,7 +10936,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30843,
@@ -11176,7 +10949,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11188,7 +10960,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11200,7 +10971,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11212,7 +10982,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11220,7 +10989,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30847,
@@ -11230,7 +11002,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11242,7 +11013,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11254,7 +11024,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11266,7 +11035,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11274,7 +11042,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30848,
@@ -11284,7 +11055,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11296,7 +11066,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11308,7 +11077,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11320,7 +11088,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11328,7 +11095,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30850,
@@ -11338,7 +11108,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11350,7 +11119,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11362,7 +11130,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11374,7 +11141,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11382,7 +11148,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30851,
@@ -11392,7 +11161,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11404,7 +11172,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11416,7 +11183,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11428,7 +11194,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11436,7 +11201,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30823,
@@ -11446,7 +11214,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11455,8 +11222,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11465,8 +11231,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11475,8 +11240,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11485,8 +11249,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11495,8 +11258,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 5)",
           "unit": "-",
           "scale": 1,
@@ -11505,14 +11267,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 5)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "5"
+      }
     },
     {
       "registerAddress": 30988,
@@ -11522,7 +11286,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11534,7 +11297,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11546,7 +11308,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11558,7 +11319,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11566,7 +11326,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30989,
@@ -11576,7 +11339,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11588,7 +11350,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11600,7 +11361,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11612,7 +11372,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11620,7 +11379,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30990,
@@ -11630,7 +11392,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11642,7 +11403,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11654,7 +11414,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11666,7 +11425,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11674,7 +11432,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30991,
@@ -11684,7 +11445,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11696,7 +11456,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11708,7 +11467,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11720,7 +11478,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11728,7 +11485,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30992,
@@ -11738,7 +11498,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11750,7 +11509,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11762,7 +11520,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11774,7 +11531,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11782,7 +11538,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30993,
@@ -11792,7 +11551,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11804,7 +11562,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11816,7 +11573,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11828,7 +11584,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11836,7 +11591,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30997,
@@ -11846,7 +11604,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11858,7 +11615,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11870,7 +11626,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11882,7 +11637,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11890,7 +11644,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30998,
@@ -11900,7 +11657,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11912,7 +11668,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11924,7 +11679,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11936,7 +11690,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11944,7 +11697,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 31000,
@@ -11954,7 +11710,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11966,7 +11721,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11978,7 +11732,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11990,7 +11743,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -11998,7 +11750,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 31001,
@@ -12008,7 +11763,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12020,7 +11774,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12032,7 +11785,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12044,7 +11796,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12052,7 +11803,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 30973,
@@ -12062,7 +11816,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12071,8 +11824,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12081,8 +11833,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12091,8 +11842,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12101,8 +11851,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12111,8 +11860,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 6)",
           "unit": "-",
           "scale": 1,
@@ -12121,14 +11869,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 6)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "6"
+      }
     },
     {
       "registerAddress": 31138,
@@ -12138,7 +11888,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12150,7 +11899,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12162,7 +11910,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12174,7 +11921,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12182,7 +11928,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31139,
@@ -12192,7 +11941,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12204,7 +11952,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12216,7 +11963,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12228,7 +11974,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12236,7 +11981,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31140,
@@ -12246,7 +11994,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12258,7 +12005,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12270,7 +12016,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12282,7 +12027,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12290,7 +12034,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31141,
@@ -12300,7 +12047,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12312,7 +12058,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12324,7 +12069,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12336,7 +12080,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12344,7 +12087,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31142,
@@ -12354,7 +12100,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12366,7 +12111,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12378,7 +12122,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12390,7 +12133,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12398,7 +12140,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31143,
@@ -12408,7 +12153,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12420,7 +12164,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12432,7 +12175,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12444,7 +12186,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12452,7 +12193,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31147,
@@ -12462,7 +12206,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12474,7 +12217,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12486,7 +12228,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12498,7 +12239,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12506,7 +12246,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31148,
@@ -12516,7 +12259,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12528,7 +12270,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12540,7 +12281,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12552,7 +12292,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12560,7 +12299,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31150,
@@ -12570,7 +12312,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12582,7 +12323,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12594,7 +12334,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12606,7 +12345,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12614,7 +12352,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31151,
@@ -12624,7 +12365,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12636,7 +12376,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12648,7 +12387,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12660,7 +12398,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12668,7 +12405,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31123,
@@ -12678,7 +12418,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12687,8 +12426,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12697,8 +12435,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12707,8 +12444,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12717,8 +12453,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12727,8 +12462,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 7)",
           "unit": "-",
           "scale": 1,
@@ -12737,14 +12471,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 7)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "7"
+      }
     },
     {
       "registerAddress": 31288,
@@ -12754,7 +12490,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Deviation Voltage Alarm",
-          "dataTag": "rack_deviation_voltage_alarm",
           "description": "Rack Deviation Voltage Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12766,7 +12501,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Deviation Voltage Warning",
-          "dataTag": "rack_deviation_voltage_warning",
           "description": "Rack Deviation Voltage Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12778,7 +12512,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Deviation Voltage Fault1",
-          "dataTag": "rack_deviation_voltage_fault1",
           "description": "Rack Deviation Voltage Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12790,7 +12523,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Deviation Voltage Fault2",
-          "dataTag": "rack_deviation_voltage_fault2",
           "description": "Rack Deviation Voltage Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12798,7 +12530,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31289,
@@ -12808,7 +12543,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Current Alarm",
-          "dataTag": "rack_over_charge_current_alarm",
           "description": "Rack Over Charge Current Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12820,7 +12554,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Current Warning",
-          "dataTag": "rack_over_charge_current_warning",
           "description": "Rack Over Charge Current Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12832,7 +12565,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Current Fault1",
-          "dataTag": "rack_over_charge_current_fault1",
           "description": "Rack Over Charge Current Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12844,7 +12576,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Current Fault2",
-          "dataTag": "rack_over_charge_current_fault2",
           "description": "Rack Over Charge Current Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12852,7 +12583,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31290,
@@ -12862,7 +12596,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under Temperature Alarm",
-          "dataTag": "under_temperature_alarm",
           "description": "Under Temperature Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12874,7 +12607,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under Temperature Warning",
-          "dataTag": "under_temperature_warning",
           "description": "Under Temperature Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12886,7 +12618,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under Temperature Fault1",
-          "dataTag": "under_temperature_fault1",
           "description": "Under Temperature Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12898,7 +12629,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under Temperature Fault2",
-          "dataTag": "under_temperature_fault2",
           "description": "Under Temperature Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12906,7 +12636,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31291,
@@ -12916,7 +12649,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack Over Charge Power Alarm",
-          "dataTag": "rack_over_charge_power_alarm",
           "description": "Rack Over Charge Power Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12928,7 +12660,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack Over Charge Power Warning",
-          "dataTag": "rack_over_charge_power_warning",
           "description": "Rack Over Charge Power Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12940,7 +12671,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack Over Charge Power Fault1",
-          "dataTag": "rack_over_charge_power_fault1",
           "description": "Rack Over Charge Power Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12952,7 +12682,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack Over Charge Power Fault2",
-          "dataTag": "rack_over_charge_power_fault2",
           "description": "Rack Over Charge Power Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12960,7 +12689,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31292,
@@ -12970,7 +12702,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Under SOH Alarm",
-          "dataTag": "under_soh_alarm",
           "description": "Under SOH Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12982,7 +12713,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Under SOH Warning",
-          "dataTag": "under_soh_warning",
           "description": "Under SOH Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -12994,7 +12724,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Under SOH Fault1",
-          "dataTag": "under_soh_fault1",
           "description": "Under SOH Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13006,7 +12735,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Under SOH Fault2",
-          "dataTag": "under_soh_fault2",
           "description": "Under SOH Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13014,7 +12742,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31293,
@@ -13024,7 +12755,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Rack-BSC LOC by Rack Alarm",
-          "dataTag": "rack_bsc_loc_by_rack_alarm",
           "description": "Rack-BSC LOC by Rack Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13036,7 +12766,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Rack-BSC LOC by Rack Warning",
-          "dataTag": "rack_bsc_loc_by_rack_warning",
           "description": "Rack-BSC LOC by Rack Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13048,7 +12777,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Rack-BSC LOC by Rack Fault1",
-          "dataTag": "rack_bsc_loc_by_rack_fault1",
           "description": "Rack-BSC LOC by Rack Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13060,7 +12788,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Rack-BSC LOC by Rack Fault2",
-          "dataTag": "rack_bsc_loc_by_rack_fault2",
           "description": "Rack-BSC LOC by Rack Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13068,7 +12795,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31297,
@@ -13078,7 +12808,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Contactor Open Failure Alarm",
-          "dataTag": "contactor_open_failure_alarm",
           "description": "Contactor Open Failure Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13090,7 +12819,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Contactor Open Failure Warning",
-          "dataTag": "contactor_open_failure_warning",
           "description": "Contactor Open Failure Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13102,7 +12830,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Contactor Open Failure Fault1",
-          "dataTag": "contactor_open_failure_fault1",
           "description": "Contactor Open Failure Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13114,7 +12841,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Contactor Open Failure Fault2",
-          "dataTag": "contactor_open_failure_fault2",
           "description": "Contactor Open Failure Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13122,7 +12848,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31298,
@@ -13132,7 +12861,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "Vaux 3.3V Error Alarm",
-          "dataTag": "vaux_3_3v_error_alarm",
           "description": "Vaux 3.3V Error Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13144,7 +12872,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "Vaux 3.3V Error Warning",
-          "dataTag": "vaux_3_3v_error_warning",
           "description": "Vaux 3.3V Error Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13156,7 +12883,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "Vaux 3.3V Error Fault1",
-          "dataTag": "vaux_3_3v_error_fault1",
           "description": "Vaux 3.3V Error Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13168,7 +12894,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "Vaux 3.3V Error Fault2",
-          "dataTag": "vaux_3_3v_error_fault2",
           "description": "Vaux 3.3V Error Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13176,7 +12901,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31300,
@@ -13186,7 +12914,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "SBC 5V Error Alarm",
-          "dataTag": "sbc_5v_error_alarm",
           "description": "SBC 5V Error Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13198,7 +12925,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "SBC 5V Error Warning",
-          "dataTag": "sbc_5v_error_warning",
           "description": "SBC 5V Error Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13210,7 +12936,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "SBC 5V Error Fault1",
-          "dataTag": "sbc_5v_error_fault1",
           "description": "SBC 5V Error Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13222,7 +12947,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "SBC 5V Error Fault2",
-          "dataTag": "sbc_5v_error_fault2",
           "description": "SBC 5V Error Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13230,7 +12954,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31301,
@@ -13240,7 +12967,6 @@
           "bitStart": 12,
           "bitEnd": 12,
           "name": "MC Open Over Count Alarm",
-          "dataTag": "mc_open_over_count_alarm",
           "description": "MC Open Over Count Alarm (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13252,7 +12978,6 @@
           "bitStart": 13,
           "bitEnd": 13,
           "name": "MC Open Over Count Warning",
-          "dataTag": "mc_open_over_count_warning",
           "description": "MC Open Over Count Warning (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13264,7 +12989,6 @@
           "bitStart": 14,
           "bitEnd": 14,
           "name": "MC Open Over Count Fault1",
-          "dataTag": "mc_open_over_count_fault1",
           "description": "MC Open Over Count Fault1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13276,7 +13000,6 @@
           "bitStart": 15,
           "bitEnd": 15,
           "name": "MC Open Over Count Fault2",
-          "dataTag": "mc_open_over_count_fault2",
           "description": "MC Open Over Count Fault2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13284,7 +13007,10 @@
           "alarmLimit": "Fault",
           "logType": "error"
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     },
     {
       "registerAddress": 31273,
@@ -13294,7 +13020,6 @@
           "bitStart": 14,
           "bitEnd": 15,
           "name": "Fuse Status",
-          "dataTag": "fuse_status",
           "description": "Fuse Status (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13303,8 +13028,7 @@
         {
           "bitStart": 12,
           "bitEnd": 13,
-          "name": "BPU Fan",
-          "dataTag": "bpu_fan",
+          "name": "BPU Fan Feedback",
           "description": "BPU Fan (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13313,8 +13037,7 @@
         {
           "bitStart": 10,
           "bitEnd": 11,
-          "name": "Pack Fan2",
-          "dataTag": "pack_fan2",
+          "name": "Pack Fan2 Feedback",
           "description": "Pack Fan2 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13323,8 +13046,7 @@
         {
           "bitStart": 8,
           "bitEnd": 9,
-          "name": "Pack Fan1",
-          "dataTag": "pack_fan1",
+          "name": "Pack Fan1 Feedback",
           "description": "Pack Fan1 (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13333,8 +13055,7 @@
         {
           "bitStart": 6,
           "bitEnd": 7,
-          "name": "CB Status",
-          "dataTag": "cb_status",
+          "name": "CB Feedback",
           "description": "CB Status (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13343,8 +13064,7 @@
         {
           "bitStart": 4,
           "bitEnd": 5,
-          "name": "MC(-) Status",
-          "dataTag": "mc_status",
+          "name": "MC(-) Feedback",
           "description": "MC(-) Status (Rack 8)",
           "unit": "-",
           "scale": 1,
@@ -13353,14 +13073,16 @@
         {
           "bitStart": 2,
           "bitEnd": 3,
-          "name": "MC(+) Status",
-          "dataTag": "mc_status",
+          "name": "MC(+) Feedback",
           "description": "MC(+) Status (Rack 8)",
           "unit": "-",
           "scale": 1,
           "offset": 0
         }
-      ]
+      ],
+      "tags": {
+        "rack_id": "8"
+      }
     }
   ],
   "pollIntervalMs": 1000,
@@ -13542,5 +13264,7 @@
     "kind": "simulator",
     "type": "bsc"
   },
-  "details": { "rackCount": 8 }
+  "details": {
+    "rackCount": 8
+  }
 }

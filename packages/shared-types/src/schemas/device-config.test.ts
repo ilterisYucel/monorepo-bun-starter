@@ -10,7 +10,6 @@ describe("bitfieldFieldSchema", () => {
     bitStart: 0,
     bitEnd: 3,
     name: "status",
-    dataTag: "status_tag",
     description: "Status bits",
     unit: "",
   };
@@ -74,7 +73,6 @@ describe("bitfieldConfigSchema", () => {
           bitStart: 0,
           bitEnd: 7,
           name: "errors",
-          dataTag: "err",
           description: "Error flags",
           unit: "",
         },
@@ -101,7 +99,6 @@ describe("bitfieldConfigSchema", () => {
           bitStart: 0,
           bitEnd: 1,
           name: "x",
-          dataTag: "x",
           description: "x",
           unit: "",
         },
@@ -154,7 +151,6 @@ describe("deviceConfigFileSchema", () => {
               bitStart: 0,
               bitEnd: 7,
               name: "status",
-              dataTag: "status",
               description: "Status bits",
               unit: "",
             },
@@ -245,5 +241,111 @@ describe("deviceConfigFileSchema — details (REV.01)", () => {
     const r = deviceConfigFileSchema.safeParse(base);
     expect(r.success).toBe(true);
     if (r.success) expect(r.data.details).toBeUndefined();
+  });
+});
+
+describe("deviceConfigFileSchema — yazma politikası (deadband/maxStaleMs)", () => {
+  const baseDevice = (telemetry: unknown[]) => ({
+    deviceId: "bsc-1",
+    name: "BSC",
+    manufacturer: "X",
+    model: "Y",
+    protocol: "MODBUS" as const,
+    connection: { host: "127.0.0.1", port: 15501 },
+    telemetry,
+  });
+
+  const intEntry = (extra: Record<string, unknown> = {}) => ({
+    protocol: "MODBUS",
+    name: "SOC",
+    registerAddress: 30055,
+    registerTableType: "INPUT_REGISTER",
+    registerDataType: "UINT16",
+    scale: 0.01,
+    offset: 0,
+    byteOrder: "BIG_ENDIAN",
+    priority: 0,
+    description: "SOC",
+    unit: "%",
+    ...extra,
+  });
+
+  it("deadband (pozitif) + maxStaleMs kabul edilir", () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([intEntry({ deadband: 0.5, maxStaleMs: 60000 })]),
+    );
+    expect(r.success).toBe(true);
+  });
+
+  it("deadband: 0 reddedilir (pozitif zorunlu)", () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([intEntry({ deadband: 0, maxStaleMs: 60000 })]),
+    );
+    expect(r.success).toBe(false);
+  });
+
+  it("negatif deadband reddedilir", () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([intEntry({ deadband: -1, maxStaleMs: 60000 })]),
+    );
+    expect(r.success).toBe(false);
+  });
+
+  it("deadband tanımlı ama maxStaleMs yok → fail-fast", () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([intEntry({ deadband: 0.5 })]),
+    );
+    expect(r.success).toBe(false);
+  });
+
+  it("maxStaleMs tek başına kabul edilir (deadband yok — no-op)", () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([intEntry({ maxStaleMs: 60000 })]),
+    );
+    expect(r.success).toBe(true);
+  });
+
+  it('"auto" integer register türünde kabul edilir', () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([intEntry({ deadband: "auto", maxStaleMs: 60000 })]),
+    );
+    expect(r.success).toBe(true);
+  });
+
+  it('"auto" FLOAT32 türünde reddedilir', () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([
+        intEntry({
+          registerDataType: "FLOAT32",
+          deadband: "auto",
+          maxStaleMs: 60000,
+        }),
+      ]),
+    );
+    expect(r.success).toBe(false);
+  });
+
+  it('"auto" MQTT protokolünde reddedilir', () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([
+        { protocol: "MQTT", name: "x", deadband: "auto", maxStaleMs: 60000 },
+      ]),
+    );
+    expect(r.success).toBe(false);
+  });
+
+  it("politika alanları yoksa kabul edilir (always-write)", () => {
+    const r = deviceConfigFileSchema.safeParse(baseDevice([intEntry()]));
+    expect(r.success).toBe(true);
+  });
+
+  it("aynı name iki kez → fail-fast", () => {
+    const r = deviceConfigFileSchema.safeParse(
+      baseDevice([
+        intEntry({ name: "SOC" }),
+        intEntry({ name: "SOC", registerAddress: 30056 }),
+      ]),
+    );
+    expect(r.success).toBe(false);
   });
 });

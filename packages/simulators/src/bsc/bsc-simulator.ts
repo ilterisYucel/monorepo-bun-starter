@@ -37,7 +37,6 @@ interface RegisterDef {
   address: number;
   type: "uint16" | "uint32" | "int16" | "sint32" | "float32" | "uint128" | "bit16" | "enum";
   name: string;
-  dataTag: string;
   unit: string;
   scale: number;
   offset: number;

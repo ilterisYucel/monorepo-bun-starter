@@ -107,5 +107,34 @@ describe("DeviceScheduler", () => {
       await scheduler.publishTelemetry("dev-1", []);
       expect(mq.addJob).not.toHaveBeenCalled();
     });
+
+    it("WRITE job alt kümeyi, MANAGEMENT/WS tam veriyi taşır", async () => {
+      const full = [
+        { name: "A", description: "", value: 1, unit: "", timestamp: "t", deviceId: "dev-1" },
+        { name: "B", description: "", value: 2, unit: "", timestamp: "t", deviceId: "dev-1" },
+      ];
+      const subset = [full[1]!];
+      const r = await scheduler.publishTelemetry("dev-1", full, subset);
+      expect(r.writeEnqueued).toBe(true);
+      const calls = (mq.addJob as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+      const write = calls.find((j) => j.type === "WRITE_TELEMETRY");
+      const mgmt = calls.find((j) => j.type === "MANAGEMENT");
+      const ws = calls.find((j) => j.type === "WS_BROADCAST");
+      expect(write.telemetries).toEqual(subset);
+      expect(mgmt.telemetries).toEqual(full);
+      expect(ws.telemetries).toEqual(full);
+    });
+
+    it("boş alt kümede WRITE job atılmaz, MANAGEMENT/WS devam eder", async () => {
+      const full = [
+        { name: "A", description: "", value: 1, unit: "", timestamp: "t", deviceId: "dev-1" },
+      ];
+      const r = await scheduler.publishTelemetry("dev-1", full, []);
+      expect(r.writeEnqueued).toBe(false);
+      const calls = (mq.addJob as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+      expect(calls.some((j) => j.type === "WRITE_TELEMETRY")).toBe(false);
+      expect(calls.some((j) => j.type === "MANAGEMENT")).toBe(true);
+      expect(calls.some((j) => j.type === "WS_BROADCAST")).toBe(true);
+    });
   });
 });

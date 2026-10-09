@@ -3,7 +3,6 @@ interface RawRegisterRow {
   "Hex"?: string;
   "Type"?: string;
   "Name"?: string;
-  "Data Tag"?: string;
   "Variable Name"?: string;
   "Unit"?: string;
   "Scale"?: string;
@@ -18,7 +17,6 @@ export interface ParsedRegister {
   hex: string;
   type: "uint16" | "uint32" | "int16" | "sint32" | "float32" | "uint128" | "bit16" | "enum";
   name: string;
-  dataTag: string;
   variableName: string;
   unit: string;
   scale: number;
@@ -62,7 +60,6 @@ function parseRegister(row: RawRegisterRow): ParsedRegister {
   const hex = row["Hex"] ?? "0000";
   const typeRaw = (row["Type"] ?? "uint16").toLowerCase();
   const name = row["Name"] ?? "";
-  const dataTag = row["Data Tag"] ?? "";
   const variableName = row["Variable Name"] ?? "";
   const unit = row["Unit"] ?? "-";
   const scale = parseScale(row["Scale"]);
@@ -76,7 +73,7 @@ function parseRegister(row: RawRegisterRow): ParsedRegister {
   let type = typeRaw as ParsedRegister["type"];
   if (isBitField && type !== "bit16") type = "bit16";
 
-  return { address, hex, type, name, dataTag, variableName, unit, scale, offset: 0, value, description, registerType, isBitField, bitFields };
+  return { address, hex, type, name, variableName, unit, scale, offset: 0, value, description, registerType, isBitField, bitFields };
 }
 
 function parseScale(raw: string | undefined): number {

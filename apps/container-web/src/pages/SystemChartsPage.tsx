@@ -35,6 +35,7 @@ export const SystemChartsPage: React.FC = () => {
     defaultPoints: 200,
     deviceIds: bscIds,
     filters: { rack_id: "system" },
+    tag: "rack_id",
   });
   const eventAnnotations = useEventAnnotations(telemetryProvider.range);
 

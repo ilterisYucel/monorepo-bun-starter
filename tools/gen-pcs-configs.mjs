@@ -34,7 +34,6 @@ function bit(name, bit, logType) {
     bitStart: bit,
     bitEnd: bit,
     name,
-    dataTag: name.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
     description: name,
     unit: "-",
     scale: 1,

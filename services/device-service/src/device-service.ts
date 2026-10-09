@@ -21,6 +21,9 @@ import { DeviceConfigLoader } from "./config-loader";
 import { DeviceFactory } from "./device-factory";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
+import { TelemetryWriteFilter } from "./telemetry-write-filter";
+import { resolveWritePolicies } from "./write-policy";
+import type { WritePolicy } from "./write-policy";
 import {
   AlarmTransitionDetector,
   alarmSamples,
@@ -39,6 +42,8 @@ interface DeviceEntry {
   details?: Record<string, unknown>;
   configConnection: Record<string, unknown>;
   alarms?: DeviceAlarmRule[];
+  /** Yazma politikası (opt-in) — `name → {deadband, maxStaleMs}`; yoksa always-write. */
+  writePolicy?: Map<string, WritePolicy>;
 }
 
 const CREATE_DEVICES_TABLE = `
@@ -83,6 +88,9 @@ const SET_DEVICE_ONLINE = `UPDATE devices SET status = 'online', last_seen = NOW
 /** Sürekli okuma hatasında hatırlatma periyodu — spam önleme (86.4k log/gün). */
 const FAILURE_REMINDER_MS = 60_000;
 
+/** Politikasız cihazlar için paylaşılan boş harita (always-write). */
+const EMPTY_POLICY: ReadonlyMap<string, WritePolicy> = new Map();
+
 export class DeviceService {
   private readonly devices: Map<string, DeviceEntry>;
   private running: boolean;
@@ -97,6 +105,7 @@ export class DeviceService {
   private readonly alarmDetector: AlarmTransitionDetector;
   private readonly alarmRepository: AlarmStateRepository | undefined;
   private readonly ops: OpsLog;
+  private readonly writeFilter: TelemetryWriteFilter;
 
   constructor(
     devices: DeviceEntry[],
@@ -121,6 +130,7 @@ export class DeviceService {
     this.lastReminderAt = new Map();
     this.alarmDetector = new AlarmTransitionDetector();
     this.alarmRepository = sql ? new AlarmStateRepository(sql) : undefined;
+    this.writeFilter = new TelemetryWriteFilter();
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
@@ -178,6 +188,7 @@ export class DeviceService {
           details: c.details,
           configConnection: c.connection,
           alarms: c.alarms,
+          writePolicy: resolveWritePolicies(c.telemetry),
         },
       ];
 
@@ -193,6 +204,7 @@ export class DeviceService {
           protocol: "MODBUS",
           type: c.connector.device.type,
           configConnection: c.connector.device.connection,
+          writePolicy: resolveWritePolicies(c.connector.device.telemetry),
         });
       }
       return entries;
@@ -577,7 +589,21 @@ export class DeviceService {
   ): Promise<void> {
     const tagger = this.taggers.get(deviceId);
     const enriched = tagger ? tagger.enrich(data) : data;
-    await this.scheduler.publishTelemetry(deviceId, enriched);
+
+    // Yazma politikası yalnız WRITE_TELEMETRY alt kümesini etkiler; MANAGEMENT/WS
+    // tam veriyi alır. State yalnız başarılı enqueue sonrası ilerletilir (K2/K5).
+    const entry = this.devices.get(deviceId);
+    const policies = entry?.writePolicy ?? EMPTY_POLICY;
+    const writeSubset = this.writeFilter.select(deviceId, enriched, policies);
+
+    const { writeEnqueued } = await this.scheduler.publishTelemetry(
+      deviceId,
+      enriched,
+      writeSubset,
+    );
+    if (writeEnqueued && writeSubset.length > 0) {
+      this.writeFilter.markWritten(deviceId, writeSubset);
+    }
   }
 
   private async executeCommand(

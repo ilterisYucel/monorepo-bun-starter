@@ -16,7 +16,6 @@ const validField = {
   bitStart: 0,
   bitEnd: 0,
   name: "BSC Alarm",
-  dataTag: "d1",
   description: "Alarm biti",
   unit: "-",
 };

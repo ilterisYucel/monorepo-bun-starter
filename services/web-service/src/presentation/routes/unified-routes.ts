@@ -6,6 +6,9 @@ import type { TelemetryData } from "@gd-monorepo/shared-types";
 import { DeviceRegistry } from "../../infrastructure/persistence/device-registry";
 import { loadDeviceConfig } from "../../infrastructure/config-loader";
 
+/** Grup anahtarı tag adı — SQL interpolasyonu güvenliği (enjeksiyon sınırı). */
+const TAG_KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
 export async function unifiedRoutes(
   fastify: FastifyInstance,
   options: {
@@ -118,6 +121,7 @@ export async function unifiedRoutes(
       points,
       names,
       rack_id,
+      tag,
     } = request.query as {
       deviceIds?: string;
       from?: string;
@@ -125,12 +129,16 @@ export async function unifiedRoutes(
       points?: string;
       names?: string;
       rack_id?: string;
+      tag?: string;
     };
 
     if (!from || !to) {
       return reply
         .status(400)
         .send({ error: "from ve to parametreleri gerekli" });
+    }
+    if (tag !== undefined && !TAG_KEY_RE.test(tag)) {
+      return reply.status(400).send({ error: "geçersiz tag anahtarı" });
     }
 
     const ids = deviceIds ? deviceIds.split(",") : [];
@@ -151,6 +159,7 @@ export async function unifiedRoutes(
           to: new Date(to),
           points: targetPoints,
           tags: tagFilter,
+          ...(tag !== undefined ? { tag } : {}),
         }),
       ),
     );

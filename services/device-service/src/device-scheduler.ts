@@ -49,23 +49,39 @@ export class DeviceScheduler {
     return this.mq.addRepeatableJobEvery("management-publish", job, intervalMs);
   }
 
+  /**
+   * Telemetriyi downstream job'lara dağıtır.
+   *
+   * - `WRITE_TELEMETRY`: yalnız `writeTelemetries` (filtrelenmiş alt küme). Boşsa job atılmaz.
+   * - `MANAGEMENT` + `WS_BROADCAST`: `data` (TAM — kural motoru/ön yüz taze kalır).
+   *
+   * @returns `writeEnqueued` — WRITE job'u başarıyla kuyruğa eklendiyse `true`
+   *   (DeviceService state'i yalnız bu durumda ilerletir).
+   */
   async publishTelemetry(
     deviceId: string,
     data: TelemetryData[],
-  ): Promise<void> {
-    if (data.length === 0) return;
+    writeTelemetries: TelemetryData[] = data,
+  ): Promise<{ writeEnqueued: boolean }> {
+    if (data.length === 0) return { writeEnqueued: false };
 
     const timestamp = new Date().toISOString();
     const base = `${deviceId}-${Date.now()}`;
 
+    const writePromise: Promise<unknown> | undefined =
+      writeTelemetries.length > 0
+        ? Promise.resolve(
+            this.mq.addJob({
+              jobId: `${base}-write`,
+              type: "WRITE_TELEMETRY",
+              deviceId,
+              timestamp,
+              telemetries: writeTelemetries,
+            }),
+          )
+        : undefined;
+
     const results = await Promise.allSettled([
-      this.mq.addJob({
-        jobId: `${base}-write`,
-        type: "WRITE_TELEMETRY",
-        deviceId,
-        timestamp,
-        telemetries: data,
-      }),
       this.mq.addJob({
         jobId: `${base}-mgmt`,
         type: "MANAGEMENT",
@@ -80,11 +96,17 @@ export class DeviceScheduler {
         timestamp,
         telemetries: data,
       }),
+      ...(writePromise !== undefined ? [writePromise] : []),
     ]);
+
+    const writeEnqueued =
+      writePromise !== undefined && results[2]?.status === "fulfilled";
     const failed = results.filter((r) => r.status === "rejected").length;
     if (failed > 0) {
-      this.ops.warn(`${deviceId} icin ${failed}/3 job kuyruga eklenemedi`);
+      this.ops.warn(`${deviceId} icin ${failed} job kuyruga eklenemedi`);
     }
+
+    return { writeEnqueued };
   }
 
   close(): Promise<void> {

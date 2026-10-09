@@ -23,6 +23,8 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000,
       "tags": {
         "group": "status"
       }
