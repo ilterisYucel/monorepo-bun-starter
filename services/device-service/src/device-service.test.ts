@@ -378,6 +378,25 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
       const result = (await promise) as { success: boolean; validated?: boolean };
       expect(result.validated).toBe(true);
     });
+
+    it("okuma her denemede hata verirse → validated:false + reason okuma hatasını içerir", async () => {
+      const device = fakeDevice({ read: vi.fn().mockRejectedValue(new Error("modbus boom")) });
+      const { service, capture } = buildService(device);
+      await service.start();
+
+      const promise = capture.processor!(commandJob({
+        validate: {
+          timeoutMs: 2000,
+          reads: [{ name: "Grid Active Power", expect: "positive" }],
+        },
+      }) as never);
+      await vi.advanceTimersByTimeAsync(2100);
+      const result = (await promise) as { success: boolean; validated?: boolean; reason?: string };
+      expect(result.success).toBe(true);
+      expect(result.validated).toBe(false);
+      expect(result.reason).toContain("last read failed");
+      expect(result.reason).toContain("modbus boom");
+    });
   });
 
   describe("bilinmeyen cihaz", () => {
@@ -588,6 +607,74 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
         (c) => c[0].eventCode === "device_alarm",
       );
       expect(alarmLogs).toHaveLength(1);
+    });
+
+    it("durum tablosu hatası imzalı logu ATLAMAZ (katman bağımsızlığı)", async () => {
+      const sql = mockSql();
+      (sql.execute as ReturnType<typeof vi.fn>).mockImplementation(async (q: unknown) => {
+        if (String(q).includes("INSERT INTO device_alarms")) throw new Error("db down");
+      });
+      const { logger, log } = mockLogger();
+      const { service, capture } = buildService(faultRead(1), {
+        sql,
+        logger,
+        alarms: ALARM_RULES,
+      });
+      await service.start();
+
+      await capture.processor!(readJob() as never);
+
+      const alarmLogs = log.mock.calls
+        .map((c) => c[0])
+        .filter((e: { eventCode: string }) => e.eventCode === "device_alarm");
+      expect(alarmLogs).toHaveLength(1);
+      // hata sessiz yutulmaz — ops.warn (console fallback)
+      expect(warn).toHaveBeenCalled();
+    });
+
+    it("log hatası UPSERT'i ATLAMAZ + poll'u kesmez", async () => {
+      const sql = mockSql();
+      const log = vi.fn().mockRejectedValue(new Error("sink down"));
+      const { service, capture } = buildService(faultRead(1), {
+        sql,
+        logger: { log } as unknown as TamperLogger,
+        alarms: ALARM_RULES,
+      });
+      await service.start();
+
+      await expect(capture.processor!(readJob() as never)).resolves.toBeUndefined();
+
+      expect(sql.execute).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO device_alarms"),
+        expect.any(Array),
+      );
+      expect(warn).toHaveBeenCalled();
+    });
+
+    it("iki eşzamanlı geçiş → 2 UPSERT + 2 log (allSettled)", async () => {
+      const rules: DeviceAlarmRule[] = [
+        { telemetry: "BSC Fault", severity: "error", description: "a" },
+        { telemetry: "PCS Fault", severity: "warning", description: "b" },
+      ];
+      const device = fakeDevice({
+        read: vi.fn().mockResolvedValue([
+          { name: "BSC Fault", value: 1, timestamp: new Date().toISOString(), deviceId: "bsc-1", description: "", unit: "-" },
+          { name: "PCS Fault", value: 1, timestamp: new Date().toISOString(), deviceId: "bsc-1", description: "", unit: "-" },
+        ]),
+      });
+      const sql = mockSql();
+      const { logger, log } = mockLogger();
+      const { service, capture } = buildService(device, { sql, logger, alarms: rules });
+      await service.start();
+
+      await capture.processor!(readJob() as never);
+
+      const activates = (sql.execute as ReturnType<typeof vi.fn>).mock.calls.filter(
+        (c) => String(c[0]).includes("INSERT INTO device_alarms"),
+      );
+      expect(activates).toHaveLength(2);
+      const alarmLogs = log.mock.calls.filter((c) => c[0].eventCode === "device_alarm");
+      expect(alarmLogs).toHaveLength(2);
     });
   });
 });

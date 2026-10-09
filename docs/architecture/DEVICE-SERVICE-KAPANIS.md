@@ -48,6 +48,7 @@ review_date: 2026-12-01
 | 27 | `packages/ui/src/components/DeviceTable/DeviceTable.tsx` + `DeviceTable.types.ts` + `DeviceTable.stories.tsx` | `rack_count` → `details` (rackCount hücresi `details?.rackCount`) | K6 / T-5 |
 | 28 | `packages/simulators/src/host.ts#detailNumber` | BSC builder `config.details?.rackCount` (default 8) — `transport.rackCount` referansı kaldırıldı | K6 / UC-1 |
 | 29 | `services/device-service/deployment/sample-config/bsc-{1,2}.json` + `deployment/dev/container/device-configs/bsc-{1,2}.json` | `transport.rackCount` + top-level `rackCount` → `details: { rackCount: 8 }` | K5 / UC-1 / T-3 |
+| 30 | `services/device-service/src/device-service.ts#DeviceService` | `evaluateAlarms` → `Promise.allSettled` + `applyTransition` (katman bağımsız best-effort: durum tablosu + imzalı log ayrı try, `ops.warn`); `start()` kalıcılık eksikse bir kez uyarı; `validateReadBack` okuma hatası `reason`'a taşınır + yorum/timing düzeltmesi | Async-loops MANDATORY / alarm sözleşmesi (bağımsız katman) |
 
 ### A.2 Test Kanıtları
 
@@ -108,6 +109,7 @@ review_date: 2026-12-01
 | 5 | Connector `adapters` (in-process) → `ISourceReader`/`TcpSourceReader` (UC-4/T-7) | device-service tarafında registry kaldırıldı (K1); connector sim davranışı SIMULATOR-MIMARISI'nde `TcpSourceReader` ile TCP'ye döndü. Çapraz referans: SIMULATOR-KAPANIS A.4/6. |
 | 6 | Port reassignment + `ep203` + `bsc-2` + `pm5340` (config tarafı) | device-service config'leri SIMULATOR port reassignment'ından etkilendi (A.4/1-4 çapraz) — `ep203` gerçek panel (değişmedi), `bsc-2` 15510, `pm5340` 127.0.0.1, tüm sim portları ayrıcalıksız aralığa. |
 | 7 | `rackCount` top-level → `details`; `devices.rack_count` kolonu DROP (migrasyon ALTER) — decoupled passthrough | REV.01: cihaz-spesifik opsiyonel nitelikler opak `DeviceConfigFile.details` altına taşındı (K5/K6). `devices` DDL'i `rack_count INTEGER` → `details JSONB`; açılışta `ALTER ... ADD COLUMN IF NOT EXISTS details` + `DROP COLUMN IF EXISTS rack_count` mevcut tabloları migre eder. device-service/web-service `details`'i yorumlamaz, yalnız taşır — yorum tüketicide (ön yüz `rackCountOf` + simülatör BSC builder). |
+| 8 | CQS isim kuralı (EO #11) — `executeCommand`/`validateReadBack` fiil isimli metot sonuç döner | Public API olmadıkları için kapsam dışı bırakıldı (uyarı toleranslı — kullanıcı kararı); çağıran sonucu kullanmak zorunda, alternatif (isim değişimi/throw) daha invaziv. |
 
 ### A.5 Gözle Kontrol Maddeleri
 

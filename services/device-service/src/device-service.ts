@@ -25,6 +25,7 @@ import {
   AlarmTransitionDetector,
   alarmSamples,
 } from "./alarm-transition-detector";
+import type { AlarmTransition } from "./alarm-transition-detector";
 import { AlarmStateRepository } from "./alarm-state-repository";
 
 interface DeviceEntry {
@@ -297,6 +298,14 @@ export class DeviceService {
     for (const entry of entries) {
       this.alarmDetector.reset(entry.device.id);
     }
+    // Alarm kurallı cihaz var ama kalıcılık katmanı eksikse geçişler yalnızca
+    // dedup ile tüketilir ve KALICI olarak kaybolur — sessiz kayıp yerine bir kez uyar.
+    const alarmConfigured = entries.some((e) => (e.alarms?.length ?? 0) > 0);
+    if (alarmConfigured && (!this.alarmRepository || !this.logger)) {
+      this.ops.warn(
+        "Alarm kurallari var ama durum tablosu/logger yok — gecisler kalici kaydedilmez",
+      );
+    }
 
     // Yalnız cihaz job tiplerine worker kaydı — `registerWorker` (tüm tipler)
     // kullanılırsa başka tüketiciye ait FETCH_EXTERNAL/WRITE_TELEMETRY job'ları
@@ -405,39 +414,71 @@ export class DeviceService {
     const transitions = this.alarmDetector.detect(deviceId, samples);
     if (transitions.length === 0) return;
 
-    for (const transition of transitions) {
-      try {
-        if (transition.kind === "set") {
-          await this.alarmRepository?.activate(deviceId, {
-            name: transition.name,
-            severity: transition.severity,
-            description: transition.description,
-          });
-          await this.logger?.log({
-            level:
-              transition.severity === "warning" ? "warn" : transition.severity,
-            category: "app",
-            eventCode: "device_alarm",
-            message: `Cihaz alarmi aktif: ${transition.name}`,
-            context: {
-              deviceId,
-              alarm: transition.name,
-              severity: transition.severity,
-            },
-          });
-        } else {
-          await this.alarmRepository?.deactivate(deviceId, transition.name);
-          await this.logger?.log({
-            level: "info",
-            category: "app",
-            eventCode: "device_alarm_cleared",
-            message: `Cihaz alarmi kapandi: ${transition.name}`,
-            context: { deviceId, alarm: transition.name },
-          });
-        }
-      } catch {
-        // alarm durumu/лого best-effort — telemetri akışı etkilenmez
+    // Geçişler bağımsızdır → eşzamanlı işlenir. TamperLogger imzalama state'i
+    // (seq/prevHash) çağrı anında senkron güncellendiğinden map çağrı sırası
+    // zincir sırasını korur.
+    await Promise.allSettled(
+      transitions.map((transition) => this.applyTransition(deviceId, transition)),
+    );
+  }
+
+  /**
+   * Tek alarm geçişini uygular — iki kalıcılık katmanı BAĞIMSIZ best-effort:
+   * (1) durum tablosu UPSERT, (2) imzalı geçiş logu. Bir katmanın hatası
+   * diğerini atlamaz; hiçbir hata poll'u kesmez (ops.warn ile görünür).
+   */
+  private async applyTransition(
+    deviceId: string,
+    transition: AlarmTransition,
+  ): Promise<void> {
+    const set = transition.kind === "set";
+    try {
+      if (set) {
+        await this.alarmRepository?.activate(deviceId, {
+          name: transition.name,
+          severity: transition.severity,
+          description: transition.description,
+        });
+      } else {
+        await this.alarmRepository?.deactivate(deviceId, transition.name);
       }
+    } catch (err) {
+      this.ops.warn("Alarm durum tablosu yazilamadi", {
+        deviceId,
+        alarm: transition.name,
+        error: String(err),
+      });
+    }
+
+    try {
+      await this.logger?.log(
+        set
+          ? {
+              level:
+                transition.severity === "warning" ? "warn" : transition.severity,
+              category: "app",
+              eventCode: "device_alarm",
+              message: `Cihaz alarmi aktif: ${transition.name}`,
+              context: {
+                deviceId,
+                alarm: transition.name,
+                severity: transition.severity,
+              },
+            }
+          : {
+              level: "info",
+              category: "app",
+              eventCode: "device_alarm_cleared",
+              message: `Cihaz alarmi kapandi: ${transition.name}`,
+              context: { deviceId, alarm: transition.name },
+            },
+      );
+    } catch (err) {
+      this.ops.warn("Alarm gecis logu yazilamadi", {
+        deviceId,
+        alarm: transition.name,
+        error: String(err),
+      });
     }
   }
 
@@ -612,6 +653,7 @@ export class DeviceService {
   /**
    * Komut sonrası read-back doğrulaması — `minWaitMs` bekle, `timeoutMs` boyunca
    * 50 ms aralıkla oku; eşleşme → `validated:true`, timeout → `validated:false`.
+   * Timeout yumuştur: tek bir okuma süreyi bir okuma süresi kadar aşabilir.
    */
   private async validateReadBack(
     entry: DeviceEntry,
@@ -622,6 +664,8 @@ export class DeviceService {
       await new Promise((r) => setTimeout(r, minWaitMs));
     }
     const start = Date.now();
+    let lastError: string | undefined;
+    let warned = false;
     while (Date.now() - start < validate.timeoutMs) {
       try {
         const readBack = await entry.device.read();
@@ -630,12 +674,26 @@ export class DeviceService {
           return actual !== undefined && expectHolds(actual.value, expected.expect);
         });
         if (allMatch) return { success: true, validated: true };
-      } catch {
-        // ELEGANT-EXCEPTION: validation read-back failure; retry in next poll cycle
+      } catch (err) {
+        // ELEGANT-EXCEPTION: geçici okuma hatası doğrulama penceresini kesmemeli;
+        // aynı çağrı içinde 50 ms sonra yeniden denenir (session devam eder).
+        lastError = String(err);
+        if (!warned) {
+          warned = true;
+          this.ops.warn("Read-back sirasinda okuma hatasi — pencere sonuna kadar denenecek", {
+            deviceId: entry.device.id,
+            error: lastError,
+          });
+        }
       }
+      if (Date.now() - start + 50 >= validate.timeoutMs) break;
       await new Promise((r) => setTimeout(r, 50));
     }
-    return { success: true, validated: false, reason: "Validation timeout" };
+    return {
+      success: true,
+      validated: false,
+      reason: lastError ? `Validation timeout (last read failed: ${lastError})` : "Validation timeout",
+    };
   }
 
   /** Komut audit'i (T0.11) — kim/hangi komut/sonuç; audit fail-closed'dur. */
