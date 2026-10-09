@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CELLS_PER_PACK, PACKS_PER_RACK, packData, packFill, packMarkers, rackPacks, rackRegisters, tcMap18 } from "./demo-bess-data";
+import { BUSBAR_POINTS, CELLS_PER_PACK, PACKS_PER_RACK, busbarZoneHistory, packData, packFill, packMarkers, rackPacks, rackRegisters, tcMap18 } from "./demo-bess-data";
 
 const input = { no: 3, soc: 60, soh: 98, v: 1300, temp: 24, cellsSeries: 408 };
 
@@ -52,5 +52,17 @@ describe("demo-bess-data (UC-4, D-1 türetim)", () => {
     const mid = packFill(22, 19, 25);
     expect(mid).toContain("--nm-hot-rgb");
     expect(mid).not.toEqual(packFill(24, 19, 25));
+  });
+
+  it("busbarZoneHistory deterministik 4h örnek + cooling/heating fazları", () => {
+    const anchor = { cellMax: 24, cellMin: 21, air: 26, sup: 20, cooling: true, heating: false };
+    const a = busbarZoneHistory(anchor, 11, 1_000_000);
+    const b = busbarZoneHistory(anchor, 11, 1_000_000);
+    expect(a.samples).toHaveLength(BUSBAR_POINTS);
+    expect(a.samples).toEqual(b.samples);
+    expect(a.samples[0].tmin).toBeLessThan(a.samples[0].tmax);
+    expect(a.phases.length).toBeGreaterThan(0);
+    expect(a.phases.every((p) => p.kind === "cool")).toBe(true);
+    expect(busbarZoneHistory({ ...anchor, cooling: false }, 11, 1_000_000).phases).toHaveLength(0);
   });
 });

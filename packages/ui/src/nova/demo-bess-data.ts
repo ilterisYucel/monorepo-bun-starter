@@ -206,3 +206,89 @@ export function rackRegisters(
     { name: "Calibration Information", address: addr(101), value: "0" },
   ];
 }
+
+/* ── Busbar zone thermal history (referans `u.th` sim geçmişi muadili) ── */
+
+/** Seçili busbar (banka) için canlı sıcaklık ankorları. */
+export interface BusbarZoneAnchor {
+  cellMax: number;
+  cellMin: number;
+  /** HVAC return air (°C). */
+  air: number;
+  /** HVAC supply air (°C). */
+  sup: number;
+  cooling: boolean;
+  heating: boolean;
+}
+
+export interface BusbarZoneSample {
+  t: number;
+  tmin: number;
+  tmax: number;
+  tavg: number;
+  air: number;
+  sup: number;
+}
+
+export interface BusbarZonePhase {
+  kind: "cool" | "heat";
+  t0: number;
+  t1: number;
+}
+
+export interface BusbarZoneHistory {
+  samples: BusbarZoneSample[];
+  phases: BusbarZonePhase[];
+}
+
+export const BUSBAR_WINDOW_MIN = 240;
+export const BUSBAR_POINTS = 120;
+
+/**
+ * Busbar zone termal geçmişi — referans sim'in `u.th` kaynaşığının deterministik
+ * muadili: konteyner telemetri geçmişi field tier'da tutulmadığından canlı
+ * ankorlardan (banka hücre min/max + HVAC air/sup + cooling/heating) üretilir.
+ * Math.random YOKTUR — hash tabanlı, tekrarlanabilir.
+ */
+export function busbarZoneHistory(
+  anchor: BusbarZoneAnchor,
+  seed: number,
+  now: number,
+  minutes = BUSBAR_WINDOW_MIN,
+  points = BUSBAR_POINTS,
+): BusbarZoneHistory {
+  const step = (minutes * 60_000) / points;
+  const t0 = now - minutes * 60_000;
+  const mid = (anchor.cellMax + anchor.cellMin) / 2;
+  const half = Math.max(0.6, (anchor.cellMax - anchor.cellMin) / 2);
+  const samples: BusbarZoneSample[] = [];
+  const cool: number[] = [];
+  const heat: number[] = [];
+  for (let i = 0; i < points; i++) {
+    const p = i / points;
+    const wob = Math.sin(p * Math.PI * 2 + seed) * 0.6 + (hsh(seed, i) - 0.5) * 0.5;
+    const tavg = mid + wob;
+    samples.push({
+      t: t0 + i * step,
+      tmin: tavg - half * (0.9 + 0.2 * hsh(seed + 2, i)),
+      tmax: tavg + half * (0.9 + 0.2 * hsh(seed + 1, i)),
+      tavg,
+      air: anchor.air + Math.sin(p * Math.PI * 2 + 1) * 0.8 + (hsh(seed + 3, i) - 0.5) * 0.6,
+      sup: anchor.sup + Math.cos(p * Math.PI * 2 + 2) * 0.8 + (hsh(seed + 4, i) - 0.5) * 0.4,
+    });
+    const w = Math.sin(p * Math.PI * 2 * 3 + seed);
+    cool.push(anchor.cooling ? Math.max(0, 0.2 + 0.6 * w) : 0);
+    heat.push(anchor.heating ? Math.max(0, 0.2 - 0.6 * w) : 0);
+  }
+  const phases: BusbarZonePhase[] = [];
+  let cur: BusbarZonePhase | null = null;
+  for (let i = 0; i < points; i++) {
+    const kind = cool[i] > 0.05 ? "cool" : heat[i] > 0.1 ? "heat" : null;
+    if (kind !== (cur?.kind ?? null)) {
+      if (cur) cur.t1 = samples[i].t;
+      cur = kind ? { kind, t0: samples[i].t, t1: samples[points - 1].t } : null;
+      if (cur) phases.push(cur);
+    }
+  }
+  return { samples, phases };
+}

@@ -32,11 +32,23 @@ export {
   packMarkers,
   rackRegisters,
   tcMap18,
+  busbarZoneHistory,
   PACKS_PER_RACK,
   CELLS_PER_PACK,
   TC_PER_PACK,
+  BUSBAR_WINDOW_MIN,
+  BUSBAR_POINTS,
 } from "./demo-bess-data";
-export type { PackData, PackInput, PackMarkers, RackRegisterRow } from "./demo-bess-data";
+export type {
+  PackData,
+  PackInput,
+  PackMarkers,
+  RackRegisterRow,
+  BusbarZoneAnchor,
+  BusbarZoneSample,
+  BusbarZonePhase,
+  BusbarZoneHistory,
+} from "./demo-bess-data";
 export {
   DEMO_DEVICE_TABS,
   DemoMvPanel,

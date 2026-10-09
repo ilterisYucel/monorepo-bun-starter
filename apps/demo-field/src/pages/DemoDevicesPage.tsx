@@ -12,6 +12,7 @@ import {
   DemoPackDetail,
   DemoTrendChart,
   POS_TEXT,
+  busbarZoneHistory,
   packFill,
   packMarkers,
   rackPacks,
@@ -371,7 +372,6 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
       </div>
 
       <DemoBessScada unit={unit} topology={DEMO_TOPOLOGY} />
-      <ContainerThermal />
 
       {input && bank && sel ? (
         <div className="rackdet">
@@ -423,6 +423,7 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
           setPackSel(0);
         }}
       />
+      <ContainerThermal unit={unit} />
     </>
   );
 };
@@ -531,24 +532,65 @@ const RackRegisterTable: React.FC<{ rows: Array<{ name: string; address: string;
   </>
 );
 
-const ContainerThermal: React.FC = () => {
-  const { trendData, restPhases } = useDemoProjectContext();
+const ContainerThermal: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
   const L = DEMO_TOPOLOGY.limits;
+  const U = DEMO_TOPOLOGY.unit;
+  const [thBank, setThBank] = useState<string>(U.banks[0] ?? "A");
+  const bi = Math.max(0, U.banks.indexOf(thBank));
+  const bank = unit.banks[bi] ?? unit.banks[0];
+  const hvacs = (U.sections ?? [])
+    .filter((sc) => sc.bank === thBank)
+    .flatMap((sc) => sc.hvac)
+    .map((id) => unit.hvac?.find((h) => h.id === id))
+    .filter((h): h is NonNullable<typeof h> => !!h);
+  const ambient = unit.ambient ?? 24;
+  const air = hvacs.length ? hvacs.reduce((a, h) => a + h.returnT, 0) / hvacs.length : ambient + 1.5;
+  const sup = hvacs.length ? hvacs.reduce((a, h) => a + h.supplyT, 0) / hvacs.length : ambient;
+  const cooling = hvacs.some((h) => h.comp);
+  const heating = hvacs.some((h) => h.heater);
+  const cellMax = bank?.tmax ?? ambient + 3;
+  const cellMin = bank?.tmin ?? cellMax - 2;
+  const history = useMemo(
+    () => busbarZoneHistory({ cellMax, cellMin, air, sup, cooling, heating }, unit.n * 10 + bi, Date.now()),
+    [cellMax, cellMin, air, sup, cooling, heating, unit.n, bi],
+  );
+  const pts = (k: "tmin" | "tmax" | "tavg" | "air" | "sup") =>
+    history.samples.map((s) => ({ t: s.t, value: s[k] }));
   return (
     <>
-      <h4>Container thermal</h4>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+        <h4 style={{ marginBottom: 0 }}>Container thermal</h4>
+        <span className="seg sm" role="group" aria-label="Busbar zone" data-testid="busbar-seg">
+          {U.banks.map((b) => (
+            <button key={b} type="button" aria-pressed={thBank === b} onClick={() => setThBank(b)}>
+              Busbar {b}
+            </button>
+          ))}
+        </span>
+      </div>
+      <p className="dsub">last 4 h · cells vs HVAC air · shaded = HVAC cooling / heating</p>
       <div className="charts one">
         <DemoTrendChart
-          title="Cell temperature"
+          title="Busbar zone · cell temperature vs HVAC"
           unit="°C"
-          series={[{ label: "Highest", points: trendData.temp, color: "var(--nm-c-hot)" }]}
+          yMin={5}
+          yMax={35}
+          yTicks={[5, 10, 15, 20, 25, 30, 35]}
+          height={190}
+          series={[
+            { label: "Cell min–max", color: "var(--nm-c-hot)", band: { lower: pts("tmin"), upper: pts("tmax") } },
+            { label: "Cell max", color: "var(--nm-c-hot)", points: pts("tmax") },
+            { label: "Cell avg", color: "var(--nm-c-soc)", points: pts("tavg") },
+            { label: "Return air", color: "var(--nm-c-sp)", points: pts("air"), dash: true },
+            { label: "Supply air", color: "var(--nm-c-cold)", points: pts("sup"), dash: true },
+          ]}
           limits={[
             { value: L.tempMax, label: `Upper ${L.tempMax} °C`, cls: "hot" },
             { value: L.tempMin, label: `Lower ${L.tempMin} °C`, cls: "cold" },
           ]}
-          phases={restPhases}
-          shade={["rest"]}
-          shadeLabel={{ rest: "Rest" }}
+          phases={history.phases}
+          shade={["cool", "heat"]}
+          shadeLabel={{ cool: "HVAC cooling", heat: "HVAC heating" }}
         />
       </div>
     </>
