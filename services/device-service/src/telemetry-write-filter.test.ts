@@ -90,3 +90,31 @@ describe("TelemetryWriteFilter", () => {
     expect(out.map((t) => t.name)).toEqual(["B"]);
   });
 });
+
+describe("TelemetryWriteFilter — sınır/edge (Faz D)", () => {
+  it("TTL sınır eşitliği: now - at == maxStaleMs → yazılır", () => {
+    let now = 0;
+    const f = new TelemetryWriteFilter(() => now);
+    const p = policy(1, 1000);
+    f.markWritten("bsc-1", f.select("bsc-1", [tel("SOC", 50)], p));
+    now = 999;
+    expect(f.select("bsc-1", [tel("SOC", 50)], p)).toHaveLength(0);
+    now = 1000;
+    expect(f.select("bsc-1", [tel("SOC", 50)], p)).toHaveLength(1);
+  });
+
+  it("NaN değer güvenli tarafta yazılır (sayısal değil)", () => {
+    const f = new TelemetryWriteFilter(() => 0);
+    const p = policy(1, 1000);
+    f.markWritten("bsc-1", f.select("bsc-1", [tel("SOC", 50)], p));
+    expect(f.select("bsc-1", [tel("SOC", Number.NaN)], p)).toHaveLength(1);
+  });
+
+  it("yeni filtre örneği state sıfır → ilk görüş yazılır (restart)", () => {
+    const p = policy(1, 1000);
+    const f1 = new TelemetryWriteFilter(() => 0);
+    f1.markWritten("bsc-1", f1.select("bsc-1", [tel("SOC", 50)], p));
+    const f2 = new TelemetryWriteFilter(() => 0);
+    expect(f2.select("bsc-1", [tel("SOC", 50)], p)).toHaveLength(1);
+  });
+});

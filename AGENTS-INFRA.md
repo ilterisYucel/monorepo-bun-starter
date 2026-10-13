@@ -38,8 +38,7 @@ shared-types, result (leaf, no deps)
     → platform/messaging, platform/container-access (depend on core, shared-types, ws-tunnel)
     → platform/logging (depends on shared-types, tamper-logger)
       → epias-client (depends on plugin-sdk)
-        → plugins/epias-market-prices (depends on epias-client), ui
-          → demo-backend (depends on core, platform/*, tamper-logger, shared-types, simulators)
+          → plugins/epias-market-prices (depends on epias-client), ui
           → web-service (depends on core, platform/*, tamper-logger, shared-types, ws-tunnel)
           → data-service (depends on core, platform/*, tamper-logger, shared-types)
           → device-service (depends on core, platform/*, tamper-logger, shared-types, simulators)
@@ -69,7 +68,6 @@ shared-types, result (leaf, no deps)
 | `ui`                        | Shared React components (PixiJS graphics, Recharts, Emotion)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `web`                       | React v19 frontend (Vite v8, TanStack Query, Zustand)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `desktop`                   | Electron v39 + React v19 (electron-vite)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `demo-backend`              | Fastify v5 backend (REST + WebSocket) — legacy                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `web-service`               | Hexagonal Fastify 5 API — Auth/JWT, TimescaleDB queries, awilix, zod (in `services/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `data-service`              | BullMQ consumer — writes telemetry to TimescaleDB (in `services/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `device-service`            | Modbus poller — reads device configs, produces BullMQ jobs (in `services/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -106,10 +104,12 @@ class ModbusDevice {
 ## Architecture: Clean Architecture (backend)
 
 ```
-apps/demo-backend/src/
+services/web-service/src/
   config/              # Constants, config factories
+  domain/              # Domain types + interfaces (no I/O)
   application/         # Use-case / service classes (no I/O)
-  infrastructure/      # External adapters (Fastify, simulator wrappers)
+  infrastructure/      # External adapters (Fastify, TimescaleDB, Redis)
+  presentation/        # Routes / HTTP+WS handlers
 ```
 
 - `application/` classes never import from `infrastructure/`.
@@ -147,7 +147,7 @@ apps/demo-backend/src/
 | **Client message batching**       | `requestAnimationFrame` batching — N state updates/second → 1 per frame                          | `useRealtimeTelemetry.ts`                                |
 | **WebGL context lifecycle**       | Ref callback destroys old PIXI `Application` on key change (resize)                              | `BSC.tsx`, `TMS.tsx`, `BSCGraphic.tsx`, `TMSGraphic.tsx` |
 | **PixiJS ticker throttle**        | `setFrameCount` throttled from 60fps → 6fps                                                      | `BSCGraphic.hooks.ts`, `TMSGraphic.hooks.ts`             |
-| **WS ping/pong**                  | `@fastify/websocket` configured with `pingInterval: 30000`                                       | `server.ts` (web-service, demo-backend)                  |
+| **WS ping/pong**                  | `@fastify/websocket` configured with `pingInterval: 30000`                                       | `server.ts` (web-service)                  |
 | **Dead WS sweep**                 | `RealtimeManager` sweeps CLOSED/CLOSING sockets every 60s                                        | `realtime-manager.ts`                                    |
 | **Zustand localStorage throttle** | Debounced storage wrapper: writes max once per 2s                                                | `LogStore.ts`                                            |
 | **Token refresh**                 | `RealtimeProvider` auto-refreshes expired JWT, breaks reconnect loop                             | `RealtimeContext.tsx`                                    |

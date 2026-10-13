@@ -96,7 +96,7 @@ packages/plugins/epias-market-prices/   # ornek plugin (workspace paketi)
   src/plugin.ts         # EpiasMarketPricesPlugin (EpiasClient kullanir, auth bilmez)
   src/index.ts          # sinif disa acilir; ornek run.ts'de EpiasTicketStore ile kurulur
 
-deployment/customer-plugins/            # musteri pluginleri icin mount edilen dizin (.gitkeep)
+deployment/v1/common/customer-plugins/            # musteri pluginleri icin mount edilen dizin (.gitkeep)
 ```
 
 ### 2.1 Veri Akışı
@@ -399,10 +399,10 @@ export const plugin = {
 
 ### 8.1 Docker Compose (boss dev stack)
 
-`deployment/dev/boss/docker-compose.yml` içinde `integration-service` servisi:
+`deployment/v1/dev/boss/docker-compose.yml` içinde `integration-service` servisi:
 
 - **Env:** `INTEGRATION_PLUGIN_DIR=/app/customer-plugins`, `INTEGRATION_CONFIG_DIR=/app/config/plugins`, `INTEGRATION_STATE_DIR=/app/data/plugins` + Redis/Postgres bağlantıları.
-- **Volume'lar:** service src, plugin-sdk src, epias-client src, epias plugin src (HMR benzeri dev deneyimi), `deployment/dev/boss/plugins` → `/app/config`, `deployment/customer-plugins` → `/app/customer-plugins`, state için named volume.
+- **Volume'lar:** service src, plugin-sdk src, epias-client src, epias plugin src (HMR benzeri dev deneyimi), `deployment/v1/dev/boss/plugins` → `/app/config`, `deployment/v1/common/customer-plugins` → `/app/customer-plugins`, state için named volume.
 - Redis + TimescaleDB healthcheck'e bağımlı.
 - `Dockerfile.dev` web-service pattern'iyle aynı (oven/bun + `bun --watch run.ts`).
 

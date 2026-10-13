@@ -526,7 +526,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `deployment/dev/demo-edge/docker-compose.yml` | integration-service |
+| `deployment/v2/dev/docker-compose.yml` | integration-service |
 | `services/web-service/src/presentation/routes/unified-routes.ts` #externalSeries | eklemeli okuma ucu |
 | `packages/ui/src/nova/DemoMarketView.tsx` #DemoMarketView | market UI |
 

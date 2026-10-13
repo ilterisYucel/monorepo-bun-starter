@@ -95,8 +95,8 @@ export const SUMMARY_STATS = {
 /** Starting address of first rack's nameplate block */
 export const RACK_NAMEPLATE_BASE = 30170;
 
-/** Per-rack register block size — prevents overlap between racks */
-export const RACK_STRIDE = 200;
+/** Per-rack register block size — rev AF: Rack N = 30170 + 150·(N−1) */
+export const RACK_STRIDE = 150;
 
 /**
  * Per-rack register offsets within {RACK_NAMEPLATE_BASE + (rackId-1) * RACK_STRIDE}.
@@ -187,7 +187,7 @@ export const BSC_RACK_DIAG = {
 // DISCRETE INPUTS (1x) — Rack Status Flags
 // ============================================================================
 
-// Rack flags are Coils, not Discrete Inputs in the real BSC
+// Rack flags are DISCRETE INPUTS (B2C(BSC Flag), FC02) in the real BSC.
 // These are address offsets from rack 1 — the actual addresses depend on total rack count N:
 //   Rack#n Disabled:  n
 //   Rack#n Online:    N + n

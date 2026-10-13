@@ -92,7 +92,7 @@ doğru ayırmak ve yapılan optimizasyonun **hakikaten etkili olduğunu ölçere
 | B1 | `getDownsampledData` `GROUP BY bucket, tags` + isim-başına `AVG(CASE…)` sütunu → patlama | `packages/core/src/timeseries/implementations/timescaledb/timescaledb-adapter.ts#getDownsampledData`; ölçüm §1 |
 | B2 | Bitfield isimleri rack başına tekrar eder; DB'de tekil seri anahtarı yok | Canlı: `Fault` ×8, `Warning` ×8, `Reserved` ×3 (`device_bsc_1`) |
 | B3 | `dataTag` rack önekini (`r1_fault`) taşır + `rack_id` tag'i aynı boyutu tekrarlar; frontend hiç kullanmaz | `packages/core/src/modbus/device.ts#readBitfieldGroup`; `configs/flex-bsc.json`; apps/ui taraması boş |
-| B4 | Config drift: `fss-1` dev=27 vs aws/demo-edge=21; `bsc-1` dev/demo-edge=403 vs kök `flex-bsc`=401 | `deployment/dev/container/device-configs/fss-1.json` vb. |
+| B4 | Config drift: `fss-1` dev=27 vs aws/demo-edge=21; `bsc-1` dev/demo-edge=403 vs kök `flex-bsc`=401 | `deployment/v1/dev/container/device-configs/fss-1.json` vb. |
 | B5 | Kökte olmayan config'ler: `FSS-1`, `DEMO-MV-1` | `AGENTS-DEVICE-CONFIG.md` source-of-truth kuralı |
 | B6 | Tüm tüketiciler aynı adaptörü çağırır: unified-routes, data-routes, field `telemetry-series-source` | `services/web-service/src/presentation/routes/unified-routes.ts#telemetry/downsampled`, `...#data-routes`, `services/web-service/src/infrastructure/field-connector/telemetry-series-source.ts` |
 | B7 | Kanıt altyapısı yetersiz: k6 yalnız `/health`+login; uzun-menzil veri üretimi yok | `deployment/k6/smoke.js`, `load-test.js` |

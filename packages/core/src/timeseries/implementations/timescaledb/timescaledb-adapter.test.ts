@@ -334,3 +334,45 @@ describe("TimescaleDBAdapter — gapfill/locf (K7)", () => {
     expect(out.map((t) => (t.timestamp as Date).getUTCMinutes())).toEqual([0, 1, 3, 4]);
   });
 });
+
+describe("TimescaleDBAdapter — chunk & çok-cihaz hata (Faz D)", () => {
+  const localPoint = (deviceId: string, name: string, value: number) => ({
+    deviceId, name, value, unit: "%", description: "d", timestamp: "2026-08-13T10:00:00.000Z",
+  });
+  function localPool(clientQuery: ReturnType<typeof vi.fn>) {
+    const client = { query: clientQuery, release: vi.fn() };
+    return { pool: { query: vi.fn().mockResolvedValue({ rows: [] }), connect: vi.fn().mockResolvedValue(client) } as never, clientQuery };
+  }
+
+  it(">200 satır → birden fazla INSERT (batch dilimi)", async () => {
+    const clientQuery = vi.fn().mockResolvedValue({ rows: [] });
+    const { pool } = localPool(clientQuery);
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+    const points = Array.from({ length: 250 }, (_, i) => localPoint("BSC-1", `T${i}`, i));
+    await adapter.write(points);
+    const inserts = clientQuery.mock.calls
+      .map((c) => String(c[0]))
+      .filter((s) => s.includes("INSERT INTO"));
+    expect(inserts).toHaveLength(2);
+  });
+
+  it("çok-cihaz: bir cihazın yazımı hata → write REJECT eder (allSettled)", async () => {
+    const client1 = { query: vi.fn().mockResolvedValue({ rows: [] }), release: vi.fn() };
+    const client2 = {
+      query: vi.fn()
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockRejectedValueOnce(new Error("device2 boom")),
+      release: vi.fn(),
+    };
+    const pool = {
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+      connect: vi.fn()
+        .mockResolvedValueOnce(client1)
+        .mockResolvedValueOnce(client2),
+    };
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool as never);
+    await expect(
+      adapter.write([localPoint("BSC-1", "SOC", 80), localPoint("BSC-2", "SOC", 70)]),
+    ).rejects.toThrow("device2 boom");
+  });
+});

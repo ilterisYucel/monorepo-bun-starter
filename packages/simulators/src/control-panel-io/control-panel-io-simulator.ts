@@ -14,6 +14,8 @@ interface ControlPanelIoState {
   fssFault: boolean;
   fssDischarged: boolean;
   fss2ndStage: boolean;
+  fire: boolean;
+  firstStage: boolean;
 }
 
 /** Kapı kontakt durumları girdisi — demo senaryo enjeksiyonu. */
@@ -59,6 +61,8 @@ export class ControlPanelIoSimulator {
       fssFault: false,
       fssDischarged: false,
       fss2ndStage: false,
+      fire: false,
+      firstStage: false,
     };
     this.network = config.network;
   }
@@ -103,6 +107,44 @@ export class ControlPanelIoSimulator {
     if (input.secondStage !== undefined) this.state.fss2ndStage = input.secondStage;
   }
 
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut): kapı kontaktları.
+   * - `battery_door_open` / `battery_door_close`
+   * - `panel_door_open` / `panel_door_close`
+   * - `nominal`: iki kapı da kapalı
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "battery_door_open":
+        this.setDoorState({ batteryOpen: true, panelOpen: this.state.panelDoorOpen });
+        return true;
+      case "battery_door_close":
+        this.setDoorState({ batteryOpen: false, panelOpen: this.state.panelDoorOpen });
+        return true;
+      case "panel_door_open":
+        this.setDoorState({ batteryOpen: this.state.batteryDoorOpen, panelOpen: true });
+        return true;
+      case "panel_door_close":
+        this.setDoorState({ batteryOpen: this.state.batteryDoorOpen, panelOpen: false });
+        return true;
+      case "nominal":
+        this.setDoorState({ batteryOpen: false, panelOpen: false });
+        this.state.fire = false;
+        this.state.firstStage = false;
+        return true;
+      case "fire":
+        this.state.fire = true;
+        return true;
+      case "first_stage":
+        this.state.fire = true;
+        this.state.firstStage = true;
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /** Discrete input okur (sorgu). */
   readDiscreteInput(address: number): boolean {
     switch (address) {
@@ -118,6 +160,10 @@ export class ControlPanelIoSimulator {
         return this.state.fssDischarged;
       case DISCRETE.FSS_2ND_STAGE:
         return this.state.fss2ndStage;
+      case DISCRETE.FIRE:
+        return this.state.fire;
+      case DISCRETE.FIRST_STAGE:
+        return this.state.firstStage;
       default:
         return false;
     }

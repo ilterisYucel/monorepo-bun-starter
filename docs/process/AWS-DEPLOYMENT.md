@@ -3,7 +3,7 @@
 **Kapsam:** container + field + boss tier'larının AWS EC2 üzerinde ayağa kaldırılması.
 **Durum:** DEMO — TLS'siz `ws://` kabulüyle (FLAG; üretim geçişi §7'de).
 
-> **Tek makine demo-edge (boss YOK, m6i.large):** §8 — `deployment/aws/demo-edge/`
+> **Tek makine demo-edge (boss YOK, m6i.large):** §8 — `deployment/v2/aws/`
 > standalone stack (container+field + demo-field UI). Boss/uplink gerektirmez.
 
 ## 1. Topoloji
@@ -65,12 +65,13 @@ sudo usermod -aG docker $USER   # yeniden giriş gerekir
 git clone <repo-url> ~/gd-pms-monorepo && cd ~/gd-pms-monorepo
 
 # 3. Env üretimi — YEREL dosyalardaki sırları ASLA kopyalamayın, yeniden üretin:
-#    Makine A (deployment/.env.aws-edge):
-#      JWT_SECRET / FIELD_JWT_SECRET / CONTAINER_TOKEN / FIELD_UPLINK_TOKEN: openssl rand -hex 32
-#      SEED_*: >=8 karakter
-#      FIELD_ID: uuidgen
-#      FIELD_UPLINK_WS_URL: ws://<B_EC2_IP>:5003/ws/field
-#    Makine B (deployment/.env.aws-boss):
+#    Makine A (deployment/v1/aws/{container,field}/.env — her app kendi .env'i):
+#      container: JWT_SECRET / CONTAINER_TOKEN: openssl rand -hex 32
+#      field:     FIELD_JWT_SECRET / FIELD_UPLINK_TOKEN: openssl rand -hex 32
+#      SEED_*: >=8 karakter (her iki tier)
+#      FIELD_ID: uuidgen (field)
+#      FIELD_UPLINK_WS_URL: ws://<B_EC2_IP>:5003/ws/field (field)
+#    Makine B (deployment/v1/aws/boss/.env):
 #      JWT_SECRET + SEED_*
 ```
 
@@ -145,9 +146,10 @@ politikası kurulmalı.
 
 ## 8. Demo-Edge — standalone (tek makine, m6i.large, boss YOK)
 
-`deployment/aws/demo-edge/` container+field tier'larını **tek compose projesinde**
-(`aws-edge-stack`) çalıştırır; boss ve uplink YOKTUR. UI: `apps/demo-field`
-(nginx, `:88`). TLS yok (`ws://` + HTTP), MFA kapalı — demo kabulü.
+`deployment/v2/aws/` container+field tier'larını **iki ayrı compose projesi** olarak
+(`v2-aws-edge-container` + `v2-aws-edge-field`; ortak `v2-aws-edge-network`) çalıştırır;
+boss ve uplink YOKTUR. UI: `apps/demo-field` (nginx, `:88`). TLS yok (`ws://` + HTTP),
+MFA kapalı — demo kabulü.
 
 ### 8.1 EC2 / güvenlik grubu
 - Tip: **m6i.large** (2 vCPU / 8GB), EBS gp3 100GB.
@@ -163,26 +165,31 @@ sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 git
 sudo usermod -aG docker $USER   # yeniden giriş
 git clone <repo-url> ~/gd-pms-monorepo && cd ~/gd-pms-monorepo
 
-# Env (SIRLAR repo'ya girmez — makinede üret):
-cp deployment/.env.aws-edge.example deployment/aws/demo-edge/.env
-#  doldur: JWT_SECRET, FIELD_JWT_SECRET, SEED_* (>=8), FIELD_ID (uuidgen),
-#          CONTAINER_TOKEN (openssl rand -hex 32), FIELD_INTERNAL_API_TOKEN
+# Env (SIRLAR repo'ya girmez — makinede üret; her app kendi .env'ini taşır):
+cp deployment/v2/aws/container/.env.example deployment/v2/aws/container/.env
+cp deployment/v2/aws/field/.env.example     deployment/v2/aws/field/.env
+#  container: JWT_SECRET, CONTAINER_TOKEN (openssl rand -hex 32), SEED_*
+#  field:     FIELD_JWT_SECRET, FIELD_ID (uuidgen), SEED_*, FIELD_INTERNAL_API_TOKEN
 #  standalone demo: FIELD_UPLINK_ENABLED=false, MFA_ENABLED=false
 
 # EPİAŞ kimlikleri (gitignored — makinede oluştur):
-cp deployment/aws/demo-edge/plugins/epias-market-prices.example.json \
-   deployment/aws/demo-edge/plugins/epias-market-prices.json
+cp deployment/v2/aws/field/plugins/epias-market-prices.example.json \
+   deployment/v2/aws/field/plugins/epias-market-prices.json
 #  username/password doldur; intervalMs=300000 önerilir.
 
 # Ayağa kaldır (EC2'de build — tek seferlik, 2 vCPU'da ~10-20 dk):
-docker compose --env-file deployment/aws/demo-edge/.env \
-  -f deployment/aws/demo-edge/docker-compose.yml up -d --build
+#  ÖNCE container (ortak ağı tanımlar), SONRA field:
+docker compose --env-file deployment/v2/aws/container/.env \
+  -f deployment/v2/aws/container/docker-compose.yml up -d --build
+docker compose --env-file deployment/v2/aws/field/.env \
+  -f deployment/v2/aws/field/docker-compose.yml up -d --build
 ```
 
 ### 8.3 Doğrulama (API smoke)
 ```bash
 # Konteyner token kaydı + bağlantı doğrulaması (tek komut, renkli çıktı):
-tools/register-container.sh --env deployment/aws/demo-edge/.env --url http://localhost:88
+tools/register-container.sh --env deployment/v2/aws/field/.env \
+  --container-env deployment/v2/aws/container/.env --url http://localhost:88
 
 B=http://localhost:88
 TOKEN=$(curl -s -X POST $B/api/auth/login -H 'content-type: application/json' \
@@ -228,7 +235,7 @@ Demo-edge iki tier birden telemetri yazar; baskın hacim **BSC-1/2 ve PCS-1/2**'
 `external_series` ihmal edilebilir (≈144 kB). 96 GB EBS'te retention/compression
 olmadan disk ~1 günde dolar.
 
-**Ayarlar** (`deployment/aws/demo-edge/docker-compose.yml` + `deployment/dev/demo-edge/docker-compose.yml`;
+**Ayarlar** (`deployment/v2/aws/{container,field}/docker-compose.yml` + `deployment/v2/dev/{container,field}/docker-compose.yml`;
 hem `*-data-service` hem `*-web-service`, her iki tier):
 - `TIMESCALE_RETENTION_AFTER: "24 hours"` — chunk bu süreden sonra silinir.
 - `TIMESCALE_COMPRESS_AFTER: "6 hours"` — chunk kapanınca sıkışır (chunk = 6s).
@@ -242,10 +249,12 @@ boyut ≈ **10-15 GB** (raw 6-12s + sıkışık geri kalan).
 
 ```bash
 cd ~/gd-pms-monorepo && git pull
-docker compose --env-file deployment/aws/demo-edge/.env \
-  -f deployment/aws/demo-edge/docker-compose.yml \
-  up -d --build container-web-service container-data-service \
-  field-web-service field-data-service
+docker compose --env-file deployment/v2/aws/container/.env \
+  -f deployment/v2/aws/container/docker-compose.yml \
+  up -d --build container-data-service
+docker compose --env-file deployment/v2/aws/field/.env \
+  -f deployment/v2/aws/field/docker-compose.yml \
+  up -d --build field-web-service field-data-service
 
 # Her iki DB: politikaları 24s/6s'e sabitle + >6s chunk'ları sıkıştır
 for db in container field; do

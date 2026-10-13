@@ -52,7 +52,7 @@ TESTING.md envanteri bayat.
 ### Faz T4 — Kapsam genişletme
 15. simulators BSC/XRack/EnergyAnalyzer; ui komponentleri (RackCard/BSCCard/
     ManeuverCard/DeviceGauges/TranslationProvider)
-16. superadmin + container-desktop smoke; demo-backend karakterizasyonu
+16. superadmin + container-desktop smoke karakterizasyonu
 
 ### Faz T5 — E2E genişletme (hedef 15+)
 17. `e2e/security/`: alarm akışı (KE1-4), MFA login/enroll, kilit 429, oturum dolması

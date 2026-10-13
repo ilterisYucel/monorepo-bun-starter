@@ -114,4 +114,20 @@ export interface DeviceConfigFile {
   transport?: DeviceTransportConfig;
   connector?: ConnectorConfig;
   commands?: Record<string, CommandConfig>;
+  /**
+   * Periyodik heartbeat yazımı (örn. LGES BSC 40000 Controller Heartbeat — 1 sn).
+   * Değer her `intervalMs`'de artan sayaçtır (0-255 döngü); yazılmazsa BSC
+   * 20 sn sonra S-C LOC ile tüm rack kontaktörlerini açar.
+   */
+  heartbeat?: DeviceHeartbeatConfig;
+}
+
+/** Heartbeat yazım yapılandırması — holding telemetri adı + aralık. */
+export interface DeviceHeartbeatConfig {
+  /** Holding telemetri adı (config telemetry[]'de HOLDING_REGISTER olmalı). */
+  telemetry: string;
+  /** Yazım aralığı (ms) — doküman: 1 sn. */
+  intervalMs: number;
+  /** Ek heartbeat telemetrileri (40001–40009 — C2B 1 s güncelleme şartı). */
+  extraTelemetries?: string[];
 }

@@ -120,6 +120,8 @@ export async function makeCommandRoutes(
     let jobTimestamp: string;
     let jobAtomic: boolean;
     let jobValidate: CommandDeviceJob["validate"] | undefined;
+    let jobFinalize: CommandDeviceJob["finalize"] | undefined;
+    let jobPulse: boolean | undefined;
 
     if (commandName) {
       const config = configSource.load(deviceId);
@@ -143,6 +145,8 @@ export async function makeCommandRoutes(
       jobTimestamp = job.timestamp;
       jobAtomic = job.atomic ?? true;
       jobValidate = job.validate;
+      jobFinalize = job.finalize;
+      jobPulse = job.pulse;
     } else {
       telemetries = rawTelemetries!.map((t) => ({
         ...t,
@@ -167,6 +171,8 @@ export async function makeCommandRoutes(
         atomic: jobAtomic,
         traceId: traceFrom(request),
         ...(jobValidate ? { validate: jobValidate } : undefined),
+        ...(jobFinalize ? { finalize: jobFinalize } : undefined),
+        ...(jobPulse ? { pulse: true } : undefined),
       },
       timeoutMs,
     );
@@ -195,6 +201,8 @@ export async function makeCommandRoutes(
 
       let telemetries: TelemetryData[];
       let commandConfig: CommandConfig | undefined;
+      let stepFinalize: CommandDeviceJob["finalize"] | undefined;
+      let stepPulse: boolean | undefined;
 
       if (commandName) {
         const config = configSource.load(deviceId);
@@ -211,7 +219,10 @@ export async function makeCommandRoutes(
             reason: `Missing required param: ${err.context.paramName ?? ""}`,
           };
         }
-        telemetries = result.unwrap().telemetries;
+        const built = result.unwrap();
+        telemetries = built.telemetries;
+        stepFinalize = built.finalize;
+        stepPulse = built.pulse;
       } else {
         telemetries = rawTelemetries!.map((t) => ({
           ...t,
@@ -232,6 +243,8 @@ export async function makeCommandRoutes(
           telemetries,
           atomic: commandConfig?.atomic ?? true,
           traceId: traceFrom(request),
+          ...(stepFinalize ? { finalize: stepFinalize } : undefined),
+          ...(stepPulse ? { pulse: true } : undefined),
           ...(commandConfig?.validate
             ? {
                 validate: {
@@ -240,6 +253,7 @@ export async function makeCommandRoutes(
                   reads: commandConfig.validate.reads.map((r) => ({
                     name: r.name,
                     expect: r.expect,
+                    ...(r.accept !== undefined ? { accept: r.accept } : undefined),
                   })),
                 },
               }

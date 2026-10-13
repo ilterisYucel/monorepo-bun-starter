@@ -28,6 +28,14 @@ export const HOLDING = {
   SERVER_TEMP_MAX:        0x2000, // uint16, scale 0.1 (°C)
   SERVER_TEMP_MIN:        0x2001, // uint16, scale 0.1 (°C)
   SERVER_TEMP_AVG:        0x2002, // uint16, scale 0.1 (°C)
+  SERVER_RH:              0x2003, // uint16, scale 0.1 (%RH) — server nem kontrolü
+
+  // Forced (manual) mode — doküman §7.3
+  FORCED_ENABLE:          0x2100, // uint16 — 0 off / 1 on (önce etkinleştir)
+  FORCED_COOLING:         0x2101, // uint16 — 0 off / 1 on
+  FORCED_AIR_SUPPLY:      0x2102, // uint16 — 0 off / 1 on
+  FORCED_STANDBY:         0x2103, // uint16 — 0 off / 1 on
+  FORCED_HEATING:         0x2104, // uint16 — 0 off / 1 on
 } as const;
 
 // ============================================================================
@@ -57,6 +65,8 @@ export const INPUT = {
   COMPRESSOR_RUNTIME_L:   0x1021, // uint32 — low word, scale 1 (hours)
   INTERNAL_FAN_RUNTIME_H: 0x1024, // uint32 — high word
   INTERNAL_FAN_RUNTIME_L: 0x1025, // uint32 — low word, scale 1 (hours)
+  COMPRESSOR_ACTION_H:    0x1028, // uint32 — high word, kompresör çalıştırma sayısı
+  COMPRESSOR_ACTION_L:    0x1029, // uint32 — low word
 } as const;
 
 // ============================================================================
@@ -64,27 +74,41 @@ export const INPUT = {
 // ============================================================================
 
 export const ALARMS = {
-  HIGH_TEMP:              0x300,
-  HIGH_TEMP_2:            0x301,
-  HIGH_TEMP_3:            0x302,
-  HIGH_TEMP_4:            0x303,
-  HIGH_TEMP_5:            0x304,
-  HIGH_TEMP_6:            0x305,
-  LOW_TEMP:               0x306,
-  LOW_TEMP_2:             0x307,
-  LOW_TEMP_3:             0x308,
-  OVER_VOLTAGE:           0x309,
-  UNDER_VOLTAGE:          0x30A,
-  OVER_VOLTAGE_2:         0x30B,
-  UNDER_VOLTAGE_2:        0x30C,
-  COMPRESSOR_FAULT:       0x30D,
-  FAN_FAULT:              0x30E,
-  HEATER_FAULT:           0x30F,
-  SENSOR_FAULT:           0x310,
-  // 0x311 — gap
-  HIGH_PRESSURE:          0x312,
-  LOW_PRESSURE:           0x313,
-  // 0x314–0x315 — gap
-  CONDENSER_FAULT:        0x316,
-  EVAPORATOR_FAULT:       0x317,
+  HIGH_TEMP:              0x300, // High temperature alarm
+  INTERNAL_FAN_FAIL:      0x301, // Internal fan failure
+  EXTERNAL_FAN_FAIL:      0x302, // External fan failure
+  COMPRESSOR_FAULT:       0x303, // Compressor fault
+  CABINET_RETURN_TEMP_FAIL: 0x304, // Cabinet return air temp probe failure
+  SYSTEM_HIGH_PRESSURE:   0x305, // System high pressure alarm
+  LOW_TEMP:               0x306, // Low temperature alarm
+  AC_OVERVOLTAGE:         0x309, // AC overvoltage alarm
+  AC_UNDERVOLTAGE:        0x30A, // AC undervoltage alarm
+  AC_POWER_FAILURE:       0x30B, // AC power failure alarm
+  EVAPORATOR_TEMP_FAIL:   0x30C, // Evaporator temp sensor failure
+  CONDENSER_TEMP_FAIL:    0x30D, // Condenser temp sensor failure
+  AMBIENT_TEMP_FAIL:      0x30E, // Ambient temp sensor failure
+  EVAPORATOR_FREEZE:      0x30F, // Evaporator freeze alarm
+  FREQUENT_HIGH_PRESSURE: 0x310, // Frequent high pressure alarm
+  SYSTEM_LOW_PRESSURE:    0x312, // System low pressure alarm
+  FREQUENT_LOW_PRESSURE:  0x313, // Frequent low pressure alarm
+  EXT_EXP_1_FAIL:         0x316, // External expansion 1 T/H failure (not involving)
+  EXT_EXP_2_FAIL:         0x317, // External expansion 2 T/H failure (not involving)
+  HIGH_HUMIDITY:          0x31C, // High humidity alarm
+  HUMIDITY_SENSOR_FAIL:   0x31E, // Humidity sensor failure
+  EXHAUST_OVER_TEMP:      0x325, // Exhaust over-temperature alarm
+  EXHAUST_TEMP_FAIL:      0x326, // Exhaust temp sensor fault
+  EXHAUST_OVER_TEMP_LOCK: 0x327, // Exhaust over-temperature lockout
 } as const;
+
+/** Eski isim uyumluluğu — dinamik testler HIGH_TEMP/LOW_TEMP/OVER_VOLTAGE/UNDER_VOLTAGE kullanır. */
+export const OVER_VOLTAGE = ALARMS.AC_OVERVOLTAGE;
+export const UNDER_VOLTAGE = ALARMS.AC_UNDERVOLTAGE;
+export const OVER_VOLTAGE_2 = ALARMS.AC_POWER_FAILURE;
+export const UNDER_VOLTAGE_2 = ALARMS.EVAPORATOR_TEMP_FAIL;
+export const FAN_FAULT = ALARMS.INTERNAL_FAN_FAIL;
+export const HEATER_FAULT = ALARMS.EVAPORATOR_FREEZE;
+export const SENSOR_FAULT = ALARMS.CABINET_RETURN_TEMP_FAIL;
+export const HIGH_PRESSURE = ALARMS.SYSTEM_HIGH_PRESSURE;
+export const LOW_PRESSURE = ALARMS.SYSTEM_LOW_PRESSURE;
+export const CONDENSER_FAULT = ALARMS.EXT_EXP_1_FAIL;
+export const EVAPORATOR_FAULT = ALARMS.EXT_EXP_2_FAIL;

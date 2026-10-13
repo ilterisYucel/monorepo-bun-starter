@@ -87,3 +87,13 @@ describe("expectHolds", () => {
     expect(expectHolds(0, 1)).toBe(false);
   });
 });
+
+describe("expectHolds — accept listesi (benign ack, R2)", () => {
+  it("accept listesindeki değer TRUE; liste dışı FALSE", () => {
+    expect(expectHolds(2, 2, [2, 6])).toBe(true);
+    expect(expectHolds(6, 2, [2, 6])).toBe(true); // BMS Already Connected
+    expect(expectHolds(9, 2, [2, 9])).toBe(true); // BSC Already Online
+    expect(expectHolds(8, 2, [2, 8])).toBe(true); // Contactors Already Open
+    expect(expectHolds(10, 2, [2, 6])).toBe(false); // Current Flows
+  });
+});

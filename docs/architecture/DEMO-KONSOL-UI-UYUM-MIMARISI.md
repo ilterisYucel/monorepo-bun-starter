@@ -21,7 +21,7 @@ Dün tamamlanan DEMO-FIELD-KONSOL işi (`demo-field` SPA + `packages/ui/src/nova
 | Katman | Kapsam |
 |:-------|:-------|
 | **Dahil** | `apps/demo-field` (shell, 6 sekme, tüm sayfalar, i18n→İngilizce, tema), `packages/ui/src/nova` (yeni/güncellenen bileşenler + CSS + token setleri), `packages/simulators/src/fss` (yeni), demo-edge container device config'leri, telemetri mapper + `mimic-types` |
-| **Hariç** | Backend servisleri (yalnız gap'ler B-1..B-3 olarak kayıtlı; UI hazır), `packages/ui` diğer alanları, mevcut dark `tokens.ts` (diğer app'ler), `deployment/aws/edge`, `deployment/dev/{container,field}` çekirdek katalogları |
+| **Hariç** | Backend servisleri (yalnız gap'ler B-1..B-3 olarak kayıtlı; UI hazır), `packages/ui` diğer alanları, mevcut dark `tokens.ts` (diğer app'ler), `deployment/v1/aws`, `deployment/v1/dev/{container,field}` çekirdek katalogları |
 
 ## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
 

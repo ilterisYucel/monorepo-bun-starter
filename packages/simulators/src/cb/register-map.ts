@@ -2,7 +2,7 @@
 // Kaynak: KONTEYNER-MANEVRA-KATALOGU-REV03-MIMARISI.md §2.0 (K2):
 //   Kesici (CB) → ŞALTER modeli: trip/akım/sıcaklık/eşik semantiği YOKTUR.
 //   open  = shunt trip coil (uzaktan açma), close = closing coil.
-//   Durum: aux kontaklar — DI 0 = Is Closed (NC), DI 1 = Is Open (NO).
+//   Durum: aux kontaklar — DI 0 = Is Closed (NO), DI 1 = Is Open (NC).
 //
 // Sözleşme:
 // - COILS: OPEN (0), CLOSE (1). RESET kaldırıldı (şalterde trip yok).

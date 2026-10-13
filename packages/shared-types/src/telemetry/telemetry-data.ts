@@ -14,7 +14,9 @@ export type RegisterDataType =
   | "INT32"
   | "UINT32"
   | "FLOAT32"
-  | "FLOAT64";
+  | "FLOAT64"
+  /** Schneider 4-quadrant PF — özel FLOAT32 kodlaması (bkz. BinaryPayloadDecoder.decode4QPowerFactor). */
+  | "4Q_FP_PF";
 
 /**
  * Tüm telemetry verilerinin temel interface'i

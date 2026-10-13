@@ -30,6 +30,12 @@ export interface SelfHostedSimulator {
   start(): Promise<void>;
   stop(): Promise<void>;
   port(): number;
+  /**
+   * Test/kurulum senaryosu enjeksiyonu (komut). Desteğ yoksa tanımsızdır.
+   * Destekleyen simülatörler senaryoyu uygulayıp `true`, bilinmeyen senaryoda
+   * `false` döner. Yalnızca dev/debug akışlarında çağrılır — prod kullanımı yok.
+   */
+  inject?(scenario: string): boolean;
 }
 
 /** Çalışan bir simülatör sunucusu. */
@@ -76,6 +82,7 @@ export class SimulatorHost {
   private readonly configs: readonly DeviceConfigFile[];
   private readonly options: SimulatorHostOptions;
   private readonly index = new Map<string, number>();
+  private readonly instances = new Map<string, SelfHostedSimulator>();
   private running: RunningSimulator[] = [];
 
   constructor(configs: readonly DeviceConfigFile[], options: SimulatorHostOptions = {}) {
@@ -131,11 +138,13 @@ export class SimulatorHost {
         await simulator.start();
         const port = simulator.port();
         this.index.set(item.deviceId, port);
+        this.instances.set(item.deviceId, simulator);
         running.push({ deviceId: item.deviceId, port, stop: () => simulator.stop() });
       }
     } catch (error) {
       await Promise.allSettled(running.map((entry) => entry.stop()));
       this.index.clear();
+      this.instances.clear();
       throw error;
     }
     this.running = running;
@@ -147,11 +156,22 @@ export class SimulatorHost {
     await Promise.allSettled(this.running.map((entry) => entry.stop()));
     this.running = [];
     this.index.clear();
+    this.instances.clear();
   }
 
   /** Sorgu — çalışan simülatörün portu. */
   portFor(deviceId: string): number | undefined {
     return this.index.get(deviceId);
+  }
+
+  /**
+   * Komut — cihazın simülatörüne senaryo enjekte eder (dev/debug).
+   * Cihaz yok veya enjeksiyon desteklenmiyorsa `false` döner.
+   */
+  inject(deviceId: string, scenario: string): boolean {
+    const simulator = this.instances.get(deviceId);
+    if (simulator === undefined || simulator.inject === undefined) return false;
+    return simulator.inject(scenario);
   }
 
   private plan(): PlannedSimulator[] {
@@ -179,7 +199,7 @@ export class SimulatorHost {
         throw new Error(`[SimulatorHost] Bilinmeyen simulator tipi: ${simType} (${config.deviceId})`);
       }
 
-      const network = readNetwork(config, config.deviceId);
+      const network = this.bindNetwork(config, config.deviceId);
       claim(network.port, config.deviceId);
 
       const context: SimulatorBuildContext = {
@@ -238,6 +258,18 @@ export class SimulatorHost {
     if (path === undefined) return undefined;
     if (isAbsolute(path)) return path;
     return resolve(this.options.configDir ?? ".", path);
+  }
+
+  /**
+   * Simülatör sunucusunun BAĞLANMA (bind) adresi. Test/kapsayıcı ortamında
+   * `SIMULATOR_BIND_HOST` (ör. 0.0.0.0) ile ezilebilir; varsayılan config
+   * `connection.host` (127.0.0.1). Device-service istemcisi config host'una
+   * (loopback) bağlanmaya devam eder.
+   */
+  private bindNetwork(config: DeviceConfigFile, deviceId: string): SimulatorNetworkConfig {
+    const network = readNetwork(config, deviceId);
+    const override = process.env.SIMULATOR_BIND_HOST;
+    return override !== undefined && override.length > 0 ? { ...network, host: override } : network;
   }
 }
 

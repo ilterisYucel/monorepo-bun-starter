@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from "@playwright/test";
+import { resolveDemoFieldId } from "./demo-support";
 
 /**
  * demo-field HEDEF SOC (frontend) e2e — SPEC UC-5.
@@ -17,7 +18,7 @@ import { test, expect, type APIRequestContext, type Page } from "@playwright/tes
  */
 
 const FIELD_UI = process.env.FIELD_UI_URL || "http://localhost:8088";
-const FIELD_ID = process.env.FIELD_ID || "";
+const FIELD_ID = resolveDemoFieldId();
 const ADMIN = process.env.E2E_ADMIN_USER || "admin";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
 

@@ -21,6 +21,7 @@ import type { LogLevel as OpsLevel } from "@gd-monorepo/logger";
 import { SimulatorHost } from "@gd-monorepo/simulators";
 import { DeviceService } from "./src/device-service";
 import { DeviceConfigLoader } from "./src/config-loader";
+import { DebugInjector } from "./src/debug-injector";
 
 /** TamperLogger seviyesini operasyonel logger seviyesine eşler (fatal → error). */
 function toOpsLevel(level: string): OpsLevel {
@@ -131,6 +132,22 @@ async function main() {
   });
   await host.start();
 
+  // Dev/debug enjeksiyon ucu — YALNIZCA development + açık bayrakta başlar.
+  // Prod'da asla açılmaz (NODE_ENV guard).
+  const debugEnabled =
+    process.env.NODE_ENV !== "production" && process.env.DEBUG_INJECT_ENABLED === "true";
+  const debugInjector = debugEnabled
+    ? new DebugInjector(
+        { inject: (deviceId, scenario) => host.inject(deviceId, scenario) },
+        {
+          port: Number(process.env.DEBUG_INJECT_PORT ?? 15590),
+          host: "0.0.0.0",
+        },
+        { info: (m) => opsLogger.info(m), warn: (m) => opsLogger.warn(m) },
+      )
+    : undefined;
+  await debugInjector?.start();
+
   const service = await DeviceService.fromConfigDir(configDir, mq, identity, logger, opsLogger);
 
   let stopping = false;
@@ -139,6 +156,7 @@ async function main() {
     stopping = true;
     opsLogger.info(`${signal} alindi, kapatiliyor...`);
     await service.stop();
+    await debugInjector?.stop();
     await host.stopAll();
     await logger.close();
     await opsLogger.close();

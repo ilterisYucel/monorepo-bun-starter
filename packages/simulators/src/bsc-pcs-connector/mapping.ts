@@ -13,6 +13,11 @@ export interface BscPcsSourceRef {
   size?: number;
   /** size>1 için işaretli mi (sint32). Varsayılan false. */
   signed?: boolean;
+  /**
+   * Birincil okuma 0 ise okunacak yedek adres (M12 — DC bus: onlayn rack yokken
+   * 30059=0 olur; 30057 Anticipated Voltage'a düşülür). Aynı table/deviceId.
+   */
+  fallbackAddress?: number;
 }
 
 /** Register→register eşlemesi: raw_pcs = round(raw_bsc × ratio + offset). */
@@ -39,20 +44,69 @@ export interface BscPcsConstantMapping {
   value: number;
 }
 
+/** Ölçekli kaynak: ham değer × scale = fiziksel birim (ör. 0.001 kW). */
+export interface BscPcsScaledSource {
+  from: BscPcsSourceRef;
+  scale: number;
+}
+
+/**
+ * Hesaplanan eşleme (C8 — LGES haritasında akım-limiti register'ı yok):
+ * `to = round(((numRaw × numScale) / (denRaw × denScale)) × ratio + offset)`.
+ * Tipik kullanım: akım limiti = güç limiti (kW) ÷ DC gerilim (V).
+ * Payda 0 ise (ör. onlayn rack yokken) yedek adres kullanılır; yedek de 0 ise
+ * bu tick atlanır (önceki değer korunur).
+ */
+export interface BscPcsComputedMapping {
+  kind: "computed";
+  numerator: BscPcsScaledSource;
+  denominator: BscPcsScaledSource;
+  to: number;
+  ratio: number;
+  offset: number;
+}
+
+/**
+ * SOC→enerji eşlemesi (PCS15 — B19/B20 Available charge/discharge energy):
+ * `fraction = clamp(socRaw × soc.scale, 0, 1)`;
+ * `energyKwh = mode==="charge" ? (1−fraction)×ratedKwh : fraction×ratedKwh`;
+ * `to = round(energyKwh × ratio + offset)`.
+ */
+export interface BscPcsSocEnergyMapping {
+  kind: "socEnergy";
+  soc: BscPcsScaledSource;
+  ratedKwh: number;
+  mode: "charge" | "discharge";
+  to: number;
+  ratio: number;
+  offset: number;
+}
+
 export type BscPcsMappingEntry =
   | BscPcsRegisterMapping
   | BscPcsBitMapping
-  | BscPcsConstantMapping;
+  | BscPcsConstantMapping
+  | BscPcsComputedMapping
+  | BscPcsSocEnergyMapping;
 
 /** Mapping dosyası kökü. */
 export interface BscPcsMapping {
   target: { host: string; port: number };
   intervalMs: number;
   mappings: BscPcsMappingEntry[];
+  /**
+   * PCS14: BSC kaynağı tümüyle okunamazsa (sourceStatus=2) set edilecek hedef
+   * bit (ör. BMS Status Word bit0 = "BMS no communication"). Sağlıklıyken 0.
+   */
+  lossBit?: { to: number; bit: number };
 }
 
-const SOURCE_KEYS = new Set(["deviceId", "table", "address", "bit", "size", "signed"]);
-const ENTRY_KEYS = new Set(["kind", "from", "to", "ratio", "offset", "bit", "value"]);
+const SOURCE_KEYS = new Set(["deviceId", "table", "address", "bit", "size", "signed", "fallbackAddress"]);
+const SCALED_SOURCE_KEYS = new Set(["from", "scale"]);
+const ENTRY_KEYS = new Set([
+  "kind", "from", "to", "ratio", "offset", "bit", "value", "numerator", "denominator",
+  "soc", "ratedKwh", "mode",
+]);
 
 /**
  * Sorgu — mapping dosyasını STRICT parse eder; geçersiz yapı throw
@@ -71,7 +125,7 @@ export function parseBscPcsMapping(raw: string): BscPcsMapping {
   }
   const obj = data as Record<string, unknown>;
   for (const key of Object.keys(obj)) {
-    if (key !== "target" && key !== "intervalMs" && key !== "mappings") {
+    if (key !== "target" && key !== "intervalMs" && key !== "mappings" && key !== "lossBit") {
       throw new ValidationError(
         "bsc-pcs.mapping-invalid",
         `Bilinmeyen kok anahtar: ${key}`,
@@ -99,11 +153,29 @@ export function parseBscPcsMapping(raw: string): BscPcsMapping {
   }
 
   const entries = mappings.map((m) => parseEntry(m as Record<string, unknown>));
+  const lossBit = parseLossBit(obj["lossBit"]);
   return {
     target: { host: target["host"], port: target["port"] },
     intervalMs,
     mappings: entries,
+    ...(lossBit !== undefined ? { lossBit } : undefined),
   };
+}
+
+function parseLossBit(raw: unknown): { to: number; bit: number } | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "object" || raw === null) throwErr("lossBit obje olmali");
+  const obj = raw as Record<string, unknown>;
+  for (const key of Object.keys(obj)) {
+    if (key !== "to" && key !== "bit") throwErr(`lossBit bilinmeyen anahtar: ${key}`);
+  }
+  const to = obj["to"];
+  const bit = obj["bit"];
+  if (typeof to !== "number" || !inBmsRange(to)) throwErr("lossBit.to BMS blogu disinda");
+  if (typeof bit !== "number" || !Number.isInteger(bit) || bit < 0 || bit > 15) {
+    throwErr("lossBit.bit 0-15 olmali");
+  }
+  return { to, bit };
 }
 
 function parseEntry(raw: Record<string, unknown>): BscPcsMappingEntry {
@@ -156,6 +228,44 @@ function parseEntry(raw: Record<string, unknown>): BscPcsMappingEntry {
       if (typeof raw["value"] !== "number") throwErr("constant mapping'de value zorunlu");
       return { kind: "constant", to, value: raw["value"] as number };
     }
+    case "computed": {
+      const numerator = parseScaledSource(raw["numerator"]);
+      const denominator = parseScaledSource(raw["denominator"]);
+      if (numerator === undefined) throwErr("computed.numerator zorunlu");
+      if (denominator === undefined) throwErr("computed.denominator zorunlu");
+      if (typeof raw["ratio"] !== "number" || typeof raw["offset"] !== "number") {
+        throwErr("computed mapping'de ratio/offset zorunlu");
+      }
+      return {
+        kind: "computed",
+        numerator: numerator!,
+        denominator: denominator!,
+        to,
+        ratio: raw["ratio"] as number,
+        offset: raw["offset"] as number,
+      };
+    }
+    case "socEnergy": {
+      const soc = parseScaledSource(raw["soc"]);
+      if (soc === undefined) throwErr("socEnergy.soc zorunlu");
+      const mode = raw["mode"];
+      if (mode !== "charge" && mode !== "discharge") throwErr("socEnergy.mode charge|discharge olmali");
+      if (typeof raw["ratedKwh"] !== "number" || raw["ratedKwh"] <= 0) {
+        throwErr("socEnergy.ratedKwh pozitif olmali");
+      }
+      if (typeof raw["ratio"] !== "number" || typeof raw["offset"] !== "number") {
+        throwErr("socEnergy mapping'de ratio/offset zorunlu");
+      }
+      return {
+        kind: "socEnergy",
+        soc: soc!,
+        ratedKwh: raw["ratedKwh"] as number,
+        mode: mode as "charge" | "discharge",
+        to,
+        ratio: raw["ratio"] as number,
+        offset: raw["offset"] as number,
+      };
+    }
     default:
       throw new ValidationError(
         "bsc-pcs.mapping-invalid",
@@ -193,6 +303,10 @@ function parseSource(
   if (signed !== undefined && typeof signed !== "boolean") {
     throwErr("from.signed boolean olmali");
   }
+  const fallbackAddress = raw["fallbackAddress"];
+  if (fallbackAddress !== undefined && typeof fallbackAddress !== "number") {
+    throwErr("from.fallbackAddress sayi olmali");
+  }
   return {
     deviceId: raw["deviceId"] as string,
     table: raw["table"] as "input" | "holding",
@@ -200,11 +314,33 @@ function parseSource(
     ...(size !== undefined ? { size: size as number } : undefined),
     ...(signed !== undefined ? { signed: signed as boolean } : undefined),
     ...(bit !== undefined ? { bit: bit as number } : undefined),
+    ...(fallbackAddress !== undefined
+      ? { fallbackAddress: fallbackAddress as number }
+      : undefined),
   };
 }
 
 function throwErr(message: string): never {
   throw new ValidationError("bsc-pcs.mapping-invalid", message);
+}
+
+function parseScaledSource(raw: unknown): BscPcsScaledSource | undefined {
+  if (typeof raw !== "object" || raw === null) return undefined;
+  const obj = raw as Record<string, unknown>;
+  for (const key of Object.keys(obj)) {
+    if (!SCALED_SOURCE_KEYS.has(key)) {
+      throw new ValidationError(
+        "bsc-pcs.mapping-invalid",
+        `Bilinmeyen scaled-source anahtari: ${key}`,
+      );
+    }
+  }
+  const from = parseSource(obj["from"] as Record<string, unknown> | undefined);
+  if (from === undefined) throwErr("computed.from zorunlu");
+  if (typeof obj["scale"] !== "number" || obj["scale"] === 0) {
+    throwErr("computed.scale sifir-disi sayi olmali");
+  }
+  return { from: from!, scale: obj["scale"] as number };
 }
 
 function inBmsRange(address: number): boolean {

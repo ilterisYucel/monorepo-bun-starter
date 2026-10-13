@@ -18,7 +18,7 @@
   "telemetry": [
     {
       "name": "Is Closed",
-      "description": "Şalter kapalı (aux NC kontak)",
+      "description": "Şalter kapalı (aux NO kontak — kapalıyken kapalı)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -34,7 +34,7 @@
     },
     {
       "name": "Is Open",
-      "description": "Şalter açık (aux NO kontak)",
+      "description": "Şalter açık (aux NC kontak — açıkken kapalı)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -102,7 +102,8 @@
             "expect": false
           }
         ]
-      }
+      },
+      "pulse": true
     },
     "close": {
       "label": "Kapat (Close)",
@@ -124,7 +125,8 @@
             "expect": false
           }
         ]
-      }
+      },
+      "pulse": true
     }
   }
 }

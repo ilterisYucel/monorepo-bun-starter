@@ -22,6 +22,8 @@ import { DeviceFactory } from "./device-factory";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
 import { TelemetryWriteFilter } from "./telemetry-write-filter";
+import { HeartbeatWriter } from "./heartbeat-writer";
+import type { HeartbeatConfig } from "./heartbeat-writer";
 import { resolveWritePolicies } from "./write-policy";
 import type { WritePolicy } from "./write-policy";
 import {
@@ -44,6 +46,8 @@ interface DeviceEntry {
   alarms?: DeviceAlarmRule[];
   /** Yazma politikası (opt-in) — `name → {deadband, maxStaleMs}`; yoksa always-write. */
   writePolicy?: Map<string, WritePolicy>;
+  /** Periyodik heartbeat yazımı (LGES BSC 40000) — yoksa yazım yapılmaz. */
+  heartbeat?: HeartbeatConfig;
 }
 
 const CREATE_DEVICES_TABLE = `
@@ -106,6 +110,7 @@ export class DeviceService {
   private readonly alarmRepository: AlarmStateRepository | undefined;
   private readonly ops: OpsLog;
   private readonly writeFilter: TelemetryWriteFilter;
+  private readonly heartbeats: Map<string, HeartbeatWriter>;
 
   constructor(
     devices: DeviceEntry[],
@@ -131,6 +136,7 @@ export class DeviceService {
     this.alarmDetector = new AlarmTransitionDetector();
     this.alarmRepository = sql ? new AlarmStateRepository(sql) : undefined;
     this.writeFilter = new TelemetryWriteFilter();
+    this.heartbeats = new Map();
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
@@ -189,6 +195,7 @@ export class DeviceService {
           configConnection: c.connection,
           alarms: c.alarms,
           writePolicy: resolveWritePolicies(c.telemetry),
+          heartbeat: c.heartbeat,
         },
       ];
 
@@ -339,11 +346,32 @@ export class DeviceService {
       { concurrency: 10 },
     );
 
+    // Heartbeat yazıcıları (config-driven — örn. LGES BSC 40000): cihaz bağlandıktan
+    // sonra başlar; durdurma `stop()`'ta. Yazılmazsa BSC ~20 sn'de rack'leri açar.
+    for (const entry of entries) {
+      if (!entry.heartbeat) continue;
+      const writer = new HeartbeatWriter(
+        entry.device,
+        entry.device.id,
+        entry.heartbeat,
+        (error) =>
+          this.ops.warn("Heartbeat yazim hatasi", {
+            deviceId: entry.device.id,
+            error: String(error),
+          }),
+      );
+      writer.start();
+      this.heartbeats.set(entry.device.id, writer);
+    }
+
     this.ops.info(`${this.devices.size} cihaz baslatildi`);
   }
 
   async stop(): Promise<void> {
     this.running = false;
+
+    for (const writer of this.heartbeats.values()) writer.stop();
+    this.heartbeats.clear();
 
     const disconnectPromises = Array.from(this.devices.values()).map(
       async (entry) => {
@@ -651,6 +679,21 @@ export class DeviceService {
       return { success: false, reason: msg };
     }
 
+    // Momentary coil/bobin darbesi (S1): yazım hemen 0'a çekilir ki gerçek IO
+    // çıkışı sürekli enerjili kalmasın (şalter açma/kapama bobinleri).
+    if (job.pulse) {
+      try {
+        await entry.device.write(
+          job.telemetries.map((t) => ({ ...t, value: 0 })),
+        );
+      } catch (err) {
+        this.ops.warn("Pulse sifirlama hatasi", {
+          deviceId: job.deviceId,
+          error: String(err),
+        });
+      }
+    }
+
     try {
       const allData = await entry.device.read();
       await this.publish(job.deviceId, allData);
@@ -669,11 +712,33 @@ export class DeviceService {
     await this.logCommand(job, true);
 
     const validate = job.validate;
-    if (validate) {
-      return await this.validateReadBack(entry, validate);
+    const result = validate
+      ? await this.validateReadBack(entry, validate)
+      : ({ success: true } as const);
+
+    // El sıkışma finalize (C3): doğrulama sonrası komut kutusunu boşalt
+    // (LGES BSC 40010 → 0x0000). Aksi halde tekrar eden aynı komut yeni istek sayılmaz.
+    if (job.finalize) {
+      try {
+        await entry.device.write([
+          {
+            deviceId: job.deviceId,
+            name: job.finalize.name,
+            description: job.finalize.name,
+            value: job.finalize.value,
+            unit: "-",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      } catch (err) {
+        this.ops.warn("Finalize yazim hatasi", {
+          deviceId: job.deviceId,
+          error: String(err),
+        });
+      }
     }
 
-    return { success: true };
+    return result;
   }
 
   /**
@@ -697,7 +762,7 @@ export class DeviceService {
         const readBack = await entry.device.read();
         const allMatch = validate.reads.every((expected) => {
           const actual = readBack.find((r) => r.name === expected.name);
-          return actual !== undefined && expectHolds(actual.value, expected.expect);
+          return actual !== undefined && expectHolds(actual.value, expected.expect, expected.accept);
         });
         if (allMatch) return { success: true, validated: true };
       } catch (err) {

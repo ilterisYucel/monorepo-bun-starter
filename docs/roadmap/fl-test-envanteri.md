@@ -57,7 +57,7 @@
 ## 4. E2E Koşum Kılavuzu (lokal dev)
 
 ```bash
-# 1) Stack'ler (mevcut deployment/.env.<tier> dosyalarıyla)
+# 1) Stack'ler (mevcut deployment/<proje>/<tier>/<app>/.env dosyalarıyla)
 bun run dev:field-stack          # field stack (web-service 5002, device-service, management)
 bun run dev:container            # container stack (web-service 5001, device-service, management)
 

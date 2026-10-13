@@ -111,6 +111,13 @@ const connectorConfigSchema = z.object({
   sim: connectorSimSubsetSchema.optional(),
 });
 
+/** Periyodik heartbeat yazımı (LGES BSC 40000) — holding telemetri adı + aralık. */
+const deviceHeartbeatSchema = z.object({
+  telemetry: z.string().min(1),
+  intervalMs: z.number().int().positive(),
+  extraTelemetries: z.array(z.string()).optional(),
+});
+
 export const bitfieldFieldSchema = z.object({
   bitStart: z.number().int().min(0).max(15),
   bitEnd: z.number().int().min(0).max(15),
@@ -158,6 +165,7 @@ export const deviceConfigFileSchema = z
     pollIntervalMs: z.number().int().positive().optional(),
     transport: deviceTransportConfigSchema.optional(),
     connector: connectorConfigSchema.optional(),
+    heartbeat: deviceHeartbeatSchema.optional(),
   })
   .superRefine((cfg, ctx) => {
     // Kimlik çakışması (K4, jenerik): ayrım tag'i OLMAYAN bitfield alanı register telemetri

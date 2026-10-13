@@ -143,12 +143,32 @@ describe("BinaryPayloadDecoder", () => {
       ["UINT32", 2],
       ["FLOAT32", 2],
       ["FLOAT64", 4],
+      ["4Q_FP_PF", 2],
     ] as [RegisterDataType, number][])(
       "%s requires %i register(s)",
       (dataType, expected) => {
         expect(BinaryPayloadDecoder.getRegisterCount(dataType)).toBe(expected);
       },
     );
+  });
+
+  describe("decode4QPowerFactor (Schneider 4Q FP PF)", () => {
+    /** IEEE float → BE register çifti. */
+    function wordsOf(value: number): number[] {
+      const buf = Buffer.alloc(4);
+      buf.writeFloatBE(value, 0);
+      return [buf.readUInt16BE(0), buf.readUInt16BE(2)];
+    }
+    it.each([
+      [0.95, 0.95], // lagging → aynen
+      [1, 1], // unity
+      [1.5, 0.5], // Q4 leading → 2 − 1.5
+      [-1.5, -0.5], // Q2 leading → −2 − (−1.5)
+      [-0.8, -0.8], // lagging
+    ])("raw %s → PF %s", (raw, expected) => {
+      const d = new BinaryPayloadDecoder(wordsOf(raw), "BIG_ENDIAN");
+      expect(d.decode4QPowerFactor()).toBeCloseTo(expected, 5);
+    });
   });
 
   describe("scale/offset pattern (integration example)", () => {

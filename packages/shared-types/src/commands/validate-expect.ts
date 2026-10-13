@@ -21,6 +21,9 @@ export function isRelationExpect(value: unknown): value is RelationExpect {
 /**
  * Sorgu — read-back değeri beklenen koşulu sağlıyor mu?
  *
+ * - `accept` verilmişse ve `actual` listede varsa TRUE (benign ack'ler:
+ *   BSC 0x06 "BMS Already Connected", 0x08 "Already Opened", 0x09 "Already
+ *   Online", 0x12 "Within Cooldown" — R2/Sequence tablosu).
  * - `expect` ilişki sözcüğüyse sayısal ilişki: "negative" <0, "positive" >0,
  *   "zero" ===0, "nonzero" !==0. Sayısal ilişkiler YALNIZCA `number` değerlerde
  *   tutar — string/boolean'da FALSE.
@@ -31,7 +34,11 @@ export function isRelationExpect(value: unknown): value is RelationExpect {
 export function expectHolds(
   actual: unknown,
   expect: string | number | boolean,
+  accept?: readonly number[],
 ): boolean {
+  if (accept !== undefined && typeof actual === "number" && accept.includes(actual)) {
+    return true;
+  }
   if (!isRelationExpect(expect)) {
     if (actual === expect) return true;
     // Modbus BOOLEAN register'ları (DISCRETE_INPUT/COIL) sayısal 0/1 olarak

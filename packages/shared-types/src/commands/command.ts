@@ -19,8 +19,19 @@ export interface CommandConfig {
   timeoutMs?: number;
   validate?: {
     minWaitMs?: number;
-    reads: Array<{ name: string; expect: string | number | boolean }>;
+    reads: Array<{ name: string; expect: string | number | boolean; accept?: number[] }>;
   };
+  /**
+   * Komut başarıyla yazıldıktan (ve varsa doğrulandıktan) SONRA yapılan ek yazım.
+   * LGES BSC el sıkışması: 40010 Command Request kabul edildikten sonra 0x0000'a
+   * çekilir (aksi halde tekrar eden aynı komut yeni istek sayılmaz — C3).
+   */
+  finalize?: { telemetry: string; value: number };
+  /**
+   * Yazımdan sonra aynı telemetri 0'a çekilir (momentary coil/bobin darbesi).
+   * Şalter açma/kapama bobinleri sürekli enerjili kalamaz (S1).
+   */
+  pulse?: boolean;
 }
 
 /** Adım içi komut zamanlayıcı — REV.03 §10 (bkz. maneuver.ts sözleşmesi). */

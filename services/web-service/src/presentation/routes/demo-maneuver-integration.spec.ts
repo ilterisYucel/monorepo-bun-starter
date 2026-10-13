@@ -14,14 +14,14 @@ import {
 /**
  * Z katmanı (zincir entegrasyon) — UC-7/T-30, FR-7.4.
  *
- * Gerçek demo FL config'i (`deployment/dev/field/maneuvers/maneuvers.json`)
+ * Gerçek demo FL config'i (`deployment/v1/dev/field/maneuvers/maneuvers.json`)
  * yüklenir; ManeuverRegistry → OperationExecutor → kanal zinciri uçtan uca
  * çalıştırılır. Kanal/hedef/depo test double'dır (harici IO yok); kanıt:
  * FL-01…FL-05 her biri beklenen komutu çözer ve run terminal duruma ulaşır.
  */
 
 const configUrl = new URL(
-  "../../../../../deployment/dev/field/maneuvers/maneuvers.json",
+  "../../../../../deployment/v1/dev/field/maneuvers/maneuvers.json",
   import.meta.url,
 );
 const { maneuvers } = JSON.parse(readFileSync(configUrl, "utf8")) as {

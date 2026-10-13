@@ -104,7 +104,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "deviceId": "DC-1"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 10000
     },
     {
       "name": "Energy Counter H",
@@ -120,7 +122,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "deviceId": "DC-1"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Energy Counter L",
@@ -136,7 +140,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "deviceId": "DC-1"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Voltage Setpoint",
@@ -152,7 +158,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "deviceId": "DC-1"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 10000
     },
     {
       "name": "Current Limit",
@@ -168,7 +176,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "deviceId": "DC-1"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 10000
     },
     {
       "name": "OV Threshold",

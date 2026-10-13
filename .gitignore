@@ -48,12 +48,8 @@ bun-debug.log*
 .env.*
 !.env.example
 !.env.sample
-# Tier sablonlari commit'lenir (kök); gercek tier env'leri deployment/<site>/<tier>/.env olarak gitignore'lu kalir
-!.env.field.example
-!.env.container.example
-!.env.boss.example
-!.env.aws-edge.example
-!.env.aws-boss.example
+# Gercek env dosyalari deployment/<proje>/<tier>/<app>/.env olarak gitignore'lu kalir;
+# commit'lenen tek sablon ilgili klasordeki .env.example'dir. (AGENTS-DEPLOYMENT.md)
 
 # ============================================
 # OS FILES

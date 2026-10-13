@@ -335,3 +335,18 @@ describe("RuleEvaluator", () => {
     ).toEqual([neq]);
   });
 });
+
+describe("RuleEvaluator — A2 abs operatörleri", () => {
+  it("abs_gt/abs_gte işaretli değerde büyüklük eşiğini uygular", () => {
+    const absGt = rule({ name: "abs_gt", when: { all: [{ telemetry: "i", op: "abs_gt", threshold: 1680 }] } });
+    const absGte = rule({ name: "abs_gte", when: { all: [{ telemetry: "i", op: "abs_gte", threshold: 1680 }] } });
+
+    // negatif yön (deşarj/kısa devre ters) de tetikler
+    expect(evaluator().evaluate([absGt], fakeSnapshot({ "bsc-1": { i: snapshotValue(-1800) } }))).toEqual([absGt]);
+    // eşik altı tetiklemez
+    expect(evaluator().evaluate([absGt], fakeSnapshot({ "bsc-1": { i: snapshotValue(100) } }))).toEqual([]);
+    // sınırda gte tetikler, gt tetiklemez
+    expect(evaluator().evaluate([absGte], fakeSnapshot({ "bsc-1": { i: snapshotValue(-1680) } }))).toEqual([absGte]);
+    expect(evaluator().evaluate([absGt], fakeSnapshot({ "bsc-1": { i: snapshotValue(-1680) } }))).toEqual([]);
+  });
+});

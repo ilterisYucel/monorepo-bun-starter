@@ -1,7 +1,7 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-10-09
-> Tarandı: 272 test dosyası, 2310 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-10-13
+> Tarandı: 282 test dosyası, 2459 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
@@ -140,22 +140,133 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-backend/src/demo-backend.test.ts` (1 test)
+### `apps/demo-field/integration/bsc-handshake.integration.test.ts` (10 test)
 
-1. (demo-backend) **"exports application modules"**
+1. (BSC komut el sıkışması) **"C3: komut sonrası 40010 finalize ile 0'a döner"**
+2. (BSC komut el sıkışması) **"C4: heartbeat 40000 saniyelik artan sayaç olarak yazılır"**
+3. (BSC komut el sıkışması) **"kabul edilen komut Request Acknowledge = Done (0x0002) olur"**
+4. (BSC komut el sıkışması) **"C1/C2/M9: akım akarken stop 'Current Flows' (0x000A) ile reddedilir"**
+5. (BSC komut el sıkışması) **"C2: akım akarken EMERGENCY (0x0001) kabul edilir (en yüksek öncelik)"**
+6. (BSC komut el sıkışması) **"M5: close_contactors timeoutMs N×400+5000 (8 rack → 8200 ms)"**
+7. (BSC komut el sıkışması > BSC request-ack tablosu (canlı, Sequence/Diagnosis)) **"Start Normal'de → 0x06 (BMS Already Connected)"**
+8. (BSC komut el sıkışması > BSC request-ack tablosu (canlı, Sequence/Diagnosis)) **"Event Clear ikinci kez → 0x12 (Within Cooldown)"**
+9. (BSC komut el sıkışması > BSC request-ack tablosu (canlı, Sequence/Diagnosis)) **"Emergency → Stop Emergency'den çıkarır (0 = Not Initialized)"**
+10. (BSC komut el sıkışması > BSC request-ack tablosu (canlı, Sequence/Diagnosis)) **"heartbeat 40000-40009 birlikte artar"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/demo-maneuver.integration.test.ts` (8 test)
+### `apps/demo-field/integration/bsc-pcs-connector.integration.test.ts` (7 test)
+
+1. (BSC→PCS batarya verisi eşleme) **"PCS BMS SOC geçerli aralıkta ve sağlıklı BSC SOC ile tutarlı"**
+2. (BSC→PCS batarya verisi eşleme) **"M12: toplam gerilim online rack'lerden gelir (~1300 V)"**
+3. (BSC→PCS batarya verisi eşleme) **"C6/PCS1-2: güç limitleri BSC limitinden (uint32 size:2) eşlenir"**
+4. (BSC→PCS batarya verisi eşleme) **"C7: gerilim limitleri rack ID değil gerçek gerilim (~1300 V)"**
+5. (BSC→PCS batarya verisi eşleme) **"C8/PCS4: akım limiti güç÷gerilim (computed) ile eşlenir"**
+6. (BSC→PCS batarya verisi eşleme) **"PCS3: SOP BSC şarj limitinden (uint32 size:2) eşlenir"**
+7. (BSC→PCS batarya verisi eşleme) **"PCS13: charge/discharge yasağı bitleri (B02) BSC arızasında set edilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/integration/commands-operations-edge.integration.test.ts` (14 test)
+
+1. (B1 — komut katmanı edge-case'ler) **"bilinmeyen cihaz → 404"**
+2. (B1 — komut katmanı edge-case'ler) **"bilinmeyen komut → 404"**
+3. (B1 — komut katmanı edge-case'ler) **"eksik zorunlu param → 400"**
+4. (B1 — komut katmanı edge-case'ler) **"raw telemetries komutu → 200"**
+5. (B1 — komut katmanı edge-case'ler) **"benign ack: zaten Normal iken Start → success (0x06 kabul)"**
+6. (B1 — komut katmanı edge-case'ler) **"pulse: CB-1 open sonrası coil serbest kalır (0)"**
+7. (B1 — komut katmanı edge-case'ler) **"execute-multi onFailure=stop: ilk adım hata → ikinci atlanır"**
+8. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"bilinmeyen operasyon → 404"**
+9. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"divideTotal floor: charge powerKw=25 → BSC setpoint 12"**
+10. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"timer: charge + 3 sn → PCS gücü 0'a iner"**
+11. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"rollback: field_charge (container-2 yok) → başarısız adım + rollback"**
+12. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"MV interlock: H01 toprak kalıcı kilitli (komut reddedilir)"**
+13. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler > B3 — manevra katmanı edge-case'ler) **"bsc_recovery: Emergency → Normal (Stop→Start→EventClear→Close)"**
+14. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler > B3 — manevra katmanı edge-case'ler) **"bsc_stop idempotent: iki kez çalıştırılabilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/integration/data-pipeline.integration.test.ts` (6 test)
+
+1. (C — yazma hattı (gerçek Timescale verisi)) **"C1 dedup: sabit telemetri (BSC SOH) her poll'da yazılmaz (≤2 satır/30 sn)"**
+2. (C — yazma hattı (gerçek Timescale verisi)) **"C2 TTL: sabit BSC SOH maxStaleMs sonrası yine üretilir (≥2 satır/70 sn)"**
+3. (C — yazma hattı (gerçek Timescale verisi)) **"C3 latest: sessiz sinyal unified/latest'ta döner"**
+4. (C — yazma hattı (gerçek Timescale verisi)) **"C4 downsampled: 5 dk pencere zaman-kovası verisi döner"**
+5. (C — yazma hattı (gerçek Timescale verisi)) **"C5 fire-and-forget: komut yanıtı hızlı (P95 < 500 ms)"**
+6. (C — yazma hattı (gerçek Timescale verisi)) **"C6 satır bütünlüğü: canonical tag + unit Timescale satırında"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/integration/demo-maneuver.integration.test.ts` (10 test)
 
 1. (demo manevra kataloğu (AK-10.1/10.2)) **"6 demo operasyonu yüklü; mevcut katalog korunuyor"**
 2. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1)) **"girilen güç BSC şarj setpointine yansır (powerKw/2 BSC)"**
-3. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"charge → PCS gücü negatif + SOC artar; standby durdurur"**
-4. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"discharge → PCS gücü pozitif + SOC düşer"**
-5. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"full_charge / full_discharge operasyonları tamamlanır"**
-6. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"calibration çok adımlı operasyon tamamlanır"**
-7. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3)) **"charge + timer 5 sn → BSC stop komutu + güç 0 + SOC durur"**
-8. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3) > MV interlock (AK-10.5)) **"kesici kapalıyken toprak kapatma reddedilir"**
+3. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"charge → PCS gücü negatif; standby durdurur"**
+4. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"SIM-1: charge sonrası BSC şarj modu latch'lenir (ChargeStatus=1, komut kutusu 0)"**
+5. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"discharge → PCS gücü pozitif"**
+6. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"SIM-1: discharge sonrası BSC deşarj modu latch'lenir (ChargeStatus=2)"**
+7. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"full_charge / full_discharge operasyonları tamamlanır"**
+8. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"calibration çok adımlı operasyon tamamlanır"**
+9. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3)) **"charge + timer 5 sn → PCS gücü 0'a iner"**
+10. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3) > MV interlock (AK-10.5)) **"kesici kapalıyken toprak kapatma reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/integration/device-telemetry.integration.test.ts` (38 test)
+
+1. (telemetri akışı — tüm cihazlar) **"konteyner linki 20+ cihazdan telemetri taşır"**
+2. (telemetri akışı — tüm cihazlar) **"field tier PCS-1/PCS-2/MV-1 telemetrisi dolu"**
+3. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC)) **"BSC SOC kanonik tag ile gelir ve 0-100 aralığında"**
+4. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC)) **"H1/H5/C5: rack 2-8 stride 150 adreslerinden okunur (R2/R5/R8 SOC dolu)"**
+5. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC)) **"H2: rack teşhis bitfield'leri 4-bit gruplarıyla çözülür (Deviation Voltage Fault2)"**
+6. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC)) **"H3: bitfield'lerde rack ayrımı var (rack_id tag'i taşınır)"**
+7. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC)) **"BSC rack hücre gerilimi gerçekçi (~3.5 V)"**
+8. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC)) **"M1: geçersiz sensör değeri (0x7FFF/0xFFFF) telemetri olarak yayınlanmaz"**
+9. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"PCS-1 güç/gerilim/akım telemetrisi akar"**
+10. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"C7: PCS gerilim limitleri rack numarası değil gerçek gerilim (~1300 V)"**
+11. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"C6/PCS1-2: PCS güç limitleri tanımlı (eşleme bsc-pcs-connector'da doğrulanır)"**
+12. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"C8/PCS4: PCS akım limitleri tanımlı (eşleme bsc-pcs-connector'da doğrulanır)"**
+13. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"PCS3: Battery Pack SOP tanımlı (eşleme bsc-pcs-connector'da doğrulanır)"**
+14. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"H7: PCS hücre gerilimi ~3.5 V (sistem hücre gerilimi ölçeği 0.001)"**
+15. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS)) **"PCS15: Available Charge/Discharge Energy telemetrisi tanımlı (canlı değer protokol probunda)"**
+16. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R)) **"H5: HVAC sıcaklık/nem durum telemetrisi FC03 ile okunur"**
+17. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R)) **"Equipment Status geçerli aralıkta (0-4)"**
+18. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU)) **"B1: izolasyon direnci FC03 ile ~1 MΩ okunur"**
+19. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU)) **"alarm/cihaz hatası sağlıklı durumda 0"**
+20. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç)) **"A1: DC V/I/P FC03 ile ölçülür (750 V / 100 A / 75 kW)"**
+21. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340) **"P4: faz gerilimleri FC03 ile okunur (~230 V L-N)"**
+22. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340) **"P3: 4Q_FP_PF kod çözümü → PF [-1..1]"**
+23. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000) **"S2: kapalı şalterde Is Closed=1, Is Open=0"**
+24. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000) **"S1: açma/kapama bobinleri darbe sonrası bırakılır (coil 0)"**
+25. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO) **"kapı kontağı ve sistem durumu okunur"**
+26. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO) **"F1: Fire / 1. Stage girişi tanımlı (LGES cause-and-effect)"**
+27. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS) **"G1: DC çıkış durum telemetrisi akar"**
+28. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS) **"FSS panel durumu akar"**
+29. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu)) **"kesici ve toprak konumları okunur"**
+30. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17)) **"M3: rack DI bayrakları telemetride (Online/Alarm/Fault)"**
+31. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17)) **"M4: icat edilen global diff-temp metriği kaldırıldı"**
+32. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17)) **"G1: dc-output tek birleşik enerji sayacı"**
+33. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17)) **"PCS3: Battery Pack SOP tanımlı"**
+34. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17)) **"PCS16/17: EMS-link ve BMS health telemetrisi config'te tanımlı"**
+35. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17)) **"M2: BSC fault enjeksiyonu → device alarm üretir"**
+36. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17) > PCS18 — arıza sözcükleri (D01–D09) bit-çözümü) **"Appendix 2 adlarıyla bitfield'ler tanımlı"**
+37. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17) > PCS18 — arıza sözcükleri (D01–D09) bit-çözümü > Faz 1 / F2.5 — nameplate & HVAC ekleri) **"F2.5: BSC rack nameplate değerleri (17 pack / 4 sensör / 24 hücre / 210 A)"**
+38. (telemetri akışı — tüm cihazlar > BSC (LGES Flex BSC) > PCS (Wattox MPCS) > HVAC (Envicool MC90HDNC1R) > IMD (Bender isoPV1685RTU) > Acrel DJSF1352-RN (DC sayaç) > Schneider PM5340 > DC şalter SYW6GZ-4000 > Yangın paneli EP203 / IO > DC çıkış ve FSS > DEMO-MV-1 (MV istasyonu) > Denetim düzeltmeleri (M2/M3/M4/G1/PCS3/16/17) > PCS18 — arıza sözcükleri (D01–D09) bit-çözümü > Faz 1 / F2.5 — nameplate & HVAC ekleri) **"Faz 1: HVAC Compressor Action Count + Server Humidity tanımlı"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/demo-field/integration/protocol-conformance.integration.test.ts` (10 test)
+
+1. (FC03 okuma şartı (vendor dokümanı)) **"PCS: A bloğu FC03 ile okunur (Operation Status 0x2F7D)"**
+2. (FC03 okuma şartı (vendor dokümanı)) **"B1: IMD izolasyon direnci FC03 ile okunur"**
+3. (FC03 okuma şartı (vendor dokümanı)) **"A1: DC sayaç gerilimi FC03 ile okunur (float32 çifti)"**
+4. (FC03 okuma şartı (vendor dokümanı)) **"H5: HVAC bilgi bloğu (0x1000) FC03 ile okunur"**
+5. (FC03 okuma şartı (vendor dokümanı)) **"H1/H2: HVAC uzaktan kapatma (0x202) ve reset (0x200) register'ları erişilebilir"**
+6. (FC03 okuma şartı (vendor dokümanı)) **"BSC: hem FC03 (holding 40010) hem FC04 (input 30030) erişilebilir"**
+7. (FC03 okuma şartı (vendor dokümanı)) **"DEMO-MV: kesici/toprak konumları FC04 ile okunur"**
+8. (FC03 okuma şartı (vendor dokümanı) > PM5340 adres tabanı) **"faz A L-N gerilimi config adresinden (~230 V) okunur"**
+9. (FC03 okuma şartı (vendor dokümanı) > PM5340 adres tabanı > PCS12 — komut kaynağı (S01) kapısı) **"S01=0 (HMI) iken EMS start yok sayılır; S01=1 sonrası kabul edilir"**
+10. (FC03 okuma şartı (vendor dokümanı) > PM5340 adres tabanı > PCS12 — komut kaynağı (S01) kapısı > PCS15 — available energy (SOC × anma enerji)) **"B19/B20 = SOC×rated (canlı, BMS bloğu)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -783,40 +894,44 @@
 16. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64) **"decodes float 64 from four registers"**
 17. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64) **"decodes 0.0"**
 18. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64 > sequential position advancement) **"advances position across multiple decodes"**
-19. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64 > sequential position advancement > getRegisterCount > scale/offset pattern (integration example)) **"applies scale and offset after decoding"**
-20. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64 > sequential position advancement > getRegisterCount > scale/offset pattern (integration example)) **"handles negative offset"**
+19. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64 > sequential position advancement > getRegisterCount > decode4QPowerFactor (Schneider 4Q FP PF) > scale/offset pattern (integration example)) **"applies scale and offset after decoding"**
+20. (BinaryPayloadDecoder > constructor + byte order > decodeUint16 > decodeInt16 > decodeUint32 > decodeInt32 > decodeFloat32 > decodeFloat64 > sequential position advancement > getRegisterCount > decode4QPowerFactor (Schneider 4Q FP PF) > scale/offset pattern (integration example)) **"handles negative offset"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/device.test.ts` (27 test)
+### `packages/core/src/modbus/device.test.ts` (31 test)
 
 1. (ModbusDevice.read() ISP sözleşmesi) **"register + bitfield çıktılarını birleşik döner"**
 2. (ModbusDevice.read() ISP sözleşmesi) **"bitfield bit değeri mask ile çıkarılır"**
 3. (ModbusDevice.read() ISP sözleşmesi) **"bitfield config yoksa yalnızca register telemetrileri döner"**
-4. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write()) **"scale/offset uygulanmış ham değeri HOLDING register'ına yazar"**
-5. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write()) **"COIL telemetrisini writeCoils ile boolean olarak yazar"**
-6. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write()) **"boş girdi → transport'a yazma çağrısı YAPILMAZ"**
-7. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write()) **"config'te olmayan isim yok sayılır (kademeli bozulma)"**
-8. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"başarılı yazımda backup okur, yazar, rollback ÇAĞRILMAZ"**
-9. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"ikinci grupta hata → ilk grup ESKİ değerine geri yüklenir + orijinal hata fırlar"**
-10. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"rollback sırasında hata olursa ORİJİNAL hata fırlar (rollback hatası yutulur)"**
-11. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"COIL yazımı başarılı + holding başarısız → coil ESKİ değerine döner"**
-12. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"FLOAT32 değerleri BE register çifti olarak yazılır ve rollback round-trip korunur"**
-13. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"yalnızca INPUT_REGISTER girdi → no-op (backup dahi okunmaz)"**
-14. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"bitişik adresler priority farkına rağmen tek istekte okunur"**
-15. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"okuma sırası: HOLDING, INPUT, COIL, DISCRETE, bitfield"**
-16. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"coil/discrete okumalarında sıra korunur"**
-17. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"tüm sonuçlar aynı poll timestamp'ini taşır"**
-18. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"yalnızca bitfield'lı cihazda read() bitfield sonuçlarını döner"**
-19. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"aynı isimli girdilerde tag alt küme eşleşmesi doğru olanı seçer"**
-20. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"32-bit tam genişlik bitfield doğru çözülür"**
-21. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C)) **"bitfield bit aralığı 31 üstü reddedilir"**
-22. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C)) **"bitEnd < bitStart reddedilir"**
-23. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C)) **"bitfield registerType COIL reddedilir"**
-24. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C)) **"COIL backup'u readCoils'tan okunur; aynı adresli HOLDING ile karışmaz"**
-25. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C)) **"rollback ham register'ları aynen geri yazar (float kayma yok)"**
-26. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C) > ModbusDevice yazma limiti (Faz C)) **"125 register üstü yazma grubu reddedilir"**
-27. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C) > ModbusDevice yazma limiti (Faz C) > ModbusDevice bağlantı cooldown (mevcut davranış karakterizasyonu)) **"kopuk bağlantıda reconnect dener; 10 sn içinde ikinci deneme reddedilir"**
+4. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF)) **"UINT16 0xFFFF sentinel değeri sonuçtan çıkarılır, diğerleri korunur"**
+5. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF)) **"INT16 0x7FFF ve 0x8000 sentinel değerleri çıkarılır"**
+6. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF)) **"FLOAT32 NaN sentinel değeri çıkarılır"**
+7. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF)) **"normal değerler korunur (regresyon)"**
+8. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write()) **"scale/offset uygulanmış ham değeri HOLDING register'ına yazar"**
+9. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write()) **"COIL telemetrisini writeCoils ile boolean olarak yazar"**
+10. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write()) **"boş girdi → transport'a yazma çağrısı YAPILMAZ"**
+11. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write()) **"config'te olmayan isim yok sayılır (kademeli bozulma)"**
+12. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"başarılı yazımda backup okur, yazar, rollback ÇAĞRILMAZ"**
+13. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"ikinci grupta hata → ilk grup ESKİ değerine geri yüklenir + orijinal hata fırlar"**
+14. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"rollback sırasında hata olursa ORİJİNAL hata fırlar (rollback hatası yutulur)"**
+15. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"COIL yazımı başarılı + holding başarısız → coil ESKİ değerine döner"**
+16. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"FLOAT32 değerleri BE register çifti olarak yazılır ve rollback round-trip korunur"**
+17. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional)) **"yalnızca INPUT_REGISTER girdi → no-op (backup dahi okunmaz)"**
+18. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"bitişik adresler priority farkına rağmen tek istekte okunur"**
+19. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"okuma sırası: HOLDING, INPUT, COIL, DISCRETE, bitfield"**
+20. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"coil/discrete okumalarında sıra korunur"**
+21. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"tüm sonuçlar aynı poll timestamp'ini taşır"**
+22. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"yalnızca bitfield'lı cihazda read() bitfield sonuçlarını döner"**
+23. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"aynı isimli girdilerde tag alt küme eşleşmesi doğru olanı seçer"**
+24. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)) **"32-bit tam genişlik bitfield doğru çözülür"**
+25. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C)) **"bitfield bit aralığı 31 üstü reddedilir"**
+26. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C)) **"bitEnd < bitStart reddedilir"**
+27. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C)) **"bitfield registerType COIL reddedilir"**
+28. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C)) **"COIL backup'u readCoils'tan okunur; aynı adresli HOLDING ile karışmaz"**
+29. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C)) **"rollback ham register'ları aynen geri yazar (float kayma yok)"**
+30. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C) > ModbusDevice yazma limiti (Faz C)) **"125 register üstü yazma grubu reddedilir"**
+31. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C) > ModbusDevice yazma limiti (Faz C) > ModbusDevice bağlantı cooldown (mevcut davranış karakterizasyonu)) **"kopuk bağlantıda reconnect dener; 10 sn içinde ikinci deneme reddedilir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -826,7 +941,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/timeseries/implementations/timescaledb/timescaledb-adapter.test.ts` (13 test)
+### `packages/core/src/timeseries/implementations/timescaledb/timescaledb-adapter.test.ts` (15 test)
 
 1. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)) **"multi-row INSERT + BEGIN/COMMIT üretir; tablo adı device_ önekli"**
 2. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)) **"boş girdi → havuz işlemi YAPILMAZ"**
@@ -841,6 +956,8 @@
 11. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3) > TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı) > TimescaleDBAdapter — getDownsampledData uzun-format (Faz-1, K2/K6)) **"geçersiz tag anahtarı yok sayılır (name-only; enjeksiyon yok)"**
 12. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3) > TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı) > TimescaleDBAdapter — getDownsampledData uzun-format (Faz-1, K2/K6) > TimescaleDBAdapter — gapfill/locf (K7)) **"locfCarryMs=0 → gapfill YOK (mevcut davranış)"**
 13. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3) > TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı) > TimescaleDBAdapter — getDownsampledData uzun-format (Faz-1, K2/K6) > TimescaleDBAdapter — gapfill/locf (K7)) **"locfCarryMs>0 → gapfill+locf; taşıma sınırı dışı boşluk düşer"**
+14. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3) > TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı) > TimescaleDBAdapter — getDownsampledData uzun-format (Faz-1, K2/K6) > TimescaleDBAdapter — gapfill/locf (K7) > TimescaleDBAdapter — chunk & çok-cihaz hata (Faz D)) **">200 satır → birden fazla INSERT (batch dilimi)"**
+15. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3) > TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı) > TimescaleDBAdapter — getDownsampledData uzun-format (Faz-1, K2/K6) > TimescaleDBAdapter — gapfill/locf (K7) > TimescaleDBAdapter — chunk & çok-cihaz hata (Faz D)) **"çok-cihaz: bir cihazın yazımı hata → write REJECT eder (allSettled)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1199,7 +1316,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/commands/validate-expect.test.ts` (8 test)
+### `packages/shared-types/src/commands/validate-expect.test.ts` (9 test)
 
 1. (isRelationExpect) **"ilişki sözcüklerini tanır"**
 2. (isRelationExpect) **"diğer string/sayı/boolean değerleri tanımaz"**
@@ -1209,6 +1326,7 @@
 6. (isRelationExpect > expectHolds) **"nonzero: 0 dışı sayılar tutar"**
 7. (isRelationExpect > expectHolds) **"birebir eşitlik değişmez (sayı/string/boolean)"**
 8. (isRelationExpect > expectHolds) **"BOOLEAN register sayısal çözümü: 0/1 ↔ true/false eşleşir"**
+9. (isRelationExpect > expectHolds > expectHolds — accept listesi (benign ack, R2)) **"accept listesindeki değer TRUE; liste dışı FALSE"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1346,7 +1464,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc-pcs-connector/connector.test.ts` (15 test)
+### `packages/simulators/src/bsc-pcs-connector/connector.test.ts` (25 test)
 
 1. (parseBscPcsMapping) **"geçerli dosyayı parse eder (üç kind)"**
 2. (parseBscPcsMapping) **"bilinmeyen kind → throw"**
@@ -1356,13 +1474,23 @@
 6. (parseBscPcsMapping) **"bilinmeyen anahtar → throw (strict)"**
 7. (parseBscPcsMapping) **"boş mappings → throw"**
 8. (parseBscPcsMapping > BscPcsConnectorAdapter) **"tick: register dönüşümleri yazılır (ratio/offset, yuvarlama; bitişik koşular)"**
-9. (parseBscPcsMapping > BscPcsConnectorAdapter) **"değişmeyen değerler ikinci tick'te yazılmaz"**
-10. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak değişince intervalMs sonrası yeniden yazılır"**
-11. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak hatası kademeli — diğer eşleşmeler devam eder"**
-12. (parseBscPcsMapping > BscPcsConnectorAdapter) **"yazım hatası → link 0 + fail sayacı; sonraki tick yeniden bağlanır"**
-13. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak yoksa yazım yapılmaz ve kaynak durumu 2 olur"**
-14. (parseBscPcsMapping > BscPcsConnectorAdapter) **"bit eşlemesi hedef kelimenin diğer bitlerini bozmaz"**
-15. (parseBscPcsMapping > BscPcsConnectorAdapter) **"yazma girişimi yok sayılır"**
+9. (parseBscPcsMapping > BscPcsConnectorAdapter) **"M12: birincil 0 ise fallback adresine düşer (DC bus 30059→30057)"**
+10. (parseBscPcsMapping > BscPcsConnectorAdapter) **"M12: birincil doluysa fallback KULLANILMAZ"**
+11. (parseBscPcsMapping > BscPcsConnectorAdapter) **"C8: computed mapping — akım limiti = güç limiti ÷ DC gerilim"**
+12. (parseBscPcsMapping > BscPcsConnectorAdapter) **"C8: computed payda 0 ise yedek adrese düşer"**
+13. (parseBscPcsMapping > BscPcsConnectorAdapter) **"C8: computed denominator eksik → parse throw"**
+14. (parseBscPcsMapping > BscPcsConnectorAdapter) **"PCS14: BSC kaynağı tamamen okunamazsa lossBit set edilir"**
+15. (parseBscPcsMapping > BscPcsConnectorAdapter) **"PCS14: sağlıklı kaynakta lossBit 0'a temizlenir"**
+16. (parseBscPcsMapping > BscPcsConnectorAdapter) **"PCS15: socEnergy discharge = SOC×rated (0.1 kWh)"**
+17. (parseBscPcsMapping > BscPcsConnectorAdapter) **"PCS15: socEnergy charge = (1−SOC)×rated"**
+18. (parseBscPcsMapping > BscPcsConnectorAdapter) **"PCS15: socEnergy mode geçersiz → parse throw"**
+19. (parseBscPcsMapping > BscPcsConnectorAdapter) **"değişmeyen değerler ikinci tick'te yazılmaz"**
+20. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak değişince intervalMs sonrası yeniden yazılır"**
+21. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak hatası kademeli — diğer eşleşmeler devam eder"**
+22. (parseBscPcsMapping > BscPcsConnectorAdapter) **"yazım hatası → link 0 + fail sayacı; sonraki tick yeniden bağlanır"**
+23. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak yoksa yazım yapılmaz ve kaynak durumu 2 olur"**
+24. (parseBscPcsMapping > BscPcsConnectorAdapter) **"bit eşlemesi hedef kelimenin diğer bitlerini bozmaz"**
+25. (parseBscPcsMapping > BscPcsConnectorAdapter) **"yazma girişimi yok sayılır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1384,15 +1512,27 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc/bsc-simulator.test.ts` (7 test)
+### `packages/simulators/src/bsc/bsc-simulator.test.ts` (19 test)
 
 1. (BSCSimulator (T4)) **"otomatik init: 6 tick sonrası NORMAL duruma geçer"**
 2. (BSCSimulator (T4)) **"START komutu → charge status bitleri (BSC_INFO 30037)"**
 3. (BSCSimulator (T4)) **"DISCHARGE komutu → discharge status bitleri (BSC_INFO 30037)"**
-4. (BSCSimulator (T4)) **"EMERGENCY komutu durumu EMERGENCY'ye geçirir"**
-5. (BSCSimulator (T4)) **"deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)"**
-6. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"şarjda SOC %97'yi aşamaz (clamp)"**
-7. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"deşarjda SOC %3,5'in altına inemez (clamp)"**
+4. (BSCSimulator (T4)) **"SIM-1: komut kutusu (40010) 0'a yazılsa da yürütme latch'lenir (şarj sürer)"**
+5. (BSCSimulator (T4)) **"C1: akım akarken STOP 'Current Flows' (0x000A) ile reddedilir; şarj sürer"**
+6. (BSCSimulator (T4)) **"C1: setpoint sıfırlanınca STOP kabul edilir (DONE)"**
+7. (BSCSimulator (T4)) **"C2: akım akarken OPEN_ALL reddedilir; EMERGENCY kabul edilir (en yüksek öncelik)"**
+8. (BSCSimulator (T4)) **"EMERGENCY komutu durumu EMERGENCY'ye geçirir"**
+9. (BSCSimulator (T4)) **"deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)"**
+10. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"şarjda SOC %97'yi aşamaz (clamp)"**
+11. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"deşarjda SOC %3,5'in altına inemez (clamp)"**
+12. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Start Normal'de → BMS Already Connected (0x06)"**
+13. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Initializing'de komut → Under Initializing (0x07)"**
+14. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Emergency'den yalnız Stop çıkar → Not Initialized"**
+15. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Event Clear 30 s cooldown → ikinci kez Within Cooldown (0x12)"**
+16. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Open All zaten açık → Contactors Already Open (0x08)"**
+17. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Close zaten online → BSC Already Online (0x09)"**
+18. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Reset akım akarken → Current Flows (0x0A)"**
+19. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md)) **"17 pack / 2 BMIC / 4 sıcaklık / 24 hücre / 210 A relay"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1428,7 +1568,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/dc-meter/dc-meter.test.ts` (12 test)
+### `packages/simulators/src/dc-meter/dc-meter.test.ts` (13 test)
 
 1. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal)) **"DC Voltage 750.0 V — FLOAT32 BE kelime çifti"**
 2. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal)) **"DC Current 100.0 A — FLOAT32 BE kelime çifti"**
@@ -1440,8 +1580,9 @@
 8. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu)) **"alarm word ham değer olarak enjekte edilebilir"**
 9. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları) **"bilinmeyen adres 0 döner"**
 10. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları > DcMeterAdapter (salt okuma sözleşmesi)) **"readInputRegisters ardışık kelimeler döner (float çifti)"**
-11. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları > DcMeterAdapter (salt okuma sözleşmesi)) **"holding register 0 döner — komut YOKTUR"**
-12. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları > DcMeterAdapter (salt okuma sözleşmesi)) **"coil/discrete okumaları boş — I/O YOKTUR"**
+11. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları > DcMeterAdapter (salt okuma sözleşmesi)) **"FC03 holding okuma veriyi döner (doküman §7.3.3 — 03H okuma)"**
+12. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları > DcMeterAdapter (salt okuma sözleşmesi)) **"holding yazımı yok sayılır — komut YOKTUR"**
+13. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal) > ölçüm enjeksiyonu (FL-08 eşik senaryosu) > okuma sınırları > DcMeterAdapter (salt okuma sözleşmesi)) **"coil/discrete okumaları boş — I/O YOKTUR"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1502,7 +1643,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/hvac/hvac.test.ts` (11 test)
+### `packages/simulators/src/hvac/hvac.test.ts` (15 test)
 
 1. (HvacSimulator > initial state) **"starts in standby"**
 2. (HvacSimulator > initial state) **"has default temperature"**
@@ -1515,10 +1656,14 @@
 9. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift) **"changes temperature over time when running"**
 10. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift > fan speeds) **"reports fan speeds when running"**
 11. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift > fan speeds) **"reports fan speed values"**
+12. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift > fan speeds > Monitor Temp Mode (0x09)) **"yazılabilir ve okunur — mode-4 server-temp bağımlılığı kaldırılır (H30)"**
+13. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift > fan speeds > Monitor Temp Mode (0x09) > HvacSimulatorAdapter — FC03 holding okuma (doküman)) **"bilgi (0x1000) ve alarm (0x300) blokları holding ile okunur"**
+14. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift > fan speeds > Monitor Temp Mode (0x09) > HvacSimulatorAdapter — FC03 holding okuma (doküman) > HvacSimulator — Faz 1 ekleri (compressor action / server RH)) **"server humidity (0x2003) yaz/oku"**
+15. (HvacSimulator > initial state > remote on/off > cooling mode > heating mode > alarms > reset > temperature drift > fan speeds > Monitor Temp Mode (0x09) > HvacSimulatorAdapter — FC03 holding okuma (doküman) > HvacSimulator — Faz 1 ekleri (compressor action / server RH)) **"kompresör çalıştırma sayacı 0→çalışma geçişinde artar (0x1028)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/imd/imd.test.ts` (10 test)
+### `packages/simulators/src/imd/imd.test.ts` (14 test)
 
 1. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı)) **"izolasyon direnci ~1 MΩ (Ω cinsinden UInt32 BE)"**
 2. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı)) **"Insulation Alarm 0 (OK)"**
@@ -1530,6 +1675,22 @@
 8. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error)) **"setDeviceError(1) → Device Error register'ı kod taşır"**
 9. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error)) **"setDeviceError(0) → temizlenir"**
 10. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error) > okuma sınırları) **"bilinmeyen adres 0 döner"**
+11. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error) > okuma sınırları > ImdAdapter — FC03 holding okuma (doküman D00007)) **"readHoldingRegisters ölçüm değerini döner (FC03 zorunlu)"**
+12. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error) > okuma sınırları > ImdAdapter — FC03 holding okuma (doküman D00007) > ImdSimulator — LGES eşikleri (F2.6): 225 kΩ uyarı / 150 kΩ arıza) **"200 kΩ → yalnız Prewarning; Insulation Alarm 0"**
+13. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error) > okuma sınırları > ImdAdapter — FC03 holding okuma (doküman D00007) > ImdSimulator — LGES eşikleri (F2.6): 225 kΩ uyarı / 150 kΩ arıza) **"100 kΩ (fault) → Insulation Alarm aktif"**
+14. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı) > izolasyon arızası enjeksiyonu (FL-11 senaryosu) > cihaz hatası enjeksiyonu (Device Error) > okuma sınırları > ImdAdapter — FC03 holding okuma (doküman D00007) > ImdSimulator — LGES eşikleri (F2.6): 225 kΩ uyarı / 150 kΩ arıza) **"healthy → temiz (uyarı/arıza 0)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/injection.test.ts` (7 test)
+
+1. (simülatör inject sözleşmesi) **"IMD: fault/healthy/device_error uygular, bilinmeyeni reddeder"**
+2. (simülatör inject sözleşmesi) **"ControlPanelIo: kapı senaryolarını uygular"**
+3. (simülatör inject sözleşmesi) **"DcMeter: overcurrent ölçümü yazar"**
+4. (simülatör inject sözleşmesi) **"HVAC: hot/nominal uygular"**
+5. (simülatör inject sözleşmesi) **"BSC: overheat/diff_temp/fault/nominal uygular"**
+6. (simülatör inject sözleşmesi) **"WattoxPcs: fault/door_open/nominal uygular"**
+7. (simülatör inject sözleşmesi) **"EnergyAnalyzer: aux_loss/nominal uygular"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1569,7 +1730,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/wattox-pcs/wattox-pcs.test.ts` (17 test)
+### `packages/simulators/src/wattox-pcs/wattox-pcs.test.ts` (19 test)
 
 1. (WattoxPcsSimulator) **"ilk değerler: nominal (Stop, 50 Hz, anma güç, şebeke voltajı)"**
 2. (WattoxPcsSimulator) **"start komutu: Stop → Standby; komut register'ı yazılanı tutar"**
@@ -1578,7 +1739,7 @@
 5. (WattoxPcsSimulator) **"sıfır setpoint → Standby (sıfır güç)"**
 6. (WattoxPcsSimulator) **"stop komutu: Stop + setpoint sıfırlanır"**
 7. (WattoxPcsSimulator) **"standby komutu: herhangi bir işletme durumundan Standby"**
-8. (WattoxPcsSimulator) **"fault set → fault durumu + Fault; reset → temiz + Standby"**
+8. (WattoxPcsSimulator) **"fault set → fault durumu + Fault; reset → temiz + Stop"**
 9. (WattoxPcsSimulator) **"alarm word 3 bit9 (islanding) → alarm durumu 1"**
 10. (WattoxPcsSimulator) **"fault word adresleri D01-D10 sıralı okunur"**
 11. (WattoxPcsSimulator) **"E-stop bitleri: local/remote/BMS"**
@@ -1588,6 +1749,8 @@
 15. (WattoxPcsSimulator) **"tick: güç setpoint'e yakınsar (anında uygulama — tick kararlı kalır)"**
 16. (WattoxPcsSimulator) **"BMS varsayılanları: SOC %50.0, pack voltaj 1500.0 V"**
 17. (WattoxPcsSimulator) **"çoklu register okuma (FC 0x03 aralığı)"**
+18. (WattoxPcsSimulator) **"FC03 holding okuma sorgu bloklarını döner (doküman FC03 zorunlu)"**
+19. (WattoxPcsSimulator > WattoxPcsSimulator — PCS12 komut kaynağı (S01)) **"S01=0 (HMI) iken start/setpoint yok sayılır; S01=1 (EMS) sonrası uygulanır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2421,6 +2584,12 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `services/device-service/src/debug-injector.test.ts` (1 test)
+
+1. (DebugInjector) **"start → /health 200, bilinmeyen yol 404, stop idempotent"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `services/device-service/src/device-factory.test.ts` (7 test)
 
 1. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"transport olmayan config varsayılan TCP ile çalışır"**
@@ -2477,6 +2646,16 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `services/device-service/src/heartbeat-writer.test.ts` (5 test)
+
+1. (HeartbeatWriter) **"writeBeat artan sayaç ve telemetri adını yazar"**
+2. (HeartbeatWriter) **"sayaç 255 sonrası 0'a döner (0-255 döngü)"**
+3. (HeartbeatWriter) **"yazım hatası onError'a gider, servisi düşürmez"**
+4. (HeartbeatWriter) **"R2.3: extraTelemetries (40001–40009) aynı sayaçla yazılır"**
+5. (HeartbeatWriter) **"start/stop idempotent — interval periyodik yazar"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `services/device-service/src/telemetry-tagger.test.ts` (5 test)
 
 1. (TelemetryTagger) **"korur elle girilen tag'leri ve device_id ekler"**
@@ -2487,7 +2666,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/telemetry-write-filter.test.ts` (8 test)
+### `services/device-service/src/telemetry-write-filter.test.ts` (11 test)
 
 1. (TelemetryWriteFilter) **"politikasız isim her zaman dahil (always-write)"**
 2. (TelemetryWriteFilter) **"ilk görüş (state yok) dahil edilir"**
@@ -2497,6 +2676,9 @@
 6. (TelemetryWriteFilter) **"sayısal olmayan değer politikalı isimde güvenli tarafta dahil edilir"**
 7. (TelemetryWriteFilter) **"cihazlar izole — biri diğerinin state'ini etkilemez"**
 8. (TelemetryWriteFilter) **"girdi sırası korunur, yalnız gerekenler döner"**
+9. (TelemetryWriteFilter > TelemetryWriteFilter — sınır/edge (Faz D)) **"TTL sınır eşitliği: now - at == maxStaleMs → yazılır"**
+10. (TelemetryWriteFilter > TelemetryWriteFilter — sınır/edge (Faz D)) **"NaN değer güvenli tarafta yazılır (sayısal değil)"**
+11. (TelemetryWriteFilter > TelemetryWriteFilter — sınır/edge (Faz D)) **"yeni filtre örneği state sıfır → ilk görüş yazılır (restart)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2567,11 +2749,11 @@
 
 ### `services/management-service/src/automation-rules.spec.ts` (8 test)
 
-1. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1)) **"V>1500 + debounce 1 sn → CB open + BSC open_contactors (tüm aktif cihazlar) + audit"**
+1. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1)) **"V>1500 + debounce 1 sn → CB open + BSC emergency (tüm aktif cihazlar) + audit"**
 2. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1)) **"Voltage L-N Avg < 180 + debounce 5 sn → şalter AÇ + kontaktör AÇ (tüm aktif cihazlar)"**
-3. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak) **"Max Pack Temp > 50 + debounce 5 dk → tüm HVAC force_cool + tüm BSC stop"**
+3. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak) **"Max Pack Temp > 50 + debounce 5 dk → tüm HVAC force_cool + tüm BSC emergency"**
 4. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis) **"HVAC-1 25.2°C → force_cool job'ı GERÇEK config'ten üretilir"**
-5. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io)) **"Battery Door Open 1 → ışık AÇ + tüm BSC stop"**
+5. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io)) **"Battery Door Open 1 → ışık AÇ + tüm BSC emergency"**
 6. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io)) **"kenar-tetik: kapı kapalıyken KAPATMA kuralı ateşler (ışık söner)"**
 7. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io) > FL-11 — toprak direnci (IMD-1)) **"Insulation Alarm 4 + debounce 2 sn → CB open + kontaktör AÇ (tüm aktif cihazlar)"**
 8. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1) > FL-05 koruma — aşırı sıcak > FL-05 normal — HVAC hysteresis > FL-07 — kapı DI (control-panel-io) > FL-11 — toprak direnci (IMD-1) > fail-safe (K-A4)) **"FL-06/09/12 senaryosu kural üretmez — job listesi boş"**
@@ -2599,14 +2781,14 @@
 6. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis)) **"tms_heat_on_h1: ≤ 17 → force_heat"**
 7. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis)) **"tms_heat_off_h1: ≥ 20 → on"**
 8. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis)) **"HVAC-1..8 için dörtlü tamam (32 kural)"**
-9. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_overheat_protect: 3 kademeli debounce + HVAC force + BSC stop"**
-10. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_overcold_protect: 3 kademeli + force_heat + BSC stop"**
-11. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_humidity_alarm: Return Humidity ≥ 85 → BSC stop + log + notify"**
-12. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_temp_diff_protect: per-rack R1..R8 (≥10 rack / ≥5 pack) → BSC stop"**
+9. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_overheat_protect: 3 kademeli debounce + HVAC force + BSC emergency"**
+10. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_overcold_protect: 3 kademeli + force_heat + BSC emergency"**
+11. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_humidity_alarm: Return Humidity ≥ 85 → BSC emergency + log + notify"**
+12. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_temp_diff_protect: per-rack R1..R8 (≥10 rack / ≥5 pack) → BSC emergency"**
 13. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340)) **"eşik 180 V + debounce 5 sn; CB open ×2 + BSC open_contactors ×2"**
-14. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI)) **"batarya kapısı AÇIK → ışık + BSC stop; KAPALI → ışık söndür"**
+14. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI)) **"batarya kapısı AÇIK → ışık + BSC emergency; KAPALI → ışık söndür"**
 15. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI)) **"panel kapısı kuralları aynı desen (panel_light_on/off)"**
-16. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI) > FL-08 DC kısa devre (DC-METER-1)) **"V>1500 / I>1680 / P>1784 (debounce 1 sn) → şalter AÇ + kontaktör AÇ"**
+16. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI) > FL-08 DC kısa devre (DC-METER-1)) **"V>1500 / I>1680 / P>1784 (debounce 1 sn) → şalter AÇ + kontaktör Emergency"**
 17. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI) > FL-08 DC kısa devre (DC-METER-1) > FL-11 toprak direnci (IMD-1 — K4 gerçek map)) **"Insulation Alarm / Device Error aktif (≠0, debounce 2 sn) → koruma"**
 18. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI) > FL-08 DC kısa devre (DC-METER-1) > FL-11 toprak direnci (IMD-1 — K4 gerçek map) > kenar-tetik davranışı (RuleEvaluator + gerçek kurallar)) **"FL-08: eşik altı ATEŞLEMEZ; eşik üstü + debounce → tek ateşleme"**
 19. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI) > FL-08 DC kısa devre (DC-METER-1) > FL-11 toprak direnci (IMD-1 — K4 gerçek map) > kenar-tetik davranışı (RuleEvaluator + gerçek kurallar)) **"FL-05 normal: HVAC-1 25.1°C → tms_cool_on_h1 tek ateşleme"**
@@ -2698,7 +2880,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/rule-evaluator.test.ts` (17 test)
+### `services/management-service/src/rule-evaluator.test.ts` (18 test)
 
 1. (RuleEvaluator) **"yükselen kenarda bir kez döner; aktifken tekrarlamaz"**
 2. (RuleEvaluator) **"düşüş sonrası yeniden yükseliş yeni kenardır (cooldown yoksa ateşler)"**
@@ -2717,6 +2899,18 @@
 15. (RuleEvaluator) **"aynı snapshot ile ikinci çağrı boş döner (tekrarlı tick güvenliği)"**
 16. (RuleEvaluator) **"bağımsız kurallar aynı cycle'da birlikte döner"**
 17. (RuleEvaluator) **"gte/lt/lte/neq operatorleri"**
+18. (RuleEvaluator > RuleEvaluator — A2 abs operatörleri) **"abs_gt/abs_gte işaretli değerde büyüklük eşiğini uygular"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/management-service/src/v2-rules.test.ts` (6 test)
+
+1. (v2/dev container kuralları (F2.6)) **"fail-fast yüklenir (47 kural)"**
+2. (v2/dev container kuralları (F2.6)) **"tms_overheat_protect: OTW 49 (5 s) / OTF1 58 (5 s)"**
+3. (v2/dev container kuralları (F2.6)) **"tms_overcold_protect: UTW 0 / UTF1 −10"**
+4. (v2/dev container kuralları (F2.6)) **"tms_humidity_alarm: 75 %RH"**
+5. (v2/dev container kuralları (F2.6)) **"bsc_over_soc / bsc_over_offline_rack: charge limit 0"**
+6. (v2/dev container kuralları (F2.6)) **"fire_emergency / fss_first_stage: 8 HVAC force_off + 2 BSC emergency"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

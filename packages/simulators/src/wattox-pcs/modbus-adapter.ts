@@ -8,13 +8,13 @@ export class WattoxPcsAdapter implements IModbusSimulatorAdapter {
   constructor(private readonly simulator: WattoxPcsSimulator) {}
 
   async readHoldingRegister(address: number): Promise<number> {
-    return this.simulator.readSetting(address);
+    return this.simulator.readHolding(address);
   }
 
   async readHoldingRegisters(address: number, count: number): Promise<number[]> {
     const values: number[] = [];
     for (let i = 0; i < count; i++) {
-      values.push(this.simulator.readSetting(address + i));
+      values.push(this.simulator.readHolding(address + i));
     }
     return values;
   }

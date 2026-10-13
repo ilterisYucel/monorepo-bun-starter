@@ -31,7 +31,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Nominal Energy",
@@ -47,7 +49,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "System SOC",
@@ -79,7 +83,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Available Charge Energy",
@@ -95,7 +101,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Available Discharge Energy",
@@ -111,7 +119,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Available Charge Power",
@@ -335,7 +345,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Daily Discharged Energy",
@@ -351,7 +363,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Monthly Charged Energy",
@@ -367,7 +381,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Monthly Discharged Energy",
@@ -383,7 +399,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Annual Charged Energy",
@@ -399,7 +417,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Annual Discharged Energy",
@@ -415,7 +435,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Total Charged Energy",
@@ -431,7 +453,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Total Discharged Energy",
@@ -447,7 +471,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "PCS Count",
@@ -463,7 +489,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Running PCS Count",
@@ -479,7 +507,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Warning PCS Count",
@@ -495,7 +525,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Fault PCS Count",
@@ -511,7 +543,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
     },
     {
       "name": "Status Word 1",
@@ -911,7 +945,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 10000
     },
     {
       "name": "AC Reactive Power Setpoint",
@@ -927,7 +963,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 10000
     },
     {
       "name": "Power Factor Setpoint",
@@ -943,7 +981,9 @@
       "byteOrder": "BIG_ENDIAN",
       "tags": {
         "component": "emu"
-      }
+      },
+      "deadband": "auto",
+      "maxStaleMs": 10000
     },
     {
       "name": "Active Scheduling Mode",

@@ -3,33 +3,37 @@
 # bağlantı durumunu doğrular (elle curl uğraşını bitirir).
 #
 # Kullanım:
-#   tools/register-container.sh [--env <dosya>] [--url <base>] [--container <id>] [--user <ad>]
+#   tools/register-container.sh [--env <field-env>] [--container-env <dosya>] [--url <base>] [--container <id>] [--user <ad>]
 #
 # Örnek:
-#   tools/register-container.sh --env deployment/aws/demo-edge/.env --url http://localhost:88
+#   tools/register-container.sh --env deployment/v2/aws/field/.env \
+#     --container-env deployment/v2/aws/container/.env --url http://localhost:88
 #
-# Girdiler .env'den okunur: FIELD_ID, CONTAINER_TOKEN, SEED_ADMIN_PASSWORD.
+# Girdiler: FIELD_ID + SEED_ADMIN_PASSWORD --env (field) dosyasından,
+# CONTAINER_TOKEN --container-env (container) dosyasından okunur.
 # (Sırları komut satırına yazmaya gerek yok.)
 set -euo pipefail
 
-ENV_FILE="deployment/aws/demo-edge/.env"
+ENV_FILE="deployment/v2/aws/field/.env"
+CONTAINER_ENV_FILE="deployment/v2/aws/container/.env"
 BASE_URL="http://localhost:88"
 CONTAINER_ID="container-1"
 USER_NAME="admin"
 WAIT_SECS=30
 
 usage() {
-  sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --env)       ENV_FILE="$2"; shift 2 ;;
-    --url)       BASE_URL="$2"; shift 2 ;;
-    --container) CONTAINER_ID="$2"; shift 2 ;;
-    --user)      USER_NAME="$2"; shift 2 ;;
-    --wait)      WAIT_SECS="$2"; shift 2 ;;
-    -h|--help)   usage; exit 0 ;;
+    --env)           ENV_FILE="$2"; shift 2 ;;
+    --container-env) CONTAINER_ENV_FILE="$2"; shift 2 ;;
+    --url)           BASE_URL="$2"; shift 2 ;;
+    --container)     CONTAINER_ID="$2"; shift 2 ;;
+    --user)          USER_NAME="$2"; shift 2 ;;
+    --wait)          WAIT_SECS="$2"; shift 2 ;;
+    -h|--help)       usage; exit 0 ;;
     *) echo "Bilinmeyen argüman: $1" >&2; usage; exit 2 ;;
   esac
 done
@@ -56,9 +60,10 @@ printf '│ Konteyner  : %s\n' "$CONTAINER_ID"
 printf '%s└───────────────────────────────────────────────────────────%s\n' "$B" "$N"
 
 # ── 1) ortam ────────────────────────────────────────────────────────────────
-if [ ! -f "$ENV_FILE" ]; then err "Env dosyası yok: $ENV_FILE"; exit 1; fi
+if [ ! -f "$ENV_FILE" ]; then err "Field env dosyası yok: $ENV_FILE"; exit 1; fi
+if [ ! -f "$CONTAINER_ENV_FILE" ]; then err "Container env dosyası yok: $CONTAINER_ENV_FILE"; exit 1; fi
 FIELD_ID="$(read_env FIELD_ID)"
-CONTAINER_TOKEN="$(read_env CONTAINER_TOKEN)"
+CONTAINER_TOKEN="$(grep -E '^CONTAINER_TOKEN=' "$CONTAINER_ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2- | sed 's/[[:space:]]*$//')"
 ADMIN_PW="$(read_env SEED_ADMIN_PASSWORD)"
 
 step 1/4 "Ortam okunuyor"

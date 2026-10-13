@@ -30,7 +30,7 @@ kapsamı dışındadır.
 
 | Katman | Kapsam |
 |:-------|:-------|
-| **Dahil** | Yeni `apps/demo-field` uygulaması; `packages/ui/src/nova/` bileşenleri (SVG saha yerleşimi + tek hat, KPI/uyarı/detay/OG hücre, manevra sihirbazı, trend); ışık renk token'ları + demo ikonları; **ayrı demo manevra/operasyon katalog dosyaları** + eklemeli demo kurallar; **demo MV istasyon simülatörü + config**; 2. PCS zinciri; **manevra entegrasyon testleri**; **AWS demo ürün dizini** (`deployment/aws/demo-edge`, konteyner ön yüzü olmadan) |
+| **Dahil** | Yeni `apps/demo-field` uygulaması; `packages/ui/src/nova/` bileşenleri (SVG saha yerleşimi + tek hat, KPI/uyarı/detay/OG hücre, manevra sihirbazı, trend); ışık renk token'ları + demo ikonları; **ayrı demo manevra/operasyon katalog dosyaları** + eklemeli demo kurallar; **demo MV istasyon simülatörü + config**; 2. PCS zinciri; **manevra entegrasyon testleri**; **AWS demo ürün dizini** (`deployment/v2/aws`, konteyner ön yüzü olmadan) |
 | **Hariç** | Mevcut `apps/field` ve kök servislerin (web/device/data/management/integration) mevcut davranışlarının değiştirilmesi; gerçek MV donanımı/modeli; tüm field app'in light tema dönüşümü; canlı WS telemetri; `dTdt10` türetimi |
 
 ## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
@@ -52,15 +52,15 @@ kapsamı dışındadır.
 | K13 | **Manevralar entegrasyon testleriyle kanıtlanır** | Gerçek stack'te yükleme→execute→run tamamlandı→telemetri değişti; `bun run test:demo-integration` |
 | K16 | **Zamanlı durdurma (saniye) uzak adıma iletilir** (additive) | `options.timer` (sn) hem yerel komut adımlarına hem uzak manevraya (`TunnelManeuverChannel` gövdesi `{params, timer}`) iletilir; timer yokken gövde yalnız `{params}` (mevcut davranış birebir) |
 | K15 | **Şarj/deşarj çapraz katman** (gerçek `field_charge` deseni) | `charge`/`discharge` birer **operasyon**: uzak `bsc_charge`/`bsc_discharge` + yerel `pcs_charge`/`pcs_discharge`. Kullanıcı `powerKw` iki katmana da yayılır (PCS ve BSC setpoint). BSC'ye komut EKLEMELİ config ile eklenir |
-| K14 | **AWS demo = ayrı ürün dizini** `deployment/aws/demo-edge`; mevcut `deployment/aws/edge` değişmez | 1 demo-field + 1 container; container **ön yüzü (container-web) YOK**; bağlantı gerçek senaryodaki `FIELD_WS_URL` uplink'iyle; `PCS_BMS_TARGET_HOST=field-device-service` |
+| K14 | **AWS demo = ayrı ürün dizini** `deployment/v2/aws`; mevcut `deployment/v1/aws` değişmez | 1 demo-field + 1 container; container **ön yüzü (container-web) YOK**; bağlantı gerçek senaryodaki `FIELD_WS_URL` uplink'iyle; `PCS_BMS_TARGET_HOST=field-device-service` |
 
 ## 3. Mevcut Durum / Kök Nedenler
 
 | Kod | Bulgu | Kanıt |
 |:----|:------|:------|
 | B1 | Backend'de gerçek MV istasyon/fider/RMU/POI veri modeli yok | FIELD-MANEVRA §6 boşlukları G-1/G-3/G-4 |
-| B2 | Field stack'te yalnızca 1 PCS config'i var; 2. PCS zinciri eksik | `deployment/dev/field/device-configs/pcs-1.json` |
-| B3 | BSC-2'nin PCS connector'ı tanımlı değil; `connector.sim.target` tipi var ama uygulanmıyor | `deployment/dev/container/device-configs/bsc-1.json#connector`, `packages/simulators/src/host.ts#applyBmsTarget` |
+| B2 | Field stack'te yalnızca 1 PCS config'i var; 2. PCS zinciri eksik | `deployment/v1/dev/field/device-configs/pcs-1.json` |
+| B3 | BSC-2'nin PCS connector'ı tanımlı değil; `connector.sim.target` tipi var ama uygulanmıyor | `deployment/v1/dev/container/device-configs/bsc-1.json#connector`, `packages/simulators/src/host.ts#applyBmsTarget` |
 | B4 | Field app koyu-özel; ışık modu ve tema mekanizması yok | `packages/ui/src/colors/tokens.ts`; `apps/field/src/index.css` |
 | B5 | Manevra yükleyici yalnız sabit `maneuvers.json`/`operations.json` okur; demo için ayrı dosya desteği yok | `services/web-service/src/infrastructure/commands/load-maneuver-records.ts#loadTierManeuverRecords` |
 | B6 | Repo'da entegrasyon test katmanı ve `test:integration` script'i yok | root `package.json`; `TESTING.md` |
@@ -579,7 +579,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 | AK-8.4 | mevcut davranış korunur | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-34: `deployment/dev/field/device-configs/pcs-2.json` + compose `15503:15503`
+- [ ] T-34: `deployment/v1/dev/field/device-configs/pcs-2.json` + compose `15503:15503`
 - [ ] T-35: BSC-2 connector bloğu + `mappings/bsc-2-pcs-mapping.json`
 - [ ] T-36: `host.ts` `connector.sim.target` uygulaması + regresyon testi
 
@@ -592,8 +592,8 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `deployment/dev/field/device-configs/pcs-2.json` | Yeni PCS config |
-| `deployment/dev/container/device-configs/bsc-2.json` #connector | Connector tanımı |
+| `deployment/v1/dev/field/device-configs/pcs-2.json` | Yeni PCS config |
+| `deployment/v1/dev/container/device-configs/bsc-2.json` #connector | Connector tanımı |
 | `packages/simulators/src/host.ts` #applyBmsTarget | Connector hedef port |
 
 ### 6.9 UC-9 — Demo MV istasyon simülatörü
@@ -635,7 +635,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 **T Görev Listesi:**
 - [ ] T-37: `demo-mv-station` simülatör tipi (builder + register map + interlock)
 - [ ] T-38: MV simülatör unit testleri (interlock + pozisyon)
-- [ ] T-39: `deployment/dev/field/device-configs/demo-mv-1.json` (telemetri + commands)
+- [ ] T-39: `deployment/v1/dev/field/device-configs/demo-mv-1.json` (telemetri + commands)
 
 **Edge Cases:**
 | Durum | Davranış |
@@ -648,7 +648,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 |:------|:----------------|
 | `packages/simulators/src/demo-mv-station/simulator.ts` #DemoMvStationSimulator | Yeni simülatör |
 | `packages/simulators/src/host.ts` #buildSimulators | Builder kaydı (eklemeli) |
-| `deployment/dev/field/device-configs/demo-mv-1.json` | Demo MV config |
+| `deployment/v1/dev/field/device-configs/demo-mv-1.json` | Demo MV config |
 
 ### 6.10 UC-10 — Demo manevra kataloğu, kurallar ve entegrasyon testleri
 
@@ -713,15 +713,15 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `deployment/dev/field/maneuvers/demo-operations.json` | Demo operasyon kataloğu (çapraz katman: BSC uzak + PCS yerel) |
-| `deployment/dev/container/maneuvers/demo-maneuvers.json` | Konteyner demo manevraları (bsc_charge/bsc_discharge) |
-| `deployment/dev/container/device-configs/bsc-{1,2}.json` | EKLEMELİ: Charge/Discharge Power Setpoint telemetri + `set_*_power`/`charge`/`discharge` komutları |
+| `deployment/v1/dev/field/maneuvers/demo-operations.json` | Demo operasyon kataloğu (çapraz katman: BSC uzak + PCS yerel) |
+| `deployment/v1/dev/container/maneuvers/demo-maneuvers.json` | Konteyner demo manevraları (bsc_charge/bsc_discharge) |
+| `deployment/v1/dev/container/device-configs/bsc-{1,2}.json` | EKLEMELİ: Charge/Discharge Power Setpoint telemetri + `set_*_power`/`charge`/`discharge` komutları |
 | `packages/platform/commands/src/operation-executor-contracts.ts#IRemoteCommandChannel` + `operation-executor.ts#runRemoteStep` | EKLEMELİ: uzak adıma opsiyonel `timer` iletimi |
 | `services/web-service/src/infrastructure/container-session/tunnel-maneuver-channel.ts#execute` | EKLEMELİ: gövdeye `timer` (yokken yalnız `{params}`) |
 | `packages/ui/src/nova/DemoManeuverWizard.tsx` | Zamanlı durdurma birimi **saniye** |
-| `deployment/dev/demo-edge/docker-compose.yml` | `TUNNEL_API_UPSTREAM` (konteyner tünel HTTP köprüsü — uzak komut/stream) |
+| `deployment/v2/dev/docker-compose.yml` | `TUNNEL_API_UPSTREAM` (konteyner tünel HTTP köprüsü — uzak komut/stream) |
 | `services/web-service/src/infrastructure/commands/load-maneuver-records.ts` #loadTierManeuverRecords | Eklemeli demo dosya desteği |
-| `deployment/dev/field/rules/rules.json` | Eklemeli demo kurallar |
+| `deployment/v1/dev/field/rules/rules.json` | Eklemeli demo kurallar |
 | `apps/demo-field/integration/demo-maneuver.integration.test.ts` #demoManeuverIntegration | Entegrasyon testleri |
 
 ### 6.11 UC-11 — AWS demo deployment (product layer)
@@ -729,18 +729,18 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 **Status:** ✅ Approved
 
 **Kapsam:**
-- dahil: yeni `deployment/aws/demo-edge/` ürün dizini (compose + nginx conf + `.env.example`), demo-field Dockerfile, prod config kopyaları (container ön yüzü olmadan)
-- hariç: mevcut `deployment/aws/edge` değişikliği; ALB/TLS/ACM; boss uplink; gerçek donanım
+- dahil: yeni `deployment/v2/aws/` ürün dizini (compose + nginx conf + `.env.example`), demo-field Dockerfile, prod config kopyaları (container ön yüzü olmadan)
+- hariç: mevcut `deployment/v1/aws` değişikliği; ALB/TLS/ACM; boss uplink; gerçek donanım
 
 **Akış:**
-1. `deployment/aws/demo-edge/` compose'u 1 container (web-service var, container-web YOK) + 1 field (demo-field SPA dahil) kaldırır.
+1. `deployment/v2/aws/` compose'u 1 container (web-service var, container-web YOK) + 1 field (demo-field SPA dahil) kaldırır.
 2. Container web-service, field web-service'e `FIELD_WS_URL` ile bağlanır (gerçek senaryo).
 3. Field stack demo config'lerini (pcs-2, demo-mv-1, demo katalog, demo kurallar) prod dizinlerinden yükler.
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-11.1 | Sistem, demo için ayrı `deployment/aws/demo-edge/` ürün dizini sağlamalı; mevcut `deployment/aws/edge` değişmemelidir. | AK-11.1 |
+| FR-11.1 | Sistem, demo için ayrı `deployment/v2/aws/` ürün dizini sağlamalı; mevcut `deployment/v1/aws` değişmemelidir. | AK-11.1 |
 | FR-11.2 | Sistem, container tarafını `container-web` ön yüzü OLMADAN çalıştırmalı ve field'a `FIELD_WS_URL` uplink'iyle bağlamalıdır. | AK-11.2 |
 | FR-11.3 | Sistem, field tarafında demo-field SPA'yı nginx ile servis etmeli; `VITE_FIELD_ID` build arg guard'ı uygulanmalıdır. | AK-11.3 |
 | FR-11.4 | Sistem, demo config'lerini prod dizinlerine koymalıdır: bsc-2 connector + mapping, pcs-2, demo-mv-1, demo katalog dosyaları, demo kurallar. | AK-11.4 |
@@ -748,7 +748,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 
 **Kabul Senaryoları (GWT):**
 
-1. **AK-11.1 — GIVEN** `deployment/aws/demo-edge` **WHEN** dizin incelenir **THEN** yeni compose/nginx/env dosyaları vardır ve `deployment/aws/edge` diff'sizdir
+1. **AK-11.1 — GIVEN** `deployment/v2/aws` **WHEN** dizin incelenir **THEN** yeni compose/nginx/env dosyaları vardır ve `deployment/v1/aws` diff'sizdir
 2. **AK-11.2 — GIVEN** demo-edge compose **WHEN** servisler listelenir **THEN** `container-web` servisi yoktur ve container web-service `FIELD_WS_URL` taşır
 3. **AK-11.3 — GIVEN** demo-field Dockerfile **WHEN** `VITE_FIELD_ID` boş build edilir **THEN** build fail-fast durur
 4. **AK-11.4 — GIVEN** prod config dizinleri **WHEN** incelenir **THEN** bsc-2 connector/mapping, pcs-2, demo-mv-1, demo katalog ve demo kurallar mevcuttur
@@ -764,7 +764,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 | AK-11.5 | env örneği tam | kod inceleme | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-45: `deployment/aws/demo-edge/docker-compose.yml` + nginx conf
+- [ ] T-45: `deployment/v2/aws/docker-compose.yml` + nginx conf
 - [ ] T-46: `apps/demo-field/deployment/Dockerfile` (`VITE_FIELD_ID` guard)
 - [ ] T-47: prod demo config kopyaları (bsc-2 connector/mapping, pcs-2, demo-mv-1, demo katalog, demo kurallar)
 - [ ] T-48: `.env.example` + deploy dokümanı
@@ -779,9 +779,9 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `deployment/aws/demo-edge/docker-compose.yml` | Demo ürün compose'u |
+| `deployment/v2/aws/docker-compose.yml` | Demo ürün compose'u |
 | `apps/demo-field/deployment/Dockerfile` | Demo SPA imajı |
-| `deployment/aws/demo-edge/.env.example` | Env şablonu |
+| `deployment/v2/aws/.env.example` | Env şablonu |
 
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
@@ -808,7 +808,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 | SC-3 | `features/demo-data/**` saf fonksiyonları deterministiktir | golden fixture testleri |
 | SC-4 | Mevcut `packages/ui` koyu token'ları ve mevcut simülatör/servis testleri yeşil kalır | ilgili test komutları |
 | SC-5 | Demo manevralar gerçek stack'te uçtan uca çalışır | `bun run test:demo-integration` yeşil |
-| SC-6 | Mevcut manevra/kural katalogları değişmemiştir | `deployment/dev/field/maneuvers/maneuvers.json` diff yok |
+| SC-6 | Mevcut manevra/kural katalogları değişmemiştir | `deployment/v1/dev/field/maneuvers/maneuvers.json` diff yok |
 
 ## 9. Aşama Eşlemesi (iş akışı)
 
@@ -884,7 +884,7 @@ management-svc:   field rules.json + demo kurallar (SOC≥97 → demo_rest)  [ek
 | T-42 | field `rules.json` demo kurallar | UC-10 | IMPL |
 | T-43 | entegrasyon test paketi | UC-10 | TEST |
 | T-44 | root `test:demo-integration` script'i | UC-10 | IMPL |
-| T-45 | `deployment/aws/demo-edge/docker-compose.yml` + nginx conf | UC-11 | IMPL |
+| T-45 | `deployment/v2/aws/docker-compose.yml` + nginx conf | UC-11 | IMPL |
 | T-46 | `apps/demo-field/deployment/Dockerfile` (`VITE_FIELD_ID` guard) | UC-11 | IMPL |
 | T-47 | prod demo config kopyaları (bsc-2, pcs-2, demo-mv-1, katalog, kurallar) | UC-11 | IMPL |
 | T-48 | `.env.example` + deploy dokümanı | UC-11 | IMPL |
