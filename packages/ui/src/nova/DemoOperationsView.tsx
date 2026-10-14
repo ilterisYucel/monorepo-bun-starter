@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { OperationRunRecord } from "@gd-monorepo/shared-types";
 import type { NovaStationState, NovaTopology } from "./mimic-types";
 import { POS_TEXT } from "./nova-mimic";
@@ -163,6 +163,20 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
   const [calTime, setCalTime] = useState("16:00");
   const [unit, setUnit] = useState(units[0]?.n ?? 1);
   const [confirm, setConfirm] = useState(false);
+
+  // Units can arrive after mount (telemetry gecikmesi): mount'ta boşken scope
+  // boş kalır ve Send devre dışı kalırdı. Units geldiğinde (ve kullanıcı seçim
+  // yapmadıysa) varsayılan kapsamı ve birimi senkronla — MEVCUT seçimi ezmez.
+  useEffect(() => {
+    setScope((prev) =>
+      prev.size === 0 && units.length > 0
+        ? new Set(units.map((u) => u.n))
+        : prev,
+    );
+    setUnit((prev) =>
+      units.some((u) => u.n === prev) ? prev : (units[0]?.n ?? prev),
+    );
+  }, [units]);
 
   const def = defs.find((d) => d.key === op) ?? defs[0];
   const L = topology.limits;

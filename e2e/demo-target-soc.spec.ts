@@ -77,6 +77,9 @@ async function uiLogin(page: Page): Promise<void> {
   await page.getByTestId("login-username").fill(ADMIN);
   await page.getByTestId("login-password").fill(PASSWORD);
   await page.getByTestId("login-submit").click();
+  await expect(page.getByTestId("demo-logo")).toBeVisible();
+  // UC-11: login sonrası portföy sayfasına inilir; konsola geç.
+  await page.goto(`${FIELD_UI}/field/${FIELD_ID}`);
   await expect(page.getByRole("tab", { name: "Operations" })).toBeVisible({ timeout: 15000 });
 }
 

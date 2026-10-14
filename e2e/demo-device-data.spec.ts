@@ -104,6 +104,8 @@ test("Devices ekranı cihaz ağacını render eder (auth sonrası)", async ({ pa
   await page.getByTestId("login-password").fill(PASSWORD);
   await page.getByTestId("login-submit").click();
   await expect(page.getByTestId("demo-logo")).toBeVisible();
+  // UC-11: login sonrası portföy sayfasına inilir; konsola geç.
+  await page.goto(`${FIELD_UI}/field/${FIELD_ID}`);
   await page.getByRole("tab", { name: "Devices" }).click();
   await expect(page.getByTestId("demo-logo")).toBeVisible();
   // Cihaz ağacı ve birim sekmeleri render edilmeli.

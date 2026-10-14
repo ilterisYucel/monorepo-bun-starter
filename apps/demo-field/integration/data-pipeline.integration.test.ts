@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { execFileSync } from "node:child_process";
 import {
   FIELD_URL,
   CONTAINER_URL,
@@ -15,7 +14,9 @@ import {
 /**
  * Veri hattı entegrasyonu (v2/dev, GERÇEK veri) — device-service yazma
  * mekanizması (`TelemetryWriteFilter`: deadband + maxStaleMs TTL) → WRITE_TELEMETRY
- * → data-service → TimescaleDB. Timescale satırları psql ile doğrulanır.
+ * → data-service → TimescaleDB. Timescale satırları **web-API** ile doğrulanır
+ * (`GET /api/data/:deviceId/range` ve `/latest`) — `docker exec`/`psql`
+ * bağımlılığı YOKTUR (stack hangi daemon'da olursa olsun HTTP yeterlidir).
  *
  * C1 dedup · C2 TTL üretimi · C3 latest pencere · C4 downsampled · C5 fire-and-forget · C6 satır bütünlüğü
  */
@@ -23,22 +24,23 @@ import {
 let fieldToken = "";
 let containerToken = "";
 
-const CONTAINER_DB = "demo-container-timescaledb";
-
-function psql(sql: string): string {
-  return execFileSync(
-    "docker",
-    ["exec", CONTAINER_DB, "psql", "-U", "postgres", "-d", "battery", "-t", "-A", "-c", sql],
-    { encoding: "utf-8" },
-  ).trim();
-}
-
-function countRows(device: string, name: string, seconds: number): number {
-  return Number(
-    psql(
-      `SELECT count(*) FROM ${device} WHERE name='${name}' AND timestamp > now() - interval '${seconds} seconds'`,
-    ),
-  );
+/**
+ * Bir cihaz/isim için son N saniyedeki RAW Timescale satır sayısı.
+ * `/range` ham satır döndürür (deadband/TTL ile yazılan gerçek satırlar);
+ * `limit` sayım için yeterince yüksektir.
+ */
+async function countRows(deviceId: string, name: string, seconds: number): Promise<number> {
+  const to = new Date();
+  const from = new Date(to.getTime() - seconds * 1000);
+  const query =
+    `/api/data/${deviceId}/range` +
+    `?from=${encodeURIComponent(from.toISOString())}` +
+    `&to=${encodeURIComponent(to.toISOString())}` +
+    `&names=${encodeURIComponent(name)}&limit=1000`;
+  const { status, body } = await api(CONTAINER_URL, containerToken, query);
+  if (status !== 200) return 0;
+  const telemetries = (body as { telemetries?: unknown[] }).telemetries ?? [];
+  return telemetries.length;
 }
 
 async function waitFor(fn: () => Promise<boolean> | boolean, timeoutMs: number, intervalMs = 5000): Promise<boolean> {
@@ -61,12 +63,12 @@ beforeAll(async () => {
 });
 
 describe("C — yazma hattı (gerçek Timescale verisi)", () => {
-  it("C1 dedup: sabit telemetri (BSC SOH) her poll'da yazılmaz (≤2 satır/30 sn)", () => {
-    expect(countRows("device_bsc_1", "BSC SOH", 30)).toBeLessThanOrEqual(2);
+  it("C1 dedup: sabit telemetri (BSC SOH) her poll'da yazılmaz (≤2 satır/30 sn)", async () => {
+    expect(await countRows("BSC-1", "BSC SOH", 30)).toBeLessThanOrEqual(2);
   });
 
   it("C2 TTL: sabit BSC SOH maxStaleMs sonrası yine üretilir (≥2 satır/70 sn)", async () => {
-    const ok = await waitFor(() => countRows("device_bsc_1", "BSC SOH", 70) >= 2, 100_000, 5_000);
+    const ok = await waitFor(() => countRows("BSC-1", "BSC SOH", 70).then((n) => n >= 2), 100_000, 5_000);
     expect(ok).toBe(true);
   }, 120_000);
 
@@ -105,12 +107,19 @@ describe("C — yazma hattı (gerçek Timescale verisi)", () => {
     expect(p95).toBeLessThan(500);
   }, 60_000);
 
-  it("C6 satır bütünlüğü: canonical tag + unit Timescale satırında", () => {
-    const row = psql(
-      "SELECT name || '|' || unit || '|' || tags FROM device_bsc_1 WHERE name='BSC SOC' ORDER BY timestamp DESC LIMIT 1",
+  it("C6 satır bütünlüğü: canonical tag + unit Timescale satırında", async () => {
+    const { status, body } = await api(
+      CONTAINER_URL,
+      containerToken,
+      `/api/data/BSC-1/latest?limit=1&name=${encodeURIComponent("BSC SOC")}`,
     );
-    expect(row).toContain("BSC SOC");
-    expect(row).toContain("canonical");
-    expect(row).toContain("soc");
+    expect(status).toBe(200);
+    const row = (
+      (body as { telemetries?: Array<{ name: string; unit: string; tags?: Record<string, string> }> })
+        .telemetries ?? []
+    )[0];
+    expect(row?.name).toBe("BSC SOC");
+    expect(row?.unit).toBe("%");
+    expect(row?.tags?.canonical).toBe("soc");
   });
 });

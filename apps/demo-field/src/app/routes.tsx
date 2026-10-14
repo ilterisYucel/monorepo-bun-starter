@@ -9,11 +9,14 @@ import { DemoFaultsPage } from "../pages/DemoFaultsPage";
 import { DemoMarketPage } from "../pages/DemoMarketPage";
 import { DemoManeuverPage } from "../pages/DemoManeuverPage";
 import { DemoAdminPage } from "../pages/DemoAdminPage";
+import { DemoProjectsPage } from "../pages/DemoProjectsPage";
 
 /**
  * Demo-field rotaları — proje sekmeleri ortak `DemoProjectLayout` (pinfo → KPI
  * → ready → trendler → görünüm → log) altında; iki eş: standalone
  * `/field/:fieldId/*` ve boss tüneli `/fields/:fieldId/ui/*` (SPEC K-4/K-5).
+ * UC-11: login sonrası portföy sayfası `/projects` (tünelde
+ * `/fields/:fieldId/ui/projects`); `/` → `/projects`.
  * Eski yollar (`cihazlar`, `manevra`) yeni rota adlarına yönlendirilir.
  */
 
@@ -35,8 +38,11 @@ export const routes: RouteObject[] = [
     path: "/",
     element: <DemoShell />,
     children: [
+      { index: true, element: <Navigate to="/projects" replace /> },
+      { path: "projects", element: <DemoProjectsPage /> },
       { path: "field/:fieldId", element: <DemoProjectLayout />, children: projectChildren },
       { path: "fields/:fieldId/ui", element: <DemoProjectLayout />, children: projectChildren },
+      { path: "fields/:fieldId/ui/projects", element: <DemoProjectsPage /> },
     ],
   },
 ];

@@ -82,4 +82,17 @@ describe("DemoOperationsView render (UC-5)", () => {
     expect(screen.getByRole("button", { name: "P/Q" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "PF" })).toBeTruthy();
   });
+
+  it("units mount'tan sonra gelirse varsayılan kapsam senkronlanır (Send etkin)", () => {
+    const { rerender } = render(<DemoOperationsView {...base} units={[]} />);
+    expect((screen.getByTestId("ops-send") as HTMLButtonElement).disabled).toBe(true);
+    rerender(
+      <DemoOperationsView
+        {...base}
+        units={[{ n: 1, soc: 50, available: true, note: "" }]}
+      />,
+    );
+    expect((screen.getByTestId("ops-send") as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getAllByText(/BESS#1/).length).toBeGreaterThan(0);
+  });
 });

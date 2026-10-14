@@ -17,7 +17,7 @@ import logoDark from "../assets/logo-dark.png";
 interface ShellTabDef {
   to: string;
   label: string;
-  match: (p: string) => boolean;
+  match: () => boolean;
 }
 
 export const DemoShell: React.FC = () => {
@@ -40,8 +40,11 @@ export const DemoShell: React.FC = () => {
   }
 
   const base = isTunnelMode() ? `/fields/${fieldId}/ui` : `/field/${fieldId}`;
+  const projectsPath = isTunnelMode() ? `${base}/projects` : "/projects";
   const endsWith = (suffix: string) => location.pathname.endsWith(suffix);
+  const isProjects = endsWith("/projects");
   const isSite =
+    !isProjects &&
     !endsWith("/devices") &&
     !endsWith("/operations") &&
     !endsWith("/market") &&
@@ -83,24 +86,38 @@ export const DemoShell: React.FC = () => {
           )}
         </span>
         <nav className="crumbs" aria-label="Breadcrumb">
-          <span style={{ color: "var(--nm-muted)" }}>Projects</span>
-          <span>/</span>
-          <b>ÜNSAL DGES</b>
+          {isProjects ? (
+            <b>Projects</b>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="link"
+                onClick={() => navigate(projectsPath)}
+              >
+                Projects
+              </button>
+              <span>/</span>
+              <b>ÜNSAL DGES</b>
+            </>
+          )}
         </nav>
-        <nav className="tabs" role="tablist" aria-label="Project screens">
-          {tabs.map((t) => (
-            <button
-              key={t.label}
-              type="button"
-              role="tab"
-              aria-selected={t.match()}
-              className={t.match() ? "active" : ""}
-              onClick={() => navigate(t.to)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
+        {!isProjects ? (
+          <nav className="tabs" role="tablist" aria-label="Project screens">
+            {tabs.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                role="tab"
+                aria-selected={t.match()}
+                className={t.match() ? "active" : ""}
+                onClick={() => navigate(t.to)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        ) : null}
         <div className="r">
           <span className="seg sm" role="group" aria-label="Theme">
             <button

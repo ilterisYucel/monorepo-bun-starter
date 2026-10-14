@@ -2,7 +2,7 @@
 status: active
 space: architecture
 tags: [kapanis, dogrulama, test-kapsami, field, saha, konsol, gdems, demo]
-review_date: 2026-10-07
+review_date: 2026-10-13
 ---
 
 # DEMO-FIELD-KONSOL — Kapanış (Doğrulama + Test Kapsamı)
@@ -94,6 +94,28 @@ review_date: 2026-10-07
 | 73 | `deployment/aws/demo-edge/field-device-configs/service.json` | **Kritik merged-network fix:** `postgresql.host` `timescaledb`→`field-timescaledb`. AWS tek edge-network'te `timescaledb` alias yalnız konteyner DB'sinde → field-device-service yanlış DB'ye yazıyordu (`devices`/`device_alarms` field DB'de oluşmuyordu) | A.4#14 |
 | 74 | `tools/register-container.sh` | Konteyner service-token kaydı + bağlantı doğrulaması için tek-komut, renkli çıktılı script (elle curl yerine) | A.4#14 |
 | 75 | `apps/demo-field/src/features/demo-data/demoApi.ts` + `DemoFieldPage.tsx` + `buildTrendSeries.ts` (+test) + `deployment/aws/demo-edge/docker-compose.yml` | **Trend grafiği düzeltmesi:** downsampled sorgusuna `names` filtresi (tüm isimler yerine 3 kaynak → dev sorgu >60 sn timeout'u kalkar); temp eşleştiricisine PCS `Highest Cell Temperature`; aws `field-timescaledb` `mem_limit 1g` + `shared_buffers 384MB` | A.4#15 |
+| 76 | `packages/ui/src/nova/geo-europe.ts#GEO` / `#project` | gdems Natural Earth 1:50m ülke path verisi + Mercator projeksiyon portu (`GEO` veri sabiti, `project` lon/lat→x/y) — çalışma-zamanı bağımlılığı yok (yeni) | UC-11/T-32, K16 |
+| 77 | `packages/ui/src/nova/demo-portfolio-map.ts#homeViewBox` / `#clampViewBox` / `#zoomViewBox` / `#fitViewBox` | saf viewBox matematiği: başlangıç görünümü, aspect kırpma, zoom, projelere sığdırma (IO'suz, deterministik) — yeni | UC-11/T-32, K16 |
+| 78 | `packages/ui/src/nova/demo-portfolio-map.test.ts` | projeksiyon + viewBox/zoom/clamp/fit saf fonksiyon testleri | UC-11/T-32, AK-11.2 |
+| 79 | `packages/ui/src/nova/DemoPortfolioMap.tsx#DemoPortfolioMap` | SVG harita + marker (pulse/bolt) + hover tip kartı + wheel/drag/dblclick/klavye zoom — yeni | UC-11/T-33, FR-11.2..11.4 |
+| 80 | `packages/ui/src/nova/DemoPortfolioMap.test.tsx` | marker render, demo işareti, tip kartı, onOpen, zoom kontrolleri | UC-11/T-33, AK-11.2..11.5 |
+| 81 | `packages/ui/src/nova/DemoProjectCard.tsx#DemoProjectCard` | proje kartı (canlı → buton, statik → `pcard-demo` tıklanamaz) — yeni | UC-11/T-34, FR-11.2/11.3/11.5 |
+| 82 | `packages/ui/src/nova/DemoPtfCard.tsx#DemoPtfCard` | EPİAŞ gün öncesi PTF mini kartı (saatlik barlar + özet; seri boşsa "No market data") — yeni | UC-11/T-34, FR-11.6 |
+| 83 | `packages/ui/src/nova/DemoProjectCard.test.tsx` | proje kartı + PTF kartı testleri (canlı buton / statik demo / boş seri) | UC-11/T-34, AK-11.3/11.5/11.6 |
+| 84 | `packages/ui/src/nova/DemoAssetTable.tsx#DemoAssetTable` | portföy gelir/enerji tablosu + Portfolio toplam satırı — yeni | UC-11/T-35, FR-11.6 |
+| 85 | `packages/ui/src/nova/DemoAssetTable.test.tsx` | satır render, POI sınıfı, toplam satırı | UC-11/T-35, AK-11.6 |
+| 86 | `packages/ui/src/nova/nova-console.css` | harita/kart/PTF/asset stilleri `--nm-*` token'larıyla (light/dark; hardcode hex yok) | UC-11/T-33..35, K18 |
+| 87 | `packages/ui/src/nova/index.ts` | UC-11 barrel export'ları (`GEO`/`project`, viewBox fns, `DemoPortfolioMap`/`DemoProjectCard`/`DemoPtfCard`/`DemoAssetTable`) | UC-11/T-33..35, K12 |
+| 88 | `apps/demo-field/src/features/demo-data/demo-portfolio.ts#DEMO_PORTFOLIO` | 2 proje künyesi (ÜNSAL DGES canlı + N DGES statik solar snapshot) — saf veri, yeni | UC-11/T-36, K14 |
+| 89 | `apps/demo-field/src/features/demo-data/demo-portfolio.test.ts` | 2 proje, tek canlı, kimlik hizası, `findPortfolioProject` | UC-11/T-36, AK-11.2/11.3 |
+| 90 | `apps/demo-field/src/pages/DemoProjectsPage.tsx#DemoProjectsPage` | sayfa kompozisyonu: harita + kartlar + PTF + asset + Market + "New project" yer tutucu — yeni | UC-11/T-37, FR-11.1..11.6 |
+| 91 | `apps/demo-field/src/pages/DemoProjectsPage.test.tsx` | başlık/iki proje/harita, PTF/asset/Market, lejant + New project | UC-11/T-37, AK-11.1/11.2/11.6 |
+| 92 | `apps/demo-field/src/app/routes.tsx#routes` | `/projects` + `/` → `/projects` + tünel `/fields/:fid/ui/projects` | UC-11/T-38, K15 |
+| 93 | `apps/demo-field/src/lib/site-field.ts#postLoginDestination` | login → `/projects` dönüşü (saha kimliği yoksa açık hata) | UC-11/T-38, K15 |
+| 94 | `apps/demo-field/src/lib/site-field.test.ts` | "fieldId varsa portföy sayfasına yönlendirir (UC-11)" güncellendi | UC-11/T-38, AK-11.1 |
+| 95 | `apps/demo-field/src/layouts/DemoShell.tsx#DemoShell` | portföyde sekme gizleme + breadcrumb `Projects` dönüş bağlantısı + `match` tipi `(p: string)`→`()` | UC-11/T-38, FR-11.7 |
+| 96 | `e2e/demo-faults.spec.ts#loginUi` + `e2e/demo-operations-edge.spec.ts` + `e2e/demo-device-data.spec.ts` + `e2e/demo-target-soc.spec.ts#uiLogin` | login sonrası portföye iniş → konsola `page.goto(.../field/:id)` geçişi | UC-11/T-39 |
+| 97 | `docs/architecture/DEMO-FIELD-KONSOL-MIMARISI.md` | UC-11 SPEC revizyonu (K13–K19, FR-11.x/AK-11.x, T-32…T-39; onay 2026-10-13) | UC-11 kapsamı |
 
 ### A.2 Test Kanıtları
 
@@ -111,6 +133,11 @@ review_date: 2026-10-07
 | tüm build | `bun run build` | **27/27 proje başarılı** (typecheck zinciri) |
 | envanter | `bun run test:inventory` | 256 dosya / 2168 test → `docs/roadmap/test-envanteri.otomatik.md` |
 | EPİAŞ canlı (K9/SC-4) | demo-edge integration-service + gerçek kimlik; `GET /api/unified/timeseries/external?source=epias&series=ptf` | ✅ `external_series`: ptf 48 · gip_wap 48 · smf 35 nokta; uç gerçek değerler (ör. `2999 TRY/MWh`) döner |
+| demo-field (UC-11) | `nx run demo-field:test --skip-nx-cache` | **14 dosya / 71 test yeşil** |
+| ui (UC-11) | `nx run ui:test --skip-nx-cache` | **32 dosya / 212 test yeşil** |
+| SPEC lint (UC-11) | `bun run spec:check docs/architecture/DEMO-FIELD-KONSOL-MIMARISI.md` | **0 hata / 0 uyarı** |
+| build (UC-11) | `nx run ui:build` + `nx run demo-field:build` | başarılı |
+| e2e (T-39) | `e2e/demo-faults.spec.ts` + `demo-operations-edge.spec.ts` + `demo-device-data.spec.ts` + `demo-target-soc.spec.ts` login→konsol geçişi | **GÜNCELLENDİ, demo-edge stack olmadan KOŞULMADI** (A.4#16) |
 
 ### A.3 Kabul Kriteri Kanıtları
 
@@ -145,6 +172,14 @@ review_date: 2026-10-07
 | AK-10.1 | hook yokken birebir | `operation-executor.test.ts` "hook yokken davranış birebir (yürütür)" | 🟢 |
 | AK-10.2 | topraklı red | `demo-earthing-interlock.spec.ts` "AK-10.2…"; **canlı e2e** `demo-operations-data.spec.ts` "I-1 toprak interlock…" (H05 kesici aç → toprak kapat → charge 503 `interlock_earthed`) | 🟢 |
 | AK-10.3 | toprak açık çalışır | `demo-earthing-interlock.spec.ts` "AK-10.3…"; **canlı e2e** "I-1 toprak interlock…" (toprak aç + kesici kapat → charge `completed`) | 🟢 |
+| AK-11.1 | `/projects` rotası + login inişi | `site-field.test.ts` "fieldId varsa portföy sayfasına yönlendirir (UC-11)"; `routes.tsx#routes` `/`→`/projects` (kod inceleme); e2e T-39 GÜNCELLENDİ ama koşulmadı (A.4#16) | 🟢 |
+| AK-11.2 | iki marker render | `demo-portfolio.test.ts` "AK-11.2: iki proje tanımlıdır"; `DemoPortfolioMap.test.tsx` "AK-11.2: iki proje marker'ı render eder"; `DemoProjectsPage.test.tsx` "AK-11.1/11.2: başlık, iki proje ve haritayı render eder" | 🟢 |
+| AK-11.3 | canlı durum rengi + demo işareti | `DemoPortfolioMap.test.tsx` "AK-11.3: statik proje 'demo' işaretlidir"; `DemoProjectCard.test.tsx` "AK-11.3: statik kart 'demo' işaretli ve buton değil"; `demo-portfolio.test.ts` "AK-11.3: tam olarak bir proje canlıdır" | 🟢 |
+| AK-11.4 | hover tip kartı | `DemoPortfolioMap.test.tsx` "AK-11.4: hover'da tip kartı satırları görünür" (POI/SOC/SOH/faults) | 🟢 |
+| AK-11.5 | proje seçimi → konsol | `DemoPortfolioMap.test.tsx` "AK-11.5: canlı proje tıklaması onOpen çağırır, statik çağırmaz"; `DemoProjectCard.test.tsx` "AK-11.5: canlı kart buton, tıklama onOpen çağırır" | 🟢 |
+| AK-11.6 | PTF + Market paneli | `DemoProjectCard.test.tsx` "AK-11.6: saatlik PTF kartını ve özet değerleri gösterir" + "seri boşsa 'No market data'"; `DemoAssetTable.test.tsx` "AK-11.6: proje satırlarını ve Portfolio toplamını gösterir"; `DemoProjectsPage.test.tsx` "AK-11.6: PTF kartı, Asset management ve Market paneli görünür" | 🟢 |
+| AK-11.7 | breadcrumb dönüşü | `DemoShell.tsx#DemoShell` (kod inceleme): `isProjects`'te `Projects` başlık, konsolda `Projects` dönüş bağlantısı + sekme gizleme | 🟢 |
+| AK-11.8 | tema token'ları | `nova-console.css` (kod inceleme): harita/kart/PTF/asset stilleri `--nm-*` değişkenleriyle; hardcode hex yok (K18) | 🟢 |
 
 ### A.4 Sapmalar
 
@@ -165,6 +200,9 @@ review_date: 2026-10-07
 | 13 | AWS demo-edge (m6i.large) canlı hazırlık | `FIELD_CONNECT_ENABLED` default `false→true` (kritik: aksi halde AWS'te charge rollback), `MFA_ENABLED` default `true→false`, field-web-service `mem_limit 256→512m`; env şablonu demo-edge yoluna düzeltildi; EPİAŞ AWS `intervalMs=300000`; `AWS-DEPLOYMENT.md` §8 standalone runbook + API smoke. TLS/backup/MFA-geçişi §7 FLAG (demo kabulü). |
 | 14 | AWS merged-network `timescaledb` alias çakışması | `device-service`, SQL bağlantısını `service.json`'dan kurar; field kopyasında `postgresql.host="timescaledb"` tek edge-network'te container DB'sine çözülüyordu → field `devices`/`device_alarms` oluşmuyor, Field `DeviceRegistry` "relation does not exist" basıyordu. Fix: `field-device-configs/service.json` → `field-timescaledb` (container kopyası `timescaledb` alias'ıyla doğru kalır). Ayrıca tek-komut kayıt/doğrulama script'i `tools/register-container.sh` eklendi. |
 | 15 | Trend grafikleri boş (AWS) | `getDownsampledData` **tüm isimler** için (~150 sütun) `GROUP BY bucket, tags` dev sorgusu üretiyordu; 714k satır × 3 cihaz → PG >60 sn `statementTimeoutMs` → web-service iptal → tarayıcı 0 B. Fix (app): Saha trend sorgusuna `names` filtresi (`Battery Pack SOC`, `Grid Active Power`, `Highest Cell Temperature`) → saniyeler altı. Ayrıca "Hücre sıcaklığı" grafiği kaynağı PCS `Highest Cell Temperature` ile dolduruldu (önceden hiç dolmuyordu). Altyapı: aws `field-timescaledb` `mem_limit 512m→1g`, `shared_buffers 256→384MB`. **Çekirdek adapter'daki `GROUP BY tags` patlaması + varsayılan isim filtresi ayrı gap (G13).** |
+| 16 | e2e T-39 login inişi stack'te koşulmadı | Login sonrası portföye iniş → konsola geçiş e2e spec'leri (`demo-faults`, `demo-operations-edge`, `demo-device-data`, `demo-target-soc`) güncellendi (login sonrası `page.goto(.../field/:id)` + tab görünürlük kontrolü), ancak demo-edge stack kurulamadığından KOŞULMADI. Unit katmanı (`site-field.test.ts`) AK-11.1'i yeşile aldı; canlı iniş doğrulaması boşluk (G14). |
+| 17 | `ui:typecheck` önceden var olan 185 hata | `nx run ui:typecheck` 185 hata döner; bunlar TS6305 kaynaklı kaskad + eski dosyalardan gelir. UC-11'in YENİ dosyalarında (`geo-europe.ts`, `demo-portfolio-map.ts`, `DemoPortfolioMap.tsx`, `DemoProjectCard.tsx`, `DemoPtfCard.tsx`, `DemoAssetTable.tsx`, `demo-portfolio.ts`, `DemoProjectsPage.tsx`) hata YOKTUR. Build (`ui:build` + `demo-field:build`) temizdir. Boşluk: mevcut tip borcunun ayrıca kapatılması. |
+| 18 | K14 statik künye `snapshot` yaklaşımı (A6 defer) | N DGES canlı olmadığından kart/tip/tablo değerleri `DEMO_PORTFOLIO` içindeki `snapshot` alanından (illüstratif) okunur; `DemoProjectsPage`'teki `DEMO_ASSET_ROWS` da sabittir. gdems↔demo künye birebir reconciliasyonu SPEC A6'da ertelendi (G16). |
 
 ### A.5 Gözle Kontrol Maddeleri
 
@@ -177,6 +215,11 @@ review_date: 2026-10-07
 - [x] Logo yüklenemezse "GD-PMS" fallback (`DemoShell.tsx`).
 - [x] Kod referansları sembol çapasıyla yazıldı — satır numarası referansı yok.
 - [x] `bun run spec:check` SPEC üzerinde temiz (0/0).
+- [x] UC-11 harita token'ları `--nm-*` değişkenlerinden; hex hardcode yok (`nova-console.css`, K18).
+- [x] UC-11 saf fonksiyonlar IO/hook taşımaz: `geo-europe.ts#project`, `demo-portfolio-map.ts#homeViewBox/clampViewBox/zoomViewBox/fitViewBox` deterministik (testli).
+- [x] UC-11 yeni endpoint YOK — PTF/Market mevcut `GET /api/unified/timeseries/external` ucundan (`demoMarketApi.external`); gizli veri yok (K17).
+- [x] UC-11 eklemeli — kök servis/platform ve UC-1…UC-10 davranışı DEĞİŞMEZ; yalnız yeni sayfa/bileşen/rota/CSS + `postLoginDestination` dönüş değeri (K19).
+- [x] UC-11 kod referansları sembol çapasıyla (`#GEO`, `#project`, `#homeViewBox`, `#clampViewBox`, `#zoomViewBox`, `#fitViewBox`, `#DemoPortfolioMap`, `#DemoProjectCard`, `#DemoPtfCard`, `#DemoAssetTable`, `#DEMO_PORTFOLIO`, `#DemoProjectsPage`, `#routes`, `#postLoginDestination`, `#DemoShell`, `#loginUi`, `#uiLogin`) — satır numarası yok.
 
 ### A.6 Genel Durum Özeti
 
@@ -203,6 +246,21 @@ birebir (testle kanıtlı). Diğer tüketiciler etkilenmedi: **tam suite 29/29 p
 yalnız demo-field tarafından tüketiliyor. `preconditions` hook tüm field tier'larda aktiftir (DEMO-MV yoksa fail-open
 nötr; env bayrağı YOK — geliştirici kararı). Kök servis ayrıca bir **bugfix** içerir: device-service worker kapsamı
 (yalnız kendi job tipleri — A.4#8). Kalan riskler §B.2'de listelenmiştir.
+
+**UC-11 (Projeler sayfası — portföy) eki (2026-10-13):** gdems `home-view.js`/`geo-europe.js`/`projects.js`
+portu implement edildi — `geo-europe.ts#GEO` (Natural Earth 1:50m ülke path'leri) + `project` (Mercator),
+saf viewBox matematiği (`demo-portfolio-map.ts#homeViewBox/clampViewBox/zoomViewBox/fitViewBox`),
+`DemoPortfolioMap` (SVG harita + marker + hover tip + zoom), `DemoProjectCard` (canlı buton/statik demo),
+`DemoPtfCard` (EPİAŞ gün öncesi), `DemoAssetTable` (portföy gelir/enerji), `demo-portfolio.ts#DEMO_PORTFOLIO`
+(2 proje: ÜNSAL canlı + N DGES statik), `DemoProjectsPage` (kompozisyon + Market), `/projects` rotası +
+login inişi (`postLoginDestination`), `DemoShell` sekme gizleme + breadcrumb dönüşü. Testler yeşil:
+demo-field 14 dosya / 71 test, ui 32 dosya / 212 test; SPEC lint 0/0; `ui:build` + `demo-field:build`
+başarılı. **SC-6** (portföy sayfası 2 proje + harita + EPİAŞ kartları) unit/component testlerle doğrulandı;
+**SC-7** (login inişi `/projects` + canlı proje seçimi `/field/:fieldId`) unit (`site-field.test.ts`,
+`DemoPortfolioMap.test.tsx`/`DemoProjectCard.test.tsx` `onOpen`) ile doğrulandı, e2e katmanı GÜNCELLENDİ
+ama stack'te koşulmadı (A.4#16). **SC-8** (UC-11 yeni modüller satır kapsamı ≥ %70) bu kapanışta ayrıca
+ölçülmedi (G15 notu). Statik proje tıklaması konsol açmaz; EPİAŞ serisi boşsa PTF/Market "veri yok";
+zoom/pan clamp'ı harita dışına taşmaz (B.1).
 
 ## B. TEST KAPSAMI
 
@@ -234,6 +292,10 @@ nötr; env bayrağı YOK — geliştirici kararı). Kök servis ayrıca bir **bu
 | Farklı güç | `charge`/`discharge` 60/130/1000 kW | Her PCS `floor(total/2)` (±1) — ör. 60→−30, 130→+65, 1000→−500 | `e2e/demo-operations-data.spec.ts` "charge/discharge farklı güç: PCS başına floor(total/2)…" |
 | Timer | `charge` + `timer{durationSeconds:6}` | Güç negatife iner, süre dolunca otomatik `stop` → güç ≈0 | `e2e/demo-operations-data.spec.ts` "charge + timer: süre dolunca PCS otomatik durur" |
 | Faults bağlantısı | `GET /api/unified/alarms` | 200 + dizi (boş: aktif alarm yok — fault-inject kapsam dışı) | `e2e/demo-operations-data.spec.ts` "faults gerçek uca bağlı…" |
+| Statik proje tıklaması | N DGES (`live: false`) kart/marker tıklanır | Konsol AÇILMAZ; "demo, canlı değil" işareti (`pcard-demo`, `map-site.demo`) | `DemoProjectCard.test.tsx` "AK-11.3: statik kart 'demo' işaretli ve buton değil"; `DemoPortfolioMap.test.tsx` "AK-11.5: …statik çağırmaz" |
+| EPİAŞ serisi boş | PTF/`external_series` serisi yok | PTF "No market data"; Market "veri yok" (uydurma yok) | `DemoProjectCard.test.tsx` "seri boşsa 'No market data' gösterir"; `DemoMarketView` (mevcut) |
+| Zoom/pan clamp | viewBox sınır dışına itilir | `clampViewBox` harita sınırında kırpar; `zoomViewBox` ZMAX aşmaz | `demo-portfolio-map.test.ts` "clampViewBox aspect'i ayarlar ve harita sınırında kırpar" + "zoomViewBox ZMAX sınırını aşmaz" |
+| Canlı saha telemetrisi yok | `containers`/`unified/latest` boş | Marker nötr (idle/standby); tip kartı "telemetri yok"/sıfır değer | `DemoPortfolioMap.test.tsx` render + `DemoProjectsPage.test.tsx` boş veri akışı (kod inceleme) |
 
 ### B.2 KAPSANMAYAN Boşluklar
 
@@ -252,5 +314,9 @@ nötr; env bayrağı YOK — geliştirici kararı). Kök servis ayrıca bir **bu
 | G11 | redis bellek kapasitesi izlenmiyor (BullMQ retention sınırlı ama 256mb da uzun koşuda dolabilir) | düşük | `used_memory` alarmı + gerekirse retention/kapasite ayarı (A.4#9) |
 | G12 | Platform: tüketicisiz kuyruk sınırsız büyür (MANAGEMENT `prioritized` 6005 job) — `removeOnComplete` yalnız tamamlananları budar, bekleyenleri budamaz | orta | Ürün: tier'da ilgili tüketici zorunlu (deploy kontrolü) veya bekleyen kuyruk üst sınırı (A.4#10) |
 | G13 | Platform: `getDownsampledData` varsayılan olarak tüm isimler için `AVG(CASE…)` + `GROUP BY tags` dev sorgu üretir (isim filtresi yoksa >60 sn timeout) | orta | Çekirdek adapter: `GROUP BY`'dan tags'i çıkar (tags'i isim→tag haritasından ekle), makul varsayılan isim limiti; ayrı PR (A.4#15) — SPEC kaydı: `TELEMETRI-SORGU-PERFORMANS-MIMARISI.md` (UC-1) |
+| G14 | e2e T-39 login inişi (portföy → konsol geçişi) demo-edge stack olmadan koşulmadı (yalnız güncellendi) | orta | demo-edge stack kurulu ortamda hedefli spec koş (`bun run test:e2e` ile login inişi doğrula) — AK-11.1 e2e kanıtı |
+| G15 | AK-11.7 (breadcrumb dönüşü) ve AK-11.8 (tema token'ları) yalnız kod inceleme ile kanıtlandı; otomatik test yok | düşük | `DemoShell` breadcrumb/sekme-gizleme component testi + CSS token denetimi (ihtiyaçta) |
+| G16 | gdems↔demo proje künye reconciliasyonu ertelendi (A6) — N DGES `snapshot` illüstratif | düşük | Tek proje kaydı kaynağı (A6) — SPEC §11.5 ileri iş |
+| G17 | Çok-saha backend (A7) ve "New project" oluşturma (A8) ertelendi — portföy statik, tek `FIELD_ID` | orta | Çok-saha modeli + gerçek proje kaydı (SPEC §11.4) |
 
-**review_date:** 2026-10-07
+**review_date:** 2026-10-13

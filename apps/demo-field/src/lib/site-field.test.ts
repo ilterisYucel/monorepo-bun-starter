@@ -5,9 +5,9 @@ import type { User } from "@gd-monorepo/shared-types";
 const user = { role: "teknik" } as unknown as User;
 
 describe("postLoginDestination", () => {
-  it("fieldId varsa saha rotasına yönlendirir", () => {
+  it("fieldId varsa portföy sayfasına yönlendirir (UC-11)", () => {
     expect(postLoginDestination(user, [], "f-1")).toEqual({
-      path: "/field/f-1",
+      path: "/projects",
     });
   });
 

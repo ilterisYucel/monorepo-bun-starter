@@ -29,6 +29,8 @@ test.beforeEach(async ({ page }) => {
   await page.getByTestId("login-password").fill(PASSWORD);
   await page.getByTestId("login-submit").click();
   await expect(page.getByTestId("demo-logo")).toBeVisible();
+  // UC-11: login sonrası portföy sayfasına inilir; konsola geç.
+  await page.goto(`${FIELD_UI}/field/${fieldId()}`);
   await page.getByRole("tab", { name: "Operations" }).click();
 });
 
