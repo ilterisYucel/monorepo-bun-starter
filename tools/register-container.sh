@@ -71,7 +71,9 @@ warn() { printf '  %s!%s %s\n' "$Y" "$N" "$1"; }
 err()  { printf '  %s✗%s %s\n' "$R" "$N" "$1"; }
 step() { printf '%s[%s]%s %s\n' "$D" "$1" "$N" "$2"; }
 
-read_var() { grep -E "^$2=" "$1" 2>/dev/null | head -1 | cut -d= -f2- | sed 's/[[:space:]]*$//'; }
+# `|| true`: set -euo pipefail altında eşleşme yoksa grep exit 1 → atama
+# sessizce script'i öldürürdü (ör. FIELD_SEED_ADMIN_PASSWORD fallback'i).
+read_var() { grep -E "^$2=" "$1" 2>/dev/null | head -1 | cut -d= -f2- | sed 's/[[:space:]]*$//' || true; }
 
 jget() { python3 -c "import sys,json
 try:
