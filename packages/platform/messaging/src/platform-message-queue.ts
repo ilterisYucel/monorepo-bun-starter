@@ -25,7 +25,11 @@ import type { DeviceJob, JobType, JobResult } from "@gd-monorepo/shared-types";
  *   missing-key sarmalı → worker yuva sızıntısı → yazım ölümü) yalnızca
  *   retry'larda tetiklenir. Başarısızlık tek seferde dead-letter'a düşer
  *   (removeOnFail 500, onFailed gerçek nedeni loglar).
- * - COMMAND_DEVICE: 3 — komut kaybedilemez; writeAtomic idempotency sağlar.
+ * - COMMAND_DEVICE: attempts 1 — bir komut retry'landığında `moveToDelayed`
+ *   yoluna girer ve AWS'te missing-key sarmalı → manevra asılı kalır (field
+ *   120 sn remote timeout → failed/rolled_back). Retry yerine hızlı fail:
+ *   operasyon saniyeler içinde ROLLED BACK/FAILED olur, kullanıcı tekrar
+ *   basar; kama oluşamaz.
  * - MANAGEMENT / WS_BROADCAST: 1-2 — türetilmiş işler.
  * - FETCH_EXTERNAL: 3 — dış toplayıcı.
  */
@@ -41,8 +45,7 @@ export const JOB_RETRY_OPTIONS: Record<JobType, JobsOptions> = {
     removeOnFail: 500,
   },
   COMMAND_DEVICE: {
-    attempts: 3,
-    backoff: { type: "exponential", delay: 1000 },
+    attempts: 1,
     removeOnComplete: 100,
     removeOnFail: 50,
   },

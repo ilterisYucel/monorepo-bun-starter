@@ -12,7 +12,7 @@ import type { JobType, DeviceJob } from "@gd-monorepo/shared-types";
  *
  * Karakterize davranışlar (eski BullMQAdapter'dan taşındı):
  * - Retry haritası: READ_DEVICE:1, WRITE_TELEMETRY:1 (retry yok),
- *   COMMAND_DEVICE:3, MANAGEMENT:1, WS_BROADCAST:2, FETCH_EXTERNAL:3.
+ *   COMMAND_DEVICE:1, MANAGEMENT:1, WS_BROADCAST:2, FETCH_EXTERNAL:3.
  * - queueNames/retryOptions override; bilinmeyen JobType anahtarı yok sayılır.
  * - executeAndWait: nesne sonuç / nesne-olmayan → {success:true} / hata →
  *   {success:false, reason}.
@@ -177,7 +177,7 @@ describe("PlatformMessageQueue retry haritası (T0.12)", () => {
   it("harita politika değerlerini taşır", () => {
     expect(JOB_RETRY_OPTIONS.READ_DEVICE.attempts).toBe(1);
     expect(JOB_RETRY_OPTIONS.WRITE_TELEMETRY.attempts).toBe(1);
-    expect(JOB_RETRY_OPTIONS.COMMAND_DEVICE.attempts).toBe(3);
+    expect(JOB_RETRY_OPTIONS.COMMAND_DEVICE.attempts).toBe(1);
     expect(JOB_RETRY_OPTIONS.MANAGEMENT.attempts).toBe(1);
     expect(JOB_RETRY_OPTIONS.WS_BROADCAST.attempts).toBe(2);
     expect(JOB_RETRY_OPTIONS.FETCH_EXTERNAL.attempts).toBe(3);
@@ -234,7 +234,7 @@ describe("PlatformMessageQueue config enjeksiyonu", () => {
     expect(attemptsFor(QUEUE_NAMES.READ_DEVICE)).toBe(9);
     // diğer tipler etkilenmez
     await mq.addJob(job("COMMAND_DEVICE"));
-    expect(attemptsFor(QUEUE_NAMES.COMMAND_DEVICE)).toBe(3);
+    expect(attemptsFor(QUEUE_NAMES.COMMAND_DEVICE)).toBe(1);
   });
 
   it("bilinmeyen JobType anahtarları yok sayılır", async () => {
