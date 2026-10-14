@@ -4,6 +4,10 @@
     "port": 15502
   },
   "intervalMs": 5000,
+  "lossBit": {
+    "to": 769,
+    "bit": 0
+  },
   "mappings": [
     {
       "kind": "register",
@@ -87,29 +91,53 @@
       "offset": 0
     },
     {
-      "kind": "register",
-      "from": {
-        "deviceId": "BSC-1",
-        "table": "input",
-        "address": 30128,
-        "size": 2,
-        "signed": true
+      "kind": "computed",
+      "numerator": {
+        "from": {
+          "deviceId": "BSC-1",
+          "table": "input",
+          "address": 30063,
+          "size": 2
+        },
+        "scale": 0.001
+      },
+      "denominator": {
+        "from": {
+          "deviceId": "BSC-1",
+          "table": "input",
+          "address": 30059,
+          "size": 2,
+          "fallbackAddress": 30057
+        },
+        "scale": 0.0001
       },
       "to": 774,
-      "ratio": 0.01,
+      "ratio": 10000,
       "offset": 0
     },
     {
-      "kind": "register",
-      "from": {
-        "deviceId": "BSC-1",
-        "table": "input",
-        "address": 30128,
-        "size": 2,
-        "signed": true
+      "kind": "computed",
+      "numerator": {
+        "from": {
+          "deviceId": "BSC-1",
+          "table": "input",
+          "address": 30065,
+          "size": 2
+        },
+        "scale": 0.001
+      },
+      "denominator": {
+        "from": {
+          "deviceId": "BSC-1",
+          "table": "input",
+          "address": 30059,
+          "size": 2,
+          "fallbackAddress": 30057
+        },
+        "scale": 0.0001
       },
       "to": 775,
-      "ratio": 0.01,
+      "ratio": 10000,
       "offset": 0
     },
     {
@@ -227,14 +255,36 @@
       "offset": 0
     },
     {
-      "kind": "constant",
+      "kind": "socEnergy",
+      "soc": {
+        "from": {
+          "deviceId": "BSC-1",
+          "table": "input",
+          "address": 30055
+        },
+        "scale": 0.0001
+      },
+      "ratedKwh": 5018,
+      "mode": "charge",
       "to": 786,
-      "value": 35000
+      "ratio": 10,
+      "offset": 0
     },
     {
-      "kind": "constant",
+      "kind": "socEnergy",
+      "soc": {
+        "from": {
+          "deviceId": "BSC-1",
+          "table": "input",
+          "address": 30055
+        },
+        "scale": 0.0001
+      },
+      "ratedKwh": 5018,
+      "mode": "discharge",
       "to": 787,
-      "value": 35000
+      "ratio": 10,
+      "offset": 0
     },
     {
       "kind": "constant",
@@ -246,7 +296,8 @@
       "from": {
         "deviceId": "BSC-1",
         "table": "input",
-        "address": 30063
+        "address": 30063,
+        "size": 2
       },
       "to": 789,
       "ratio": 0.01,

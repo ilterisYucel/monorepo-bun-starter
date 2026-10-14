@@ -10,7 +10,7 @@
     "port": 15536,
     "slaveId": 1
   },
-  "pollIntervalMs": 2000,
+  "pollIntervalMs": 1000,
   "transport": {
     "kind": "simulator",
     "type": "imd"

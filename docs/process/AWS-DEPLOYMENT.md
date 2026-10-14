@@ -313,3 +313,21 @@ korunur; iki konteyner + RAM tasarrufu için bu tek-compose tercih edilir.
 Konteyner-1 SOC 50, konteyner-2 SOC 72 (`container2/device-configs/bsc-*.json`
 `details.initialSocPercent`) ile başlar.
 
+**Config senkronu (dev ↔ aws):** `aws/{field,container,container2}` config ağaçları
+`dev`'in kopyasıdır; dev'de değişen cihaz config'i/manevra AWS'e de taşınmalıdır
+(aksi halde eski davranış kalır — ör. field manevralarında `set_command_source`
+adımı eksikse PCS simülatörü S01≠1 (HMI) iken start/stop/standby/setpoint
+komutlarını **sessizce yok sayar** → Start-Up/Standby/Stop çalışmaz, Availability
+0 kalır). Senkron dışı tutulan AWS'a ÖZGÜ deltalar:
+- `*/device-configs/service.json` → redis host + tier DB (`battery` / `container1` / `container2`).
+- `container/rules/rules.json` → demo no-op (dev'de gerçek TMS kuralları var).
+Senkron komutu:
+```bash
+rsync -a --exclude='service.json' deployment/v2/dev/field/device-configs/     deployment/v2/aws/field/device-configs/
+cp deployment/v2/dev/field/maneuvers/*.json                                   deployment/v2/aws/field/maneuvers/
+rsync -a --exclude='service.json' deployment/v2/dev/container/device-configs/  deployment/v2/aws/container/device-configs/
+rsync -a deployment/v2/dev/container/maneuvers/                               deployment/v2/aws/container/maneuvers/
+rsync -a --exclude='service.json' deployment/v2/dev/container2/device-configs/ deployment/v2/aws/container2/device-configs/
+rsync -a deployment/v2/dev/container2/maneuvers/                              deployment/v2/aws/container2/maneuvers/
+```
+

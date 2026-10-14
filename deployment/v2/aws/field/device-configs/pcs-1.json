@@ -991,56 +991,30 @@
       "byteOrder": "BIG_ENDIAN"
     },
     {
-      "name": "Accumulative Discharge Low",
-      "description": "Accumulative Discharge Low",
+      "name": "Accumulative Discharge Amount",
+      "description": "Accumulative Discharge Amount",
       "unit": "kWh",
       "protocol": "MODBUS",
       "registerAddress": 12132,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
+      "registerDataType": "UINT32",
       "scale": 1,
       "offset": 0,
       "priority": 3,
-      "byteOrder": "BIG_ENDIAN"
+      "byteOrder": "BIG_ENDIAN_SWAP"
     },
     {
-      "name": "Accumulative Discharge High",
-      "description": "Accumulative Discharge High",
-      "unit": "kWh",
-      "protocol": "MODBUS",
-      "registerAddress": 12133,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
-      "offset": 0,
-      "priority": 3,
-      "byteOrder": "BIG_ENDIAN"
-    },
-    {
-      "name": "Accumulative Charge Low",
-      "description": "Accumulative Charge Low",
+      "name": "Accumulative Charge Amount",
+      "description": "Accumulative Charge Amount",
       "unit": "kWh",
       "protocol": "MODBUS",
       "registerAddress": 12134,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
+      "registerDataType": "UINT32",
       "scale": 1,
       "offset": 0,
       "priority": 3,
-      "byteOrder": "BIG_ENDIAN"
-    },
-    {
-      "name": "Accumulative Charge High",
-      "description": "Accumulative Charge High",
-      "unit": "kWh",
-      "protocol": "MODBUS",
-      "registerAddress": 12135,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
-      "offset": 0,
-      "priority": 3,
-      "byteOrder": "BIG_ENDIAN"
+      "byteOrder": "BIG_ENDIAN_SWAP"
     },
     {
       "name": "Daily Discharge Amount",
@@ -2180,6 +2154,111 @@
       "offset": 0,
       "priority": 3,
       "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "EMS Communication Control",
+      "description": "EMS Communication Control",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2561,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "EMS USART Communication Timeout",
+      "description": "EMS USART Communication Timeout",
+      "unit": "s",
+      "protocol": "MODBUS",
+      "registerAddress": 2568,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "EMS Communication Timeout",
+      "description": "EMS Communication Timeout",
+      "unit": "s",
+      "protocol": "MODBUS",
+      "registerAddress": 2571,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS Protocol",
+      "description": "BMS Protocol",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2816,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS Communication Mode",
+      "description": "BMS Communication Mode",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2817,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS Modbus Timeout",
+      "description": "BMS Modbus Timeout",
+      "unit": "s",
+      "protocol": "MODBUS",
+      "registerAddress": 2824,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS CRC Error Count",
+      "description": "BMS CRC Error Count",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2825,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
     }
   ],
   "bitfieldConfigs": [
@@ -2553,6 +2632,1248 @@
           "bitEnd": 6,
           "name": "DC Voltage Sampling Disconnected",
           "description": "DC Voltage Sampling Disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12213,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Storage battery polarity connected reversely",
+          "description": "Storage battery polarity connected reversely",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Storage battery voltage too high",
+          "description": "Storage battery voltage too high",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Storage battery voltage too low",
+          "description": "Storage battery voltage too low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Battery voltage too high",
+          "description": "Battery voltage too high",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "Battery voltage too low",
+          "description": "Battery voltage too low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "BMS system fault",
+          "description": "BMS system fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "BMS pre-charge fault",
+          "description": "BMS pre-charge fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "BMS main contactor fault",
+          "description": "BMS main contactor fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "BMS insulation fault",
+          "description": "BMS insulation fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "DC side half-bus hardware overvoltage",
+          "description": "DC side half-bus hardware overvoltage",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "DC side full-bus software overvoltage",
+          "description": "DC side full-bus software overvoltage",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "DC side full-bus software undervoltage",
+          "description": "DC side full-bus software undervoltage",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "DC side half-bus voltage variation too large",
+          "description": "DC side half-bus voltage variation too large",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "AC side hardware overcurrent",
+          "description": "AC side hardware overcurrent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "AC side software overcurrent",
+          "description": "AC side software overcurrent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "DC side hardware overcurrent",
+          "description": "DC side hardware overcurrent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12214,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "DC side software overcurrent",
+          "description": "DC side software overcurrent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "IGBT Desat fault",
+          "description": "IGBT Desat fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "IGBT block fault",
+          "description": "IGBT block fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "IGBT over-temperature",
+          "description": "IGBT over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "AC side A-phase Hall disconnected",
+          "description": "AC side A-phase Hall disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "AC side B-phase Hall disconnected",
+          "description": "AC side B-phase Hall disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "AC side C-phase Hall disconnected",
+          "description": "AC side C-phase Hall disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "DC side current Hall disconnected",
+          "description": "DC side current Hall disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Detection board model mismatch",
+          "description": "Detection board model mismatch",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "DC side pre-charge contactor fault",
+          "description": "DC side pre-charge contactor fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "DC side switch fault",
+          "description": "DC side switch fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "AC side pre-charge contactor fault",
+          "description": "AC side pre-charge contactor fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "AC side switch fault",
+          "description": "AC side switch fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "CBC overcurrent",
+          "description": "CBC overcurrent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Device overload",
+          "description": "Device overload",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Grid AC overvoltage",
+          "description": "Grid AC overvoltage",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12215,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Grid AC undervoltage",
+          "description": "Grid AC undervoltage",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Grid AC overfrequency",
+          "description": "Grid AC overfrequency",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Grid AC underfrequency",
+          "description": "Grid AC underfrequency",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Output phase loss",
+          "description": "Output phase loss",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "Grid voltage sequence incorrect",
+          "description": "Grid voltage sequence incorrect",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "Phase lock error",
+          "description": "Phase lock error",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Grid voltage imbalance",
+          "description": "Grid voltage imbalance",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "AC overvoltage in off-grid mode",
+          "description": "AC overvoltage in off-grid mode",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "AC undervoltage in off-grid mode",
+          "description": "AC undervoltage in off-grid mode",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Islanding fault",
+          "description": "Islanding fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "Current control deviation too large",
+          "description": "Current control deviation too large",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "Bus soft-start failure",
+          "description": "Bus soft-start failure",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "DC component in the current beyond limit on the AC side",
+          "description": "DC component in the current beyond limit on the AC side",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "AC switch closing voltage mismatch",
+          "description": "AC switch closing voltage mismatch",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "AD zero drift too large",
+          "description": "AD zero drift too large",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Low insulation resistance",
+          "description": "Low insulation resistance",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12216,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Insulation detection failed",
+          "description": "Insulation detection failed",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Internal cavity over-temperature",
+          "description": "Internal cavity over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Internal cavity over-temperature alarm",
+          "description": "Internal cavity over-temperature alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Internal cavity temperature low",
+          "description": "Internal cavity temperature low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "Filter capacitor over-temperature",
+          "description": "Filter capacitor over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "Filter capacitor over-temperature alarm",
+          "description": "Filter capacitor over-temperature alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Filter capacitor temperature low",
+          "description": "Filter capacitor temperature low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "Auxiliary transformer over-temperature",
+          "description": "Auxiliary transformer over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Auxiliary transformer over-temperature alarm",
+          "description": "Auxiliary transformer over-temperature alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Auxiliary transformer temperature low",
+          "description": "Auxiliary transformer temperature low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "High ambient temperature",
+          "description": "High ambient temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "High ambient temperature alarm",
+          "description": "High ambient temperature alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Low ambient temperature",
+          "description": "Low ambient temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "IGBT module A-phase over-temperature",
+          "description": "IGBT module A-phase over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "IGBT module B-phase over-temperature",
+          "description": "IGBT module B-phase over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "IGBT module C-phase over-temperature",
+          "description": "IGBT module C-phase over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12217,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "IGBT temperature sampling error",
+          "description": "IGBT temperature sampling error",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "IGBT over-temperature alarm",
+          "description": "IGBT over-temperature alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Reactor over-temperature",
+          "description": "Reactor over-temperature",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Reactor over-temperature alarm",
+          "description": "Reactor over-temperature alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "Reactor temperature low",
+          "description": "Reactor temperature low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "Surge protection device fault",
+          "description": "Surge protection device fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Parallel communication fault",
+          "description": "Parallel communication fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "Abnormal stop of the master",
+          "description": "Abnormal stop of the master",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Carrier synchronization failed",
+          "description": "Carrier synchronization failed",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Internal cavity fan fault",
+          "description": "Internal cavity fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "Circulating fan fault",
+          "description": "Circulating fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "Reactor fan fault",
+          "description": "Reactor fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "IGBT fan fault",
+          "description": "IGBT fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "CAN communication fault between control board and communication board",
+          "description": "CAN communication fault between control board and communication board",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "HMI communication fault",
+          "description": "HMI communication fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12218,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "BMS communication fault",
+          "description": "BMS communication fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "EMS communication fault (dual network)",
+          "description": "EMS communication fault (dual network)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "EEPROM fault",
+          "description": "EEPROM fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "EEPROM alarm",
+          "description": "EEPROM alarm",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Black box error",
+          "description": "Black box error",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "FPGA data exchange error",
+          "description": "FPGA data exchange error",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "RTC error",
+          "description": "RTC error",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "220 V control power disconnected",
+          "description": "220 V control power disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Leakage current Hall self-test failed",
+          "description": "Leakage current Hall self-test failed",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Residual abrupt leakage current overlimit",
+          "description": "Residual abrupt leakage current overlimit",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Continuous residual leakage current overlimit",
+          "description": "Continuous residual leakage current overlimit",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Local emergency stop fault",
+          "description": "Local emergency stop fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12219,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Remote emergency stop fault",
+          "description": "Remote emergency stop fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "BMS emergency stop fault",
+          "description": "BMS emergency stop fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Phase-to-PE fault",
+          "description": "Phase-to-PE fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Capacitor voltage resonance fault",
+          "description": "Capacitor voltage resonance fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "High humidity",
+          "description": "High humidity",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "Humidity detection disconnected",
+          "description": "Humidity detection disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Temperature too high",
+          "description": "Temperature too high",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "Temperature detection disconnected",
+          "description": "Temperature detection disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Fuse fault",
+          "description": "Fuse fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Cabinet door fault",
+          "description": "Cabinet door fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "Water pump locked-rotor",
+          "description": "Water pump locked-rotor",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "Water pump speed regulation signal absent",
+          "description": "Water pump speed regulation signal absent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Water pump idling",
+          "description": "Water pump idling",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Water cooling system hydraulic fault",
+          "description": "Water cooling system hydraulic fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "Fan power sequence incorrect",
+          "description": "Fan power sequence incorrect",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Fan power disconnected",
+          "description": "Fan power disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12220,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "Three-phase fan fault",
+          "description": "Three-phase fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Heater contactor fault",
+          "description": "Heater contactor fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Water pump power disconnected",
+          "description": "Water pump power disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Software version inconsistent between master and slave",
+          "description": "Software version inconsistent between master and slave",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "Dynamic environment fault",
+          "description": "Dynamic environment fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "DC side midpoint sampling disconnected",
+          "description": "DC side midpoint sampling disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "DC side voltage sampling disconnected",
+          "description": "DC side voltage sampling disconnected",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "AC and DC voltage mismatch",
+          "description": "AC and DC voltage mismatch",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Grid voltage mismatch",
+          "description": "Grid voltage mismatch",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 9,
+          "bitEnd": 9,
+          "name": "Heat exchanger fan fault",
+          "description": "Heat exchanger fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 10,
+          "bitEnd": 10,
+          "name": "DC circuit breaker fan fault",
+          "description": "DC circuit breaker fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 11,
+          "bitEnd": 11,
+          "name": "AC circuit breaker fan fault",
+          "description": "AC circuit breaker fan fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 12,
+          "bitEnd": 12,
+          "name": "Master and slave identification fault",
+          "description": "Master and slave identification fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 13,
+          "bitEnd": 13,
+          "name": "Power inconsistent between master and slave",
+          "description": "Power inconsistent between master and slave",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 14,
+          "bitEnd": 14,
+          "name": "IGBT temperature low",
+          "description": "IGBT temperature low",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 15,
+          "bitEnd": 15,
+          "name": "Zero sequence loop current too large",
+          "description": "Zero sequence loop current too large",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 12221,
+      "registerType": "HOLDING_REGISTER",
+      "fields": [
+        {
+          "bitStart": 0,
+          "bitEnd": 0,
+          "name": "FPGA side fault",
+          "description": "FPGA side fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 1,
+          "bitEnd": 1,
+          "name": "Fault of parallel devices in cabinet",
+          "description": "Fault of parallel devices in cabinet",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 2,
+          "bitEnd": 2,
+          "name": "Fiber communication interrupted",
+          "description": "Fiber communication interrupted",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 3,
+          "bitEnd": 3,
+          "name": "Fiber communication CRC fault",
+          "description": "Fiber communication CRC fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 4,
+          "bitEnd": 4,
+          "name": "Control mode inconsistent",
+          "description": "Control mode inconsistent",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 5,
+          "bitEnd": 5,
+          "name": "Capacitor harmonic overlimit",
+          "description": "Capacitor harmonic overlimit",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 6,
+          "bitEnd": 6,
+          "name": "Fan pump and water pump switch error",
+          "description": "Fan pump and water pump switch error",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 7,
+          "bitEnd": 7,
+          "name": "PCS interaction fault",
+          "description": "PCS interaction fault",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 8,
+          "bitEnd": 8,
+          "name": "Capacitor harmonic sampling disconnected",
+          "description": "Capacitor harmonic sampling disconnected",
           "unit": "-",
           "scale": 1,
           "offset": 0

@@ -877,7 +877,7 @@
       }
     }
   ],
-  "pollIntervalMs": 2000,
+  "pollIntervalMs": 1000,
   "commands": {},
   "type": "energy-analyzer",
   "transport": {

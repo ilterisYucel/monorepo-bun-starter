@@ -114,6 +114,32 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fire",
+      "description": "Fire",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "First Stage",
+      "description": "First Stage",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
     }
   ],
   "commands": {
@@ -226,5 +252,6 @@
   "transport": {
     "kind": "simulator",
     "type": "control-panel-io"
-  }
+  },
+  "pollIntervalMs": 1000
 }

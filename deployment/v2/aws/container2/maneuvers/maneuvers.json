@@ -2,8 +2,8 @@
   "maneuvers": [
     {
       "name": "fl01_start",
-      "label": "FL-01: Sistem Ba\u015flatma",
-      "description": "\u015ealter A\u00c7 + BSC start + DC \u00e7\u0131k\u0131\u015f ON \u2014 \u00f6nko\u015ful kap\u0131s\u0131 ileriki faz",
+      "label": "FL-01: Sistem Başlatma",
+      "description": "Şalter AÇ + BSC start + DC çıkış ON — önkoşul kapısı ileriki faz",
       "mode": "parallel",
       "steps": [
         {
@@ -35,7 +35,7 @@
     {
       "name": "fl03_emergency_stop",
       "label": "FL-03: Acil Durdurma",
-      "description": "BSC emergency (0x0001) + DC \u015falter A\u00c7 \u2014 kuru kontakla mekanik a\u00e7\u0131l\u0131r",
+      "description": "BSC emergency (0x0001) + DC şalter AÇ — kuru kontakla mekanik açılır",
       "mode": "sequential",
       "steps": [
         {
@@ -58,8 +58,8 @@
     },
     {
       "name": "fl05_tms_cooling_force",
-      "label": "FL-05: TMS So\u011futmay\u0131 Zorla",
-      "description": "8 HVAC force_cool (Remote On/Off \u2190 1 + Cooling Setpoint \u2190 10)",
+      "label": "FL-05: TMS Soğutmayı Zorla",
+      "description": "8 HVAC force_cool (Remote On/Off ← 1 + Cooling Setpoint ← 10)",
       "mode": "parallel",
       "steps": [
         {
@@ -98,8 +98,8 @@
     },
     {
       "name": "fl05_tms_heating_force",
-      "label": "FL-05: TMS Is\u0131tmay\u0131 Zorla",
-      "description": "8 HVAC force_heat (Remote On/Off \u2190 1 + Heating Setpoint \u2190 500)",
+      "label": "FL-05: TMS Isıtmayı Zorla",
+      "description": "8 HVAC force_heat (Remote On/Off ← 1 + Heating Setpoint ← 500)",
       "mode": "parallel",
       "steps": [
         {
@@ -138,8 +138,8 @@
     },
     {
       "name": "fl09_comm_loss",
-      "label": "FL-09: \u0130leti\u015fim Kayb\u0131 \u2014 Durdur",
-      "description": "Kural DEFER (K7) \u2014 synthetic sinyal gelene kadar gizli kart",
+      "label": "FL-09: İletişim Kaybı — Durdur",
+      "description": "Kural DEFER (K7) — synthetic sinyal gelene kadar gizli kart",
       "mode": "parallel",
       "steps": [
         {
@@ -157,8 +157,8 @@
     },
     {
       "name": "fl10_maintenance_shutdown",
-      "label": "FL-10: Bak\u0131m Modu \u2014 G\u00fcvenli Kapatma",
-      "description": "BSC open_contactors (0x0004) + DC \u015falter A\u00c7",
+      "label": "FL-10: Bakım Modu — Güvenli Kapatma",
+      "description": "BSC open_contactors (0x0004) + DC şalter AÇ",
       "mode": "sequential",
       "steps": [
         {
@@ -181,8 +181,8 @@
     },
     {
       "name": "fl_dc_breaker_close",
-      "label": "DC \u015ealter Kapat",
-      "description": "DC \u015falter kapatma bobini (COIL 1 \u2190 1)",
+      "label": "DC Şalter Kapat",
+      "description": "DC şalter kapatma bobini (COIL 1 ← 1)",
       "mode": "parallel",
       "steps": [
         {
@@ -197,8 +197,8 @@
     },
     {
       "name": "fl_contactor_close",
-      "label": "Kontakt\u00f6r Kapat",
-      "description": "BSC kontakt\u00f6rleri kapat (HR 40010 \u2190 0x0005)",
+      "label": "Kontaktör Kapat",
+      "description": "BSC kontaktörleri kapat (HR 40010 ← 0x0005)",
       "mode": "parallel",
       "steps": [
         {
@@ -214,7 +214,7 @@
     {
       "name": "fl_idle",
       "label": "Durdur",
-      "description": "T\u00fcm BSC'lerde \u015farj/de\u015farj i\u015flemini durdurur",
+      "description": "Tüm BSC'lerde şarj/deşarj işlemini durdurur",
       "mode": "parallel",
       "steps": [
         {
@@ -233,8 +233,8 @@
     {
       "name": "bsc_stop",
       "label": "BSC Durdur",
-      "description": "Uzak operasyon kompanzasyon ad\u0131m\u0131 (field rollback)",
-      "mode": "parallel",
+      "description": "Uzak operasyon kompanzasyon adımı (field rollback). C1: akım akarken Stop reddedildiğinden önce güç setpoint'i sıfırlanır, sonra durdurulur.",
+      "mode": "sequential",
       "steps": [
         {
           "deviceIds": [
@@ -270,8 +270,8 @@
     },
     {
       "name": "bsc_prepare",
-      "label": "BSC Haz\u0131rl\u0131k",
-      "description": "Kontakt\u00f6rleri kapat + start \u2014 G\u00dc\u00c7 PARAMI YOK (K12: g\u00fc\u00e7 PCS S06'da)",
+      "label": "BSC Hazırlık",
+      "description": "Kontaktörleri kapat + start — GÜÇ PARAMI YOK (K12: güç PCS S06'da)",
       "mode": "parallel",
       "onFailure": "stop",
       "steps": [
@@ -294,12 +294,71 @@
       ],
       "rollbackSteps": [
         {
-          "deviceId": "BSC-1",
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "set_charge_power",
+          "params": {
+            "powerKw": 0
+          }
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "set_discharge_power",
+          "params": {
+            "powerKw": 0
+          }
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "stop"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "bsc_recovery",
+      "label": "BSC Kurtarma (Emergency sonrası)",
+      "description": "Emergency'den çıkış: Stop → Start (Normal) → Event Clear → Close Contactors (SW Manual p.18 #16; registers.md conflict 1).",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
           "command": "stop"
         },
         {
-          "deviceId": "BSC-2",
-          "command": "stop"
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "start"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "event_clear"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "close_contactors"
         }
       ],
       "ui": {

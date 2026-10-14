@@ -109,42 +109,6 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "Energy Counter H",
-      "description": "Energy counter high word",
-      "unit": "kWh",
-      "protocol": "MODBUS",
-      "registerAddress": 4,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "DC-1"
-      },
-      "deadband": "auto",
-      "maxStaleMs": 60000
-    },
-    {
-      "name": "Energy Counter L",
-      "description": "Energy counter low word",
-      "unit": "kWh",
-      "protocol": "MODBUS",
-      "registerAddress": 5,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
-      "offset": 0,
-      "priority": 0,
-      "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "deviceId": "DC-1"
-      },
-      "deadband": "auto",
-      "maxStaleMs": 60000
-    },
-    {
       "name": "Voltage Setpoint",
       "description": "Output voltage setpoint",
       "unit": "V",
@@ -243,9 +207,27 @@
       "tags": {
         "deviceId": "DC-1"
       }
+    },
+    {
+      "name": "Energy Counter",
+      "description": "Kümülatif enerji",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000,
+      "tags": {
+        "deviceId": "DC-1"
+      }
     }
   ],
-  "pollIntervalMs": 2000,
+  "pollIntervalMs": 1000,
   "commands": {
     "on": {
       "label": "Aç (On)",
