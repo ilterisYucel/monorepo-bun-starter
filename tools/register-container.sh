@@ -6,7 +6,7 @@
 #   tools/register-container.sh [--env <field-env>] [--container-env <dosya[,dosya...]>]
 #                               [--url <base>] [--container <id[,id...]>]
 #                               [--station <id[,id...]>] [--token-var <VAR[,VAR...]>]
-#                               [--user <ad>] [--wait <sn>]
+#                               [--user <ad>] [--wait <sn>] [--no-startup]
 #
 # Çoklu kayıt (virgüllü, indeks hizalı):
 #   tools/register-container.sh \
@@ -21,6 +21,8 @@
 # --station   : BESS MV istasyon etiketi (UC-13) — field kaydına yazılır (opsiyonel).
 # --token-var : token değişkeni (varsayılan CONTAINER_TOKEN). Virgüllü listede
 #               eksik öğeler için SON değer tekrarlanır.
+# --no-startup: kayıt sonrası otomatik FL-01 Start-Up'ı atla (varsayılan: çalıştır
+#               — PCS Standby'e geçer, Availability dolar).
 #
 # Girdiler: FIELD_ID + SEED_ADMIN_PASSWORD --env (field) dosyasından, token'lar
 # --container-env dosya(lar)ından okunur (sırlar komut satırına yazılmaz).
@@ -30,6 +32,7 @@ ENV_FILE="deployment/v2/aws/field/.env"
 BASE_URL="http://localhost:88"
 USER_NAME="admin"
 WAIT_SECS=30
+STARTUP=1
 
 CONTAINERS=("container-1")
 STATIONS=("")
@@ -59,6 +62,7 @@ while [ $# -gt 0 ]; do
     --token-var)     split TOKEN_VARS "$2"; shift 2 ;;
     --user)          USER_NAME="$2"; shift 2 ;;
     --wait)          WAIT_SECS="$2"; shift 2 ;;
+    --no-startup)    STARTUP=0; shift ;;
     -h|--help)       usage; exit 0 ;;
     *) echo "Bilinmeyen argüman: $1" >&2; usage; exit 2 ;;
   esac
@@ -93,7 +97,7 @@ FIELD_ID="$(read_var "$ENV_FILE" FIELD_ID)"
 ADMIN_PW="$(read_var "$ENV_FILE" SEED_ADMIN_PASSWORD)"
 [ -n "$ADMIN_PW" ] || ADMIN_PW="$(read_var "$ENV_FILE" FIELD_SEED_ADMIN_PASSWORD)"
 
-step 1/4 "Ortam okunuyor"
+step 1/5 "Ortam okunuyor"
 [ -n "$FIELD_ID" ] || { err "FIELD_ID boş ($ENV_FILE)"; exit 1; }
 [ -n "$ADMIN_PW" ] || { err "SEED_ADMIN_PASSWORD/FIELD_SEED_ADMIN_PASSWORD boş ($ENV_FILE)"; exit 1; }
 
@@ -117,7 +121,7 @@ done
 ok "FIELD_ID=${FIELD_ID:0:8}…  ·  kullanıcı $USER_NAME"
 
 # ── 2) login ────────────────────────────────────────────────────────────────
-step 2/4 "Admin girişi"
+step 2/5 "Admin girişi"
 RESP="$(curl -s -w $'\n%{http_code}' -X POST "$BASE_URL/api/auth/login" \
   -H 'content-type: application/json' \
   -d "{\"username\":\"$USER_NAME\",\"password\":\"$ADMIN_PW\"}")"
@@ -135,7 +139,7 @@ ok "Oturum açıldı (Bearer token alındı)"
 AUTH=(-H "authorization: Bearer $ACCESS" -H 'content-type: application/json')
 
 # ── 3) register ─────────────────────────────────────────────────────────────
-step 3/4 "Service token kaydı (${#CONTAINERS[@]} konteyner)"
+step 3/5 "Service token kaydı (${#CONTAINERS[@]} konteyner)"
 for i in "${!CONTAINERS[@]}"; do
   cid="${CONTAINERS[$i]}"
   st="$(at STATIONS "$i")"
@@ -155,7 +159,7 @@ for i in "${!CONTAINERS[@]}"; do
 done
 
 # ── 4) bağlantı durumu ──────────────────────────────────────────────────────
-step 4/4 "Konteyner bağlantıları bekleniyor (en çok ${WAIT_SECS}s)"
+step 4/5 "Konteyner bağlantıları bekleniyor (en çok ${WAIT_SECS}s)"
 deadline=$(( $(date +%s) + WAIT_SECS ))
 declare -A STATE=()
 connected_count=0
@@ -187,6 +191,19 @@ for cid in "${CONTAINERS[@]}"; do
 done
 
 if [ "$connected_count" -eq "${#CONTAINERS[@]}" ]; then
+  step 5/5 "İlk açılış — FL-01 Start-Up (PCS Standby · Availability)"
+  if [ "$STARTUP" = "1" ]; then
+    RESP="$(curl -s -w $'\n%{http_code}' -X POST \
+      "$BASE_URL/api/maneuvers/fl01_startup/execute" "${AUTH[@]}" -d '{"params":{}}')"
+    CODE="$(printf '%s' "$RESP" | tail -n1)"
+    if [ "$CODE" = "200" ]; then
+      ok "fl01_startup çalıştı — PCS Standby (Availability dolu)"
+    else
+      warn "fl01_startup HTTP $CODE — UI › Operations › FL-01 Start-Up ile elle çalıştır"
+    fi
+  else
+    warn "--no-startup: FL-01 atlandı (UI › Operations › FL-01 Start-Up)"
+  fi
   printf '\n%s✔ Hazır.%s Tüm konteynerler field'"'"'a bağlı — uzak BSC adımları (charge/discharge) çalışır.\n' "$G$B" "$N"
   exit 0
 fi

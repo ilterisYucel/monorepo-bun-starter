@@ -223,6 +223,15 @@ curl -s -H "authorization: Bearer $TOKEN" \
   `field-timescaledb` `mem_limit 1g` + `shared_buffers 384MB` olmalı.
 - Konteyner management-service kural ÇALIŞTIRMAZ (demo no-op rules) — gerçek
   kural seti test edilmeden aktive edilmez.
+- **Standby sonrası SOC durmuyor / mod "Charging" kalıyor:** konteyner `bsc_stop`
+  manevrası stop'tan ÖNCE charge/discharge setpoint'lerini 0'lar — yoksa BSC
+  simülatörü "akım akarken stop"u reddeder (`CURRENT_FLOWS`), adım düşer ama
+  field standby `onFailure: continue` ile "DONE" görünür. Config güncel mi:
+  `deployment/v2/aws/container[2]/maneuvers/maneuvers.json` (`bsc_stop` 3 adım);
+  değilse `git pull` + `docker compose ... restart c1-web-service c2-web-service`.
+- **Availability 0/X (taze stack):** PCS `STOP` ile başlar; `register:aws-demo`
+  sonunda otomatik FL-01 Start-Up PCS'i Standby'e alır. Atlandıysa UI ›
+  Operations › FL-01 Start-Up.
 
 ### 8.4 FLAG (demo kabulü)
 - `ws://` (TLS'siz) + `:88` HTTP; MFA kapalı; DB yedekleme yok.
@@ -295,7 +304,7 @@ ayrı DB** ve **iki konteyner + bir field** tek compose'da çalışır:
 ```bash
 cp deployment/v2/aws/.env.example deployment/v2/aws/.env   # doldur (FIELD_*, C1_*, C2_*)
 docker compose --env-file deployment/v2/aws/.env -f deployment/v2/aws/docker-compose.yml up -d --build
-bun run register:aws-demo     # container-1=bess1 + container-2=bess2 (tek çağrı)
+bun run register:aws-demo     # container-1=bess1 + container-2=bess2 (tek çağrı; sonunda otomatik FL-01 Start-Up → PCS Standby, Availability dolu)
 # UI: http://<host>:88  (field-web nginx → field-web-service)
 ```
 
