@@ -232,6 +232,14 @@ curl -s -H "authorization: Bearer $TOKEN" \
 - **Availability 0/X (taze stack):** PCS `STOP` ile başlar; `register:aws-demo`
   sonunda otomatik FL-01 Start-Up PCS'i Standby'e alır. Atlandıysa UI ›
   Operations › FL-01 Start-Up.
+- **UI donuk (mode/SOC güncellenmiyor, komutlar çalışıyor):** önce konteyner
+  telemetri YAZIM hattına bak — `device_bsc_1`'in en yeni satırı dakikalar
+  önceyse yazım durmuştur. Log'da `queue_write_telemetry` + "Missing key (moveToFinished/moveToDelayed)"
+  sarmalı varsa: `docker compose … restart c1-device-service c1-data-service c2-device-service c2-data-service`.
+  Kök koruma: `stalledInterval` (120 sn) `statement_timeout` (30 sn) üstünde
+  tutulur (config'li); bir daha oluşursa dead-letter gerçek hatayı loglar.
+- **Konteyner telemetri tazeliği:** `TUNNEL_TELEMETRY_INTERVAL_MS` (varsayılan
+  2000; ws-tunnel default'u 15000). Hızlı charge→standby'de UI anlık görmeli.
 
 ### 8.4 FLAG (demo kabulü)
 - `ws://` (TLS'siz) + `:88` HTTP; MFA kapalı; DB yedekleme yok.

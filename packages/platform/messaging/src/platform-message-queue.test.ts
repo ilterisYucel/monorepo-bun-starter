@@ -346,6 +346,7 @@ describe("PlatformMessageQueue yüzeyi (IMessageQueue)", () => {
     const mq = new PlatformMessageQueue(makeConnection());
     await mq.registerWorkerFor("READ_DEVICE", processor, {
       concurrency: 3,
+      stalledInterval: 120000,
       onCompleted,
       onFailed,
     });
@@ -353,6 +354,8 @@ describe("PlatformMessageQueue yüzeyi (IMessageQueue)", () => {
     const worker = workerMocks[0]!;
     expect(worker.name).toBe(QUEUE_NAMES.READ_DEVICE);
     expect(worker.options.concurrency).toBe(3);
+    // stall koruması: statement_timeout (30 sn) üstünde tutulmalı.
+    expect(worker.options.stalledInterval).toBe(120000);
 
     const jobData = job("READ_DEVICE");
     worker.handlers["completed"]!({ data: jobData });

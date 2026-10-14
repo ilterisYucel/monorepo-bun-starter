@@ -261,6 +261,9 @@ export class PlatformMessageQueue implements IMessageQueue {
     if (!options) return undefined;
     return {
       concurrency: options.concurrency,
+      ...(options.stalledInterval !== undefined
+        ? { stalledInterval: options.stalledInterval }
+        : undefined),
       ...(options.onCompleted
         ? { onCompleted: (data: unknown) => options.onCompleted!(data as DeviceJob) }
         : undefined),

@@ -236,6 +236,7 @@ services:
       # Tünel HTTP köprüsü hedefleri (session/stream + komut proxy):
       # field → konteyner kontrol frame'leri bu upstream'e iletilir.
       TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container-web-service:5001}
+      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-2000}
       TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://container-web-service:5001}
     ports:
       - "5001:5001"

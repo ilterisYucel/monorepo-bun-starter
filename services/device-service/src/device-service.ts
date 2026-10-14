@@ -33,6 +33,14 @@ import {
 import type { AlarmTransition } from "./alarm-transition-detector";
 import { AlarmStateRepository } from "./alarm-state-repository";
 
+/**
+ * BullMQ stall kontrol aralığı. İşlemin kendi zaman aşımından (komut validate
+ * 35 sn / statement_timeout 30 sn) BÜYÜK olmalı; aksi halde asılı iş stall'a
+ * düşüp çift işlenir ve "Missing key (moveToFinished/moveToDelayed)" sarmalı
+ * işi yutar (AWS 2026-10-14 olayı).
+ */
+const WORKER_STALLED_INTERVAL_MS = 120_000;
+
 interface DeviceEntry {
   device: IDevice;
   pollIntervalMs: number;
@@ -335,7 +343,7 @@ export class DeviceService {
         if (!this.running) return;
         await this.readDevice(job as ReadDeviceJob);
       },
-      { concurrency: 10 },
+      { concurrency: 10, stalledInterval: WORKER_STALLED_INTERVAL_MS },
     );
     await this.mq.registerWorkerFor(
       "COMMAND_DEVICE",
@@ -343,7 +351,7 @@ export class DeviceService {
         if (!this.running) return;
         return await this.executeCommand(job as CommandDeviceJob);
       },
-      { concurrency: 10 },
+      { concurrency: 10, stalledInterval: WORKER_STALLED_INTERVAL_MS },
     );
 
     // Heartbeat yazıcıları (config-driven — örn. LGES BSC 40000): cihaz bağlandıktan

@@ -84,7 +84,7 @@ export function useDemoProject(fieldId: string): DemoProjectData {
   const runsQuery = useQuery({
     queryKey: ["demo-runs", fieldId],
     queryFn: () => demoApi.listRuns(),
-    refetchInterval: 10000,
+    refetchInterval: 2000,
     refetchOnWindowFocus: false,
     enabled: fieldId.length > 0,
   });

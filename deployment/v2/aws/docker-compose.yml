@@ -448,6 +448,8 @@ services:
       CONTAINER_TOKEN: ${C1_CONTAINER_TOKEN:?C1_CONTAINER_TOKEN zorunlu (>=32 karakter)}
       CONTAINER_ID: container-1
       TUNNEL_API_UPSTREAM: http://c1-web-service:5001
+      # Konteyner→field telemetri push aralığı (UI tazeliği; varsayılan 15 sn).
+      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-2000}
     volumes:
       - ./container/device-configs:/app/config-docker:ro
       - ./container/maneuvers:/app/maneuver-config:ro
@@ -587,6 +589,7 @@ services:
       CONTAINER_TOKEN: ${C2_CONTAINER_TOKEN:?C2_CONTAINER_TOKEN zorunlu (>=32 karakter)}
       CONTAINER_ID: container-2
       TUNNEL_API_UPSTREAM: http://c2-web-service:5001
+      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-2000}
     volumes:
       - ./container2/device-configs:/app/config-docker:ro
       - ./container2/maneuvers:/app/maneuver-config:ro

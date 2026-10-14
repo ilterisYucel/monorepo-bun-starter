@@ -200,6 +200,7 @@ services:
       # Field→konteyner tünel istekleri bu web-service'e yerel olarak çözülür
       # (servis adı container2-web-service; `container-web-service` bu ağda YOK).
       TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container2-web-service:5001}
+      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-2000}
       TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://container2-web-service:5001}
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
