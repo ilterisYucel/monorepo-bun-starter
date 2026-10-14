@@ -234,10 +234,12 @@ curl -s -H "authorization: Bearer $TOKEN" \
   Operations › FL-01 Start-Up.
 - **UI donuk (mode/SOC güncellenmiyor, komutlar çalışıyor):** önce konteyner
   telemetri YAZIM hattına bak — `device_bsc_1`'in en yeni satırı dakikalar
-  önceyse yazım durmuştur. Log'da `queue_write_telemetry` + "Missing key (moveToFinished/moveToDelayed)"
-  sarmalı varsa: `docker compose … restart c1-device-service c1-data-service c2-device-service c2-data-service`.
-  Kök koruma: `stalledInterval` (120 sn) `statement_timeout` (30 sn) üstünde
-  tutulur (config'li); bir daha oluşursa dead-letter gerçek hatayı loglar.
+  önceyse yazım durmuştur. Tek komut: `bun run recover:aws-demo` (takılı run'ları
+  kapatır + c1/c2 redis kuyruklarını boşaltır + device/data restart eder).
+  Kök korumalar: `WRITE_TELEMETRY attempts:1` (retry yolu kapalı → `moveToDelayed`
+  missing-key sarmalı imkânsız; başarısız yazım tek seferde dead-letter'a düşer
+  ve gerçek nedeni loglar) + `ensureTableExists` başarısızsa batch atlanır +
+  `stalledInterval` (120 sn) `statement_timeout` (30 sn) üstünde.
 - **Konteyner telemetri tazeliği:** `TUNNEL_TELEMETRY_INTERVAL_MS` (varsayılan
   2000; ws-tunnel default'u 15000). Hızlı charge→standby'de UI anlık görmeli.
 

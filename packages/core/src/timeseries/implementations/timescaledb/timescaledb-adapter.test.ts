@@ -84,6 +84,27 @@ describe("TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)", () => {
     expect(clientQuery).not.toHaveBeenCalled();
   });
 
+  it("tablo hazırlığı başarısız cihazın batch'i ATLANIR (INSERT denenmez, throw yok)", async () => {
+    const poolQuery = vi.fn().mockImplementation((sql: string) => {
+      if (String(sql).includes("device_HVAC_1")) {
+        return Promise.reject(new Error("ddl boom"));
+      }
+      return Promise.resolve({ rows: [] });
+    });
+    const { pool, clientQuery } = makeWritePool({ poolQuery });
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await expect(
+      adapter.write([point("HVAC-1", "T", 21), point("BSC-1", "SOC", 80)]),
+    ).resolves.toBeUndefined();
+
+    const inserts = clientQuery.mock.calls
+      .map((c) => String(c[0]))
+      .filter((s) => s.includes("INSERT INTO"));
+    expect(inserts.some((s) => s.includes("device_HVAC_1"))).toBe(false);
+    expect(inserts.some((s) => s.includes("device_BSC_1"))).toBe(true);
+  });
+
   it("INSERT hatası → ROLLBACK; write REJECT eder (retry ön koşulu — K10)", async () => {
     const clientQuery = vi.fn()
       .mockResolvedValueOnce({ rows: [] }) // BEGIN

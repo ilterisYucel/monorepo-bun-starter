@@ -164,16 +164,22 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     // Tablo olusturma yazimdan ONCE (pool uzerinde) — client transaction'i
     // icinde DDL karismaz, concurrent cagrilar ayni promise'i bekler.
-    const deviceIds = Array.from(groupedByDevice.keys());
+    const allDeviceIds = Array.from(groupedByDevice.keys());
     const ensureResults = await Promise.allSettled(
-      deviceIds.map((deviceId) => this.ensureTableExists(deviceId)),
+      allDeviceIds.map((deviceId) => this.ensureTableExists(deviceId)),
     );
-    const failedEnsures = ensureResults.filter((r) => r.status === "rejected");
-    if (failedEnsures.length > 0) {
+    // Tablosu hazirlanamayan cihazin yazimini ATLA — tablo yokken INSERT
+    // denemek job'u fail ettirip (retry/onFailure zincirine girip) kademeli
+    // bozulmaya yol aciyordu. O cihazin batch'i duser; sonraki poll tabloyu
+    // yeniden kurmayi dener (ensureTableExists cache'te degil).
+    const deviceIds = allDeviceIds.filter((_, i) => ensureResults[i]!.status === "fulfilled");
+    const failedCount = allDeviceIds.length - deviceIds.length;
+    if (failedCount > 0) {
       console.warn(
-        `[TimescaleDB] ${failedEnsures.length}/${deviceIds.length} tablo hazirligi basarisiz`,
+        `[TimescaleDB] ${failedCount}/${allDeviceIds.length} cihazin tablo hazirligi basarisiz — o batch'ler atlandi`,
       );
     }
+    if (deviceIds.length === 0) return;
 
     // Her device icin tek client + tek multi-row INSERT — ayni client uzerinde
     // paralel query YASAK (pg client'i tek query calistirabilir).

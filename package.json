@@ -21,6 +21,7 @@
     "test:demo-integration": "nx run demo-field:test-integration",
     "register:demo-integration": "tools/register-container.sh --env deployment/v2/dev/field/.env --container-env deployment/v2/dev/container/.env,deployment/v2/dev/container2/.env --url http://localhost:5002 --container container-1,container-2 --station bess1,bess2 --token-var CONTAINER_TOKEN,CONTAINER2_TOKEN",
     "register:aws-demo": "tools/register-container.sh --env deployment/v2/aws/.env --container-env deployment/v2/aws/.env --url http://localhost:88 --container container-1,container-2 --station bess1,bess2 --token-var C1_CONTAINER_TOKEN,C2_CONTAINER_TOKEN",
+    "recover:aws-demo": "tools/aws-recover.sh",
     "dev:field-web-service": "DEVICE_CONFIG_DIR=../../deployment/v1/dev/field/device-configs SERVICE_TIER=field nx run web-service:dev",
     "dev:superadmin": "nx run superadmin:dev",
     "dev:superadmin-web-service": "SERVICE_TIER=boss nx run web-service:dev",

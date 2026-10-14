@@ -20,8 +20,11 @@ import type { DeviceJob, JobType, JobResult } from "@gd-monorepo/shared-types";
  *
  * - READ_DEVICE: attempts 1 — poll = doğal retry; bayat örnek ve retry
  *   fırtınası önlenir.
- * - WRITE_TELEMETRY: attempts 5 + backoff — okunan veri kaybedilemez;
- *   removeOnFail yüksek tutulur (dead-letter).
+ * - WRITE_TELEMETRY: attempts 1 — telemetri 1 sn'de eskir, sonraki poll taze
+ *   veriyi getirir; retry gereksizdir ve `moveToDelayed` yolu (AWS'te
+ *   missing-key sarmalı → worker yuva sızıntısı → yazım ölümü) yalnızca
+ *   retry'larda tetiklenir. Başarısızlık tek seferde dead-letter'a düşer
+ *   (removeOnFail 500, onFailed gerçek nedeni loglar).
  * - COMMAND_DEVICE: 3 — komut kaybedilemez; writeAtomic idempotency sağlar.
  * - MANAGEMENT / WS_BROADCAST: 1-2 — türetilmiş işler.
  * - FETCH_EXTERNAL: 3 — dış toplayıcı.
@@ -33,8 +36,7 @@ export const JOB_RETRY_OPTIONS: Record<JobType, JobsOptions> = {
     removeOnFail: 50,
   },
   WRITE_TELEMETRY: {
-    attempts: 5,
-    backoff: { type: "exponential", delay: 1000 },
+    attempts: 1,
     removeOnComplete: 100,
     removeOnFail: 500,
   },
