@@ -50,13 +50,24 @@ export function deriveKpis(
     (u) => u.rmu.H02 === "closed" && u.pcs.some((p) => p.state !== "fault" && p.state !== "off"),
   ).length;
 
-  const mode: NovaKpis["mode"] = pcsAll.some((p) => p.state === "chg")
-    ? "chg"
-    : pcsAll.some((p) => p.state === "dis")
-      ? "dis"
-      : pcsAll.some((p) => p.state === "rest")
-        ? "rest"
-        : "stby";
+  // UC-13: istasyon bazlı mod — BSC ChargeStatus (bitfield 4-5): 1=Charge,
+  // 2=Discharge, 3=Idle. PCS saha-seviyesi (paylaşımlı) olduğundan istasyon
+  // ayrımı için BSC durumu önceliklidir; yoksa PCS'e düşülür (geriye dönük).
+  const bscCharge = banks.map((b) => b.chargeStatus).filter((v): v is number => v !== undefined);
+  const mode: NovaKpis["mode"] =
+    bscCharge.length > 0
+      ? bscCharge.some((v) => v === 1)
+        ? "chg"
+        : bscCharge.some((v) => v === 2)
+          ? "dis"
+          : "stby"
+      : pcsAll.some((p) => p.state === "chg")
+        ? "chg"
+        : pcsAll.some((p) => p.state === "dis")
+          ? "dis"
+          : pcsAll.some((p) => p.state === "rest")
+            ? "rest"
+            : "stby";
 
   const count = (sev: string): number => alerts.filter((a) => a.sev === sev).length;
 

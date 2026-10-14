@@ -50,6 +50,8 @@ export interface SimulatorBuildContext {
   readonly deviceId: string;
   readonly network: SimulatorNetworkConfig;
   readonly rackCount: number;
+  /** BSC başlangıç SOC'u (%) — `details.initialSocPercent` (yoksa sim 50). */
+  readonly initialSocPercent?: number;
   readonly registerMap: string | undefined;
   readonly bmsPort: number | undefined;
 }
@@ -98,7 +100,12 @@ export class SimulatorHost {
             JSON.parse(readFileSync(ctx.registerMap, "utf-8")) as Record<string, unknown>[],
           ).registers
         : [];
-      return new BSCSimulator({ rackCount: ctx.rackCount, registers, network: ctx.network });
+      return new BSCSimulator({
+        rackCount: ctx.rackCount,
+        ...(ctx.initialSocPercent !== undefined ? { initialSocPercent: ctx.initialSocPercent } : {}),
+        registers,
+        network: ctx.network,
+      });
     });
     this.builders.set("hvac", (ctx) => new HvacSimulator({ network: ctx.network }));
     this.builders.set("cb", (ctx) => new CbSimulator({ network: ctx.network }));
@@ -206,6 +213,9 @@ export class SimulatorHost {
         deviceId: config.deviceId,
         network,
         rackCount: detailNumber(config, "rackCount") ?? 8,
+        ...(detailNumber(config, "initialSocPercent") !== undefined
+          ? { initialSocPercent: detailNumber(config, "initialSocPercent") }
+          : {}),
         registerMap: this.resolveMap(transport.registerMap),
         bmsPort: transport.bmsPort,
       };

@@ -23,8 +23,10 @@ export { DemoContainerScada } from "./DemoContainerScada";
 export type { DemoContainerScadaProps } from "./DemoContainerScada";
 export { DemoBessScada } from "./DemoBessScada";
 export type { DemoBessScadaProps } from "./DemoBessScada";
-export { DemoPackDetail } from "./DemoPackDetail";
+export { DemoPackDetail, DIAG } from "./DemoPackDetail";
 export type { DemoPackDetailProps } from "./DemoPackDetail";
+export { DemoPackSchematic } from "./DemoPackSchematic";
+export type { DemoPackSchematicProps, DemoPackSpec } from "./DemoPackSchematic";
 export {
   packData,
   packFill,
@@ -73,6 +75,7 @@ export type {
 export { DemoFaultsView } from "./DemoFaultsView";
 export type { DemoFaultsViewProps } from "./DemoFaultsView";
 export { DemoOperationsView } from "./DemoOperationsView";
+export { isStaleRun, STALE_RUN_MS } from "./DemoOperationsView";
 export type {
   DemoOperationsViewProps,
   DemoOpDef,
@@ -152,6 +155,40 @@ export type {
   DemoPollPlan,
   DemoCatalogKey,
 } from "./demo-registers";
+export {
+  RegModeProvider,
+  RegisterValue,
+  RegisterTip,
+  RegisterBar,
+  RegModeSegment,
+  useRegMode,
+} from "./DemoRegMode";
+export type {
+  RegisterMode,
+  RegisterValueProps,
+  RegModeSegmentProps,
+} from "./DemoRegMode";
+export * from "./register-sources";
+export * from "./mimic-source-map";
+export { DemoPlantOverview } from "./DemoPlantOverview";
+export type { DemoPlantOverviewProps } from "./DemoPlantOverview";
+export { DemoStationBar } from "./DemoStationBar";
+export type { DemoStationBarProps, DemoStationBarStation } from "./DemoStationBar";
+export { DemoSourceStationView } from "./DemoSourceStationView";
+export type { DemoSourceStationViewProps } from "./DemoSourceStationView";
+export { derivePlantOverview, dailyEnergy, deriveStationView, deriveCollectorOverview, deriveSourceStations, plantUnitView, buildPeakSeries, peakEnergySums } from "./demo-plant";
+export type {
+  PlantOverview,
+  PlantUnitView,
+  PlantDailyEnergy,
+  PlantStationConfig,
+  PlantStationView,
+  CollectorOverview,
+  PlantSourceConfig,
+  PlantSourceView,
+  PeakSample,
+  PeakSeries,
+} from "./demo-plant";
 export * from "./maneuver-types";
 export { DemoManeuverCard } from "./DemoManeuverCard";
 export type { DemoManeuverCardProps } from "./DemoManeuverCard";

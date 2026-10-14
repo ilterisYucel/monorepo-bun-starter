@@ -227,7 +227,7 @@
       }
     }
   ],
-  "pollIntervalMs": 2000,
+  "pollIntervalMs": 1000,
   "commands": {
     "on": {
       "label": "Aç (On)",

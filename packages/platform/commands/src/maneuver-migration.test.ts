@@ -92,9 +92,9 @@ describe("konteyner maneuvers.json (A3 migrasyon)", () => {
 });
 
 describe("field maneuvers.json (A3 migrasyon — REV.01)", () => {
-  it("fail-fast yüklenir — 11 kayıt", () => {
+  it("fail-fast yüklenir — 12 kayıt", () => {
     const file = loadManeuversFile(read(FIELD_MANEUVERS_PATH));
-    expect(file.maneuvers).toHaveLength(11);
+    expect(file.maneuvers).toHaveLength(12);
   });
 
   it("deviceTypes seçicili adımlar (PCS tip çözümlemesi yürütücüde)", () => {

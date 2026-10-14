@@ -200,6 +200,31 @@ describe("manevra/operasyon rotaları — yürütme + okuma", () => {
     );
   });
 
+  it("UC-13: systems → executor'a remoteSystem olarak geçer (uzak adım hedefi)", async () => {
+    const deps = makeDeps();
+    const res = await inject(
+      "POST",
+      "/api/maneuvers/pcs_charge/execute",
+      deps,
+      {
+        user: ADMIN,
+        payload: { params: { powerKw: 200 }, deviceIds: ["PCS-2"], systems: ["container-2"] },
+      },
+    );
+    expect(res.statusCode).toBe(200);
+    expect(deps.executor.execute).toHaveBeenCalledWith(
+      "maneuver",
+      "pcs_charge",
+      { powerKw: 200 },
+      {
+        deviceIds: ["PCS-2"],
+        remoteSystem: "container-2",
+        trigger: "manual",
+        createdBy: "admin",
+      },
+    );
+  });
+
   it("HTTP eşlemesi: not_found 404 / missing_param 400 / persist 503 / failed 422", async () => {
     const notFound = makeDeps({
       executeImpl: async (): Promise<OperationRunResult> => ({

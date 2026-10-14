@@ -185,6 +185,8 @@ export interface NovaBankState {
   bscState?: number;
   /** Çevrimiçi raf sayısı (30038). */
   online?: number;
+  /** BSC şarj/deşarj durumu (bitfield 4-5): 1=Charge, 2=Discharge, 3=Idle, 0=None (UC-13). */
+  chargeStatus?: number;
   dcb: NovaSwitchPos;
 }
 

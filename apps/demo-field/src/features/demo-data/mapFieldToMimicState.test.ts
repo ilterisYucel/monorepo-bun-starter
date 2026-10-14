@@ -203,3 +203,45 @@ describe("mapFieldToMimicState — container cihazları (UC-9)", () => {
     expect(state.ambient).toBeUndefined();
   });
 });
+
+describe("UC-13 istasyon-bazlı fan-out", () => {
+  const tagged = (id: string, station: string, soc: number): FieldContainer => ({
+    containerId: id,
+    station,
+    connectionStatus: "connected",
+    latestTelemetry: [
+      T("BSC-1", "SOC", soc, { canonical: "soc" }),
+      T("BSC-1", "SOH", 98, { canonical: "soh" }),
+      T("BSC-1", "Voltage", 1300, { canonical: "voltage" }),
+      T("PCS-1", "PCS Operation Status", 2),
+      T("PCS-1", "Grid Active Power", -600),
+    ],
+  });
+
+  it("iki konteyner iki istasyona bölünür; SOC istasyona göre ayrışır", () => {
+    const mv = REAL_TELEMETRY.filter((r) => r.deviceId === "DEMO-MV-1");
+    const state = mapFieldToMimicState([tagged("c1", "bess1", 60), tagged("c2", "bess2", 40)], DEMO_TOPOLOGY, {
+      extraTelemetry: mv,
+    });
+    expect(state.units).toHaveLength(9);
+    // station1 = 1–5 (kendi konteyneri c1 → 60), station2 = 6–9 (c2 → 40)
+    expect(state.units.find((u) => u.n === 1)?.banks[0].soc).toBe(60);
+    expect(state.units.find((u) => u.n === 5)?.banks[0].soc).toBe(60);
+    expect(state.units.find((u) => u.n === 6)?.banks[0].soc).toBe(40);
+    expect(state.units.find((u) => u.n === 9)?.banks[0].soc).toBe(40);
+  });
+
+  it("etiket yoksa legacy tek prototip (güç korunumu) korunur", () => {
+    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
+    expect(state.units).toHaveLength(9);
+  });
+
+  it("UC-13: BSC ChargeStatus bankaya taşınır (istasyon modu için)", () => {
+    const withCharge: TelemetryData[] = [
+      T("BSC-1", "SOC", 60, { canonical: "soc" }),
+      T("BSC-1", "ChargeStatus", 1),
+    ];
+    const state = mapFieldToMimicState([container(withCharge)], DEMO_TOPOLOGY);
+    expect(state.units[0]?.banks[0].chargeStatus).toBe(1);
+  });
+});

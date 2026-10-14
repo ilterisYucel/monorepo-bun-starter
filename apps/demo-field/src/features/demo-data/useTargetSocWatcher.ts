@@ -37,12 +37,17 @@ export function matchingRunStarted(
   return runs.some((r) => r.name === name && Date.parse(r.startedAt) >= setAt - 2000);
 }
 
-export function useTargetSocWatcher(state: NovaMimicState, runs: OperationRunRecord[]): void {
+export function useTargetSocWatcher(
+  state: NovaMimicState,
+  runs: OperationRunRecord[],
+  stationSystems: Record<string, string> = {},
+): void {
   const target = useTargetSocStore((s) => s.target);
   const dir = useTargetSocStore((s) => s.dir);
   const scope = useTargetSocStore((s) => s.scope);
   const active = useTargetSocStore((s) => s.active);
   const setAt = useTargetSocStore((s) => s.setAt);
+  const stationKey = useTargetSocStore((s) => s.stationKey);
   const clear = useTargetSocStore((s) => s.clear);
   const qc = useQueryClient();
   const firing = useRef(false);
@@ -56,8 +61,9 @@ export function useTargetSocWatcher(state: NovaMimicState, runs: OperationRunRec
     if (!targetReached(soc, target, dir)) return;
 
     firing.current = true;
+    const containerId = stationKey ? stationSystems[stationKey] : undefined;
     void demoManeuverApi
-      .stop()
+      .stop(containerId ? [containerId] : undefined)
       .catch(() => undefined)
       .finally(() => {
         clear();
@@ -67,5 +73,5 @@ export function useTargetSocWatcher(state: NovaMimicState, runs: OperationRunRec
           firing.current = false;
         }, 5000);
       });
-  }, [state, runs, target, dir, scope, active, setAt, clear, qc]);
+  }, [state, runs, target, dir, scope, active, setAt, stationKey, stationSystems, clear, qc]);
 }

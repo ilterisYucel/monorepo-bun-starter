@@ -37,6 +37,13 @@ Dün tamamlanan DEMO-FIELD-KONSOL işi (`demo-field` SPA + `packages/ui/src/nova
 | K-8 | Veri katmanı genişletilir (tek konteyner → 9 ünite fan-out korunur) | `mapFieldToMimicState` container `latestTelemetry`'den HVAC-1..8, PM5340-1, CONTROL-PANEL-IO-1, CB-1/2, DC-METER-1, IMD-1 okur; `NovaUnitState` yeni alanlar (`hvac`, `aux`, `fss`, `dc`, `imd`); ambient = HVAC-1 `Outside Temp`. |
 | K-9 | Backend gap'leri UI hazır bırakılır (dummy değil) | B-1 kalibrasyon `scheduleAt`, B-2 ham Modbus trace, B-3 fault injection — UI/akış tam; backend uçları geldiğinde canlıya döner. |
 | K-10 | Open-Closed: yalnız ekleme | `demo-field` ve `nova` dışındaki tüketiciler etkilenmez; backend sözleşmeleri (manevra/operasyon/alarm/log/external) değişmez; simülatör mevcut sürücü sözleşmelerini (register-map + adapter) uygular. |
+| K-11 | Plant overview kartı referans `plant-view.js#collectorSvg` portu (eklemeli) | 2 BESS MV istasyonu (manuel config: **#1 = BESS#1–5, #2 = BESS#6–9**) + **2 PV MV istasyonu (illüstratif/statik solar üretim; backend inverter verisi yok, tooltip M7 "simulated")** → **collector** tek hat + istasyon kartları; collector tipi gdems kuralıyla (`COLLECTOR_LIMIT_MW=50`): kurulu 31.05 + ~50.4 ≈ 81.4 MW > 50 → **"METAL CLAD · 34.5 kV"**; **Peak shaving disabled** (gerçek controller yok); istasyon kartına **tıklama** site layout'u o istasyona geçirir (`stationTopo`); plant güç trendi downsampled seriden; **günlük enerji** downsampled POI güç entegrasyonu (yaklaşık). |
+| K-14 | İstasyon barı (stBar) + istasyon-bazlı KPI (referans `app.js#renderStBar`/`#kpis`) | `activeStation` context'te (plant kartı + stBar + site layout tek kaynak); stBar `DemoProjectStrip` ile `DemoKpiStrip` arasında; KPI'lar (`stationKpis = deriveKpis(stationState, stationTopology)`) seçili istasyona göre (Availability/Avg SOC/SOH/Cell temp/Faults istasyon bazlı); güç tile etiketi "Station power · H03". pinfo site-geneli kalır. |
+| K-15 | Konteyner→istasyon etiketi (UC-13) | `field_containers.station` kolonu (inline `ALTER`); register payload opsiyonel `station` (trim ≤64); `GET /:fieldId/containers` `station` döner; konteyner telemetrisi `STATION_ID` env ile `station` tag'i taşır; frontend istasyonları bu etiketten türetir (fallback: mevcut `DEMO_STATIONS`). |
+| K-16 | Her konteyner için AYRI docker-compose | `deployment/v2/dev/container/` (container-1) + `deployment/v2/dev/container2/` (container-2; kendi compose + `.env` + config kopyaları; kendi network'ü + `demo-bridge` external). `start/stop:demo-integration` üç compose'u sıralar; register aracı iki konteyneri otomatik kaydeder (bess1/bess2). Yalnızca dev. |
+| K-17 | İstasyon bazlı uzak yürütme — station bilgisi backend'e/config'e GİRMEZ | Ön yüz seçili istasyonun **konteyner id'sini** execute isteğinde `systems` ile gönderir; field executor uzak (`system`) adımı O konteynerin ws-tünelinden yürütür (`ExecuteOptions.remoteSystem`). `operations.json`/servisler/config'ler değişmez; station↔konteyner eşlemesi yalnız `field_containers.station` (register) + ön yüzde. |
+| K-12 | Register-source (tooltip) modu referans `regsrc.js` portu | Header'a `Source: Values · Tooltip · Inline` segmenti (localStorage persist); `RegisterValue` sarmalayıcı + **tek** global hover kartı; kaynak türleri `reg`/`calc`/`nomap`/`model` renk lejantı; veri mevcut `demo-registers.ts` kataloğundan; **backend sözleşmesi değişmez** (salt görünüm). |
+| K-13 | Bu tur kapsamı: yalnız Site layout sayfası + paylaşılan üst blok | Tooltip kablolaması: Site layout (mimic, unit detail, attention, plant overview) + pinfo/KPI. Devices/Operations/Grid & Market/Faults/Admin kablolaması **2. tur** (bkz. A-6). |
 
 ## 3. Mevcut Durum / Kök Nedenler
 
@@ -627,6 +634,257 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 | `packages/simulators/src/host.ts` | `fss` builder |
 | `deployment/{dev,aws}/demo-edge/container-device-configs/fss-1.json` | Yeni config |
 
+### 6.11 UC-11 — Plant overview (Site layout üstü, collector + istasyon kartları)
+
+**Status:** ✏️ Specified (onay bekliyor)
+- **Kapsam dahil:** Site layout sekmesinde, trendlerin üstünde **plant overview kartı**: **collector** tek hat (grid → Q01 incomer → Q02 metering → collector bus → istasyon fiderleri → **BESS MV istasyon kartları**) + yan panel (Main source yok + Manual/Peak modu + canlı KPI + günlük enerji) + plant güç trendi. **İstasyon kartına tıklama** alttaki site layout'u (mimic + unit detail + attention) o istasyona geçirir. Kaynak: `plant-view.js#collectorSvg`, `#render`, `#plantSrc`; istasyon bölümü manuel config (ileride backend config'i). 2 istasyon: **#1 = BESS#1–5 (Feeder A)**, **#2 = BESS#6–9 (Feeder B)**; collector **"MV STATION · 34.5 kV"** (31.05 MW ≤ 50).
+- **Kapsam hariç:** Main-source (PV/wind) MV station view, peak shaving algoritması (kaynak yok → disabled), source unit table, collector Metal Clad — A-5 ileri iş.
+
+**Akış:**
+1. `demo-stations.ts#DEMO_STATIONS` (2 istasyon, ünite listesi) + `#stationTopo(k)` (DEMO_TOPOLOGY'den o istasyonun fider dilimi) saf config.
+2. `mapFieldToMimicState` çıktısından `demo-plant.ts#deriveCollectorOverview` istasyon başına türevleri (MW/SOC/Tmax/durum) üretir.
+3. `DemoPlantOverview` collector SVG'sini çizer; canlı değerler her state güncellemesinde yazılır (flow yön/sınıf).
+4. İstasyon kartına tıklama `onStationSelect(k)` → `DemoFieldPage` seçili istasyonu değiştirir; mimic `stationTopo(k)` + `stateForStation` ile o istasyonun 5/4 ünitesini gösterir.
+5. Günlük enerji: downsampled POI güç serisi entegrasyonu (Exported > 0, Imported < 0); seri yoksa "—". Plant güç trendi downsampled seriyi `DemoTrendChart` ile çizer.
+
+**FR-11 Gereksinimler:**
+| Kod | Gereksinim | AK |
+|:----|:-----------|:---|
+| FR-11.1 | Kart MUST collector tek hattını gösterir (grid, Q01 incomer, Q02 metering, collector bus, istasyon fiderleri) | AK-11.1 |
+| FR-11.2 | Her istasyon kartı MUST isim, BESS#aralık, n × 3.568 MWh, güç, SOC barı, ünite mini kutucukları ve durum taşır | AK-11.2 |
+| FR-11.3 | Collector/POI/istasyon değerleri MUST canlı ve yön sınıflı (dis/chg) olur | AK-11.3 |
+| FR-11.4 | Yan panel MUST Manual aktif + Peak shaving disabled + canlı KPI + günlük enerji gösterir | AK-11.4 |
+| FR-11.5 | İstasyon kartı tıklaması MUST site layout'u (mimic + unit detail + attention) o istasyona geçirir | AK-11.5 |
+| FR-11.6 | İstasyon bölümü MUST manuel config'ten gelir (2 istasyon: BESS#1–5, BESS#6–9) | AK-11.6 |
+| FR-11.7 | Günlük enerji MUST POI serisi entegrasyonundan gelir; seri yoksa "—" (uydurma yok) | AK-11.7 |
+| FR-11.8 | İstasyon barı MUST seçili istasyonu gösterir/değiştirir; KPI'lar seçili istasyona göre hesaplanır | AK-11.8 |
+| FR-11.9 | Kart MUST 2 PV MV istasyonu (illüstratif) içerir; collector tipini kurulu güce göre (Metal Clad / MV station) gösterir | AK-11.9 |
+| FR-11.10 | PV istasyon kartına tıklama MUST o istasyonun tek-hat çizimini (srcKpi + birimler) site layout yerine gösterir; BESS seçimi geri döndürür | AK-11.10 |
+| FR-11.11 | "Solar production & peak shaving · today" grafiği MUST production/POI + shaved/released bandları + threshold gösterir (illüstratif) | AK-11.11 |
+
+**GWT Kabul Senaryoları:**
+1. **AK-11.1 — GIVEN** 2 istasyonlu config **WHEN** kart render edilir **THEN** `svg.po` içinde Q01/Q02 ve 2 istasyon kutusu bulunur
+2. **AK-11.2 — GIVEN** istasyon #1 **WHEN** kart yazılır **THEN** "BESS#1–5 · 5 × 3.568 MWh" ve 5 ünite kutucuğu görünür
+3. **AK-11.3 — GIVEN** istasyon poiMW>0 **WHEN** satır yazılır **THEN** MW `dis` sınıflıdır; poiMW<0 `chg`
+4. **AK-11.4 — GIVEN** ana kaynak yok **WHEN** panel render edilir **THEN** Manual `aria-pressed=true`, Peak `disabled`
+5. **AK-11.5 — GIVEN** kart #2 tıklanır **WHEN** `onStationSelect(1)` **THEN** seçili istasyon #2 olur ve mimic BESS#6–9 gösterir
+6. **AK-11.6 — GIVEN** `DEMO_STATIONS` **WHEN** okunur **THEN** toplam 9 ünite (5+4) ve 2 istasyon tanımlıdır
+7. **AK-11.7 — GIVEN** downsampled seri boş **WHEN** günlük enerji yazılır **THEN** tüm satırlar "—"
+8. **AK-11.8 — GIVEN** 2 istasyon **WHEN** stBar'da #2 seçilir **THEN** KPI'lar BESS#6–9 ünitelerine göre hesaplanır
+9. **AK-11.9 — GIVEN** illüstratif solar config **WHEN** kart render edilir **THEN** "PV MV STATION #1/#2" kutuları ve collector "METAL CLAD · 34.5 kV" görünür
+10. **AK-11.10 — GIVEN** plant kartı **WHEN** PV #1 kutusuna tıklanır **THEN** site layout yerine "PV MV STATION #1" tek-hat çizimi (7 birim + srcKpi) görünür; BESS#1 seçilince mimic geri gelir
+11. **AK-11.11 — GIVEN** illüstratif solar **WHEN** kart render edilir **THEN** "Solar production & peak shaving · today" grafiği + peakSum (production/shaved/released/threshold) görünür
+
+**Kabul Kriterleri:**
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-11.1 | Collector tek hat render | unit | ⬜ |
+| AK-11.2 | İstasyon kartı + ünite kutucukları | unit | ⬜ |
+| AK-11.3 | Collector/POI yön | unit | ⬜ |
+| AK-11.4 | Manual/Peak mod + KPI | unit | ⬜ |
+| AK-11.5 | İstasyon kartı tıklaması geçiş | unit | ⬜ |
+| AK-11.6 | İstasyon manuel config (5+4) | unit | ⬜ |
+| AK-11.7 | Günlük enerji boş durum | unit | ⬜ |
+| AK-11.8 | stBar + istasyon-bazlı KPI | unit | ⬜ |
+| AK-11.9 | PV kutuları + collector tipi (Metal Clad) | unit | ⬜ |
+| AK-11.10 | PV tek-hat çizimi + geri dönüş | unit | ⬜ |
+| AK-11.11 | Peak shaving grafiği + peakSum | unit | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-37: `demo-plant.ts#deriveStationView` + `#deriveCollectorOverview` + `#dailyEnergy` (saf) + testler
+- [ ] T-38: `DemoPlantOverview.tsx` collector SVG + istasyon kartları + yan panel + CSS
+- [ ] T-39: plant güç trendi (downsampled) + kart tıklama (`onStationSelect`)
+- [ ] T-40: `DemoFieldPage` istasyon seçici + `stateForStation` + `stationTopo` + filtreli detail/attention + testler
+- [ ] T-47: `demo-stations.ts` (2 istasyon 5+4, `stationTopo`, `stationForUnit`) + testler
+- [ ] T-48: `DemoStationBar` + context `activeStation`/`stationKpis` + istasyon-bazlı KPI + testler
+- [ ] T-49: PV kaynak kutuları + collector tipi (Metal Clad) + testler
+- [ ] T-50: `DemoSourceStationView` (PV tek-hat + srcKpi) + `DemoFieldPage` kaynak görünümü geçişi + testler
+- [ ] T-51: `buildPeakSeries`/`peakEnergySums` + "Solar production & peak shaving" grafiği + testler
+
+**Edge Cases:**
+| Durum | Davranış |
+|:------|:---------|
+| Telemetri boş | Kutucuklar nötr; KPI "—"; trend "No data" |
+| Downsampled seri yok | Günlük enerji "—" (uydurma yok) |
+| Tek istasyon | Standalone tek hat (kolektör yok) |
+| Seçili istasyon ünite yok | Boş ünite listesi (throw yok) |
+
+**Involved Files:**
+| Dosya | Rol / Değişiklik |
+|:------|:----------------|
+| `apps/demo-field/src/features/demo-data/demo-stations.ts` | Yeni (saf config + `stationTopo`) |
+| `packages/ui/src/nova/demo-plant.ts` | İstasyon/collector türevleri |
+| `packages/ui/src/nova/DemoPlantOverview.tsx` | Collector + kartlar |
+| `packages/ui/src/nova/nova-console.css` | Plant overview stilleri |
+| `packages/ui/src/nova/index.ts` | Export |
+| `apps/demo-field/src/pages/DemoFieldPage.tsx` | İstasyon seçici + filtre |
+
+### 6.12 UC-12 — Register-source modu (Values · Tooltip · Inline)
+
+**Status:** ✏️ Specified (onay bekliyor)
+- **Kapsam dahil:** Header `Source` segmenti (Values/Tooltip/Inline, localStorage persist); `RegisterValue` sarmalayıcı; tek global hover kaynak kartı; kaynak türü renk lejantı (reg/calc/nomap/model); mimic SVG metinlerinin `data-rsk` annotasyonu; Site layout + pinfo/KPI kablolaması. Kaynak: `regsrc.js`, `demo/app.js#applyRegMode/#annotateSvgs/#srcForId`, `demo/app.css` `.rv`/`#rsTip`/`.regbar`.
+- **Kapsam hariç:** Devices/Operations/Grid & Market/Faults/Admin kablolaması (A-6, 2. tur); admin mapping'in canlı düzenlenmesi (mevcut read-only mapping kullanılır).
+
+**Akış:**
+1. `RegisterValue` bir değeri sarar; mod `val` ise düz metin, aksi halde `.rv` span'i + registry kaydı üretir.
+2. Global hover kartı `pointermove` ile `[data-rsk]` bulur, registry'den kaynağı çözer, `tipHtml` ile kartı basar.
+3. Mimic her güncellemede `data-rsk`'leri id→kaynak eşlemesinden (`mimic-source-map.ts`) yazar.
+4. `Inline` modu değeri `adres · device · register adı` metnine çevirir (hover yine kart).
+
+**FR-12 Gereksinimler:**
+| Kod | Gereksinim | AK |
+|:----|:-----------|:---|
+| FR-12.1 | Header MUST `Values · Tooltip · Inline` segmentini taşır ve seçimi localStorage'a yazar | AK-12.1 |
+| FR-12.2 | Kaynaklı değer MUST hover'da device + register (adres/FC/tip/scale/unit) kartı açar | AK-12.2 |
+| FR-12.3 | `calc` kaynak MUST hesaplanan türevi + girdi register listesini gösterir | AK-12.3 |
+| FR-12.4 | `nomap`/`model` kaynak MUST "register map not supplied"/"simulation" olarak işaretlenir | AK-12.4 |
+| FR-12.5 | Mimic SVG değerleri MUST regmodda `data-rsk` ile işaretlenir (dotted underline) | AK-12.5 |
+| FR-12.6 | Inline modda değer MUST `adres · device · ad` metnine döner | AK-12.6 |
+
+**GWT Kabul Senaryoları:**
+1. **AK-12.1 — GIVEN** sayfa yüklü **WHEN** "Tooltip" tıklanır **THEN** body `regmode` sınıfı alır ve `gdpm.demo.regmode="tip"` yazılır
+2. **AK-12.2 — GIVEN** regmod tip **WHEN** bank SOC değeri hover edilir **THEN** kart BSC aygıtını, `30170 + 150·(rack−1)` adresini ve `bsc.soc` adını gösterir
+3. **AK-12.3 — GIVEN** regmod **WHEN** "Site power" KPI hover edilir **THEN** kart "Computed by PMS" + girdi register satırını gösterir
+4. **AK-12.4 — GIVEN** regmod **WHEN** bir MV/POI değeri hover edilir **THEN** kart "Register map not supplied" gösterir
+5. **AK-12.5 — GIVEN** regmod inline **WHEN** mimic render edilir **THEN** `poiTxt`/`vtTxt`/bank metinlerinde `data-rsk` dolu
+6. **AK-12.6 — GIVEN** regmod inline **WHEN** değer görünür **THEN** `.rvv` gizli, `.rvs` görünür (adres·device·ad)
+
+**Kabul Kriterleri:**
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-12.1 | Mod segmenti + persist | unit | ⬜ |
+| AK-12.2 | Register kartı içeriği | unit | ⬜ |
+| AK-12.3 | Calc kartı girdileri | unit | ⬜ |
+| AK-12.4 | Nomap/model işareti | unit | ⬜ |
+| AK-12.5 | SVG annotasyonu | unit | ⬜ |
+| AK-12.6 | Inline dönüşümü | unit | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-41: `register-sources.ts` (tipler + builder'lar + `key`/`tipHtml`) + testler
+- [ ] T-42: `mimic-source-map.ts` (`srcForId` portu) + testler
+- [ ] T-43: `DemoRegMode.tsx` (provider + `RegisterValue` + `RegisterTip` + `RegisterBar`)
+- [ ] T-44: `nova-console.css` `.rv`/`#rsTip`/`.regbar` (light+dark token)
+- [ ] T-45: `DemoShell` Source segmenti + `DemoMimic` `data-rsk` annotasyonu
+- [ ] T-46: Site layout + pinfo/KPI kablolaması + testler
+
+**Edge Cases:**
+| Durum | Davranış |
+|:------|:---------|
+| Kaynak `undefined` | Düz metin (sarma yok) |
+| Mod `val` | `.rv` üretilmez; hover kartı gizli |
+| Bilinmeyen register id | `nomap`/`model` yerine düz metin |
+| Çoklu değer (aynı kaynak) | Registry key ile tekilleşir |
+
+**Involved Files:**
+| Dosya | Rol / Değişiklik |
+|:------|:----------------|
+| `packages/ui/src/nova/register-sources.ts` | Yeni (saf) |
+| `packages/ui/src/nova/mimic-source-map.ts` | Yeni (saf) |
+| `packages/ui/src/nova/DemoRegMode.tsx` | Yeni |
+| `packages/ui/src/nova/nova-console.css` | `.rv`/`#rsTip`/`.regbar` |
+| `packages/ui/src/nova/index.ts` | Export |
+| `apps/demo-field/src/layouts/DemoShell.tsx` | Source segmenti + tip/lejant |
+| `apps/demo-field/src/layouts/DemoProjectLayout.tsx` | pinfo/KPI kaynakları |
+| `packages/ui/src/nova/DemoUnitDetail.tsx` | Kaynaklı hücreler |
+| `packages/ui/src/nova/DemoMimic.tsx` | `data-rsk` annotasyonu |
+
+### 6.13 UC-13 — Station-tagged konteynerler (backend + ikinci stack)
+
+**Status:** ✏️ Specified (onay bekliyor)
+- **Kapsam dahil:** `field_containers.station` (web-service şema + register payload + GET); konteyner telemetrisinde `station` tag'i (`STATION_ID` + `TelemetryTagger`); demo dev compose'da **container-2** stack'i; register aracının iki konteyneri otomatik kaydı (`register:demo-integration`); frontend istasyon-bazlı fan-out (`stationsForContainers` + `mapFieldToMimicState`); Admin Add-container station alanı + konteyner tablosunda station sütunu.
+- **Kapsam hariç:** Prod/AWS'e ikinci konteyner (yalnız dev); konteyner-içi ünite kavramı (backend'de yok — istasyon etiketi konteyner düzeyinde).
+
+**Akış:**
+1. Konteyner field'a kayıt olurken `station` verilir → `field_containers.station`; `GET /:fieldId/containers` döner.
+2. Konteyner device-service `STATION_ID` env'ini `TelemetryTagger`'a geçirir → telemetri satırları `station` tag'i taşır.
+3. Frontend `stationsForContainers` konteyner etiketinden istasyon gruplarını türetir; `mapFieldToMimicState` **her istasyonun prototipini kendi konteynerinin satırlarından** üretip o istasyonun ünite dilimine fan-out eder (etiket yoksa legacy tek-prototip korunur).
+4. İki konteyner bağımsız telemetri yayar (kendi redis/timescale/WS uplink); veri ayrımı `container_id`/`station` ile doğrulanır (DebugInjector ile bir konteynere enjeksiyon diğerini etkilemez).
+
+**FR-13 Gereksinimler:**
+| Kod | Gereksinim | AK |
+|:----|:-----------|:---|
+| FR-13.1 | `field_containers` MUST `station` kolonu taşır; register opsiyonel `station` alır; GET döndürür | AK-13.1 |
+| FR-13.2 | Konteyner telemetrisi MUST `station` tag'i taşır (STATION_ID verilirse) | AK-13.2 |
+| FR-13.3 | Frontend MUST konteyner `station` etiketinden istasyonları türetip istasyon-bazlı fan-out yapar | AK-13.3 |
+| FR-13.4 | Dev compose MUST ikinci konteyner stack'i tanımlar; kayıt aracı iki konteyneri otomatik kaydeder | AK-13.4 |
+| FR-13.5 | Bir konteynere yapılan enjeksiyon MUST yalnız o istasyonun verisini değiştirir (ayrışma) | AK-13.5 |
+| FR-13.6 | Devices sayfasında Battery groups + cihaz panelleri MUST yalnız seçili istasyonun BESS'lerini listeler | AK-13.6 |
+| FR-13.7 | Battery'de pack detayında MUST pack şeması (FRONT + 4×CMA S1–S24 + TH1–4 + spec tablosu) gösterilir | AK-13.7 |
+| FR-13.8 | Operations MUST seçili istasyona göre çalışır (units/scope/permissives/startup istasyona süzülür) | AK-13.8 |
+| FR-13.9 | Manevra/operasyon yürütmede uzak adım MUST istekteki `systems` (konteyner id) hedefine yönelir; verilmezse config varsayılanı. Güç amaçlı tüm yürütme yolları (charge/discharge/standby/stop/hedef-SOC) `systems` taşır | AK-13.9 |
+| FR-13.10 | "Operating mode" göstergesi MUST istasyon bazlıdır (konteynerin BSC `ChargeStatus`'una göre; PCS saha-seviyesi paylaşımlı) | AK-13.10 |
+| FR-13.11 | Operations koşu listesi (active command sequences) MUST aktif istasyona göre süzülür (koşu uzak hedefi kalıcı) | AK-13.11 |
+| FR-13.12 | Uzak (tünel) adım MUST üst sınırla kapatılır (varsayılan 120 sn) — yanıtı kaybolan stream run'ı kilitli bırakmaz | AK-13.12 |
+| FR-13.13 | 90 sn'den eski "running" koşu MUST bayat sayılır (Active program'ı kilitlemez; Sequences'te STALE) | AK-13.13 |
+
+**GWT Kabul Senaryoları:**
+1. **AK-13.1 — GIVEN** admin **WHEN** `POST .../containers/c-2/register {token, station:"bess2"}` **THEN** 201 ve `GET .../containers` içinde `station:"bess2"` görünür
+2. **AK-13.2 — GIVEN** `STATION_ID=bess2` **WHEN** telemetri enrich edilir **THEN** satır tag'inde `station:"bess2"` bulunur
+3. **AK-13.3 — GIVEN** iki konteyner `bess1`/`bess2` etiketli **WHEN** mapper çalışır **THEN** BESS#1–5 ve BESS#6–9 kendi konteynerinin değerlerini taşır
+4. **AK-13.4 — GIVEN** dev stack **WHEN** `start:demo-integration` + `register:demo-integration` koşulur **THEN** 2 konteyner `connected` + `station` etiketli
+5. **AK-13.5 — GIVEN** c2 BSC-1'e `overheat` enjekte edilir **WHEN** `/containers` okunur **THEN** bess2 ~80 °C, bess1 nominal
+6. **AK-13.6 — GIVEN** 2 istasyon **WHEN** Devices'ta istasyon seçilir **THEN** Battery groups yalnız o istasyonun ünitelerini listeler
+7. **AK-13.7 — GIVEN** Battery rack detayı **WHEN** pack seçilir **THEN** pack şeması (4×CMA S1–S24, 72 hücre, spec tablosu) görünür
+8. **AK-13.8 — GIVEN** activeStation #2 **WHEN** Operations açılır **THEN** kapsam/permissives yalnız BESS#6–9 ünitelerini içerir
+9. **AK-13.9 — GIVEN** `systems:["container-2"]` **WHEN** `charge` yürütülür **THEN** uzak `bsc_charge` adımı container-2'de yürür (outcome.system=container-2); `systems` yoksa container-1. Ön yüz `demoApi.executeOperation/executeManeuver` `systems`'i POST gövdesine koyar
+10. **AK-13.10 — GIVEN** istasyon 2 şarj, istasyon 1 idle **WHEN** KPI şeridi görüntülenir **THEN** istasyon 2 "Charging", istasyon 1 "Idle" (BSC ChargeStatus)
+11. **AK-13.11 — GIVEN** istasyon 2'de charge **WHEN** Operations koşu listesi **THEN** yalnız istasyon 2 koşuları görünür
+12. **AK-13.12 — GIVEN** uzak adım yanıt vermez **WHEN** üst sınır (120 sn) dolar **THEN** adım `remote_timeout` ile başarısız; run `failed` (kilitlenmez)
+13. **AK-13.13 — GIVEN** 90 sn'den eski `running` koşu **WHEN** Operations görüntülenir **THEN** Active program onu atlar; Sequences "STALE" gösterir
+
+**Kabul Kriterleri:**
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-13.1 | station kolonu + register + GET | unit (`field-routes.test`) | ⬜ |
+| AK-13.2 | station telemetri tag'i | unit (`telemetry-tagger.test`) | ⬜ |
+| AK-13.3 | istasyon-bazlı fan-out | unit (`mapFieldToMimicState.test`) | ⬜ |
+| AK-13.4 | ikinci stack + otomatik kayıt | entegrasyon (canlı) | ⬜ |
+| AK-13.5 | enjeksiyon ayrışması | entegrasyon (`station-containers.integration.test`) | ⬜ |
+| AK-13.6 | Devices istasyon filtresi | unit (kod inceleme + sayfa) | ⬜ |
+| AK-13.7 | Pack şeması | unit (`DemoPackSchematic.test`) | ⬜ |
+| AK-13.8 | Operations istasyon bazlı | unit (kod inceleme) | ⬜ |
+| AK-13.9 | İstasyon bazlı uzak yürütme (`systems`) | unit (route+executor+demoApi) + entegrasyon (`station-operations`) | ⬜ |
+| AK-13.10 | Mod göstergesi istasyon bazlı | unit (`deriveKpis`) | ⬜ |
+| AK-13.11 | Koşu listesi istasyon bazlı | unit (executor `steps.remoteSystem`) | ⬜ |
+| AK-13.12 | Uzak adım üst sınırı | unit (`operation-executor` fake timer) | ⬜ |
+| AK-13.13 | Bayat run koruması | unit (`isStaleRun`) | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-52: `field-routes.ts` station kolonu + register payload + GET + testler
+- [ ] T-53: `telemetry-tagger.ts` + `definitions.ts#siteStationId` + `run.ts` + test
+- [ ] T-54: `tools/register-container.sh` `--station`/`--token-var` + `package.json#register:demo-integration`
+- [ ] T-55: `docker-compose.yml` container-2 bloğu + `.env.example` `CONTAINER2_TOKEN`
+- [ ] T-56: frontend `stationsForContainers` + `mapFieldToMimicState` + Admin station alanı + `station-containers.integration.test`
+- [ ] T-57: `DemoDevicesPage` istasyon filtresi (Battery groups + paneller `stationState`)
+- [ ] T-58: `DEMO_PACK_SPEC` + `DemoPackSchematic` (packSvg portu) + CSS + testler
+- [ ] T-59: `DemoManeuverPage` istasyon bazlı (units/scope/permissives/startup)
+- [ ] T-60: `systems` execute payload (web-service schema+passthrough, `ExecuteOptions.remoteSystem`, ön yüz `demoApi` POST gövdesi + stop/hedef-SOC) + testler
+- [ ] T-61: Mod göstergesi istasyon bazlı (`bank.chargeStatus` + `deriveKpis`) + koşu listesi istasyon süzme (executor `steps.remoteSystem` kalıcı) + testler
+- [ ] T-62: Uzak adım üst sınırı (`ExecuteOptions.remoteTimeoutMs` + `runRemoteStep`) + bayat run koruması (`isStaleRun`) + testler
+
+**Edge Cases:**
+| Durum | Davranış |
+|:------|:---------|
+| Station etiketi yok (eski kurulum) | Tüm konteynerler her istasyona düşer (legacy tek-prototip, güç korunumu) |
+| Bir istasyonun konteyneri kayıtlı değil | İlk konteynere fallback (boş istasyon çizilmez) |
+| `station` boş string | NULL yazılır (etiket yok sayılır) |
+| İkinci stack yok | container-2 telemetrisi gelmez; istasyon 1 konteynerine fallback |
+
+**Involved Files:**
+| Dosya | Rol / Değişiklik |
+|:------|:----------------|
+| `services/web-service/src/presentation/routes/field-routes.ts` | station kolonu + register + GET |
+| `services/device-service/src/telemetry-tagger.ts` | station tag'i |
+| `packages/shared-utils/src/config/definitions.ts` | `siteStationId` |
+| `services/device-service/run.ts` | identity.stationId |
+| `tools/register-container.sh` | `--station`/`--token-var` |
+| `package.json` | `register:demo-integration` |
+| `deployment/v2/dev/container/docker-compose.yml` | container-2 stack |
+| `apps/demo-field/.../demo-stations.ts` | `stationsForContainers` |
+| `apps/demo-field/.../mapFieldToMimicState.ts` | istasyon-bazlı fan-out |
+| `apps/demo-field/integration/station-containers.integration.test.ts` | canlı doğrulama |
+| `packages/ui/src/nova/DemoAdminView.tsx` | station alanı + tablo sütunu |
+
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
 | Durum | Davranış |
@@ -666,6 +924,9 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 | SC-3 | Trend grafiği faz/limit/band/area/tooltip davranışları | `DemoTrendChart` testleri |
 | SC-4 | Yeni cihaz telemetrisi (HVAC/PM5340/FSS/DC/IMD) mapper'dan state'e akar | mapper testleri |
 | SC-5 | FSS simülatörü panel durumlarını üretir ve host'a kaydı mevcut davranışı bozmaz | `fss-simulator.test.ts` + `host.test.ts` |
+| SC-6 | Plant overview kartı collector tek hat + istasyon kartları + canlı KPI + günlük enerjiyi gösterir; kart tıklaması site layout'u istasyona geçirir | `DemoPlantOverview` + `demo-plant.test.ts` + `demo-stations.test.ts` |
+| SC-7 | Register-source modu Values/Tooltip/Inline çalışır; hover kartı device+register+hesap gösterir | `register-sources.test.ts` + `DemoRegMode.test.tsx` |
+| SC-8 | İki konteyner station etiketli kaydedilir; telemetri istasyon-bazlı ayrışır (bir enjeksiyon diğerini etkilemez) | `station-containers.integration.test.ts` |
 
 ## 9. Aşama Eşlemesi (iş akışı)
 
@@ -685,6 +946,8 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 | A-2 | Market "Tomorrow" gerçek seri kapsamına bağlı | T-23'te veri varsa aktif, yoksa disabled |
 | A-3 | Ham register trace (B-2) yerine komut geçmişi+log | T-30; B-2 ucu ileri iş |
 | A-4 | Sekans manuel onay adımları backend `await` desteğine bağlı | Backend gelirse canlı, aksi statik |
+| A-5 | Plant overview collector/hybrid + main-source MV station view + peak shaving | Ana kaynak (PV/wind) verisi yok — bu turda disabled/ertelendi (K-11) |
+| A-6 | Tooltip kablolaması Devices/Operations/Grid & Market/Faults/Admin sayfalarına | 2. tur (K-13) — mekanizma hazır, kablolama sonra |
 
 ## 11. İleri İş (bu pakette YAPILMAZ — referans)
 
@@ -732,6 +995,32 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 | T-34 | `fss-simulator.ts` + JSDoc |
 | T-35 | `fss/register-map.ts` + `fss-modbus-adapter.ts` |
 | T-36 | `host.ts` builder + `fss-1.json` + testler |
+| T-37 | `demo-plant.ts` saf türevler (standalone + günlük enerji) + testler |
+| T-38 | `DemoPlantOverview.tsx` + CSS |
+| T-39 | plant güç trendi entegrasyonu |
+| T-40 | `DemoFieldPage` istasyon seçici + `stateForStation` + filtreli detail/attention + testler |
+| T-47 | `demo-stations.ts` (2 istasyon 5+4, `stationTopo`, `stationForUnit`) + testler |
+| T-48 | `DemoStationBar` + context `activeStation`/`stationKpis` + istasyon-bazlı KPI + testler |
+| T-49 | PV kaynak kutuları + collector tipi (Metal Clad) + testler |
+| T-50 | `DemoSourceStationView` (PV tek-hat + srcKpi) + `DemoFieldPage` kaynak görünümü geçişi + testler |
+| T-51 | `buildPeakSeries`/`peakEnergySums` + "Solar production & peak shaving" grafiği + testler |
+| T-52 | `field-routes.ts` station kolonu + register payload + GET + testler |
+| T-53 | `telemetry-tagger.ts` + `definitions.ts#siteStationId` + `run.ts` + test |
+| T-54 | `register-container.sh` `--station`/`--token-var` + `package.json#register:demo-integration` |
+| T-55 | `docker-compose.yml` container-2 bloğu + `.env.example` `CONTAINER2_TOKEN` |
+| T-56 | `stationsForContainers` + `mapFieldToMimicState` + Admin station alanı + `station-containers.integration.test` |
+| T-57 | `DemoDevicesPage` istasyon filtresi (Battery groups + paneller `stationState`) |
+| T-58 | `DEMO_PACK_SPEC` + `DemoPackSchematic` (packSvg portu) + CSS + testler |
+| T-59 | `DemoManeuverPage` istasyon bazlı (units/scope/permissives/startup) |
+| T-60 | `systems` execute payload (schema+passthrough, `ExecuteOptions.remoteSystem`, ön yüz POST gövdesi + stop/hedef-SOC) + testler |
+| T-61 | Mod göstergesi istasyon bazlı (`bank.chargeStatus`+`deriveKpis`) + koşu listesi istasyon süzme (`steps.remoteSystem`) + testler |
+| T-62 | Uzak adım üst sınırı (`remoteTimeoutMs`) + bayat run koruması (`isStaleRun`) + testler |
+| T-41 | `register-sources.ts` (builder + `key`/`tipHtml`) + testler |
+| T-42 | `mimic-source-map.ts` + testler |
+| T-43 | `DemoRegMode.tsx` (provider + `RegisterValue` + tip + lejant) |
+| T-44 | `nova-console.css` `.rv`/`#rsTip`/`.regbar` |
+| T-45 | `DemoShell` Source segmenti + `DemoMimic` annotasyonu |
+| T-46 | Site layout + pinfo/KPI kablolaması + testler |
 
 ## 13. İlerleme (2026-10-08 — implementasyon durumu)
 

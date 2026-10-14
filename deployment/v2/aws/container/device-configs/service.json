@@ -8,7 +8,7 @@
     "port": 5432,
     "user": "postgres",
     "password": "password",
-    "database": "battery"
+    "database": "container1"
   },
   "servicePollIntervalMs": 5000,
   "workerConcurrency": 5,

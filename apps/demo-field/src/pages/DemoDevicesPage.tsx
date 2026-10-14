@@ -10,6 +10,7 @@ import {
   DemoPcsPanel,
   DemoRmuTrPanel,
   DemoPackDetail,
+  DemoPackSchematic,
   DemoTrendChart,
   POS_TEXT,
   busbarZoneHistory,
@@ -22,7 +23,7 @@ import {
   type NovaUnitState,
 } from "@gd-monorepo/ui";
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
-import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
+import { DEMO_PACK_SPEC, DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
 
 const f = (v: number, d = 1): string => (Math.round(v * 10 ** d) / 10 ** d).toFixed(d);
 const signedP = (p: { state: string; pMW: number }): number =>
@@ -32,7 +33,7 @@ type Sel = { kind: "cell" | "aux" | "unit"; id?: string; n?: number; tab: DemoDe
 
 /** DemoDevicesPage — UC-4: cihaz ağacı + hücre/AUX/batarya/PCS/HVAC/FSS/RMU&TR. */
 export const DemoDevicesPage: React.FC = () => {
-  const { state } = useDemoProjectContext();
+  const { stationState, stationTopology } = useDemoProjectContext();
   const [params, setParams] = useSearchParams();
 
   const sel = useMemo<Sel>(() => {
@@ -41,10 +42,11 @@ export const DemoDevicesPage: React.FC = () => {
     const cell = params.get("cell");
     if (cell) return { kind: "cell", id: cell, tab };
     if (params.get("aux") === "1") return { kind: "aux", tab };
-    return { kind: "unit", n: unit ? Number(unit) : state.units[0]?.n ?? 1, tab };
-  }, [params, state.units]);
+    const inStation = unit ? stationState.units.some((u) => u.n === Number(unit)) : false;
+    return { kind: "unit", n: inStation ? Number(unit) : stationState.units[0]?.n ?? 1, tab };
+  }, [params, stationState.units]);
 
-  const unit = sel.kind === "unit" ? state.units.find((u) => u.n === sel.n) : undefined;
+  const unit = sel.kind === "unit" ? stationState.units.find((u) => u.n === sel.n) : undefined;
 
   const select = (next: { kind: Sel["kind"]; id?: string; n?: number; tab?: DemoDeviceSection }): void => {
     const p = new URLSearchParams();
@@ -66,9 +68,9 @@ export const DemoDevicesPage: React.FC = () => {
           </h2>
         </header>
         <div className="tg">
-          <h4>{DEMO_TOPOLOGY.station.name}</h4>
+          <h4>{stationTopology.station.name}</h4>
           {DEMO_TOPOLOGY.station.cells.map((c) => {
-            const pos = state.station[c.id as "H01" | "H02" | "H04" | "H05"];
+            const pos = stationState.station[c.id as "H01" | "H02" | "H04" | "H05"];
             const on = sel.kind === "cell" && sel.id === c.id;
             return (
               <button key={c.id} type="button" className={`ti ${on ? "on" : ""}`} onClick={() => select({ kind: "cell", id: c.id })}>
@@ -84,7 +86,7 @@ export const DemoDevicesPage: React.FC = () => {
         </div>
         <div className="tg">
           <h4>Battery groups</h4>
-          {state.units.map((u) => {
+          {stationState.units.map((u) => {
             const on = sel.kind === "unit" && sel.n === u.n;
             return (
               <div key={u.n}>
@@ -113,9 +115,9 @@ export const DemoDevicesPage: React.FC = () => {
             {sel.kind === "cell" ? (
               <StationCellView id={sel.id ?? "H01"} />
             ) : sel.kind === "aux" ? (
-              <DemoAuxPanel unit={state.units[0]} topology={DEMO_TOPOLOGY} stationKv={state.station.kV} />
+              <DemoAuxPanel unit={stationState.units[0]} topology={stationTopology} stationKv={stationState.station.kV} />
             ) : unit ? (
-              <UnitBody unit={unit} tab={sel.tab} stationKv={state.station.kV} />
+              <UnitBody unit={unit} tab={sel.tab} stationKv={stationState.station.kV} />
             ) : (
               <p className="empty">No group data.</p>
             )}
@@ -127,7 +129,7 @@ export const DemoDevicesPage: React.FC = () => {
 };
 
 const StationCellView: React.FC<{ id: string }> = ({ id }) => {
-  const { state } = useDemoProjectContext();
+  const { stationState: state, stationTopology } = useDemoProjectContext();
   const cell = DEMO_TOPOLOGY.station.cells.find((c) => c.id === id);
   if (!cell) return <p className="empty">Unknown cell.</p>;
   const pos = state.station[cell.id as "H01" | "H02" | "H04" | "H05"];
@@ -223,7 +225,7 @@ const StationCellView: React.FC<{ id: string }> = ({ id }) => {
 
   const feeder = cell.feeder;
   const feederMW = feeder ? state.feederMW[feeder] ?? 0 : poi;
-  const feederUnits = feeder && DEMO_TOPOLOGY.feeders[feeder] ? DEMO_TOPOLOGY.feeders[feeder].units : [];
+  const feederUnits = feeder && stationTopology.feeders[feeder] ? stationTopology.feeders[feeder].units : [];
   return (
     <>
       <div className="dh">
@@ -404,6 +406,12 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
               <RackRegisterTable rows={rackRegisters(input, bscRack, bank)} />
             </div>
           </div>
+          <DemoPackSchematic
+            rackNo={rackNo}
+            input={input}
+            packIndex={packSel}
+            spec={DEMO_PACK_SPEC}
+          />
           <DemoPackDetail
             rackNo={rackNo}
             input={input}

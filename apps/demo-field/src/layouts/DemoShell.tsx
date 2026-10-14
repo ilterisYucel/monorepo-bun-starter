@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { NOVA_ICONS } from "@gd-monorepo/ui";
+import { NOVA_ICONS, RegisterBar, RegModeProvider, RegModeSegment, RegisterTip } from "@gd-monorepo/ui";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
 import { isTunnelMode } from "../lib/api-base";
 import { siteFieldId } from "../lib/site-field";
@@ -70,7 +70,8 @@ export const DemoShell: React.FC = () => {
   ).padStart(2, "0")}`;
 
   return (
-    <div className="nova-console" style={{ padding: 10 }}>
+    <RegModeProvider>
+      <div className="nova-console" style={{ padding: 10 }}>
       <header className="top">
         <span className="brand" aria-label="GDEMS">
           {logoOk ? (
@@ -119,6 +120,7 @@ export const DemoShell: React.FC = () => {
           </nav>
         ) : null}
         <div className="r">
+          <RegModeSegment />
           <span className="seg sm" role="group" aria-label="Theme">
             <button
               type="button"
@@ -146,6 +148,7 @@ export const DemoShell: React.FC = () => {
           </button>
         </div>
       </header>
+      <RegisterBar />
       <main style={{ minWidth: 0 }}>
         <Outlet />
       </main>
@@ -155,6 +158,8 @@ export const DemoShell: React.FC = () => {
           Illustrative interface · simulated data · topology GDE-202030 S-002 / E-001
         </span>
       </footer>
-    </div>
+      </div>
+      <RegisterTip />
+    </RegModeProvider>
   );
 };

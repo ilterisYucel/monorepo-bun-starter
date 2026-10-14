@@ -24,6 +24,8 @@ interface FieldContainerRow {
     rotation?: { x: number; y: number; z: number };
     scale?: number;
   };
+  /** BESS MV istasyon etiketi (bkz. UC-13) — konteyner eklerken verilir. */
+  station: string | null;
 }
 
 async function ensureSchema(db: ISqlDatabase): Promise<void> {
@@ -52,6 +54,11 @@ async function ensureSchema(db: ISqlDatabase): Promise<void> {
   // Faz 1 T1.1: mevcut kurulumlar için token_hash kolonu migrasyonu
   await db.execute(
     "ALTER TABLE field_containers ADD COLUMN IF NOT EXISTS token_hash TEXT",
+  );
+
+  // UC-13: BESS MV istasyon etiketi (konteyner eklerken verilir).
+  await db.execute(
+    "ALTER TABLE field_containers ADD COLUMN IF NOT EXISTS station TEXT",
   );
 }
 
@@ -150,6 +157,7 @@ export async function fieldRoutes(
         return {
           containerId: c.container_id,
           layout: c.layout,
+          station: c.station,
           connectionStatus: status,
           // Faz 2 T2.4: gerçek son-heartbeat zamanı
           ...(lastSeenAtMs !== undefined
@@ -288,13 +296,30 @@ export async function fieldRoutes(
       // konteynere URL ile bağlanmaz; bağlantı konteynerden field'a outbound
       // WSS'tir (TunnelConnector). Eski kurulumlardaki kolon değeri artık
       // güncellenmez (NULL kalır); payload'daki containerUrl yok sayılır.
-      const { token } = request.body as {
+      const { token, station } = request.body as {
         token?: string;
+        station?: string;
       };
       if (typeof token !== "string" || token.length < 32) {
         return reply
           .status(400)
           .send({ error: "token en az 32 karakter olmali" });
+      }
+      // UC-13: opsiyonel istasyon etiketi (BESS MV istasyonu). Gövdede
+      // verilmezse mevcut etiket KORUNUR (station'sız re-register tag'i silmez).
+      const stationProvided = station !== undefined && station !== null;
+      let stationValue: string | null = null;
+      if (stationProvided) {
+        if (typeof station !== "string") {
+          return reply.status(400).send({ error: "station metin olmali" });
+        }
+        const trimmed = station.trim();
+        if (trimmed.length > 64) {
+          return reply
+            .status(400)
+            .send({ error: "station en fazla 64 karakter" });
+        }
+        stationValue = trimmed === "" ? null : trimmed;
       }
 
       const field = await deps.db.queryOne<{ id: string }>(
@@ -306,15 +331,21 @@ export async function fieldRoutes(
       }
 
       // Düz token DB'ye ASLA yazılmaz — yalnızca SHA-256 hash'i saklanır.
-      await deps.db.execute(
-        `INSERT INTO field_containers (field_id, container_id, token_hash)
-       VALUES ($1, $2, $3)
+      // station yalnızca gövdede verildiyse güncellenir ($5); aksi halde mevcut
+      // değer korunur (kanonik eşleme kaybolmaz).
+      const stored = await deps.db.queryOne<{ station: string | null }>(
+        `INSERT INTO field_containers (field_id, container_id, token_hash, station)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (field_id, container_id) DO UPDATE
-       SET token_hash = EXCLUDED.token_hash`,
-        [fieldId, containerId, sha256Hex(token)],
+       SET token_hash = EXCLUDED.token_hash,
+           station = CASE WHEN $5 THEN EXCLUDED.station ELSE field_containers.station END
+       RETURNING station`,
+        [fieldId, containerId, sha256Hex(token), stationValue, stationProvided],
       );
 
-      return reply.status(201).send({ registered: true, containerId });
+      return reply
+        .status(201)
+        .send({ registered: true, containerId, station: stored?.station ?? null });
     },
   );
 }

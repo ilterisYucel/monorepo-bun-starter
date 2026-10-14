@@ -115,6 +115,49 @@ export const DEMO_TOPOLOGY: NovaTopology = {
 /** Demo sanal ünite sayısı (SPEC K1 — 9 ünite). */
 export const DEMO_UNIT_COUNT = 9;
 
+/**
+ * Pack künyesi (UC-13 DEV — referans `topology.js#unit.pack` birebir).
+ * LGES Grid JF1 1CP Pack EP077170PCB2 (Product Specification Rev AE).
+ * Pack şeması (`DemoPackSchematic`) + spec tablosu bu sabiti kullanır.
+ */
+export const DEMO_PACK_SPEC = {
+  model: "EP077170PCB2",
+  name: "Grid JF1 1CP Pack",
+  config: "3P24S",
+  series: 24,
+  parallel: 3,
+  cells: 72,
+  cma: { count: 4, config: "3P6S", series: 6, parallel: 3, cells: 18 },
+  capAh: 169.8,
+  vNom: 77.28,
+  kWh: 13.122,
+  vChgEnd: 87.6,
+  vDisEnd: 64.8,
+  iStd: 42.5,
+  iEnd: 8.5,
+  pMaxKW: 13.122,
+  iPeak: 218.7,
+  restAfterChgH: 2,
+  restAfterDisH: 8,
+  dielectricKV: 4.15,
+  ip: "IP20",
+  cooling: "Air (front fan)",
+  opAmbC: [15, 30] as [number, number],
+  recC: "23 ± 4",
+  dimMM: { depth: 1357.4, width: 437, widthMtg: 475, height: 114.4 },
+  kg: 107,
+  bms: "Gen3 PBMS",
+  cell: {
+    name: "JF1",
+    capAh: [56.6, 59.5] as [number, number],
+    vNom: 3.22,
+    vRange: [2.5, 3.65] as [number, number],
+    wh: 182.25,
+    dcirMOhm: [1.261, 2.261] as [number, number],
+    g: 1077,
+  },
+} as const;
+
 /** Demo MV istasyon cihazı (canlı station pozisyonu/kV/Hz + komutlar). */
 export const DEMO_MV_DEVICE_ID = "DEMO-MV-1";
 

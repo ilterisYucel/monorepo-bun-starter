@@ -75,6 +75,19 @@ const stepStateFor = (status: OperationRunRecord["status"]): StepState => {
 };
 
 /**
+ * UC-13 zombie-run koruması: yanıtı kaybolan uzak adım run'ları `running`
+ * kalabilir (bkz. KAPANIŞ Ek). Bu yaştan eski "running" koşular "bayat" sayılır —
+ * Active program'ı kilitlemez, Sequences'te STALE etiketiyle gösterilir.
+ */
+export const STALE_RUN_MS = 90_000;
+
+export function isStaleRun(run: OperationRunRecord, now: number = Date.now()): boolean {
+  if (run.status !== "running") return false;
+  const started = Date.parse(run.startedAt);
+  return Number.isFinite(started) && now - started > STALE_RUN_MS;
+}
+
+/**
  * Run kaydından adım listesi. Backend `steps` alanı çalıştırılan sonuçları
  * DEĞİL tanımı taşır (`steps.definition.steps: [{command, deviceTypes}]`);
  * legacy dizi şekli de desteklenir. Adım durumu run durumundan türetilir.
@@ -600,12 +613,15 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
           </header>
           <ol className="seqs">
             {runs.slice(0, 6).map((r) => {
-              const steps = parseRunSteps(r);
+              const stale = isStaleRun(r);
+              const steps = parseRunSteps(stale ? { ...r, status: "failed" } : r);
               return (
                 <li key={r.id} className={`seq ${r.status === "completed" ? "done" : ""}`}>
                   <div className="sh">
                     <b>{runLabel(r.name, defs)}</b>
-                    <span className={`tag ${RUN_TAG[r.status] ?? "c-muted"}`}>{RUN_TAG_TXT[r.status] ?? r.status.toUpperCase()}</span>
+                    <span className={`tag ${stale ? "c-warn" : RUN_TAG[r.status] ?? "c-muted"}`}>
+                      {stale ? "STALE" : RUN_TAG_TXT[r.status] ?? r.status.toUpperCase()}
+                    </span>
                     <time>{hhmm(r.startedAt)}</time>
                   </div>
                   <ol>

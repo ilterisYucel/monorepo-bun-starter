@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { OperationRunRecord } from "@gd-monorepo/shared-types";
-import { DemoOperationsView, parseRunSteps, runLabel, type DemoOpDef } from "./DemoOperationsView";
+import { DemoOperationsView, isStaleRun, parseRunSteps, runLabel, type DemoOpDef } from "./DemoOperationsView";
 import type { NovaStationState, NovaTopology } from "./mimic-types";
 
 const defs: DemoOpDef[] = [
@@ -54,6 +54,14 @@ describe("parseRunSteps / runLabel (UC-5 — sequences veri modeli)", () => {
     expect(runLabel("fl04_calibration", defs)).toBe("FL-04 · Calibration");
     expect(runLabel("charge", defs)).toBe("FL-02 · Charge / Discharge");
     expect(runLabel("unknown_op", defs)).toBe("unknown_op");
+  });
+
+  it("UC-13: 90 sn'den eski 'running' run bayat sayılır (zombie koruması)", () => {
+    const now = Date.parse("2026-10-08T09:30:00.000Z");
+    const running = (startedAt: string) => run({ status: "running", startedAt });
+    expect(isStaleRun(running("2026-10-08T09:29:00.000Z"), now)).toBe(false); // 60 sn
+    expect(isStaleRun(running("2026-10-08T09:28:00.000Z"), now)).toBe(true); // 120 sn
+    expect(isStaleRun(run({ status: "completed" }), now)).toBe(false);
   });
 });
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { NovaMimicState } from "@gd-monorepo/ui";
@@ -58,6 +58,7 @@ function project(error?: string) {
     restPhases: [],
     rest: { requiredMinutes: 30, complete: false },
     readyUnits: [],
+    containers: [],
     runs: [],
     logs: [],
     alarms: [],
@@ -100,6 +101,17 @@ describe("DemoFieldPage — site layout (UC-4)", () => {
     renderPage("boom");
     expect(screen.getByText(/Project data error/)).toBeTruthy();
     expect(screen.getByText("Site layout")).toBeTruthy();
+  });
+
+  it("AK-11.6/AK-11.5: istasyon seçici render eder ve geçiş yapar", () => {
+    renderPage();
+    // stBar + site layout başlığında iki seg var; ilki (stBar) seçilir.
+    const st1 = screen.getAllByRole("button", { name: "BESS MV St. #1" })[0];
+    const st2 = screen.getAllByRole("button", { name: "BESS MV St. #2" })[0];
+    expect(st1.getAttribute("aria-pressed")).toBe("true");
+    expect(st2.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(st2);
+    expect(screen.getAllByRole("button", { name: "BESS MV St. #2" })[0].getAttribute("aria-pressed")).toBe("true");
   });
 
   it("DemoMimic mount olurken tema değişkenlerini light'a EZMEZ (dark korunur)", () => {

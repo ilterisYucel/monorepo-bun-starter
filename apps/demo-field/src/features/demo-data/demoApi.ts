@@ -16,6 +16,8 @@ import type {
 export interface FieldContainer {
   containerId: string;
   layout?: { x: number; y: number; z: number };
+  /** BESS MV istasyon etiketi (UC-13). */
+  station?: string | null;
   connectionStatus: "idle" | "connected" | "stale" | "error";
   lastSeenAt?: string;
   latestTelemetry: TelemetryData[];
@@ -25,6 +27,8 @@ export interface ExecuteBody {
   params?: Record<string, unknown>;
   deviceIds?: string[];
   timer?: { durationSeconds: number };
+  /** UC-13: uzak adım hedefi — istasyonun konteyner id'si (K-17). */
+  systems?: string[];
 }
 
 export const demoApi = {
@@ -113,6 +117,7 @@ export const demoApi = {
       {
         params: body.params ?? {},
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
+        ...(body.systems !== undefined && body.systems.length > 0 ? { systems: body.systems } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
       },
     );
@@ -128,6 +133,7 @@ export const demoApi = {
       {
         params: body.params ?? {},
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
+        ...(body.systems !== undefined && body.systems.length > 0 ? { systems: body.systems } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
       },
     );
@@ -173,10 +179,11 @@ export const demoApi = {
     fieldId: string,
     containerId: string,
     token: string,
+    station?: string,
   ): Promise<void> => {
     await apiClient.post(
       `/fields/${fieldId}/containers/${containerId}/register`,
-      { token },
+      { token, ...(station ? { station } : {}) },
     );
   },
 };

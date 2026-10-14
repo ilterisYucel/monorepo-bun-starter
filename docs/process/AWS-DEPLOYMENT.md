@@ -274,3 +274,33 @@ df -h /
 Yerelde aynı işlem sonucu: container **51 GB → 11 GB**, field **10 GB → 3.4 GB**.
 Taze stack'te (>6 saat veri yoksa) sıkıştırma adımı no-op'tur; yalnızca politika
 tesisi ileriyi sınırlar — bu durumda recreate yeterlidir.
+
+### 8.6 Tek-compose varyantı — 2 konteyner + paylaşımlı TimescaleDB (önerilen)
+
+8GB'ı verimli kullanmak için 3 ayrı TimescaleDB yerine **tek instance + tier başına
+ayrı DB** ve **iki konteyner + bir field** tek compose'da çalışır:
+`deployment/v2/aws/docker-compose.yml`.
+
+- DB'ler: field → `battery`, container-1 → `container1`, container-2 → `container2`
+  (`initdb/001-create-dbs.sql`; her DB'ye `timescaledb` uzantısı da kurulur — yoksa
+  `create_hypertable` çalışmaz). Redis tier başına ayrı kalır.
+- `device-service` PG'yi `device-configs/service.json`'dan okur (env override yok):
+  c1→`container1`, c2→`container2`, field→`battery`; host `timescaledb`
+  (field service.json `field-timescaledb` — paylaşımlı servis bu alias'ı taşır).
+- Env tek dosyada, tier'a göre PREFİKSLİ: `FIELD_*`, `C1_*`, `C2_*`
+  (`deployment/v2/aws/.env.example`). Kullanımdan önce `cp ... .env` + doldur.
+- Mem: `mem_limit` toplamı ≈ **6.8GB** → 8GB'a sığar; EC2'de varsayılan swap YOK →
+  **en az 2GB swapfile** önerilir.
+
+```bash
+cp deployment/v2/aws/.env.example deployment/v2/aws/.env   # doldur (FIELD_*, C1_*, C2_*)
+docker compose --env-file deployment/v2/aws/.env -f deployment/v2/aws/docker-compose.yml up -d --build
+bun run register:aws-demo     # container-1=bess1 + container-2=bess2 (tek çağrı)
+# UI: http://<host>:88  (field-web nginx → field-web-service)
+```
+
+İki ayrı compose (§8.2, `start:aws-demo-edge`) tek-konteynerli eski varyant olarak
+korunur; iki konteyner + RAM tasarrufu için bu tek-compose tercih edilir.
+Konteyner-1 SOC 50, konteyner-2 SOC 72 (`container2/device-configs/bsc-*.json`
+`details.initialSocPercent`) ile başlar.
+

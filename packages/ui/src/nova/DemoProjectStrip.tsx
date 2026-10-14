@@ -8,7 +8,7 @@ import React from "react";
 
 export interface DemoProjectStripItem {
   label: string;
-  value: string;
+  value: React.ReactNode;
   sub?: string;
 }
 

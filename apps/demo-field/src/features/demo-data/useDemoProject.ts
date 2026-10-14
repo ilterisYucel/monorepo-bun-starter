@@ -19,7 +19,7 @@ import {
 import type { OperationRunRecord } from "@gd-monorepo/shared-types";
 import { useDemoFieldData } from "./useDemoFieldData";
 import { useDemoFieldTelemetry } from "./useDemoFieldTelemetry";
-import { demoApi } from "./demoApi";
+import { demoApi, type FieldContainer } from "./demoApi";
 import { demoLogApi } from "./demoLogApi";
 import { demoAlarmApi } from "./demoAlarmApi";
 import { mapFieldToMimicState } from "./mapFieldToMimicState";
@@ -43,6 +43,8 @@ export interface DemoProjectData {
   restPhases: RestPhase[];
   rest: RestState;
   readyUnits: DemoReadyUnit[];
+  /** Ham konteyner kayıtları (station etiketiyle) — istasyon→konteyner eşlemesi. */
+  containers: FieldContainer[];
   runs: OperationRunRecord[];
   logs: LogEntry[];
   alarms: DeviceAlarmState[];
@@ -143,6 +145,7 @@ export function useDemoProject(fieldId: string): DemoProjectData {
     restPhases,
     rest,
     readyUnits,
+    containers: containers.data ?? [],
     runs,
     logs: logsQuery.data ?? [],
     alarms: alarmsQuery.data ?? [],

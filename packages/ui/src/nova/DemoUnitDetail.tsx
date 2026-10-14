@@ -2,6 +2,9 @@ import React from "react";
 import type { NovaTopology, NovaUnitState } from "./mimic-types";
 import { listNovaUnits } from "./mimic-types";
 import { PCS_TEXT, POS_TEXT, defaultUnitStatus, rackSeverity, tempFill } from "./nova-mimic";
+import { RegisterValue } from "./DemoRegMode";
+import { bscSource, calcSource, nomapSource, pcsSource, rackSource, type RegisterSource } from "./register-sources";
+import { DEFAULT_MIMIC_DEVICES } from "./mimic-source-map";
 
 /**
  * Ünite detay paneli (SPEC UC-4/T-18, FR-4.3): referans `renderDetail` ile
@@ -60,6 +63,13 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
 
   const pcsFor = (bankId: string, i: number) =>
     unit.pcs.find((p) => p.id === bankId) ?? unit.pcs[i];
+  const bankerReg = (bankId: string, id: string): RegisterSource =>
+    bscSource(DEFAULT_MIMIC_DEVICES.bsc(bankId), id, { bank: bankId, group: unit.n });
+  const pcsReg = (bankId: string, id: string): RegisterSource =>
+    pcsSource(DEFAULT_MIMIC_DEVICES.pcs(bankId), id, { bank: bankId, group: unit.n });
+  const wrap = (source: RegisterSource, value: React.ReactNode): React.ReactNode => (
+    <RegisterValue source={source}>{value}</RegisterValue>
+  );
   const limits = (bankId: string, i: number, key: "idc" | "chgLimitKw" | "disLimitKw"): string => {
     const p = pcsFor(bankId, i);
     const v = p?.[key];
@@ -116,11 +126,17 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
                 <Field
                   key={c.id}
                   label={`${c.id} · ${kind}${c.motor ? " · M" : ""}`}
-                  value={pos ? POS_TEXT[pos] : "None"}
+                  value={wrap(
+                    nomapSource(`RMU-${unit.n} ${c.id}`, "breaker position (open / closed / tripped)"),
+                    pos ? POS_TEXT[pos] : "None",
+                  )}
                 />
               );
             })}
-          <Field label="ES · Earth" value={unit.rmu.es ? "Closed" : "Open"} />
+          <Field
+            label="ES · Earth"
+            value={wrap(nomapSource(`RMU-${unit.n} ES`, "earthing switch position"), unit.rmu.es ? "Closed" : "Open")}
+          />
         </div>
       </Section>
 
@@ -134,10 +150,10 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
             const pTxt = run ? `${p.state === "chg" ? "−" : ""}${f(p.pMW, 2)}` : "0,00";
             return [
               `PCS-${unit.n}${p.id}`,
-              stateText,
-              pTxt,
-              p.vac !== undefined ? f(p.vac, 0) : "—",
-              f(p.igbtC, 0),
+              wrap(pcsReg(p.id, "pcs.state"), stateText),
+              wrap(pcsReg(p.id, "pcs.p"), pTxt),
+              wrap(pcsReg(p.id, "pcs.vac"), p.vac !== undefined ? f(p.vac, 0) : "—"),
+              wrap(pcsReg(p.id, "pcs.igbt"), f(p.igbtC, 0)),
             ];
           })}
         />
@@ -149,31 +165,46 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
           rows={[
             [
               "BSC state (30036)",
-              ...unit.banks.map((b) => (b.bscState !== undefined ? BSC_STATE_TEXT[b.bscState] ?? "—" : "—")),
+              ...unit.banks.map((b) =>
+                wrap(bankerReg(b.id, "bank.state"), b.bscState !== undefined ? BSC_STATE_TEXT[b.bscState] ?? "—" : "—"),
+              ),
             ],
             [
               "Racks online (30038)",
-              ...unit.banks.map((b) => (b.online !== undefined ? `${b.online} / ${U.racksPerBank}` : "—")),
+              ...unit.banks.map((b) =>
+                wrap(bankerReg(b.id, "bank.online"), b.online !== undefined ? `${b.online} / ${U.racksPerBank}` : "—"),
+              ),
             ],
-            ["SOC", ...unit.banks.map((b) => `${f(b.soc)} %`)],
-            ["SOH", ...unit.banks.map((b) => `${f(b.soh)} %`)],
-            ["DC voltage", ...unit.banks.map((b) => `${f(b.vdc, 0)} V`)],
+            ["SOC", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.soc"), `${f(b.soc)} %`))],
+            ["SOH", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.soh"), `${f(b.soh)} %`))],
+            ["DC voltage", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.vdc"), `${f(b.vdc, 0)} V`))],
             [
               "DC current",
-              ...unit.banks.map((b, i) => limits(b.id, i, "idc")),
+              ...unit.banks.map((b, i) => wrap(pcsReg(b.id, "pcs.idc"), limits(b.id, i, "idc"))),
             ],
             [
               "Charge limit (30063)",
-              ...unit.banks.map((b, i) => limits(b.id, i, "chgLimitKw")),
+              ...unit.banks.map((b, i) => wrap(bankerReg(b.id, "bank.chgLimit"), limits(b.id, i, "chgLimitKw"))),
             ],
             [
               "Discharge limit (30065)",
-              ...unit.banks.map((b, i) => limits(b.id, i, "disLimitKw")),
+              ...unit.banks.map((b, i) => wrap(bankerReg(b.id, "bank.disLimit"), limits(b.id, i, "disLimitKw"))),
             ],
-            ["Cell ΔV", ...unit.banks.map((b) => `${f(b.dvmV, 0)} mV`)],
-            ["Temperature max", ...unit.banks.map((b) => `${f(b.tmax)} °C`)],
-            ["Temperature min", ...unit.banks.map((b) => `${f(b.tmin ?? b.tmax)} °C`)],
-            ["DC breaker", ...unit.banks.map((b) => POS_TEXT[b.dcb])],
+            [
+              "Cell ΔV",
+              ...unit.banks.map((b) =>
+                wrap(
+                  calcSource("max − min cell voltage", [
+                    bankerReg(b.id, "bank.cellVmax"),
+                    bankerReg(b.id, "bank.cellVmin"),
+                  ]),
+                  `${f(b.dvmV, 0)} mV`,
+                ),
+              ),
+            ],
+            ["Temperature max", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.tmax"), `${f(b.tmax)} °C`))],
+            ["Temperature min", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.tmin"), `${f(b.tmin ?? b.tmax)} °C`))],
+            ["DC breaker", ...unit.banks.map((b) => wrap(pcsReg(b.id, "pcs.dcCB"), POS_TEXT[b.dcb]))],
           ]}
         />
       </Section>
@@ -202,7 +233,10 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
                       color: tsv(t),
                     }}
                   >
-                    {f(t)}
+                    {wrap(
+                      rackSource(DEFAULT_MIMIC_DEVICES.bsc(b.id), r + 1, "rack.tMax", { bank: b.id, group: unit.n }),
+                      f(t),
+                    )}
                   </span>
                 );
               })}
@@ -246,14 +280,14 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </div>
 );
 
-const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div style={{ border: `1px solid ${"var(--nm-line)"}`, borderRadius: 4, padding: "5px 7px", minWidth: 0 }}>
     <small style={{ display: "block", fontSize: 11, color: "var(--nm-muted)" }}>{label}</small>
     <b style={{ display: "block", fontSize: 13, color: "var(--nm-fg)" }}>{value}</b>
   </div>
 );
 
-const Table: React.FC<{ head: string[]; rows: string[][] }> = ({ head, rows }) => (
+const Table: React.FC<{ head: string[]; rows: React.ReactNode[][] }> = ({ head, rows }) => (
   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
     <thead>
       <tr>

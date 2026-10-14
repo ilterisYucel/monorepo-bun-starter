@@ -19,6 +19,9 @@ export const CONTAINER_URL = process.env.DEMO_CONTAINER_URL ?? "http://localhost
 export const CONTAINER_INJECT_URL =
   process.env.DEMO_CONTAINER_INJECT_URL ?? "http://localhost:15590";
 export const FIELD_INJECT_URL = process.env.DEMO_FIELD_INJECT_URL ?? "http://localhost:15591";
+/** Konteyner-2 (UC-13 istasyon bess2) DebugInjector. */
+export const CONTAINER2_INJECT_URL =
+  process.env.DEMO_CONTAINER2_INJECT_URL ?? "http://localhost:15592";
 
 const USER = process.env.DEMO_USER ?? "admin";
 const SEED_PASSWORD = process.env.DEMO_PASSWORD ?? "password123";

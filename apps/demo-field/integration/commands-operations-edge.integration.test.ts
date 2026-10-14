@@ -141,12 +141,18 @@ describe("B2 — operasyon katmanı edge-case'ler", () => {
     await fOperation("standby");
   }, 60_000);
 
-  it("rollback: field_charge (container-2 yok) → başarısız adım + rollback", async () => {
-    const r = await fOperation("field_charge", { params: { powerKw: 100 }, deviceIds: ["PCS-1", "PCS-2"] });
-    expect([200, 202]).toContain(r.status);
-    const outcomes = ((r.body as { outcomes?: Array<{ success?: boolean; system?: string }> }).outcomes ?? []);
-    // container-2 erişilemez → en az bir başarısız adım (rollback tetiklenir).
-    expect(outcomes.some((o) => o.success === false || o.system === "container-2")).toBe(true);
+  it("rollback: ulaşılamayan system → başarısız uzak adım + rollback", async () => {
+    // UC-13: uzak adım hedefi `systems` ile seçilir; var olmayan container →
+    // system_unreachable → rollback (önceden `field_charge`'ın container-2
+    // adımı yoktu; container-2 artık gerçek — bu yüzden hedef açıkça seçilir).
+    const r = await fOperation("charge", {
+      params: { powerKw: 100 },
+      deviceIds: ["PCS-1", "PCS-2"],
+      systems: ["container-missing"],
+    });
+    expect([200, 422]).toContain(r.status);
+    const outcomes = ((r.body as { outcomes?: Array<{ success?: boolean; system?: string; reason?: string }> }).outcomes ?? []);
+    expect(outcomes.some((o) => o.success === false)).toBe(true);
     await fOperation("standby");
   }, 60_000);
 

@@ -18,6 +18,8 @@ export interface DemoExecutePayload {
   scope: number[];
   params: Record<string, unknown>;
   timer?: { durationSeconds: number };
+  /** UC-13: uzak (`system`) adımların hedef konteyner id'leri (ön yüz seçimi). */
+  systems?: string[];
 }
 
 export interface DemoManeuverWizardProps {

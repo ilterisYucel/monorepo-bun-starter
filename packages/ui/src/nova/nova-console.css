@@ -704,3 +704,188 @@ pre.eq { font-family: var(--mono); font-size: 12.5px; line-height: 1.7; backgrou
 .am-tbl .c-chg { color: var(--nm-flow-chg); }
 .am-tbl td.sev-warn { color: var(--nm-warn); font-weight: 600; }
 @media (max-width: 1180px) { .home-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Register-source (tooltip) modu — SPEC UC-12 ── */
+:root { --rs-reg: #1d8752; --rs-calc: #6f4fb3; --rs-nomap: #a87300; --rs-model: #86919b; }
+[data-theme="dark"] { --rs-reg: #46bd84; --rs-calc: #ad90e6; --rs-nomap: #e0ab48; --rs-model: #9aa4ad; }
+
+.rv { cursor: help; }
+.rv .rvs { display: none; }
+.rv.k-reg { --rs-c: var(--rs-reg); }
+.rv.k-calc { --rs-c: var(--rs-calc); }
+.rv.k-nomap { --rs-c: var(--rs-nomap); }
+.rv.k-model { --rs-c: var(--rs-model); }
+body.regmode:not(.reginline) .rv .rvv {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--rs-c, var(--rs-reg));
+  text-underline-offset: 2px;
+}
+body.reginline .rv .rvv { display: none; }
+body.reginline .rv .rvs {
+  display: inline-grid; grid-auto-flow: column; gap: 4px; align-items: baseline;
+  padding: 0 5px; border-left: 3px solid var(--rs-c, var(--rs-reg)); border-radius: 2px;
+  max-width: 260px; font-size: 11px; vertical-align: middle;
+}
+body.reginline .rv .rvs b { font-weight: 700; color: var(--rs-c, var(--rs-reg)); font-family: var(--mono); }
+body.reginline .rv .rvs i { font-style: normal; color: var(--nm-muted); }
+body.reginline .rv .rvs em { font-style: normal; color: var(--nm-fg); }
+
+.regbar { display: none; }
+body.regmode .regbar {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  margin: 6px 0; padding: 6px 10px; border: 1px solid var(--nm-line2);
+  border-radius: 6px; font-size: 11.5px; color: var(--nm-muted); background: var(--nm-panel);
+}
+.regbar b { color: var(--nm-fg); }
+.regbar span::before {
+  content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+  margin-right: 5px; background: var(--c, var(--rs-reg)); vertical-align: middle;
+}
+.regbar .k-reg { --c: var(--rs-reg); }
+.regbar .k-calc { --c: var(--rs-calc); }
+.regbar .k-nomap { --c: var(--rs-nomap); }
+.regbar .k-model { --c: var(--rs-model); }
+
+body.regmode svg text[data-rsk]:not([data-rsk=""]) {
+  text-decoration: underline dotted; text-decoration-color: var(--rs-reg); cursor: help;
+}
+
+#rsTip {
+  position: fixed; z-index: 60; max-width: min(460px, 92vw); max-height: 70vh; overflow: auto;
+  padding: 10px 12px; border: 1px solid var(--nm-line); border-radius: 8px;
+  background: var(--nm-panel); color: var(--nm-fg);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28); font-size: 12px; pointer-events: none;
+}
+#rsTip[hidden] { display: none; }
+#rsTip .rt-h {
+  display: flex; flex-direction: column; gap: 2px; padding: 2px 0 4px 8px;
+  border-left: 4px solid var(--rs-c, var(--rs-reg)); margin-bottom: 6px;
+}
+#rsTip .rt-h.k-reg { --rs-c: var(--rs-reg); }
+#rsTip .rt-h.k-calc { --rs-c: var(--rs-calc); }
+#rsTip .rt-h.k-nomap { --rs-c: var(--rs-nomap); }
+#rsTip .rt-h.k-model { --rs-c: var(--rs-model); }
+#rsTip .rt-h span { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--nm-muted); }
+#rsTip .rt-h b { font-size: 13.5px; color: var(--rs-c, var(--rs-reg)); }
+#rsTip .rt { width: 100%; border-collapse: collapse; }
+#rsTip .rt th { text-align: left; font-weight: 600; color: var(--nm-muted); padding: 2px 8px 2px 0; vertical-align: top; white-space: nowrap; font-size: 11px; }
+#rsTip .rt td { padding: 2px 0; vertical-align: top; color: var(--nm-fg); }
+#rsTip code { font-family: var(--mono); font-size: 11px; background: var(--nm-panel2); padding: 0 3px; border-radius: 3px; }
+#rsTip .rt-enum { list-style: none; margin: 2px 0 0; padding: 0; }
+#rsTip .rt-enum li { font-size: 11px; color: var(--nm-muted); }
+#rsTip .rt-enum li.on { font-weight: 700; color: var(--rs-reg); }
+
+/* ── Plant overview — SPEC UC-11 (gdems app.css birebir) ── */
+.plantcard { margin-bottom: 10px; }
+.po-wrap { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr); gap: 12px; align-items: start; padding: 12px 14px 0; }
+.po-svg { min-width: 0; overflow-x: auto; }
+.po-svg svg.po, .po { width: 100%; min-width: 640px; height: auto; display: block; }
+.po-side { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.po-side > div { display: grid; gap: 10px; }
+.po .po-t { font-size: 11.5px; fill: var(--nm-muted); }
+.po .po-t.b { fill: var(--nm-fg); font-weight: 700; letter-spacing: 0.03em; }
+.po .po-v { font-family: var(--mono); font-size: 12px; fill: var(--nm-fg); }
+.po .po-big { font-family: var(--mono); font-size: 20px; font-weight: 600; fill: var(--nm-fg); }
+.po .po-big.sm { font-size: 15px; }
+.po .po-big.dis { fill: var(--nm-flow-dis); }
+.po .po-big.chg { fill: var(--nm-flow-chg); }
+.po .po-big.src { fill: var(--nm-warn); }
+.po .po-grid circle { fill: var(--nm-panel); stroke: var(--nm-live); stroke-width: 1.6; }
+.po .po-grid path { stroke: var(--nm-live); stroke-width: 1.4; fill: none; }
+.po .po-bus { stroke: var(--nm-live); stroke-width: 5; stroke-linecap: round; }
+.po .po-ln { stroke: var(--nm-live); stroke-width: 2.2; fill: none; }
+.po .po-ln.thin { stroke-width: 1.2; }
+.po .po-ln.on { stroke-dasharray: 6 6; animation: po-flow 0.9s linear infinite; }
+.po .po-ln.on.dis { stroke: var(--nm-flow-dis); }
+.po .po-ln.on.chg { stroke: var(--nm-flow-chg); animation-direction: reverse; }
+@keyframes po-flow { to { stroke-dashoffset: 12; } }
+.po .po-cb { fill: var(--nm-live); stroke: var(--nm-live); stroke-width: 1.5; }
+.po .po-vt { fill: var(--nm-panel); stroke: var(--nm-live); stroke-width: 1.4; }
+.po .po-box { fill: var(--nm-panel2); stroke: var(--nm-line); stroke-width: 1.2; }
+.po .po-bess { cursor: pointer; }
+.po .po-bess:hover .po-box, .po .po-bess:focus-visible .po-box { stroke: var(--nm-sel); }
+.po .po-bess.act .po-box { stroke: var(--nm-sel); stroke-width: 2.4; }
+.po .po-bess:focus { outline: none; }
+.po .po-socb { fill: var(--nm-panel); stroke: var(--nm-line); }
+.po .po-soc { fill: var(--nm-flow-chg); }
+.po .po-u { fill: rgba(var(--nm-seq-rgb), 0.18); stroke: var(--nm-ok); stroke-width: 1.2; }
+.po .po-u.maint { fill: rgba(111, 79, 179, 0.18); stroke: var(--nm-maint); stroke-dasharray: 3 2; }
+.po .po-u.alarm { fill: rgba(196, 50, 29, 0.16); stroke: var(--nm-alarm); stroke-width: 1.8; }
+.po .po-u.info { stroke: var(--nm-info); }
+.po .po-un { font-family: var(--mono); font-size: 10.5px; fill: var(--nm-fg); }
+.po .po-ib { fill: var(--nm-panel); stroke: var(--nm-line); }
+.po .po-if { fill: var(--nm-warn); opacity: 0.75; }
+.po .po-link { font-size: 11px; fill: var(--nm-sel); font-weight: 600; }
+.po .po-src { cursor: pointer; }
+.po .po-src:hover .po-box, .po .po-src:focus-visible .po-box { stroke: var(--nm-sel); }
+.po .po-src:focus { outline: none; }
+.po .po-t.warn { fill: var(--nm-warn); font-weight: 600; }
+.po-src-h { display: flex; gap: 10px; align-items: flex-start; }
+.po-src-h b { display: block; font-size: 14px; }
+.po-src-h small { display: block; color: var(--nm-muted); font-size: 12px; }
+.mgrid.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.po-day b { font-size: 15px; }
+.po-live div.dis b { color: var(--nm-flow-dis); }
+.po-live div.chg b { color: var(--nm-flow-chg); }
+.po-live div.warn b { color: var(--nm-warn); }
+.po-live div.alarm b { color: var(--nm-alarm); }
+
+/* ── İstasyon barı (stBar) — gdems app.css ── */
+.stbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border: 1px solid var(--nm-line); border-left: 4px solid var(--nm-sel); border-radius: 6px; background: var(--nm-panel); padding: 6px 12px; margin-bottom: 8px; }
+.stbar:empty { display: none; }
+.stb-l { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.stb-l svg { color: var(--nm-sel); }
+.stb-l b { font-size: 14px; }
+.stb-l small { color: var(--nm-muted); font-size: 12px; }
+.stbar .seg button small { color: var(--nm-alarm); font-weight: 600; }
+
+@media (max-width: 1180px) { .po-wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── PV kaynak istasyonu çizimi + peak shaving — SPEC UC-11 ── */
+.po .po-tr { fill: var(--nm-panel); stroke: var(--nm-live); stroke-width: 1.4; }
+.po .po-inv { fill: var(--nm-panel); stroke: var(--nm-live); stroke-width: 1.5; }
+.po .po-inv.on { stroke: var(--nm-warn); stroke-width: 2; }
+.po .po-invl { stroke: var(--nm-live); stroke-width: 1; }
+.po .po-pv { fill: rgba(31, 98, 201, 0.28); stroke: var(--nm-cold); stroke-width: 0.6; }
+.po .po-stn { fill: none; stroke: var(--nm-line); stroke-dasharray: 4 3; }
+.srcview > .srckpi { padding: 12px 14px 0; }
+.srcview .po-svg { padding: 8px 14px 14px; }
+.pkwrap { margin-top: 6px; }
+.pkwrap[hidden] { display: none; }
+.peaksum { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0 14px 12px; font-size: 12.5px; color: var(--nm-muted); }
+.peaksum b { font-family: var(--mono); color: var(--nm-fg); }
+.peaksum .c-shave b { color: var(--nm-flow-chg); }
+.peaksum .c-rel b { color: var(--nm-flow-dis); }
+
+/* ── Pack şeması — referans app.css `.pk-*` (SPEC UC-13 DEV) ── */
+.packdet { display: grid; gap: 8px; border-top: 1px solid var(--nm-line2); padding-top: 10px; }
+.packdet .pk-wrap { overflow-x: auto; }
+.pkrow { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.pk { width: 100%; height: auto; display: block; margin: 6px 0 10px; min-width: 620px; }
+.pk .pk-case { fill: var(--nm-panel2); stroke: var(--nm-line); stroke-width: 1.5; }
+.pk .pk-front { fill: var(--nm-panel); stroke: var(--nm-line); }
+.pk .pk-fan { fill: var(--nm-panel); stroke: var(--nm-muted); stroke-width: 1.4; }
+.pk .pk-fanb { fill: none; stroke: var(--nm-muted); stroke-width: 1; }
+.pk .pk-pbms { fill: rgba(29, 135, 82, 0.16); stroke: var(--nm-ok); }
+.pk .pk-port { fill: var(--nm-panel); stroke: var(--nm-muted); }
+.pk .pk-tp { fill: #c4321d; }
+.pk .pk-tn { fill: #1f62c9; }
+.pk .pk-fuse { fill: #b8742a; stroke: var(--nm-line); }
+.pk .pk-cma { fill: var(--nm-panel); stroke: var(--nm-muted); stroke-width: 1.2; }
+.pk .pk-bb { fill: rgba(168, 115, 0, 0.35); }
+.pk .pk-cell { fill: rgba(var(--nm-seq-rgb), 0.22); stroke: rgba(var(--nm-seq-rgb), 0.6); stroke-width: 0.6; }
+.pk .pk-cell.mx { fill: rgba(var(--nm-hot-rgb), 0.55); stroke: var(--nm-alarm); }
+.pk .pk-cell.mn { fill: rgba(var(--nm-cold-rgb), 0.55); stroke: var(--nm-cold); }
+.pk .pk-ib { fill: #b8742a; opacity: 0.8; }
+.pk .pk-neg { fill: none; stroke: #1f62c9; stroke-width: 2; stroke-dasharray: 6 3; }
+.pk .pk-sense { fill: none; stroke: var(--nm-ok); stroke-width: 1; stroke-dasharray: 3 3; }
+.pk .pk-th circle { fill: var(--nm-panel); stroke: var(--nm-warn); stroke-width: 1.4; }
+.pk .pk-th.mx circle { stroke: var(--nm-alarm); stroke-width: 2.4; fill: rgba(var(--nm-hot-rgb), 0.2); }
+.pk .pk-th.mn circle { stroke: var(--nm-cold); stroke-width: 2.4; fill: rgba(var(--nm-cold-rgb), 0.2); }
+.pk .pk-t { font-size: 11px; fill: var(--nm-muted); }
+.pk .pk-t.b { fill: var(--nm-fg); font-weight: 700; }
+.pk .pk-t.w { fill: #fff; font-weight: 700; }
+.pk .pk-t.mx, .pk .pk-v.mx { fill: var(--nm-alarm); }
+.pk .pk-t.mn, .pk .pk-v.mn { fill: var(--nm-cold); }
+.pk .pk-v { font-size: 11px; font-weight: 700; writing-mode: vertical-rl; }
+@media (max-width: 860px) { .pkrow { grid-template-columns: minmax(0, 1fr); } }

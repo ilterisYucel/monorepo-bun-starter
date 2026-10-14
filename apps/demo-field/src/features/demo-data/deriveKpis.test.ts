@@ -47,6 +47,15 @@ describe("deriveKpis (FR-4.1 / AK-4.1)", () => {
     expect(k.mode).toBe("dis");
     expect(k.poiDir).toBe("Deşarj");
   });
+
+  it("UC-13: BSC ChargeStatus varsa mod istasyon bazlıdır (PCS paylaşımlı olsa da)", () => {
+    const units = [unit(1)];
+    // PCS "dis" olsa da BSC ChargeStatus=1 (Charge) → mod chg (istasyon gerçeği).
+    units[0].banks = units[0].banks.map((b) => ({ ...b, chargeStatus: 1 }));
+    expect(deriveKpis(baseState(units), topo).mode).toBe("chg");
+    units[0].banks = units[0].banks.map((b) => ({ ...b, chargeStatus: 3 })); // Idle
+    expect(deriveKpis(baseState(units), topo).mode).toBe("stby");
+  });
 });
 
 describe("deriveAlerts (FR-4.2 / AK-4.2)", () => {

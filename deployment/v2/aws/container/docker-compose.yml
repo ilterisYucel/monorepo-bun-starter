@@ -41,7 +41,8 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: battery
+      # Tek paylaşımlı timescale'de konteyner-1 tier DB'si (container2 ayrı DB).
+      POSTGRES_DB: container1
     ports:
       # AWS SG: AÇILMAZ — yalnızca host üstünde debug (psql).
       - "127.0.0.1:5432:5432"
@@ -55,7 +56,7 @@ services:
           # override desteklemez) — alias olmadan DNS ENOTFOUND alır.
           - timescaledb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d container1"]
       interval: 10s
       timeout: 5s
       retries: 5

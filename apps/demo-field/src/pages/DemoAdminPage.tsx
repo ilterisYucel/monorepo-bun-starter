@@ -31,13 +31,18 @@ export const DemoAdminPage: React.FC = () => {
   });
   const containerStatus = (containers.data ?? []).map((c) => ({
     containerId: c.containerId,
+    station: c.station ?? null,
     connectionStatus: c.connectionStatus,
     telemetryCount: c.latestTelemetry?.length ?? 0,
   }));
 
-  const registerContainer = async (containerId: string, token: string): Promise<string | undefined> => {
+  const registerContainer = async (
+    containerId: string,
+    token: string,
+    station?: string,
+  ): Promise<string | undefined> => {
     try {
-      await demoApi.registerContainer(fieldId, containerId, token);
+      await demoApi.registerContainer(fieldId, containerId, token, station);
       await containers.refetch();
       return undefined;
     } catch (e) {

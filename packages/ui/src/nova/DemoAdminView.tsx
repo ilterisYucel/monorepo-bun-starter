@@ -64,9 +64,9 @@ export interface DemoAdminViewProps {
   /** Gerçek Modbus yazma izi (varsa trace'in birincil kaynağı). */
   writes?: DemoCommandWrite[];
   /** Konteyner kayıt callback'i — hata mesajı döner (başarıda undefined). */
-  registerContainer?: (containerId: string, token: string) => Promise<string | undefined>;
+  registerContainer?: (containerId: string, token: string, station?: string) => Promise<string | undefined>;
   /** Kayıtlı konteyner bağlantı durumları (Add container sekmesi). */
-  containerStatus?: Array<{ containerId: string; connectionStatus: string; telemetryCount: number }>;
+  containerStatus?: Array<{ containerId: string; connectionStatus: string; telemetryCount: number; station?: string | null }>;
   admin: DemoAdminStateShape;
   actions: DemoAdminActions;
   copyLabel?: string;
@@ -114,6 +114,7 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
   const [catQ, setCatQ] = useState("");
   const [containerId, setContainerId] = useState("container-1");
   const [token, setToken] = useState("");
+  const [station, setStation] = useState("bess1");
   const [regBusy, setRegBusy] = useState(false);
   const [regMsg, setRegMsg] = useState("");
   const L = topology.limits;
@@ -196,6 +197,15 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
                 onChange={(e) => setToken(e.target.value)}
               />
             </label>
+            <label className="inl">
+              <span className="dsub">Station</span>
+              <input
+                data-testid="add-container-station"
+                value={station}
+                placeholder="bess1 / bess2"
+                onChange={(e) => setStation(e.target.value)}
+              />
+            </label>
             <button
               type="button"
               data-testid="add-container-register"
@@ -205,7 +215,7 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
                 setRegBusy(true);
                 setRegMsg("");
                 try {
-                  const err = await registerContainer?.(containerId.trim(), token.trim());
+                  const err = await registerContainer?.(containerId.trim(), token.trim(), station.trim() || undefined);
                   setRegMsg(
                     err
                       ? `Failed: ${err}`
@@ -232,6 +242,7 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
               <thead>
                 <tr>
                   <th className="txt">Container</th>
+                  <th className="txt">Station</th>
                   <th className="txt">Connection</th>
                   <th className="txt">Telemetry rows</th>
                 </tr>
@@ -241,13 +252,14 @@ export const DemoAdminView: React.FC<DemoAdminViewProps> = ({
                   (containerStatus ?? []).map((c) => (
                     <tr key={c.containerId} className={c.containerId === containerId.trim() ? "focus" : ""}>
                       <td className="txt">{c.containerId}</td>
+                      <td className="txt">{c.station ?? "—"}</td>
                       <td className="txt">{c.connectionStatus}</td>
                       <td className="txt">{c.telemetryCount}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td className="txt" colSpan={3}>
+                    <td className="txt" colSpan={4}>
                       No containers registered yet.
                     </td>
                   </tr>

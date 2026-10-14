@@ -14,7 +14,9 @@ export interface TargetSocState {
   active: boolean;
   /** Hedefin ayarlandığı an (ms) — watcher yalnız bu andan sonra başlayan run'ı sayar. */
   setAt: number;
-  setTarget: (target: number, dir: "chg" | "dis", scope: number[]) => void;
+  /** UC-13: hedefin ait olduğu istasyon key'i (bess1/bess2) — stop doğru konteynere gider. */
+  stationKey: string | undefined;
+  setTarget: (target: number, dir: "chg" | "dis", scope: number[], stationKey?: string) => void;
   clear: () => void;
 }
 
@@ -26,8 +28,10 @@ export const useTargetSocStore = create<TargetSocState>()(
       scope: [],
       active: false,
       setAt: 0,
-      setTarget: (target, dir, scope) => set({ target, dir, scope, active: true, setAt: Date.now() }),
-      clear: () => set({ target: null, dir: null, scope: [], active: false, setAt: 0 }),
+      stationKey: undefined,
+      setTarget: (target, dir, scope, stationKey) =>
+        set({ target, dir, scope, active: true, setAt: Date.now(), stationKey }),
+      clear: () => set({ target: null, dir: null, scope: [], active: false, setAt: 0, stationKey: undefined }),
     }),
     {
       name: "demo-target-soc-storage",

@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { DemoOperationsView, type DemoActiveRun, type DemoOpDef, type DemoOpUnit } from "@gd-monorepo/ui";
+import { DemoOperationsView, isStaleRun, type DemoActiveRun, type DemoOpDef, type DemoOpUnit } from "@gd-monorepo/ui";
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DemoReadySection } from "../components/DemoReadySection";
 import { DemoTrendsSection } from "../components/DemoTrendsSection";
 import { demoManeuverApi } from "../features/demo-data/demoManeuverApi";
-import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
+import { DEMO_STATIONS } from "../features/demo-data/demo-stations";
 import { derivePermissives, deriveStartupChecks } from "../features/demo-data/demo-permissives";
 import { socOf } from "../features/demo-data/useTargetSocWatcher";
 import { useTargetSocStore } from "../features/demo-data/stores/TargetSocStore";
@@ -112,7 +112,10 @@ function activeFromRun(run: OperationRunRecord | undefined): DemoActiveRun | und
 
 /** DemoManeuverPage (Operations) — UC-5: FL listesi + formlar + canlı sağ sütun. */
 export const DemoManeuverPage: React.FC = () => {
-  const { state, runs, readyUnits } = useDemoProjectContext();
+  // UC-13: operasyonlar seçili istasyona göre — units/scope/permissives/startup
+  // `stationState` + `stationTopology`'den (stBar seçimiyle senkron).
+  const { stationState: state, stationTopology, stationSystems, activeStation, runs, readyUnits } =
+    useDemoProjectContext();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -134,9 +137,29 @@ export const DemoManeuverPage: React.FC = () => {
     [state.units, readyUnits],
   );
 
+  // UC-13: seçili istasyonun konteyner hedefi (K-17 — station çözümü backend'de yok).
+  const activeKey = DEMO_STATIONS[activeStation]?.key;
+  const activeSystems = useMemo(() => {
+    const id = activeKey ? stationSystems[activeKey] : undefined;
+    return id ? [id] : undefined;
+  }, [activeKey, stationSystems]);
+
+  // UC-13: koşuları istasyona göre süz (uzak hedef yoksa config varsayılanı container-1).
+  const stationRuns = useMemo(() => {
+    const containerId = activeKey ? stationSystems[activeKey] : undefined;
+    if (containerId === undefined) return runs;
+    return runs.filter((r) => {
+      const steps = r.steps as { remoteSystem?: string } | null;
+      return (steps?.remoteSystem ?? "container-1") === containerId;
+    });
+  }, [runs, activeKey, stationSystems]);
+
   const activeRun = useMemo(
-    () => activeFromRun(runs.find((r) => r.status === "running") ?? runs[0]),
-    [runs],
+    () =>
+      activeFromRun(
+        stationRuns.find((r) => r.status === "running" && !isStaleRun(r)) ?? stationRuns[0],
+      ),
+    [stationRuns],
   );
 
   const targetStatus = useMemo(() => {
@@ -146,7 +169,7 @@ export const DemoManeuverPage: React.FC = () => {
     return `Target ${target} % · SOC ${soc.toFixed(1)} % · ${tDir === "chg" ? "charge" : "discharge"} → auto Standby on reach`;
   }, [tActive, target, tDir, tScope, state]);
 
-  const startupChecks = useMemo(() => deriveStartupChecks(state, DEMO_TOPOLOGY), [state]);
+  const startupChecks = useMemo(() => deriveStartupChecks(state, stationTopology), [state]);
 
   const lastCalibrationAt = useMemo(() => {
     const times = runs
@@ -162,7 +185,13 @@ export const DemoManeuverPage: React.FC = () => {
     setBusy(true);
     setMessage("");
     try {
-      await demoManeuverApi.execute({ name, kind, params, scope: state.units.map((u) => u.n) });
+      await demoManeuverApi.execute({
+        name,
+        kind,
+        params,
+        scope: state.units.map((u) => u.n),
+        ...(activeSystems ? { systems: activeSystems } : {}),
+      });
       setMessage(`Command accepted (${name}).`);
     } catch (e) {
       setMessage(`Rejected: ${(e as Error).message}`);
@@ -180,7 +209,7 @@ export const DemoManeuverPage: React.FC = () => {
       const name = dir === "chg" ? "charge" : "discharge";
       if (tRaw !== "") {
         const t = Number(tRaw);
-        if (Number.isFinite(t)) setTarget(t, dir, scope);
+        if (Number.isFinite(t)) setTarget(t, dir, scope, activeKey);
       } else {
         clearTarget();
       }
@@ -206,7 +235,7 @@ export const DemoManeuverPage: React.FC = () => {
     setBusy(true);
     setMessage("");
     try {
-      await demoManeuverApi.stop();
+      await demoManeuverApi.stop(activeSystems);
       setMessage("Standby command sent.");
     } catch (e) {
       setMessage(`Stop failed: ${(e as Error).message}`);
@@ -220,13 +249,14 @@ export const DemoManeuverPage: React.FC = () => {
       <DemoReadySection />
       <DemoTrendsSection />
       <DemoOperationsView
+        key={activeStation}
         defs={DEFS}
         units={units}
         activeRun={activeRun}
-        runs={runs}
+        runs={stationRuns}
         station={state.station}
-        topology={DEMO_TOPOLOGY}
-        permissivesFor={(o) => derivePermissives(state, DEMO_TOPOLOGY, { ...o, lastCalibrationAt, auxKw })}
+        topology={stationTopology}
+        permissivesFor={(o) => derivePermissives(state, stationTopology, { ...o, lastCalibrationAt, auxKw })}
         startupChecks={startupChecks}
         targetStatus={targetStatus}
         busy={busy}

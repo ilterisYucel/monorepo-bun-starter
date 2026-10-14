@@ -11,6 +11,7 @@ import { listNovaUnits } from "@gd-monorepo/ui";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { FieldContainer } from "./demoApi";
 import { BANK_DEVICE_MAP, DEMO_MV_DEVICE_ID, DEMO_UNIT_COUNT } from "./demo-topology";
+import { stationsForContainers } from "./demo-stations";
 import { fanOutUnits } from "./fanOutUnits";
 import {
   buildAux,
@@ -100,6 +101,7 @@ function buildBank(
 
   const bscState = num(byName(bscRows, "BSC State")?.value);
   const online = num(byName(bscRows, "Online Rack No")?.value);
+  const chargeStatus = num(byName(bscRows, "ChargeStatus")?.value);
 
   return {
     id,
@@ -115,6 +117,7 @@ function buildBank(
     ...(rackCurrRows.length > 0 ? { rackI: rackCurrRows.map((r) => r.value) } : {}),
     ...(bscState !== undefined ? { bscState } : {}),
     ...(online !== undefined ? { online } : {}),
+    ...(chargeStatus !== undefined ? { chargeStatus } : {}),
     dcb: dcBreaker(cbRows),
   };
 }
@@ -283,35 +286,17 @@ export interface MapFieldOptions {
   extraTelemetry?: TelemetryData[];
 }
 
-/**
- * Ana eşleme: konteynerler (latestTelemetry) + field-tier telemetri + topoloji
- * → mimic state. İlk konteyner prototip kabul edilir (tek gerçek konteyner).
- */
-export function mapFieldToMimicState(
-  containers: FieldContainer[],
+/** Tek konteynerin cihaz satırlarından sanal ünite prototipi (fan-out öncesi). */
+function buildProto(
+  byDevice: Map<string, TelemetryData[]>,
   topo: NovaTopology,
-  opts: MapFieldOptions = {},
-): NovaMimicState {
-  const rows = [
-    ...containers.flatMap((c) => c.latestTelemetry),
-    ...(opts.extraTelemetry ?? []),
-  ];
-  if (rows.length === 0) return emptyState(topo);
-  const unitCount = opts.unitCount ?? DEMO_UNIT_COUNT;
-
-  const byDevice = indexByDevice(rows);
-
+): Omit<NovaUnitState, "n"> {
   const hvac = buildHvacList(byDevice);
   const aux = buildAux(byDevice.get("PM5340-1"));
-  const fss = buildFss(
-    byDevice.get("CONTROL-PANEL-IO-1"),
-    byDevice.get("FSS-1"),
-    topo.unit.fss,
-  );
+  const fss = buildFss(byDevice.get("CONTROL-PANEL-IO-1"), byDevice.get("FSS-1"), topo.unit.fss);
   const imdMOhm = buildImd(byDevice.get("IMD-1"));
   const dc = buildDc(byDevice.get("DC-METER-1"));
-
-  const proto: Omit<NovaUnitState, "n"> = {
+  return {
     rmu: { H01: "closed", H02: "closed", H03: "closed", es: false },
     banks: [
       buildBank(byDevice.get(BANK_DEVICE_MAP.A.bsc), byDevice.get("CB-1"), "A", topo),
@@ -327,8 +312,56 @@ export function mapFieldToMimicState(
     ...(imdMOhm !== undefined ? { imdMOhm } : {}),
     ...(dc ? { dc } : {}),
   };
+}
 
-  const units = fanOutUnits(proto, unitCount);
+/**
+ * Ana eşleme: konteynerler (latestTelemetry) + field-tier telemetri + topoloji
+ * → mimic state. UC-13: konteynerler `station` etiketiyle gruplanır; **her
+ * istasyon kendi konteynerinin satırlarından** prototip üretir ve o istasyonun
+ * ünite dilimine fan-out edilir. Etiket yoksa tüm konteynerler birleştirilir
+ * (mevcut davranış). Throw yok.
+ */
+export function mapFieldToMimicState(
+  containers: FieldContainer[],
+  topo: NovaTopology,
+  opts: MapFieldOptions = {},
+): NovaMimicState {
+  const extra = opts.extraTelemetry ?? [];
+  const hasAny = containers.some((c) => c.latestTelemetry.length > 0) || extra.length > 0;
+  if (!hasAny) return emptyState(topo);
+
+  const allRows = [...containers.flatMap((c) => c.latestTelemetry), ...extra];
+  const tagged = containers.some((c) => typeof c.station === "string" && c.station.length > 0);
+  const units: NovaUnitState[] = [];
+
+  if (!tagged) {
+    // Legacy/eski kurulum: tek prototip → tüm ünitelere fan-out (güç korunumu ×N).
+    const proto = buildProto(indexByDevice(allRows), topo);
+    const count = opts.unitCount ?? DEMO_UNIT_COUNT;
+    const seq = stationsForContainers([]).flatMap((g) => [...g.station.units]);
+    const stUnits = fanOutUnits(proto, count);
+    stUnits.forEach((u, i) => {
+      u.n = seq[i] ?? i + 1;
+    });
+    units.push(...stUnits);
+  } else {
+    // UC-13: konteyner `station` etiketine göre istasyon-bazlı fan-out.
+    for (const g of stationsForContainers(containers)) {
+      const containerRows = containers
+        .filter((c) => g.containerIds.includes(c.containerId))
+        .flatMap((c) => c.latestTelemetry);
+      const rows = [...containerRows, ...extra];
+      if (rows.length === 0) continue;
+      const proto = buildProto(indexByDevice(rows), topo);
+      const stUnits = fanOutUnits(proto, g.station.units.length);
+      g.station.units.forEach((n, i) => {
+        if (stUnits[i]) stUnits[i].n = n;
+      });
+      units.push(...stUnits);
+    }
+    units.sort((a, b) => a.n - b.n);
+  }
+
   // Son ünitede H03 (radyal hat sonu) yoktur.
   const lastByN = new Set(
     listNovaUnits(topo)
@@ -339,11 +372,12 @@ export function mapFieldToMimicState(
     if (lastByN.has(u.n)) u.rmu.H03 = null;
   }
 
-  const station = buildStation(byDevice.get(DEMO_MV_DEVICE_ID), topo);
+  const byDeviceAll = indexByDevice(allRows);
+  const station = buildStation(byDeviceAll.get(DEMO_MV_DEVICE_ID), topo);
   const { poiMW, feederMW, iA } = derivePower(units, topo, station);
   station.iA = iA;
 
-  const ambient = num(byName(byDevice.get("HVAC-1"), "Outside Temp")?.value);
+  const ambient = num(byName(byDeviceAll.get("HVAC-1"), "Outside Temp")?.value);
 
   return {
     station,

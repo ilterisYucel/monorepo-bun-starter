@@ -20,7 +20,7 @@ export type DemoTileSeverity =
 export interface DemoTile {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
   sub?: string;
   sev?: DemoTileSeverity;
 }

@@ -82,7 +82,9 @@ describe("DemoAdminView (UC-8)", () => {
     fireEvent.change(screen.getByTestId("add-container-token"), { target: { value: "a".repeat(64) } });
     expect(btn.disabled).toBe(false);
     fireEvent.click(btn);
-    await vi.waitFor(() => expect(registerContainer).toHaveBeenCalledWith("container-1", "a".repeat(64)));
+    await vi.waitFor(() =>
+      expect(registerContainer).toHaveBeenCalledWith("container-1", "a".repeat(64), "bess1"),
+    );
     expect(await screen.findByText(/Registered/)).toBeTruthy();
     expect(screen.getByText("connected")).toBeTruthy();
     expect(screen.getByText("1580")).toBeTruthy();

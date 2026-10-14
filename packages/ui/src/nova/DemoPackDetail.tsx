@@ -188,7 +188,7 @@ export const DemoPackDetail: React.FC<DemoPackDetailProps> = ({
   );
 };
 
-const DIAG: Array<[string, string]> = [
+export const DIAG: Array<[string, string]> = [
   ["Cell over-voltage", "W 3.70 V · F1 3.80 V · F2 4.00 V"],
   ["Cell under-voltage", "W 2.40 V · F1 2.30 V"],
   ["Cell ΔV in a pack (SOC > 98 %)", "W 290 mV · F1 319 mV"],
