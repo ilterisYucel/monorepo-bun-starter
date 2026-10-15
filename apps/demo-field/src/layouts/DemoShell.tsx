@@ -99,7 +99,7 @@ export const DemoShell: React.FC = () => {
                 Projects
               </button>
               <span>/</span>
-              <b>ÜNSAL DGES</b>
+              <b>GD-1</b>
             </>
           )}
         </nav>

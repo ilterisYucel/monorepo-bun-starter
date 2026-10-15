@@ -24,6 +24,21 @@ export class TelemetrySeriesSource implements ITelemetrySeriesSource {
       (d) => ids.length === 0 || ids.includes(d.id),
     );
 
+    // `latest` modu: her ad için en yeni satır — talep-üzeri taze snapshot
+    // (push/ring-buffer yolunun gecikmesini bypass eder).
+    if (query.mode === "latest") {
+      const windowMs = Math.max(1_000, query.to.getTime() - query.from.getTime());
+      const latest = await Promise.allSettled(
+        targetDevices.map((d) =>
+          this.timescale.getLatestPerName(d.id, {
+            windowMs,
+            ...(query.names !== undefined ? { names: query.names } : {}),
+          }),
+        ),
+      );
+      return latest.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+    }
+
     const results = await Promise.allSettled(
       targetDevices.map((d) =>
         this.timescale.getDownsampledData({

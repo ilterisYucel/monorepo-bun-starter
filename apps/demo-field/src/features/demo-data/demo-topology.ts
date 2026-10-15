@@ -2,7 +2,7 @@ import type { NovaTopology } from "@gd-monorepo/ui";
 
 /**
  * DEMO-FIELD site topolojisi (SPEC UC-1/T-1, K1). gdems `SITE_TOPOLOGY`
- * (ÜNSAL DGES GDE-202030) ile hizalıdır: 9 sanal ünite, fider **A→H04 (1–5)**,
+ * (GD-1 GDE-202030) ile hizalıdır: 9 sanal ünite, fider **A→H04 (1–5)**,
  * **B→H05 (6–9)**. Banka↔BSC↔PCS eşlemesi mapFieldToMimicState'te uygulanır.
  * Gerçek MV modeli olmadığından station hücreleri burada tanımlıdır; canlı
  * pozisyonlar demo-MV cihazı telemetrisinden gelir (yoksa 'closed' varsayılan).
@@ -12,10 +12,10 @@ import type { NovaTopology } from "@gd-monorepo/ui";
  */
 export const DEMO_TOPOLOGY: NovaTopology = {
   id: "GDE-202030",
-  name: "ÜNSAL DGES",
+  name: "GD-1",
   location: "Polatlı, Ankara",
-  powerMW: 30,
-  energyMWh: 32.112,
+  powerMW: 62,
+  energyMWh: 64.224,
 
   station: {
     name: "MV STATION #1",
@@ -34,8 +34,8 @@ export const DEMO_TOPOLOGY: NovaTopology = {
   },
 
   feeders: {
-    A: { cell: "H04", side: "L", units: [1, 2, 3, 4, 5] },
-    B: { cell: "H05", side: "R", units: [6, 7, 8, 9] },
+    A: { cell: "H04", side: "L", units: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    B: { cell: "H05", side: "R", units: [10, 11, 12, 13, 14, 15, 16, 17, 18] },
   },
 
   unit: {
@@ -113,7 +113,7 @@ export const DEMO_TOPOLOGY: NovaTopology = {
 };
 
 /** Demo sanal ünite sayısı (SPEC K1 — 9 ünite). */
-export const DEMO_UNIT_COUNT = 9;
+export const DEMO_UNIT_COUNT = 18;
 
 /**
  * Pack künyesi (UC-13 DEV — referans `topology.js#unit.pack` birebir).
@@ -161,8 +161,9 @@ export const DEMO_PACK_SPEC = {
 /** Demo MV istasyon cihazı (canlı station pozisyonu/kV/Hz + komutlar). */
 export const DEMO_MV_DEVICE_ID = "DEMO-MV-1";
 
-/** Field-tier cihazlar (unified telemetri kaynağı; konteyner payload'ında YOK). */
-export const FIELD_DEVICE_IDS = ["PCS-1", "PCS-2", DEMO_MV_DEVICE_ID];
+/** Field-tier cihazlar (unified telemetri kaynağı; konteyner payload'ında YOK).
+ * 4 PCS: PCS-1/2 → Station 1, PCS-3/4 → Station 2 (K-18). */
+export const FIELD_DEVICE_IDS = ["PCS-1", "PCS-2", "PCS-3", "PCS-4", DEMO_MV_DEVICE_ID];
 
 /** OG hücre aksiyonu → demo-MV cihaz config komut adı (UC-4). */
 export function cellCommandName(

@@ -395,8 +395,37 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     return result.rows.map((row) => this.rowToTelemetryData(row, deviceId));
   }
 
-  async listDevices(): Promise<string[]> {
-    const result = await this.pool.query(`
+  /**
+   * Her telemetri adı için en yeni satır (tek cihaz) — `latest` modu.
+   * `DISTINCT ON (name)` + `ORDER BY name, timestamp DESC` → `(name, timestamp)`
+   * indeksini kullanır; `windowMs` dışındaki adlar döner (bayat veri sızmaz).
+   */
+  async getLatestPerName(
+    deviceId: string,
+    options: { names?: string[]; windowMs?: number } = {},
+  ): Promise<TelemetryData[]> {
+    await this.ensureTableExists(deviceId);
+    const tableName = this.getTableName(deviceId);
+    const windowMs = options.windowMs ?? 30_000;
+    const since = new Date(Date.now() - windowMs);
+
+    const params: unknown[] = [since];
+    let sql = `
+    SELECT DISTINCT ON (name) name, value, unit, description, timestamp, tags
+    FROM ${tableName}
+    WHERE timestamp >= $1
+  `;
+    if (options.names && options.names.length > 0) {
+      sql += ` AND name = ANY($2)`;
+      params.push(options.names);
+    }
+    sql += ` ORDER BY name, timestamp DESC`;
+
+    const result = await this.pool.query(sql, params);
+    return result.rows.map((row) => this.rowToTelemetryData(row, deviceId));
+  }
+
+  async listDevices(): Promise<string[]> {    const result = await this.pool.query(`
       SELECT hypertable_name 
       FROM timescaledb_information.hypertables
       WHERE hypertable_name LIKE 'device_%'

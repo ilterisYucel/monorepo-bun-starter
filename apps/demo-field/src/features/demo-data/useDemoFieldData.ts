@@ -13,7 +13,7 @@ export function useDemoFieldData(): UseQueryResult<FieldContainer[], Error> {
   return useQuery<FieldContainer[], Error>({
     queryKey: ["demo-field-containers", fieldId],
     queryFn: () => demoApi.containers(fieldId),
-    refetchInterval: 2000,
+    refetchInterval: 1000,
     refetchOnWindowFocus: false,
     enabled: fieldId.length > 0,
   });

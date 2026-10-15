@@ -55,6 +55,12 @@ export interface BSCSimulatorConfig {
   rackCount: number;
   registers: RegisterDef[];
   initialSocPercent?: number;
+  /**
+   * Demo hız çarpanı (K-20): SOC enerji entegrasyonunu hızlandırır
+   * (`deltaEnergy × simSpeedMultiplier`) — tick/telemetri ritmi 1 sn KALIR.
+   * Yoksa 1 (gerçek zaman). Yalnızca demo config'lerinde verilir.
+   */
+  simSpeedMultiplier?: number;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   network?: SimulatorNetworkConfig;
 }
@@ -364,7 +370,8 @@ export class BSCSimulator {
       if (!state.status) continue;
 
       if (this.bscState === BSC_STATE.NORMAL || this.bscState === BSC_STATE.MANUAL) {
-        const deltaEnergy = powerKw * (elapsedSeconds / 60);
+        // K-20: demo hız çarpanı yalnız enerji entegrasyonunu ölçekler — tick 1 sn.
+        const deltaEnergy = powerKw * ((elapsedSeconds * (this.config.simSpeedMultiplier ?? 1)) / 60);
         state.storedCapacityKwh += deltaEnergy;
         state.storedCapacityKwh = Math.max(state.storedCapacityKwh, socToCapacity(MIN_SOC_PERCENT));
         state.storedCapacityKwh = Math.min(state.storedCapacityKwh, socToCapacity(MAX_SOC_PERCENT));

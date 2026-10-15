@@ -48,6 +48,9 @@ const PCS_STATE_BY_CODE: Record<number, NovaPcsState["state"]> = {
 
 const SQRT3 = Math.sqrt(3);
 
+/** Legacy (stations'sız) kurulumun tarihsel PCS çifti. */
+const LEGACY_PCS: readonly [string, string] = ["PCS-1", "PCS-2"];
+
 function swPos(v: unknown, fallback: NovaSwitchPos = "closed"): NovaSwitchPos {
   if (v === undefined) return fallback;
   return truthy(v) ? "closed" : "open";
@@ -290,6 +293,7 @@ export interface MapFieldOptions {
 function buildProto(
   byDevice: Map<string, TelemetryData[]>,
   topo: NovaTopology,
+  pcs: readonly [string, string],
 ): Omit<NovaUnitState, "n"> {
   const hvac = buildHvacList(byDevice);
   const aux = buildAux(byDevice.get("PM5340-1"));
@@ -303,8 +307,8 @@ function buildProto(
       buildBank(byDevice.get(BANK_DEVICE_MAP.B.bsc), byDevice.get("CB-2"), "B", topo),
     ],
     pcs: [
-      buildPcs(byDevice.get(BANK_DEVICE_MAP.A.pcs), "A"),
-      buildPcs(byDevice.get(BANK_DEVICE_MAP.B.pcs), "B"),
+      buildPcs(byDevice.get(pcs[0]), "A"),
+      buildPcs(byDevice.get(pcs[1]), "B"),
     ],
     ...(hvac.length > 0 ? { hvac } : {}),
     ...(aux ? { aux } : {}),
@@ -335,8 +339,9 @@ export function mapFieldToMimicState(
   const units: NovaUnitState[] = [];
 
   if (!tagged) {
-    // Legacy/eski kurulum: tek prototip → tüm ünitelere fan-out (güç korunumu ×N).
-    const proto = buildProto(indexByDevice(allRows), topo);
+    // Legacy/eski kurulum (etiket yok): tarihsel field kablajı PCS-1/2 ile tek
+    // prototip → tüm ünitelere fan-out (güç korunumu ×N).
+    const proto = buildProto(indexByDevice(allRows), topo, LEGACY_PCS);
     const count = opts.unitCount ?? DEMO_UNIT_COUNT;
     const seq = stationsForContainers([]).flatMap((g) => [...g.station.units]);
     const stUnits = fanOutUnits(proto, count);
@@ -352,7 +357,7 @@ export function mapFieldToMimicState(
         .flatMap((c) => c.latestTelemetry);
       const rows = [...containerRows, ...extra];
       if (rows.length === 0) continue;
-      const proto = buildProto(indexByDevice(rows), topo);
+      const proto = buildProto(indexByDevice(rows), topo, g.station.pcs);
       const stUnits = fanOutUnits(proto, g.station.units.length);
       g.station.units.forEach((n, i) => {
         if (stUnits[i]) stUnits[i].n = n;

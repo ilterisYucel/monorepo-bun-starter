@@ -52,6 +52,8 @@ export interface SimulatorBuildContext {
   readonly rackCount: number;
   /** BSC başlangıç SOC'u (%) — `details.initialSocPercent` (yoksa sim 50). */
   readonly initialSocPercent?: number;
+  /** Demo hız çarpanı — `details.simSpeedMultiplier` (yoksa 1 = gerçek zaman). */
+  readonly simSpeedMultiplier?: number;
   readonly registerMap: string | undefined;
   readonly bmsPort: number | undefined;
 }
@@ -103,6 +105,9 @@ export class SimulatorHost {
       return new BSCSimulator({
         rackCount: ctx.rackCount,
         ...(ctx.initialSocPercent !== undefined ? { initialSocPercent: ctx.initialSocPercent } : {}),
+        ...(ctx.simSpeedMultiplier !== undefined
+          ? { simSpeedMultiplier: ctx.simSpeedMultiplier }
+          : {}),
         registers,
         network: ctx.network,
       });
@@ -215,6 +220,9 @@ export class SimulatorHost {
         rackCount: detailNumber(config, "rackCount") ?? 8,
         ...(detailNumber(config, "initialSocPercent") !== undefined
           ? { initialSocPercent: detailNumber(config, "initialSocPercent") }
+          : {}),
+        ...(detailNumber(config, "simSpeedMultiplier") !== undefined
+          ? { simSpeedMultiplier: detailNumber(config, "simSpeedMultiplier") }
           : {}),
         registerMap: this.resolveMap(transport.registerMap),
         bmsPort: transport.bmsPort,

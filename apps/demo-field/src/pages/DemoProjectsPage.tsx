@@ -46,7 +46,7 @@ const f = (v: number, d = 1): string =>
 const DEMO_ASSET_ROWS: DemoAssetRow[] = [
   {
     key: "GDE-202030",
-    name: "ÜNSAL DGES",
+    name: "GD-1",
     location: "Polatlı, Ankara",
     source: "Standalone",
     connMW: 30,
@@ -64,7 +64,7 @@ const DEMO_ASSET_ROWS: DemoAssetRow[] = [
   },
   {
     key: "GDE-202050",
-    name: "N DGES",
+    name: "GD-2",
     location: "Antalya",
     source: "Solar 60 MWp",
     connMW: 50,

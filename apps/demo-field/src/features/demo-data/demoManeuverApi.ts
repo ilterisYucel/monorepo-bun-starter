@@ -18,9 +18,9 @@ import { demoApi } from "./demoApi";
  * cihaz setine indirgenir (K6).
  */
 
-/** Sanal ünite kapsamı → gerçek cihaz kimlikleri (tekilleştirilmiş). */
+/** Sanal ünite kapsamı → gerçek cihaz kimlikleri (varsayılan PCS çifti).
+ *  K-18: istasyon bazlı hedef `payload.deviceIds` ile verilir (PCS-1/2 | PCS-3/4). */
 export function scopeToDeviceIds(_scope: number[]): string[] {
-  // Tüm sanal üniteler aynı gerçek konteynerin PCS'lerini paylaşır.
   return ["PCS-1", "PCS-2"];
 }
 
@@ -95,7 +95,7 @@ export const demoManeuverApi = {
   execute: async (payload: DemoExecutePayload): Promise<void> => {
     const body = {
       params: payload.params,
-      deviceIds: scopeToDeviceIds(payload.scope),
+      deviceIds: payload.deviceIds ?? scopeToDeviceIds(payload.scope),
       ...(payload.systems !== undefined && payload.systems.length > 0
         ? { systems: payload.systems }
         : {}),

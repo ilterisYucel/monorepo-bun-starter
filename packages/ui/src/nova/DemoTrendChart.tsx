@@ -277,13 +277,16 @@ export const DemoTrendChart: React.FC<DemoTrendChartProps> = ({
               return <circle key={s.label} cx={x(pts[0].t)} cy={y(pts[0].value)} r={2.5} fill={color} />;
             }
             const line = pts.map((p) => `${x(p.t).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
+            // K-19: alan tabanı = serinin İLK noktası → dolgu yalnız görünür
+            // penceredeki DEĞİŞİMİ vurgular (durgunken gölge yok, değişimde kama).
+            const baseY = y(Math.max(lo, Math.min(hi, pts[0].value)));
             return (
               <g key={s.label}>
                 {s.area ? (
                   <polygon
                     className="tc-area"
                     style={{ fill: color }}
-                    points={`${x(pts[0].t).toFixed(1)},${y(Math.max(lo, Math.min(hi, 0)))} ${line} ${x(pts[pts.length - 1].t).toFixed(1)},${y(Math.max(lo, Math.min(hi, 0)))}`}
+                    points={`${x(pts[0].t).toFixed(1)},${baseY.toFixed(1)} ${line} ${x(pts[pts.length - 1].t).toFixed(1)},${baseY.toFixed(1)}`}
                   />
                 ) : null}
                 <polyline className={`tc-line${s.dash ? " tc-dash" : ""}`} style={{ stroke: color }} points={line} />

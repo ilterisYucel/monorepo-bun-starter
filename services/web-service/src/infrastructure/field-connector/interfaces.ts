@@ -14,6 +14,8 @@ export interface TelemetrySeriesQuery {
   names?: string[];
   /** Grup anahtarı tag adı (ör. "rack_id") — serileri ayırır. */
   tag?: string;
+  /** `latest`: her ad için en yeni satır (pencere = from..to); `downsampled` varsayılan. */
+  mode?: "downsampled" | "latest";
 }
 
 export interface ITelemetrySeriesSource {

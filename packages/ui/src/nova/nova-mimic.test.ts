@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { NovaMimicState, NovaTopology, NovaUnitState } from "./mimic-types";
+import { listNovaUnits } from "./mimic-types";
 import {
   bankSeverity,
   computeEnergization,
@@ -175,6 +176,44 @@ describe("createNovaMimic (AK-3.1)", () => {
     expect(svg.querySelector('[data-target="aux"]')).not.toBeNull();
     expect(svg.querySelector('[id$="atr1"]')).not.toBeNull();
     expect(svg.querySelector('[id$="atr2"]')).not.toBeNull();
+    mimic.destroy();
+    svg.remove();
+  });
+});
+
+describe("K-22: istasyon üniteleri iki sütuna sarmalanır", () => {
+  const stationTopo: NovaTopology = {
+    ...topo,
+    feeders: { A: { cell: "H05", side: "L", units: [1, 2, 3, 4, 5, 6, 7, 8, 9] } },
+  };
+
+  it("listNovaUnits: 9 ünite → 5 sol + 4 sağ; 6. ünite wrap, son ünite 9", () => {
+    const m = listNovaUnits(stationTopo);
+    expect(m.map((u) => u.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(m.filter((u) => u.side === "L").map((u) => u.n)).toEqual([1, 2, 3, 4, 5]);
+    expect(m.filter((u) => u.side === "R").map((u) => u.n)).toEqual([6, 7, 8, 9]);
+    expect(m.filter((u) => u.wrap).map((u) => u.n)).toEqual([6]);
+    expect(m.filter((u) => u.last).map((u) => u.n)).toEqual([9]);
+  });
+
+  it("listNovaUnits: kolon sınırı (5) sarmaz; çok fiderli topo sarmaz", () => {
+    const five: NovaTopology = {
+      ...topo,
+      feeders: { A: { cell: "H05", side: "L", units: [1, 2, 3, 4, 5] } },
+    };
+    expect(listNovaUnits(five).every((u) => u.side === "L" && !u.wrap)).toBe(true);
+    expect(listNovaUnits(topo).some((u) => u.wrap)).toBe(false);
+  });
+
+  it("createNovaMimic: 2. sütun + çapraz bağlantı çizilir, son ünitede H03 yok", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    document.body.appendChild(svg);
+    const mimic = createNovaMimic(svg, stationTopo);
+    expect(svg.querySelectorAll(".demo-unit")).toHaveLength(9);
+    expect(svg.querySelector('[id$="lnW6"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="h3a5"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="h3a9"]')).toBeNull();
+    expect(svg.getAttribute("viewBox")).toBe("0 0 1240 950");
     mimic.destroy();
     svg.remove();
   });

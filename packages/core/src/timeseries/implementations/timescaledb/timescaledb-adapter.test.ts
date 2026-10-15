@@ -76,8 +76,40 @@ describe("TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)", () => {
     expect(insert).toContain("(name, value, unit, description, quality, tags, timestamp)");
   });
 
-  it("boş girdi → havuz işlemi YAPILMAZ", async () => {
-    const { pool, poolQuery, clientQuery } = makeWritePool();
+  it("K-21: getLatestPerName DISTINCT ON (name) + pencere parametresi (latest modu)", async () => {
+    const poolQuery = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          name: "BSC SOC",
+          value: 74,
+          unit: "%",
+          description: "",
+          timestamp: new Date("2026-10-15T07:00:00.000Z"),
+          tags: { canonical: "soc" },
+        },
+      ],
+    });
+    const { pool } = makeWritePool({ poolQuery });
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    const rows = await adapter.getLatestPerName("BSC-1", {
+      windowMs: 30000,
+      names: ["BSC SOC"],
+    });
+
+    const sel = poolQuery.mock.calls
+      .map((c) => ({ sql: String(c[0]), params: c[1] as unknown[] }))
+      .find((c) => c.sql.includes("DISTINCT ON (name)"));
+    expect(sel).toBeDefined();
+    expect(sel!.sql).toContain("device_BSC_1");
+    expect(sel!.sql).toContain("name = ANY($2)");
+    expect(sel!.params[0]).toBeInstanceOf(Date);
+    expect(sel!.params[1]).toEqual(["BSC SOC"]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.value).toBe(74);
+  });
+
+  it("boş girdi → havuz işlemi YAPILMAZ", async () => {    const { pool, poolQuery, clientQuery } = makeWritePool();
     const adapter = new TimescaleDBAdapter(makeConfig(), pool);
     await adapter.write([]);
     expect(poolQuery).not.toHaveBeenCalled();

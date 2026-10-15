@@ -227,6 +227,7 @@ services:
       - "5002:5002"
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
+      - ../../../../packages/ws-tunnel/src:/app/packages/ws-tunnel/src
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-field:ro
       - ./maneuvers:/app/maneuver-config:ro

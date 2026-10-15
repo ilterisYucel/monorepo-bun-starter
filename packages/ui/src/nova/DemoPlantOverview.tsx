@@ -445,7 +445,8 @@ const StandaloneSvg: React.FC<{ ov: ReturnType<typeof derivePlantOverview>; topo
   topology,
 }) => {
   const kV = ov.poiKv;
-  const W = 1000;
+  // K-22: her istasyon 9 ünite → iki fider yan yana sığsın diye geniş tuval.
+  const W = 1960;
   const yBus = 132;
   const rowY = 214;
   const tileW = 88;
@@ -454,11 +455,11 @@ const StandaloneSvg: React.FC<{ ov: ReturnType<typeof derivePlantOverview>; topo
   const feederA = topology.feeders.A?.units ?? [];
   const feederB = topology.feeders.B?.units ?? [];
   const x0A = 50;
-  const x0B = 572;
+  const x0B = 1010;
   const posOf = new Map<number, { x: number; y: number }>();
   feederA.forEach((n, i) => posOf.set(n, { x: x0A + i * (tileW + gap), y: rowY }));
   feederB.forEach((n, i) => posOf.set(n, { x: x0B + i * (tileW + gap), y: rowY }));
-  const feedXPx: Record<string, number> = { A: 500, B: 760 };
+  const feedXPx: Record<string, number> = { A: 480, B: 1440 };
   return (
     <svg className="po" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Standalone BESS overview">
       <GridSym x={160} y={28} />

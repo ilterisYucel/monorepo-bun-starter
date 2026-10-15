@@ -342,25 +342,48 @@ export interface NovaMimicState {
   ambient?: number;
 }
 
-/** Üniteleri elektriksel sıraya dizip fider metadata'sı ekler (saf). */
+/** Tek istasyon sütununda (tek fider görünümü) en fazla ünite — gdems referansı. */
+export const MIMIC_COLUMN_MAX = 5;
+
+/**
+ * Üniteleri elektriksel sıraya dizip fider metadata'sı ekler (saf).
+ *
+ * Tek fiderli (istasyon) topolojide `MIMIC_COLUMN_MAX`'tan fazla ünite varsa
+ * iki sütuna bölünür: ilk yarı fider tarafında (L/R), kalan karşı tarafta
+ * (2 yanlı yerleşim — gdems `5 + 4` gibi). İkinci sütunun ilk ünitesi
+ * `wrap: true` alır (`nova-mimic` sütunlar arası bağlantıyı bununla çizer).
+ */
 export function listNovaUnits(
   topo: NovaTopology,
-): Array<{ n: number; feeder: string; side: "L" | "R"; row: number; last: boolean }> {
+): Array<{
+  n: number;
+  feeder: string;
+  side: "L" | "R";
+  row: number;
+  last: boolean;
+  wrap?: boolean;
+}> {
   const out: Array<{
     n: number;
     feeder: string;
     side: "L" | "R";
     row: number;
     last: boolean;
+    wrap?: boolean;
   }> = [];
+  const single = Object.keys(topo.feeders).length === 1;
   for (const [f, fd] of Object.entries(topo.feeders)) {
-    fd.units.forEach((n, row) =>
+    const wrap = single && fd.units.length > MIMIC_COLUMN_MAX;
+    const per = wrap ? Math.ceil(fd.units.length / 2) : fd.units.length;
+    const other: "L" | "R" = fd.side === "L" ? "R" : "L";
+    fd.units.forEach((n, i) =>
       out.push({
         n,
         feeder: f,
-        side: fd.side,
-        row,
-        last: row === fd.units.length - 1,
+        side: wrap && i >= per ? other : fd.side,
+        row: wrap ? i % per : i,
+        last: i === fd.units.length - 1,
+        ...(wrap && i === per ? { wrap: true } : {}),
       }),
     );
   }

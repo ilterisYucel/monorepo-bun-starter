@@ -44,8 +44,8 @@ describe("DemoProjectsPage (UC-11)", () => {
     renderPage();
     expect(screen.getByRole("heading", { name: "Projects" })).toBeTruthy();
     expect(screen.getByTestId("demo-portfolio-map")).toBeTruthy();
-    expect(screen.getAllByText("ÜNSAL DGES").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("N DGES").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("GD-1").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("GD-2").length).toBeGreaterThan(0);
   });
 
   it("AK-11.6: PTF kartı, Asset management ve Market paneli görünür", () => {

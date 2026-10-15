@@ -49,7 +49,6 @@ export interface ITimeseriesDatabase {
   aggregate(query: AggregateQuery): Promise<{ bucket: Date; value: number }[]>;
 
   getDownsampledData(options: DownsampleOptions): Promise<TelemetryData[]>;
-
   /**
    * Son değeri getir
    */
@@ -67,6 +66,15 @@ export interface ITimeseriesDatabase {
     limit: number,
     names?: string[],
     tags?: Record<string, string>,
+  ): Promise<TelemetryData[]>;
+
+  /**
+   * Her telemetri adı için EN YENİ satır (tek cihaz) — `latest` modu
+   * (talep-üzeri taze snapshot). `windowMs` penceresi dışındaki adlar atlanır.
+   */
+  getLatestPerName(
+    deviceId: string,
+    options?: { names?: string[]; windowMs?: number },
   ): Promise<TelemetryData[]>;
 
   /**

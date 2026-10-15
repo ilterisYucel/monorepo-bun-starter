@@ -191,16 +191,20 @@ for cid in "${CONTAINERS[@]}"; do
 done
 
 if [ "$connected_count" -eq "${#CONTAINERS[@]}" ]; then
-  step 5/5 "İlk açılış — FL-01 Start-Up (PCS Standby · Availability)"
+  step 5/5 "İlk açılış — FL-01 Start-Up (istasyon başına; PCS Standby · Availability)"
   if [ "$STARTUP" = "1" ]; then
-    RESP="$(curl -s -w $'\n%{http_code}' -X POST \
-      "$BASE_URL/api/maneuvers/fl01_startup/execute" "${AUTH[@]}" -d '{"params":{}}')"
-    CODE="$(printf '%s' "$RESP" | tail -n1)"
-    if [ "$CODE" = "200" ]; then
-      ok "fl01_startup çalıştı — PCS Standby (Availability dolu)"
-    else
-      warn "fl01_startup HTTP $CODE — UI › Operations › FL-01 Start-Up ile elle çalıştır"
-    fi
+    # K-18: istasyon bazlı — her istasyonun PCS çifti ayrı başlatılır.
+    for pair in "PCS-1,PCS-2" "PCS-3,PCS-4"; do
+      RESP="$(curl -s -w $'\n%{http_code}' -X POST \
+        "$BASE_URL/api/maneuvers/fl01_startup/execute" "${AUTH[@]}" \
+        -d "{\"params\":{},\"deviceIds\":[\"${pair%,*}\",\"${pair#*,}\"]}")"
+      CODE="$(printf '%s' "$RESP" | tail -n1)"
+      if [ "$CODE" = "200" ]; then
+        ok "fl01_startup ($pair) çalıştı"
+      else
+        warn "fl01_startup ($pair) HTTP $CODE — UI › Operations › FL-01 Start-Up ile elle çalıştır"
+      fi
+    done
   else
     warn "--no-startup: FL-01 atlandı (UI › Operations › FL-01 Start-Up)"
   fi

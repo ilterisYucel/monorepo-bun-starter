@@ -2,10 +2,10 @@
  * Demo portföy künyesi (SPEC UC-11, K14). gdems `projects.js` portföyüne
  * hizalı iki proje:
  *
- * - **ÜNSAL DGES** (`live: true`) — tek backend `FIELD_ID`/`DEMO_TOPOLOGY`
+ * - **GD-1** (`live: true`) — tek backend `FIELD_ID`/`DEMO_TOPOLOGY`
  *   kimliği (GDE-202030, Polatlı, 30 MWe standalone). Canlı değerleri saha
  *   telemetrisinden gelir; `snapshot` KULLANILMAZ.
- * - **N DGES** (`live: false`) — statik demo künyesi (GDE-202050, Antalya,
+ * - **GD-2** (`live: false`) — statik demo künyesi (GDE-202050, Antalya,
  *   50 MWe, 60 MWp solar + BESS). Canlı API yoktur; kart/tip `snapshot`
  *   değerlerini gösterir ve "demo" işaretlidir.
  *
@@ -55,20 +55,20 @@ export interface DemoPortfolioProject {
 export const DEMO_PORTFOLIO: DemoPortfolioProject[] = [
   {
     id: "GDE-202030",
-    name: "ÜNSAL DGES",
+    name: "GD-1",
     location: "Polatlı, Ankara",
     city: "Polatlı, Ankara",
     lat: 39.58,
     lon: 32.15,
-    connMW: 30,
-    energyMWh: 32.112,
-    groups: 9,
+    connMW: 62,
+    energyMWh: 64.224,
+    groups: 18,
     live: true,
     source: "none",
   },
   {
     id: "GDE-202050",
-    name: "N DGES",
+    name: "GD-2",
     location: "Antalya",
     city: "Antalya",
     lat: 37.03,

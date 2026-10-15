@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
-import { buildTrendSeries, TREND_SOURCE_NAMES } from "./buildTrendSeries";
+import { buildTrendSeries, trendBands, TREND_SOURCE_NAMES } from "./buildTrendSeries";
 
 const T = (
   name: string,
@@ -72,5 +72,15 @@ describe("buildTrendSeries (FR-6.1 / AK-6.1)", () => {
     expect(soc).toEqual([]);
     expect(power).toEqual([]);
     expect(temp).toEqual([]);
+  });
+
+  it("K-18: trendBands — güç min ±1 MW", () => {
+    const b = trendBands({ soc: [], power: [{ t: 1, value: 0.2 }], temp: [] });
+    expect(b.power).toEqual([-1, 1]);
+  });
+
+  it("K-18: trendBands — büyük yükte güç bandı büyür", () => {
+    const b = trendBands({ soc: [], power: [{ t: 1, value: -3.4 }], temp: [] });
+    expect(b.power).toEqual([-4, 4]);
   });
 });

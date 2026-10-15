@@ -244,3 +244,30 @@ describe("BSCSimulator — rack nameplate değerleri (hardware.md)", () => {
     expect(rd(RACK_NAMEPLATE.CURRENT_SENSOR_TYPE)).toBe(1);
   });
 });
+
+describe("BSCSimulator — demo hız çarpanı (K-20)", () => {
+  it("simSpeedMultiplier SOC entegrasyonunu ölçekler; tick ritmi değişmez", () => {
+    const make = (speed?: number): BSCSimulator =>
+      new BSCSimulator({
+        rackCount: 2,
+        registers: [],
+        initialSocPercent: 50,
+        ...(speed !== undefined ? { simSpeedMultiplier: speed } : {}),
+      });
+    const drive = (s: BSCSimulator): void => {
+      s.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
+      s.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000); // 50 kW
+      for (let i = 0; i < 20; i++) s.tick(1);
+    };
+    const slow = make();
+    const fast = make(10);
+    drive(slow);
+    drive(fast);
+    const dSlow = slow.readInputRegister(SYSTEM_SUMMARY.BSC_SOC) - 5000;
+    const dFast = fast.readInputRegister(SYSTEM_SUMMARY.BSC_SOC) - 5000;
+    expect(dSlow).toBeGreaterThan(0);
+    const ratio = dFast / dSlow;
+    expect(ratio).toBeGreaterThan(8);
+    expect(ratio).toBeLessThan(12);
+  });
+});

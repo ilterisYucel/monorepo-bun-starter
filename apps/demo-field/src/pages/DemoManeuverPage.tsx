@@ -4,7 +4,7 @@ import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DemoReadySection } from "../components/DemoReadySection";
 import { DemoTrendsSection } from "../components/DemoTrendsSection";
 import { demoManeuverApi } from "../features/demo-data/demoManeuverApi";
-import { DEMO_STATIONS } from "../features/demo-data/demo-stations";
+import { DEMO_STATIONS, pcsIdsForStation } from "../features/demo-data/demo-stations";
 import { derivePermissives, deriveStartupChecks } from "../features/demo-data/demo-permissives";
 import { socOf } from "../features/demo-data/useTargetSocWatcher";
 import { useTargetSocStore } from "../features/demo-data/stores/TargetSocStore";
@@ -190,6 +190,8 @@ export const DemoManeuverPage: React.FC = () => {
         kind,
         params,
         scope: state.units.map((u) => u.n),
+        // K-18: yerel pcs adımları yalnız aktif istasyonun PCS çiftine gider.
+        deviceIds: [...pcsIdsForStation(activeKey)],
         ...(activeSystems ? { systems: activeSystems } : {}),
       });
       setMessage(`Command accepted (${name}).`);

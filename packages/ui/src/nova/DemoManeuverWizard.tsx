@@ -20,6 +20,8 @@ export interface DemoExecutePayload {
   timer?: { durationSeconds: number };
   /** UC-13: uzak (`system`) adımların hedef konteyner id'leri (ön yüz seçimi). */
   systems?: string[];
+  /** K-18: yerel adımların hedef cihazları — istasyonun PCS çifti. Verilmezse varsayılan. */
+  deviceIds?: string[];
 }
 
 export interface DemoManeuverWizardProps {

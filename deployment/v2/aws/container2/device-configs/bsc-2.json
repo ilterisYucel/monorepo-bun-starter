@@ -667,7 +667,7 @@
     {
       "name": "Max Pack Temp",
       "description": "Max Pack Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30149,
       "registerTableType": "INPUT_REGISTER",
@@ -683,7 +683,7 @@
     {
       "name": "Avg Pack Temp",
       "description": "Avg Pack Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30150,
       "registerTableType": "INPUT_REGISTER",
@@ -699,7 +699,7 @@
     {
       "name": "Min Pack Temp",
       "description": "Min Pack Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30151,
       "registerTableType": "INPUT_REGISTER",
@@ -1411,7 +1411,7 @@
     {
       "name": "Rack Max Pack Temp R1",
       "description": "Rack Max Pack Temp (Rack 1)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30259,
       "registerTableType": "INPUT_REGISTER",
@@ -1429,7 +1429,7 @@
     {
       "name": "Rack Min Pack Temp R1",
       "description": "Rack Min Pack Temp (Rack 1)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30260,
       "registerTableType": "INPUT_REGISTER",
@@ -1447,7 +1447,7 @@
     {
       "name": "Rack Avg Pack Temp R1",
       "description": "Rack Avg Pack Temp (Rack 1)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30261,
       "registerTableType": "INPUT_REGISTER",
@@ -1502,7 +1502,7 @@
     {
       "name": "Rack Max Diff Temp R1",
       "description": "Rack Max Diff Temp (Rack 1)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30264,
       "registerTableType": "INPUT_REGISTER",
@@ -1520,7 +1520,7 @@
     {
       "name": "Rack Max Diff Temp Pack R1",
       "description": "Rack Max Diff Temp Pack (Rack 1)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30265,
       "registerTableType": "INPUT_REGISTER",
@@ -2192,7 +2192,7 @@
     {
       "name": "Rack Max Pack Temp R2",
       "description": "Rack Max Pack Temp (Rack 2)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30409,
       "registerTableType": "INPUT_REGISTER",
@@ -2210,7 +2210,7 @@
     {
       "name": "Rack Min Pack Temp R2",
       "description": "Rack Min Pack Temp (Rack 2)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30410,
       "registerTableType": "INPUT_REGISTER",
@@ -2228,7 +2228,7 @@
     {
       "name": "Rack Avg Pack Temp R2",
       "description": "Rack Avg Pack Temp (Rack 2)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30411,
       "registerTableType": "INPUT_REGISTER",
@@ -2283,7 +2283,7 @@
     {
       "name": "Rack Max Diff Temp R2",
       "description": "Rack Max Diff Temp (Rack 2)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30414,
       "registerTableType": "INPUT_REGISTER",
@@ -2301,7 +2301,7 @@
     {
       "name": "Rack Max Diff Temp Pack R2",
       "description": "Rack Max Diff Temp Pack (Rack 2)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30415,
       "registerTableType": "INPUT_REGISTER",
@@ -2973,7 +2973,7 @@
     {
       "name": "Rack Max Pack Temp R3",
       "description": "Rack Max Pack Temp (Rack 3)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30559,
       "registerTableType": "INPUT_REGISTER",
@@ -2991,7 +2991,7 @@
     {
       "name": "Rack Min Pack Temp R3",
       "description": "Rack Min Pack Temp (Rack 3)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30560,
       "registerTableType": "INPUT_REGISTER",
@@ -3009,7 +3009,7 @@
     {
       "name": "Rack Avg Pack Temp R3",
       "description": "Rack Avg Pack Temp (Rack 3)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30561,
       "registerTableType": "INPUT_REGISTER",
@@ -3064,7 +3064,7 @@
     {
       "name": "Rack Max Diff Temp R3",
       "description": "Rack Max Diff Temp (Rack 3)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30564,
       "registerTableType": "INPUT_REGISTER",
@@ -3082,7 +3082,7 @@
     {
       "name": "Rack Max Diff Temp Pack R3",
       "description": "Rack Max Diff Temp Pack (Rack 3)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30565,
       "registerTableType": "INPUT_REGISTER",
@@ -3754,7 +3754,7 @@
     {
       "name": "Rack Max Pack Temp R4",
       "description": "Rack Max Pack Temp (Rack 4)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30709,
       "registerTableType": "INPUT_REGISTER",
@@ -3772,7 +3772,7 @@
     {
       "name": "Rack Min Pack Temp R4",
       "description": "Rack Min Pack Temp (Rack 4)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30710,
       "registerTableType": "INPUT_REGISTER",
@@ -3790,7 +3790,7 @@
     {
       "name": "Rack Avg Pack Temp R4",
       "description": "Rack Avg Pack Temp (Rack 4)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30711,
       "registerTableType": "INPUT_REGISTER",
@@ -3845,7 +3845,7 @@
     {
       "name": "Rack Max Diff Temp R4",
       "description": "Rack Max Diff Temp (Rack 4)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30714,
       "registerTableType": "INPUT_REGISTER",
@@ -3863,7 +3863,7 @@
     {
       "name": "Rack Max Diff Temp Pack R4",
       "description": "Rack Max Diff Temp Pack (Rack 4)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30715,
       "registerTableType": "INPUT_REGISTER",
@@ -4535,7 +4535,7 @@
     {
       "name": "Rack Max Pack Temp R5",
       "description": "Rack Max Pack Temp (Rack 5)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30859,
       "registerTableType": "INPUT_REGISTER",
@@ -4553,7 +4553,7 @@
     {
       "name": "Rack Min Pack Temp R5",
       "description": "Rack Min Pack Temp (Rack 5)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30860,
       "registerTableType": "INPUT_REGISTER",
@@ -4571,7 +4571,7 @@
     {
       "name": "Rack Avg Pack Temp R5",
       "description": "Rack Avg Pack Temp (Rack 5)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30861,
       "registerTableType": "INPUT_REGISTER",
@@ -4626,7 +4626,7 @@
     {
       "name": "Rack Max Diff Temp R5",
       "description": "Rack Max Diff Temp (Rack 5)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30864,
       "registerTableType": "INPUT_REGISTER",
@@ -4644,7 +4644,7 @@
     {
       "name": "Rack Max Diff Temp Pack R5",
       "description": "Rack Max Diff Temp Pack (Rack 5)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30865,
       "registerTableType": "INPUT_REGISTER",
@@ -5316,7 +5316,7 @@
     {
       "name": "Rack Max Pack Temp R6",
       "description": "Rack Max Pack Temp (Rack 6)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31009,
       "registerTableType": "INPUT_REGISTER",
@@ -5334,7 +5334,7 @@
     {
       "name": "Rack Min Pack Temp R6",
       "description": "Rack Min Pack Temp (Rack 6)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31010,
       "registerTableType": "INPUT_REGISTER",
@@ -5352,7 +5352,7 @@
     {
       "name": "Rack Avg Pack Temp R6",
       "description": "Rack Avg Pack Temp (Rack 6)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31011,
       "registerTableType": "INPUT_REGISTER",
@@ -5407,7 +5407,7 @@
     {
       "name": "Rack Max Diff Temp R6",
       "description": "Rack Max Diff Temp (Rack 6)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31014,
       "registerTableType": "INPUT_REGISTER",
@@ -5425,7 +5425,7 @@
     {
       "name": "Rack Max Diff Temp Pack R6",
       "description": "Rack Max Diff Temp Pack (Rack 6)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31015,
       "registerTableType": "INPUT_REGISTER",
@@ -6097,7 +6097,7 @@
     {
       "name": "Rack Max Pack Temp R7",
       "description": "Rack Max Pack Temp (Rack 7)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31159,
       "registerTableType": "INPUT_REGISTER",
@@ -6115,7 +6115,7 @@
     {
       "name": "Rack Min Pack Temp R7",
       "description": "Rack Min Pack Temp (Rack 7)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31160,
       "registerTableType": "INPUT_REGISTER",
@@ -6133,7 +6133,7 @@
     {
       "name": "Rack Avg Pack Temp R7",
       "description": "Rack Avg Pack Temp (Rack 7)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31161,
       "registerTableType": "INPUT_REGISTER",
@@ -6188,7 +6188,7 @@
     {
       "name": "Rack Max Diff Temp R7",
       "description": "Rack Max Diff Temp (Rack 7)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31164,
       "registerTableType": "INPUT_REGISTER",
@@ -6206,7 +6206,7 @@
     {
       "name": "Rack Max Diff Temp Pack R7",
       "description": "Rack Max Diff Temp Pack (Rack 7)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31165,
       "registerTableType": "INPUT_REGISTER",
@@ -6878,7 +6878,7 @@
     {
       "name": "Rack Max Pack Temp R8",
       "description": "Rack Max Pack Temp (Rack 8)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31309,
       "registerTableType": "INPUT_REGISTER",
@@ -6896,7 +6896,7 @@
     {
       "name": "Rack Min Pack Temp R8",
       "description": "Rack Min Pack Temp (Rack 8)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31310,
       "registerTableType": "INPUT_REGISTER",
@@ -6914,7 +6914,7 @@
     {
       "name": "Rack Avg Pack Temp R8",
       "description": "Rack Avg Pack Temp (Rack 8)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31311,
       "registerTableType": "INPUT_REGISTER",
@@ -6969,7 +6969,7 @@
     {
       "name": "Rack Max Diff Temp R8",
       "description": "Rack Max Diff Temp (Rack 8)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31314,
       "registerTableType": "INPUT_REGISTER",
@@ -6987,7 +6987,7 @@
     {
       "name": "Rack Max Diff Temp Pack R8",
       "description": "Rack Max Diff Temp Pack (Rack 8)",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 31315,
       "registerTableType": "INPUT_REGISTER",
@@ -27114,7 +27114,7 @@
       }
     },
     "start": {
-      "label": "Başlat (Start)",
+      "label": "Ba\u015flat (Start)",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27164,7 +27164,7 @@
       }
     },
     "open_contactors": {
-      "label": "Kontaktörleri Aç",
+      "label": "Kontakt\u00f6rleri A\u00e7",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27191,7 +27191,7 @@
       }
     },
     "close_contactors": {
-      "label": "Kontaktörleri Kapat",
+      "label": "Kontakt\u00f6rleri Kapat",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27218,7 +27218,7 @@
       }
     },
     "enter_manual": {
-      "label": "Manuel Moda Geç",
+      "label": "Manuel Moda Ge\u00e7",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27241,7 +27241,7 @@
       }
     },
     "exit_manual": {
-      "label": "Manuel Moddan Çık",
+      "label": "Manuel Moddan \u00c7\u0131k",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27264,7 +27264,7 @@
       }
     },
     "event_clear": {
-      "label": "Arıza Temizle (Event Clear)",
+      "label": "Ar\u0131za Temizle (Event Clear)",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27291,7 +27291,7 @@
       }
     },
     "reset": {
-      "label": "Sıfırla (Reset)",
+      "label": "S\u0131f\u0131rla (Reset)",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27317,7 +27317,7 @@
       }
     },
     "set_charge_power": {
-      "label": "Şarj Gücü Ayarla",
+      "label": "\u015earj G\u00fcc\u00fc Ayarla",
       "telemetries": [
         {
           "name": "Charge Power Setpoint",
@@ -27331,13 +27331,13 @@
           "max": 2500,
           "default": 50,
           "required": true,
-          "label": "Şarj Gücü (kW)"
+          "label": "\u015earj G\u00fcc\u00fc (kW)"
         }
       },
       "timeoutMs": 3000
     },
     "set_discharge_power": {
-      "label": "Deşarj Gücü Ayarla",
+      "label": "De\u015farj G\u00fcc\u00fc Ayarla",
       "telemetries": [
         {
           "name": "Discharge Power Setpoint",
@@ -27351,13 +27351,13 @@
           "max": 2500,
           "default": 50,
           "required": true,
-          "label": "Deşarj Gücü (kW)"
+          "label": "De\u015farj G\u00fcc\u00fc (kW)"
         }
       },
       "timeoutMs": 3000
     },
     "charge": {
-      "label": "Şarj",
+      "label": "\u015earj",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27384,7 +27384,7 @@
       }
     },
     "discharge": {
-      "label": "Deşarj",
+      "label": "De\u015farj",
       "telemetries": [
         {
           "name": "Command Request",
@@ -27414,7 +27414,8 @@
   },
   "details": {
     "rackCount": 8,
-    "initialSocPercent": 72
+    "initialSocPercent": 72,
+    "simSpeedMultiplier": 20
   },
   "connector": {
     "device": {
@@ -27560,7 +27561,7 @@
     {
       "telemetry": "BSC Fault",
       "severity": "error",
-      "description": "BSC arıza (30037 b2)"
+      "description": "BSC ar\u0131za (30037 b2)"
     },
     {
       "telemetry": "BSC Alarm",
@@ -27570,7 +27571,7 @@
     {
       "telemetry": "BSC Warning",
       "severity": "warning",
-      "description": "BSC uyarı (30037 b1)"
+      "description": "BSC uyar\u0131 (30037 b1)"
     }
   ]
 }

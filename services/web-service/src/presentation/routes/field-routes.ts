@@ -154,6 +154,15 @@ export async function fieldRoutes(
         const status =
           deps.containerProxy?.connectionStatus().get(c.container_id) ?? "idle";
         const lastSeenAtMs = deps.containerProxy?.lastSeenAt(c.container_id);
+        // K-21: talep-üzeri taze snapshot (DB'den) → hızlı tepki; erişilemezse
+        // push snapshot'a düşülür (kademeli bozulma).
+        const fresh = deps.containerProxy?.latestQuery
+          ? await deps.containerProxy.latestQuery(c.container_id)
+          : [];
+        const latestTelemetry =
+          fresh.length > 0
+            ? fresh
+            : (deps.containerProxy?.latestTelemetry(c.container_id) ?? []);
         return {
           containerId: c.container_id,
           layout: c.layout,
@@ -163,8 +172,7 @@ export async function fieldRoutes(
           ...(lastSeenAtMs !== undefined
             ? { lastSeenAt: new Date(lastSeenAtMs).toISOString() }
             : {}),
-          latestTelemetry:
-            deps.containerProxy?.latestTelemetry(c.container_id) ?? [],
+          latestTelemetry,
         };
       }),
     );
@@ -206,6 +214,7 @@ export async function fieldRoutes(
       to?: string;
       points?: string;
       containerIds?: string;
+      names?: string;
       tag?: string;
     };
 
@@ -236,7 +245,15 @@ export async function fieldRoutes(
     const toDate = query.to ? new Date(query.to) : new Date();
     const points = query.points ? Number.parseInt(query.points, 10) : 120;
 
-    const params = { from: fromDate, to: toDate, points, tag: query.tag };
+    const params = {
+      from: fromDate,
+      to: toDate,
+      points,
+      ...(query.names !== undefined
+        ? { names: query.names.split(",").map((n) => n.trim()).filter((n) => n.length > 0) }
+        : {}),
+      tag: query.tag,
+    };
     const results = await deps.containerProxy.allHistorical(
       containerIds,
       params,

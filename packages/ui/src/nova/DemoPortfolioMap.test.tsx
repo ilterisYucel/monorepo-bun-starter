@@ -9,7 +9,7 @@ const sites: DemoPortfolioSite[] = [
   {
     i: 0,
     id: "GDE-202030",
-    name: "ÜNSAL DGES",
+    name: "GD-1",
     lat: 39.58,
     lon: 32.15,
     live: true,
@@ -23,7 +23,7 @@ const sites: DemoPortfolioSite[] = [
   {
     i: 1,
     id: "GDE-202050",
-    name: "N DGES",
+    name: "GD-2",
     lat: 37.03,
     lon: 30.6,
     live: false,
@@ -43,8 +43,8 @@ const sites: DemoPortfolioSite[] = [
 describe("DemoPortfolioMap (UC-11)", () => {
   it("AK-11.2: iki proje marker'ı render eder", () => {
     render(<DemoPortfolioMap sites={sites} />);
-    expect(screen.getByText(/ÜNSAL DGES/)).toBeTruthy();
-    expect(screen.getByText(/N DGES/)).toBeTruthy();
+    expect(screen.getByText(/GD-1/)).toBeTruthy();
+    expect(screen.getByText(/GD-2/)).toBeTruthy();
     expect(screen.getByTestId("demo-portfolio-map")).toBeTruthy();
   });
 

@@ -14,14 +14,14 @@ describe("DemoProjectCard (UC-11)", () => {
   it("AK-11.2: ad, alt başlık ve 3 KPI gösterir", () => {
     render(
       <DemoProjectCard
-        name="ÜNSAL DGES"
+        name="GD-1"
         status="Online"
         subtitle="Polatlı, Ankara · 30 MWe"
         kpis={kpis}
         live
       />,
     );
-    expect(screen.getByText("ÜNSAL DGES")).toBeTruthy();
+    expect(screen.getByText("GD-1")).toBeTruthy();
     expect(screen.getByText(/Polatlı/)).toBeTruthy();
     expect(screen.getByText("12.0 MW")).toBeTruthy();
     expect(screen.getByText("Open project →")).toBeTruthy();
@@ -31,7 +31,7 @@ describe("DemoProjectCard (UC-11)", () => {
     const onOpen = vi.fn();
     render(
       <DemoProjectCard
-        name="ÜNSAL DGES"
+        name="GD-1"
         status="Online"
         subtitle="s"
         kpis={kpis}
@@ -39,14 +39,14 @@ describe("DemoProjectCard (UC-11)", () => {
         onOpen={onOpen}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /ÜNSAL DGES/ }));
+    fireEvent.click(screen.getByRole("button", { name: /GD-1/ }));
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
   it("AK-11.3: statik kart 'demo' işaretli ve buton değil", () => {
     render(
       <DemoProjectCard
-        name="N DGES"
+        name="GD-2"
         status="Standby"
         subtitle="Antalya"
         kpis={kpis}
@@ -54,7 +54,7 @@ describe("DemoProjectCard (UC-11)", () => {
         onOpen={() => undefined}
       />,
     );
-    expect(screen.queryByRole("button", { name: /N DGES/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /GD-2/ })).toBeNull();
     expect(screen.getAllByText(/demo/i).length).toBeGreaterThan(0);
   });
 });

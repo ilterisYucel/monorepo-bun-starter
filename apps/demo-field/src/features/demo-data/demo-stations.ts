@@ -19,6 +19,9 @@ export interface DemoStation {
   readonly feeder: "A" | "B";
   readonly cell: string;
   readonly units: readonly number[];
+  /** İstasyonu kontrol eden field PCS çifti (2 PCS/istasyon — K-18).
+   *  Station #1 (BESS#1-5) → PCS-3/4, Station #2 (BESS#6-9) → PCS-1/2. */
+  readonly pcs: readonly [string, string];
 }
 
 /** Collector (grid ile istasyonlar arası ortak bara) — 31.05 MW ≤ 50 → MV STATION. */
@@ -31,9 +34,14 @@ export const DEMO_COLLECTOR = {
 } as const;
 
 export const DEMO_STATIONS: readonly DemoStation[] = [
-  { index: 0, key: "bess1", name: "BESS MV STATION #1", feeder: "A", cell: "H04", units: DEMO_TOPOLOGY.feeders.A.units },
-  { index: 1, key: "bess2", name: "BESS MV STATION #2", feeder: "B", cell: "H05", units: DEMO_TOPOLOGY.feeders.B.units },
+  { index: 0, key: "bess1", name: "BESS MV STATION #1", feeder: "A", cell: "H04", units: DEMO_TOPOLOGY.feeders.A.units, pcs: ["PCS-3", "PCS-4"] },
+  { index: 1, key: "bess2", name: "BESS MV STATION #2", feeder: "B", cell: "H05", units: DEMO_TOPOLOGY.feeders.B.units, pcs: ["PCS-1", "PCS-2"] },
 ];
+
+/** İstasyon key'i (bess1/bess2) → field PCS çifti; bilinmeyen key'de ilk istasyon. */
+export function pcsIdsForStation(key: string | undefined): readonly [string, string] {
+  return DEMO_STATIONS.find((s) => s.key === key)?.pcs ?? DEMO_STATIONS[0].pcs;
+}
 
 /** Ünite numarası hangi istasyonda? */
 export function stationForUnit(n: number): DemoStation | undefined {

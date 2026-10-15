@@ -5,7 +5,7 @@ import { DemoAssetTable, type DemoAssetRow } from "./DemoAssetTable";
 const rows: DemoAssetRow[] = [
   {
     key: "GDE-202030",
-    name: "ÜNSAL DGES",
+    name: "GD-1",
     location: "Polatlı, Ankara",
     source: "Standalone",
     connMW: 30,
@@ -23,7 +23,7 @@ const rows: DemoAssetRow[] = [
   },
   {
     key: "GDE-202050",
-    name: "N DGES",
+    name: "GD-2",
     location: "Antalya",
     source: "Solar",
     connMW: 50,
@@ -48,8 +48,8 @@ const rows: DemoAssetRow[] = [
 describe("DemoAssetTable (UC-11)", () => {
   it("AK-11.6: proje satırlarını ve Portfolio toplamını gösterir", () => {
     render(<DemoAssetTable rows={rows} />);
-    expect(screen.getByText("ÜNSAL DGES")).toBeTruthy();
-    expect(screen.getByText("N DGES")).toBeTruthy();
+    expect(screen.getByText("GD-1")).toBeTruthy();
+    expect(screen.getByText("GD-2")).toBeTruthy();
     expect(screen.getByText(/Portfolio/)).toBeTruthy();
     expect(screen.getByTestId("demo-asset-table")).toBeTruthy();
   });

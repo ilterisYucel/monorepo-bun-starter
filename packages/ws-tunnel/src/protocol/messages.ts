@@ -208,6 +208,12 @@ export interface TelemetryQueryMessage {
   names?: string[];
   /** Opsiyonel grup anahtarı tag adı (ör. "rack_id") — serileri ayırır. */
   tag?: string;
+  /**
+   * Sorgu modu: `downsampled` (varsayılan, `points` kovaları) veya `latest`
+   * (her ad için en yeni satır — talep-üzeri taze snapshot; from/to pencere,
+   * `points` yok sayılır).
+   */
+  mode?: "downsampled" | "latest";
 }
 
 /** Client→Hub: `telemetry-query` yanıtı — downsampled seri (boş olabilir). */
@@ -242,6 +248,7 @@ export const telemetryQuerySchema = z.object({
   deviceIds: z.array(z.string().min(1)).max(200).optional(),
   names: z.array(z.string().min(1)).max(500).optional(),
   tag: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/).max(64).optional(),
+  mode: z.enum(["downsampled", "latest"]).optional(),
 });
 
 /** Hub→Client: oturum isteği — `user.role` hub tarafında EŞLENMİŞ client rolüdür (§5.5). */

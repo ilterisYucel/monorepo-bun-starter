@@ -87,7 +87,8 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
       PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
-      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
+      # Station 1 (BESS#1-5) → PCS-3'ün BMS yüzü (PCS-1:15502, PCS-2:15503, PCS-3:15504, PCS-4:15505)
+      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15504}
       DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
       DEBUG_INJECT_PORT: 15590
       SIMULATOR_BIND_HOST: 0.0.0.0
@@ -236,12 +237,13 @@ services:
       # Tünel HTTP köprüsü hedefleri (session/stream + komut proxy):
       # field → konteyner kontrol frame'leri bu upstream'e iletilir.
       TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container-web-service:5001}
-      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-2000}
+      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-5000}
       TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://container-web-service:5001}
     ports:
       - "5001:5001"
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
+      - ../../../../packages/ws-tunnel/src:/app/packages/ws-tunnel/src
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-docker:ro
       - ./maneuvers:/app/maneuver-config:ro

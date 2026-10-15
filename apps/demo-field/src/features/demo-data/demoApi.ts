@@ -42,7 +42,7 @@ export const demoApi = {
 
   downsampled: async (
     fieldId: string,
-    opts: { from: string; to: string; points: number; containerIds?: string[] },
+    opts: { from: string; to: string; points: number; containerIds?: string[]; names?: string[] },
   ): Promise<Record<string, TelemetryData[]>> => {
     const { data } = await apiClient.get<Record<string, TelemetryData[]>>(
       `/fields/${fieldId}/telemetry/downsampled`,
@@ -52,6 +52,7 @@ export const demoApi = {
           to: opts.to,
           points: opts.points,
           ...(opts.containerIds ? { containerIds: opts.containerIds.join(",") } : {}),
+          ...(opts.names ? { names: opts.names.join(",") } : {}),
         },
       },
     );

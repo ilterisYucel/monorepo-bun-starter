@@ -18,7 +18,7 @@ import {
 } from "./mimic-types";
 
 const W = 1240;
-const H = 940;
+const H = 950;
 
 /* ───────────── saf yardımcılar ───────────── */
 
@@ -242,7 +242,7 @@ function buildStation(topo: NovaTopology, p: string): string {
 
 function buildUnit(
   topo: NovaTopology,
-  u: { n: number; side: "L" | "R"; row: number; last: boolean },
+  u: { n: number; side: "L" | "R"; row: number; last: boolean; wrap?: boolean; feeder: string },
   p: string,
 ): string {
   const s = u.side;
@@ -310,6 +310,13 @@ function buildUnit(
   h += `</g>`;
   const prev = u.row === 0 ? 250 : 290 + (u.row - 1) * 130 + 102;
   h += seg(`${p}ln${n}`, lane, prev, lane, top + 34, "nm-mv");
+  // K-22: sarma — 2. sütunun ilk ünitesi 1. sütunun son H03'ünden beslenir.
+  if (u.wrap) {
+    const idx = topo.feeders[u.feeder]?.units.indexOf(n) ?? 0;
+    const fromLane = X(u.side === "L" ? "R" : "L", 604);
+    const fromY = 290 + (idx - 1) * 130 + 102;
+    h += `<path id="${p}lnW${n}" class="nm-cond nm-mv" d="M${fromLane} ${fromY}H${lane}V${prev}"/>`;
+  }
   return h;
 }
 
@@ -491,6 +498,7 @@ export function createNovaMimic(
       const n = Number(nStr);
       const q = earthed[n];
       earth("ln" + n, q.inE);
+      earth("lnW" + n, q.inE);
       earth("h1b" + n, q.inE);
       earth("h1a" + n, q.busE);
       earth("rb" + n, q.busE);
@@ -547,6 +555,7 @@ export function createNovaMimic(
       g?.classList.toggle("nm-maint", status.sev === "maint");
       g?.classList.toggle("nm-sel", selected === n);
       live("ln" + n, e.inLive);
+      if (meta.wrap) live("lnW" + n, e.inLive);
       live("h1b" + n, e.inLive);
       live("h1a" + n, e.busLive);
       live("rb" + n, e.busLive);

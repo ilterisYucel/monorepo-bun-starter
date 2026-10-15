@@ -49,6 +49,23 @@ describe("DemoTrendChart (UC-3)", () => {
     expect(container.querySelector("line.tc-limit.hot")).toBeTruthy();
   });
 
+  it("K-19: area tabanı serinin İLK değeridir (sıfır değil) — değişim vurgusu", () => {
+    const series: TrendSeries[] = [
+      { label: "SOC", color: "var(--nm-c-soc)", area: true, points: [line(0, 50), line(50, 52), line(100, 55)] },
+    ];
+    const { container } = render(
+      <DemoTrendChart title="SOC" unit="%" series={series} yMin={45} yMax={55} />,
+    );
+    const area = container.querySelector("polygon.tc-area");
+    const lineEl = container.querySelector("polyline.tc-line");
+    const areaPts = area!.getAttribute("points")!.trim().split(/\s+/);
+    const linePts = lineEl!.getAttribute("points")!.trim().split(/\s+/);
+    const yOf = (p: string): number => Number(p.split(",")[1]);
+    // alanın iki taban köşesi de çizginin İLK noktasıyla aynı y'de olmalı
+    expect(yOf(areaPts[0]!)).toBeCloseTo(yOf(linePts[0]!), 1);
+    expect(yOf(areaPts[areaPts.length - 1]!)).toBeCloseTo(yOf(linePts[0]!), 1);
+  });
+
   it("AK-3.3: hover crosshair + nokta + tooltip", () => {
     const series: TrendSeries[] = [
       { label: "SOC", color: "var(--nm-c-soc)", points: [line(0, 10), line(100, 20)] },
