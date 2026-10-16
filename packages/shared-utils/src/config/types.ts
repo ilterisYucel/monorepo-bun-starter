@@ -1,7 +1,7 @@
 /**
  * ConfigLoader tip tanimlari.
  *
- * Tum servisler (web-service, data-service, device-service, demo-backend)
+ * Tum servisler (web-service, data-service, device-service)
  * bu tipleri kullanarak konfigürasyon yönetimini standartlastirir.
  */
 

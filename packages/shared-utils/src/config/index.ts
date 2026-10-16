@@ -62,3 +62,10 @@ export {
 } from "./definitions";
 
 export { ConfigLoader } from "./loader";
+
+export { compareDeviceConfig } from "./device-config-drift";
+export type {
+  DriftConfigLike,
+  DriftIssue,
+  DriftAllowlist,
+} from "./device-config-drift";

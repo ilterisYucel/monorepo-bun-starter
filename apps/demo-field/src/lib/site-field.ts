@@ -13,8 +13,9 @@ export type PostLoginDestination = { path: string } | { error: string };
 
 /**
  * Giriş sonrası hedef rota (saf — test edilir).
- * Demo kapsamı: MFA/şifre değişimi sayfaları YOKTUR — yalnızca saha ekranı.
- * Saha kimliği yoksa açık hata (sessiz takılma yok).
+ * UC-11: login sonrası portföy sayfasına inilir (`/projects`); proje seçimi
+ * canlı saha konsolunu (`/field/:fieldId`) açar. MFA/şifre değişimi sayfaları
+ * YOKTUR. Saha kimliği yoksa açık hata (sessiz takılma yok).
  */
 export function postLoginDestination(
   _user: User,
@@ -24,5 +25,5 @@ export function postLoginDestination(
   if (fieldId.length === 0) {
     return { error: "Saha kimligi tanimsiz (VITE_FIELD_ID)" };
   }
-  return { path: `/field/${fieldId}` };
+  return { path: "/projects" };
 }

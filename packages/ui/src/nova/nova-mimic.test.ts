@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { NovaMimicState, NovaTopology, NovaUnitState } from "./mimic-types";
+import { listNovaUnits } from "./mimic-types";
 import {
   bankSeverity,
   computeEnergization,
@@ -7,7 +8,7 @@ import {
   defaultUnitStatus,
   tempFill,
 } from "./nova-mimic";
-import { applyNovaLightVars, novaVarMap } from "./apply-light-vars";
+import { applyNovaLightVars, novaVarMap } from "./apply-nova-vars";
 
 const topo: NovaTopology = {
   id: "t",
@@ -153,6 +154,67 @@ describe("createNovaMimic (AK-3.1)", () => {
     expect(mimic.getOverlay()).toBe("temp");
     mimic.destroy();
     expect(svg.innerHTML).toBe("");
+    svg.remove();
+  });
+
+  it("AUX hücresi: AUX TR + L iletken + AUX PANEL kutusu çizilir", () => {
+    const auxTopo: NovaTopology = {
+      ...topo,
+      aux: { trKVA: 400, trRatio: "34.5/0.4 kV", trVector: "Dyn11", lvV: 400, station: "s" },
+      station: {
+        ...topo.station,
+        cells: topo.station.cells.map((c) => (c.id === "H02" ? { ...c, auxTr: true } : c)),
+      },
+    };
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    document.body.appendChild(svg);
+    const mimic = createNovaMimic(svg, auxTopo);
+    mimic.update(state);
+    const labels = [...svg.querySelectorAll("text")].map((t) => t.textContent);
+    expect(labels).toContain("AUX TR 400 kVA");
+    expect(labels).toContain("AUX PANEL 400 V");
+    expect(svg.querySelector('[data-target="aux"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="atr1"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="atr2"]')).not.toBeNull();
+    mimic.destroy();
+    svg.remove();
+  });
+});
+
+describe("K-22: istasyon üniteleri iki sütuna sarmalanır", () => {
+  const stationTopo: NovaTopology = {
+    ...topo,
+    feeders: { A: { cell: "H05", side: "L", units: [1, 2, 3, 4, 5, 6, 7, 8, 9] } },
+  };
+
+  it("listNovaUnits: 9 ünite → 5 sol + 4 sağ; 6. ünite wrap, son ünite 9", () => {
+    const m = listNovaUnits(stationTopo);
+    expect(m.map((u) => u.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(m.filter((u) => u.side === "L").map((u) => u.n)).toEqual([1, 2, 3, 4, 5]);
+    expect(m.filter((u) => u.side === "R").map((u) => u.n)).toEqual([6, 7, 8, 9]);
+    expect(m.filter((u) => u.wrap).map((u) => u.n)).toEqual([6]);
+    expect(m.filter((u) => u.last).map((u) => u.n)).toEqual([9]);
+  });
+
+  it("listNovaUnits: kolon sınırı (5) sarmaz; çok fiderli topo sarmaz", () => {
+    const five: NovaTopology = {
+      ...topo,
+      feeders: { A: { cell: "H05", side: "L", units: [1, 2, 3, 4, 5] } },
+    };
+    expect(listNovaUnits(five).every((u) => u.side === "L" && !u.wrap)).toBe(true);
+    expect(listNovaUnits(topo).some((u) => u.wrap)).toBe(false);
+  });
+
+  it("createNovaMimic: 2. sütun + çapraz bağlantı çizilir, son ünitede H03 yok", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    document.body.appendChild(svg);
+    const mimic = createNovaMimic(svg, stationTopo);
+    expect(svg.querySelectorAll(".demo-unit")).toHaveLength(9);
+    expect(svg.querySelector('[id$="lnW6"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="h3a5"]')).not.toBeNull();
+    expect(svg.querySelector('[id$="h3a9"]')).toBeNull();
+    expect(svg.getAttribute("viewBox")).toBe("0 0 1240 950");
+    mimic.destroy();
     svg.remove();
   });
 });

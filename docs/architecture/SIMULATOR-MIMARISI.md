@@ -281,7 +281,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 
 **T Görev Listesi:**
 - [x] T-6: `SimulatorHost` — örnekleme + port indeksi + `stopAll()` (+testler)
-- [x] T-8: Config port düzeltmeleri — bsc-1:15501, bsc-2:15502, ep203:15503, pm5340:15504 (`config/` + `deployment/dev/container/device-configs/` kopyaları)
+- [x] T-8: Config port düzeltmeleri — bsc-1:15501, bsc-2:15502, ep203:15503, pm5340:15504 (`config/` + `deployment/v1/dev/container/device-configs/` kopyaları)
 - [x] T-9: E2E harness — `maneuver-command.spec.ts` config dizininden server'ları kaldırır (host.start → test → stopAll)
 
 **Edge Cases:**
@@ -295,7 +295,7 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 |:------|:----------------|
 | `packages/simulators/src/host.ts` | YENİ — SimulatorHost |
 | `packages/simulators/src/host.test.ts` | YENİ — UC-3 testleri |
-| `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | Port düzeltmeleri |
+| `services/device-service/deployment/sample-config/*.json` + `deployment/v1/dev/container/device-configs/*.json` | Port düzeltmeleri |
 | `services/device-service/src/maneuver-command.spec.ts` | E2E harness güncellemesi |
 
 ### 6.4 UC-4 — Connector Sim (TCP Master)

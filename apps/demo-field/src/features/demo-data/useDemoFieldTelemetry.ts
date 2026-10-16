@@ -15,7 +15,7 @@ export function useDemoFieldTelemetry(): UseQueryResult<TelemetryData[], Error> 
   return useQuery<TelemetryData[], Error>({
     queryKey: ["demo-field-telemetry", fieldId],
     queryFn: ({ signal }) => demoApi.unifiedLatest(FIELD_DEVICE_IDS, signal),
-    refetchInterval: 5000,
+    refetchInterval: 2000,
     refetchOnWindowFocus: false,
     enabled: fieldId.length > 0,
   });

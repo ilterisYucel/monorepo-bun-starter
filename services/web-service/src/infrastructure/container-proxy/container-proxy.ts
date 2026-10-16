@@ -45,6 +45,8 @@ export interface ContainerProxyOptions {
 const DEFAULT_STALE_TIMEOUT_MS = 45000;
 const DEFAULT_SWEEP_INTERVAL_MS = 60000;
 const DEFAULT_QUERY_TIMEOUT_MS = 10000;
+/** `latest` sorgusunun pencere genişliği (ms) — bu süreden eski adlar dönmez. */
+const LATEST_WINDOW_MS = 30_000;
 
 /**
  * ContainerProxy — konteyner kayıt defteri (Faz 1) + heartbeat/stale durumu (Faz 2):
@@ -294,6 +296,8 @@ export class ContainerProxy implements IContainerProxy {
       from: (params.from ?? new Date(Date.now() - 86400000)).toISOString(),
       to: (params.to ?? new Date()).toISOString(),
       points: params.points ?? 120,
+      ...(params.names !== undefined ? { names: params.names } : {}),
+      ...(params.tag !== undefined ? { tag: params.tag } : {}),
     };
 
     return await new Promise<TelemetryData[]>((resolve) => {
@@ -321,6 +325,44 @@ export class ContainerProxy implements IContainerProxy {
       }),
     );
     return results;
+  }
+
+  /**
+   * Talep-üzeri TAZE snapshot (K-21): konteynere `mode:"latest"` sorgu atar —
+   * her ad için DB'nin en yeni satırı. Push/ring-buffer yolunun (birkaç sn)
+   * gecikmesini bypass eder; yanıt gelmezse boş dizi (çağıran fallback yapar).
+   */
+  async latestQuery(
+    containerId: string,
+    options: { names?: string[]; windowMs?: number } = {},
+  ): Promise<TelemetryData[]> {
+    const entry = this.containers.get(containerId);
+    if (!entry || entry.ws.readyState !== entry.ws.OPEN) return [];
+
+    const windowMs = options.windowMs ?? LATEST_WINDOW_MS;
+    const queryId = crypto.randomUUID();
+    const frame: TelemetryQueryMessage = {
+      type: "telemetry-query",
+      queryId,
+      mode: "latest",
+      from: new Date(Date.now() - windowMs).toISOString(),
+      to: new Date().toISOString(),
+      points: 1,
+      ...(options.names !== undefined ? { names: options.names } : {}),
+    };
+
+    return await new Promise<TelemetryData[]>((resolve) => {
+      const timer = setTimeout(() => {
+        this.pendingQueries.delete(queryId);
+        resolve([]);
+      }, this.queryTimeoutMs);
+      this.pendingQueries.set(queryId, { resolve, timer });
+      try {
+        entry.ws.send(JSON.stringify(frame));
+      } catch {
+        this.resolveQuery(queryId, []);
+      }
+    });
   }
 
   connectionStatus(): Map<string, PeerConnectionState> {

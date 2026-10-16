@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { HvacSimulator } from "./index";
+import { HvacSimulator, HvacSimulatorAdapter } from "./index";
 
 describe("HvacSimulator", () => {
   let sim: HvacSimulator;
@@ -107,5 +107,43 @@ describe("HvacSimulator", () => {
       const indoor = sim.readInputRegister(0x100A) as number;
       expect(typeof indoor).toBe("number");
     });
+  });
+
+  describe("Monitor Temp Mode (0x09)", () => {
+    it("yazılabilir ve okunur — mode-4 server-temp bağımlılığı kaldırılır (H30)", () => {
+      sim.writeHoldingRegister(0x09, 0);
+      expect(sim.readHoldingRegister(0x09)).toBe(0);
+    });
+  });
+
+  describe("HvacSimulatorAdapter — FC03 holding okuma (doküman)", () => {
+    it("bilgi (0x1000) ve alarm (0x300) blokları holding ile okunur", async () => {
+      const adapter = new HvacSimulatorAdapter(sim);
+      expect(await adapter.readHoldingRegister(0x1000)).toBe(
+        sim.readInputRegister(0x1000),
+      );
+      expect(await adapter.readHoldingRegister(0x300)).toBe(
+        sim.readInputRegister(0x300),
+      );
+    });
+  });
+});
+
+describe("HvacSimulator — Faz 1 ekleri (compressor action / server RH)", () => {
+  it("server humidity (0x2003) yaz/oku", () => {
+    const sim = new HvacSimulator();
+    sim.writeHoldingRegister(0x2003, 450);
+    expect(sim.readHoldingRegister(0x2003)).toBe(450);
+  });
+
+  it("kompresör çalıştırma sayacı 0→çalışma geçişinde artar (0x1028)", () => {
+    const sim = new HvacSimulator();
+    expect(sim.readInputRegister(0x1029)).toBe(0); // low word
+    sim.writeHoldingRegister(0x202, 1); // remote on
+    sim.inject("hot"); // kompresör soğutma ister
+    sim.tick(1);
+    expect(sim.readInputRegister(0x1029)).toBe(1);
+    sim.tick(1); // hâlâ çalışıyor → artmaz
+    expect(sim.readInputRegister(0x1029)).toBe(1);
   });
 });

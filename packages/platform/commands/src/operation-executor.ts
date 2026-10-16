@@ -66,6 +66,18 @@ export interface ExecuteOptions {
    * adımında kendi timer'ı yoksa); stop komutu varsayılan "stop".
    */
   timer?: { durationSeconds: number };
+  /**
+   * UC-13: uzak (`system`) adımlar ve rollback'leri bu konteyner hedefine
+   * yönlendirilir (istasyon → konteyner çözümü ÇAĞIRANDA yapılır). Verilmezse
+   * adımın kendi `system` değeri kullanılır (geriye dönük uyumlu).
+   */
+  remoteSystem?: string;
+  /**
+   * Uzak (tünel) adım için üst sınır (ms). Aşılırsa adım `remote_timeout` ile
+   * BAŞARISIZ sayılır — yanıtı kaybolan/askıda kalan stream run'ı kilitli
+   * bırakmasın. Varsayılan 120000; 0 = kapalı.
+   */
+  remoteTimeoutMs?: number;
 }
 
 /** Çözümlenmiş adım + sonucu. */
@@ -77,6 +89,9 @@ interface ResolvedStepResult {
 }
 
 const DIVIDE_TOTAL = "{{divideTotal}}";
+
+/** Uzak (tünel) adım üst sınırı — askıda kalan stream run'ı kilitlemesin. */
+const DEFAULT_REMOTE_TIMEOUT_MS = 120_000;
 
 /**
  * OperationExecutor — manevra/operasyon adımlarını yürütür.
@@ -176,7 +191,12 @@ export class OperationExecutor {
       createdBy: options.createdBy ?? "system",
       ...(options.traceId !== undefined ? { traceId: options.traceId } : undefined),
       startedAt,
-      steps: { definition: record, params },
+      steps: {
+        definition: record,
+        params,
+        // UC-13: uzak hedef (varsa) — koşuların istasyona göre ayrıştırılması için kalıcı.
+        ...(options.remoteSystem !== undefined ? { remoteSystem: options.remoteSystem } : {}),
+      },
     };
 
     try {
@@ -202,6 +222,8 @@ export class OperationExecutor {
       params,
       options.deviceIds,
       defaultTimer,
+      options.remoteSystem,
+      options.remoteTimeoutMs,
     );
 
     const status: OperationRunStatus = rolledBack
@@ -234,6 +256,8 @@ export class OperationExecutor {
     params: Record<string, unknown>,
     group: string[] | undefined,
     defaultTimer: { durationMs: number } | undefined,
+    remoteSystem: string | undefined,
+    remoteTimeoutMs: number | undefined,
   ): Promise<{
     outcomes: OperationStepOutcome[];
     success: boolean;
@@ -248,7 +272,7 @@ export class OperationExecutor {
       );
       return { outcomes, success, rolledBack };
     }
-    return this.runOperation(record as OperationRecord, params, group, defaultTimer);
+    return this.runOperation(record as OperationRecord, params, group, defaultTimer, remoteSystem, remoteTimeoutMs);
   }
 
   /** Manevra adım setini yürütür; onFailure rollback ise kompanzasyonu yapar. */
@@ -285,6 +309,8 @@ export class OperationExecutor {
     params: Record<string, unknown>,
     group: string[] | undefined,
     defaultTimer: { durationMs: number } | undefined,
+    remoteSystem: string | undefined,
+    remoteTimeoutMs: number | undefined,
   ): Promise<{
     outcomes: OperationStepOutcome[];
     success: boolean;
@@ -292,7 +318,7 @@ export class OperationExecutor {
   }> {
     const stepOutcomes: Array<{ ok: boolean; outcome: OperationStepOutcome }> = [];
     const runOne = async (step: OperationStep, index: number): Promise<void> => {
-      const outcome = await this.runOperationStep(step, index, params, group, defaultTimer);
+      const outcome = await this.runOperationStep(step, index, params, group, defaultTimer, remoteSystem, remoteTimeoutMs);
       stepOutcomes.push({ ok: outcome.success, outcome });
     };
 
@@ -313,7 +339,7 @@ export class OperationExecutor {
     let rolledBack = false;
     if (!success && record.onFailure === "rollback") {
       rolledBack = true;
-      await this.runOperationRollback(record, stepOutcomes);
+      await this.runOperationRollback(record, stepOutcomes, remoteSystem, remoteTimeoutMs);
     }
     return {
       outcomes: stepOutcomes.map((r) => r.outcome),
@@ -329,6 +355,8 @@ export class OperationExecutor {
     params: Record<string, unknown>,
     group: string[] | undefined,
     defaultTimer: { durationMs: number } | undefined,
+    remoteSystem: string | undefined,
+    remoteTimeoutMs: number | undefined,
   ): Promise<OperationStepOutcome> {
     if ("system" in step) {
       const result = await this.runRemoteStep(
@@ -338,10 +366,13 @@ export class OperationExecutor {
         defaultTimer !== undefined
           ? { durationSeconds: defaultTimer.durationMs / 1000 }
           : undefined,
+        remoteSystem,
+        remoteTimeoutMs,
       );
       return {
         stepIndex: index,
-        system: step.system,
+        // UC-13: gerçek yürütülen konteyner (override varsa o; outcome denetim izidir).
+        system: remoteSystem ?? step.system,
         maneuver: step.maneuver,
         success: result.ok,
         ...(result.reason !== undefined ? { reason: result.reason } : {}),
@@ -542,6 +573,8 @@ export class OperationExecutor {
   private async runOperationRollback(
     record: OperationRecord,
     stepOutcomes: Array<{ ok: boolean; outcome: OperationStepOutcome }>,
+    remoteSystem: string | undefined,
+    remoteTimeoutMs: number | undefined,
   ): Promise<void> {
     const rollbackSteps = record.rollback ?? [];
     const pairs = rollbackSteps
@@ -557,6 +590,9 @@ export class OperationExecutor {
           rb.system,
           rb.maneuver,
           rb.params ?? {},
+          undefined,
+          remoteSystem,
+          remoteTimeoutMs,
         );
         if (result.ok) {
           await this.audit("rollback_step_ok", "info", {
@@ -730,15 +766,31 @@ export class OperationExecutor {
     maneuver: string,
     params: Record<string, unknown>,
     timer?: { durationSeconds: number },
+    override?: string,
+    timeoutMs?: number,
   ): Promise<{ ok: boolean; reason?: string }> {
     if (!this.remoteChannel) {
       return { ok: false, reason: "remote_channel_not_available" };
     }
+    // UC-13: istasyon → konteyner çözümü çağıranda; override varsa uzak adım o
+    // konteynerin tünelinden yürür (config'teki `system` varsayılan kalır).
+    const target = override ?? system;
+    const limit = timeoutMs ?? DEFAULT_REMOTE_TIMEOUT_MS;
     try {
-      const result =
+      const call =
         timer !== undefined
-          ? await this.remoteChannel.execute(system, maneuver, params, timer)
-          : await this.remoteChannel.execute(system, maneuver, params);
+          ? this.remoteChannel.execute(target, maneuver, params, timer)
+          : this.remoteChannel.execute(target, maneuver, params);
+      // Yanıt kaybolur/askıda kalırsa run kilitlenmesin — üst sınırla kapat.
+      const result =
+        limit > 0
+          ? await Promise.race([
+              call,
+              new Promise<{ ok: boolean; reason: string }>((resolve) =>
+                setTimeout(() => resolve({ ok: false, reason: "remote_timeout" }), limit),
+              ),
+            ])
+          : await call;
       return result;
     } catch (err) {
       return { ok: false, reason: String(err) };

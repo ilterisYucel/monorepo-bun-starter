@@ -3,7 +3,7 @@
 **Kapsam:** container + field + boss tier'larının AWS EC2 üzerinde ayağa kaldırılması.
 **Durum:** DEMO — TLS'siz `ws://` kabulüyle (FLAG; üretim geçişi §7'de).
 
-> **Tek makine demo-edge (boss YOK, m6i.large):** §8 — `deployment/aws/demo-edge/`
+> **Tek makine demo-edge (boss YOK, m6i.large):** §8 — `deployment/v2/aws/`
 > standalone stack (container+field + demo-field UI). Boss/uplink gerektirmez.
 
 ## 1. Topoloji
@@ -65,12 +65,13 @@ sudo usermod -aG docker $USER   # yeniden giriş gerekir
 git clone <repo-url> ~/gd-pms-monorepo && cd ~/gd-pms-monorepo
 
 # 3. Env üretimi — YEREL dosyalardaki sırları ASLA kopyalamayın, yeniden üretin:
-#    Makine A (deployment/.env.aws-edge):
-#      JWT_SECRET / FIELD_JWT_SECRET / CONTAINER_TOKEN / FIELD_UPLINK_TOKEN: openssl rand -hex 32
-#      SEED_*: >=8 karakter
-#      FIELD_ID: uuidgen
-#      FIELD_UPLINK_WS_URL: ws://<B_EC2_IP>:5003/ws/field
-#    Makine B (deployment/.env.aws-boss):
+#    Makine A (deployment/v1/aws/{container,field}/.env — her app kendi .env'i):
+#      container: JWT_SECRET / CONTAINER_TOKEN: openssl rand -hex 32
+#      field:     FIELD_JWT_SECRET / FIELD_UPLINK_TOKEN: openssl rand -hex 32
+#      SEED_*: >=8 karakter (her iki tier)
+#      FIELD_ID: uuidgen (field)
+#      FIELD_UPLINK_WS_URL: ws://<B_EC2_IP>:5003/ws/field (field)
+#    Makine B (deployment/v1/aws/boss/.env):
 #      JWT_SECRET + SEED_*
 ```
 
@@ -145,9 +146,10 @@ politikası kurulmalı.
 
 ## 8. Demo-Edge — standalone (tek makine, m6i.large, boss YOK)
 
-`deployment/aws/demo-edge/` container+field tier'larını **tek compose projesinde**
-(`aws-edge-stack`) çalıştırır; boss ve uplink YOKTUR. UI: `apps/demo-field`
-(nginx, `:88`). TLS yok (`ws://` + HTTP), MFA kapalı — demo kabulü.
+`deployment/v2/aws/` container+field tier'larını **iki ayrı compose projesi** olarak
+(`v2-aws-edge-container` + `v2-aws-edge-field`; ortak `v2-aws-edge-network`) çalıştırır;
+boss ve uplink YOKTUR. UI: `apps/demo-field` (nginx, `:88`). TLS yok (`ws://` + HTTP),
+MFA kapalı — demo kabulü.
 
 ### 8.1 EC2 / güvenlik grubu
 - Tip: **m6i.large** (2 vCPU / 8GB), EBS gp3 100GB.
@@ -163,26 +165,31 @@ sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 git
 sudo usermod -aG docker $USER   # yeniden giriş
 git clone <repo-url> ~/gd-pms-monorepo && cd ~/gd-pms-monorepo
 
-# Env (SIRLAR repo'ya girmez — makinede üret):
-cp deployment/.env.aws-edge.example deployment/aws/demo-edge/.env
-#  doldur: JWT_SECRET, FIELD_JWT_SECRET, SEED_* (>=8), FIELD_ID (uuidgen),
-#          CONTAINER_TOKEN (openssl rand -hex 32), FIELD_INTERNAL_API_TOKEN
+# Env (SIRLAR repo'ya girmez — makinede üret; her app kendi .env'ini taşır):
+cp deployment/v2/aws/container/.env.example deployment/v2/aws/container/.env
+cp deployment/v2/aws/field/.env.example     deployment/v2/aws/field/.env
+#  container: JWT_SECRET, CONTAINER_TOKEN (openssl rand -hex 32), SEED_*
+#  field:     FIELD_JWT_SECRET, FIELD_ID (uuidgen), SEED_*, FIELD_INTERNAL_API_TOKEN
 #  standalone demo: FIELD_UPLINK_ENABLED=false, MFA_ENABLED=false
 
 # EPİAŞ kimlikleri (gitignored — makinede oluştur):
-cp deployment/aws/demo-edge/plugins/epias-market-prices.example.json \
-   deployment/aws/demo-edge/plugins/epias-market-prices.json
+cp deployment/v2/aws/field/plugins/epias-market-prices.example.json \
+   deployment/v2/aws/field/plugins/epias-market-prices.json
 #  username/password doldur; intervalMs=300000 önerilir.
 
 # Ayağa kaldır (EC2'de build — tek seferlik, 2 vCPU'da ~10-20 dk):
-docker compose --env-file deployment/aws/demo-edge/.env \
-  -f deployment/aws/demo-edge/docker-compose.yml up -d --build
+#  ÖNCE container (ortak ağı tanımlar), SONRA field:
+docker compose --env-file deployment/v2/aws/container/.env \
+  -f deployment/v2/aws/container/docker-compose.yml up -d --build
+docker compose --env-file deployment/v2/aws/field/.env \
+  -f deployment/v2/aws/field/docker-compose.yml up -d --build
 ```
 
 ### 8.3 Doğrulama (API smoke)
 ```bash
 # Konteyner token kaydı + bağlantı doğrulaması (tek komut, renkli çıktı):
-tools/register-container.sh --env deployment/aws/demo-edge/.env --url http://localhost:88
+tools/register-container.sh --env deployment/v2/aws/field/.env \
+  --container-env deployment/v2/aws/container/.env --url http://localhost:88
 
 B=http://localhost:88
 TOKEN=$(curl -s -X POST $B/api/auth/login -H 'content-type: application/json' \
@@ -216,7 +223,121 @@ curl -s -H "authorization: Bearer $TOKEN" \
   `field-timescaledb` `mem_limit 1g` + `shared_buffers 384MB` olmalı.
 - Konteyner management-service kural ÇALIŞTIRMAZ (demo no-op rules) — gerçek
   kural seti test edilmeden aktive edilmez.
+- **Standby sonrası SOC durmuyor / mod "Charging" kalıyor:** konteyner `bsc_stop`
+  manevrası stop'tan ÖNCE charge/discharge setpoint'lerini 0'lar — yoksa BSC
+  simülatörü "akım akarken stop"u reddeder (`CURRENT_FLOWS`), adım düşer ama
+  field standby `onFailure: continue` ile "DONE" görünür. Config güncel mi:
+  `deployment/v2/aws/container[2]/maneuvers/maneuvers.json` (`bsc_stop` 3 adım);
+  değilse `git pull` + `docker compose ... restart c1-web-service c2-web-service`.
+- **Availability 0/X (taze stack):** PCS `STOP` ile başlar; `register:aws-demo`
+  sonunda otomatik FL-01 Start-Up PCS'i Standby'e alır. Atlandıysa UI ›
+  Operations › FL-01 Start-Up.
+- **UI donuk (mode/SOC güncellenmiyor, komutlar çalışıyor):** önce konteyner
+  telemetri YAZIM hattına bak — `device_bsc_1`'in en yeni satırı dakikalar
+  önceyse yazım durmuştur. Tek komut: `bun run recover:aws-demo` (takılı run'ları
+  kapatır + c1/c2 redis kuyruklarını boşaltır + device/data restart eder).
+  Kök korumalar: `WRITE_TELEMETRY attempts:1` (retry yolu kapalı → `moveToDelayed`
+  missing-key sarmalı imkânsız; başarısız yazım tek seferde dead-letter'a düşer
+  ve gerçek nedeni loglar) + `ensureTableExists` başarısızsa batch atlanır +
+  `stalledInterval` (120 sn) `statement_timeout` (30 sn) üstünde.
+- **Konteyner telemetri tazeliği:** `TUNNEL_TELEMETRY_INTERVAL_MS` (varsayılan
+  2000; ws-tunnel default'u 15000). Hızlı charge→standby'de UI anlık görmeli.
 
 ### 8.4 FLAG (demo kabulü)
 - `ws://` (TLS'siz) + `:88` HTTP; MFA kapalı; DB yedekleme yok.
 - Üretim geçişi: §7 (TLS/ACM, MFA=true, yedekleme) + field/kontrol kuralları.
+
+### 8.5 Telemetri disk hacmi (retention + compression)
+
+Demo-edge iki tier birden telemetri yazar; baskın hacim **BSC-1/2 ve PCS-1/2**'dir
+(6 saatlik tek ham chunk ≈ 5.5 GB; iki tier toplamı ≈ **80 GB/gün**). EPİAŞ
+`external_series` ihmal edilebilir (≈144 kB). 96 GB EBS'te retention/compression
+olmadan disk ~1 günde dolar.
+
+**Ayarlar** (`deployment/v2/aws/{container,field}/docker-compose.yml` + `deployment/v2/dev/{container,field}/docker-compose.yml`;
+hem `*-data-service` hem `*-web-service`, her iki tier):
+- `TIMESCALE_RETENTION_AFTER: "24 hours"` — chunk bu süreden sonra silinir.
+- `TIMESCALE_COMPRESS_AFTER: "6 hours"` — chunk kapanınca sıkışır (chunk = 6s).
+
+Retention artık `TimescaleDBAdapter.ensureTableExists` içinde kurulur (compression
+ile aynı yerde) — böylece her tier'da ve yeni cihaz tablolarında otomatik uygulanır;
+eski `index.ts` container-tier guard'ı field DB'sini atlıyordu. Beklenen sabit
+boyut ≈ **10-15 GB** (raw 6-12s + sıkışık geri kalan).
+
+**Mevcut stack'e uygulama (tek seferlik — politikaları düzelt + veriyi hemen geri kazan):**
+
+```bash
+cd ~/gd-pms-monorepo && git pull
+docker compose --env-file deployment/v2/aws/container/.env \
+  -f deployment/v2/aws/container/docker-compose.yml \
+  up -d --build container-data-service
+docker compose --env-file deployment/v2/aws/field/.env \
+  -f deployment/v2/aws/field/docker-compose.yml \
+  up -d --build field-web-service field-data-service
+
+# Her iki DB: politikaları 24s/6s'e sabitle + >6s chunk'ları sıkıştır
+for db in container field; do
+  docker exec aws-$db-timescaledb psql -U postgres -d battery -c "DO \$\$ DECLARE r record; BEGIN
+    FOR r IN SELECT hypertable_name FROM timescaledb_information.hypertables WHERE hypertable_name LIKE 'device_%' LOOP
+      BEGIN PERFORM remove_retention_policy(r.hypertable_name::regclass, true); EXCEPTION WHEN OTHERS THEN NULL; END;
+      PERFORM add_retention_policy(r.hypertable_name::regclass, INTERVAL '24 hours', true);
+      BEGIN PERFORM remove_compression_policy(r.hypertable_name::regclass, true); EXCEPTION WHEN OTHERS THEN NULL; END;
+      PERFORM add_compression_policy(r.hypertable_name::regclass, INTERVAL '6 hours', true);
+      BEGIN EXECUTE format('SELECT compress_chunk(c, true) FROM show_chunks(%L, older_than => INTERVAL ''6 hours'') c', r.hypertable_name); EXCEPTION WHEN OTHERS THEN NULL; END;
+    END LOOP; END \$\$;"
+  docker exec aws-$db-timescaledb psql -U postgres -d battery -tAc "select pg_size_pretty(pg_database_size('battery'));"
+done
+df -h /
+```
+
+Yerelde aynı işlem sonucu: container **51 GB → 11 GB**, field **10 GB → 3.4 GB**.
+Taze stack'te (>6 saat veri yoksa) sıkıştırma adımı no-op'tur; yalnızca politika
+tesisi ileriyi sınırlar — bu durumda recreate yeterlidir.
+
+### 8.6 Tek-compose varyantı — 2 konteyner + paylaşımlı TimescaleDB (önerilen)
+
+8GB'ı verimli kullanmak için 3 ayrı TimescaleDB yerine **tek instance + tier başına
+ayrı DB** ve **iki konteyner + bir field** tek compose'da çalışır:
+`deployment/v2/aws/docker-compose.yml`.
+
+- DB'ler: field → `battery`, container-1 → `container1`, container-2 → `container2`
+  (`initdb/001-create-dbs.sql`; her DB'ye `timescaledb` uzantısı da kurulur — yoksa
+  `create_hypertable` çalışmaz). Redis tier başına ayrı kalır.
+- `device-service` PG'yi `device-configs/service.json`'dan okur (env override yok):
+  c1→`container1`, c2→`container2`, field→`battery`; host `timescaledb`
+  (field service.json `field-timescaledb` — paylaşımlı servis bu alias'ı taşır).
+- Env tek dosyada, tier'a göre PREFİKSLİ: `FIELD_*`, `C1_*`, `C2_*`
+  (`deployment/v2/aws/.env.example`). Kullanımdan önce `cp ... .env` + doldur.
+- Mem: `mem_limit` toplamı ≈ **6.8GB** → 8GB'a sığar; EC2'de varsayılan swap YOK →
+  **en az 2GB swapfile** önerilir.
+
+```bash
+cp deployment/v2/aws/.env.example deployment/v2/aws/.env   # doldur (FIELD_*, C1_*, C2_*)
+docker compose --env-file deployment/v2/aws/.env -f deployment/v2/aws/docker-compose.yml up -d --build
+bun run register:aws-demo     # container-1=bess1 + container-2=bess2 (tek çağrı; sonunda otomatik FL-01 Start-Up → PCS Standby, Availability dolu)
+# UI: http://<host>:88  (field-web nginx → field-web-service)
+```
+
+İki ayrı compose (§8.2, `start:aws-demo-edge`) tek-konteynerli eski varyant olarak
+korunur; iki konteyner + RAM tasarrufu için bu tek-compose tercih edilir.
+Konteyner-1 SOC 50, konteyner-2 SOC 72 (`container2/device-configs/bsc-*.json`
+`details.initialSocPercent`) ile başlar.
+
+**Config senkronu (dev ↔ aws):** `aws/{field,container,container2}` config ağaçları
+`dev`'in kopyasıdır; dev'de değişen cihaz config'i/manevra AWS'e de taşınmalıdır
+(aksi halde eski davranış kalır — ör. field manevralarında `set_command_source`
+adımı eksikse PCS simülatörü S01≠1 (HMI) iken start/stop/standby/setpoint
+komutlarını **sessizce yok sayar** → Start-Up/Standby/Stop çalışmaz, Availability
+0 kalır). Senkron dışı tutulan AWS'a ÖZGÜ deltalar:
+- `*/device-configs/service.json` → redis host + tier DB (`battery` / `container1` / `container2`).
+- `container/rules/rules.json` → demo no-op (dev'de gerçek TMS kuralları var).
+Senkron komutu:
+```bash
+rsync -a --exclude='service.json' deployment/v2/dev/field/device-configs/     deployment/v2/aws/field/device-configs/
+cp deployment/v2/dev/field/maneuvers/*.json                                   deployment/v2/aws/field/maneuvers/
+rsync -a --exclude='service.json' deployment/v2/dev/container/device-configs/  deployment/v2/aws/container/device-configs/
+rsync -a deployment/v2/dev/container/maneuvers/                               deployment/v2/aws/container/maneuvers/
+rsync -a --exclude='service.json' deployment/v2/dev/container2/device-configs/ deployment/v2/aws/container2/device-configs/
+rsync -a deployment/v2/dev/container2/maneuvers/                              deployment/v2/aws/container2/maneuvers/
+```
+

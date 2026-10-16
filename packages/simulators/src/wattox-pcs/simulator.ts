@@ -94,6 +94,7 @@ import {
   SET_STOP,
   SET_STANDBY,
   SET_FAULT_RESET,
+  SET_COMMAND_SOURCE,
   OP_STOP,
   OP_STANDBY,
   OP_CHARGING,
@@ -110,6 +111,8 @@ export interface WattoxPcsSimulatorConfig {
   bmsPort?: number;
   /** Verilirse EMS self-host Modbus TCP sunucusu açılır (`start()`). */
   network?: SimulatorNetworkConfig;
+  /** PCS12: başlangıç komut kaynağı (0 HMI, 1 EMS). Varsayılan 0. */
+  commandSource?: number;
 }
 
 const toUint16 = (v: number): number => v & 0xffff;
@@ -117,6 +120,15 @@ const toUint16 = (v: number): number => v & 0xffff;
 const toInt16 = (v: number): number => (v >= 0x8000 ? v - 0x10000 : v);
 /** işaretli mühendislik değeri → raw 16-bit word (register arayüzü raw döner) */
 const raw16 = (v: number): number => (v < 0 ? v + 0x10000 : v) & 0xffff;
+
+/**
+ * S-setting adres blokları (holding uzayında tutulur): 0x0500-0x05FF,
+ * 0x0E00-0x0E3F, 0x1200-0x120F. Bu aralıkların dışı sorgu bloklarıdır (A/B/C/D).
+ */
+const isSettingAddress = (address: number): boolean =>
+  (address >= 0x0500 && address <= 0x05ff) ||
+  (address >= 0x0e00 && address <= 0x0e3f) ||
+  (address >= 0x1200 && address <= 0x120f);
 
 /**
  * WattoxPcsSimulator — durum makinesi:
@@ -156,6 +168,9 @@ export class WattoxPcsSimulator {
 
   private chargeEnergyKwh = 0;
   private dischargeEnergyKwh = 0;
+  // PCS12: komut kaynağı (S01 0x0E00) — 0 HMI (varsayılan), 1 EMS, 2 arka plan.
+  // EMS komutları (start/stop/standby/reset/setpoint) yalnız S01=1 iken uygulanır.
+  private commandSource = 0;
 
   constructor(config: WattoxPcsSimulatorConfig = {}) {
     this.ratedPowerKw = config.ratedPowerKw ?? 1725;
@@ -163,6 +178,7 @@ export class WattoxPcsSimulator {
     this.ratedCurrentA = config.ratedCurrentA ?? 1900;
     this.bmsPort = config.bmsPort;
     this.network = config.network;
+    this.commandSource = config.commandSource ?? 0;
     this.initBms();
     this.initSettings();
   }
@@ -187,7 +203,32 @@ export class WattoxPcsSimulator {
 
   /** Sorgu — EMS self-host server dinlenen port (start öncesi config portu). */
   port(): number {
-    return this.mainServer?.port() ?? this.network?.port ?? 0;
+    return this.server?.port() ?? this.network?.port ?? 0;
+  }
+
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut) — demo-field fault/alarm testleri.
+   * - `fault`: fault word 1 bit0 (BMS system fault) → "PCS Fault Status" alarmı
+   * - `door_open`: kabin kapısı DI → "Cabinet Door Open" alarmı
+   * - `nominal`: fault/alarm temizle, kapı kapat
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "fault":
+        this.faultWords[0] = 1;
+        return true;
+      case "door_open":
+        this.doorOpen = true;
+        return true;
+      case "nominal":
+        this.faultWords.fill(0);
+        this.alarmWords.fill(0);
+        this.doorOpen = false;
+        return true;
+      default:
+        return false;
+    }
   }
 
   private initBms(): void {
@@ -422,11 +463,37 @@ export class WattoxPcsSimulator {
   }
 
   /**
+   * Sorgu — FC03 holding okuma (EMS yüzü).
+   *
+   * Wattox protokolünde EMS yüzü TÜM okumaları FC03 (holding) ile yapar:
+   * hem sorgu blokları (A/B/C/D) hem S-setting'leri aynı adres uzayındadır.
+   * S-setting adresleri `settings` haritasından, kalanı `readRegister`'dan gelir.
+   */
+  readHolding(address: number): number {
+    return isSettingAddress(address)
+      ? this.readSetting(address)
+      : this.readRegister(address);
+  }
+
+  /**
    * Komut — holding register yazımı (EMS yüzü).
    * Komut register'ları ANINDA uygulanır; BMS bloğuna yazım yok sayılır (RO).
    */
   writeSetting(address: number, value: number): void {
     const raw = toUint16(value);
+
+    // PCS12: komut kaynağı her zaman yazılır.
+    if (address === SET_COMMAND_SOURCE) {
+      this.commandSource = raw;
+      this.settings.set(address, raw);
+      return;
+    }
+    // PCS12/CtrlPhil §6: yerel modda (S01≠1) EMS komutları sessizce yok sayılır.
+    const gatedCommands = new Set([SET_ACTIVE_POWER, SET_START, SET_STOP, SET_STANDBY, SET_FAULT_RESET]);
+    if (gatedCommands.has(address) && this.commandSource !== 1) {
+      this.settings.set(address, raw);
+      return;
+    }
 
     switch (address) {
       case SET_ACTIVE_POWER: {
@@ -471,7 +538,8 @@ export class WattoxPcsSimulator {
         if (raw === 1) {
           this.faultWords.fill(0);
           this.alarmWords.fill(0);
-          if (this.opStatus === OP_FAULT) this.opStatus = OP_STANDBY;
+          // CtrlPhil: reset komutu PCS'i Stop durumuna döndürür (Standby değil).
+          if (this.opStatus === OP_FAULT) this.opStatus = OP_STOP;
         }
         break;
       default:

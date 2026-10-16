@@ -238,6 +238,30 @@ describe("container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame
     await expect(resultPromise).resolves.toEqual([]);
   });
 
+  it("K-21: latestQuery() mode:'latest' frame'i gönderir ve telemetry-result ile çözülür", async () => {
+    const proxy = new ContainerProxy(makeSql());
+    const fake = fakeWs();
+    await proxy.registerContainer("c-1", fake.ws as never, TOKEN);
+
+    const resultPromise = proxy.latestQuery("c-1", { windowMs: 30000 });
+    const frame = JSON.parse(fake.sent[fake.sent.length - 1]);
+    expect(frame).toMatchObject({ type: "telemetry-query", mode: "latest", points: 1 });
+    expect(frame.from).toBeDefined();
+    expect(frame.to).toBeDefined();
+
+    fake.emit(
+      "message",
+      Buffer.from(
+        JSON.stringify({
+          type: "telemetry-result",
+          queryId: frame.queryId,
+          data: [{ name: "BSC SOC", value: 74 }],
+        }),
+      ),
+    );
+    await expect(resultPromise).resolves.toEqual([{ name: "BSC SOC", value: 74 }]);
+  });
+
   it("konteyner kayıtlı değilse veya WS kapalıysa frame gönderilmez — boş dizi", async () => {
     const proxy = new ContainerProxy(makeSql());
     expect(await proxy.historical("yok", { points: 120 })).toEqual([]);

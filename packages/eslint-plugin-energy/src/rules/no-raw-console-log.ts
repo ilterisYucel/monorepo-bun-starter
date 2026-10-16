@@ -4,7 +4,7 @@ const createRule = ESLintUtils.RuleCreator(
   () => "https://github.com/ilterisYucel/monorepo-bun-starter/blob/main/packages/eslint-plugin-energy/docs/rules",
 )
 
-const BACKEND_SERVICE_DIRS = ["web-service", "data-service", "device-service", "demo-backend", "core"]
+const BACKEND_SERVICE_DIRS = ["web-service", "data-service", "device-service", "core"]
 
 export const noRawConsoleLog = createRule({
   name: "no-raw-console-log",

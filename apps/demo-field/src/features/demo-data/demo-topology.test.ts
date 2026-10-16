@@ -3,19 +3,19 @@ import { listNovaUnits } from "@gd-monorepo/ui";
 import { DEMO_TOPOLOGY, DEMO_UNIT_COUNT, cellCommandName } from "./demo-topology";
 
 describe("demo-topology (UC-1/T-1, K1)", () => {
-  it("9 ünite tanımlar (fider A 1-5, B 6-9)", () => {
+  it("18 ünite tanımlar (K-22: her istasyon 9 — fider A 1-9, B 10-18)", () => {
     const units = listNovaUnits(DEMO_TOPOLOGY);
-    expect(DEMO_UNIT_COUNT).toBe(9);
-    expect(units.map((u) => u.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    expect(units.filter((u) => u.feeder === "A")).toHaveLength(5);
-    expect(units.filter((u) => u.feeder === "B")).toHaveLength(4);
+    expect(DEMO_UNIT_COUNT).toBe(18);
+    expect(units.map((u) => u.n)).toEqual(Array.from({ length: 18 }, (_, i) => i + 1));
+    expect(units.filter((u) => u.feeder === "A")).toHaveLength(9);
+    expect(units.filter((u) => u.feeder === "B")).toHaveLength(9);
   });
 
   it("fider yönü gdems ile aynı: A→H04, B→H05", () => {
     expect(DEMO_TOPOLOGY.feeders.A.cell).toBe("H04");
     expect(DEMO_TOPOLOGY.feeders.B.cell).toBe("H05");
-    expect(DEMO_TOPOLOGY.feeders.A.units).toEqual([1, 2, 3, 4, 5]);
-    expect(DEMO_TOPOLOGY.feeders.B.units).toEqual([6, 7, 8, 9]);
+    expect(DEMO_TOPOLOGY.feeders.A.units).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(DEMO_TOPOLOGY.feeders.B.units).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18]);
   });
 
   it("hücre motor/esMotor/auxTr bayraklarını taşır", () => {

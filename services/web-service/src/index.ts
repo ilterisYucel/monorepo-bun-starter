@@ -206,7 +206,7 @@ export async function main() {
           }),
         );
       }
-    }, { concurrency: 5 });
+    }, { concurrency: 20 });
     console.log("[run] BullMQ WS_BROADCAST worker kaydedildi.");
   } catch (err) {
     console.error("[run] BullMQ worker kaydi basarisiz:", err);

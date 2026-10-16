@@ -11,7 +11,15 @@ import { listNovaUnits } from "@gd-monorepo/ui";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { FieldContainer } from "./demoApi";
 import { BANK_DEVICE_MAP, DEMO_MV_DEVICE_ID, DEMO_UNIT_COUNT } from "./demo-topology";
+import { stationsForContainers } from "./demo-stations";
 import { fanOutUnits } from "./fanOutUnits";
+import {
+  buildAux,
+  buildDc,
+  buildFss,
+  buildHvacList,
+  buildImd,
+} from "./buildDevices";
 import {
   byCanonical,
   byName,
@@ -39,6 +47,9 @@ const PCS_STATE_BY_CODE: Record<number, NovaPcsState["state"]> = {
 };
 
 const SQRT3 = Math.sqrt(3);
+
+/** Legacy (stations'sız) kurulumun tarihsel PCS çifti. */
+const LEGACY_PCS: readonly [string, string] = ["PCS-1", "PCS-2"];
 
 function swPos(v: unknown, fallback: NovaSwitchPos = "closed"): NovaSwitchPos {
   if (v === undefined) return fallback;
@@ -91,6 +102,10 @@ function buildBank(
     dvmV = Math.max(0, Math.round(dV * 1000));
   }
 
+  const bscState = num(byName(bscRows, "BSC State")?.value);
+  const online = num(byName(bscRows, "Online Rack No")?.value);
+  const chargeStatus = num(byName(bscRows, "ChargeStatus")?.value);
+
   return {
     id,
     soc,
@@ -103,11 +118,14 @@ function buildBank(
     ...(rackSocRows.length > 0 ? { rackSoc: rackSocRows.map((r) => r.value) } : {}),
     ...(rackVoltRows.length > 0 ? { rackV: rackVoltRows.map((r) => r.value) } : {}),
     ...(rackCurrRows.length > 0 ? { rackI: rackCurrRows.map((r) => r.value) } : {}),
+    ...(bscState !== undefined ? { bscState } : {}),
+    ...(online !== undefined ? { online } : {}),
+    ...(chargeStatus !== undefined ? { chargeStatus } : {}),
     dcb: dcBreaker(cbRows),
   };
 }
 
-/** PCS satırlarından PCS durumu. */
+/** PCS satırlarından PCS durumu (canlı PCS telemetrisi — UC-4). */
 function buildPcs(
   pcsRows: TelemetryData[] | undefined,
   id: string,
@@ -130,7 +148,57 @@ function buildPcs(
     truthy(byName(pcsRows, "Derated Operation")?.value) ||
     truthy(byCanonical(pcsRows, "derated")?.value);
 
-  return { id, state, pMW: Math.abs(powerKw) / 1000, igbtC, limited };
+  const faultWords = (pcsRows ?? [])
+    .filter((r) => /^Fault Status Word \d+$/.test(r.name))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+    .map((r) => num(r.value) ?? 0);
+
+  const setpoint = num(byName(pcsRows, "Active Power Setpoint")?.value);
+  const signedSetpoint =
+    setpoint !== undefined ? (state === "chg" ? -Math.abs(setpoint) : setpoint) : undefined;
+
+  return {
+    id,
+    state,
+    pMW: Math.abs(powerKw) / 1000,
+    igbtC,
+    limited,
+    ...(num(byName(pcsRows, "Grid Voltage AB")?.value) !== undefined
+      ? { vac: num(byName(pcsRows, "Grid Voltage AB")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Grid Frequency")?.value) !== undefined
+      ? { freq: num(byName(pcsRows, "Grid Frequency")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "DC Current")?.value) !== undefined
+      ? { idc: num(byName(pcsRows, "DC Current")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Battery Voltage")?.value) !== undefined
+      ? { dcVoltage: num(byName(pcsRows, "Battery Voltage")?.value) }
+      : {}),
+    ...(byName(pcsRows, "AC Circuit Breaker Status")?.value !== undefined
+      ? { acCb: swPos(byName(pcsRows, "AC Circuit Breaker Status")?.value) }
+      : {}),
+    ...(byName(pcsRows, "DC Circuit Breaker Status 1")?.value !== undefined
+      ? { dcCb: swPos(byName(pcsRows, "DC Circuit Breaker Status 1")?.value) }
+      : {}),
+    ...(byName(pcsRows, "Emergency Stop Button Status")?.value !== undefined
+      ? { estop: truthy(byName(pcsRows, "Emergency Stop Button Status")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Max Allowable Charging Power")?.value) !== undefined
+      ? { chgLimitKw: num(byName(pcsRows, "Max Allowable Charging Power")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Max Allowable Discharging Power")?.value) !== undefined
+      ? { disLimitKw: num(byName(pcsRows, "Max Allowable Discharging Power")?.value) }
+      : {}),
+    ...(signedSetpoint !== undefined ? { setpointKw: signedSetpoint } : {}),
+    ...(num(byName(pcsRows, "Grid Reactive Power")?.value) !== undefined
+      ? { reactiveKvar: num(byName(pcsRows, "Grid Reactive Power")?.value) }
+      : {}),
+    ...(num(byName(pcsRows, "Power Factor")?.value) !== undefined
+      ? { pf: num(byName(pcsRows, "Power Factor")?.value) }
+      : {}),
+    ...(faultWords.length > 0 ? { faultWords } : {}),
+  };
 }
 
 function n(v: number, d = 1): number {
@@ -221,37 +289,84 @@ export interface MapFieldOptions {
   extraTelemetry?: TelemetryData[];
 }
 
-/**
- * Ana eşleme: konteynerler (latestTelemetry) + field-tier telemetri + topoloji
- * → mimic state. İlk konteyner prototip kabul edilir (tek gerçek konteyner).
- */
-export function mapFieldToMimicState(
-  containers: FieldContainer[],
+/** Tek konteynerin cihaz satırlarından sanal ünite prototipi (fan-out öncesi). */
+function buildProto(
+  byDevice: Map<string, TelemetryData[]>,
   topo: NovaTopology,
-  opts: MapFieldOptions = {},
-): NovaMimicState {
-  const rows = [
-    ...containers.flatMap((c) => c.latestTelemetry),
-    ...(opts.extraTelemetry ?? []),
-  ];
-  if (rows.length === 0) return emptyState(topo);
-  const unitCount = opts.unitCount ?? DEMO_UNIT_COUNT;
-
-  const byDevice = indexByDevice(rows);
-
-  const proto: Omit<NovaUnitState, "n"> = {
+  pcs: readonly [string, string],
+): Omit<NovaUnitState, "n"> {
+  const hvac = buildHvacList(byDevice);
+  const aux = buildAux(byDevice.get("PM5340-1"));
+  const fss = buildFss(byDevice.get("CONTROL-PANEL-IO-1"), byDevice.get("FSS-1"), topo.unit.fss);
+  const imdMOhm = buildImd(byDevice.get("IMD-1"));
+  const dc = buildDc(byDevice.get("DC-METER-1"));
+  return {
     rmu: { H01: "closed", H02: "closed", H03: "closed", es: false },
     banks: [
       buildBank(byDevice.get(BANK_DEVICE_MAP.A.bsc), byDevice.get("CB-1"), "A", topo),
       buildBank(byDevice.get(BANK_DEVICE_MAP.B.bsc), byDevice.get("CB-2"), "B", topo),
     ],
     pcs: [
-      buildPcs(byDevice.get(BANK_DEVICE_MAP.A.pcs), "A"),
-      buildPcs(byDevice.get(BANK_DEVICE_MAP.B.pcs), "B"),
+      buildPcs(byDevice.get(pcs[0]), "A"),
+      buildPcs(byDevice.get(pcs[1]), "B"),
     ],
+    ...(hvac.length > 0 ? { hvac } : {}),
+    ...(aux ? { aux } : {}),
+    ...(fss ? { fss } : {}),
+    ...(imdMOhm !== undefined ? { imdMOhm } : {}),
+    ...(dc ? { dc } : {}),
   };
+}
 
-  const units = fanOutUnits(proto, unitCount);
+/**
+ * Ana eşleme: konteynerler (latestTelemetry) + field-tier telemetri + topoloji
+ * → mimic state. UC-13: konteynerler `station` etiketiyle gruplanır; **her
+ * istasyon kendi konteynerinin satırlarından** prototip üretir ve o istasyonun
+ * ünite dilimine fan-out edilir. Etiket yoksa tüm konteynerler birleştirilir
+ * (mevcut davranış). Throw yok.
+ */
+export function mapFieldToMimicState(
+  containers: FieldContainer[],
+  topo: NovaTopology,
+  opts: MapFieldOptions = {},
+): NovaMimicState {
+  const extra = opts.extraTelemetry ?? [];
+  const hasAny = containers.some((c) => c.latestTelemetry.length > 0) || extra.length > 0;
+  if (!hasAny) return emptyState(topo);
+
+  const allRows = [...containers.flatMap((c) => c.latestTelemetry), ...extra];
+  const tagged = containers.some((c) => typeof c.station === "string" && c.station.length > 0);
+  const units: NovaUnitState[] = [];
+
+  if (!tagged) {
+    // Legacy/eski kurulum (etiket yok): tarihsel field kablajı PCS-1/2 ile tek
+    // prototip → tüm ünitelere fan-out (güç korunumu ×N).
+    const proto = buildProto(indexByDevice(allRows), topo, LEGACY_PCS);
+    const count = opts.unitCount ?? DEMO_UNIT_COUNT;
+    const seq = stationsForContainers([]).flatMap((g) => [...g.station.units]);
+    const stUnits = fanOutUnits(proto, count);
+    stUnits.forEach((u, i) => {
+      u.n = seq[i] ?? i + 1;
+    });
+    units.push(...stUnits);
+  } else {
+    // UC-13: konteyner `station` etiketine göre istasyon-bazlı fan-out.
+    for (const g of stationsForContainers(containers)) {
+      const containerRows = containers
+        .filter((c) => g.containerIds.includes(c.containerId))
+        .flatMap((c) => c.latestTelemetry);
+      const rows = [...containerRows, ...extra];
+      if (rows.length === 0) continue;
+      const proto = buildProto(indexByDevice(rows), topo, g.station.pcs);
+      const stUnits = fanOutUnits(proto, g.station.units.length);
+      g.station.units.forEach((n, i) => {
+        if (stUnits[i]) stUnits[i].n = n;
+      });
+      units.push(...stUnits);
+    }
+    units.sort((a, b) => a.n - b.n);
+  }
+
   // Son ünitede H03 (radyal hat sonu) yoktur.
   const lastByN = new Set(
     listNovaUnits(topo)
@@ -262,9 +377,18 @@ export function mapFieldToMimicState(
     if (lastByN.has(u.n)) u.rmu.H03 = null;
   }
 
-  const station = buildStation(byDevice.get(DEMO_MV_DEVICE_ID), topo);
+  const byDeviceAll = indexByDevice(allRows);
+  const station = buildStation(byDeviceAll.get(DEMO_MV_DEVICE_ID), topo);
   const { poiMW, feederMW, iA } = derivePower(units, topo, station);
   station.iA = iA;
 
-  return { station, poiMW, feederMW, units };
+  const ambient = num(byName(byDeviceAll.get("HVAC-1"), "Outside Temp")?.value);
+
+  return {
+    station,
+    poiMW,
+    feederMW,
+    units,
+    ...(ambient !== undefined ? { ambient } : {}),
+  };
 }

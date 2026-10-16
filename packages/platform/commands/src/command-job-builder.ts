@@ -118,6 +118,15 @@ export class CommandJobBuilder {
       timestamp: now.toISOString(),
       telemetries,
       atomic: command.atomic ?? true,
+      ...(command.pulse ? { pulse: true } : undefined),
+      ...(command.finalize
+        ? {
+            finalize: {
+              name: command.finalize.telemetry,
+              value: command.finalize.value,
+            },
+          }
+        : undefined),
       ...(command.validate
         ? {
             validate: {
@@ -126,6 +135,7 @@ export class CommandJobBuilder {
               reads: command.validate.reads.map((r) => ({
                 name: r.name,
                 expect: r.expect,
+                ...(r.accept !== undefined ? { accept: r.accept } : undefined),
               })),
             },
           }

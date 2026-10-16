@@ -22,6 +22,9 @@ const executeBodySchema = z
   .object({
     params: z.record(z.unknown()).default({}),
     deviceIds: z.array(z.string().min(1)).optional(),
+    // UC-13: uzak (`system`) adımlar bu konteynerlere yönlendirilir (ön yüz
+    // seçili istasyonun container id'sini gönderir; station çözümü backend'de YOK).
+    systems: z.array(z.string().min(1)).optional(),
     // §10 — UI "Zamanlı" kutusu: tüm yerel ana adımlara uygulanır.
     timer: z
       .object({
@@ -157,6 +160,7 @@ export async function maneuverOperationRoutes(
       {
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
+        ...(body.systems !== undefined && body.systems.length > 0 ? { remoteSystem: body.systems[0] } : {}),
         trigger: "manual",
         createdBy: user.username,
         ...(traceFrom(request) !== undefined
@@ -192,6 +196,7 @@ export async function maneuverOperationRoutes(
       {
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
+        ...(body.systems !== undefined && body.systems.length > 0 ? { remoteSystem: body.systems[0] } : {}),
         trigger: "manual",
         createdBy: user.username,
         ...(traceFrom(request) !== undefined

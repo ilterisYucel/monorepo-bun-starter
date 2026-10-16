@@ -259,10 +259,21 @@ export function fieldConnectorConfig(
     peerId: containerId,
     peerType: "container",
     heartbeatIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs,
-    telemetryIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs,
+    telemetryIntervalMs: resolveTelemetryIntervalMs(process.env.TUNNEL_TELEMETRY_INTERVAL_MS),
     registerTimeoutMs: REGISTER_TIMEOUT_MS,
     livenessTimeoutMs: LIVENESS_TIMEOUT_MS,
   };
+}
+
+/**
+ * Konteyner → field telemetri push aralığı (ms). `TUNNEL_TELEMETRY_INTERVAL_MS`
+ * env'i ile ayarlanabilir (1000–300000 aralığına kırpılır); tanımsız/geçersizse
+ * ws-tunnel varsayılanı (15000). Demo'da 2000 verilir → UI ~2 sn tazelenir.
+ */
+export function resolveTelemetryIntervalMs(raw: string | undefined): number {
+  const n = raw !== undefined ? Number(raw) : Number.NaN;
+  if (!Number.isFinite(n)) return DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs;
+  return Math.min(300_000, Math.max(1_000, Math.trunc(n)));
 }
 
 /**

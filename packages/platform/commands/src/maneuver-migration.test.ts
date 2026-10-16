@@ -10,8 +10,8 @@ import { ManeuverRegistry } from "./maneuver-registry";
 /**
  * A3 migrasyon sözleşmesi (KOMUT-MANEVRA-OPERASYON §5, A3):
  *
- * - Tier config dosyaları (deployment/dev/container/maneuvers ve
- *   deployment/dev/field/maneuvers) fail-fast yüklenir (bozuk kayıt → THROW;
+ * - Tier config dosyaları (deployment/v1/dev/container/maneuvers ve
+ *   deployment/v1/dev/field/maneuvers) fail-fast yüklenir (bozuk kayıt → THROW;
  *   servis açılmaz).
  * - Konteyner kataloğu İP-1/İP-2 temizliğinin birebir yansımasıdır:
  *   BSC charge/discharge YOK (K12); koruma kartları kurallara taşındı (K-A5);
@@ -22,19 +22,19 @@ import { ManeuverRegistry } from "./maneuver-registry";
 
 const CONTAINER_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/dev/container/maneuvers/maneuvers.json",
+    "../../../../deployment/v1/dev/container/maneuvers/maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/dev/field/maneuvers/maneuvers.json",
+    "../../../../deployment/v1/dev/field/maneuvers/maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_OPERATIONS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/dev/field/maneuvers/operations.json",
+    "../../../../deployment/v1/dev/field/maneuvers/operations.json",
     import.meta.url,
   ),
 );
@@ -92,9 +92,9 @@ describe("konteyner maneuvers.json (A3 migrasyon)", () => {
 });
 
 describe("field maneuvers.json (A3 migrasyon — REV.01)", () => {
-  it("fail-fast yüklenir — 11 kayıt", () => {
+  it("fail-fast yüklenir — 12 kayıt", () => {
     const file = loadManeuversFile(read(FIELD_MANEUVERS_PATH));
-    expect(file.maneuvers).toHaveLength(11);
+    expect(file.maneuvers).toHaveLength(12);
   });
 
   it("deviceTypes seçicili adımlar (PCS tip çözümlemesi yürütücüde)", () => {

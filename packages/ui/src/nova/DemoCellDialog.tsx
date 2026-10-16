@@ -1,5 +1,4 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import { NOVA_ICONS } from "../icons/demo-icons";
 import type { NovaCellConfig, NovaStationState } from "./mimic-types";
 import { POS_TEXT } from "./nova-mimic";
@@ -54,8 +53,8 @@ export const DemoCellDialog: React.FC<DemoCellDialogProps> = ({
     >
       <div
         style={{
-          background: COLORS_LIGHT.panel,
-          border: `1px solid ${COLORS_LIGHT.line}`,
+          background: "var(--nm-panel)",
+          border: `1px solid ${"var(--nm-line)"}`,
           borderRadius: 8,
           width: "min(560px, calc(100vw - 32px))",
           maxHeight: "calc(100vh - 40px)",
@@ -69,10 +68,10 @@ export const DemoCellDialog: React.FC<DemoCellDialogProps> = ({
             alignItems: "center",
             gap: 10,
             padding: "12px 16px",
-            borderBottom: `1px solid ${COLORS_LIGHT.line2}`,
+            borderBottom: `1px solid ${"var(--nm-line2)"}`,
           }}
         >
-          <h2 style={{ fontSize: 17, fontWeight: 700, color: COLORS_LIGHT.fg, margin: 0 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, color: "var(--nm-fg)", margin: 0 }}>
             {cell.id} · {cell.label}
           </h2>
           <button type="button" onClick={onClose} style={btnStyle()}>
@@ -94,7 +93,7 @@ export const DemoCellDialog: React.FC<DemoCellDialogProps> = ({
             />
           )}
           {message ? (
-            <p style={{ margin: 0, fontSize: 12.5, color: COLORS_LIGHT.info }}>{message}</p>
+            <p style={{ margin: 0, fontSize: 12.5, color: "var(--nm-info)" }}>{message}</p>
           ) : null}
         </div>
       </div>
@@ -107,7 +106,7 @@ const MeasurementCell: React.FC<{ cell: NovaCellConfig; station: NovaStationStat
   station,
 }) => (
   <>
-    <p style={{ margin: 0, fontSize: 12, color: COLORS_LIGHT.muted }}>
+    <p style={{ margin: 0, fontSize: 12, color: "var(--nm-muted)" }}>
       Ölçü hücresi · CT {cell.ct}
       {cell.vt ? ` · VT ${cell.vt}` : ""}
     </p>
@@ -154,12 +153,12 @@ const BreakerCell: React.FC<{
               {a.label}
             </button>
             {!a.ok && a.reason ? (
-              <small style={{ fontSize: 11, color: COLORS_LIGHT.muted }}>{a.reason}</small>
+              <small style={{ fontSize: 11, color: "var(--nm-muted)" }}>{a.reason}</small>
             ) : null}
           </div>
         ))}
       </div>
-      <p style={{ margin: 0, fontSize: 11.5, color: COLORS_LIGHT.muted }}>
+      <p style={{ margin: 0, fontSize: 11.5, color: "var(--nm-muted)" }}>
         Kilitleme: toprak kapalıyken kesici kapanmaz · kesici kapalıyken toprak kapanmaz · H01 gelen kablosu POI'den enerjilidir.
       </p>
     </>
@@ -167,9 +166,9 @@ const BreakerCell: React.FC<{
 };
 
 const Metric: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div style={{ border: `1px solid ${COLORS_LIGHT.line2}`, borderRadius: 5, padding: "7px 9px", minWidth: 0 }}>
-    <small style={{ display: "block", fontSize: 11, color: COLORS_LIGHT.muted }}>{label}</small>
-    <b style={{ display: "block", fontSize: 16, fontWeight: 600, color: COLORS_LIGHT.fg }}>{value}</b>
+  <div style={{ border: `1px solid ${"var(--nm-line2)"}`, borderRadius: 5, padding: "7px 9px", minWidth: 0 }}>
+    <small style={{ display: "block", fontSize: 11, color: "var(--nm-muted)" }}>{label}</small>
+    <b style={{ display: "block", fontSize: 16, fontWeight: 600, color: "var(--nm-fg)" }}>{value}</b>
   </div>
 );
 
@@ -178,9 +177,9 @@ function btnStyle(warn = false): React.CSSProperties {
     display: "inline-flex",
     alignItems: "center",
     gap: 7,
-    border: `1px solid ${warn ? COLORS_LIGHT.warn : COLORS_LIGHT.line}`,
-    background: COLORS_LIGHT.panel2,
-    color: warn ? COLORS_LIGHT.warn : COLORS_LIGHT.fg,
+    border: `1px solid ${warn ? "var(--nm-warn)" : "var(--nm-line)"}`,
+    background: "var(--nm-panel2)",
+    color: warn ? "var(--nm-warn)" : "var(--nm-fg)",
     borderRadius: 5,
     padding: "7px 13px",
     fontWeight: 600,

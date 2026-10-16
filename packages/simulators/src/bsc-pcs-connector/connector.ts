@@ -85,8 +85,45 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
         continue;
       }
       try {
-        const raw = await this.source.read(entry.from);
+        if (entry.kind === "computed") {
+          // C8: akım limiti = güç limiti ÷ DC gerilim (LGES'te limit register'ı yok).
+          const numRaw = await this.source.read(entry.numerator.from);
+          let denRaw = await this.source.read(entry.denominator.from);
+          if (denRaw === 0 && entry.denominator.from.fallbackAddress !== undefined) {
+            denRaw = await this.source.read({
+              ...entry.denominator.from,
+              address: entry.denominator.from.fallbackAddress,
+              fallbackAddress: undefined,
+            });
+          }
+          const denPhysical = denRaw * entry.denominator.scale;
+          if (denPhysical !== 0) {
+            const physical = (numRaw * entry.numerator.scale) / denPhysical;
+            this.applyMirror(entry.to, Math.round(physical * entry.ratio + entry.offset));
+          }
+          continue;
+        }
+        if (entry.kind === "socEnergy") {
+          // PCS15: B19/B20 = SOC × anma enerji (charge: 1−SOC).
+          const socRaw = await this.source.read(entry.soc.from);
+          const fraction = Math.min(Math.max(socRaw * entry.soc.scale, 0), 1);
+          const energyKwh =
+            entry.mode === "charge"
+              ? (1 - fraction) * entry.ratedKwh
+              : fraction * entry.ratedKwh;
+          this.applyMirror(entry.to, Math.round(energyKwh * entry.ratio + entry.offset));
+          continue;
+        }
+        let raw = await this.source.read(entry.from);
         if (entry.kind === "register") {
+          // M12: birincil 0 ise (ör. onlayn rack yokken 30059=0) yedek adrese düş.
+          if (raw === 0 && entry.from.fallbackAddress !== undefined) {
+            raw = await this.source.read({
+              ...entry.from,
+              address: entry.from.fallbackAddress,
+              fallbackAddress: undefined,
+            });
+          }
           const transformed = Math.round(raw * entry.ratio + entry.offset);
           this.applyMirror(entry.to, transformed);
         } else {
@@ -104,6 +141,15 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
     }
     this.sourceStatus =
       readFailures === this.mapping.mappings.length ? 2 : readFailures > 0 ? 1 : 0;
+
+    // PCS14: BSC kaynağı tümüyle okunamıyorsa (sourceStatus=2) kayıp bitini set et
+    // (ör. BMS Status Word bit0 = "BMS no communication"); sağlıklıyken temizle.
+    if (this.mapping.lossBit !== undefined) {
+      const { to, bit } = this.mapping.lossBit;
+      const current = this.mirror.get(to) ?? 0;
+      const next = this.sourceStatus === 2 ? current | (1 << bit) : current & ~(1 << bit);
+      this.applyMirror(to, next);
+    }
 
     // 2. Değişen adresleri topla
     const dirty: Array<{ address: number; value: number }> = [];

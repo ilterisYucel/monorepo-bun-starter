@@ -41,6 +41,13 @@ export interface TimescaleDBConfig extends PostgresConfig {
   /** Yeni bağlantı timeout (ms).
    *  Env: TIMESCALE_CONNECTION_TIMEOUT_MS (varsayılan: 5000) */
   connectionTimeoutMs: number;
+
+  /**
+   * Downsampled okumada `locf` taşıma sınırı (ms). `0` = gapfill KAPALI (varsayılan).
+   * `> 0` ise boşluklar son değerle doldurulur; bu süreden uzun boşluk uydurulmaz.
+   * Env: TIMESCALE_LOCF_CARRY_MS (varsayılan: 0)
+   */
+  locfCarryMs?: number;
 }
 
 /**
@@ -129,6 +136,10 @@ export function buildTimescaleDBConfig(
       overrides?.connectionTimeoutMs ??
       (Number(process.env.TIMESCALE_CONNECTION_TIMEOUT_MS) ||
       DEFAULT_TIMESCALE_CONFIG.connectionTimeoutMs),
+
+    locfCarryMs:
+      overrides?.locfCarryMs ??
+      (Number(process.env.TIMESCALE_LOCF_CARRY_MS) || 0),
   };
 }
 

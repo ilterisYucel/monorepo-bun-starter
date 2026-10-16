@@ -96,8 +96,16 @@ describe("DcMeterAdapter (salt okuma sözleşmesi)", () => {
     expect(words).toEqual([hi, lo]);
   });
 
-  it("holding register 0 döner — komut YOKTUR", async () => {
-    expect(await adapter.readHoldingRegister(INPUT.DC_VOLTAGE)).toBe(0);
+  it("FC03 holding okuma veriyi döner (doküman §7.3.3 — 03H okuma)", async () => {
+    const words = await adapter.readHoldingRegisters(INPUT.DC_VOLTAGE, 2);
+    const [hi, lo] = floatWords(750.0);
+    expect(words).toEqual([hi, lo]);
+  });
+
+  it("holding yazımı yok sayılır — komut YOKTUR", async () => {
+    const before = await adapter.readHoldingRegister(INPUT.DC_VOLTAGE);
+    await adapter.writeHoldingRegister(INPUT.DC_VOLTAGE, 0);
+    expect(await adapter.readHoldingRegister(INPUT.DC_VOLTAGE)).toBe(before);
   });
 
   it("coil/discrete okumaları boş — I/O YOKTUR", async () => {

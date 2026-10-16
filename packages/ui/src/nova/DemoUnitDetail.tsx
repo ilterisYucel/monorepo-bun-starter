@@ -1,94 +1,219 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import type { NovaTopology, NovaUnitState } from "./mimic-types";
+import { listNovaUnits } from "./mimic-types";
 import { PCS_TEXT, POS_TEXT, defaultUnitStatus, rackSeverity, tempFill } from "./nova-mimic";
+import { RegisterValue } from "./DemoRegMode";
+import { bscSource, calcSource, nomapSource, pcsSource, rackSource, type RegisterSource } from "./register-sources";
+import { DEFAULT_MIMIC_DEVICES } from "./mimic-source-map";
 
 /**
- * Ünite detay paneli (SPEC UC-4/T-18, FR-4.3): RMU pozisyonları, PCS ve banka
- * tabloları, raf sıcaklıkları. Veri props ile gelir.
+ * Ünite detay paneli (SPEC UC-4/T-18, FR-4.3): referans `renderDetail` ile
+ * eşleşen RMU pozisyonları, PCS ve batarya tabloları, raf sıcaklıkları.
+ * Etiketler enerjicilerin çiziminden (gdems) kopya İngilizce. Veri props ile gelir.
  */
 
 export interface DemoUnitDetailProps {
   unit: NovaUnitState | undefined;
   topology: NovaTopology;
+  /** Devices hızlı erişimi (Battery / PCS / HVAC). */
+  onOpenDevices?: (section: "battery" | "pcs" | "hvac") => void;
 }
 
 const f = (v: number, d = 1): string =>
   (Math.round(v * 10 ** d) / 10 ** d).toFixed(d).replace(".", ",");
 
+const SEV_COLOR: Record<string, string> = {
+  alarm: "var(--nm-alarm)",
+  warn: "var(--nm-warn)",
+  maint: "var(--nm-maint)",
+  cold: "var(--nm-cold)",
+  info: "var(--nm-info)",
+};
+
+const BSC_STATE_TEXT: Record<number, string> = {
+  0: "None",
+  1: "Not init.",
+  2: "Initializing",
+  3: "Normal",
+  4: "NPS",
+  5: "Manual",
+  6: "Emergency",
+};
+
+const titleCase = (s: string): string => s.charAt(0) + s.slice(1).toLowerCase();
+
 export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
   unit,
   topology,
+  onOpenDevices,
 }) => {
   if (!unit) {
     return (
-      <div style={{ padding: 14, color: COLORS_LIGHT.muted, fontSize: 13 }}>
-        Bir ünite seçin.
+      <div style={{ padding: 14, color: "var(--nm-muted)", fontSize: 13 }}>
+        Select a unit.
       </div>
     );
   }
   const status = unit.status ?? defaultUnitStatus(unit, topology.limits);
   const L = topology.limits;
+  const U = topology.unit;
+  const meta = listNovaUnits(topology).find((u) => u.n === unit.n);
   const tsv = (t: number): string =>
-    t > L.tempMax ? COLORS_LIGHT.alarm : t < L.tempMin ? COLORS_LIGHT.cold : COLORS_LIGHT.fg;
+    t > L.tempMax ? "var(--nm-alarm)" : t < L.tempMin ? "var(--nm-cold)" : "var(--nm-fg)";
+
+  const pcsFor = (bankId: string, i: number) =>
+    unit.pcs.find((p) => p.id === bankId) ?? unit.pcs[i];
+  const bankerReg = (bankId: string, id: string): RegisterSource =>
+    bscSource(DEFAULT_MIMIC_DEVICES.bsc(bankId), id, { bank: bankId, group: unit.n });
+  const pcsReg = (bankId: string, id: string): RegisterSource =>
+    pcsSource(DEFAULT_MIMIC_DEVICES.pcs(bankId), id, { bank: bankId, group: unit.n });
+  const wrap = (source: RegisterSource, value: React.ReactNode): React.ReactNode => (
+    <RegisterValue source={source}>{value}</RegisterValue>
+  );
+  const limits = (bankId: string, i: number, key: "idc" | "chgLimitKw" | "disLimitKw"): string => {
+    const p = pcsFor(bankId, i);
+    const v = p?.[key];
+    if (v === undefined || v === null) return "—";
+    if (key === "idc") return `${f(v, 0)} A`;
+    return `${f(v, 0)} kW`;
+  };
 
   return (
     <div style={{ padding: "12px 14px 14px", display: "grid", gap: 12 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 700, color: COLORS_LIGHT.fg }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--nm-fg)" }}>
           BESS#{unit.n}
         </h3>
-        <span style={{ fontSize: 12, fontWeight: 700, color: COLORS_LIGHT.muted }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: status.sev ? SEV_COLOR[status.sev] ?? "var(--nm-muted)" : "var(--nm-muted)",
+          }}
+        >
           {status.text}
         </span>
       </div>
 
-      <Section title="OG hücre pozisyonları · RMU">
+      <p style={{ margin: 0, fontSize: 12, color: "var(--nm-muted)" }}>
+        {meta ? `Feeder ${meta.feeder} · position ${meta.row + 1} · ` : ""}
+        {U.container} {f(U.containerMWh, 3)} MWh · 2 × {f(U.pcsKVA, 0)} kVA PCS · TR{" "}
+        {f(U.trKVA, 0)} kVA {U.trRatio}
+      </p>
+
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+        <span style={{ fontSize: 12, color: "var(--nm-muted)" }}>Devices:</span>
+        <button type="button" className="btn sm" onClick={() => onOpenDevices?.("battery")}>
+          Battery · {U.racksPerBank * U.banks.length} racks
+        </button>
+        <button type="button" className="btn sm" onClick={() => onOpenDevices?.("pcs")}>
+          PCS
+        </button>
+        <button type="button" className="btn sm" onClick={() => onOpenDevices?.("hvac")}>
+          HVAC
+          {unit.hvac ? ` · ${unit.hvac.filter((h) => h.comp).length}/${unit.hvac.length} cooling` : ""}
+        </button>
+      </div>
+
+      <Section title="RMU positions">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 6 }}>
-          {(["H01", "H02", "H03"] as const).map((k) => {
-            const pos = unit.rmu[k];
-            return (
-              <Field key={k} label={k} value={pos ? POS_TEXT[pos] : "Yok"} />
-            );
-          })}
-          <Field label="ES · Toprak" value={unit.rmu.es ? "Kapalı" : "Açık"} />
+          {U.rmu
+            .filter((c) => c.id !== "ES")
+            .map((c) => {
+              const pos = unit.rmu[c.id as "H01" | "H02" | "H03"];
+              const kind = c.kind === "cb" ? "CB" : c.kind === "es" ? "ES" : "LBS";
+              return (
+                <Field
+                  key={c.id}
+                  label={`${c.id} · ${kind}${c.motor ? " · M" : ""}`}
+                  value={wrap(
+                    nomapSource(`RMU-${unit.n} ${c.id}`, "breaker position (open / closed / tripped)"),
+                    pos ? POS_TEXT[pos] : "None",
+                  )}
+                />
+              );
+            })}
+          <Field
+            label="ES · Earth"
+            value={wrap(nomapSource(`RMU-${unit.n} ES`, "earthing switch position"), unit.rmu.es ? "Closed" : "Open")}
+          />
         </div>
       </Section>
 
-      <Section title="PCS">
+      <Section title="PCS · Wattox MPCS-1725-S">
         <Table
-          head={["", "Durum", "P MW", "IGBT °C"]}
-          rows={unit.pcs.map((p) => [
-            `PCS-${unit.n}${p.id}`,
-            p.limited && (p.state === "chg" || p.state === "dis")
-              ? `Sınırlı · ${PCS_TEXT[p.state]}`
-              : PCS_TEXT[p.state],
-            p.state === "chg" || p.state === "dis" ? f(p.pMW, 2) : "0,00",
-            f(p.igbtC, 0),
-          ])}
+          head={["", "State", "P MW", "AC V", "IGBT °C"]}
+          rows={unit.pcs.map((p) => {
+            const run = p.state === "chg" || p.state === "dis";
+            const stateText =
+              p.limited && run ? "Limited 50 %" : titleCase(PCS_TEXT[p.state]);
+            const pTxt = run ? `${p.state === "chg" ? "−" : ""}${f(p.pMW, 2)}` : "0,00";
+            return [
+              `PCS-${unit.n}${p.id}`,
+              wrap(pcsReg(p.id, "pcs.state"), stateText),
+              wrap(pcsReg(p.id, "pcs.p"), pTxt),
+              wrap(pcsReg(p.id, "pcs.vac"), p.vac !== undefined ? f(p.vac, 0) : "—"),
+              wrap(pcsReg(p.id, "pcs.igbt"), f(p.igbtC, 0)),
+            ];
+          })}
         />
       </Section>
 
-      <Section title="Batarya bankaları">
+      <Section title="Battery sections · Flex BSC">
         <Table
-          head={["", ...topology.unit.banks.map((b) => `Banka ${b}`)]}
+          head={["", ...U.banks.map((b) => `Bank ${b}`)]}
           rows={[
-            ["DC kesici", ...unit.banks.map((b) => POS_TEXT[b.dcb])],
-            ["SOC", ...unit.banks.map((b) => `${f(b.soc)} %`)],
-            ["SOH", ...unit.banks.map((b) => `${f(b.soh)} %`)],
-            ["DC gerilim", ...unit.banks.map((b) => `${f(b.vdc, 0)} V`)],
-            ["Hücre ΔV", ...unit.banks.map((b) => `${f(b.dvmV, 0)} mV`)],
-            ["Sıcaklık mak", ...unit.banks.map((b) => `${f(b.tmax)} °C`)],
-            ["Sıcaklık min", ...unit.banks.map((b) => `${f(b.tmin ?? b.tmax)} °C`)],
+            [
+              "BSC state (30036)",
+              ...unit.banks.map((b) =>
+                wrap(bankerReg(b.id, "bank.state"), b.bscState !== undefined ? BSC_STATE_TEXT[b.bscState] ?? "—" : "—"),
+              ),
+            ],
+            [
+              "Racks online (30038)",
+              ...unit.banks.map((b) =>
+                wrap(bankerReg(b.id, "bank.online"), b.online !== undefined ? `${b.online} / ${U.racksPerBank}` : "—"),
+              ),
+            ],
+            ["SOC", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.soc"), `${f(b.soc)} %`))],
+            ["SOH", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.soh"), `${f(b.soh)} %`))],
+            ["DC voltage", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.vdc"), `${f(b.vdc, 0)} V`))],
+            [
+              "DC current",
+              ...unit.banks.map((b, i) => wrap(pcsReg(b.id, "pcs.idc"), limits(b.id, i, "idc"))),
+            ],
+            [
+              "Charge limit (30063)",
+              ...unit.banks.map((b, i) => wrap(bankerReg(b.id, "bank.chgLimit"), limits(b.id, i, "chgLimitKw"))),
+            ],
+            [
+              "Discharge limit (30065)",
+              ...unit.banks.map((b, i) => wrap(bankerReg(b.id, "bank.disLimit"), limits(b.id, i, "disLimitKw"))),
+            ],
+            [
+              "Cell ΔV",
+              ...unit.banks.map((b) =>
+                wrap(
+                  calcSource("max − min cell voltage", [
+                    bankerReg(b.id, "bank.cellVmax"),
+                    bankerReg(b.id, "bank.cellVmin"),
+                  ]),
+                  `${f(b.dvmV, 0)} mV`,
+                ),
+              ),
+            ],
+            ["Temperature max", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.tmax"), `${f(b.tmax)} °C`))],
+            ["Temperature min", ...unit.banks.map((b) => wrap(bankerReg(b.id, "bank.tmin"), `${f(b.tmin ?? b.tmax)} °C`))],
+            ["DC breaker", ...unit.banks.map((b) => wrap(pcsReg(b.id, "pcs.dcCB"), POS_TEXT[b.dcb]))],
           ]}
         />
       </Section>
 
-      <Section title="Raf sıcaklıkları · maks hücre °C">
+      <Section title="Rack temperatures · max pack °C">
         <div style={{ display: "grid", gap: 4 }}>
           {unit.banks.map((b) => (
             <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 20, fontSize: 12, color: COLORS_LIGHT.muted, fontWeight: 600 }}>
+              <span style={{ width: 20, fontSize: 12, color: "var(--nm-muted)", fontWeight: 600 }}>
                 {b.id}
               </span>
               {b.racks.map((t, r) => {
@@ -103,17 +228,34 @@ export const DemoUnitDetail: React.FC<DemoUnitDetailProps> = ({
                       fontSize: 11,
                       padding: "5px 0",
                       borderRadius: 3,
-                      border: `1px solid ${sev ? (sev === "alarm" ? COLORS_LIGHT.alarm : COLORS_LIGHT.cold) : COLORS_LIGHT.line}`,
+                      border: `1px solid ${sev ? (sev === "alarm" ? "var(--nm-alarm)" : "var(--nm-cold)") : "var(--nm-line)"}`,
                       background: tempFill(t, L),
                       color: tsv(t),
                     }}
                   >
-                    {f(t)}
+                    {wrap(
+                      rackSource(DEFAULT_MIMIC_DEVICES.bsc(b.id), r + 1, "rack.tMax", { bank: b.id, group: unit.n }),
+                      f(t),
+                    )}
                   </span>
                 );
               })}
             </div>
           ))}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 11,
+              color: "var(--nm-muted)",
+            }}
+          >
+            <span>Rack 1</span>
+            <span>
+              Band {L.tempMin}–{L.tempMax} °C · above red, below blue
+            </span>
+            <span>Rack {U.racksPerBank}</span>
+          </div>
         </div>
       </Section>
     </div>
@@ -127,7 +269,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
         fontSize: 11.5,
         letterSpacing: "0.09em",
         textTransform: "uppercase",
-        color: COLORS_LIGHT.muted,
+        color: "var(--nm-muted)",
         fontWeight: 600,
         margin: "0 0 6px",
       }}
@@ -138,14 +280,14 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </div>
 );
 
-const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div style={{ border: `1px solid ${COLORS_LIGHT.line}`, borderRadius: 4, padding: "5px 7px", minWidth: 0 }}>
-    <small style={{ display: "block", fontSize: 11, color: COLORS_LIGHT.muted }}>{label}</small>
-    <b style={{ display: "block", fontSize: 13, color: COLORS_LIGHT.fg }}>{value}</b>
+const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+  <div style={{ border: `1px solid ${"var(--nm-line)"}`, borderRadius: 4, padding: "5px 7px", minWidth: 0 }}>
+    <small style={{ display: "block", fontSize: 11, color: "var(--nm-muted)" }}>{label}</small>
+    <b style={{ display: "block", fontSize: 13, color: "var(--nm-fg)" }}>{value}</b>
   </div>
 );
 
-const Table: React.FC<{ head: string[]; rows: string[][] }> = ({ head, rows }) => (
+const Table: React.FC<{ head: string[]; rows: React.ReactNode[][] }> = ({ head, rows }) => (
   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
     <thead>
       <tr>
@@ -154,7 +296,7 @@ const Table: React.FC<{ head: string[]; rows: string[][] }> = ({ head, rows }) =
             key={i}
             style={{
               fontWeight: 600,
-              color: COLORS_LIGHT.muted,
+              color: "var(--nm-muted)",
               textAlign: i === 0 ? "left" : "right",
               padding: "3px 0",
               fontSize: 11.5,
@@ -173,9 +315,9 @@ const Table: React.FC<{ head: string[]; rows: string[][] }> = ({ head, rows }) =
               key={ci}
               style={{
                 padding: "3px 0",
-                borderTop: `1px solid ${COLORS_LIGHT.line2}`,
+                borderTop: `1px solid ${"var(--nm-line2)"}`,
                 textAlign: ci === 0 ? "left" : "right",
-                color: COLORS_LIGHT.fg,
+                color: "var(--nm-fg)",
                 fontFamily: ci === 0 ? undefined : '"IBM Plex Mono", monospace',
               }}
             >

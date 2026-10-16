@@ -75,3 +75,70 @@ export const FREQ_RANGES: FreqRange[] = [
 export function freqRangeOf(fHz: number): FreqRange | undefined {
   return FREQ_RANGES.find((r) => fHz >= r.min && fHz < r.max);
 }
+
+export interface MarketPointLike {
+  timestamp: string;
+  value: number;
+}
+
+export interface MarketHour {
+  h: number;
+  ptf: number;
+  gip: number;
+  smf: number;
+  dir: "YAT" | "YAL" | "DENGEDE";
+}
+
+export interface MarketSeriesInput {
+  key: string;
+  points: MarketPointLike[];
+}
+
+/**
+ * Fiyat serilerini (ptf/gip_wap/smf) saat kovalarına indirger (saf). Son
+ * değer saat başına alınır; eksik seri 0 kalır. `smf` işareti sistem yönünü
+ * verir (+ YAT / − YAL / 0 DENGEDE).
+ */
+export function buildMarketDay(series: MarketSeriesInput[]): MarketHour[] {
+  const hours: MarketHour[] = Array.from({ length: 24 }, (_, h) => ({
+    h,
+    ptf: 0,
+    gip: 0,
+    smf: 0,
+    dir: "DENGEDE",
+  }));
+  const put = (key: string, points: MarketPointLike[]): void => {
+    for (const p of points) {
+      const d = new Date(p.timestamp);
+      if (Number.isNaN(d.getTime())) continue;
+      const h = d.getHours();
+      if (h < 0 || h > 23) continue;
+      if (key === "ptf") hours[h].ptf = p.value;
+      else if (key === "gip_wap") hours[h].gip = p.value;
+      else if (key === "smf") hours[h].smf = p.value;
+    }
+  };
+  for (const s of series) put(s.key, s.points);
+  for (const x of hours) x.dir = x.smf > 0 ? "YAT" : x.smf < 0 ? "YAL" : "DENGEDE";
+  return hours;
+}
+
+/** Basit arbitraj planı: en ucuz `cycles` saat şarj, en pahalı `cycles` saat deşarj. */
+export function arbitragePlan(
+  hours: MarketHour[],
+  cycles = 2,
+): { cheap: number[]; dear: number[] } {
+  const priced = hours.filter((x) => x.ptf > 0);
+  if (priced.length <= cycles * 2) {
+    const sorted = [...priced].sort((a, b) => a.ptf - b.ptf);
+    return {
+      cheap: sorted.slice(0, cycles).map((x) => x.h),
+      dear: sorted.slice(-cycles).map((x) => x.h),
+    };
+  }
+  const sorted = [...priced].sort((a, b) => a.ptf - b.ptf);
+  return {
+    cheap: sorted.slice(0, cycles).map((x) => x.h),
+    dear: sorted.slice(-cycles).map((x) => x.h),
+  };
+}

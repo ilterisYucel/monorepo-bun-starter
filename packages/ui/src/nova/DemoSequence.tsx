@@ -1,5 +1,4 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 
 /**
  * Operasyon adım dizisi görünümü (SPEC UC-7/T-17, FR-7.2). `operation_runs`
@@ -17,7 +16,7 @@ export interface DemoSequenceProps {
 export const DemoSequence: React.FC<DemoSequenceProps> = ({ steps }) => {
   if (steps.length === 0) {
     return (
-      <p style={{ fontSize: 12.5, color: COLORS_LIGHT.muted }}>Adım yok.</p>
+      <p style={{ fontSize: 12.5, color: "var(--nm-muted)" }}>Adım yok.</p>
     );
   }
   return (
@@ -36,7 +35,7 @@ export const DemoSequence: React.FC<DemoSequenceProps> = ({ steps }) => {
               alignItems: "center",
               gap: 8,
               fontSize: 13,
-              color: done || active ? COLORS_LIGHT.fg : COLORS_LIGHT.muted,
+              color: done || active ? "var(--nm-fg)" : "var(--nm-muted)",
               fontWeight: active ? 600 : 400,
             }}
           >
@@ -48,13 +47,13 @@ export const DemoSequence: React.FC<DemoSequenceProps> = ({ steps }) => {
                 display: "grid",
                 placeItems: "center",
                 fontSize: 11,
-                border: `1px solid ${active ? COLORS_LIGHT.sel : COLORS_LIGHT.line}`,
-                background: done ? COLORS_LIGHT.live : "none",
+                border: `1px solid ${active ? "var(--nm-sel)" : "var(--nm-line)"}`,
+                background: done ? "var(--nm-live)" : "none",
                 color: done
-                  ? COLORS_LIGHT.panel
+                  ? "var(--nm-panel)"
                   : active
-                    ? COLORS_LIGHT.sel
-                    : COLORS_LIGHT.muted,
+                    ? "var(--nm-sel)"
+                    : "var(--nm-muted)",
                 fontFamily: '"IBM Plex Mono", monospace',
               }}
             >

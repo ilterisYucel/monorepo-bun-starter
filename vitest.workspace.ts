@@ -25,7 +25,6 @@ export default defineWorkspace([
   "services/management-service",
   "apps/container-web",
   "apps/container-desktop",
-  "apps/demo-backend",
   "apps/editor",
   // 2026-08-30 (T6): saha uygulaması workspace'e eklendi — root test
   // script'leri artık field/superadmin'i de koşar (önceden nx ile ayrı).

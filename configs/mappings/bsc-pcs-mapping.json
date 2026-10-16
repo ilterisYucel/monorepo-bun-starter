@@ -44,7 +44,8 @@
         "deviceId": "BSC-1",
         "table": "input",
         "address": 30059,
-        "size": 2
+        "size": 2,
+        "fallbackAddress": 30057
       },
       "to": 770,
       "ratio": 0.001,
@@ -116,7 +117,8 @@
       "from": {
         "deviceId": "BSC-1",
         "table": "input",
-        "address": 30063
+        "address": 30063,
+        "size": 2
       },
       "to": 776,
       "ratio": 0.01,
@@ -127,7 +129,8 @@
       "from": {
         "deviceId": "BSC-1",
         "table": "input",
-        "address": 30065
+        "address": 30065,
+        "size": 2
       },
       "to": 777,
       "ratio": 0.01,
@@ -204,10 +207,11 @@
       "from": {
         "deviceId": "BSC-1",
         "table": "input",
-        "address": 30124
+        "address": 30118,
+        "size": 2
       },
       "to": 784,
-      "ratio": 10,
+      "ratio": 0.001,
       "offset": 0
     },
     {
@@ -215,10 +219,11 @@
       "from": {
         "deviceId": "BSC-1",
         "table": "input",
-        "address": 30125
+        "address": 30122,
+        "size": 2
       },
       "to": 785,
-      "ratio": 10,
+      "ratio": 0.001,
       "offset": 0
     },
     {
@@ -257,6 +262,39 @@
       "to": 790,
       "ratio": 1,
       "offset": 0
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30043,
+        "bit": 0
+      },
+      "to": 769,
+      "bit": 0
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30037,
+        "bit": 2
+      },
+      "to": 769,
+      "bit": 4
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-1",
+        "table": "input",
+        "address": 30037,
+        "bit": 2
+      },
+      "to": 769,
+      "bit": 5
     }
   ]
 }

@@ -42,6 +42,10 @@ export class DataService {
       }
     }, {
       concurrency: 10,
+      // statement_timeout (30 sn) stall aralığından (varsayılan 30 sn) ÖNCE
+      // devreye girsin: asılı yazım temiz fail eder, çift işleme / "Missing key"
+      // sarmalı oluşmaz (AWS 2026-10-14 olayı).
+      stalledInterval: 120_000,
       onFailed: async (job, err) => {
         if (!this.logger) return;
         await this.logger

@@ -2,6 +2,9 @@ import type { FastifyInstance } from "fastify";
 import type { ITimeseriesDatabase } from "@gd-monorepo/core";
 import { ValidationError } from "@gd-monorepo/result";
 
+/** Grup anahtarı tag adı — SQL interpolasyonu güvenliği. */
+const TAG_KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
 export async function dataRoutes(
   fastify: FastifyInstance,
   options: { timescale: ITimeseriesDatabase },
@@ -64,18 +67,22 @@ export async function dataRoutes(
 
   fastify.get("/:deviceId/downsampled", async (request, reply) => {
     const { deviceId } = request.params as { deviceId: string };
-    const { from, to, points, names, tags } = request.query as {
+    const { from, to, points, names, tags, tag } = request.query as {
       from?: string;
       to?: string;
       points?: string;
       names?: string;
       tags?: string;
+      tag?: string;
     };
 
     if (!from || !to) {
       return reply
         .status(400)
         .send({ error: "from ve to parametreleri gerekli" });
+    }
+    if (tag !== undefined && !TAG_KEY_RE.test(tag)) {
+      return reply.status(400).send({ error: "geçersiz tag anahtarı" });
     }
 
     const nameFilter = names ? names.split(",") : undefined;
@@ -85,6 +92,7 @@ export async function dataRoutes(
       deviceId,
       names: nameFilter,
       tags: tagFilter,
+      ...(tag !== undefined ? { tag } : {}),
       from: new Date(from),
       to: new Date(to),
       points: points ? parseInt(points) : 120,

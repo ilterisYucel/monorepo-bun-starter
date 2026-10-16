@@ -152,6 +152,11 @@ export class RuleEvaluator {
         return typeof value === "number" && value < threshold;
       case "lte":
         return typeof value === "number" && value <= threshold;
+      // A2: işaretli ölçümlerde (örn. DC akım) büyüklük eşiği — |value| > eşik.
+      case "abs_gt":
+        return typeof value === "number" && Math.abs(value) > threshold;
+      case "abs_gte":
+        return typeof value === "number" && Math.abs(value) >= threshold;
     }
   }
 }

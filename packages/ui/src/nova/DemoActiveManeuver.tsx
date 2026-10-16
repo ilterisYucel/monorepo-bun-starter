@@ -1,5 +1,4 @@
 import React from "react";
-import { COLORS_LIGHT } from "../colors/tokensLight";
 import { NOVA_ICONS } from "../icons/demo-icons";
 import { DemoSequence } from "./DemoSequence";
 import type { DemoActiveRun } from "./maneuver-types";
@@ -24,14 +23,14 @@ export const DemoActiveManeuver: React.FC<DemoActiveManeuverProps> = ({
   <div style={{ padding: "12px 14px 14px", display: "grid", gap: 12 }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <span style={{ color: COLORS_LIGHT.muted }}>
+        <span style={{ color: "var(--nm-muted)" }}>
           {run ? <NOVA_ICONS.chg /> : <NOVA_ICONS.stby />}
         </span>
         <div>
-          <b style={{ display: "block", fontSize: 16, color: COLORS_LIGHT.fg }}>
+          <b style={{ display: "block", fontSize: 16, color: "var(--nm-fg)" }}>
             {run ? run.label : "Aktif manevra yok"}
           </b>
-          <small style={{ fontSize: 12, color: COLORS_LIGHT.muted }}>
+          <small style={{ fontSize: 12, color: "var(--nm-muted)" }}>
             {run ? `Durum: ${run.status}` : "Saha bekleme modunda"}
           </small>
         </div>
@@ -54,8 +53,8 @@ export const DemoStopButton: React.FC<DemoStopButtonProps> = ({ onStop, disabled
     disabled={disabled}
     onClick={onStop}
     style={{
-      border: `1px solid ${COLORS_LIGHT.warn}`,
-      color: COLORS_LIGHT.warn,
+      border: `1px solid ${"var(--nm-warn)"}`,
+      color: "var(--nm-warn)",
       background: "none",
       borderRadius: 5,
       padding: "6px 12px",

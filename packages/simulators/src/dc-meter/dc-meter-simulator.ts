@@ -80,6 +80,29 @@ export class DcMeterSimulator {
     if (values.alarmWord !== undefined) this.alarmWord = values.alarmWord;
   }
 
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut).
+   * - `overcurrent`: DC akım 1800 A ve gerilim 800 V (FL-08 tetikleyicisi)
+   * - `overvoltage`: DC gerilim 1600 V
+   * - `nominal`: 750 V / 100 A / 75 kW
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "overcurrent":
+        this.setMeasurements({ voltage: 800, current: 1800, power: 1440 });
+        return true;
+      case "overvoltage":
+        this.setMeasurements({ voltage: 1600, current: 100, power: 160 });
+        return true;
+      case "nominal":
+        this.setMeasurements({ voltage: 750, current: 100, power: 75, alarmWord: 0 });
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /** Input register okur — kelime bazlı (FLOAT32 çiftleri BE) (sorgu). */
   readInputRegister(address: number): number {
     switch (address) {

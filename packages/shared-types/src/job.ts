@@ -47,8 +47,12 @@ export interface CommandDeviceJob extends BaseJob {
   validate?: {
     minWaitMs?: number;
     timeoutMs: number;
-    reads: Array<{ name: string; expect: string | number | boolean }>;
+    reads: Array<{ name: string; expect: string | number | boolean; accept?: number[] }>;
   };
+  /** Komut yazımı (ve varsa doğrulama) sonrası ek yazım (BSC 40010=0 el sıkışması). */
+  finalize?: { name: string; value: number };
+  /** Yazımdan sonra aynı telemetriler 0'a çekilir (momentary coil darbesi). */
+  pulse?: boolean;
 }
 
 /**

@@ -181,6 +181,12 @@ export interface NovaBankState {
   rackV?: number[];
   /** Raf başına akım (A). */
   rackI?: number[];
+  /** BSC durumu (30036) — 3 = Normal. */
+  bscState?: number;
+  /** Çevrimiçi raf sayısı (30038). */
+  online?: number;
+  /** BSC şarj/deşarj durumu (bitfield 4-5): 1=Charge, 2=Discharge, 3=Idle, 0=None (UC-13). */
+  chargeStatus?: number;
   dcb: NovaSwitchPos;
 }
 
@@ -190,6 +196,30 @@ export interface NovaPcsState {
   pMW: number;
   igbtC: number;
   limited: boolean;
+  /** Grid line voltage AB (V) — PCS. */
+  vac?: number;
+  /** Grid frequency (Hz). */
+  freq?: number;
+  /** DC current (A). */
+  idc?: number;
+  /** DC/DC-side voltage (V). */
+  dcVoltage?: number;
+  /** AC/DC breaker positions. */
+  acCb?: NovaSwitchPos;
+  dcCb?: NovaSwitchPos;
+  /** Emergency stop active. */
+  estop?: boolean;
+  /** Allowable charge / discharge power (kW). */
+  chgLimitKw?: number;
+  disLimitKw?: number;
+  /** Active power setpoint (kW, signed). */
+  setpointKw?: number;
+  /** Grid reactive power (kVar). */
+  reactiveKvar?: number;
+  /** Power factor. */
+  pf?: number;
+  /** Fault status words (hex values). */
+  faultWords?: number[];
 }
 
 export interface NovaRmuState {
@@ -204,12 +234,92 @@ export interface NovaUnitStatus {
   sev: "alarm" | "warn" | "maint" | "cold" | "info" | null;
 }
 
+/** HVAC kompresör/heater modu (UC-4 Devices › HVAC). */
+export type NovaHvacMode = "off" | "cool" | "heat" | "fan" | "fault" | "standby";
+
+/** Tek HVAC ünitesi durumu (MC90 — container HVAC-1..8 telemetrisi). */
+export interface NovaHvacState {
+  id: number;
+  /** Ekipman açık mı (standby dışı). */
+  on: boolean;
+  mode: NovaHvacMode;
+  comp: boolean;
+  heater: boolean;
+  supplyT: number;
+  returnT: number;
+  outsideT?: number;
+  condenserT?: number;
+  evaporatorT?: number;
+  inFanRpm?: number;
+  outFanRpm?: number;
+  acV?: number;
+  rh?: number;
+  runH?: number;
+  compH?: number;
+  alarms: string[];
+}
+
+/** AUX enerji analizörü (PM5340-1 — container LV feeder). */
+export interface NovaAuxState {
+  kW: number;
+  kvar: number;
+  v: number;
+  iA: number;
+  hz: number;
+  pf: number;
+  kwhDelivered?: number;
+  kwhReceived?: number;
+}
+
+/** FSS paneli (Sigma XT + VIGI-DT1); CONTROL-PANEL-IO kuru kontak + FSS-1 detay. */
+export interface NovaFssState {
+  status: "normal" | "fire" | "fault" | "disabled" | "test";
+  systemOk: boolean;
+  fault: boolean;
+  discharged: boolean;
+  secondStage: boolean;
+  mode: "auto" | "manual";
+  released: boolean;
+  imminent: boolean;
+  countdown?: number;
+  ventsOpen: boolean;
+  disablements: { dE: boolean; dt: boolean; dc: boolean; dP: boolean; dA: boolean; db: boolean };
+  zones: Array<{ id: number; name: string; state: string }>;
+  detectors: Array<{
+    id: number;
+    lel: number;
+    voc: number;
+    rh: number;
+    t: number;
+    alarm: boolean;
+    fault: boolean;
+  }>;
+}
+
+/** DC ölçüm (DC-METER-1). */
+export interface NovaDcState {
+  voltage: number;
+  current: number;
+  powerKw: number;
+  alarm: boolean;
+}
+
 export interface NovaUnitState {
   n: number;
   rmu: NovaRmuState;
   status?: NovaUnitStatus;
   banks: NovaBankState[];
   pcs: NovaPcsState[];
+  /** HVAC üniteleri (UC-4). */
+  hvac?: NovaHvacState[];
+  /** AUX enerji analizörü (UC-4). */
+  aux?: NovaAuxState;
+  /** FSS panel durumu (UC-4). */
+  fss?: NovaFssState;
+  /** İzolasyon direnci (MΩ, IMD-1). */
+  imdMOhm?: number;
+  /** DC ölçüm (DC-METER-1). */
+  dc?: NovaDcState;
 }
 
 export interface NovaStationState {
@@ -228,27 +338,52 @@ export interface NovaMimicState {
   poiMW: number;
   feederMW: Record<string, number>;
   units: NovaUnitState[];
+  /** Ortam sıcaklığı (°C) — HVAC-1 `Outside Temp` (yoksa undefined). */
+  ambient?: number;
 }
 
-/** Üniteleri elektriksel sıraya dizip fider metadata'sı ekler (saf). */
+/** Tek istasyon sütununda (tek fider görünümü) en fazla ünite — gdems referansı. */
+export const MIMIC_COLUMN_MAX = 5;
+
+/**
+ * Üniteleri elektriksel sıraya dizip fider metadata'sı ekler (saf).
+ *
+ * Tek fiderli (istasyon) topolojide `MIMIC_COLUMN_MAX`'tan fazla ünite varsa
+ * iki sütuna bölünür: ilk yarı fider tarafında (L/R), kalan karşı tarafta
+ * (2 yanlı yerleşim — gdems `5 + 4` gibi). İkinci sütunun ilk ünitesi
+ * `wrap: true` alır (`nova-mimic` sütunlar arası bağlantıyı bununla çizer).
+ */
 export function listNovaUnits(
   topo: NovaTopology,
-): Array<{ n: number; feeder: string; side: "L" | "R"; row: number; last: boolean }> {
+): Array<{
+  n: number;
+  feeder: string;
+  side: "L" | "R";
+  row: number;
+  last: boolean;
+  wrap?: boolean;
+}> {
   const out: Array<{
     n: number;
     feeder: string;
     side: "L" | "R";
     row: number;
     last: boolean;
+    wrap?: boolean;
   }> = [];
+  const single = Object.keys(topo.feeders).length === 1;
   for (const [f, fd] of Object.entries(topo.feeders)) {
-    fd.units.forEach((n, row) =>
+    const wrap = single && fd.units.length > MIMIC_COLUMN_MAX;
+    const per = wrap ? Math.ceil(fd.units.length / 2) : fd.units.length;
+    const other: "L" | "R" = fd.side === "L" ? "R" : "L";
+    fd.units.forEach((n, i) =>
       out.push({
         n,
         feeder: f,
-        side: fd.side,
-        row,
-        last: row === fd.units.length - 1,
+        side: wrap && i >= per ? other : fd.side,
+        row: wrap ? i % per : i,
+        last: i === fd.units.length - 1,
+        ...(wrap && i === per ? { wrap: true } : {}),
       }),
     );
   }

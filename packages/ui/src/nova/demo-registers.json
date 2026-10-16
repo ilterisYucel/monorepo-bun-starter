@@ -1,0 +1,3214 @@
+{
+  "bsc": {
+    "device": {
+      "id": "bsc",
+      "vendor": "LGES",
+      "model": "Flex BSC · JF1 rack",
+      "protocol": "Modbus TCP",
+      "port": 502,
+      "unitId": 1,
+      "doc": "20250730_Flex_BSC_Modbusmap_JF1_Rev_AF"
+    },
+    "registers": [
+      {
+        "id": "bsc.swVersion",
+        "name": "BSC S/W Version",
+        "addr": 30000,
+        "fc": 4,
+        "type": "uint32",
+        "prio": "nameplate"
+      },
+      {
+        "id": "bsc.totalRacks",
+        "name": "No. of total racks",
+        "addr": 30005,
+        "fc": 4,
+        "type": "uint16",
+        "unit": "ea",
+        "prio": "nameplate"
+      },
+      {
+        "id": "bsc.requestAck",
+        "name": "Request Acknowledge",
+        "addr": 30030,
+        "fc": 4,
+        "type": "uint16",
+        "enum": {
+          "0": "None",
+          "1": "In Progress",
+          "2": "Done",
+          "5": "BMS Not Connected",
+          "6": "BMS Already Connected",
+          "7": "Under BSC Initializing",
+          "8": "All Contactors Already Opened",
+          "9": "BSC Already Online",
+          "10": "Current Flows",
+          "11": "BSC Manual mode",
+          "12": "BSC Emergency mode",
+          "13": "BSC Normal Power Saving mode",
+          "14": "BSC Normal mode",
+          "15": "BSC Warning or Fault",
+          "16": "Under Contactor control",
+          "17": "Over Voltage (or SOC) Deviation",
+          "18": "Within Cooldown Time",
+          "19": "Target Rack Not Exist",
+          "48": "Invalid Request",
+          "49": "Invalid Argument"
+        },
+        "prio": "essential",
+        "note": "Read back after every 40010 command"
+      },
+      {
+        "id": "bsc.lastAccepted",
+        "name": "Last Accepted Request",
+        "addr": 30031,
+        "fc": 4,
+        "type": "uint16",
+        "enum": {
+          "0": "None",
+          "1": "Emergency",
+          "2": "Start",
+          "3": "Stop",
+          "4": "Open All Contactors",
+          "5": "Close Contactors",
+          "6": "Enter Manual Mode",
+          "7": "Exit Manual Mode",
+          "9": "Event Clear",
+          "10": "Reset"
+        },
+        "prio": "essential"
+      },
+      {
+        "id": "bsc.heartbeat",
+        "name": "BSC Heartbeat",
+        "addr": 30035,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "essential",
+        "note": "Must change every 1 s – stale = communication loss (FL-07)"
+      },
+      {
+        "id": "bsc.state",
+        "name": "BSC State",
+        "addr": 30036,
+        "fc": 4,
+        "type": "uint16",
+        "enum": {
+          "0": "None",
+          "1": "Not Initialized",
+          "2": "Initializing",
+          "3": "Normal",
+          "4": "NPS (Normal Power Saving)",
+          "5": "Manual",
+          "6": "Emergency"
+        },
+        "prio": "essential",
+        "note": "Normal (3) required for charge/discharge"
+      },
+      {
+        "id": "bsc.info",
+        "name": "BSC Information",
+        "addr": 30037,
+        "fc": 4,
+        "type": "bit16",
+        "prio": "essential",
+        "bits": {
+          "0": "BSC Alarm",
+          "1": "BSC Warning",
+          "2": "BSC Fault",
+          "10": "PreVPC applied",
+          "11": "VPC applied",
+          "12": "SPC applied (SOC power limit)",
+          "13": "TPC applied (temperature power limit)",
+          "4-5": "Charge status (01 chg / 10 dis / 00 idle)"
+        }
+      },
+      {
+        "id": "bsc.onlineRacks",
+        "name": "No. of online racks",
+        "addr": 30038,
+        "fc": 4,
+        "type": "uint16",
+        "unit": "ea",
+        "prio": "essential",
+        "note": "0 = contactors open"
+      },
+      {
+        "id": "bsc.diag1",
+        "name": "Diagnosis: Controller LOC / Under SOC / Over SOC / Over Discharge Power",
+        "addr": 30043,
+        "fc": 4,
+        "type": "bit16",
+        "prio": "essential",
+        "diags": [
+          {
+            "name": "Controller ↔ BSC LOC",
+            "bits": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "name": "Under SOC",
+            "bits": [
+              6,
+              7,
+              8
+            ]
+          },
+          {
+            "name": "Over SOC",
+            "bits": [
+              9,
+              10,
+              11
+            ]
+          },
+          {
+            "name": "Over Discharge Power",
+            "bits": [
+              12,
+              13,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bsc.diag2",
+        "name": "Diagnosis: Over Charge Power",
+        "addr": 30044,
+        "fc": 4,
+        "type": "bit16",
+        "prio": "essential",
+        "diags": [
+          {
+            "name": "Over Charge Power",
+            "bits": [
+              0,
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bsc.diag3",
+        "name": "Diagnosis: System Logging Failure",
+        "addr": 30045,
+        "fc": 4,
+        "type": "bit16",
+        "prio": "essential",
+        "diags": [
+          {
+            "name": "SLF (System Logging Failure)",
+            "bits": [
+              6,
+              7,
+              8
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bsc.diag5",
+        "name": "Diagnosis: MFRD / Over Offline Rack",
+        "addr": 30047,
+        "fc": 4,
+        "type": "bit16",
+        "prio": "essential",
+        "diags": [
+          {
+            "name": "MFRD",
+            "bits": [
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "name": "Over Offline Rack",
+            "bits": [
+              9,
+              10,
+              11
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bsc.diag6",
+        "name": "Diagnosis: RBMS SW Version Mismatch",
+        "addr": 30048,
+        "fc": 4,
+        "type": "bit16",
+        "prio": "essential",
+        "diags": [
+          {
+            "name": "RBMS SW Version Mismatch",
+            "bits": [
+              0,
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bsc.soc",
+        "name": "BSC SOC (online racks)",
+        "addr": 30055,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "essential"
+      },
+      {
+        "id": "bsc.soh",
+        "name": "BSC SOH (online racks)",
+        "addr": 30056,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "essential"
+      },
+      {
+        "id": "bsc.vAnticipated",
+        "name": "Anticipated DC Voltage (no online rack)",
+        "addr": 30057,
+        "fc": 4,
+        "type": "uint32",
+        "scale": 0.0001,
+        "unit": "V",
+        "prio": "essential",
+        "note": "Valid only with all contactors open – use for PCS pre-charge check"
+      },
+      {
+        "id": "bsc.vdc",
+        "name": "BSC DC Voltage (online racks)",
+        "addr": 30059,
+        "fc": 4,
+        "type": "uint32",
+        "scale": 0.0001,
+        "unit": "V",
+        "prio": "essential"
+      },
+      {
+        "id": "bsc.idc",
+        "name": "BSC DC Current",
+        "addr": 30061,
+        "fc": 4,
+        "type": "sint32",
+        "scale": 0.001,
+        "unit": "A",
+        "prio": "essential"
+      },
+      {
+        "id": "bsc.chgLimit",
+        "name": "BSC DC Charge Power Limit",
+        "addr": 30063,
+        "fc": 4,
+        "type": "uint32",
+        "scale": 0.001,
+        "unit": "kW",
+        "prio": "essential",
+        "note": "PMS caps PCS charge setpoint to this (must be met within 5 s)"
+      },
+      {
+        "id": "bsc.disLimit",
+        "name": "BSC DC Discharge Power Limit",
+        "addr": 30065,
+        "fc": 4,
+        "type": "uint32",
+        "scale": 0.001,
+        "unit": "kW",
+        "prio": "essential",
+        "note": "PMS caps PCS discharge setpoint to this (must be met within 5 s)"
+      },
+      {
+        "id": "bsc.socMax",
+        "name": "Max SOC (online racks)",
+        "addr": 30100,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.socAvg",
+        "name": "Average SOC (online racks)",
+        "addr": 30101,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.socMin",
+        "name": "Min SOC (online racks)",
+        "addr": 30102,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.recalRacks",
+        "name": "No. of recalibration racks",
+        "addr": 30107,
+        "fc": 4,
+        "type": "uint16",
+        "unit": "ea",
+        "prio": "summary",
+        "note": "> 0 raises a calibration request (FL-04)"
+      },
+      {
+        "id": "bsc.sohMax",
+        "name": "Max SOH",
+        "addr": 30109,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.sohAvg",
+        "name": "Average SOH",
+        "addr": 30110,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.sohMin",
+        "name": "Min SOH",
+        "addr": 30111,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.01,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellSumVmax",
+        "name": "Max Cell Sum Voltage",
+        "addr": 30118,
+        "fc": 4,
+        "type": "uint32",
+        "scale": 0.0001,
+        "unit": "V",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellSumVmin",
+        "name": "Min Cell Sum Voltage",
+        "addr": 30122,
+        "fc": 4,
+        "type": "uint32",
+        "scale": 0.0001,
+        "unit": "V",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellVmax",
+        "name": "Max Cell Voltage",
+        "addr": 30138,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.001,
+        "unit": "V",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellVavg",
+        "name": "Average Cell Voltage",
+        "addr": 30139,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.001,
+        "unit": "V",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellVmin",
+        "name": "Min Cell Voltage",
+        "addr": 30140,
+        "fc": 4,
+        "type": "uint16",
+        "scale": 0.001,
+        "unit": "V",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellVmaxRack",
+        "name": "Rack Location of Max Cell Voltage",
+        "addr": 30141,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.cellVminRack",
+        "name": "Rack Location of Min Cell Voltage",
+        "addr": 30144,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.tMax",
+        "name": "Max Pack Temperature",
+        "addr": 30149,
+        "fc": 4,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.tAvg",
+        "name": "Average Pack Temperature",
+        "addr": 30150,
+        "fc": 4,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.tMin",
+        "name": "Min Pack Temperature",
+        "addr": 30151,
+        "fc": 4,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.tMaxRack",
+        "name": "Rack Location of Max Pack Temperature",
+        "addr": 30152,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.tMinRack",
+        "name": "Rack Location of Min Pack Temperature",
+        "addr": 30155,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary"
+      },
+      {
+        "id": "bsc.ctrlHeartbeat",
+        "name": "Controller Heartbeat",
+        "addr": 40000,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "prio": "command",
+        "note": "Write every 1 s (0…255 cycling recommended)"
+      },
+      {
+        "id": "bsc.cmd",
+        "name": "Command Request",
+        "addr": 40010,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "enum": {
+          "0": "None",
+          "1": "Emergency",
+          "2": "Start",
+          "3": "Stop",
+          "4": "Open All Contactors",
+          "5": "Close Contactors",
+          "6": "Enter Manual Mode",
+          "7": "Exit Manual Mode",
+          "9": "Event Clear",
+          "10": "Reset"
+        },
+        "prio": "command",
+        "note": "Write, read 30030 until Done, then write 0x0000"
+      },
+      {
+        "id": "bsc.manualRackSel",
+        "name": "Selected Rack Flags in Manual Mode (racks 1–16)",
+        "addr": 40011,
+        "fc": 16,
+        "type": "bit16",
+        "access": "W",
+        "prio": "command"
+      },
+      {
+        "id": "bsc.disableRacks",
+        "name": "Rack Flags to be disabled (racks 1–16)",
+        "addr": 40020,
+        "fc": 16,
+        "type": "bit16",
+        "access": "W",
+        "prio": "command",
+        "note": "Applied only at Start"
+      }
+    ],
+    "rack": {
+      "base": 30170,
+      "stride": 150,
+      "registers": [
+        {
+          "id": "rack.state",
+          "name": "Rack State",
+          "offset": 50,
+          "type": "uint16",
+          "enum": {
+            "0": "Initialization",
+            "1": "ID Set",
+            "2": "ID Set Complete",
+            "3": "BMIC Init",
+            "4": "Pack SOH Read Fail",
+            "5": "BMIC Wake Fail",
+            "7": "No Configuration",
+            "8": "Initial Diag",
+            "9": "Normal",
+            "10": "Normal Power Saving",
+            "11": "Protective Power Saving",
+            "12": "Manual",
+            "13": "Emergency"
+          }
+        },
+        {
+          "id": "rack.statusFlags",
+          "name": "Rack Status Flags",
+          "offset": 51,
+          "type": "bit16",
+          "bits": {
+            "0": "Cell balancing",
+            "1": "Warning",
+            "2": "Fault",
+            "7": "DC line closed",
+            "8": "Ready to connect",
+            "9": "Charge power de-rating",
+            "3-4": "Chg/Dis status"
+          }
+        },
+        {
+          "id": "rack.packCount",
+          "name": "Pack Count",
+          "offset": 23,
+          "type": "uint16",
+          "unit": "ea",
+          "note": "17 packs per rack"
+        },
+        {
+          "id": "rack.componentSt",
+          "name": "Component Status (PC/MC+/MC−/CB, pack fans, BPU fan)",
+          "offset": 52,
+          "type": "bit16",
+          "note": "b1–0 PC · b3–2 MC(+) · b5–4 MC(−) · b7–6 CB · b9–8/b11–10 pack fans · b13–12 BPU fan (00 no use, 10 open/idle, 11 closed/running)"
+        },
+        {
+          "id": "rack.componentFb",
+          "name": "Component Feedback (MC+/MC−/CB/fans/fuse)",
+          "offset": 53,
+          "type": "bit16"
+        },
+        {
+          "id": "rack.heartbeat",
+          "name": "Heart Beat (from RBMS)",
+          "offset": 54,
+          "type": "uint16"
+        },
+        {
+          "id": "rack.liveUnits",
+          "name": "Live Unit Count (awake PBMS)",
+          "offset": 55,
+          "type": "uint16",
+          "unit": "ea"
+        },
+        {
+          "id": "rack.balTime",
+          "name": "Remaining Balancing Time",
+          "offset": 56,
+          "type": "uint32",
+          "unit": "s"
+        },
+        {
+          "id": "rack.soc",
+          "name": "Rack SOC",
+          "offset": 58,
+          "type": "uint16",
+          "scale": 0.01,
+          "unit": "%"
+        },
+        {
+          "id": "rack.soh",
+          "name": "Rack SOH",
+          "offset": 59,
+          "type": "uint16",
+          "scale": 0.01,
+          "unit": "%"
+        },
+        {
+          "id": "rack.chgLimit",
+          "name": "Rack Charge Power Limit",
+          "offset": 60,
+          "type": "uint32",
+          "scale": 0.001,
+          "unit": "kW"
+        },
+        {
+          "id": "rack.disLimit",
+          "name": "Rack Discharge Power Limit",
+          "offset": 62,
+          "type": "uint32",
+          "scale": 0.001,
+          "unit": "kW"
+        },
+        {
+          "id": "rack.v",
+          "name": "Rack Cell Sum Voltage",
+          "offset": 64,
+          "type": "uint32",
+          "scale": 0.0001,
+          "unit": "V"
+        },
+        {
+          "id": "rack.i",
+          "name": "Rack Current",
+          "offset": 66,
+          "type": "sint32",
+          "scale": 0.001,
+          "unit": "A"
+        },
+        {
+          "id": "rack.diagVoltage",
+          "name": "Diag: Rack/Pack Deviation, Under/Over Voltage",
+          "offset": 68,
+          "type": "bit16"
+        },
+        {
+          "id": "rack.diagTemp",
+          "name": "Diag: Under/Over Temperature, Over Discharge Current",
+          "offset": 70,
+          "type": "bit16",
+          "note": "b8–b11 Over Temperature (Alarm/Warning/Fault1/Fault2)"
+        },
+        {
+          "id": "rack.cellVmax",
+          "name": "Rack Max Cell Voltage",
+          "offset": 84,
+          "type": "uint16",
+          "scale": 0.0001,
+          "unit": "V"
+        },
+        {
+          "id": "rack.cellVmin",
+          "name": "Rack Min Cell Voltage",
+          "offset": 85,
+          "type": "uint16",
+          "scale": 0.0001,
+          "unit": "V"
+        },
+        {
+          "id": "rack.cellVavg",
+          "name": "Rack Avg Cell Voltage",
+          "offset": 86,
+          "type": "uint16",
+          "scale": 0.0001,
+          "unit": "V"
+        },
+        {
+          "id": "rack.cellVmaxLoc",
+          "name": "Max Cell Location (pack / cell)",
+          "offset": 87,
+          "type": "uint16",
+          "note": "b15–b8 pack ID · b7–b0 cell ID"
+        },
+        {
+          "id": "rack.cellVminLoc",
+          "name": "Min Cell Location (pack / cell)",
+          "offset": 88,
+          "type": "uint16",
+          "note": "b15–b8 pack ID · b7–b0 cell ID"
+        },
+        {
+          "id": "rack.tMax",
+          "name": "Rack Max Pack Temperature",
+          "offset": 89,
+          "type": "sint16",
+          "scale": 0.1,
+          "unit": "°C"
+        },
+        {
+          "id": "rack.tMin",
+          "name": "Rack Min Pack Temperature",
+          "offset": 90,
+          "type": "sint16",
+          "scale": 0.1,
+          "unit": "°C"
+        },
+        {
+          "id": "rack.tAvg",
+          "name": "Rack Avg Pack Temperature",
+          "offset": 91,
+          "type": "sint16",
+          "scale": 0.1,
+          "unit": "°C"
+        },
+        {
+          "id": "rack.tMaxLoc",
+          "name": "Max Temperature Location (pack / sensor)",
+          "offset": 92,
+          "type": "uint16"
+        },
+        {
+          "id": "rack.tMinLoc",
+          "name": "Min Temperature Location (pack / sensor)",
+          "offset": 93,
+          "type": "uint16"
+        },
+        {
+          "id": "rack.dTrack",
+          "name": "Max Difference of Temperature in Rack",
+          "offset": 94,
+          "type": "uint16",
+          "scale": 0.1,
+          "unit": "°C"
+        },
+        {
+          "id": "rack.dTpack",
+          "name": "Max Difference of Temperature in Pack",
+          "offset": 95,
+          "type": "uint16",
+          "scale": 0.1,
+          "unit": "°C"
+        },
+        {
+          "id": "rack.mcOpenCount",
+          "name": "MC Open Count",
+          "offset": 100,
+          "type": "uint16"
+        },
+        {
+          "id": "rack.calInfo",
+          "name": "Calibration Information",
+          "offset": 101,
+          "type": "uint16",
+          "note": "b15–b8 recalibration count"
+        }
+      ]
+    },
+    "commands": {
+      "NONE": 0,
+      "EMERGENCY": 1,
+      "START": 2,
+      "STOP": 3,
+      "OPEN_ALL_CONTACTORS": 4,
+      "CLOSE_CONTACTORS": 5,
+      "ENTER_MANUAL": 6,
+      "EXIT_MANUAL": 7,
+      "EVENT_CLEAR": 9,
+      "RESET": 10
+    },
+    "pollPlan": [
+      {
+        "fc": 4,
+        "from": 30030,
+        "count": 40,
+        "every": "1 s",
+        "what": "Request ack + Essential (30030–30069)"
+      },
+      {
+        "fc": 4,
+        "from": 30100,
+        "count": 56,
+        "every": "1 s",
+        "what": "Summary (30100–30155)"
+      },
+      {
+        "fc": 2,
+        "from": 1,
+        "count": "6N",
+        "every": "1 s",
+        "what": "Rack flags"
+      },
+      {
+        "fc": 4,
+        "from": "rack(N)+50",
+        "count": 52,
+        "every": "5 s",
+        "what": "Rack summary per rack (round-robin)"
+      },
+      {
+        "fc": 6,
+        "from": 40000,
+        "count": 1,
+        "every": "1 s",
+        "what": "Controller heartbeat (write)"
+      }
+    ]
+  },
+  "pcs": {
+    "device": {
+      "id": "pcs",
+      "vendor": "Wattox",
+      "model": "MPCS-1725-S",
+      "protocol": "Modbus TCP",
+      "port": 502,
+      "unitId": 1,
+      "doc": "Wattox MPCS Series 1725kW to 3.5MW PCS Modbus Communication Protocol V1.0"
+    },
+    "registers": [
+      {
+        "id": "pcs.ratedPower",
+        "name": "Rated power",
+        "addr": 12040,
+        "type": "U16",
+        "unit": "kW",
+        "prio": "nameplate",
+        "param": "A09"
+      },
+      {
+        "id": "pcs.ratedVoltage",
+        "name": "Rated voltage",
+        "addr": 12041,
+        "type": "U16",
+        "unit": "V",
+        "prio": "nameplate",
+        "param": "A10"
+      },
+      {
+        "id": "pcs.maxChgP",
+        "name": "Maximum charging power (K01)",
+        "addr": 291,
+        "type": "S16",
+        "unit": "kW",
+        "prio": "nameplate",
+        "param": "A12"
+      },
+      {
+        "id": "pcs.maxDisP",
+        "name": "Maximum discharging power (K02)",
+        "addr": 292,
+        "type": "U16",
+        "unit": "kW",
+        "prio": "nameplate",
+        "param": "A13"
+      },
+      {
+        "id": "pcs.qMin",
+        "name": "Reactive power lower limit (K03)",
+        "addr": 293,
+        "type": "S16",
+        "unit": "kVar",
+        "prio": "nameplate",
+        "param": "A15"
+      },
+      {
+        "id": "pcs.qMax",
+        "name": "Reactive power upper limit (K04)",
+        "addr": 294,
+        "type": "U16",
+        "unit": "kVar",
+        "prio": "nameplate",
+        "param": "A14"
+      },
+      {
+        "id": "pcs.allowDisP",
+        "name": "Current max allowable discharging power",
+        "addr": 12078,
+        "type": "U16",
+        "unit": "kW",
+        "prio": "essential",
+        "param": "A22"
+      },
+      {
+        "id": "pcs.allowChgP",
+        "name": "Current max allowable charging power",
+        "addr": 12079,
+        "type": "U16",
+        "unit": "kW",
+        "prio": "essential",
+        "param": "A23"
+      },
+      {
+        "id": "pcs.opStatus",
+        "name": "PCS integrated operation status",
+        "addr": 12157,
+        "type": "U16",
+        "enum": {
+          "0": "Stop",
+          "1": "Standby",
+          "2": "Grid-connected charging",
+          "3": "Grid-connected discharging",
+          "4": "Grid-connected zero power",
+          "5": "Off-grid operation",
+          "6": "Fault"
+        },
+        "prio": "essential",
+        "param": "A26"
+      },
+      {
+        "id": "pcs.opBits",
+        "name": "PCS operation status – bit mode",
+        "addr": 12122,
+        "type": "U16",
+        "prio": "essential",
+        "param": "A27",
+        "bits": {
+          "0": "Stop",
+          "1": "Standby",
+          "2": "Charging",
+          "3": "Discharging",
+          "4": "Zero power",
+          "5": "Off-grid",
+          "6": "Fault",
+          "7": "Alarm"
+        }
+      },
+      {
+        "id": "pcs.fault",
+        "name": "PCS fault status",
+        "addr": 12099,
+        "type": "U16",
+        "enum": {
+          "0": "Normal",
+          "1": "Fault"
+        },
+        "prio": "essential",
+        "param": "A28"
+      },
+      {
+        "id": "pcs.alarm",
+        "name": "PCS alarm status",
+        "addr": 12101,
+        "type": "U16",
+        "enum": {
+          "0": "Normal",
+          "1": "Alarm"
+        },
+        "prio": "essential",
+        "param": "A29"
+      },
+      {
+        "id": "pcs.derating",
+        "name": "Derated operation",
+        "addr": 12121,
+        "type": "U16",
+        "prio": "essential",
+        "param": "A52",
+        "bits": {
+          "0": "Ambient temperature",
+          "1": "Coolant inlet temperature",
+          "2": "Fan",
+          "3": "Reactor temperature",
+          "4": "Master/slave"
+        }
+      },
+      {
+        "id": "pcs.acCB",
+        "name": "AC circuit breaker status",
+        "addr": 12123,
+        "type": "U16",
+        "enum": {
+          "0": "Closed",
+          "1": "Open"
+        },
+        "prio": "essential",
+        "param": "A53"
+      },
+      {
+        "id": "pcs.acPrechg",
+        "name": "AC pre-charge contactor status",
+        "addr": 12125,
+        "type": "U16",
+        "enum": {
+          "0": "Closed",
+          "1": "Open"
+        },
+        "prio": "summary",
+        "param": "A54"
+      },
+      {
+        "id": "pcs.dcCB1",
+        "name": "DC circuit breaker status (module 1)",
+        "addr": 12124,
+        "type": "U16",
+        "enum": {
+          "0": "Closed",
+          "1": "Open"
+        },
+        "prio": "essential",
+        "param": "A55"
+      },
+      {
+        "id": "pcs.dcCB2",
+        "name": "DC circuit breaker status (module 2)",
+        "addr": 12164,
+        "type": "U16",
+        "enum": {
+          "0": "Closed",
+          "1": "Open"
+        },
+        "prio": "essential",
+        "param": "A57"
+      },
+      {
+        "id": "pcs.estop",
+        "name": "Emergency stop button status",
+        "addr": 12128,
+        "type": "U16",
+        "prio": "essential",
+        "param": "A59",
+        "bits": {
+          "0": "Local E-stop",
+          "1": "Remote E-stop",
+          "2": "BMS E-stop"
+        }
+      },
+      {
+        "id": "pcs.vdc",
+        "name": "Battery voltage",
+        "addr": 12104,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "V",
+        "prio": "essential",
+        "param": "A33"
+      },
+      {
+        "id": "pcs.idc",
+        "name": "DC current",
+        "addr": 12105,
+        "type": "S16",
+        "unit": "A",
+        "prio": "essential",
+        "param": "A34"
+      },
+      {
+        "id": "pcs.pdc",
+        "name": "DC power",
+        "addr": 12109,
+        "type": "S16",
+        "unit": "kW",
+        "prio": "summary",
+        "param": "A36"
+      },
+      {
+        "id": "pcs.p",
+        "name": "Active power on the grid side",
+        "addr": 12158,
+        "type": "S16",
+        "unit": "kW",
+        "prio": "essential",
+        "param": "A40"
+      },
+      {
+        "id": "pcs.q",
+        "name": "Reactive power on the grid side",
+        "addr": 12159,
+        "type": "S16",
+        "unit": "kVar",
+        "prio": "essential",
+        "param": "A41"
+      },
+      {
+        "id": "pcs.s",
+        "name": "Total output apparent power",
+        "addr": 12114,
+        "type": "S16",
+        "unit": "kVA",
+        "prio": "summary",
+        "param": "A42"
+      },
+      {
+        "id": "pcs.pf",
+        "name": "Output power factor",
+        "addr": 12115,
+        "type": "S16",
+        "scale": 0.001,
+        "prio": "summary",
+        "param": "A37"
+      },
+      {
+        "id": "pcs.freq",
+        "name": "Grid frequency",
+        "addr": 12110,
+        "type": "U16",
+        "scale": 0.01,
+        "unit": "Hz",
+        "prio": "essential",
+        "param": "A35"
+      },
+      {
+        "id": "pcs.vab",
+        "name": "Grid line voltage AB",
+        "addr": 12111,
+        "type": "U16",
+        "scale": 0.1,
+        "unit": "V",
+        "prio": "essential",
+        "param": "A43"
+      },
+      {
+        "id": "pcs.vbc",
+        "name": "Grid line voltage BC",
+        "addr": 12112,
+        "type": "U16",
+        "scale": 0.1,
+        "unit": "V",
+        "prio": "summary",
+        "param": "A44"
+      },
+      {
+        "id": "pcs.vca",
+        "name": "Grid line voltage CA",
+        "addr": 12113,
+        "type": "U16",
+        "scale": 0.1,
+        "unit": "V",
+        "prio": "summary",
+        "param": "A45"
+      },
+      {
+        "id": "pcs.ia",
+        "name": "Phase A current",
+        "addr": 12106,
+        "type": "U16",
+        "unit": "A",
+        "prio": "summary",
+        "param": "A46"
+      },
+      {
+        "id": "pcs.ib",
+        "name": "Phase B current",
+        "addr": 12107,
+        "type": "U16",
+        "unit": "A",
+        "prio": "summary",
+        "param": "A47"
+      },
+      {
+        "id": "pcs.ic",
+        "name": "Phase C current",
+        "addr": 12108,
+        "type": "U16",
+        "unit": "A",
+        "prio": "summary",
+        "param": "A48"
+      },
+      {
+        "id": "pcs.igbtA1",
+        "name": "A-phase IGBT temperature (module 1)",
+        "addr": 12116,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "essential",
+        "param": "A60"
+      },
+      {
+        "id": "pcs.igbtB1",
+        "name": "B-phase IGBT temperature (module 1)",
+        "addr": 12117,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary",
+        "param": "A61"
+      },
+      {
+        "id": "pcs.igbtC1",
+        "name": "C-phase IGBT temperature (module 1)",
+        "addr": 12118,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary",
+        "param": "A62"
+      },
+      {
+        "id": "pcs.igbtA2",
+        "name": "A-phase IGBT temperature (module 2)",
+        "addr": 12160,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary",
+        "param": "A63"
+      },
+      {
+        "id": "pcs.reactorT1",
+        "name": "Reactor temperature (module 1)",
+        "addr": 12120,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary",
+        "param": "A66"
+      },
+      {
+        "id": "pcs.cavityT",
+        "name": "Internal cavity temperature",
+        "addr": 8231,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary",
+        "param": "A69"
+      },
+      {
+        "id": "pcs.ambientT",
+        "name": "Ambient temperature",
+        "addr": 12119,
+        "type": "S16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary",
+        "param": "A71"
+      },
+      {
+        "id": "pcs.insulation1",
+        "name": "Grounding insulation impedance (module 1)",
+        "addr": 12138,
+        "type": "U16",
+        "unit": "kΩ",
+        "prio": "summary",
+        "param": "A74"
+      },
+      {
+        "id": "pcs.dailyDis",
+        "name": "Daily discharge amount",
+        "addr": 12136,
+        "type": "U16",
+        "unit": "kWh",
+        "prio": "summary",
+        "param": "A85"
+      },
+      {
+        "id": "pcs.dailyChg",
+        "name": "Daily charge amount",
+        "addr": 12137,
+        "type": "U16",
+        "unit": "kWh",
+        "prio": "summary",
+        "param": "A86"
+      },
+      {
+        "id": "pcs.bmsStatus",
+        "name": "BMS status word",
+        "addr": 769,
+        "type": "U16",
+        "prio": "essential",
+        "param": "B02",
+        "bits": {
+          "0": "BMS no communication",
+          "1": "BMS fault",
+          "4": "BMS charge prohibited",
+          "5": "BMS discharge prohibited",
+          "6": "Initializing",
+          "7": "BMS alarm",
+          "8": "Charge & discharge prohibited"
+        }
+      },
+      {
+        "id": "pcs.bmsSoc",
+        "name": "Battery pack SOC (from BMS)",
+        "addr": 772,
+        "type": "U16",
+        "scale": 0.1,
+        "unit": "%",
+        "prio": "summary",
+        "param": "B05"
+      },
+      {
+        "id": "pcs.bmsMaxChgP",
+        "name": "Max charging power of battery pack",
+        "addr": 776,
+        "type": "U16",
+        "scale": 0.1,
+        "unit": "kW",
+        "prio": "summary",
+        "param": "B09"
+      },
+      {
+        "id": "pcs.bmsMaxDisP",
+        "name": "Max discharging power of battery pack",
+        "addr": 777,
+        "type": "U16",
+        "scale": 0.1,
+        "unit": "kW",
+        "prio": "summary",
+        "param": "B10"
+      },
+      {
+        "id": "pcs.emsTimeout",
+        "name": "EMS communication timeout interval",
+        "addr": 2568,
+        "type": "U16",
+        "unit": "s",
+        "prio": "nameplate",
+        "param": "C08"
+      },
+      {
+        "id": "pcs.ethTimeout",
+        "name": "Ethernet card communication timeout status",
+        "addr": 2571,
+        "type": "U16",
+        "prio": "summary",
+        "param": "C11"
+      },
+      {
+        "id": "pcs.faultWord1",
+        "name": "Fault status word 1",
+        "addr": 12213,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D01"
+      },
+      {
+        "id": "pcs.faultWord2",
+        "name": "Fault status word 2",
+        "addr": 12214,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D02"
+      },
+      {
+        "id": "pcs.faultWord3",
+        "name": "Fault status word 3",
+        "addr": 12215,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D03"
+      },
+      {
+        "id": "pcs.faultWord4",
+        "name": "Fault status word 4",
+        "addr": 12216,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D04"
+      },
+      {
+        "id": "pcs.faultWord5",
+        "name": "Fault status word 5",
+        "addr": 12217,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D05"
+      },
+      {
+        "id": "pcs.faultWord6",
+        "name": "Fault status word 6",
+        "addr": 12218,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D06"
+      },
+      {
+        "id": "pcs.faultWord7",
+        "name": "Fault status word 7",
+        "addr": 12219,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D07"
+      },
+      {
+        "id": "pcs.faultWord8",
+        "name": "Fault status word 8",
+        "addr": 12220,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D08"
+      },
+      {
+        "id": "pcs.faultWord9",
+        "name": "Fault status word 9",
+        "addr": 12221,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D09"
+      },
+      {
+        "id": "pcs.faultWord10",
+        "name": "Fault status word 10",
+        "addr": 12222,
+        "type": "U16",
+        "prio": "essential",
+        "param": "D10"
+      },
+      {
+        "id": "pcs.alarmWord1",
+        "name": "Alarm status word 1",
+        "addr": 12223,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D11"
+      },
+      {
+        "id": "pcs.alarmWord2",
+        "name": "Alarm status word 2",
+        "addr": 12224,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D12"
+      },
+      {
+        "id": "pcs.alarmWord3",
+        "name": "Alarm status word 3",
+        "addr": 12225,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D13"
+      },
+      {
+        "id": "pcs.alarmWord4",
+        "name": "Alarm status word 4",
+        "addr": 12226,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D14"
+      },
+      {
+        "id": "pcs.alarmWord5",
+        "name": "Alarm status word 5",
+        "addr": 12227,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D15"
+      },
+      {
+        "id": "pcs.alarmWord6",
+        "name": "Alarm status word 6",
+        "addr": 12228,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D16"
+      },
+      {
+        "id": "pcs.alarmWord7",
+        "name": "Alarm status word 7",
+        "addr": 12229,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D17"
+      },
+      {
+        "id": "pcs.alarmWord8",
+        "name": "Alarm status word 8",
+        "addr": 12230,
+        "type": "U16",
+        "prio": "summary",
+        "param": "D18"
+      },
+      {
+        "id": "pcs.cmdSource",
+        "name": "Command source (0 HMI / 1 EMS)",
+        "addr": 3584,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S01"
+      },
+      {
+        "id": "pcs.opMode",
+        "name": "PCS operation mode (0 on-grid / 1 off-grid)",
+        "addr": 3585,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S02"
+      },
+      {
+        "id": "pcs.ctrlMode",
+        "name": "On-grid control mode (0 P-Q / 1 const DC current / 2 const DC voltage)",
+        "addr": 3586,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S03"
+      },
+      {
+        "id": "pcs.qMode",
+        "name": "Reactive power mode (0 const Q / 1 const PF / 2 Q-U)",
+        "addr": 3588,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S04"
+      },
+      {
+        "id": "pcs.prefMode",
+        "name": "Preferred power mode",
+        "addr": 3590,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S05"
+      },
+      {
+        "id": "pcs.pSet",
+        "name": "Active power setting (+dis / −chg)",
+        "addr": 3609,
+        "type": "S16",
+        "unit": "kW",
+        "access": "RW",
+        "prio": "command",
+        "param": "S06"
+      },
+      {
+        "id": "pcs.qSet",
+        "name": "Reactive power setting",
+        "addr": 3610,
+        "type": "S16",
+        "unit": "kVar",
+        "access": "RW",
+        "prio": "command",
+        "param": "S07"
+      },
+      {
+        "id": "pcs.pfSet",
+        "name": "Power factor setting",
+        "addr": 3611,
+        "type": "S16",
+        "scale": 0.001,
+        "access": "RW",
+        "prio": "command",
+        "param": "S08"
+      },
+      {
+        "id": "pcs.rampSet",
+        "name": "Power change rate setting",
+        "addr": 3614,
+        "type": "U16",
+        "unit": "% Pn/s",
+        "access": "RW",
+        "prio": "command",
+        "param": "S11"
+      },
+      {
+        "id": "pcs.cmdStart",
+        "name": "Start command",
+        "addr": 3604,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S16"
+      },
+      {
+        "id": "pcs.cmdStop",
+        "name": "Stop command",
+        "addr": 3605,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S17"
+      },
+      {
+        "id": "pcs.cmdReset",
+        "name": "Fault reset",
+        "addr": 3606,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S18"
+      },
+      {
+        "id": "pcs.cmdStandby",
+        "name": "Standby command",
+        "addr": 3607,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S19"
+      },
+      {
+        "id": "pcs.zeroPowerStandby",
+        "name": "Zero power standby mode",
+        "addr": 1337,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S28"
+      },
+      {
+        "id": "pcs.timeYear",
+        "name": "Time sync YYYY",
+        "addr": 3623,
+        "type": "U16",
+        "access": "RW",
+        "prio": "command",
+        "param": "S20"
+      }
+    ],
+    "faultBits": {
+      "1": {
+        "0": "Storage battery polarity reversed",
+        "1": "Storage battery voltage too high",
+        "2": "Storage battery voltage too low",
+        "5": "BMS system fault",
+        "6": "BMS pre-charge fault",
+        "7": "BMS main contactor fault",
+        "8": "BMS insulation fault",
+        "10": "DC full-bus software overvoltage",
+        "13": "AC side hardware overcurrent",
+        "14": "AC side software overcurrent",
+        "15": "DC side hardware overcurrent"
+      },
+      "2": {
+        "0": "DC side software overcurrent",
+        "1": "IGBT Desat fault",
+        "2": "IGBT block fault",
+        "3": "IGBT over-temperature",
+        "9": "DC side pre-charge contactor fault",
+        "10": "DC side switch fault",
+        "11": "AC side pre-charge contactor fault",
+        "12": "AC side switch fault",
+        "14": "Device overload",
+        "15": "Grid AC overvoltage"
+      },
+      "3": {
+        "0": "Grid AC undervoltage",
+        "1": "Grid AC overfrequency",
+        "2": "Grid AC underfrequency",
+        "3": "Output phase loss",
+        "5": "Phase lock error",
+        "6": "Grid voltage imbalance",
+        "9": "Islanding fault",
+        "15": "Low insulation resistance"
+      },
+      "4": {
+        "1": "Internal cavity over-temperature",
+        "4": "Filter capacitor over-temperature",
+        "7": "Auxiliary transformer over-temperature",
+        "10": "High ambient temperature",
+        "13": "IGBT module A-phase over-temperature",
+        "14": "IGBT module B-phase over-temperature",
+        "15": "IGBT module C-phase over-temperature"
+      },
+      "5": {
+        "0": "IGBT temperature sampling error",
+        "2": "Reactor over-temperature",
+        "5": "Surge protection device fault",
+        "9": "Internal cavity fan fault",
+        "12": "IGBT fan fault",
+        "15": "HMI communication fault"
+      },
+      "6": {
+        "0": "BMS communication fault",
+        "5": "EMS communication fault",
+        "11": "220 V control power disconnected",
+        "13": "Residual abrupt leakage current overlimit",
+        "15": "Local emergency stop fault"
+      },
+      "7": {
+        "0": "Remote emergency stop fault",
+        "1": "BMS emergency stop fault",
+        "2": "Phase-to-PE fault",
+        "6": "Temperature too high",
+        "8": "Fuse fault",
+        "9": "Cabinet door fault",
+        "10": "Water pump locked-rotor",
+        "13": "Water cooling system hydraulic fault",
+        "15": "Fan power disconnected"
+      },
+      "8": {
+        "0": "Three-phase fan fault",
+        "7": "AC and DC voltage mismatch",
+        "8": "Grid voltage mismatch",
+        "13": "Power inconsistent between master and slave"
+      },
+      "9": {
+        "0": "FPGA side fault",
+        "2": "Fiber communication interrupted",
+        "7": "PCS interaction fault"
+      }
+    },
+    "pollPlan": [
+      {
+        "fc": 3,
+        "from": 12078,
+        "count": 2,
+        "every": "1 s",
+        "what": "Allowable charge/discharge power"
+      },
+      {
+        "fc": 3,
+        "from": 12099,
+        "count": 69,
+        "every": "1 s",
+        "what": "Status, breakers, measurements, temperatures (0x2F43–0x2F87)"
+      },
+      {
+        "fc": 3,
+        "from": 12213,
+        "count": 18,
+        "every": "1 s",
+        "what": "Fault + alarm words"
+      },
+      {
+        "fc": 3,
+        "from": 768,
+        "count": 23,
+        "every": "2 s",
+        "what": "BMS parameters"
+      },
+      {
+        "fc": 3,
+        "from": 3584,
+        "count": 43,
+        "every": "5 s",
+        "what": "Setting read-back"
+      }
+    ]
+  },
+  "hvac": {
+    "device": {
+      "id": "hvac",
+      "vendor": "MC series",
+      "model": "MC90HDNC1R-L",
+      "protocol": "Modbus RTU · RS485",
+      "baud": 9600,
+      "frame": "8N2",
+      "unitIds": "1…128",
+      "doc": "MC90HDNC1R-L (Stop bit 2) - Modbus Protocol 20241016 (A3)"
+    },
+    "registers": [
+      {
+        "id": "hvac.status",
+        "name": "Equipment working status",
+        "addr": 4096,
+        "fc": 3,
+        "type": "sint16",
+        "enum": {
+          "1": "Standby",
+          "2": "Running",
+          "3": "Fault"
+        },
+        "prio": "essential",
+        "note": "1 standby (stopped by comm./dry contact or internal fan off) · 2 running · 3 fault"
+      },
+      {
+        "id": "hvac.heater",
+        "name": "Electric heating operation status",
+        "addr": 4097,
+        "fc": 3,
+        "type": "sint16",
+        "prio": "essential",
+        "note": "0 off · 1 on"
+      },
+      {
+        "id": "hvac.inFan",
+        "name": "Indoor fan status",
+        "addr": 4098,
+        "fc": 3,
+        "type": "sint16",
+        "enum": {
+          "1": "Standby",
+          "2": "Running",
+          "3": "Fault"
+        },
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.supplyT",
+        "name": "Air supply temperature",
+        "addr": 4099,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "essential"
+      },
+      {
+        "id": "hvac.outFan",
+        "name": "Outdoor fan status",
+        "addr": 4100,
+        "fc": 3,
+        "type": "sint16",
+        "enum": {
+          "1": "Standby",
+          "2": "Running",
+          "3": "Fault"
+        },
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.returnRH",
+        "name": "Return air humidity in the cabinet",
+        "addr": 4101,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "%",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.comp",
+        "name": "Compressor status",
+        "addr": 4102,
+        "fc": 3,
+        "type": "sint16",
+        "enum": {
+          "1": "Standby",
+          "2": "Running",
+          "3": "Fault"
+        },
+        "prio": "essential"
+      },
+      {
+        "id": "hvac.returnT",
+        "name": "Return air temperature in the cabinet",
+        "addr": 4104,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "essential"
+      },
+      {
+        "id": "hvac.outsideT",
+        "name": "Outside cabinet temperature",
+        "addr": 4108,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.condT",
+        "name": "Condenser temperature",
+        "addr": 4110,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.evapT",
+        "name": "Evaporator temperature",
+        "addr": 4112,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.inFanRpm",
+        "name": "Internal fan speed",
+        "addr": 4114,
+        "fc": 3,
+        "type": "uint16",
+        "unit": "rpm",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.outFanRpm",
+        "name": "External fan speed",
+        "addr": 4116,
+        "fc": 3,
+        "type": "uint16",
+        "unit": "rpm",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.acV",
+        "name": "AC input voltage",
+        "addr": 4118,
+        "fc": 3,
+        "type": "uint16",
+        "scale": 0.1,
+        "unit": "V",
+        "prio": "summary"
+      },
+      {
+        "id": "hvac.runH",
+        "name": "Equipment runtime",
+        "addr": 4124,
+        "fc": 3,
+        "type": "uint32",
+        "unit": "h",
+        "prio": "counter"
+      },
+      {
+        "id": "hvac.compH",
+        "name": "Compressor run time",
+        "addr": 4128,
+        "fc": 3,
+        "type": "uint32",
+        "unit": "h",
+        "prio": "counter"
+      },
+      {
+        "id": "hvac.inFanH",
+        "name": "Internal fan run time",
+        "addr": 4132,
+        "fc": 3,
+        "type": "uint32",
+        "unit": "h",
+        "prio": "counter"
+      },
+      {
+        "id": "hvac.compStarts",
+        "name": "Compressor action times",
+        "addr": 4136,
+        "fc": 3,
+        "type": "uint32",
+        "prio": "counter"
+      },
+      {
+        "id": "hvac.addr",
+        "name": "Correspondence address",
+        "addr": 7,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "setting",
+        "note": "1…128"
+      },
+      {
+        "id": "hvac.tMode",
+        "name": "Temperature control mode",
+        "addr": 9,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "setting",
+        "enum": {
+          "0": "Return air average",
+          "1": "Supply air average",
+          "2": "Return air hot spot",
+          "3": "Supply air hot spot",
+          "4": "Monitoring temperature"
+        },
+        "note": "PMS sets 4 – control on the cell temperature written to 0x2000/0x2001"
+      },
+      {
+        "id": "hvac.coolSet",
+        "name": "Cooling set temperature",
+        "addr": 10,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "setting",
+        "note": "default 23.0 · 7…50 · must be above heating set"
+      },
+      {
+        "id": "hvac.hMode",
+        "name": "Humidity control mode",
+        "addr": 11,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "setting"
+      },
+      {
+        "id": "hvac.coolSens",
+        "name": "Cooling setting sensitivity",
+        "addr": 12,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "setting",
+        "note": "0.1…1.5"
+      },
+      {
+        "id": "hvac.dehumSet",
+        "name": "Dehumidification set point",
+        "addr": 13,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "%",
+        "prio": "setting"
+      },
+      {
+        "id": "hvac.hiTAlarm",
+        "name": "High temperature alarm point",
+        "addr": 14,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "setting"
+      },
+      {
+        "id": "hvac.loTAlarm",
+        "name": "Low temperature alarm point",
+        "addr": 16,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "setting"
+      },
+      {
+        "id": "hvac.heatSet",
+        "name": "Heating set temperature",
+        "addr": 28,
+        "fc": 3,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "setting",
+        "note": "default 15.0 · below cooling set"
+      },
+      {
+        "id": "hvac.heatSens",
+        "name": "Heating setting sensitivity",
+        "addr": 30,
+        "fc": 3,
+        "type": "uint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "prio": "setting"
+      },
+      {
+        "id": "hvac.cmdReset",
+        "name": "Reset (restore factory parameters)",
+        "addr": 512,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "prio": "command",
+        "note": "0x0001"
+      },
+      {
+        "id": "hvac.cmdOnOff",
+        "name": "Turn on / off remotely",
+        "addr": 514,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "prio": "command",
+        "note": "0x0001 on · 0x0002 off"
+      },
+      {
+        "id": "hvac.srvTmax",
+        "name": "Maximum server-side temperature",
+        "addr": 8192,
+        "fc": 6,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "access": "W",
+        "prio": "command",
+        "note": "PMS writes BSC max pack temperature (30149) every scan · 32767 = sensor fault"
+      },
+      {
+        "id": "hvac.srvTmin",
+        "name": "Minimum server-side temperature",
+        "addr": 8193,
+        "fc": 6,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "°C",
+        "access": "W",
+        "prio": "command",
+        "note": "PMS writes BSC min pack temperature (30151)"
+      },
+      {
+        "id": "hvac.srvRH",
+        "name": "Server humidity",
+        "addr": 8195,
+        "fc": 6,
+        "type": "sint16",
+        "scale": 0.1,
+        "unit": "%",
+        "access": "W",
+        "prio": "command"
+      },
+      {
+        "id": "hvac.forceEn",
+        "name": "Forced mode enable",
+        "addr": 8448,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "prio": "command",
+        "note": "Set 1 before any forced mode"
+      },
+      {
+        "id": "hvac.forceStby",
+        "name": "Forced standby",
+        "addr": 8451,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "prio": "command"
+      },
+      {
+        "id": "hvac.forceHeat",
+        "name": "Forced heating",
+        "addr": 8452,
+        "fc": 6,
+        "type": "uint16",
+        "access": "W",
+        "prio": "command"
+      }
+    ],
+    "alarms": [
+      {
+        "id": "hvac.alm300",
+        "name": "High temperature alarm",
+        "addr": 768,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm301",
+        "name": "Internal fan failure alarm",
+        "addr": 769,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm302",
+        "name": "External fan failure alarm",
+        "addr": 770,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm303",
+        "name": "Compressor fault alarm",
+        "addr": 771,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm304",
+        "name": "Return air temperature probe failure alarm",
+        "addr": 772,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm305",
+        "name": "System high pressure alarm",
+        "addr": 773,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm306",
+        "name": "Low temperature alarm",
+        "addr": 774,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm309",
+        "name": "AC overvoltage alarm",
+        "addr": 777,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm30a",
+        "name": "AC undervoltage alarm",
+        "addr": 778,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm30b",
+        "name": "AC power failure alarm",
+        "addr": 779,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm30c",
+        "name": "Evaporator temp. sensor failure alarm",
+        "addr": 780,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm30d",
+        "name": "Condenser temp. sensor failure alarm",
+        "addr": 781,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm30e",
+        "name": "Ambient temp. sensor failure alarm",
+        "addr": 782,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm30f",
+        "name": "Evaporator freeze alarm",
+        "addr": 783,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm310",
+        "name": "Frequent high pressure alarm",
+        "addr": 784,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm312",
+        "name": "System low pressure alarm",
+        "addr": 786,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm313",
+        "name": "Frequent low pressure alarm",
+        "addr": 787,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm31c",
+        "name": "High humidity alarm",
+        "addr": 796,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm31e",
+        "name": "Humidity sensor failure alarm",
+        "addr": 798,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm325",
+        "name": "Exhaust over-temperature alarm",
+        "addr": 805,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm326",
+        "name": "Exhaust temp. sensor fault alarm",
+        "addr": 806,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      },
+      {
+        "id": "hvac.alm327",
+        "name": "Exhaust over-temperature lockout alarm",
+        "addr": 807,
+        "fc": 3,
+        "type": "uint16",
+        "prio": "alarm"
+      }
+    ],
+    "pollPlan": [
+      {
+        "fc": 3,
+        "from": 4096,
+        "count": 42,
+        "every": "2 s",
+        "what": "Information block 0x1000–0x1029"
+      },
+      {
+        "fc": 3,
+        "from": 768,
+        "count": 40,
+        "every": "2 s",
+        "what": "Alarm block 0x300–0x327"
+      },
+      {
+        "fc": 3,
+        "from": 7,
+        "count": 24,
+        "every": "60 s",
+        "what": "Setting parameters"
+      },
+      {
+        "fc": 6,
+        "from": 8192,
+        "count": 2,
+        "every": "2 s",
+        "what": "Write max / min cell temperature (mode 4)"
+      }
+    ],
+    "powerEstimate": {
+      "coolKW": 10.2,
+      "ratedKW": 4.1,
+      "compMinKW": 0.35,
+      "inFanKW": 0.2,
+      "heaterKW": 4,
+      "controlKW": 0.03
+    }
+  },
+  "mapping": [
+    {
+      "key": "bank.soc",
+      "label": "Bank SOC",
+      "shownOn": "Site layout · KPI · Charts · Unit detail",
+      "device": "bsc",
+      "register": "bsc.soc"
+    },
+    {
+      "key": "bank.soh",
+      "label": "Bank SOH",
+      "shownOn": "Site layout · KPI · Unit detail",
+      "device": "bsc",
+      "register": "bsc.soh"
+    },
+    {
+      "key": "bank.vdc",
+      "label": "DC voltage",
+      "shownOn": "Site layout · Unit detail",
+      "device": "bsc",
+      "register": "bsc.vdc"
+    },
+    {
+      "key": "bank.idc",
+      "label": "DC current",
+      "shownOn": "Unit detail",
+      "device": "bsc",
+      "register": "bsc.idc"
+    },
+    {
+      "key": "bank.state",
+      "label": "Battery state",
+      "shownOn": "Unit detail · Operations permissives",
+      "device": "bsc",
+      "register": "bsc.state"
+    },
+    {
+      "key": "bank.online",
+      "label": "Online racks (contactors)",
+      "shownOn": "Site layout (DC breaker) · Unit detail",
+      "device": "bsc",
+      "register": "bsc.onlineRacks"
+    },
+    {
+      "key": "bank.chgLimit",
+      "label": "Charge power limit",
+      "shownOn": "Operations dispatch · Unit detail",
+      "device": "bsc",
+      "register": "bsc.chgLimit"
+    },
+    {
+      "key": "bank.disLimit",
+      "label": "Discharge power limit",
+      "shownOn": "Operations dispatch · Unit detail",
+      "device": "bsc",
+      "register": "bsc.disLimit"
+    },
+    {
+      "key": "bank.tmax",
+      "label": "Max pack temperature",
+      "shownOn": "Site layout · KPI · Charts · Faults",
+      "device": "bsc",
+      "register": "bsc.tMax"
+    },
+    {
+      "key": "bank.tmin",
+      "label": "Min pack temperature",
+      "shownOn": "KPI · Charts · Unit detail",
+      "device": "bsc",
+      "register": "bsc.tMin"
+    },
+    {
+      "key": "bank.cellVmax",
+      "label": "Max cell voltage",
+      "shownOn": "Unit detail",
+      "device": "bsc",
+      "register": "bsc.cellVmax"
+    },
+    {
+      "key": "bank.cellVmin",
+      "label": "Min cell voltage",
+      "shownOn": "Unit detail",
+      "device": "bsc",
+      "register": "bsc.cellVmin"
+    },
+    {
+      "key": "bank.recal",
+      "label": "Racks requiring recalibration",
+      "shownOn": "Operations › Calibration",
+      "device": "bsc",
+      "register": "bsc.recalRacks"
+    },
+    {
+      "key": "bank.info",
+      "label": "Alarm / warning / fault flags",
+      "shownOn": "Faults · Site layout",
+      "device": "bsc",
+      "register": "bsc.info"
+    },
+    {
+      "key": "bank.heartbeat",
+      "label": "Heartbeat (comm. health)",
+      "shownOn": "Top bar comm. status",
+      "device": "bsc",
+      "register": "bsc.heartbeat"
+    },
+    {
+      "key": "rack.tmax",
+      "label": "Rack temperature (heat strip)",
+      "shownOn": "Site layout racks · Unit detail",
+      "device": "bsc",
+      "register": "rack.tMax"
+    },
+    {
+      "key": "rack.soc",
+      "label": "Rack SOC",
+      "shownOn": "Unit detail",
+      "device": "bsc",
+      "register": "rack.soc"
+    },
+    {
+      "key": "pcs.state",
+      "label": "PCS state",
+      "shownOn": "Site layout · Unit detail",
+      "device": "pcs",
+      "register": "pcs.opStatus"
+    },
+    {
+      "key": "pcs.p",
+      "label": "Active power",
+      "shownOn": "Site layout · Unit detail · Charts",
+      "device": "pcs",
+      "register": "pcs.p"
+    },
+    {
+      "key": "pcs.q",
+      "label": "Reactive power",
+      "shownOn": "Unit detail",
+      "device": "pcs",
+      "register": "pcs.q"
+    },
+    {
+      "key": "pcs.vac",
+      "label": "AC voltage (690 V side)",
+      "shownOn": "Unit detail",
+      "device": "pcs",
+      "register": "pcs.vab"
+    },
+    {
+      "key": "pcs.freq",
+      "label": "Grid frequency",
+      "shownOn": "Unit detail",
+      "device": "pcs",
+      "register": "pcs.freq"
+    },
+    {
+      "key": "pcs.vdc",
+      "label": "PCS DC voltage",
+      "shownOn": "Unit detail",
+      "device": "pcs",
+      "register": "pcs.vdc"
+    },
+    {
+      "key": "pcs.igbt",
+      "label": "IGBT temperature",
+      "shownOn": "Site layout · Unit detail",
+      "device": "pcs",
+      "register": "pcs.igbtA1"
+    },
+    {
+      "key": "pcs.fault",
+      "label": "Fault status",
+      "shownOn": "Faults · Site layout",
+      "device": "pcs",
+      "register": "pcs.fault"
+    },
+    {
+      "key": "pcs.faultWord",
+      "label": "Fault word (decoded)",
+      "shownOn": "Faults",
+      "device": "pcs",
+      "register": "pcs.faultWord2"
+    },
+    {
+      "key": "pcs.acCB",
+      "label": "AC breaker",
+      "shownOn": "Unit detail · permissives",
+      "device": "pcs",
+      "register": "pcs.acCB"
+    },
+    {
+      "key": "pcs.dcCB",
+      "label": "DC breaker",
+      "shownOn": "Site layout (DC) · permissives",
+      "device": "pcs",
+      "register": "pcs.dcCB1"
+    },
+    {
+      "key": "pcs.estop",
+      "label": "Emergency stop",
+      "shownOn": "Faults · FL-05",
+      "device": "pcs",
+      "register": "pcs.estop"
+    },
+    {
+      "key": "pcs.allowChg",
+      "label": "Allowable charge power",
+      "shownOn": "Operations dispatch",
+      "device": "pcs",
+      "register": "pcs.allowChgP"
+    },
+    {
+      "key": "pcs.allowDis",
+      "label": "Allowable discharge power",
+      "shownOn": "Operations dispatch",
+      "device": "pcs",
+      "register": "pcs.allowDisP"
+    },
+    {
+      "key": "hvac.status",
+      "label": "HVAC working status",
+      "shownOn": "Devices › HVAC · AUX panel",
+      "device": "hvac",
+      "register": "hvac.status"
+    },
+    {
+      "key": "hvac.comp",
+      "label": "Compressor status",
+      "shownOn": "Devices › HVAC / Battery (cooling shading)",
+      "device": "hvac",
+      "register": "hvac.comp"
+    },
+    {
+      "key": "hvac.heater",
+      "label": "Electric heater status",
+      "shownOn": "Devices › HVAC",
+      "device": "hvac",
+      "register": "hvac.heater"
+    },
+    {
+      "key": "hvac.supplyT",
+      "label": "Supply air temperature",
+      "shownOn": "Devices › Battery (container model)",
+      "device": "hvac",
+      "register": "hvac.supplyT"
+    },
+    {
+      "key": "hvac.returnT",
+      "label": "Return air temperature",
+      "shownOn": "Devices › Battery (container model)",
+      "device": "hvac",
+      "register": "hvac.returnT"
+    },
+    {
+      "key": "hvac.outsideT",
+      "label": "Outside temperature",
+      "shownOn": "Devices › HVAC",
+      "device": "hvac",
+      "register": "hvac.outsideT"
+    },
+    {
+      "key": "hvac.acV",
+      "label": "AC input voltage",
+      "shownOn": "Devices › HVAC · AUX panel",
+      "device": "hvac",
+      "register": "hvac.acV"
+    },
+    {
+      "key": "cmd.pcs.source",
+      "label": "Take control (EMS)",
+      "shownOn": "FL-01 Start-up",
+      "device": "cmd-pcs",
+      "register": "pcs.cmdSource"
+    },
+    {
+      "key": "cmd.pcs.p",
+      "label": "Active power setpoint",
+      "shownOn": "FL-02 Charge/Discharge",
+      "device": "cmd-pcs",
+      "register": "pcs.pSet"
+    },
+    {
+      "key": "cmd.pcs.start",
+      "label": "Start",
+      "shownOn": "FL-02",
+      "device": "cmd-pcs",
+      "register": "pcs.cmdStart"
+    },
+    {
+      "key": "cmd.pcs.standby",
+      "label": "Standby",
+      "shownOn": "FL-03",
+      "device": "cmd-pcs",
+      "register": "pcs.cmdStandby"
+    },
+    {
+      "key": "cmd.pcs.stop",
+      "label": "Stop",
+      "shownOn": "FL-01 shut-down · FL-05 · FL-11",
+      "device": "cmd-pcs",
+      "register": "pcs.cmdStop"
+    },
+    {
+      "key": "cmd.pcs.reset",
+      "label": "Fault reset",
+      "shownOn": "Faults › Resolve (FL-06)",
+      "device": "cmd-pcs",
+      "register": "pcs.cmdReset"
+    },
+    {
+      "key": "cmd.bsc.cmd",
+      "label": "Battery command request",
+      "shownOn": "FL-01 · FL-05 · FL-11 · Faults",
+      "device": "cmd-bsc",
+      "register": "bsc.cmd"
+    },
+    {
+      "key": "cmd.hvac.tmax",
+      "label": "Server max temperature (control mode 4)",
+      "shownOn": "Background, every scan",
+      "device": "cmd-hvac",
+      "register": "hvac.srvTmax"
+    },
+    {
+      "key": "cmd.hvac.tmin",
+      "label": "Server min temperature (control mode 4)",
+      "shownOn": "Background, every scan",
+      "device": "cmd-hvac",
+      "register": "hvac.srvTmin"
+    },
+    {
+      "key": "cmd.hvac.onoff",
+      "label": "HVAC on / off",
+      "shownOn": "Devices › HVAC",
+      "device": "cmd-hvac",
+      "register": "hvac.cmdOnOff"
+    },
+    {
+      "key": "cmd.bsc.hb",
+      "label": "Controller heartbeat",
+      "shownOn": "Background, 1 s",
+      "device": "cmd-bsc",
+      "register": "bsc.ctrlHeartbeat"
+    }
+  ],
+  "devices": [
+    {
+      "id": "BSC-1A",
+      "kind": "bsc",
+      "unit": 1,
+      "bank": "A",
+      "ip": "10.10.1.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-1A",
+      "kind": "pcs",
+      "unit": 1,
+      "bank": "A",
+      "ip": "10.10.1.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-1.1",
+      "kind": "hvac",
+      "unit": 1,
+      "bank": "A",
+      "ip": "10.10.1.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-1B",
+      "kind": "bsc",
+      "unit": 1,
+      "bank": "B",
+      "ip": "10.10.1.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-1B",
+      "kind": "pcs",
+      "unit": 1,
+      "bank": "B",
+      "ip": "10.10.1.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-1.2",
+      "kind": "hvac",
+      "unit": 1,
+      "bank": "B",
+      "ip": "10.10.1.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-2A",
+      "kind": "bsc",
+      "unit": 2,
+      "bank": "A",
+      "ip": "10.10.2.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-2A",
+      "kind": "pcs",
+      "unit": 2,
+      "bank": "A",
+      "ip": "10.10.2.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-2.1",
+      "kind": "hvac",
+      "unit": 2,
+      "bank": "A",
+      "ip": "10.10.2.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-2B",
+      "kind": "bsc",
+      "unit": 2,
+      "bank": "B",
+      "ip": "10.10.2.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-2B",
+      "kind": "pcs",
+      "unit": 2,
+      "bank": "B",
+      "ip": "10.10.2.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-2.2",
+      "kind": "hvac",
+      "unit": 2,
+      "bank": "B",
+      "ip": "10.10.2.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-3A",
+      "kind": "bsc",
+      "unit": 3,
+      "bank": "A",
+      "ip": "10.10.3.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-3A",
+      "kind": "pcs",
+      "unit": 3,
+      "bank": "A",
+      "ip": "10.10.3.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-3.1",
+      "kind": "hvac",
+      "unit": 3,
+      "bank": "A",
+      "ip": "10.10.3.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-3B",
+      "kind": "bsc",
+      "unit": 3,
+      "bank": "B",
+      "ip": "10.10.3.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-3B",
+      "kind": "pcs",
+      "unit": 3,
+      "bank": "B",
+      "ip": "10.10.3.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-3.2",
+      "kind": "hvac",
+      "unit": 3,
+      "bank": "B",
+      "ip": "10.10.3.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-4A",
+      "kind": "bsc",
+      "unit": 4,
+      "bank": "A",
+      "ip": "10.10.4.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-4A",
+      "kind": "pcs",
+      "unit": 4,
+      "bank": "A",
+      "ip": "10.10.4.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-4.1",
+      "kind": "hvac",
+      "unit": 4,
+      "bank": "A",
+      "ip": "10.10.4.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-4B",
+      "kind": "bsc",
+      "unit": 4,
+      "bank": "B",
+      "ip": "10.10.4.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-4B",
+      "kind": "pcs",
+      "unit": 4,
+      "bank": "B",
+      "ip": "10.10.4.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-4.2",
+      "kind": "hvac",
+      "unit": 4,
+      "bank": "B",
+      "ip": "10.10.4.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-5A",
+      "kind": "bsc",
+      "unit": 5,
+      "bank": "A",
+      "ip": "10.10.5.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-5A",
+      "kind": "pcs",
+      "unit": 5,
+      "bank": "A",
+      "ip": "10.10.5.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-5.1",
+      "kind": "hvac",
+      "unit": 5,
+      "bank": "A",
+      "ip": "10.10.5.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-5B",
+      "kind": "bsc",
+      "unit": 5,
+      "bank": "B",
+      "ip": "10.10.5.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-5B",
+      "kind": "pcs",
+      "unit": 5,
+      "bank": "B",
+      "ip": "10.10.5.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-5.2",
+      "kind": "hvac",
+      "unit": 5,
+      "bank": "B",
+      "ip": "10.10.5.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-6A",
+      "kind": "bsc",
+      "unit": 6,
+      "bank": "A",
+      "ip": "10.10.6.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-6A",
+      "kind": "pcs",
+      "unit": 6,
+      "bank": "A",
+      "ip": "10.10.6.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-6.1",
+      "kind": "hvac",
+      "unit": 6,
+      "bank": "A",
+      "ip": "10.10.6.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-6B",
+      "kind": "bsc",
+      "unit": 6,
+      "bank": "B",
+      "ip": "10.10.6.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-6B",
+      "kind": "pcs",
+      "unit": 6,
+      "bank": "B",
+      "ip": "10.10.6.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-6.2",
+      "kind": "hvac",
+      "unit": 6,
+      "bank": "B",
+      "ip": "10.10.6.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-7A",
+      "kind": "bsc",
+      "unit": 7,
+      "bank": "A",
+      "ip": "10.10.7.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-7A",
+      "kind": "pcs",
+      "unit": 7,
+      "bank": "A",
+      "ip": "10.10.7.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-7.1",
+      "kind": "hvac",
+      "unit": 7,
+      "bank": "A",
+      "ip": "10.10.7.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-7B",
+      "kind": "bsc",
+      "unit": 7,
+      "bank": "B",
+      "ip": "10.10.7.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-7B",
+      "kind": "pcs",
+      "unit": 7,
+      "bank": "B",
+      "ip": "10.10.7.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-7.2",
+      "kind": "hvac",
+      "unit": 7,
+      "bank": "B",
+      "ip": "10.10.7.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-8A",
+      "kind": "bsc",
+      "unit": 8,
+      "bank": "A",
+      "ip": "10.10.8.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-8A",
+      "kind": "pcs",
+      "unit": 8,
+      "bank": "A",
+      "ip": "10.10.8.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-8.1",
+      "kind": "hvac",
+      "unit": 8,
+      "bank": "A",
+      "ip": "10.10.8.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-8B",
+      "kind": "bsc",
+      "unit": 8,
+      "bank": "B",
+      "ip": "10.10.8.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-8B",
+      "kind": "pcs",
+      "unit": 8,
+      "bank": "B",
+      "ip": "10.10.8.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-8.2",
+      "kind": "hvac",
+      "unit": 8,
+      "bank": "B",
+      "ip": "10.10.8.30",
+      "port": 502,
+      "unitId": 2
+    },
+    {
+      "id": "BSC-9A",
+      "kind": "bsc",
+      "unit": 9,
+      "bank": "A",
+      "ip": "10.10.9.11",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-9A",
+      "kind": "pcs",
+      "unit": 9,
+      "bank": "A",
+      "ip": "10.10.9.21",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-9.1",
+      "kind": "hvac",
+      "unit": 9,
+      "bank": "A",
+      "ip": "10.10.9.30",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "BSC-9B",
+      "kind": "bsc",
+      "unit": 9,
+      "bank": "B",
+      "ip": "10.10.9.12",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "PCS-9B",
+      "kind": "pcs",
+      "unit": 9,
+      "bank": "B",
+      "ip": "10.10.9.22",
+      "port": 502,
+      "unitId": 1
+    },
+    {
+      "id": "HVAC-9.2",
+      "kind": "hvac",
+      "unit": 9,
+      "bank": "B",
+      "ip": "10.10.9.30",
+      "port": 502,
+      "unitId": 2
+    }
+  ]
+}

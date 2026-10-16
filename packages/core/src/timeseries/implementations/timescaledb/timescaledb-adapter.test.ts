@@ -76,24 +76,79 @@ describe("TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)", () => {
     expect(insert).toContain("(name, value, unit, description, quality, tags, timestamp)");
   });
 
-  it("boş girdi → havuz işlemi YAPILMAZ", async () => {
-    const { pool, poolQuery, clientQuery } = makeWritePool();
+  it("K-21: getLatestPerName DISTINCT ON (name) + pencere parametresi (latest modu)", async () => {
+    const poolQuery = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          name: "BSC SOC",
+          value: 74,
+          unit: "%",
+          description: "",
+          timestamp: new Date("2026-10-15T07:00:00.000Z"),
+          tags: { canonical: "soc" },
+        },
+      ],
+    });
+    const { pool } = makeWritePool({ poolQuery });
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    const rows = await adapter.getLatestPerName("BSC-1", {
+      windowMs: 30000,
+      names: ["BSC SOC"],
+    });
+
+    const sel = poolQuery.mock.calls
+      .map((c) => ({ sql: String(c[0]), params: c[1] as unknown[] }))
+      .find((c) => c.sql.includes("DISTINCT ON (name)"));
+    expect(sel).toBeDefined();
+    expect(sel!.sql).toContain("device_BSC_1");
+    expect(sel!.sql).toContain("name = ANY($2)");
+    expect(sel!.params[0]).toBeInstanceOf(Date);
+    expect(sel!.params[1]).toEqual(["BSC SOC"]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.value).toBe(74);
+  });
+
+  it("boş girdi → havuz işlemi YAPILMAZ", async () => {    const { pool, poolQuery, clientQuery } = makeWritePool();
     const adapter = new TimescaleDBAdapter(makeConfig(), pool);
     await adapter.write([]);
     expect(poolQuery).not.toHaveBeenCalled();
     expect(clientQuery).not.toHaveBeenCalled();
   });
 
-  it("INSERT hatası → ROLLBACK; write hata YUTAR (allSettled — kademeli bozulma, pipeline durmaz)", async () => {
+  it("tablo hazırlığı başarısız cihazın batch'i ATLANIR (INSERT denenmez, throw yok)", async () => {
+    const poolQuery = vi.fn().mockImplementation((sql: string) => {
+      if (String(sql).includes("device_HVAC_1")) {
+        return Promise.reject(new Error("ddl boom"));
+      }
+      return Promise.resolve({ rows: [] });
+    });
+    const { pool, clientQuery } = makeWritePool({ poolQuery });
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await expect(
+      adapter.write([point("HVAC-1", "T", 21), point("BSC-1", "SOC", 80)]),
+    ).resolves.toBeUndefined();
+
+    const inserts = clientQuery.mock.calls
+      .map((c) => String(c[0]))
+      .filter((s) => s.includes("INSERT INTO"));
+    expect(inserts.some((s) => s.includes("device_HVAC_1"))).toBe(false);
+    expect(inserts.some((s) => s.includes("device_BSC_1"))).toBe(true);
+  });
+
+  it("INSERT hatası → ROLLBACK; write REJECT eder (retry ön koşulu — K10)", async () => {
     const clientQuery = vi.fn()
       .mockResolvedValueOnce({ rows: [] }) // BEGIN
       .mockRejectedValueOnce(new Error("insert boom")); // writeBatch
     const { pool, clientQuery: cq } = makeWritePool({ clientQuery });
     const adapter = new TimescaleDBAdapter(makeConfig(), pool);
 
-    // Mevcut davranış: cihaz bazlı yazma hataları allSettled ile YUTULUR
-    // (warn logu basılır) — telemetri pipeline'ı durmaz.
-    await expect(adapter.write([point("BSC-1", "SOC", 80)])).resolves.toBeUndefined();
+    // K10: commit hatası YUTULMAZ — reject eder, böylece BullMQ retry + onFailed
+    // gerçekten tetiklenir.
+    await expect(adapter.write([point("BSC-1", "SOC", 80)])).rejects.toThrow(
+      "insert boom",
+    );
     const sqls = cq.mock.calls.map((c) => String(c[0]));
     expect(sqls).toContain("ROLLBACK");
   });
@@ -109,6 +164,25 @@ describe("TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)", () => {
       String(c[0]).includes("CREATE TABLE"),
     );
     expect(ddlCalls).toHaveLength(1);
+  });
+
+  it("ensureTableExists → retention politikasını da kurar (her tier; tablo başına bir kez)", async () => {
+    const { pool, poolQuery } = makeWritePool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await adapter.write([point("PCS-1", "SOC", 80)]);
+    const retention = poolQuery.mock.calls
+      .map((c) => String(c[0]))
+      .find((s) => s.includes("add_retention_policy"));
+    expect(retention).toContain("device_PCS_1");
+    expect(retention).toContain("90 days");
+
+    // tablo önbelleği: ikinci yazımda yeniden kurulmaz
+    await adapter.write([point("PCS-1", "SOC", 81)]);
+    const retentionCalls = poolQuery.mock.calls.filter((c) =>
+      String(c[0]).includes("add_retention_policy"),
+    );
+    expect(retentionCalls).toHaveLength(1);
   });
 });
 
@@ -149,5 +223,209 @@ describe("TimescaleDBAdapter — bucket origin hizalaması (Grafana kuralı)", (
     expect(downsampleSql.sql).toContain(
       `'${FROM.toISOString()}'::timestamptz`,
     );
+  });
+});
+
+describe("TimescaleDBAdapter — getDownsampledData uzun-format (Faz-1, K2/K6)", () => {
+  const bucket = new Date("2026-08-13T10:00:00.000Z");
+
+  function smartPool() {
+    const queries: { sql: string; params: unknown[] }[] = [];
+    const pool = {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
+        queries.push({ sql, params: params ?? [] });
+        if (sql.includes("DISTINCT ON")) {
+          return {
+            rows: [
+              { name: "Fault", tag_value: "1", unit: "-", tags: { rack_id: "1", device_id: "BSC-1" } },
+              { name: "Fault", tag_value: "2", unit: "-", tags: { rack_id: "2", device_id: "BSC-1" } },
+              { name: "SOC", tag_value: null, unit: "%", tags: { device_id: "BSC-1" } },
+            ],
+          };
+        }
+        // veri sorgusu
+        return {
+          rows: [
+            { bucket, name: "Fault", tag_value: "1", avg: "1" },
+            { bucket, name: "Fault", tag_value: "2", avg: "0" },
+            { bucket, name: "SOC", tag_value: null, avg: "80.123456" },
+          ],
+        };
+      }),
+    };
+    return { pool: pool as never, queries };
+  }
+
+  it("aynı isim farklı rack → ayrı seriler; meta'dan unit/tags yapıştırılır", async () => {
+    const { pool, queries } = smartPool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    const out = await adapter.getDownsampledData({
+      deviceId: "BSC-1",
+      names: ["Fault", "SOC"],
+      from: FROM,
+      to: TO,
+      points: 120,
+      tag: "rack_id",
+    });
+
+    expect(out).toHaveLength(3);
+    const fault1 = out.find((t) => t.name === "Fault" && t.tags?.rack_id === "1")!;
+    const fault2 = out.find((t) => t.name === "Fault" && t.tags?.rack_id === "2")!;
+    expect(fault1.value).toBe(1);
+    expect(fault2.value).toBe(0);
+    const soc = out.find((t) => t.name === "SOC")!;
+    expect(soc.unit).toBe("%");
+    expect(soc.value).toBe(80.1235); // 4 hane yuvarlama
+    expect(soc.description).toContain("Downsampled");
+
+    const dataSql = queries.find((q) => q.sql.includes("AS avg"))!;
+    expect(dataSql.sql).toContain("GROUP BY bucket, name, tags->>'rack_id'");
+    expect(dataSql.sql).not.toContain("GROUP BY bucket, tags");
+  });
+
+  it("rack filtresi parametreli sorgu üretir", async () => {
+    const { pool, queries } = smartPool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await adapter.getDownsampledData({
+      deviceId: "BSC-1",
+      names: ["Fault"],
+      from: FROM,
+      to: TO,
+      points: 120,
+      tags: { rack_id: "2" },
+    });
+
+    const dataSql = queries.find((q) => q.sql.includes("AS avg"))!;
+    expect(dataSql.sql).toContain("tags->>'rack_id' = $");
+    expect(dataSql.params).toContain("2");
+  });
+
+  it("tag verilmezse name-only gruplama (jenerik)", async () => {
+    const { pool, queries } = smartPool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await adapter.getDownsampledData({
+      deviceId: "BSC-1",
+      names: ["SOC"],
+      from: FROM,
+      to: TO,
+      points: 120,
+    });
+
+    const dataSql = queries.find((q) => q.sql.includes("AS avg"))!;
+    expect(dataSql.sql).toContain("GROUP BY bucket, name\n");
+    expect(dataSql.sql).not.toContain("tag_value");
+  });
+
+  it("geçersiz tag anahtarı yok sayılır (name-only; enjeksiyon yok)", async () => {
+    const { pool, queries } = smartPool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+
+    await adapter.getDownsampledData({
+      deviceId: "BSC-1",
+      names: ["SOC"],
+      from: FROM,
+      to: TO,
+      points: 120,
+      tag: "rack_id;DROP TABLE x",
+    });
+
+    const dataSql = queries.find((q) => q.sql.includes("AS avg"))!;
+    expect(dataSql.sql).not.toContain("DROP");
+    expect(dataSql.sql).not.toContain("tag_value");
+  });
+});
+
+describe("TimescaleDBAdapter — gapfill/locf (K7)", () => {
+  const b = (min: number) => new Date(`2026-08-13T10:0${min}:00.000Z`);
+
+  function gapPool() {
+    const queries: { sql: string; params: unknown[] }[] = [];
+    const pool = {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
+        queries.push({ sql, params: params ?? [] });
+        if (sql.includes("DISTINCT ON")) {
+          return { rows: [{ name: "SOC", rack_id: null, unit: "%", tags: {} }] };
+        }
+        return {
+          rows: [
+            { bucket: b(0), name: "SOC", rack_id: null, avg: "10", n: "1" },
+            { bucket: b(1), name: "SOC", rack_id: null, avg: "10", n: "0" }, // 60s ≤ carry
+            { bucket: b(2), name: "SOC", rack_id: null, avg: "10", n: "0" }, // 120s > carry → düşer
+            { bucket: b(3), name: "SOC", rack_id: null, avg: "11", n: "1" },
+            { bucket: b(4), name: "SOC", rack_id: null, avg: "11", n: "0" }, // 60s → kalır
+          ],
+        };
+      }),
+    };
+    return { pool: pool as never, queries };
+  }
+
+  it("locfCarryMs=0 → gapfill YOK (mevcut davranış)", async () => {
+    const { pool, queries } = capturePool();
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+    await adapter.getDownsampledData({ deviceId: "BSC-1", names: ["SOC"], from: FROM, to: TO, points: 120 });
+    const dataSql = queries.find((q) => q.sql.includes("AS avg"))!;
+    expect(dataSql.sql).not.toContain("time_bucket_gapfill");
+    expect(dataSql.sql).not.toContain("locf(");
+  });
+
+  it("locfCarryMs>0 → gapfill+locf; taşıma sınırı dışı boşluk düşer", async () => {
+    const { pool, queries } = gapPool();
+    const adapter = new TimescaleDBAdapter({ ...makeConfig(), locfCarryMs: 60_000 }, pool);
+
+    const out = await adapter.getDownsampledData({
+      deviceId: "BSC-1", names: ["SOC"], from: FROM, to: TO, points: 60,
+    });
+
+    const dataSql = queries.find((q) => q.sql.includes("AS avg"))!;
+    expect(dataSql.sql).toContain("time_bucket_gapfill");
+    expect(dataSql.sql).toContain("locf(AVG(value))");
+    // b(2) taşıma sınırı dışında düşer → 4 satır kalır
+    expect(out.map((t) => (t.timestamp as Date).getUTCMinutes())).toEqual([0, 1, 3, 4]);
+  });
+});
+
+describe("TimescaleDBAdapter — chunk & çok-cihaz hata (Faz D)", () => {
+  const localPoint = (deviceId: string, name: string, value: number) => ({
+    deviceId, name, value, unit: "%", description: "d", timestamp: "2026-08-13T10:00:00.000Z",
+  });
+  function localPool(clientQuery: ReturnType<typeof vi.fn>) {
+    const client = { query: clientQuery, release: vi.fn() };
+    return { pool: { query: vi.fn().mockResolvedValue({ rows: [] }), connect: vi.fn().mockResolvedValue(client) } as never, clientQuery };
+  }
+
+  it(">200 satır → birden fazla INSERT (batch dilimi)", async () => {
+    const clientQuery = vi.fn().mockResolvedValue({ rows: [] });
+    const { pool } = localPool(clientQuery);
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool);
+    const points = Array.from({ length: 250 }, (_, i) => localPoint("BSC-1", `T${i}`, i));
+    await adapter.write(points);
+    const inserts = clientQuery.mock.calls
+      .map((c) => String(c[0]))
+      .filter((s) => s.includes("INSERT INTO"));
+    expect(inserts).toHaveLength(2);
+  });
+
+  it("çok-cihaz: bir cihazın yazımı hata → write REJECT eder (allSettled)", async () => {
+    const client1 = { query: vi.fn().mockResolvedValue({ rows: [] }), release: vi.fn() };
+    const client2 = {
+      query: vi.fn()
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockRejectedValueOnce(new Error("device2 boom")),
+      release: vi.fn(),
+    };
+    const pool = {
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+      connect: vi.fn()
+        .mockResolvedValueOnce(client1)
+        .mockResolvedValueOnce(client2),
+    };
+    const adapter = new TimescaleDBAdapter(makeConfig(), pool as never);
+    await expect(
+      adapter.write([localPoint("BSC-1", "SOC", 80), localPoint("BSC-2", "SOC", 70)]),
+    ).rejects.toThrow("device2 boom");
   });
 });

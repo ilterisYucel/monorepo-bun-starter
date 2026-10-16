@@ -19,6 +19,7 @@ import { DcMeterSimulator } from "./dc-meter";
 import { EnergyAnalyzerSimulator } from "./energy-analyzer";
 import { ControlPanelIoSimulator } from "./control-panel-io";
 import { ImdSimulator } from "./imd";
+import { FssSimulator } from "./fss";
 import { WattoxPcsSimulator } from "./wattox-pcs";
 import { DemoMvStationSimulator } from "./demo-mv-station";
 import { BscPcsConnectorAdapter, parseBscPcsMapping, TcpSourceReader } from "./bsc-pcs-connector";
@@ -29,6 +30,12 @@ export interface SelfHostedSimulator {
   start(): Promise<void>;
   stop(): Promise<void>;
   port(): number;
+  /**
+   * Test/kurulum senaryosu enjeksiyonu (komut). Desteğ yoksa tanımsızdır.
+   * Destekleyen simülatörler senaryoyu uygulayıp `true`, bilinmeyen senaryoda
+   * `false` döner. Yalnızca dev/debug akışlarında çağrılır — prod kullanımı yok.
+   */
+  inject?(scenario: string): boolean;
 }
 
 /** Çalışan bir simülatör sunucusu. */
@@ -43,6 +50,10 @@ export interface SimulatorBuildContext {
   readonly deviceId: string;
   readonly network: SimulatorNetworkConfig;
   readonly rackCount: number;
+  /** BSC başlangıç SOC'u (%) — `details.initialSocPercent` (yoksa sim 50). */
+  readonly initialSocPercent?: number;
+  /** Demo hız çarpanı — `details.simSpeedMultiplier` (yoksa 1 = gerçek zaman). */
+  readonly simSpeedMultiplier?: number;
   readonly registerMap: string | undefined;
   readonly bmsPort: number | undefined;
 }
@@ -75,6 +86,7 @@ export class SimulatorHost {
   private readonly configs: readonly DeviceConfigFile[];
   private readonly options: SimulatorHostOptions;
   private readonly index = new Map<string, number>();
+  private readonly instances = new Map<string, SelfHostedSimulator>();
   private running: RunningSimulator[] = [];
 
   constructor(configs: readonly DeviceConfigFile[], options: SimulatorHostOptions = {}) {
@@ -90,7 +102,15 @@ export class SimulatorHost {
             JSON.parse(readFileSync(ctx.registerMap, "utf-8")) as Record<string, unknown>[],
           ).registers
         : [];
-      return new BSCSimulator({ rackCount: ctx.rackCount, registers, network: ctx.network });
+      return new BSCSimulator({
+        rackCount: ctx.rackCount,
+        ...(ctx.initialSocPercent !== undefined ? { initialSocPercent: ctx.initialSocPercent } : {}),
+        ...(ctx.simSpeedMultiplier !== undefined
+          ? { simSpeedMultiplier: ctx.simSpeedMultiplier }
+          : {}),
+        registers,
+        network: ctx.network,
+      });
     });
     this.builders.set("hvac", (ctx) => new HvacSimulator({ network: ctx.network }));
     this.builders.set("cb", (ctx) => new CbSimulator({ network: ctx.network }));
@@ -105,6 +125,7 @@ export class SimulatorHost {
       (ctx) => new ControlPanelIoSimulator({ network: ctx.network }),
     );
     this.builders.set("imd", (ctx) => new ImdSimulator({ network: ctx.network }));
+    this.builders.set("fss", (ctx) => new FssSimulator({ network: ctx.network }));
     this.builders.set(
       "demo-mv-station",
       (ctx) => new DemoMvStationSimulator({ network: ctx.network }),
@@ -129,11 +150,13 @@ export class SimulatorHost {
         await simulator.start();
         const port = simulator.port();
         this.index.set(item.deviceId, port);
+        this.instances.set(item.deviceId, simulator);
         running.push({ deviceId: item.deviceId, port, stop: () => simulator.stop() });
       }
     } catch (error) {
       await Promise.allSettled(running.map((entry) => entry.stop()));
       this.index.clear();
+      this.instances.clear();
       throw error;
     }
     this.running = running;
@@ -145,11 +168,22 @@ export class SimulatorHost {
     await Promise.allSettled(this.running.map((entry) => entry.stop()));
     this.running = [];
     this.index.clear();
+    this.instances.clear();
   }
 
   /** Sorgu — çalışan simülatörün portu. */
   portFor(deviceId: string): number | undefined {
     return this.index.get(deviceId);
+  }
+
+  /**
+   * Komut — cihazın simülatörüne senaryo enjekte eder (dev/debug).
+   * Cihaz yok veya enjeksiyon desteklenmiyorsa `false` döner.
+   */
+  inject(deviceId: string, scenario: string): boolean {
+    const simulator = this.instances.get(deviceId);
+    if (simulator === undefined || simulator.inject === undefined) return false;
+    return simulator.inject(scenario);
   }
 
   private plan(): PlannedSimulator[] {
@@ -177,13 +211,19 @@ export class SimulatorHost {
         throw new Error(`[SimulatorHost] Bilinmeyen simulator tipi: ${simType} (${config.deviceId})`);
       }
 
-      const network = readNetwork(config, config.deviceId);
+      const network = this.bindNetwork(config, config.deviceId);
       claim(network.port, config.deviceId);
 
       const context: SimulatorBuildContext = {
         deviceId: config.deviceId,
         network,
         rackCount: detailNumber(config, "rackCount") ?? 8,
+        ...(detailNumber(config, "initialSocPercent") !== undefined
+          ? { initialSocPercent: detailNumber(config, "initialSocPercent") }
+          : {}),
+        ...(detailNumber(config, "simSpeedMultiplier") !== undefined
+          ? { simSpeedMultiplier: detailNumber(config, "simSpeedMultiplier") }
+          : {}),
         registerMap: this.resolveMap(transport.registerMap),
         bmsPort: transport.bmsPort,
       };
@@ -236,6 +276,18 @@ export class SimulatorHost {
     if (path === undefined) return undefined;
     if (isAbsolute(path)) return path;
     return resolve(this.options.configDir ?? ".", path);
+  }
+
+  /**
+   * Simülatör sunucusunun BAĞLANMA (bind) adresi. Test/kapsayıcı ortamında
+   * `SIMULATOR_BIND_HOST` (ör. 0.0.0.0) ile ezilebilir; varsayılan config
+   * `connection.host` (127.0.0.1). Device-service istemcisi config host'una
+   * (loopback) bağlanmaya devam eder.
+   */
+  private bindNetwork(config: DeviceConfigFile, deviceId: string): SimulatorNetworkConfig {
+    const network = readNetwork(config, deviceId);
+    const override = process.env.SIMULATOR_BIND_HOST;
+    return override !== undefined && override.length > 0 ? { ...network, host: override } : network;
   }
 }
 

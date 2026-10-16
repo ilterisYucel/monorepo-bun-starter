@@ -65,6 +65,8 @@ export class TelemetryQueryResponder {
         points: query.points,
         ...(query.deviceIds !== undefined ? { deviceIds: query.deviceIds } : {}),
         ...(query.names !== undefined ? { names: query.names } : {}),
+        ...(query.tag !== undefined ? { tag: query.tag } : {}),
+        ...(query.mode !== undefined ? { mode: query.mode } : {}),
       });
       const frame: TelemetryResultMessage = {
         type: "telemetry-result",

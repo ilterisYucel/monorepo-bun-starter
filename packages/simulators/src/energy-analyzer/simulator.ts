@@ -104,6 +104,7 @@ export class EnergyAnalyzerSimulator {
   private state: EnergyAnalyzerState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
+  private injectedLineVoltage: number | undefined;
 
   constructor(config: EnergyAnalyzerSimulatorConfig = {}) {
     this.state = defaultState();
@@ -132,6 +133,25 @@ export class EnergyAnalyzerSimulator {
     return this.server?.port() ?? this.network?.port ?? 0;
   }
 
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut).
+   * - `aux_loss`: hat-nötr gerilimi 150.0 V'a sabitler (FL-02 tetikleyicisi)
+   * - `nominal`: enjeksiyon kaldırılır (doğal dalgalanma)
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "aux_loss":
+        this.injectedLineVoltage = 150;
+        return true;
+      case "nominal":
+        this.injectedLineVoltage = undefined;
+        return true;
+      default:
+        return false;
+    }
+  }
+
   tick(elapsedSeconds: number): void {
     const s = this.state;
     const secs = Math.min(elapsedSeconds, 5);
@@ -139,6 +159,13 @@ export class EnergyAnalyzerSimulator {
     updatePhase(s.phaseA, 120, secs);
     updatePhase(s.phaseB, 115, secs);
     updatePhase(s.phaseC, 125, secs);
+
+    if (this.injectedLineVoltage !== undefined) {
+      for (const phase of [s.phaseA, s.phaseB, s.phaseC]) {
+        phase.voltageLN = this.injectedLineVoltage;
+        phase.voltageLL = this.injectedLineVoltage * Math.sqrt(3);
+      }
+    }
 
     const totalI = s.phaseA.current + s.phaseB.current + s.phaseC.current;
     s.neutralCurrent += (Math.abs(s.phaseA.current - s.phaseB.current + s.phaseC.current) * 0.15 - s.neutralCurrent) * 0.2 * secs;

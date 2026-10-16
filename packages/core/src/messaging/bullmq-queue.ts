@@ -20,6 +20,12 @@ export interface QueueWorkerOptions {
   onCompleted?: (data: unknown) => void;
   /** Job başarısız olduğunda çağrılır. */
   onFailed?: (data: unknown, error: Error) => void;
+  /**
+   * Stall kontrol aralığı (ms). Varsayılan 30000. İşlemin kendi zaman aşımından
+   * büyük verilmezse asılı bir iş stall'a düşüp çift işlenir ve
+   * `moveToFinished/moveToDelayed` "Missing key" hatasıyla iş kaybolur.
+   */
+  stalledInterval?: number;
 }
 
 /** executeAndWait sonucu — worker dönüş nesnesi spread ile taşınır. */
@@ -167,6 +173,9 @@ export class BullMQQueue {
       {
         connection: this.deps.connection,
         concurrency: options?.concurrency ?? 5,
+        ...(options?.stalledInterval !== undefined
+          ? { stalledInterval: options.stalledInterval }
+          : undefined),
       },
     );
 

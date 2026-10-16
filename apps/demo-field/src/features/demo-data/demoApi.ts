@@ -16,6 +16,8 @@ import type {
 export interface FieldContainer {
   containerId: string;
   layout?: { x: number; y: number; z: number };
+  /** BESS MV istasyon etiketi (UC-13). */
+  station?: string | null;
   connectionStatus: "idle" | "connected" | "stale" | "error";
   lastSeenAt?: string;
   latestTelemetry: TelemetryData[];
@@ -25,19 +27,22 @@ export interface ExecuteBody {
   params?: Record<string, unknown>;
   deviceIds?: string[];
   timer?: { durationSeconds: number };
+  /** UC-13: uzak adım hedefi — istasyonun konteyner id'si (K-17). */
+  systems?: string[];
 }
 
 export const demoApi = {
-  containers: async (fieldId: string): Promise<FieldContainer[]> => {
+  containers: async (fieldId: string, signal?: AbortSignal): Promise<FieldContainer[]> => {
     const { data } = await apiClient.get<FieldContainer[]>(
       `/fields/${fieldId}/containers`,
+      { ...(signal ? { signal } : {}) },
     );
     return data;
   },
 
   downsampled: async (
     fieldId: string,
-    opts: { from: string; to: string; points: number; containerIds?: string[] },
+    opts: { from: string; to: string; points: number; containerIds?: string[]; names?: string[] },
   ): Promise<Record<string, TelemetryData[]>> => {
     const { data } = await apiClient.get<Record<string, TelemetryData[]>>(
       `/fields/${fieldId}/telemetry/downsampled`,
@@ -47,6 +52,7 @@ export const demoApi = {
           to: opts.to,
           points: opts.points,
           ...(opts.containerIds ? { containerIds: opts.containerIds.join(",") } : {}),
+          ...(opts.names ? { names: opts.names.join(",") } : {}),
         },
       },
     );
@@ -112,6 +118,7 @@ export const demoApi = {
       {
         params: body.params ?? {},
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
+        ...(body.systems !== undefined && body.systems.length > 0 ? { systems: body.systems } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
       },
     );
@@ -127,6 +134,7 @@ export const demoApi = {
       {
         params: body.params ?? {},
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
+        ...(body.systems !== undefined && body.systems.length > 0 ? { systems: body.systems } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
       },
     );
@@ -149,8 +157,46 @@ export const demoApi = {
   ): Promise<{ success?: boolean; reason?: string }> => {
     const { data } = await apiClient.post<{ success?: boolean; reason?: string }>(
       "/commands/execute",
-      { deviceId, command, ...(params !== undefined ? { params } : {}) },
+      { deviceId, command, ...(params ? { params } : {}) },
     );
     return data;
   },
+
+  /** Modbus yazma izi (Admin › Modbus trace, İş 1) — `GET /commands/writes`. */
+  listCommandWrites: async (
+    limit = 100,
+    deviceId?: string,
+    signal?: AbortSignal,
+  ): Promise<CommandWrite[]> => {
+    const { data } = await apiClient.get<{ writes: CommandWrite[] }>("/commands/writes", {
+      params: { limit, ...(deviceId ? { deviceId } : {}) },
+      signal,
+    });
+    return data.writes ?? [];
+  },
+
+  /** Konteyner service-token kaydı (Admin › Add container) — mevcut register ucu. */
+  registerContainer: async (
+    fieldId: string,
+    containerId: string,
+    token: string,
+    station?: string,
+  ): Promise<void> => {
+    await apiClient.post(
+      `/fields/${fieldId}/containers/${containerId}/register`,
+      { token, ...(station ? { station } : {}) },
+    );
+  },
 };
+
+export interface CommandWrite {
+  ts: string;
+  deviceId: string;
+  command: string;
+  label: string | null;
+  name: string;
+  registerAddress: number | null;
+  registerTableType: string | null;
+  value: string;
+  success: boolean;
+}

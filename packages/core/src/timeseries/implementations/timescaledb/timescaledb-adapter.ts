@@ -16,12 +16,24 @@ export { type TimescaleDBConfig } from "./timescaledb-config";
 
 const ALLOWED_AGGREGATE_FNS = new Set(["AVG", "SUM", "MIN", "MAX", "COUNT", "FIRST", "LAST"]);
 
+/** Serileri ayıran tag anahtarı için güvenli ad (SQL interpolasyonu — enjeksiyon yüzeyi). */
+const TAG_KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+/** Downsampled seri metadata'sı (name + group-tag değeri kimliği ile). */
+interface SeriesMeta {
+  name: string;
+  tagValue: string | null;
+  unit: string;
+  tags: Record<string, string>;
+}
+
 export class TimescaleDBAdapter implements ITimeseriesDatabase {
   private readonly pool: Pool;
   private readonly config: TimescaleDBConfig;
   private readonly tableCache: Set<string> = new Set();
   private readonly tableLocks: Map<string, Promise<void>> = new Map();
-  private readonly nameUnitCache: Map<string, { names: string[]; unitMap: Map<string, string> }> = new Map();
+  /** Seri meta önbelleği: `deviceId → (name\0tagValue → {unit, tags})`. */
+  private readonly seriesCache: Map<string, Map<string, SeriesMeta>> = new Map();
 
   constructor(config: TimescaleDBConfig, pool?: Pool) {
     this.config = config;
@@ -82,6 +94,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
       await this.pool.query(query);
       await this.setupCompression(tableName);
+      await this.runRetention(deviceId);
       this.tableCache.add(tableName);
     })();
 
@@ -151,16 +164,22 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
     // Tablo olusturma yazimdan ONCE (pool uzerinde) — client transaction'i
     // icinde DDL karismaz, concurrent cagrilar ayni promise'i bekler.
-    const deviceIds = Array.from(groupedByDevice.keys());
+    const allDeviceIds = Array.from(groupedByDevice.keys());
     const ensureResults = await Promise.allSettled(
-      deviceIds.map((deviceId) => this.ensureTableExists(deviceId)),
+      allDeviceIds.map((deviceId) => this.ensureTableExists(deviceId)),
     );
-    const failedEnsures = ensureResults.filter((r) => r.status === "rejected");
-    if (failedEnsures.length > 0) {
+    // Tablosu hazirlanamayan cihazin yazimini ATLA — tablo yokken INSERT
+    // denemek job'u fail ettirip (retry/onFailure zincirine girip) kademeli
+    // bozulmaya yol aciyordu. O cihazin batch'i duser; sonraki poll tabloyu
+    // yeniden kurmayi dener (ensureTableExists cache'te degil).
+    const deviceIds = allDeviceIds.filter((_, i) => ensureResults[i]!.status === "fulfilled");
+    const failedCount = allDeviceIds.length - deviceIds.length;
+    if (failedCount > 0) {
       console.warn(
-        `[TimescaleDB] ${failedEnsures.length}/${deviceIds.length} tablo hazirligi basarisiz`,
+        `[TimescaleDB] ${failedCount}/${allDeviceIds.length} cihazin tablo hazirligi basarisiz — o batch'ler atlandi`,
       );
     }
+    if (deviceIds.length === 0) return;
 
     // Her device icin tek client + tek multi-row INSERT — ayni client uzerinde
     // paralel query YASAK (pg client'i tek query calistirabilir).
@@ -185,11 +204,14 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     });
 
     const results = await Promise.allSettled(devicePromises);
-    const failed = results.filter((r) => r.status === "rejected").length;
-    if (failed > 0) {
-      console.warn(
-        `[TimescaleDB] ${failed}/${results.length} cihaz yazma islemi basarisiz`,
-      );
+    const failures = results.filter(
+      (r): r is PromiseRejectedResult => r.status === "rejected",
+    );
+    // K10: commit hatası YUTULMAZ — reject eder (tek-device batch). Böylece
+    // data-service `TransientError` fırlatır ve BullMQ retry/onFailed tetiklenir.
+    if (failures.length > 0) {
+      const first = failures[0]!.reason;
+      throw first instanceof Error ? first : new Error(String(first));
     }
   }
 
@@ -373,8 +395,37 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     return result.rows.map((row) => this.rowToTelemetryData(row, deviceId));
   }
 
-  async listDevices(): Promise<string[]> {
-    const result = await this.pool.query(`
+  /**
+   * Her telemetri adı için en yeni satır (tek cihaz) — `latest` modu.
+   * `DISTINCT ON (name)` + `ORDER BY name, timestamp DESC` → `(name, timestamp)`
+   * indeksini kullanır; `windowMs` dışındaki adlar döner (bayat veri sızmaz).
+   */
+  async getLatestPerName(
+    deviceId: string,
+    options: { names?: string[]; windowMs?: number } = {},
+  ): Promise<TelemetryData[]> {
+    await this.ensureTableExists(deviceId);
+    const tableName = this.getTableName(deviceId);
+    const windowMs = options.windowMs ?? 30_000;
+    const since = new Date(Date.now() - windowMs);
+
+    const params: unknown[] = [since];
+    let sql = `
+    SELECT DISTINCT ON (name) name, value, unit, description, timestamp, tags
+    FROM ${tableName}
+    WHERE timestamp >= $1
+  `;
+    if (options.names && options.names.length > 0) {
+      sql += ` AND name = ANY($2)`;
+      params.push(options.names);
+    }
+    sql += ` ORDER BY name, timestamp DESC`;
+
+    const result = await this.pool.query(sql, params);
+    return result.rows.map((row) => this.rowToTelemetryData(row, deviceId));
+  }
+
+  async listDevices(): Promise<string[]> {    const result = await this.pool.query(`
       SELECT hypertable_name 
       FROM timescaledb_information.hypertables
       WHERE hypertable_name LIKE 'device_%'
@@ -387,7 +438,11 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const tableName = this.getTableName(deviceId);
     await this.pool.query(`DROP TABLE IF EXISTS ${tableName}`);
     this.tableCache.delete(tableName);
-    this.nameUnitCache.delete(deviceId);
+    for (const key of [...this.seriesCache.keys()]) {
+      if (key === deviceId || key.startsWith(`${deviceId}\u0000`)) {
+        this.seriesCache.delete(key);
+      }
+    }
   }
 
   async executeRaw(sql: string, params?: unknown[]): Promise<unknown> {
@@ -458,6 +513,12 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     options: DownsampleOptions,
   ): Promise<TelemetryData[]> {
     const { from, to, points = 120, deviceId, names, tags } = options;
+    // Jenerik grup anahtarı — cihaza özgü DEĞİL; geçersizse name-only'e düşülür.
+    const tag =
+      options.tag !== undefined && TAG_KEY_RE.test(options.tag)
+        ? options.tag
+        : undefined;
+    const groupExpr = tag !== undefined ? `tags->>'${tag}'` : undefined;
 
     await this.ensureTableExists(deviceId);
 
@@ -466,28 +527,22 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const bucketInterval = this.getBucketInterval(bucketSeconds);
 
     console.log(
-      `[TimescaleDB] Downsampling: total=${totalSeconds}s, target=${points}pts, bucket=${bucketInterval}`,
+      `[TimescaleDB] Downsampling: total=${totalSeconds}s, target=${points}pts, bucket=${bucketInterval}, tag=${tag ?? "-"}`,
     );
 
-    const { names: availableNames, unitMap } = await this.getOrFetchNamesAndUnits(deviceId, from, to);
+    const meta = await this.getOrFetchSeriesMeta(deviceId, from, to, tag);
 
     let selectedNames = names;
     if (!selectedNames || selectedNames.length === 0) {
-      selectedNames = availableNames;
+      selectedNames = [...new Set([...meta.values()].map((m) => m.name))];
     }
-
     if (selectedNames.length === 0) {
       console.warn("[TimescaleDB] No telemetry names found");
       return [];
     }
 
-    // 🔥 DÜZELTİLDİ: Her name için ayrı CASE WHEN kullan
-    const avgFields = selectedNames
-      .map((name) => {
-        return `AVG(CASE WHEN name = '${name}' THEN (value)::numeric END) AS "${name}"`;
-      })
-      .join(", ");
-
+    // Uzun-format: her (bucket, name[, tag]) tek satır. `GROUP BY tags` (JSONB
+    // kombinasyon patlaması) yerine yalnız anahtar çıkarımı.
     const whereConditions = [
       `timestamp >= '${from.toISOString()}'`,
       `timestamp <= '${to.toISOString()}'`,
@@ -495,11 +550,9 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const params: unknown[] = [];
     let paramIndex = 1;
 
-    if (selectedNames.length > 0) {
-      whereConditions.push(`name = ANY($${paramIndex})`);
-      params.push(selectedNames);
-      paramIndex++;
-    }
+    whereConditions.push(`name = ANY($${paramIndex})`);
+    params.push(selectedNames);
+    paramIndex++;
 
     if (tags) {
       for (const [key, value] of Object.entries(tags)) {
@@ -510,15 +563,26 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     }
 
     const tableName = this.getTableName(deviceId);
+    const locfCarryMs = this.config.locfCarryMs ?? 0;
+    const gapfill = locfCarryMs > 0;
+    const isoFrom = `'${from.toISOString()}'::timestamptz`;
+
+    // K7: gapfill yalnız locfCarryMs>0 iken; taşıma sınırı JS'te uygulanır (seri-bazlı).
+    const bucketExpr = gapfill
+      ? `time_bucket_gapfill('${bucketInterval}', timestamp, ${isoFrom}, '${to.toISOString()}'::timestamptz)`
+      : `time_bucket('${bucketInterval}', timestamp, ${isoFrom})`;
+    const aggExpr = gapfill ? `locf(AVG(value)) AS avg, COUNT(value) AS n` : `AVG(value) AS avg`;
+    const tagSelect = groupExpr ? `,\n      ${groupExpr} AS tag_value` : "";
+    const tagGroupBy = groupExpr ? `, ${groupExpr}` : "";
 
     const query = `
     SELECT
-      time_bucket('${bucketInterval}', timestamp, '${from.toISOString()}'::timestamptz) AS bucket,
-      tags,
-      ${avgFields}
+      ${bucketExpr} AS bucket,
+      name${tagSelect},
+      ${aggExpr}
     FROM ${tableName}
     WHERE ${whereConditions.join(" AND ")}
-    GROUP BY bucket, tags
+    GROUP BY bucket, name${tagGroupBy}
     ORDER BY bucket ASC
   `;
 
@@ -532,31 +596,43 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     }
 
     const telemetries: TelemetryData[] = [];
+    const lastRealBySeries = new Map<string, number>();
 
     for (const row of result.rows) {
-      const bucketTimestamp = row.bucket;
+      const seriesKey = tag !== undefined
+        ? `${row.name}\u0000${row.tag_value ?? ""}`
+        : row.name;
+      const bucketMs = new Date(row.bucket as string).getTime();
 
-      for (const name of selectedNames) {
-        const avgValue = row[name];
-
-        if (avgValue !== null && avgValue !== undefined) {
-          const unit = unitMap.get(name) ?? "";
-
-          telemetries.push({
-            name: name,
-            description: `Downsampled (${bucketInterval} buckets) - ${name}`,
-            value: Number.parseFloat(Number.parseFloat(avgValue).toFixed(4)),
-            unit: unit,
-            timestamp: bucketTimestamp,
-            deviceId: deviceId,
-            tags: row.tags ?? {},
-          });
+      if (gapfill) {
+        const n = Number(row.n ?? 0);
+        if (n > 0) {
+          lastRealBySeries.set(seriesKey, bucketMs);
+        } else {
+          const lastReal = lastRealBySeries.get(seriesKey);
+          // Taşıma sınırı dışı (gerçek gözlemden çok uzak) → doldurulmaz.
+          if (lastReal === undefined || bucketMs - lastReal > locfCarryMs) continue;
         }
       }
+
+      const avgValue = row.avg;
+      if (avgValue === null || avgValue === undefined) continue;
+
+      const series = meta.get(seriesKey);
+
+      telemetries.push({
+        name: row.name,
+        description: `Downsampled (${bucketInterval} buckets) - ${row.name}`,
+        value: Number.parseFloat(Number.parseFloat(avgValue).toFixed(4)),
+        unit: series?.unit ?? "",
+        timestamp: row.bucket,
+        deviceId,
+        tags: series?.tags ?? {},
+      });
     }
 
     console.log(
-      `[TimescaleDB] Downsampled: ${result.rows.length} buckets → ${telemetries.length} telemetries`,
+      `[TimescaleDB] Downsampled: ${result.rows.length} satır → ${telemetries.length} telemetri`,
     );
 
     return telemetries;
@@ -581,35 +657,47 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     return `${Math.floor(seconds / 86400)} days`;
   }
 
-  private async getOrFetchNamesAndUnits(
+  private async getOrFetchSeriesMeta(
     deviceId: string,
     from: Date,
     to: Date,
-  ): Promise<{ names: string[]; unitMap: Map<string, string> }> {
-    const cached = this.nameUnitCache.get(deviceId);
+    tag?: string,
+  ): Promise<Map<string, SeriesMeta>> {
+    const cacheKey = `${deviceId}\u0000${tag ?? ""}`;
+    const cached = this.seriesCache.get(cacheKey);
     if (cached) return cached;
 
     const tableName = this.getTableName(deviceId);
+    const groupExpr = tag !== undefined ? `tags->>'${tag}'` : undefined;
+    const select = groupExpr
+      ? `name, ${groupExpr} AS tag_value, unit, tags`
+      : `name, unit, tags`;
+    const distinctOn = groupExpr ? `(name, ${groupExpr})` : `(name)`;
 
     const query = `
-    SELECT DISTINCT name, unit
+    SELECT DISTINCT ON ${distinctOn} ${select}
     FROM ${tableName}
     WHERE timestamp >= '${from.toISOString()}'
       AND timestamp <= '${to.toISOString()}'
-    ORDER BY name
   `;
 
     const result = await this.pool.query(query);
-    const names: string[] = [];
-    const unitMap = new Map<string, string>();
+    const map = new Map<string, SeriesMeta>();
 
     for (const row of result.rows) {
-      names.push(row.name);
-      unitMap.set(row.name, row.unit ?? "");
+      const tagValue: string | null = groupExpr !== undefined ? (row.tag_value ?? null) : null;
+      const key = groupExpr !== undefined
+        ? `${row.name}\u0000${tagValue ?? ""}`
+        : row.name;
+      map.set(key, {
+        name: row.name,
+        tagValue,
+        unit: row.unit ?? "",
+        tags: row.tags ?? {},
+      });
     }
 
-    const entry = { names, unitMap };
-    this.nameUnitCache.set(deviceId, entry);
-    return entry;
+    this.seriesCache.set(cacheKey, map);
+    return map;
   }
 }

@@ -216,7 +216,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/src/device-service.ts` | DeviceEntry `details` passthrough, hoist, DDL `details JSONB` + `rack_count` DROP |
 | `services/device-service/src/types.ts` | SİLİNİR |
 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | top-level `rackCount` kaldırılır; `details` eklenir |
-| `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | `rackCount` → `details.rackCount` |
+| `services/device-service/deployment/sample-config/*.json` + `deployment/v1/dev/container/device-configs/*.json` | `rackCount` → `details.rackCount` |
 | `services/web-service/src/presentation/routes/device-routes.ts` | SELECT `details` |
 | `apps/container-web/src/features/devices/types/device.ts` + `features/racks/utils/rackHelpers.ts` + `bscHelpers.ts` + `stores/devicesStore.ts` + `pages/DashBoardPage.tsx` + `pages/ScadaDashboardPage.tsx` | `details` tipi + `rackCountOf` accessor |
 
@@ -439,8 +439,8 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/src/device-service.ts` | `simulators` param kaldırılır (fromConfigDir rewiring) |
 | `services/device-service/src/index.ts` | SimulatorRegistry export kaldırılır |
 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | ConnectorConfig |
-| `deployment/dev/container/device-configs/bsc-1.json` | connector bölümü gömülür |
-| `deployment/dev/container/device-configs/bsc-pcs-connector-1.json` | SİLİNİR |
+| `deployment/v1/dev/container/device-configs/bsc-1.json` | connector bölümü gömülür |
+| `deployment/v1/dev/container/device-configs/bsc-pcs-connector-1.json` | SİLİNİR |
 | `services/device-service/run.ts` | SimulatorHost wiring (T-9) |
 
 ### 6.6 UC-6 — Log Sözleşmesi (iki kanal)

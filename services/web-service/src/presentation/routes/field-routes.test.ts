@@ -202,7 +202,7 @@ describe("field-routes karakterizasyon (mevcut davranış)", () => {
       payload: { token },
     });
     expect(res.statusCode).toBe(201);
-    const insertCall = (db.execute as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
+    const insertCall = (db.queryOne as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
       String(c[0]).includes("INSERT INTO field_containers"),
     );
     expect(insertCall).toBeDefined();
@@ -229,7 +229,7 @@ describe("field-routes karakterizasyon (mevcut davranış)", () => {
       payload: { containerUrl: "file:///etc/passwd", token: "t".repeat(32) },
     });
     expect(res.statusCode).toBe(201);
-    const insertCall = (db.execute as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
+    const insertCall = (db.queryOne as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
       String(c[0]).includes("INSERT INTO field_containers"),
     );
     expect(String(insertCall?.[0])).not.toContain("container_url");
@@ -259,5 +259,85 @@ describe("field-routes karakterizasyon (mevcut davranış)", () => {
       payload: { token: "t".repeat(32) },
     });
     expect(res.statusCode).toBe(404);
+  });
+
+  it("UC-13: station ile register → 201, DB'ye yazılır + yanıtta döner", async () => {
+    const dbR = makeDb({
+      queryOne: vi.fn().mockImplementation((sql: string) =>
+        sql.includes("INSERT INTO field_containers")
+          ? Promise.resolve({ station: "bess1" })
+          : sql.includes("FROM fields")
+            ? Promise.resolve({ id: "f-1", name: "Saha 1" })
+            : Promise.resolve(undefined),
+      ),
+    });
+    const app = await buildApp({ user: mockUser({ role: "admin" }), db: dbR, proxy });
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/fields/f-1/containers/c-7/register",
+      payload: { token: "t".repeat(32), station: "bess1" },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json().station).toBe("bess1");
+    const call = (dbR.queryOne as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
+      String(c[0]).includes("INSERT INTO field_containers"),
+    );
+    expect(String(call?.[0])).toContain("CASE WHEN $5");
+    expect(JSON.stringify(call)).toContain("bess1");
+    expect((call?.[1] as unknown[])[4]).toBe(true);
+  });
+
+  it("UC-13: station'sız re-register → mevcut etiket KORUNUR ($5=false)", async () => {
+    const dbR = makeDb({
+      queryOne: vi.fn().mockImplementation((sql: string) =>
+        sql.includes("INSERT INTO field_containers")
+          ? Promise.resolve({ station: "bess2" })
+          : sql.includes("FROM fields")
+            ? Promise.resolve({ id: "f-1", name: "Saha 1" })
+            : Promise.resolve(undefined),
+      ),
+    });
+    const app = await buildApp({ user: mockUser({ role: "admin" }), db: dbR, proxy });
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/fields/f-1/containers/c-1/register",
+      payload: { token: "t".repeat(32) },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json().station).toBe("bess2");
+    const call = (dbR.queryOne as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
+      String(c[0]).includes("INSERT INTO field_containers"),
+    );
+    expect((call?.[1] as unknown[])[4]).toBe(false);
+  });
+
+  it("UC-13: station > 64 karakter → 400", async () => {
+    const app = await buildApp({ user: mockUser({ role: "admin" }), db, proxy });
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/fields/f-1/containers/c-1/register",
+      payload: { token: "t".repeat(32), station: "x".repeat(65) },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("UC-13: GET /:fieldId/containers station alanını döndürür", async () => {
+    const dbS = makeDb({
+      query: vi.fn().mockImplementation((sql: string) => {
+        if (sql.includes("FROM fields")) {
+          return Promise.resolve([{ id: "f-1", name: "Saha 1" }]);
+        }
+        if (sql.includes("FROM field_containers")) {
+          return Promise.resolve([
+            { field_id: "f-1", container_id: "c-1", container_url: "", layout: {}, station: "bess2" },
+          ]);
+        }
+        return Promise.resolve([]);
+      }),
+    });
+    const app = await buildApp({ user: mockUser({ role: "admin" }), db: dbS, proxy });
+    const res = await app.inject({ method: "GET", url: "/api/fields/f-1/containers" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()[0].station).toBe("bess2");
   });
 });

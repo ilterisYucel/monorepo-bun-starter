@@ -2,7 +2,7 @@
 // Kaynak: docs/devices/isoPV1685RTU_D00007_A_XXEN_Modbus.pdf §3
 // (Modbus Registerbelegung — 07.2023).
 //
-// Measuring values (FC03, input register, RO):
+// Measuring values (FC03 holding, RO) — doküman D00007:
 // - 0x2000 (8192) Insulation resistance          UInt32  2 regs  Ω
 // - 0x2002 (8194) Leakage capacity               Float   2 regs  F
 // - 0x2004 (8196) Prewarning (Insulation res.)   UInt16  1 reg   0-OK; 4-Warning

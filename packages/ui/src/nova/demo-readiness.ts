@@ -52,3 +52,27 @@ export function thermalReady(
     return lo >= limits.tempMin && b.tmax <= limits.tempMax;
   });
 }
+
+export interface RestPhase {
+  t0: number;
+  t1: number;
+  kind: "rest";
+}
+
+/**
+ * Tam şarj/deşarj bitişlerinden dinlenme fazları (trend gölgelemesi, UC-3).
+ * Her run bitişinden `restMinutes` boyunca bir faz üretir (saf).
+ */
+export function restPhasesForRuns(
+  runs: Array<{ name: string; finishedAt: string | null }>,
+  restMinutes = DEMO_REST_MINUTES,
+): RestPhase[] {
+  const out: RestPhase[] = [];
+  for (const r of runs) {
+    if (!REST_RUN_NAMES.has(r.name) || !r.finishedAt) continue;
+    const t0 = Date.parse(r.finishedAt);
+    if (Number.isNaN(t0)) continue;
+    out.push({ t0, t1: t0 + restMinutes * 60_000, kind: "rest" });
+  }
+  return out.sort((a, b) => a.t0 - b.t0);
+}

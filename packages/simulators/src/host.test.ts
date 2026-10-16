@@ -88,4 +88,14 @@ describe("SimulatorHost — UC-3", () => {
     await expect(host.stopAll()).resolves.toBeUndefined();
     expect(host.portFor("hvac-1")).toBeUndefined();
   });
+
+  it("AK-10.3 — fss builder kaydedilir, diğer builder'lar etkilenmez", async () => {
+    host = new SimulatorHost([cfg("fss-1", "fss", 0), cfg("hvac-1", "hvac", 0)]);
+    const running = await host.start();
+    expect(running.map((r) => r.deviceId).sort()).toEqual(["fss-1", "hvac-1"]);
+    const fss = running.find((r) => r.deviceId === "fss-1")!;
+    const client = await connectClient(fss.port);
+    const res = await client.readInputRegisters(0, 1);
+    expect(res.response.body.valuesAsArray[0]).toBe(0);
+  });
 });

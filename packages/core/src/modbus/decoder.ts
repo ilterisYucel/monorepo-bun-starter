@@ -13,7 +13,8 @@ export type RegisterDataType =
   | "INT32"
   | "UINT32"
   | "FLOAT32"
-  | "FLOAT64";
+  | "FLOAT64"
+  | "4Q_FP_PF";
 
 export class BinaryPayloadDecoder {
   private buffer: Buffer;
@@ -94,6 +95,23 @@ export class BinaryPayloadDecoder {
     return value;
   }
 
+  /**
+   * Schneider 4-quadrant power factor (4Q_FP_PF) kod çözümü.
+   * Ham değer IEC kodlu FLOAT32'dir; açı ↔ PF eşlemesi:
+   * 0°=1, 90°=0, 180°=−1, 270°=2. Sözde kod (PM53xx Data Types):
+   * - regVal > 1  → PF = 2 − regVal (leading)
+   * - regVal < −1 → PF = −2 − regVal (leading)
+   * - |regVal| = 1 → unity, -1 < regVal < 1 → lagging; her ikisinde PF = regVal
+   */
+  decode4QPowerFactor(): number {
+    const regVal = this.buffer.readFloatBE(this.position);
+    this.position += 4;
+    if (!Number.isFinite(regVal)) return regVal;
+    if (regVal > 1) return 2 - regVal;
+    if (regVal < -1) return -2 - regVal;
+    return regVal;
+  }
+
   decodeFloat64(): number {
     const value = this.buffer.readDoubleBE(this.position);
     this.position += 8;
@@ -108,6 +126,7 @@ export class BinaryPayloadDecoder {
       case "INT32":
       case "UINT32":
       case "FLOAT32":
+      case "4Q_FP_PF":
         return 2;
       case "FLOAT64":
         return 4;

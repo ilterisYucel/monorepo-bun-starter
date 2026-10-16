@@ -11,7 +11,7 @@ import type { AutomationRule, TelemetryData } from "@gd-monorepo/shared-types";
  * - deployment/config/rules.json zod-valid ve STRICT şemadan geçer (fail-fast).
  * - FL-05 normal kontrol: 8 HVAC × 4 = 32 kural (hysteresis eşikleri birebir).
  * - FL-05 korumalar: 3 kademeli debounce (aşırı sıcak/soğuk) + nem + sıcaklık
- *   farkı (per-rack R1..R8 — S9); blok seti: HVAC force + BSC stop + log +
+ *   farkı (per-rack R1..R8 — S9); blok seti: HVAC force + BSC emergency + log +
  *   notify. Konteyner tier'da PCS YOKTUR (K10/K-A8).
  * - FL-02 (PM5340), FL-07 (kapı DI), FL-08 (DC-METER), FL-11 (IMD) kuralları
  *   eşik/debounce/cooldown birebir.
@@ -20,7 +20,7 @@ import type { AutomationRule, TelemetryData } from "@gd-monorepo/shared-types";
  */
 
 const RULES_PATH = fileURLToPath(
-  new URL("../../../deployment/dev/container/rules/rules.json", import.meta.url),
+  new URL("../../../deployment/v1/dev/container/rules/rules.json", import.meta.url),
 );
 const DEVICE_CONFIG_DIR = fileURLToPath(
   new URL("../../../configs", import.meta.url),
@@ -104,7 +104,7 @@ describe("FL-05 normal kontrol (32 kural — hysteresis)", () => {
     const cond = rule.when.all![0]!;
     expect(cond.op).toBe("lt");
     expect(cond.threshold).toBe(23);
-    expect(commandOf(rule, "HVAC-1")).toEqual(["on"]);
+    expect(commandOf(rule, "HVAC-1")).toEqual(["force_off"]);
   });
 
   it("tms_heat_on_h1: ≤ 17 → force_heat", () => {
@@ -118,7 +118,7 @@ describe("FL-05 normal kontrol (32 kural — hysteresis)", () => {
     const rule = rules().find((r) => r.name === "tms_heat_off_h1")!;
     expect(rule.when.all![0]!.op).toBe("gte");
     expect(rule.when.all![0]!.threshold).toBe(20);
-    expect(commandOf(rule, "HVAC-1")).toEqual(["on"]);
+    expect(commandOf(rule, "HVAC-1")).toEqual(["force_off"]);
   });
 
   it("HVAC-1..8 için dörtlü tamam (32 kural)", () => {
@@ -132,7 +132,7 @@ describe("FL-05 normal kontrol (32 kural — hysteresis)", () => {
 });
 
 describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
-  it("tms_overheat_protect: 3 kademeli debounce + HVAC force + BSC stop", () => {
+  it("tms_overheat_protect: 3 kademeli debounce + HVAC force + BSC emergency", () => {
     const rule = rules().find((r) => r.name === "tms_overheat_protect")!;
     const conds = rule.when.any!;
     expect(conds).toHaveLength(3);
@@ -161,14 +161,14 @@ describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
       (a) => a.action === "command" && a.command === "force_cool",
     ).length;
     expect(forceCount).toBe(8);
-    expect(commandOf(rule, "BSC-1")).toEqual(["stop"]);
-    expect(commandOf(rule, "BSC-2")).toEqual(["stop"]);
+    expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
+    expect(commandOf(rule, "BSC-2")).toEqual(["emergency"]);
     expect(rule.then.some((a) => a.action === "log")).toBe(true);
     expect(rule.then.some((a) => a.action === "notify")).toBe(true);
     expect(rule.cooldownMs).toBe(900000);
   });
 
-  it("tms_overcold_protect: 3 kademeli + force_heat + BSC stop", () => {
+  it("tms_overcold_protect: 3 kademeli + force_heat + BSC emergency", () => {
     const rule = rules().find((r) => r.name === "tms_overcold_protect")!;
     const conds = rule.when.any!;
     expect(conds[0]).toMatchObject({ op: "lt", threshold: 10, debounceMs: 900000 });
@@ -191,18 +191,18 @@ describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
     ).toBe(8);
   });
 
-  it("tms_humidity_alarm: Return Humidity ≥ 85 → BSC stop + log + notify", () => {
+  it("tms_humidity_alarm: Return Humidity ≥ 85 → BSC emergency + log + notify", () => {
     const rule = rules().find((r) => r.name === "tms_humidity_alarm")!;
     const cond = rule.when.any![0]!;
     expect(cond.device?.types).toEqual(["hvac"]);
     expect(cond.telemetry).toBe("Return Humidity");
     expect(cond.op).toBe("gte");
     expect(cond.threshold).toBe(85);
-    expect(commandOf(rule, "BSC-1")).toEqual(["stop"]);
-    expect(commandOf(rule, "BSC-2")).toEqual(["stop"]);
+    expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
+    expect(commandOf(rule, "BSC-2")).toEqual(["emergency"]);
   });
 
-  it("tms_temp_diff_protect: per-rack R1..R8 (≥10 rack / ≥5 pack) → BSC stop", () => {
+  it("tms_temp_diff_protect: per-rack R1..R8 (≥10 rack / ≥5 pack) → BSC emergency", () => {
     const rule = rules().find((r) => r.name === "tms_temp_diff_protect")!;
     const conds = rule.when.any!;
     expect(conds).toHaveLength(16);
@@ -219,7 +219,7 @@ describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
       expect(c.op).toBe("gte");
       expect(c.threshold).toBe(5);
     }
-    expect(commandOf(rule, "BSC-1")).toEqual(["stop"]);
+    expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
   });
 });
 
@@ -234,14 +234,14 @@ describe("FL-02 AUX kaybı (PM5340)", () => {
     expect(cond.debounceMs).toBe(5000);
     expect(commandOf(rule, "CB-1")).toEqual(["open"]);
     expect(commandOf(rule, "CB-2")).toEqual(["open"]);
-    expect(commandOf(rule, "BSC-1")).toEqual(["open_contactors"]);
-    expect(commandOf(rule, "BSC-2")).toEqual(["open_contactors"]);
+    expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
+    expect(commandOf(rule, "BSC-2")).toEqual(["emergency"]);
     expect(rule.cooldownMs).toBe(300000);
   });
 });
 
 describe("FL-07 kapı kuralları (control-panel-io DI)", () => {
-  it("batarya kapısı AÇIK → ışık + BSC stop; KAPALI → ışık söndür", () => {
+  it("batarya kapısı AÇIK → ışık + BSC emergency; KAPALI → ışık söndür", () => {
     const open = rules().find((r) => r.name === "fl07_battery_door_open")!;
     const close = rules().find((r) => r.name === "fl07_battery_door_close")!;
     expect(open.when.all![0]).toMatchObject({
@@ -250,8 +250,8 @@ describe("FL-07 kapı kuralları (control-panel-io DI)", () => {
       threshold: 1,
     });
     expect(commandOf(open, "CONTROL-PANEL-IO-1")).toEqual(["battery_light_on"]);
-    expect(commandOf(open, "BSC-1")).toEqual(["stop"]);
-    expect(commandOf(open, "BSC-2")).toEqual(["stop"]);
+    expect(commandOf(open, "BSC-1")).toEqual(["emergency"]);
+    expect(commandOf(open, "BSC-2")).toEqual(["emergency"]);
     expect(close.when.all![0]!.threshold).toBe(0);
     expect(commandOf(close, "CONTROL-PANEL-IO-1")).toEqual(["battery_light_off"]);
   });
@@ -266,7 +266,7 @@ describe("FL-07 kapı kuralları (control-panel-io DI)", () => {
 });
 
 describe("FL-08 DC kısa devre (DC-METER-1)", () => {
-  it("V>1500 / I>1680 / P>1784 (debounce 1 sn) → şalter AÇ + kontaktör AÇ", () => {
+  it("V>1500 / I>1680 / P>1784 (debounce 1 sn) → şalter AÇ + kontaktör Emergency", () => {
     const rule = rules().find((r) => r.name === "fl08_scf_trip")!;
     const conds = rule.when.any!;
     expect(conds).toHaveLength(3);
@@ -290,8 +290,8 @@ describe("FL-08 DC kısa devre (DC-METER-1)", () => {
     });
     expect(commandOf(rule, "CB-1")).toEqual(["open"]);
     expect(commandOf(rule, "CB-2")).toEqual(["open"]);
-    expect(commandOf(rule, "BSC-1")).toEqual(["open_contactors"]);
-    expect(commandOf(rule, "BSC-2")).toEqual(["open_contactors"]);
+    expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
+    expect(commandOf(rule, "BSC-2")).toEqual(["emergency"]);
     expect(rule.cooldownMs).toBe(3600000);
   });
 });
@@ -314,7 +314,7 @@ describe("FL-11 toprak direnci (IMD-1 — K4 gerçek map)", () => {
       debounceMs: 2000,
     });
     expect(commandOf(rule, "CB-1")).toEqual(["open"]);
-    expect(commandOf(rule, "BSC-1")).toEqual(["open_contactors"]);
+    expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
   });
 });
 

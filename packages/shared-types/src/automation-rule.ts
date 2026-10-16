@@ -9,9 +9,9 @@ import { z } from "zod";
  * Değerlendirme sırası: "eq" eşitlik, "neq" eşitsizlik, "gt"/"gte"/"lt"/"lte"
  * sayısal sıralama — karşılaştırma RuleEvaluator'da yapılır.
  */
-export type RuleOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+export type RuleOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "abs_gt" | "abs_gte";
 
-export const ruleOperatorSchema = z.enum(["eq", "neq", "gt", "gte", "lt", "lte"]);
+export const ruleOperatorSchema = z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "abs_gt", "abs_gte"]);
 
 /**
  * Cihaz seçicisi.

@@ -51,6 +51,12 @@ export const TREND_SOURCE_NAMES = [
   "Highest Cell Temperature",
 ] as const;
 
+/** İstasyon SOC + sıcaklık trendinin kaynağı: konteynerin BSC telemetrisi (K-19). */
+export const BSC_TREND_NAMES = [
+  "BSC SOC",
+  ...Array.from({ length: 8 }, (_, i) => `Rack Max Pack Temp R${i + 1}`),
+];
+
 /** Kanonik `max_cell_temp`, raf sıcaklık adı veya PCS hücre sıcaklığı. */
 const isTempRow = (r: TelemetryData): boolean =>
   r.tags?.canonical === "max_cell_temp" ||
@@ -77,4 +83,21 @@ export function buildTrendSeries(rows: TelemetryData[]): DemoTrendData {
   );
 
   return { soc, power, temp };
+}
+
+/** Güç grafiği minimum bantı (MW) — küçük yükler (ör. 200 kW) görünür kalsın. */
+export const POWER_MIN_BAND_MW = 1;
+
+/**
+ * Trend y-bantı (K-18): güç grafiğini veriye göre ölçekler — görünür serinin
+ * max |değeri| kadar simetrik bant; **min ±1 MW**. (SOC grafiği sabit 0–100,
+ * sıcaklık sabit — bu helper yalnız güç içindir.)
+ */
+export function trendBands(d: DemoTrendData): { power: [number, number] } {
+  const absMax = d.power.reduce(
+    (a, p) => (Number.isFinite(p.value) ? Math.max(a, Math.abs(p.value)) : a),
+    0,
+  );
+  const band = Math.max(POWER_MIN_BAND_MW, Math.ceil(absMax));
+  return { power: [-band, band] };
 }

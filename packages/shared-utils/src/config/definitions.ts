@@ -498,7 +498,7 @@ export const deviceConfigDir: ConfigDefinition<string> = {
   key: "device.configDir",
   env: "DEVICE_CONFIG_DIR",
   filePath: "device.configDir",
-  default: "../../deployment/dev/container/device-configs",
+  default: "../../deployment/v1/dev/container/device-configs",
   description: "Cihaz konfigürasyon dosyalarinin bulundugu dizin (servis cwd'sine goreli; tier deployment dizini)"
 };
 

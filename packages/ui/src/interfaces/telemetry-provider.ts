@@ -175,6 +175,12 @@ export interface TelemetryProviderOptions {
   filters?: Record<string, string>;
 
   /**
+   * Serileri ayıran tag ANAHTARI (jenerik grup anahtarı; ör. "rack_id").
+   * Verilmezse sorgu yalnız isme göre gruplanır (ayırım yok).
+   */
+  tag?: string;
+
+  /**
    * Sorgulanacak cihaz ID'leri.
    * Belirtilmezse tüm cihazlar sorgulanir.
    */

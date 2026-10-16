@@ -44,6 +44,7 @@ import { maneuverOperationRoutes } from "./routes/maneuver-routes";
 import { operationBossRoutes } from "./routes/operation-boss-routes";
 import { LogRepository } from "../infrastructure/persistence/log-repository";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
+import { CommandWriteStore } from "../infrastructure/persistence/command-write-store";
 import type { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import type { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
 import type { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
@@ -339,7 +340,14 @@ export class WebServiceServer {
 
     await this.app.register(
       async (fastify) => {
-        await makeCommandRoutes(fastify, { mq: deps.mq, configDir: deps.configDir, logger: deps.logger });
+        const writes = new CommandWriteStore(deps.postgres);
+        await writes.initialize();
+        await makeCommandRoutes(fastify, {
+          mq: deps.mq,
+          configDir: deps.configDir,
+          logger: deps.logger,
+          writes,
+        });
       },
       { prefix: "/api/commands" },
     );

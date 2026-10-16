@@ -14,7 +14,6 @@ bun run start:aws-edge            # AWS edge stack (container+field, Makine A)
 bun run stop:aws-edge
 bun run start:aws-boss            # AWS boss stack (Makine B)
 bun run stop:aws-boss
-nx run demo-backend:dev         # Demo Backend (Fastify, port 5000)
 nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
 nx run data-service:dev         # Data Service (BullMQ consumer)
@@ -48,6 +47,7 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 | `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
 | `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
+| `AGENTS-DEPLOYMENT.md` | Deployment klasör yapısı & kapsülleme | `deployment/**`; docker-compose; `device-configs`/`maneuvers`/`rules`; `.env` konumu; cross-ref/kapsülleme kuralı; yeni tier/app ekleme | `AGENTS-DEVICE-CONFIG.md` |
 
 ## Testing
 
@@ -137,12 +137,12 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 
 ## Docker / deployment
 
-- Compose files: site/tier bazlı — `deployment/{dev,prod}/{container,field,boss}/docker-compose.yml`, `deployment/aws/{edge,boss}/docker-compose.yml` (prod + dev) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır.
+- Compose files: proje/tier/app bazlı — `deployment/<proje>/{dev,prod,aws,office}/{container,field,boss}/docker-compose.yml` (örn. `deployment/v1/dev/container/`) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır. Detay + kapsülleme kuralları: `AGENTS-DEPLOYMENT.md`.
 - Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
-- **Env convention (MANDATORY):** env dosyası ilgili stack dizininde compose'un yanında yaşar — `deployment/<site>/<tier>/.env` (gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/<site>/<tier>/.env` ile geçer (script'ler `package.json`'da hazır). Kökte yalnızca commit'lenen şablonlar kalır: `deployment/.env.<tier>.example` (sır yok; tier dizinine `.env` olarak kopyalanıp doldurulur). Tier dosyasına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `container/.env`'de; field token'ı register API'siyle hash olarak DB'de tutar).
+- **Env convention (MANDATORY):** env dosyası ilgili app klasöründe compose'un yanında yaşar — `deployment/<proje>/<tier>/<app>/.env` (gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/<proje>/<tier>/<app>/.env` ile geçer (script'ler `package.json`'da hazır). Commit'lenen tek şablon ilgili klasördeki `.env.example`'dır (sır yok). Tier/app dosyasına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `container/.env`'de; field token'ı register API'siyle hash olarak DB'de tutar).
 - Backend Dockerfiles: `services/*/deployment/` (prod) + `Dockerfile.dev` (hot-reload).
 - Web Dockerfiles: `apps/container-web/deployment/`.
-- Customer plugins: `deployment/customer-plugins/` (mounted into integration-service at runtime).
+- Customer plugins: `deployment/<proje>/common/customer-plugins/` (mounted into integration-service at runtime).
 
 ## Package manager lock-in
 

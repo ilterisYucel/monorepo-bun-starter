@@ -116,7 +116,7 @@ export class CbSimulator {
     }
   }
 
-  /** Aux kontak durumu okur — DI 0 Is Closed (NC), DI 1 Is Open (NO) (sorgu). */
+  /** Aux kontak durumu okur — DI 0 Is Closed (NO), DI 1 Is Open (NC) (sorgu). */
   readDiscreteInput(address: number): boolean {
     switch (address) {
       case DISCRETE.IS_CLOSED:
