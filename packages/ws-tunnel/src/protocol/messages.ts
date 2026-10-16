@@ -15,14 +15,21 @@ import type { TunnelRole, TunnelTelemetryPoint } from "../types";
 export const TUNNEL_PROTOCOL_VERSION = 2;
 
 /**
- * Tünel uç noktası türü — aynı paketin iki farklı topolojide kullanımı:
+ * Tünel uç noktası türü — aynı paketin farklı topolojilerde kullanımı:
  * - `container`: konteyner, field'a bağlanır (ilk deployment)
  * - `field`: field, boss'a bağlanır (uplink — ikinci deployment)
+ * - `device`: cihaz (örn. saha yönetim arayüzü) hub'a bağlanır (jenerik peer)
+ *
+ * Domain anlamı taşımaz: `device` rol nötrdür; içerik `services[]` ile duyurulur.
  */
-export type TunnelPeerType = "container" | "field";
+export type TunnelPeerType = "container" | "field" | "device";
 
 /** Bilinen peer türleri — `register.peerType` doğrulaması için. */
-export const TUNNEL_PEER_TYPES: readonly TunnelPeerType[] = ["container", "field"];
+export const TUNNEL_PEER_TYPES: readonly TunnelPeerType[] = [
+  "container",
+  "field",
+  "device",
+];
 
 /**
  * Peer bağlantı durumu — HUB tarafı görünümü.
@@ -129,8 +136,50 @@ export interface RegisterMessage {
   peerType: TunnelPeerType;
   /** Bilgi amaçlıdır — hub yalnızca registry'deki URL'i trust eder (SSRF). */
   peerUrl?: string;
+  /**
+   * Peer'ın sunduğu OPAK servisler (opsiyonel). Hub yalnızca `id`+`meta`
+   * bilir; hedef adres/protokol/endpoint BİLMEZ (opaklık ilkesi — bkz.
+   * `WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md` K1). Alan yokluğu =
+   * servis duyurusu yok (geriye uyumlu v2 mesajı).
+   */
+  services?: ServiceAnnouncement[];
   protocolVersion: number;
 }
+
+/**
+ * Peer servis duyurusu — OPAK.
+ *
+ * Yalnızca isim + kozmetik meta taşır. Hedef adres / protokol / health /
+ * endpoint alanı **YOKTUR ve eklenemez**: hub servisin içini bilmez; hedef
+ * peer'ın lokal config'inde kalır (SSRF ilkesi).
+ */
+export interface ServiceAnnouncement {
+  /** Servis kimliği — peer içinde benzersiz, boş olamaz. */
+  id: string;
+  /** Kozmetik meta (dashboard) — davranışsal anlam taşımaz. */
+  meta?: {
+    title?: string;
+    icon?: string;
+  };
+}
+
+/**
+ * Servis duyurusu zod şeması — STRICT: bilinmeyen alan RED (opaklık sınırı).
+ * Bir tüketici `target`/`protocol`/`health` gibi alanlar eklemeye çalışırsa
+ * şema reddeder (AK-1.2).
+ */
+export const serviceAnnouncementSchema = z
+  .object({
+    id: z.string().min(1).max(128),
+    meta: z
+      .object({
+        title: z.string().min(1).max(256).optional(),
+        icon: z.string().min(1).max(256).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
 
 /** Hub→Client: Doğrulama sonucu + opsiyonel operational config. */
 export interface RegisterAckMessage {

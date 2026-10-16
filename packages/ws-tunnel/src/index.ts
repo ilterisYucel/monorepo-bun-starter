@@ -14,4 +14,6 @@ export * from "./snapshot";
 export * from "./connector";
 export * from "./client";
 export * from "./session";
-export * from "./proxy";
+// Hub tarafı yüzey (SessionGateway/HubSessionStore/TunnelProxy + HubPeerRegistry)
+// `./hub` barrel'ından toplanır — proxy doğrudan export EDİLMEZ (çakışma önlenir).
+export * from "./hub";

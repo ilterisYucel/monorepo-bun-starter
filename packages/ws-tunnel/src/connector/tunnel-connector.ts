@@ -1,6 +1,6 @@
 import { TUNNEL_PROTOCOL_VERSION, DEFAULT_TUNNEL_OPERATIONAL_CONFIG, tunnelOperationalConfigSchema } from "../protocol";
 
-import type { TunnelConnectorState, TunnelOperationalConfig, HeartbeatMessage, RegisterMessage, TelemetryMessage, TunnelPeerType } from "../protocol";
+import type { TunnelConnectorState, TunnelOperationalConfig, HeartbeatMessage, RegisterMessage, ServiceAnnouncement, TelemetryMessage, TunnelPeerType } from "../protocol";
 
 import { ValidationError } from "@gd-monorepo/result";
 import type { ILogger } from "../logger";
@@ -18,6 +18,11 @@ export interface TunnelConnectorConfig {
   peerId: string;
   /** Peer türü — hub kayıt/doğrulama tarafını seçer. Varsayılan: "container". */
   peerType?: TunnelPeerType;
+  /**
+   * Peer'ın sunduğu OPAK servisler (opsiyonel). Register mesajına yalnızca
+   * doluysa eklenir; hub hedef adresi bilmez (bkz. ServiceAnnouncement).
+   */
+  services?: readonly ServiceAnnouncement[];
   /** Heartbeat gönderim aralığı (ms) — operational config ile değişebilir. */
   heartbeatIntervalMs: number;
   /** Telemetri snapshot push aralığı (ms) — operational config ile değişebilir. */
@@ -408,11 +413,16 @@ export class TunnelConnector implements ITunnelChannel {
   }
 
   private registerFrame(): string {
+    const services = this.config.services;
     const frame: RegisterMessage = {
       type: "register",
       peerId: this.config.peerId,
       peerType: this.peerType(),
       protocolVersion: TUNNEL_PROTOCOL_VERSION,
+      // Yalnızca doluysa eklenir — services'siz mesaj mevcut v2 ile birebir aynı.
+      ...(services && services.length > 0
+        ? { services: [...services] }
+        : {}),
     };
     return JSON.stringify(frame);
   }

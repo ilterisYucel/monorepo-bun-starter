@@ -60,6 +60,7 @@ import type { MarketSeries } from "../infrastructure/market/market-series";
 import type { FieldRegistry } from "../infrastructure/field-uplink/field-registry";
 import { fieldUplinkWsRoutes } from "./routes/field-uplink-ws-routes";
 import { fieldSessionRoutes, fieldTunnelRoutes } from "./routes/field-session-routes";
+import { peerServiceRoutes } from "./routes/peer-service-routes";
 import { wireGuardRoutes } from "./routes/wireguard-routes";
 import type { WireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
 import { notificationRoutes } from "./routes/notification-routes";
@@ -431,6 +432,19 @@ export class WebServiceServer {
     if (deps.fieldTunnelProxy) {
       await this.app.register(async (fastify) => {
         await fieldTunnelRoutes(fastify, {
+          tunnelProxy: deps.fieldTunnelProxy!,
+          pathAllowlist: deps.fieldTunnelPathAllowlist,
+        });
+      });
+    }
+
+    // Boss tier: jenerik peer servis keşfi + opak erişim
+    // (/peers, /peers/:peerId/services, /peers/:pid/services/:sid/* — opak proxy)
+    if (deps.fieldRegistry && deps.fieldGateway && deps.fieldTunnelProxy) {
+      await this.app.register(async (fastify) => {
+        await peerServiceRoutes(fastify, {
+          registry: deps.fieldRegistry!,
+          gateway: deps.fieldGateway!,
           tunnelProxy: deps.fieldTunnelProxy!,
           pathAllowlist: deps.fieldTunnelPathAllowlist,
         });

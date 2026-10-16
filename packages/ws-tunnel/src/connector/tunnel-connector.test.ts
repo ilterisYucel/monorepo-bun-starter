@@ -9,6 +9,7 @@ import { ReconnectDelay } from "./reconnect-delay";
 
 
 import { TUNNEL_PROTOCOL_VERSION } from "../protocol";
+import type { ServiceAnnouncement } from "../protocol";
 
 import type { TunnelTelemetryPoint } from "../types";
 
@@ -120,6 +121,7 @@ function makeConfig(overrides: Partial<TunnelConnectorTestConfig> = {}) {
     telemetryIntervalMs: 15000,
     registerTimeoutMs: 10000,
     livenessTimeoutMs: 60000,
+    services: undefined as readonly ServiceAnnouncement[] | undefined,
     ...overrides,
   };
 }
@@ -194,10 +196,39 @@ describe("TunnelConnector (T2.1b)", () => {
       });
     });
 
+    it("AK-1.5: services boş/undefined ise register gövdesinde alan YOK", () => {
+      void connector.start();
+      factory.created[0].socket.emitOpen();
+      const frame = JSON.parse(factory.created[0].socket.sent[0]);
+      expect("services" in frame).toBe(false);
+    });
+
+    it("AK-1.1: config.services doluysa register mesajına eklenir (opak duyuru)", () => {
+      const withServices = new TunnelConnector(
+        makeConfig({
+          peerType: "device",
+          services: [{ id: "local-admin", meta: { title: "RevPi Admin" } }],
+        }),
+        factory,
+        { snapshot },
+        new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
+        logger.logger,
+        clock,
+      );
+      void withServices.start();
+      factory.created[0].socket.emitOpen();
+      expect(JSON.parse(factory.created[0].socket.sent[0])).toEqual({
+        type: "register",
+        peerId: "container-1",
+        peerType: "device",
+        services: [{ id: "local-admin", meta: { title: "RevPi Admin" } }],
+        protocolVersion: TUNNEL_PROTOCOL_VERSION,
+      });
+    });
+
     it("çift start() no-op — ikinci soket açılmaz", () => {
       void connector.start();
-      void connector.start();
-      expect(factory.created).toHaveLength(1);
+      void connector.start();      expect(factory.created).toHaveLength(1);
     });
   });
 

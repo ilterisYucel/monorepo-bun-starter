@@ -39,3 +39,15 @@ review_date: 2026-12-01
 - **Test:** codec + session-gateway + tunnel-client + tunnel-proxy branch ≥%90 (şu an %92.5-100); uçtan uca `tunnel.spec.ts` (K3.1-K3.3) + `bun tools/tunnel-demo.mjs` gözle demosu.
 - **İkinci deployment (boss uplink):** Aynı paket field→boss topolojisinde de çalışır (`peerType:"field"`; boss'ta `SessionGateway`+`TunnelProxy`, field'da `TunnelConnector`) — ayrıntı: [BOSS-UYGULAMA-MIMARISI.md](docs/architecture/BOSS-UYGULAMA-MIMARISI.md) §7.4 + [WS-TUNNEL-URUN-TESCILI.md](docs/architecture/WS-TUNNEL-URUN-TESCILI.md).
 - **Operasyon komut kanalı:** boss→field `operation-execute` / `operation-result` kontrol mesajları ile uzak manevra/operasyon yürütme — sözleşme [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](docs/architecture/KOMUT-MANEVRA-OPERASYON-MIMARISI.md) §5 + WS-TUNNEL spec §5; kanal adaptörü `TunnelManeuverChannel`, rota `operation-boss-routes.ts`.
+
+## Opak servis erişimi sözleşmesi (MANDATORY — jenerik peer servis keşfi/erişimi)
+
+> Kaynak: [WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md](docs/architecture/WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md). Bu bölüm, AI ajanlarının pakete domain/telemetri/endpoint sızdırmasını engeller.
+
+- **Pakete girmez:** `packages/ws-tunnel` core'una **TelemetryData/telemetri tipi, HTTP route/web-endpoint kodu, domain kelimesi (BESS/konteyner/field/revpi)** EKLENEMEZ. Keşif + erişim tüketicide (web-service) yaşar.
+- **Duyuru opaktır:** `register.services[]` yalnız `id` + kozmetik `meta{title?,icon?}` taşır. Hedef adres / `protocol` / `health` / `endpoint` alanı **YASAK** — `serviceAnnouncementSchema` STRICT reddeder. Hedef adres peer'ın lokal config'inde kalır (SSRF ilkesi).
+- **Erişim ≠ keşif:** Erişim (`/peers/:peerId/services/:serviceId/*` → opak proxy) ile keşif (`GET /peers`, `GET /peers/:id/services` — hub'ın kendi REST API'si) ayrıdır. Yabancı peer uygulamasından hiçbir API beklenmez; yalnız yanında peer agent çalışır.
+- **Peer tipleri enum'da:** `TunnelPeerType = "container" | "field" | "device"` — serbest string DEĞİL. Yeni tip yalnız kayıtlı ihtiyaçla eklenir; domain anlamı `meta`'da yaşar.
+- **Push-based keşif:** Peer kendini duyurur; **ağ taraması (mDNS/ARP/port scan) YASAK**. Peer↔peer doğrudan erişim YOK — tüm trafik hub üzerinden (istisna: nested hub; field kendi konteynerlerinin hub'ıdır).
+- **Saf kayıt:** `HubPeerRegistry` (paket) saftır — WS/timer/HTTP/persistence bağımlılığı taşımaz. Taşıma (`FieldRegistry`: WS + token + stale) onu kompoze eder; Faz 3 hub-servis ayrımında birlikte taşınır.
+- **Var olan akışlar korunur:** v1 iframe (`/containers/:cid/ui/*`) ve v2 makine erişimi (`execute-multi`, `TunnelManeuverChannel`) değişmez; jenerik erişim additive'dir.

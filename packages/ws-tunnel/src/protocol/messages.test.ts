@@ -1,8 +1,10 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import {
   TUNNEL_PROTOCOL_VERSION,
+  TUNNEL_PEER_TYPES,
   DEFAULT_TUNNEL_OPERATIONAL_CONFIG,
   tunnelOperationalConfigSchema,
+  serviceAnnouncementSchema,
   isPeerConnectionState,
   operationExecuteSchema,
 } from "./messages";
@@ -12,6 +14,7 @@ import type {
   TunnelOperationalConfig,
   RegisterMessage,
   RegisterAckMessage,
+  ServiceAnnouncement,
   HeartbeatMessage,
   TelemetryMessage,
   ConfigUpdateMessage,
@@ -142,7 +145,7 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
         type: "register",
         peerId: "container-1",
         peerType: "container",
-        containerUrl: "http://web:80",
+        peerUrl: "http://web:80",
         protocolVersion: TUNNEL_PROTOCOL_VERSION,
       };
       expectTypeOf(msg).toEqualTypeOf<RegisterMessage>();
@@ -343,5 +346,78 @@ describe("operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)", () => 
     >();
     expect(execute.type).toBe("operation-execute");
     expect(result.status).toBe("rolled_back");
+  });
+});
+
+describe("opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)", () => {
+  it("AK-1.4: TUNNEL_PEER_TYPES device tipini içerir", () => {
+    expect(TUNNEL_PEER_TYPES).toContain("device");
+    expect(TUNNEL_PEER_TYPES).toEqual(["container", "field", "device"]);
+  });
+
+  it("AK-1.1: serviceAnnouncementSchema id + kozmetik meta kabul eder", () => {
+    const parsed = serviceAnnouncementSchema.parse({
+      id: "local-admin",
+      meta: { title: "RevPi Admin", icon: "cpu" },
+    });
+    expect(parsed).toEqual({
+      id: "local-admin",
+      meta: { title: "RevPi Admin", icon: "cpu" },
+    });
+  });
+
+  it("AK-1.1: meta opsiyoneldir (yalnız id ile geçerli)", () => {
+    expect(serviceAnnouncementSchema.parse({ id: "x" })).toEqual({ id: "x" });
+  });
+
+  it("AK-1.1: boş id RED", () => {
+    expect(serviceAnnouncementSchema.safeParse({ id: "" }).success).toBe(false);
+  });
+
+  it("AK-1.2: opak olmayan alan RED (strict — target/protocol/health eklenemez)", () => {
+    for (const extra of [
+      { target: "http://10.0.0.5:8080" },
+      { protocol: "http" },
+      { health: { path: "/healthz" } },
+    ]) {
+      expect(
+        serviceAnnouncementSchema.safeParse({ id: "x", ...extra }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("AK-1.2: meta içindeki bilinmeyen alan RED", () => {
+    expect(
+      serviceAnnouncementSchema.safeParse({
+        id: "x",
+        meta: { title: "t", endpoint: "/api" },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("AK-1.3: services'siz RegisterMessage geçerlidir (geriye uyumlu v2)", () => {
+    const legacy: RegisterMessage = {
+      type: "register",
+      peerId: "field-1",
+      peerType: "field",
+      protocolVersion: TUNNEL_PROTOCOL_VERSION,
+    };
+    expect(legacy.services).toBeUndefined();
+  });
+
+  it("AK-1.1/1.3: RegisterMessage services dizisi taşır", () => {
+    const services: ServiceAnnouncement[] = [
+      { id: "local-admin", meta: { title: "RevPi Admin" } },
+      { id: "metrics" },
+    ];
+    const msg: RegisterMessage = {
+      type: "register",
+      peerId: "revpi-001",
+      peerType: "device",
+      services,
+      protocolVersion: TUNNEL_PROTOCOL_VERSION,
+    };
+    expect(msg.services).toHaveLength(2);
+    expect(msg.peerType).toBe("device");
   });
 });

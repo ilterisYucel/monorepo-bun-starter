@@ -3,5 +3,5 @@ export type {
   ClientSessionUser,
   ClientSession,
   ClientSessionStoreConfig,
-} from "./session-store";
+} from "./client-session-store";
 export { ClientSessionServer } from "./client-session-server";

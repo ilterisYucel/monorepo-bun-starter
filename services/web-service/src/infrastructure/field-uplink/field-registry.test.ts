@@ -135,4 +135,62 @@ describe("FieldRegistry (Faz 3)", () => {
     expect(registry.isConnected("f-1")).toBe(false);
     expect(observer.onConnectionChange).toHaveBeenCalledWith("f-1", "idle");
   });
+
+  describe("opak servis kaydı (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.2)", () => {
+    it("AK-2.1: register servis duyurusunu kaydeder (device tipiyle)", async () => {
+      (sql.queryOne as ReturnType<typeof vi.fn>).mockResolvedValue({ n: 1 });
+      const { ws } = makeWs();
+      await registry.register("revpi-1", ws, TOKEN, {
+        peerType: "device",
+        services: [{ id: "local-admin", meta: { title: "RevPi Admin" } }],
+      });
+      expect(registry.servicesOf("revpi-1")).toEqual([
+        { id: "local-admin", meta: { title: "RevPi Admin" } },
+      ]);
+      expect(registry.peers()).toEqual([
+        {
+          peerId: "revpi-1",
+          peerType: "device",
+          services: [{ id: "local-admin", meta: { title: "RevPi Admin" } }],
+        },
+      ]);
+    });
+
+    it("AK-2.1: services yoksa boş kayıt (peerType varsayılan field)", async () => {
+      (sql.queryOne as ReturnType<typeof vi.fn>).mockResolvedValue({ n: 1 });
+      const { ws } = makeWs();
+      await registry.register("f-1", ws, TOKEN);
+      expect(registry.peers()).toEqual([
+        { peerId: "f-1", peerType: "field", services: [] },
+      ]);
+    });
+
+    it("AK-1.2/AK-2.7: opak olmayan servis (target) → rejected (fail-closed)", async () => {
+      (sql.queryOne as ReturnType<typeof vi.fn>).mockResolvedValue({ n: 1 });
+      const { ws, sent } = makeWs();
+      await registry.register("f-1", ws, TOKEN, {
+        services: [{ id: "x", target: "http://10.0.0.5" }],
+      });
+      expect(JSON.parse(sent[0] as string).status).toBe("rejected");
+      expect(ws.close).toHaveBeenCalled();
+      expect(registry.servicesOf("f-1")).toEqual([]);
+    });
+
+    it("services dizi değilse rejected", async () => {
+      (sql.queryOne as ReturnType<typeof vi.fn>).mockResolvedValue({ n: 1 });
+      const { ws, sent } = makeWs();
+      await registry.register("f-1", ws, TOKEN, { services: "nope" });
+      expect(JSON.parse(sent[0] as string).status).toBe("rejected");
+    });
+
+    it("WS kapanınca servis kaydı da düşer", async () => {
+      (sql.queryOne as ReturnType<typeof vi.fn>).mockResolvedValue({ n: 1 });
+      const { ws } = makeWs();
+      await registry.register("f-1", ws, TOKEN, { services: [{ id: "s" }] });
+      registry.attachSocketHandlers("f-1", ws);
+      ws.emit("close");
+      expect(registry.servicesOf("f-1")).toEqual([]);
+      expect(registry.peers()).toEqual([]);
+    });
+  });
 });

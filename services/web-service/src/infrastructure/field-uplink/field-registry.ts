@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import type { PeerConnectionState } from "@gd-monorepo/ws-tunnel";
+import type { HubPeerRecord, PeerConnectionState, ServiceAnnouncement, TunnelPeerType } from "@gd-monorepo/ws-tunnel";
+import { HubPeerRegistry, serviceAnnouncementSchema } from "@gd-monorepo/ws-tunnel";
 import { sha256Hex } from "../auth/service-token";
 
 const DDL = `
@@ -38,6 +39,14 @@ interface RegistryObserver {
 const DEFAULT_STALE_TIMEOUT_MS = 45000;
 const DEFAULT_SWEEP_INTERVAL_MS = 60000;
 
+/** Register meta — peer tipi + OPAK servis duyurusu (şema ile doğrulanır). */
+export interface RegisterPeerMeta {
+  /** Peer türü — verilmezse "field" (mevcut davranış). */
+  peerType?: TunnelPeerType;
+  /** Güvenilmez girdi — `serviceAnnouncementSchema` ile doğrulanır. */
+  services?: unknown;
+}
+
 /**
  * FieldRegistry — boss tier field uplink kayıt defteri (BOSS-UYGULAMA-MIMARISI.md §7.4).
  * Konteyner modelinin üst katman kopyası:
@@ -53,6 +62,11 @@ export class FieldRegistry {
   private readonly staleTimeoutMs: number;
   private readonly sweepIntervalMs: number;
   private readonly now: () => number;
+  /**
+   * Saf peer/servis kaydı (WS/timer/persistence YOK). Taşıma katmanı (bu sınıf)
+   * servis duyurularını burada tutar; Faz 3 hub-servis ayrımında birlikte taşınır.
+   */
+  private readonly hubRegistry = new HubPeerRegistry();
 
   constructor(
     private readonly sql: ISqlDatabase,
@@ -118,7 +132,12 @@ export class FieldRegistry {
    * Register doğrulamalı kayıt (komut) — token hash'i saha satırıyla eşleşmezse
    * reddedilir (fail-closed). Başarıda `register-ack` + connected bildirimi.
    */
-  async register(fieldId: string, ws: WebSocket, token?: string): Promise<void> {
+  async register(
+    fieldId: string,
+    ws: WebSocket,
+    token?: string,
+    meta: RegisterPeerMeta = {},
+  ): Promise<void> {
     if (!token) {
       this.rejectRegister(fieldId, ws, "missing-token");
       return;
@@ -129,6 +148,12 @@ export class FieldRegistry {
     );
     if (!row) {
       this.rejectRegister(fieldId, ws, "token-mismatch");
+      return;
+    }
+
+    const services = this.parseServices(meta.services);
+    if (services === undefined) {
+      this.rejectRegister(fieldId, ws, "invalid-services");
       return;
     }
 
@@ -146,6 +171,11 @@ export class FieldRegistry {
     };
     this.fields.set(fieldId, entry);
     this.scheduleStale(fieldId, entry);
+    this.hubRegistry.register({
+      peerId: fieldId,
+      peerType: meta.peerType ?? "field",
+      services,
+    });
 
     ws.send(
       JSON.stringify({
@@ -163,6 +193,7 @@ export class FieldRegistry {
     if (!entry) return;
     if (entry.staleTimer) clearTimeout(entry.staleTimer);
     this.fields.delete(fieldId);
+    this.hubRegistry.unregister(fieldId);
     this.notifyConnectionChange(fieldId, "idle");
   }
 
@@ -170,6 +201,16 @@ export class FieldRegistry {
   isConnected(fieldId: string): boolean {
     const entry = this.fields.get(fieldId);
     return entry !== undefined && entry.status === "connected";
+  }
+
+  /** Kayıtlı peer'lar + opak servis listeleri (keşif sorgusu). */
+  peers(): readonly HubPeerRecord[] {
+    return this.hubRegistry.peers();
+  }
+
+  /** Peer'ın duyurduğu servisler (keşif sorgusu); kayıt yoksa boş dizi. */
+  servicesOf(peerId: string): readonly ServiceAnnouncement[] {
+    return this.hubRegistry.servicesOf(peerId);
   }
 
   /** Kayıtlı sahaların bağlantı durumları (sorgu). */
@@ -242,6 +283,7 @@ export class FieldRegistry {
         this.fields.delete(fieldId);
         this.notifyConnectionChange(fieldId, "idle");
       }
+      this.hubRegistry.unregister(fieldId);
     });
     ws.on("error", () => {
       const entry = this.fields.get(fieldId);
@@ -252,8 +294,23 @@ export class FieldRegistry {
     });
   }
 
-  private rejectRegister(fieldId: string, ws: WebSocket, reason: string): void {
-    ws.send(
+  /**
+   * Servis duyurusunu doğrular (güvenilmez girdi → sıkı opak şema).
+   * Dönüş: `undefined` = geçersiz (register reddi); `[]` = duyuru yok.
+   */
+  private parseServices(raw: unknown): ServiceAnnouncement[] | undefined {
+    if (raw === undefined) return [];
+    if (!Array.isArray(raw)) return undefined;
+    const services: ServiceAnnouncement[] = [];
+    for (const item of raw) {
+      const parsed = serviceAnnouncementSchema.safeParse(item);
+      if (!parsed.success) return undefined;
+      services.push(parsed.data);
+    }
+    return services;
+  }
+
+  private rejectRegister(fieldId: string, ws: WebSocket, reason: string): void {    ws.send(
       JSON.stringify({
         type: "register-ack",
         status: "rejected",
