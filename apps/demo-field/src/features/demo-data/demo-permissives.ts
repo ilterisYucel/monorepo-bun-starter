@@ -34,18 +34,33 @@ const DAY_MS = 86_400_000;
 const selectedUnits = (state: NovaMimicState, scope: number[]): NovaUnitState[] =>
   scope.length ? state.units.filter((u) => scope.includes(u.n)) : state.units;
 
+/** DC blok hazır mı: DC kesici kapalı + BSC 30036 = 3 (Normal) + 30038 online raf > 0 (sim.js groupCheck). */
+function dcBlockReady(b: NovaUnitState["banks"][number]): boolean {
+  if (b.noData || b.dcb !== "closed") return false;
+  if (b.bscState !== undefined && b.bscState !== 3) return false;
+  if (b.online !== undefined && b.online <= 0) return false;
+  return true;
+}
+
+/** FSS yangın/arıza/devre dışı → grup bloke (sim.js permissives FSS blokajı). */
+function fssBlocked(u: NovaUnitState): boolean {
+  return u.fss !== undefined && u.fss.status !== "normal";
+}
+
 /** Grup blokajı var mı (referans `groupCheck` alt kümesi). */
 function isBlocked(u: NovaUnitState, topo: NovaTopology): boolean {
   const L = topo.limits;
   if (u.rmu.H02 !== "closed" || u.rmu.es) return true;
-  if (u.banks.some((b) => b.dcb !== "closed")) return true;
+  if (u.banks.some((b) => b.noData) || u.pcs.some((p) => p.noData)) return true;
+  if (u.banks.some((b) => !dcBlockReady(b))) return true;
+  if (fssBlocked(u)) return true;
   if (u.pcs.every((p) => p.state === "fault" || p.state === "off")) return true;
   if (u.banks.some((b) => b.tmax > L.tempMax || (b.tmin ?? b.tmax) < L.tempMin)) return true;
   return false;
 }
 
 /** POI'de teslim edilebilir güç (MW) — PCS max ∩ BSC limit, kayıp + AUX. */
-function availablePoiMW(state: NovaMimicState, topo: NovaTopology, scope: number[], dir: "chg" | "dis", auxKw: number): number {
+export function availablePoiMW(state: NovaMimicState, topo: NovaTopology, scope: number[], dir: "chg" | "dis", auxKw: number): number {
   const U = topo.unit;
   let a = 0;
   for (const u of selectedUnits(state, scope)) {
@@ -97,12 +112,23 @@ export function derivePermissives(state: NovaMimicState, topo: NovaTopology, opt
   });
 
   // 4 · DC block available
-  const dcbOff = units.filter((u) => u.banks.some((b) => b.dcb !== "closed")).map((u) => `BESS#${u.n}`);
+  const dcbOff = units
+    .filter((u) => u.banks.some((b) => !dcBlockReady(b)))
+    .map((u) => `BESS#${u.n}`);
   out.push({
     ok: dcbOff.length === 0,
     hard: false,
     label: "DC block available (BSC Normal, racks online)",
-    detail: dcbOff.length ? dcbOff.join(", ") : "BSC 30036 = Normal",
+    detail: dcbOff.length ? dcbOff.join(", ") : "DC CB closed · BSC 30036 = Normal · racks online (30038)",
+  });
+
+  // 4b · FSS (Sigma XT röleleri CP-IO DI üzerinden) — yangın/arıza varsa engel.
+  const fssBad = units.filter(fssBlocked).map((u) => `BESS#${u.n} (${u.fss?.status})`);
+  out.push({
+    ok: fssBad.length === 0,
+    hard: false,
+    label: "Fire suppression normal (Sigma XT relays)",
+    detail: fssBad.length ? fssBad.join(", ") : "no fire / fault",
   });
 
   // 5 · PCS ready
@@ -154,18 +180,28 @@ export function deriveStartupChecks(state: NovaMimicState, topo: NovaTopology): 
   const alerts = deriveAlerts(state, topo);
   const siteReady = state.station.H01 === "closed" && alerts.filter((a) => a.sev === "alarm").length === 0;
   const aux = state.units[0]?.aux;
-  const kv = state.station.kV > 0 ? state.station.kV : topo.station.nominalKV;
-  const hz = state.station.hz || 50;
+  const kv = state.station.kV;
+  // FL-01 fail-closed: veri yoksa kontrol GEÇMEZ (eskiden "ok: true" / 50 Hz varsayılıyordu).
+  const hz = state.station.hz;
+  const offline = state.units.flatMap((u) => [
+    ...u.banks.filter((b) => b.noData).map((b) => `BSC-${u.n}${b.id}`),
+    ...u.pcs.filter((p) => p.noData).map((p) => `PCS-${u.n}${p.id}`),
+  ]);
+  const devicesOk = state.units.length > 0 && offline.length === 0;
   return [
     { ok: siteReady, hard: false, label: "Site status", detail: siteReady ? "Ready" : "Not Ready" },
     {
-      ok: true,
+      ok: devicesOk,
       hard: false,
       label: "All devices online (heartbeats)",
-      detail: `${state.units.length * 2} BSC · ${state.units.length * 2} PCS · MV relays`,
+      detail: state.units.length === 0
+        ? "no telemetry"
+        : offline.length
+          ? `no data: ${offline.slice(0, 6).join(", ")}${offline.length > 6 ? ` +${offline.length - 6}` : ""}`
+          : `${state.units.length * 2} BSC · ${state.units.length * 2} PCS · MV relays`,
     },
     {
-      ok: aux ? Math.abs(aux.v - 400) < 40 : true,
+      ok: aux ? Math.abs(aux.v - 400) < 40 : false,
       hard: false,
       label: "AUX transformer analyzer",
       detail: aux ? `${f(aux.v, 0)} V · ${f(aux.hz, 2)} Hz` : "—",

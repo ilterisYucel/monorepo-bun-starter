@@ -39,7 +39,7 @@ const CLEAR_STEPS: Record<string, string[]> = {
     "Read the device fault words and the HMI fault log",
     "Inspect cooling / connections for the reported device",
     "Rectify the cause and confirm the value is back to normal",
-    "Mark resolved → the PMS recovers the group to Standby",
+    "Mark resolved (closes the alarm record; group recovery FL-06 is started manually — automatic recovery not implemented yet)",
   ],
   warning: [
     "Check the device trend and thresholds",

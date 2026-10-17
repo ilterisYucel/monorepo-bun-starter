@@ -120,7 +120,7 @@
           "11": "VPC applied",
           "12": "SPC applied (SOC power limit)",
           "13": "TPC applied (temperature power limit)",
-          "4-5": "Charge status (01 chg / 10 dis / 00 idle)"
+          "4-5": "Charge status (00 none / 01 charge / 10 discharge / 11 idle)"
         }
       },
       {
@@ -511,6 +511,62 @@
         "prio": "summary"
       },
       {
+        "id": "bsc.tMaxPack",
+        "name": "Pack / Sensor Location of Max Pack Temperature",
+        "addr": 30153,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary",
+        "note": "30153 pack ID · 30154 sensor ID"
+      },
+      {
+        "id": "bsc.tMinPack",
+        "name": "Pack / Sensor Location of Min Pack Temperature",
+        "addr": 30156,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary",
+        "note": "30156 pack ID · 30157 sensor ID"
+      },
+      {
+        "id": "bsc.cellVmaxPack",
+        "name": "Pack / Cell Location of Max Cell Voltage",
+        "addr": 30142,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary",
+        "note": "30142 pack ID · 30143 cell ID"
+      },
+      {
+        "id": "bsc.cellVminPack",
+        "name": "Pack / Cell Location of Min Cell Voltage",
+        "addr": 30145,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary",
+        "note": "30145 pack ID · 30146 cell ID"
+      },
+      {
+        "id": "bsc.iRackMax",
+        "name": "Max Rack Current (online)",
+        "addr": 30128,
+        "fc": 4,
+        "type": "sint32",
+        "scale": 0.001,
+        "unit": "A",
+        "prio": "summary",
+        "note": "30130 avg · 30132 min · 30134/30135 rack location – current imbalance"
+      },
+      {
+        "id": "bsc.socMaxRack",
+        "name": "Rack Location of Max / Min SOC",
+        "addr": 30103,
+        "fc": 4,
+        "type": "uint16",
+        "prio": "summary",
+        "note": "30103 max · 30105 min"
+      },
+      {
         "id": "bsc.ctrlHeartbeat",
         "name": "Controller Heartbeat",
         "addr": 40000,
@@ -540,7 +596,7 @@
           "10": "Reset"
         },
         "prio": "command",
-        "note": "Write, read 30030 until Done, then write 0x0000"
+        "note": "Handshake (map › Sequence): write command → wait 30030 = In Progress (0x01) and 30031 = command → write 0x0000 → verify state (30036 / 30038), 30030 = Done (0x02, back to None after 3 s). On a reject ack (≥ 0x05) also write 0x0000 and report the ack text."
       },
       {
         "id": "bsc.manualRackSel",
@@ -566,6 +622,46 @@
       "base": 30170,
       "stride": 150,
       "registers": [
+        {
+          "id": "rack.packCount",
+          "name": "Pack Count",
+          "offset": 23,
+          "type": "uint16",
+          "unit": "ea",
+          "note": "17 packs per rack"
+        },
+        {
+          "id": "rack.bmicCount",
+          "name": "BMIC Count per Pack",
+          "offset": 24,
+          "type": "uint16",
+          "unit": "ea",
+          "note": "PBMS: 2 BMIC × 12 cells"
+        },
+        {
+          "id": "rack.tSensorCount",
+          "name": "Temperature Sensor Count per Pack",
+          "offset": 25,
+          "type": "uint16",
+          "unit": "ea",
+          "note": "range of the sensor ID in +92/+93 – 4 (TH1–TH4, one per CMA)"
+        },
+        {
+          "id": "rack.pcbTCount",
+          "name": "PCB Temperature Sensor Count per Pack",
+          "offset": 27,
+          "type": "uint16",
+          "unit": "ea",
+          "note": "2"
+        },
+        {
+          "id": "rack.cellVCount",
+          "name": "Voltage (Cell) Sensor Count per Pack",
+          "offset": 29,
+          "type": "uint16",
+          "unit": "ea",
+          "note": "24"
+        },
         {
           "id": "rack.state",
           "name": "Rack State",
@@ -599,29 +695,24 @@
             "7": "DC line closed",
             "8": "Ready to connect",
             "9": "Charge power de-rating",
-            "3-4": "Chg/Dis status"
+            "10": "Current sensor (1 network · 0 hall)",
+            "3-4": "Chg/Dis status (00 idle · 01 discharge · 10 charge – reverse of 30037)",
+            "5-6": "Critical event (00 normal · 10 MDVF · 11 RDVF)"
           }
-        },
-        {
-          "id": "rack.packCount",
-          "name": "Pack Count",
-          "offset": 23,
-          "type": "uint16",
-          "unit": "ea",
-          "note": "17 packs per rack"
         },
         {
           "id": "rack.componentSt",
           "name": "Component Status (PC/MC+/MC−/CB, pack fans, BPU fan)",
           "offset": 52,
           "type": "bit16",
-          "note": "b1–0 PC · b3–2 MC(+) · b5–4 MC(−) · b7–6 CB · b9–8/b11–10 pack fans · b13–12 BPU fan (00 no use, 10 open/idle, 11 closed/running)"
+          "note": "b1–0 PC · b3–2 MC(+) · b5–4 MC(−) · b7–6 CB · b9–8 pack fan 1 · b11–10 pack fan 2 · b13–12 BPU fan (00 no use, 10 open/idle, 11 closed/running) – JF1 1CP BPU: no PC, no CB"
         },
         {
           "id": "rack.componentFb",
           "name": "Component Feedback (MC+/MC−/CB/fans/fuse)",
           "offset": 53,
-          "type": "bit16"
+          "type": "bit16",
+          "note": "b3–2 MC+ · b5–4 MC− · b7–6 CB · b9–8 pack fan 1 · b11–10 pack fan 2 · b13–12 BPU fan · b15–14 fuse · b1–0 reserved (no PC feedback)"
         },
         {
           "id": "rack.heartbeat",
@@ -695,14 +786,308 @@
           "id": "rack.diagVoltage",
           "name": "Diag: Rack/Pack Deviation, Under/Over Voltage",
           "offset": 68,
-          "type": "bit16"
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Over Voltage",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Under Voltage",
+              "bits": [
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "name": "Pack Deviation Voltage",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            },
+            {
+              "name": "Rack Deviation Voltage",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rack.diag69",
+          "name": "Diag: Rack Over Charge Current, Sudden Voltage Drop",
+          "offset": 69,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Sudden Voltage Drop",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Rack Over Charge Current",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
         },
         {
           "id": "rack.diagTemp",
           "name": "Diag: Under/Over Temperature, Over Discharge Current",
           "offset": 70,
           "type": "bit16",
-          "note": "b8–b11 Over Temperature (Alarm/Warning/Fault1/Fault2)"
+          "diags": [
+            {
+              "name": "Rack Over Discharge Current",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Over Temperature",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            },
+            {
+              "name": "Under Temperature",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ],
+          "note": "OT: b9 warning > 49 °C · b10 fault1 > 58 °C (Diagnosis v1.1.0)"
+        },
+        {
+          "id": "rack.diag71",
+          "name": "Diag: Rack Over Charge Power, Deviation Temperature",
+          "offset": 71,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Deviation Temperature",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Rack Over Charge Power",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rack.diag72",
+          "name": "Diag: Under SOH, Rack Under/Over SOC, Over Discharge Power",
+          "offset": 72,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Rack Over Discharge Power",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Rack Over SOC",
+              "bits": [
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "name": "Rack Under SOC",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            },
+            {
+              "name": "Under SOH",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rack.diag73",
+          "name": "Diag: Rack-BSC LOC, Rack-Pack LOC, Frequent Balancing, Cycle Count",
+          "offset": 73,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Cycle Count (warranty)",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Frequent Balancing",
+              "bits": [
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "name": "Rack-Pack LOC",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            },
+            {
+              "name": "Rack-BSC LOC (by rack)",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rack.diag76",
+          "name": "Diag: MC feedback, temperature sensor, current sensor errors",
+          "offset": 76,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Current Sensor Error",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Temperature Sensor Error",
+              "bits": [
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "name": "MC Feedback Error",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rack.diag77",
+          "name": "Diag: Contactor Open Failure, PBMS Fault, Pack Fan Error",
+          "offset": 77,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Pack Fan Error",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "PBMS Fault",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            },
+            {
+              "name": "Contactor Open Failure",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rack.diag81",
+          "name": "Diag: MC Open Over-Count, SBC fail-safe",
+          "offset": 81,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "MC Open Over-Count",
+              "bits": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
         },
         {
           "id": "rack.cellVmax",
@@ -770,13 +1155,15 @@
           "id": "rack.tMaxLoc",
           "name": "Max Temperature Location (pack / sensor)",
           "offset": 92,
-          "type": "uint16"
+          "type": "uint16",
+          "note": "b15–b8 pack ID · b7–b0 temperature sensor ID"
         },
         {
           "id": "rack.tMinLoc",
           "name": "Min Temperature Location (pack / sensor)",
           "offset": 93,
-          "type": "uint16"
+          "type": "uint16",
+          "note": "b15–b8 pack ID · b7–b0 temperature sensor ID"
         },
         {
           "id": "rack.dTrack",
@@ -805,7 +1192,49 @@
           "name": "Calibration Information",
           "offset": 101,
           "type": "uint16",
-          "note": "b15–b8 recalibration count"
+          "note": "b15–b8 recalibration count (cyclic 0–9) · b7–b0 calibration request (0x01 = SOX recommends a full charge → FL-04)"
+        },
+        {
+          "id": "rack.nonBalDays",
+          "name": "Non-balancing Entry Period",
+          "offset": 103,
+          "type": "uint16",
+          "unit": "day"
+        },
+        {
+          "id": "rack.diagBsc",
+          "name": "Diag by BSC: Rack Connection Fault, Current Imbalance, Rack-BSC LOC",
+          "offset": 130,
+          "type": "bit16",
+          "diags": [
+            {
+              "name": "Rack-BSC LOC (by BSC)",
+              "bits": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "name": "Current Imbalance Fault",
+              "bits": [
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "name": "Rack Connection Fault",
+              "bits": [
+                8,
+                9,
+                10,
+                11
+              ]
+            }
+          ]
         }
       ]
     },
@@ -832,9 +1261,9 @@
       {
         "fc": 4,
         "from": 30100,
-        "count": 56,
+        "count": 58,
         "every": "1 s",
-        "what": "Summary (30100–30155)"
+        "what": "Summary (30100–30157)"
       },
       {
         "fc": 2,
@@ -845,10 +1274,24 @@
       },
       {
         "fc": 4,
+        "from": "rack(N)+23",
+        "count": 7,
+        "every": "on connect",
+        "what": "Rack nameplate counts (packs, BMIC, sensors)"
+      },
+      {
+        "fc": 4,
         "from": "rack(N)+50",
-        "count": 52,
-        "every": "5 s",
-        "what": "Rack summary per rack (round-robin)"
+        "count": 54,
+        "every": "1 s",
+        "what": "Rack summary per rack (+50…+103, map: read every 1 s)"
+      },
+      {
+        "fc": 4,
+        "from": "rack(N)+130",
+        "count": 1,
+        "every": "1 s",
+        "what": "Rack diagnosis by BSC (RCF, CIF, LOC)"
       },
       {
         "fc": 6,

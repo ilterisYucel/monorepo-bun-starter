@@ -1,10 +1,14 @@
 {
   "deviceId": "FSS-1",
-  "name": "Fire Suppression Panel 1 (Sigma XT)",
+  "name": "Fire Suppression Panel 1 (Sigma XT) — SIM",
   "manufacturer": "Kentec",
   "model": "Sigma XT K11031M2",
   "protocol": "MODBUS",
   "type": "fss",
+  "details": {
+    "simOnly": true,
+    "note": "SIMULATOR-ONLY. Kentec Sigma XT Modbus arayuzu SUNMAZ (yalniz role cikislari). Sahada yangin sinyalleri CONTROL-PANEL-IO DI uzerinden okunur: System OK, Fault, Fire, First Stage, 2nd Stage, Discharged. Bu dosyadaki IR adresleri demo icin uydurulmustur; kurallar ve prod konfigurasyonu bu cihaza BAGLANMAMALIDIR."
+  },
   "connection": {
     "host": "127.0.0.1",
     "port": 15537,

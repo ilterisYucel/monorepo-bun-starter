@@ -3,23 +3,29 @@
     {
       "name": "bsc_charge",
       "label": "BSC Şarj",
-      "description": "BSC şarj gücü setpointi + şarj modu (START). BSC simülatörü SOC'yi yükseltir.",
+      "description": "Demo: SIM şarj gücü (simülatöre DC güç girişi) + Start. Gerçek BSC'de charge komutu YOK — güç PCS S06'da (0x000B Rev AF'de removed).",
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "set_discharge_power", "params": { "powerKw": 0 } },
         { "deviceIds": ["BSC-1", "BSC-2"], "command": "set_charge_power", "params": { "powerKw": "{{divideTotal}}" } },
-        { "deviceIds": ["BSC-1", "BSC-2"], "command": "charge" }
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "start" }
       ]
     },
     {
       "name": "bsc_discharge",
       "label": "BSC Deşarj",
-      "description": "BSC deşarj gücü setpointi + deşarj modu. BSC simülatörü SOC'yi düşürür.",
+      "description": "Demo: SIM deşarj gücü + Start. Gerçek BSC'de discharge komutu YOK (0x000B removed) — güç PCS S06'da.",
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [
-        { "deviceIds": ["BSC-1", "BSC-2"], "command": "set_discharge_power", "params": { "powerKw": "{{divideTotal}}" } },
-        { "deviceIds": ["BSC-1", "BSC-2"], "command": "discharge" }
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "set_charge_power", "params": { "powerKw": 0 } },
+        {
+          "deviceIds": ["BSC-1", "BSC-2"],
+          "command": "set_discharge_power",
+          "params": { "powerKw": "{{divideTotal}}" }
+        },
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "start" }
       ]
     }
   ]

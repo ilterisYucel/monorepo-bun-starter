@@ -137,22 +137,17 @@ export const DemoManeuverPage: React.FC = () => {
     [state.units, readyUnits],
   );
 
-  // UC-13: seçili istasyonun konteyner hedefi (K-17 — station çözümü backend'de yok).
-  const activeKey = DEMO_STATIONS[activeStation]?.key;
-  const activeSystems = useMemo(() => {
-    const id = activeKey ? stationSystems[activeKey] : undefined;
+  // GD-1 tek istasyon (H04: BESS#1–5, H05: BESS#6–9). Her fider kendi
+  // konteyneri + PCS çifti ile sürülür; komut kapsamdaki fiderlere ayrı ayrı gider.
+  void activeStation;
+  const activeKey: string | undefined = undefined;
+  const feedersFor = (scope: number[]) =>
+    DEMO_STATIONS.filter((s) => scope.length === 0 || s.units.some((n) => scope.includes(n)));
+  const systemsOf = (key: string): string[] | undefined => {
+    const id = stationSystems[key];
     return id ? [id] : undefined;
-  }, [activeKey, stationSystems]);
-
-  // UC-13: koşuları istasyona göre süz (uzak hedef yoksa config varsayılanı container-1).
-  const stationRuns = useMemo(() => {
-    const containerId = activeKey ? stationSystems[activeKey] : undefined;
-    if (containerId === undefined) return runs;
-    return runs.filter((r) => {
-      const steps = r.steps as { remoteSystem?: string } | null;
-      return (steps?.remoteSystem ?? "container-1") === containerId;
-    });
-  }, [runs, activeKey, stationSystems]);
+  };
+  const stationRuns = runs;
 
   const activeRun = useMemo(
     () =>
@@ -181,25 +176,42 @@ export const DemoManeuverPage: React.FC = () => {
 
   const auxKw = state.units[0]?.aux?.kW ?? 0;
 
-  const execute = async (name: string, kind: "maneuver" | "operation", params: Record<string, unknown>): Promise<void> => {
+  /**
+   * Komutu kapsamdaki HER fidere ayrı gönderir: o fiderin konteyneri (systems) +
+   * PCS çifti (deviceIds) + o fiderin kapsam üniteleri. `params` fider başına
+   * hesaplanabilir (FL-02 gücü fiderin gerçek PCS sayısıyla çarpılır).
+   */
+  const execute = async (
+    name: string,
+    kind: "maneuver" | "operation",
+    params: Record<string, unknown> | ((key: string) => Record<string, unknown>),
+    scope: number[] = state.units.map((u) => u.n),
+  ): Promise<void> => {
     setBusy(true);
     setMessage("");
-    try {
-      await demoManeuverApi.execute({
-        name,
-        kind,
-        params,
-        scope: state.units.map((u) => u.n),
-        // K-18: yerel pcs adımları yalnız aktif istasyonun PCS çiftine gider.
-        deviceIds: [...pcsIdsForStation(activeKey)],
-        ...(activeSystems ? { systems: activeSystems } : {}),
-      });
-      setMessage(`Command accepted (${name}).`);
-    } catch (e) {
-      setMessage(`Rejected: ${(e as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+    const feeders = feedersFor(scope);
+    const res = await Promise.allSettled(
+      feeders.map((st) => {
+        const systems = systemsOf(st.key);
+        return demoManeuverApi.execute({
+          name,
+          kind,
+          params: typeof params === "function" ? params(st.key) : params,
+          scope: st.units.filter((n) => scope.length === 0 || scope.includes(n)),
+          deviceIds: [...pcsIdsForStation(st.key)],
+          ...(systems ? { systems } : {}),
+        });
+      }),
+    );
+    const failed = res
+      .map((r, i) => (r.status === "rejected" ? `${feeders[i]?.cell}: ${(r.reason as Error).message}` : null))
+      .filter(Boolean);
+    setMessage(
+      failed.length
+        ? `Rejected: ${failed.join(" · ")}`
+        : `Command accepted (${name}) · ${feeders.map((s) => s.cell).join(" + ")}.`,
+    );
+    setBusy(false);
   };
 
   const handleRun = (key: string, params: Record<string, unknown>): void => {
@@ -208,14 +220,44 @@ export const DemoManeuverPage: React.FC = () => {
       const dir = params.dir === "chg" ? "chg" : "dis";
       const tRaw = String(params.target ?? "").trim();
       const scope = Array.isArray(params.scope) ? (params.scope as number[]) : state.units.map((u) => u.n);
+      if (scope.length === 0) {
+        setMessage("Rejected: no BESS unit selected in scope.");
+        return;
+      }
       const name = dir === "chg" ? "charge" : "discharge";
       if (tRaw !== "") {
         const t = Number(tRaw);
-        if (Number.isFinite(t)) setTarget(t, dir, scope, activeKey);
+        const { socMin, socMax } = stationTopology.limits;
+        if (!Number.isFinite(t) || t < socMin || t > socMax) {
+          setMessage(`Rejected: target SOC must be within ${socMin}–${socMax} %.`);
+          return;
+        }
+        const soc = socOf(state, scope);
+        if (soc !== undefined && (dir === "chg" ? t <= soc : t >= soc)) {
+          setMessage(`Rejected: target ${t} % is not ${dir === "chg" ? "above" : "below"} current SOC ${soc.toFixed(1)} %.`);
+          return;
+        }
+        setTarget(t, dir, scope, activeKey);
       } else {
         clearTarget();
       }
-      void execute(name, "operation", { powerKw: Number(params.powerKw ?? 200) });
+      // 2026-10-15 dağıtım: girilen MW istasyon PCS sayısına bölünür → her PCS
+      // aynı setpoint'i alır. Backend `{{divideTotal}}` toplamı gerçek PCS
+      // çiftine (deviceIds) böldüğünden, toplam = PCS başı × gerçek PCS sayısı.
+      const powerMW = Number(params.powerMW ?? 0);
+      const stationPcsCount = state.units.length * 2;
+      if (!(powerMW > 0) || stationPcsCount === 0) {
+        setMessage("Rejected: enter a power above 0 MW.");
+        return;
+      }
+      const perPcsKw = Math.round((powerMW * 1000) / stationPcsCount);
+      // Fider başına: PCS başı kW × o fiderin gerçek PCS sayısı (backend divideTotal böler).
+      void execute(
+        name,
+        "operation",
+        (key) => ({ powerKw: perPcsKw * pcsIdsForStation(key).length, powerMW, perPcsKw }),
+        scope,
+      );
       return;
     }
     clearTarget();
@@ -227,9 +269,15 @@ export const DemoManeuverPage: React.FC = () => {
         setMessage(`Scheduling at ${String(params.at)} — backend scheduleAt pending (B-1).`);
         return;
       }
-      void execute("calibration", "operation", { powerKw: 200 });
-    } else if (key === "estop") void execute("fl05_emergency_stop", "maneuver", {});
-    else if (key === "maint") void execute("field_maintenance", "operation", {});
+      // FL-04 / FL-05 / FL-11: seçilen grup(lar) kapsam olarak gider (eskiden düşürülüyordu).
+      const units = Array.isArray(params.units) ? (params.units as number[]) : [];
+      if (units.length === 0) {
+        setMessage("Rejected: select at least one group to calibrate.");
+        return;
+      }
+      void execute("calibration", "operation", { powerKw: 200 }, units);
+    } else if (key === "estop") void execute("fl05_emergency_stop", "maneuver", { unit: params.unit }, [Number(params.unit)]);
+    else if (key === "maint") void execute("field_maintenance", "operation", { unit: params.unit }, [Number(params.unit)]);
   };
 
   const handleStop = async (): Promise<void> => {
@@ -237,7 +285,7 @@ export const DemoManeuverPage: React.FC = () => {
     setBusy(true);
     setMessage("");
     try {
-      await demoManeuverApi.stop(activeSystems);
+      await Promise.all(DEMO_STATIONS.map((s) => demoManeuverApi.stop(systemsOf(s.key))));
       setMessage("Standby command sent.");
     } catch (e) {
       setMessage(`Stop failed: ${(e as Error).message}`);

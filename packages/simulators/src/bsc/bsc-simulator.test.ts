@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { BSCSimulator } from "./bsc-simulator";
 import {
+  SIM_ONLY,
   ESSENTIAL,
   COMMAND,
   CONTROLLER,
@@ -19,7 +20,7 @@ import {
 /**
  * BSCSimulator sözleşmesi (2026-08-30 — T4 karakterizasyonu; TEİAŞ #22):
  * - Otomatik init: 3 tick → INITIALIZING; 6 tick → NORMAL (30036).
- * - START → BSC_INFO (30037) charge status bitleri 0b01; DISCHARGE → 0b10.
+ * - START + demo şarj setpoint → 30037 charge status 0b01; demo deşarj setpoint → 0b10 (0x000B yok).
  * - EMERGENCY → durum EMERGENCY (30036).
  * - Deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01).
  *
@@ -51,18 +52,18 @@ describe("BSCSimulator (T4)", () => {
     const sim = freshSim(50);
 
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000); // 50.00 kW
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000); // 50.00 kW
     sim.tick(1);
 
     const info = sim.readInputRegister(ESSENTIAL.BSC_INFO);
     expect((info >> BSC_INFO_BITS.CHARGE_STATUS) & 0b11).toBe(0b01);
   });
 
-  it("DISCHARGE komutu → discharge status bitleri (BSC_INFO 30037)", () => {
+  it("START + demo deşarj setpoint → discharge status bitleri (BSC_INFO 30037)", () => {
     const sim = makeReadySim(50);
 
-    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.DISCHARGE);
-    sim.writeHoldingRegister(CONTROLLER.DISCHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START); // yön setpoint'ten (0x000B yok)
+    sim.writeHoldingRegister(SIM_ONLY.DISCHARGE_POWER_SETPOINT, 5000);
     sim.tick(1);
 
     const info = sim.readInputRegister(ESSENTIAL.BSC_INFO);
@@ -73,7 +74,7 @@ describe("BSCSimulator (T4)", () => {
     const sim = freshSim(50);
 
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000);
     // El sıkışma finalize: komut kutusu temizlenir.
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.NONE);
     sim.tick(1);
@@ -86,7 +87,7 @@ describe("BSCSimulator (T4)", () => {
     const sim = freshSim(50);
 
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000);
     sim.tick(1);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.STOP);
 
@@ -99,8 +100,8 @@ describe("BSCSimulator (T4)", () => {
     const sim = freshSim(50);
 
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 0);
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 0);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.STOP);
 
     expect(sim.readInputRegister(NAMEPLATE.REQUEST_ACKNOWLEDGE)).toBe(ACKNOWLEDGE.DONE);
@@ -112,7 +113,7 @@ describe("BSCSimulator (T4)", () => {
     const sim = freshSim(50);
 
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000);
     sim.tick(1);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.OPEN_ALL_CONTACTORS);
     expect(sim.readInputRegister(NAMEPLATE.REQUEST_ACKNOWLEDGE)).toBe(ACKNOWLEDGE.CURRENT_FLOWS);
@@ -135,8 +136,8 @@ describe("BSCSimulator (T4)", () => {
   it("deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)", () => {
     const sim = makeReadySim(0);
 
-    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.DISCHARGE);
-    sim.writeHoldingRegister(CONTROLLER.DISCHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START); // yön setpoint'ten (0x000B yok)
+    sim.writeHoldingRegister(SIM_ONLY.DISCHARGE_POWER_SETPOINT, 5000);
     for (let i = 0; i < 50; i++) sim.tick(60);
 
     for (const rackId of [1, 2]) {
@@ -151,7 +152,7 @@ describe("BSCSimulator SOC limitleri (97 / 3,5)", () => {
   it("şarjda SOC %97'yi aşamaz (clamp)", () => {
     const sim = freshSim(96);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000); // 50 kW
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000); // 50 kW
     for (let i = 0; i < 200; i++) sim.tick(60);
     const socRaw = sim.readInputRegister(SYSTEM_SUMMARY.BSC_SOC); // scale 0.01 → 9700 = %97
     expect(socRaw).toBeGreaterThanOrEqual(9600);
@@ -160,8 +161,8 @@ describe("BSCSimulator SOC limitleri (97 / 3,5)", () => {
 
   it("deşarjda SOC %3,5'in altına inemez (clamp)", () => {
     const sim = makeReadySim(5);
-    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.DISCHARGE);
-    sim.writeHoldingRegister(CONTROLLER.DISCHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START); // yön setpoint'ten (0x000B yok)
+    sim.writeHoldingRegister(SIM_ONLY.DISCHARGE_POWER_SETPOINT, 5000);
     for (let i = 0; i < 200; i++) sim.tick(60);
     const socRaw = sim.readInputRegister(SYSTEM_SUMMARY.BSC_SOC);
     expect(socRaw).toBeLessThanOrEqual(500);
@@ -206,7 +207,7 @@ describe("BSCSimulator — request-ack tablosu (Sequence/Diagnosis)", () => {
   it("Open All zaten açık → Contactors Already Open (0x08)", () => {
     const sim = freshSim(50);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 0); // akım yok
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 0); // akım yok
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.OPEN_ALL_CONTACTORS);
     expect(req(sim)).toBe(ACKNOWLEDGE.DONE);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.OPEN_ALL_CONTACTORS);
@@ -223,7 +224,7 @@ describe("BSCSimulator — request-ack tablosu (Sequence/Diagnosis)", () => {
   it("Reset akım akarken → Current Flows (0x0A)", () => {
     const sim = freshSim(50);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-    sim.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000);
+    sim.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000);
     sim.tick(1);
     sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.RESET);
     expect(req(sim)).toBe(ACKNOWLEDGE.CURRENT_FLOWS);
@@ -256,7 +257,7 @@ describe("BSCSimulator — demo hız çarpanı (K-20)", () => {
       });
     const drive = (s: BSCSimulator): void => {
       s.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.START);
-      s.writeHoldingRegister(CONTROLLER.CHARGE_POWER_SETPOINT, 5000); // 50 kW
+      s.writeHoldingRegister(SIM_ONLY.CHARGE_POWER_SETPOINT, 5000); // 50 kW
       for (let i = 0; i < 20; i++) s.tick(1);
     };
     const slow = make();
@@ -269,5 +270,14 @@ describe("BSCSimulator — demo hız çarpanı (K-20)", () => {
     const ratio = dFast / dSlow;
     expect(ratio).toBeGreaterThan(8);
     expect(ratio).toBeLessThan(12);
+  });
+});
+
+describe("BSCSimulator — Rev AF 0x000B", () => {
+  it("0x000B (removed) reddedilir: Ack = Invalid Request", () => {
+    const sim = makeReadySim(50);
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, 0x000b);
+    sim.tick(1);
+    expect(sim.readInputRegister(NAMEPLATE.REQUEST_ACKNOWLEDGE)).toBe(ACKNOWLEDGE.INVALID_REQUEST);
   });
 });

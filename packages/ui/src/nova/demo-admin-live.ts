@@ -40,11 +40,16 @@ export function adminLiveValue(
   const p = u.pcs[bi];
   if (!b || !p) return "—";
 
-  const cells = topo.unit.cellsSeries;
   const limitChg = p.chgLimitKw;
   const limitDis = p.disLimitKw;
-  const vAvg = b.vdc / cells;
-  const dvV = b.dvmV / 2000;
+  // Yalnız canlı BSC telemetrisi — yoksa "—" (türetme/uydurma YOK).
+  const raw = b.raw ?? {};
+  const rv = (name: string, unit = "", d = 2): string =>
+    raw[name] !== undefined ? `${f(raw[name] as number, d)}${unit ? ` ${unit}` : ""}` : "—";
+  const BSC_STATE: Record<number, string> = {
+    0: "None", 1: "Not Initialized", 2: "Initializing", 3: "Normal", 4: "Normal Power Saving", 5: "Manual", 6: "Emergency",
+  };
+  const rack1 = b.rackRaw?.[0] ?? {};
 
   const map: Record<string, string> = {
     "bsc.soc": `${f(b.soc, 2)} %`,
@@ -53,31 +58,33 @@ export function adminLiveValue(
     "bsc.idc": `${f(p.idc ?? 0, 1)} A`,
     "bsc.chgLimit": limitChg !== undefined ? `${f(limitChg, 1)} kW` : "—",
     "bsc.disLimit": limitDis !== undefined ? `${f(limitDis, 1)} kW` : "—",
-    "bsc.state": `${PCS_CODE[p.state] ?? 1} · ${p.state === "chg" ? "Charging" : p.state === "dis" ? "Discharging" : "Standby"}`,
-    "bsc.onlineRacks": `${b.dcb === "closed" ? topo.unit.racksPerBank : 0}`,
-    "bsc.tMax": `${f(b.tmax)} °C`,
-    "bsc.tMin": `${f(b.tmin ?? b.tmax)} °C`,
-    "bsc.tAvg": `${f(((b.tmin ?? b.tmax) + b.tmax) / 2)} °C`,
-    "bsc.cellVmax": `${f(vAvg + dvV, 3)} V`,
-    "bsc.cellVmin": `${f(vAvg - dvV, 3)} V`,
-    "bsc.cellVavg": `${f(vAvg, 3)} V`,
-    "bsc.recalRacks": "0",
-    "bsc.heartbeat": `${Math.floor(Date.now() / 1000) % 65536}`,
-    "bsc.info": `0x${(((p.state === "chg" ? 1 : p.state === "dis" ? 2 : 0) << 4) | (p.limited ? 1 << 13 : 0)).toString(16).padStart(4, "0")}`,
-    "bsc.socAvg": `${f(b.soc, 2)} %`,
-    "bsc.socMax": `${f(Math.min(100, b.soc + 0.2), 2)} %`,
-    "bsc.socMin": `${f(Math.max(0, b.soc - 0.2), 2)} %`,
-    "bsc.sohAvg": `${f(b.soh, 2)} %`,
-    "bsc.sohMin": `${f(Math.max(0, b.soh - 0.3), 2)} %`,
-    "bsc.sohMax": `${f(Math.min(100, b.soh + 0.3), 2)} %`,
-    "rack.tMax": `rack 1: ${f(b.racks[0] ?? b.tmax)} °C`,
-    "rack.soc": `rack 1: ${f(b.rackSoc?.[0] ?? b.soc, 2)} %`,
-    "rack.soh": `rack 1: ${f(b.soh, 2)} %`,
+    "bsc.state": b.bscState !== undefined ? `${b.bscState} · ${BSC_STATE[b.bscState] ?? "?"}` : "—",
+    "bsc.onlineRacks": b.online !== undefined ? `${b.online}` : "—",
+    "bsc.tMax": rv("Max Pack Temp", "°C", 1),
+    "bsc.tMin": rv("Min Pack Temp", "°C", 1),
+    "bsc.tAvg": rv("Avg Pack Temp", "°C", 1),
+    "bsc.cellVmax": rv("Max Cell Voltage", "V", 3),
+    "bsc.cellVmin": rv("Min Cell Voltage", "V", 3),
+    "bsc.cellVavg": rv("Avg Cell Voltage", "V", 3),
+    "bsc.recalRacks": rv("Recalibration Racks", "", 0),
+    "bsc.heartbeat": rv("Heartbeat", "", 0),
+    "bsc.info": b.chargeStatus !== undefined
+      ? `b5–4 = ${b.chargeStatus.toString(2).padStart(2, "0")} · ${({ 1: "charge", 2: "discharge", 3: "idle" } as Record<number, string>)[b.chargeStatus] ?? "none"}`
+      : "—",
+    "bsc.socAvg": rv("Avg SOC", "%"),
+    "bsc.socMax": rv("Max SOC", "%"),
+    "bsc.socMin": rv("Min SOC", "%"),
+    "bsc.sohAvg": rv("Avg SOH", "%"),
+    "bsc.sohMin": rv("Min SOH", "%"),
+    "bsc.sohMax": rv("Max SOH", "%"),
+    "rack.tMax": rack1["Rack Max Pack Temp"] !== undefined ? `rack 1: ${f(rack1["Rack Max Pack Temp"] as number)} °C` : "—",
+    "rack.soc": rack1["Rack SOC"] !== undefined ? `rack 1: ${f(rack1["Rack SOC"] as number, 2)} %` : "—",
+    "rack.soh": rack1["Rack SOH"] !== undefined ? `rack 1: ${f(rack1["Rack SOH"] as number, 2)} %` : "—",
     "pcs.opStatus": `${PCS_CODE[p.state] ?? 1} · ${PCS_EN[p.state] ?? p.state}`,
     "pcs.p": `${f((p.state === "chg" ? -1 : p.state === "dis" ? 1 : 0) * p.pMW * 1000, 0)} kW`,
     "pcs.q": `${f(p.reactiveKvar ?? 0, 0)} kVar`,
     "pcs.vab": p.vac !== undefined ? `${f(p.vac, 1)} V` : "—",
-    "pcs.freq": p.freq !== undefined ? `${f(p.freq, 2)} Hz` : `${f(state.station.hz || 50, 2)} Hz`,
+    "pcs.freq": p.freq !== undefined ? `${f(p.freq, 2)} Hz` : "—",
     "pcs.vdc": `${f(p.dcVoltage ?? b.vdc, 1)} V`,
     "pcs.idc": `${f(p.idc ?? 0, 0)} A`,
     "pcs.igbtA1": `${f(p.igbtC)} °C`,

@@ -1,3 +1,5 @@
+import registersCatalog from "./demo-registers.json";
+
 /**
  * BESS pack verisi türetimi (SPEC UC-4, D-1). Pack seviyesi Modbus map'inde
  * yoktur (referans da sim'den türetir); rack telemetrisinden DETERMİNİSTİK
@@ -153,58 +155,89 @@ export interface RackRegisterRow {
   name: string;
   address: string;
   value: string;
+  /** false → bu register device config'te poll edilmiyor (değer yok). */
+  polled: boolean;
 }
 
 /**
- * Raf register tablosu satırları — referans `BSC_RACK_REGISTERS` listesiyle
- * birebir (isim + offset). Adres = 30170 + 150·(raf−1) + offset; `rackNo`
- * BSC-içi raf numarasıdır (1..8). Değerler canlı raf telemetrisi + deterministik
- * türetimden gelir.
+ * LGES Flex BSC Rev AF raf offset'i → device config'teki telemetri taban adı
+ * (" R<n>" son eki olmadan). Listede olmayan offset'ler (bit/diag blokları)
+ * config'te raf başına poll edilmez → "not polled".
+ */
+const RACK_TELEMETRY_BY_OFFSET: Record<number, string> = {
+  23: "Pack Count",
+  24: "BMIC Count",
+  25: "Temp Sensor Count",
+  27: "PCB Temp Sensor Count",
+  29: "Voltage Sensor Count",
+  50: "Rack State",
+  54: "Rack Heartbeat",
+  55: "Live Unit Count",
+  56: "Balancing Time",
+  58: "Rack SOC",
+  59: "Rack SOH",
+  60: "Rack Charge Power Limit",
+  62: "Rack Discharge Power Limit",
+  64: "Rack Cell Sum Voltage",
+  66: "Rack Current",
+  84: "Rack Max Cell Voltage",
+  85: "Rack Min Cell Voltage",
+  86: "Rack Avg Cell Voltage",
+  87: "Rack Max Cell Location",
+  88: "Rack Min Cell Location",
+  89: "Rack Max Pack Temp",
+  90: "Rack Min Pack Temp",
+  91: "Rack Avg Pack Temp",
+  92: "Rack Max Temp Location",
+  93: "Rack Min Temp Location",
+  94: "Rack Max Diff Temp",
+  95: "Rack Max Diff Temp Pack",
+  100: "Rack MC Open Count",
+  101: "Rack Calibration Info",
+  103: "Rack Non-Balancing Period",
+};
+
+interface CatalogRackRegister {
+  name: string;
+  offset?: number;
+  unit?: string;
+  enum?: Record<string, string>;
+}
+
+const RACK_CATALOG: CatalogRackRegister[] = (
+  registersCatalog as unknown as { bsc: { rack: { registers: CatalogRackRegister[] } } }
+).bsc.rack.registers;
+
+function formatValue(v: number, reg: CatalogRackRegister): string {
+  const label = reg.enum?.[String(Math.round(v))];
+  if (label !== undefined) return `${Math.round(v)} · ${label}`;
+  const txt = Number.isInteger(v) ? String(v) : v.toFixed(Math.abs(v) < 10 ? 3 : 1);
+  return reg.unit ? `${txt} ${reg.unit}` : txt;
+}
+
+/**
+ * Raf register tablosu — LGES Rev AF raf katalogunun TAMAMI (v14
+ * `registers.json`, 43 satır). Adres = 30170 + 150·(raf−1) + offset;
+ * `rackNo` BSC-içi raf numarasıdır (1..8). Değerler YALNIZ canlı raf
+ * telemetrisinden (`raw`: taban ad → değer) gelir; uydurma/türetme YOKTUR.
+ * Config'te poll edilmeyen ya da henüz gelmemiş register "—" gösterir.
  */
 export function rackRegisters(
-  input: PackInput,
   rackNo: number,
-  bank: { soc: number; soh: number; vdc: number; chgLimitKw?: number; disLimitKw?: number; online?: number },
+  raw: Record<string, number> | undefined,
 ): RackRegisterRow[] {
   const base = 30170 + 150 * (rackNo - 1);
-  const addr = (off: number): string => String(base + off);
-  const chg = (bank.chgLimitKw ?? 160) / 8;
-  const dis = (bank.disLimitKw ?? 160) / 8;
-  const avgV = input.v / input.cellsSeries;
-  const m = packMarkers(input);
-  const balancing = Math.abs(input.soc - bank.soc) > 0.15;
-  return [
-    { name: "Rack State", address: addr(50), value: "9 · Normal" },
-    { name: "Rack Status Flags", address: addr(51), value: `${balancing ? "balancing · " : ""}idle · DC line closed · ready` },
-    { name: "Pack Count", address: addr(23), value: `${PACKS_PER_RACK}` },
-    { name: "Component Status (PC/MC+/MC−/CB, pack fans, BPU fan)", address: addr(52), value: "PC open · MC+ closed · MC− closed · CB closed · pack fans idle · BPU fan idle" },
-    { name: "Component Feedback (MC+/MC−/CB/fans/fuse)", address: addr(53), value: "fuse closed · MC+/MC− closed · CB closed" },
-    { name: "Heart Beat (from RBMS)", address: addr(54), value: "counting" },
-    { name: "Live Unit Count (awake PBMS)", address: addr(55), value: `${PACKS_PER_RACK}` },
-    { name: "Remaining Balancing Time", address: addr(56), value: balancing ? `${Math.round(Math.abs(input.soc - bank.soc) * 9000)} s` : "0 s" },
-    { name: "Rack SOC", address: addr(58), value: `${input.soc.toFixed(2)} %` },
-    { name: "Rack SOH", address: addr(59), value: `${input.soh.toFixed(2)} %` },
-    { name: "Rack Charge Power Limit", address: addr(60), value: `${chg.toFixed(1)} kW` },
-    { name: "Rack Discharge Power Limit", address: addr(62), value: `${dis.toFixed(1)} kW` },
-    { name: "Rack Cell Sum Voltage", address: addr(64), value: `${input.v.toFixed(1)} V` },
-    { name: "Rack Current", address: addr(66), value: `${(input.soc - 50 > 0 ? 20 : -20).toFixed(1)} A` },
-    { name: "Diag: Rack/Pack Deviation, Under/Over Voltage", address: addr(68), value: "0x0000" },
-    { name: "Diag: Under/Over Temperature, Over Discharge Current", address: addr(70), value: "0x0000" },
-    { name: "Rack Max Cell Voltage", address: addr(84), value: `${(avgV + 0.012).toFixed(4)} V` },
-    { name: "Rack Min Cell Voltage", address: addr(85), value: `${(avgV - 0.012).toFixed(4)} V` },
-    { name: "Rack Avg Cell Voltage", address: addr(86), value: `${avgV.toFixed(4)} V` },
-    { name: "Max Cell Location (pack / cell)", address: addr(87), value: `pack ${m.vMaxPack} · cell 7` },
-    { name: "Min Cell Location (pack / cell)", address: addr(88), value: `pack ${m.vMinPack} · cell 19` },
-    { name: "Rack Max Pack Temperature", address: addr(89), value: `${input.temp.toFixed(1)} °C` },
-    { name: "Rack Min Pack Temperature", address: addr(90), value: `${(input.tmin ?? input.temp - 1.4).toFixed(1)} °C` },
-    { name: "Rack Avg Pack Temperature", address: addr(91), value: `${(input.temp - 0.7).toFixed(1)} °C` },
-    { name: "Max Temperature Location (pack / sensor)", address: addr(92), value: `pack ${m.tMaxPack}` },
-    { name: "Min Temperature Location (pack / sensor)", address: addr(93), value: `pack ${m.tMinPack}` },
-    { name: "Max Difference of Temperature in Rack", address: addr(94), value: `${(input.temp - (input.tmin ?? input.temp - 1.4) + 1.4).toFixed(1)} °C` },
-    { name: "Max Difference of Temperature in Pack", address: addr(95), value: "2.4 °C" },
-    { name: "MC Open Count", address: addr(100), value: String(38 + rackNo * 3) },
-    { name: "Calibration Information", address: addr(101), value: "0" },
-  ];
+  return RACK_CATALOG.filter((r) => r.offset !== undefined).map((reg) => {
+    const off = reg.offset as number;
+    const key = RACK_TELEMETRY_BY_OFFSET[off];
+    const v = key !== undefined ? raw?.[key] : undefined;
+    return {
+      name: reg.name,
+      address: String(base + off),
+      value: v !== undefined ? formatValue(v, reg) : key === undefined ? "— not polled" : "— no data",
+      polled: key !== undefined,
+    };
+  });
 }
 
 /* ── Busbar zone thermal history (referans `u.th` sim geçmişi muadili) ── */

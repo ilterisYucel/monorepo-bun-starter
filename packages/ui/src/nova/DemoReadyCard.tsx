@@ -24,6 +24,8 @@ export interface DemoReadyCardProps {
   tempMin: number;
   tempMax: number;
   onOpenUnit?: (n: number) => void;
+  /** false → dinlenme bloğu hiç gösterilmez (2026-10-15: dinlenme kaldırıldı). */
+  showRest?: boolean;
 }
 
 const hms = (minutes: number): string => {
@@ -42,6 +44,7 @@ export const DemoReadyCard: React.FC<DemoReadyCardProps> = ({
   tempMin,
   tempMax,
   onOpenUnit,
+  showRest = true,
 }) => {
   const hasRest = rest.finishedAt !== undefined;
   const el = rest.elapsedMinutes ?? 0;
@@ -50,7 +53,8 @@ export const DemoReadyCard: React.FC<DemoReadyCardProps> = ({
   const restClass = !hasRest ? "none" : rest.complete ? "done" : "run";
 
   return (
-    <div className="ready-wrap" data-testid="ready-card">
+    <div className="ready-wrap" data-testid="ready-card" style={showRest ? undefined : { gridTemplateColumns: "1fr" }}>
+      {showRest ? (
       <div className={`rest-big ${restClass}`}>
         <small>Rest time after full charge / discharge</small>
         <b className="num">
@@ -70,14 +74,15 @@ export const DemoReadyCard: React.FC<DemoReadyCardProps> = ({
           </span>
         ) : null}
       </div>
+      ) : null}
       <div className="ready-groups">
         <div className="rg-h">
           <b>
             Thermal readiness · {readyCount} / {units.length} groups
           </b>
           <span className="dsub">
-            Groups may run inside {tempMin}–{tempMax} °C – also before the rest time
-            is over{ambient !== undefined ? ` · ambient ${ambient.toFixed(1)} °C` : ""}
+            Groups may run inside {tempMin}–{tempMax} °C{showRest ? " – also before the rest time is over" : ""}
+            {ambient !== undefined ? ` · ambient ${ambient.toFixed(1)} °C` : ""}
           </span>
         </div>
         <div className="rg">

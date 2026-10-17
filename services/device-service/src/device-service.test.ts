@@ -335,7 +335,7 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
       expect(result.validated).toBe(true);
     });
 
-    it("ilişki sağlanmıyorsa timeout sonuna kadar poll → validated: false", async () => {
+    it("ilişki sağlanmıyorsa timeout sonuna kadar poll → success: false, validated: false", async () => {
       const device = fakeDevice({ read: readBack(-100) });
       const { service, capture } = buildService(device);
       await service.start();
@@ -348,7 +348,7 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
       }) as never);
       await vi.advanceTimersByTimeAsync(2100);
       const result = (await promise) as { success: boolean; validated?: boolean };
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false); // NEW-3: timeout = başarısız
       expect(result.validated).toBe(false);
     });
 
@@ -392,7 +392,7 @@ describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
       }) as never);
       await vi.advanceTimersByTimeAsync(2100);
       const result = (await promise) as { success: boolean; validated?: boolean; reason?: string };
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false); // NEW-3
       expect(result.validated).toBe(false);
       expect(result.reason).toContain("last read failed");
       expect(result.reason).toContain("modbus boom");

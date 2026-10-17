@@ -51,7 +51,8 @@ const SQRT3 = Math.sqrt(3);
 /** Legacy (stations'sız) kurulumun tarihsel PCS çifti. */
 const LEGACY_PCS: readonly [string, string] = ["PCS-1", "PCS-2"];
 
-function swPos(v: unknown, fallback: NovaSwitchPos = "closed"): NovaSwitchPos {
+// Fail-closed: pozisyon telemetrisi YOKSA "open" (kapalı varsaymak izinleri yanlışlıkla verirdi).
+function swPos(v: unknown, fallback: NovaSwitchPos = "open"): NovaSwitchPos {
   if (v === undefined) return fallback;
   return truthy(v) ? "closed" : "open";
 }
@@ -59,7 +60,7 @@ function swPos(v: unknown, fallback: NovaSwitchPos = "closed"): NovaSwitchPos {
 /** DC kesici (CB cihazı) → banka DC kesici pozisyonu. */
 function dcBreaker(cbRows: TelemetryData[] | undefined): NovaSwitchPos {
   const closed = byName(cbRows, "Is Closed");
-  if (closed === undefined) return "closed";
+  if (closed === undefined) return "open";
   return truthy(closed.value) ? "closed" : "open";
 }
 
@@ -70,8 +71,10 @@ function buildBank(
   id: string,
   topo: NovaTopology,
 ): NovaBankState {
-  const soc = canonicalNumber(bscRows, "soc") ?? 50;
-  const soh = canonicalNumber(bscRows, "soh") ?? 100;
+  // Veri yoksa uydurma 50 %/100 % YOK: 0 + noData bayrağı (izinler bloklanır).
+  const noData = !bscRows || bscRows.length === 0 || canonicalNumber(bscRows, "soc") === undefined;
+  const soc = canonicalNumber(bscRows, "soc") ?? 0;
+  const soh = canonicalNumber(bscRows, "soh") ?? 0;
   const vdc = canonicalNumber(bscRows, "voltage") ?? 0;
   const avgTemp = canonicalNumber(bscRows, "temperature");
 
@@ -82,6 +85,21 @@ function buildBank(
   const rackSocRows = rowsMatching(bscRows, /Rack SOC R\d+$/);
   const rackVoltRows = rowsMatching(bscRows, /Rack Cell Sum Voltage R\d+$/);
   const rackCurrRows = rowsMatching(bscRows, /Rack Current R\d+$/);
+
+  // Raf register tablosu için ham raf telemetrisi (uydurma değer yerine canlı veri).
+  const rackRaw: Array<Record<string, number>> = [];
+  const bscRaw: Record<string, number> = {};
+  for (const r of bscRows ?? []) {
+    const m = /^(.*) R(\d+)$/.exec(r.name);
+    const v = num(r.value);
+    if (v === undefined) continue;
+    if (!m) {
+      bscRaw[r.name] = v;
+      continue;
+    }
+    const idx = Number(m[2]) - 1;
+    (rackRaw[idx] ??= {})[m[1] as string] = v;
+  }
 
   const rackTemps =
     maxTemps.length > 0
@@ -108,6 +126,7 @@ function buildBank(
 
   return {
     id,
+    ...(noData ? { noData: true } : {}),
     soc,
     soh,
     vdc,
@@ -118,6 +137,11 @@ function buildBank(
     ...(rackSocRows.length > 0 ? { rackSoc: rackSocRows.map((r) => r.value) } : {}),
     ...(rackVoltRows.length > 0 ? { rackV: rackVoltRows.map((r) => r.value) } : {}),
     ...(rackCurrRows.length > 0 ? { rackI: rackCurrRows.map((r) => r.value) } : {}),
+    ...(rackRaw.length > 0 ? { rackRaw } : {}),
+    ...(Object.keys(bscRaw).length > 0 ? { raw: bscRaw } : {}),
+    ...(num(byName(bscRows, "Avg Pack Temp")?.value) !== undefined
+      ? { tavg: num(byName(bscRows, "Avg Pack Temp")?.value) as number }
+      : {}),
     ...(bscState !== undefined ? { bscState } : {}),
     ...(online !== undefined ? { online } : {}),
     ...(chargeStatus !== undefined ? { chargeStatus } : {}),
@@ -131,7 +155,9 @@ function buildPcs(
   id: string,
 ): NovaPcsState {
   const opStatus = num(byName(pcsRows, "PCS Operation Status")?.value ?? byCanonical(pcsRows, "operation_status")?.value);
-  const state = opStatus !== undefined ? (PCS_STATE_BY_CODE[opStatus] ?? "stby") : "stby";
+  // Durum okunamıyorsa "stby" (hazır) DEĞİL "off" + noData — fail-closed.
+  const state = opStatus !== undefined ? (PCS_STATE_BY_CODE[opStatus] ?? "fault") : "off";
+  const pcsNoData = opStatus === undefined;
 
   const powerKw =
     num(byName(pcsRows, "Grid Active Power")?.value) ??
@@ -160,6 +186,7 @@ function buildPcs(
   return {
     id,
     state,
+    ...(pcsNoData ? { noData: true } : {}),
     pMW: Math.abs(powerKw) / 1000,
     igbtC,
     limited,
@@ -228,8 +255,9 @@ function buildStation(
     H02: cellPos("H02"),
     H04: cellPos("H04"),
     H05: cellPos("H05"),
-    kV: num(byName(mvRows, "Bus Voltage")?.value) ?? topo.station.nominalKV,
-    hz: num(byName(mvRows, "Frequency")?.value) ?? 50,
+    // Ölçüm yoksa 0 (nominal 34.5 kV / 50 Hz uydurulmaz; FL-01 MV kontrolü düşer).
+    kV: num(byName(mvRows, "Bus Voltage")?.value) ?? 0,
+    hz: num(byName(mvRows, "Frequency")?.value) ?? 0,
     es,
     iA: {},
   };
@@ -245,14 +273,16 @@ function derivePower(
   const feederMW: Record<string, number> = {};
   for (const f of Object.keys(topo.feeders)) feederMW[f] = 0;
 
+  // POI = Σ PCS (işaretli) − grup AUX yükü (PM5340). H03 sayacının register
+  // haritası yok (M2) → değer PMS HESABIDIR; AUX POI'nin içinde tüketilir.
   let poiMW = 0;
   for (const u of units) {
     const f = meta.get(u.n);
-    for (const pcs of u.pcs) {
-      const s = signedMW(pcs);
-      poiMW += s;
-      if (f !== undefined) feederMW[f] += s;
-    }
+    const auxMW = (u.aux?.kW ?? 0) / 1000;
+    let unitMW = -auxMW;
+    for (const pcs of u.pcs) unitMW += signedMW(pcs);
+    poiMW += unitMW;
+    if (f !== undefined) feederMW[f] += unitMW;
   }
 
   const kV = station.kV > 0 ? station.kV : topo.station.nominalKV;
@@ -260,9 +290,12 @@ function derivePower(
   const iA: Record<string, number> = {
     H01: amps(poiMW),
     H03: amps(poiMW),
-    H04: amps(feederMW.B ?? 0),
-    H05: amps(feederMW.A ?? 0),
   };
+  // Fider CT akımı topolojideki fider→hücre eşlemesinden (A→H04, B→H05).
+  // Eskiden sabit kodlu ve TERS idi (H04 ← B).
+  for (const [f, def] of Object.entries(topo.feeders)) {
+    iA[def.cell] = amps(feederMW[f] ?? 0);
+  }
 
   return {
     poiMW: n(poiMW, 2),

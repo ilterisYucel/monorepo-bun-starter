@@ -119,8 +119,8 @@ describe("B2 — operasyon katmanı edge-case'ler", () => {
   it("divideTotal floor: charge powerKw=25 → BSC setpoint 12", async () => {
     const r = await fOperation("charge", { params: { powerKw: 25 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(r.status);
-    // Ham oku (unified pencere yavaş sinyali düşürebilir): 12 kW → raw 1200 (scale 0.01).
-    const ok = await waitFor(async () => (await modbusRead(15501, 3, 40030, 1)).values[0] === 1200, 20000);
+    // Ham oku (unified pencere yavaş sinyali düşürebilir): 12 kW → raw 120 (SIM-only 49000, scale 0.1).
+    const ok = await waitFor(async () => (await modbusRead(15501, 3, 49000, 1)).values[0] === 120, 20000);
     expect(ok).toBe(true);
     await fOperation("standby");
   }, 60_000);

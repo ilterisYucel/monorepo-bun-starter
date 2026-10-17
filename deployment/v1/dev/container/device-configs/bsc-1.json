@@ -6909,27 +6909,27 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "Charge Power Setpoint",
-      "description": "Charge Power Setpoint",
+      "name": "SIM Charge Power Setpoint",
+      "description": "SIMULATOR-ONLY demo DC charge power input (kW, 0.1). NOT in LGES Flex BSC Rev AF (C2B ends at 40028); a real BSC has no power setpoint — power is set at PCS S06. Present only in demo (v2 / v1-dev) configs.",
       "unit": "kW",
       "protocol": "MODBUS",
-      "registerAddress": 40030,
+      "registerAddress": 49000,
       "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
-      "scale": 0.01,
+      "scale": 0.1,
       "offset": 0,
       "priority": 3,
       "byteOrder": "BIG_ENDIAN"
     },
     {
-      "name": "Discharge Power Setpoint",
-      "description": "Discharge Power Setpoint",
+      "name": "SIM Discharge Power Setpoint",
+      "description": "SIMULATOR-ONLY demo DC discharge power input (kW, 0.1). NOT in LGES Flex BSC Rev AF (C2B ends at 40028); a real BSC has no power setpoint — power is set at PCS S06. Present only in demo (v2 / v1-dev) configs.",
       "unit": "kW",
       "protocol": "MODBUS",
-      "registerAddress": 40031,
+      "registerAddress": 49001,
       "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
-      "scale": 0.01,
+      "scale": 0.1,
       "offset": 0,
       "priority": 3,
       "byteOrder": "BIG_ENDIAN"
@@ -25779,10 +25779,10 @@
       }
     },
     "set_charge_power": {
-      "label": "Şarj Gücü Ayarla",
+      "label": "SIM şarj gücü (yalnız demo)",
       "telemetries": [
         {
-          "name": "Charge Power Setpoint",
+          "name": "SIM Charge Power Setpoint",
           "value": "{{powerKw}}"
         }
       ],
@@ -25799,10 +25799,10 @@
       "timeoutMs": 3000
     },
     "set_discharge_power": {
-      "label": "Deşarj Gücü Ayarla",
+      "label": "SIM deşarj gücü (yalnız demo)",
       "telemetries": [
         {
-          "name": "Discharge Power Setpoint",
+          "name": "SIM Discharge Power Setpoint",
           "value": "{{powerKw}}"
         }
       ],
@@ -25817,52 +25817,6 @@
         }
       },
       "timeoutMs": 3000
-    },
-    "charge": {
-      "label": "Şarj",
-      "telemetries": [
-        {
-          "name": "Command Request",
-          "value": 2
-        }
-      ],
-      "atomic": true,
-      "timeoutMs": 35000,
-      "validate": {
-        "reads": [
-          {
-            "name": "Request Acknowledge",
-            "expect": 2
-          }
-        ]
-      },
-      "finalize": {
-        "telemetry": "Command Request",
-        "value": 0
-      }
-    },
-    "discharge": {
-      "label": "Deşarj",
-      "telemetries": [
-        {
-          "name": "Command Request",
-          "value": 11
-        }
-      ],
-      "atomic": true,
-      "timeoutMs": 35000,
-      "validate": {
-        "reads": [
-          {
-            "name": "Request Acknowledge",
-            "expect": 2
-          }
-        ]
-      },
-      "finalize": {
-        "telemetry": "Command Request",
-        "value": 0
-      }
     }
   },
   "type": "bsc",

@@ -103,15 +103,10 @@ describe("DemoFieldPage — site layout (UC-4)", () => {
     expect(screen.getByText("Site layout")).toBeTruthy();
   });
 
-  it("AK-11.6/AK-11.5: istasyon seçici render eder ve geçiş yapar", () => {
+  it("GD-1 tek MV istasyonu: istasyon seçici YOK (H04 1–5 + H05 6–9 tek single-line)", () => {
     renderPage();
-    // stBar + site layout başlığında iki seg var; ilki (stBar) seçilir.
-    const st1 = screen.getAllByRole("button", { name: "BESS MV St. #1" })[0];
-    const st2 = screen.getAllByRole("button", { name: "BESS MV St. #2" })[0];
-    expect(st1.getAttribute("aria-pressed")).toBe("true");
-    expect(st2.getAttribute("aria-pressed")).toBe("false");
-    fireEvent.click(st2);
-    expect(screen.getAllByRole("button", { name: "BESS MV St. #2" })[0].getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryAllByRole("button", { name: "BESS MV St. #1" })).toHaveLength(0);
+    expect(screen.queryAllByRole("button", { name: "BESS MV St. #2" })).toHaveLength(0);
   });
 
   it("DemoMimic mount olurken tema değişkenlerini light'a EZMEZ (dark korunur)", () => {

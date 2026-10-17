@@ -19,6 +19,8 @@ export interface RuleEvaluatorConfig {
 interface RuleState {
   /** Aktif dönem içinde kenar tüketildi mi? */
   fired: boolean;
+  /** `armAfterFalse` kuralları için: en az bir kez FALSE görüldü mü? */
+  armed: boolean;
   /** Son ateşleme zamanı (cooldown hesabı). */
   lastFiredAt: number | undefined;
   /** Koşul başına kesintisiz-TRUE başlangıcı (per-condition debounce). */
@@ -61,7 +63,7 @@ export class RuleEvaluator {
 
     for (const rule of rules) {
       if (rule.enabled === false) continue;
-      const state = this.stateFor(rule.name);
+      const state = this.stateFor(rule.name, rule.armAfterFalse === true);
       const conditions = rule.when.all ?? rule.when.any ?? [];
       const conditionTruths = conditions.map((c) =>
         this.conditionTrue(c, snapshot),
@@ -87,11 +89,18 @@ export class RuleEvaluator {
 
       if (!ruleTrue) {
         state.fired = false;
+        // Kurulum yalnız GERÇEK bir FALSE ile: tüm koşulların değeri mevcut
+        // olmalı (başlangıçta boş snapshot "FALSE" sayılıp kuralı kurmasın).
+        if (!state.armed && conditions.every((c) => this.hasValue(c, snapshot))) {
+          state.armed = true;
+        }
         continue;
       }
 
       if (state.fired) continue;
       state.fired = true;
+      // NEW-7: kurulmamış (henüz FALSE görmemiş) kural kenarı TÜKETİR ama ateşlemez.
+      if (!state.armed) continue;
 
       const cooldownMs = rule.cooldownMs ?? 0;
       if (
@@ -107,11 +116,12 @@ export class RuleEvaluator {
     return fired;
   }
 
-  private stateFor(name: string): RuleState {
+  private stateFor(name: string, armAfterFalse: boolean): RuleState {
     let state = this.states.get(name);
     if (!state) {
       state = {
         fired: false,
+        armed: !armAfterFalse,
         lastFiredAt: undefined,
         conditionHeldSince: [],
       };
@@ -132,6 +142,13 @@ export class RuleEvaluator {
       }
     }
     return false;
+  }
+
+  private hasValue(condition: RuleCondition, snapshot: CycleSnapshot): boolean {
+    const targets = this.catalog.resolveTargets(condition.device);
+    return targets.some(
+      (deviceId) => snapshot.value(deviceId, condition.telemetry) !== undefined,
+    );
   }
 
   private compare(

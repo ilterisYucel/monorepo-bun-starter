@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   DeviceAlarmState,
@@ -6,6 +6,7 @@ import type {
   OperationRunRecord,
 } from "@gd-monorepo/shared-types";
 import {
+  DEMO_REST_ENABLED,
   DEMO_REST_MINUTES,
   deriveRestState,
   lastFullRunFinishedAt,
@@ -26,8 +27,10 @@ import { mapFieldToMimicState } from "./mapFieldToMimicState";
 import { buildTrendSeries, TREND_SOURCE_NAMES } from "./buildTrendSeries";
 import type { DemoTrendData } from "./buildTrendSeries";
 import { deriveKpis, type NovaKpis } from "./deriveKpis";
-import { deriveAlerts, type NovaAlert } from "./deriveAlerts";
+import { alertKey, deriveAlerts, deriveAlertsRaw, type NovaAlert } from "./deriveAlerts";
 import { DEMO_TOPOLOGY, FIELD_DEVICE_IDS } from "./demo-topology";
+import { applyRmuControl, useRmuStore } from "./stores/RmuStore";
+import { useFaultClearStore } from "./stores/FaultClearStore";
 
 /**
  * Proje ekranları ortak veri katmanı (SPEC UC-2, K-4). Tek hook tüm proje
@@ -56,15 +59,30 @@ export function useDemoProject(fieldId: string): DemoProjectData {
   const containers = useDemoFieldData();
   const telemetry = useDemoFieldTelemetry();
 
+  // Admin › arıza temizleme: `cleared` değişince state YENİ nesne olur → tüm
+  // türevler (KPI, istasyon KPI'ları, izinler) yeniden hesaplanır.
+  const cleared = useFaultClearStore((s) => s.cleared);
+  const prune = useFaultClearStore((s) => s.prune);
+  const h02Open = useRmuStore((s) => s.h02Open);
+  const earthed = useRmuStore((s) => s.earthed);
   const state = useMemo(
-    () =>
-      mapFieldToMimicState(containers.data ?? [], DEMO_TOPOLOGY, {
-        extraTelemetry: telemetry.data ?? [],
-      }),
-    [containers.data, telemetry.data],
+    () => ({
+      ...applyRmuControl(
+        mapFieldToMimicState(containers.data ?? [], DEMO_TOPOLOGY, {
+          extraTelemetry: telemetry.data ?? [],
+        }),
+        h02Open,
+        earthed,
+      ),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cleared: yeniden türetme tetikleyicisi
+    [containers.data, telemetry.data, h02Open, earthed, cleared],
   );
   const kpis = useMemo(() => deriveKpis(state, DEMO_TOPOLOGY), [state]);
   const alerts = useMemo(() => deriveAlerts(state, DEMO_TOPOLOGY), [state]);
+  useEffect(() => {
+    if (cleared.length > 0) prune(deriveAlertsRaw(state, DEMO_TOPOLOGY).map(alertKey));
+  }, [state, cleared, prune]);
 
   const trends = useQuery({
     queryKey: ["demo-trends", fieldId],
@@ -105,11 +123,18 @@ export function useDemoProject(fieldId: string): DemoProjectData {
 
   const runs = useMemo(() => runsQuery.data ?? [], [runsQuery.data]);
 
-  const rest = useMemo(
-    () => deriveRestState(lastFullRunFinishedAt(runs), Date.now(), DEMO_REST_MINUTES),
+  // Dinlenme kapalıyken (DEMO_REST_ENABLED=false) hiç dinlenme fazı/beklemesi üretilmez.
+  const rest = useMemo<RestState>(
+    () =>
+      DEMO_REST_ENABLED
+        ? deriveRestState(lastFullRunFinishedAt(runs), Date.now(), DEMO_REST_MINUTES)
+        : { requiredMinutes: 0, complete: true },
     [runs],
   );
-  const restPhases = useMemo(() => restPhasesForRuns(runs, DEMO_REST_MINUTES), [runs]);
+  const restPhases = useMemo(
+    () => (DEMO_REST_ENABLED ? restPhasesForRuns(runs, DEMO_REST_MINUTES) : []),
+    [runs],
+  );
 
   const readyUnits = useMemo<DemoReadyUnit[]>(
     () =>

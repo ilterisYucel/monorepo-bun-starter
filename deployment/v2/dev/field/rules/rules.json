@@ -4,6 +4,7 @@
       "name": "r06_recovery",
       "enabled": true,
       "cooldownMs": 60000,
+      "armAfterFalse": true,
       "when": {
         "all": [
           {

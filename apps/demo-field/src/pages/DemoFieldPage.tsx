@@ -27,6 +27,13 @@ const OVERLAYS: Array<{ id: OverlayMode; label: string }> = [
 
 const PLANT = demoPlantTotals();
 
+/**
+ * GD-1 (GDE-202030) stand-alone BESS'tir: tek MV istasyonu, H04 fideri
+ * BESS#1–5, H05 fideri BESS#6–9 (2026-10-15 sahibi). PV kaynak istasyonları /
+ * Metal Clad kollektör bu projeye ait DEĞİL → plant overview gösterilmez.
+ */
+const SHOW_PLANT_OVERVIEW = false;
+
 /** DemoFieldPage (Site layout) — UC-4/UC-11: collector → istasyon (context) → mimic + attention/detail. */
 export const DemoFieldPage: React.FC = () => {
   const {
@@ -78,6 +85,7 @@ export const DemoFieldPage: React.FC = () => {
 
   return (
     <>
+      {SHOW_PLANT_OVERVIEW ? (
       <DemoPlantOverview
         topology={stationTopology}
         state={state}
@@ -95,7 +103,8 @@ export const DemoFieldPage: React.FC = () => {
         peakMW={DEMO_SOURCE.peakMW}
         powerPoints={trendData.power}
       />
-      {sourceStation ? (
+      ) : null}
+      {SHOW_PLANT_OVERVIEW && sourceStation ? (
         <>
           <div className="seg stnav" role="group" aria-label="MV station" style={{ margin: "10px 0 0" }}>
             {DEMO_STATIONS.map((s) => (
@@ -130,20 +139,6 @@ export const DemoFieldPage: React.FC = () => {
             <h2>
               Site layout<small>physical layout × single line · click an MV cell or a group</small>
             </h2>
-            {DEMO_STATIONS.length > 1 ? (
-              <div className="seg" role="group" aria-label="BESS MV station">
-                {DEMO_STATIONS.map((s) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    aria-pressed={activeStation === s.index}
-                    onClick={() => setActiveStation(s.index)}
-                  >
-                    {s.name.replace("BESS MV STATION", "BESS MV St.")}
-                  </button>
-                ))}
-              </div>
-            ) : null}
             <div className="seg" role="group" aria-label="Battery colouring">
               {OVERLAYS.map((o) => (
                 <button

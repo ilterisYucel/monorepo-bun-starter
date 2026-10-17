@@ -717,12 +717,14 @@ export class DeviceService {
         .catch(() => undefined);
     }
 
-    await this.logCommand(job, true);
-
     const validate = job.validate;
     const result = validate
       ? await this.validateReadBack(entry, validate)
       : ({ success: true } as const);
+
+    // Audit sonucu doğrulamadan SONRA yazılır: cihaz komutu reddederse
+    // (ör. LGES "Current Flows") kayıt başarılı görünmemeli (NEW-3).
+    await this.logCommand(job, result.success, result.success ? undefined : result.reason);
 
     // El sıkışma finalize (C3): doğrulama sonrası komut kutusunu boşalt
     // (LGES BSC 40010 → 0x0000). Aksi halde tekrar eden aynı komut yeni istek sayılmaz.
@@ -751,7 +753,7 @@ export class DeviceService {
 
   /**
    * Komut sonrası read-back doğrulaması — `minWaitMs` bekle, `timeoutMs` boyunca
-   * 50 ms aralıkla oku; eşleşme → `validated:true`, timeout → `validated:false`.
+   * 50 ms aralıkla oku; eşleşme → `validated:true`, timeout → `success:false, validated:false`.
    * Timeout yumuştur: tek bir okuma süreyi bir okuma süresi kadar aşabilir.
    */
   private async validateReadBack(
@@ -788,8 +790,10 @@ export class DeviceService {
       if (Date.now() - start + 50 >= validate.timeoutMs) break;
       await new Promise((r) => setTimeout(r, 50));
     }
+    // Doğrulama zaman aşımı BAŞARISIZLIKTIR (NEW-3): cihaz komutu reddettiyse
+    // (BSC Ack ≠ Done) kurallar/sekanslar bunu "ok" saymamalı.
     return {
-      success: true,
+      success: false,
       validated: false,
       reason: lastError ? `Validation timeout (last read failed: ${lastError})` : "Validation timeout",
     };

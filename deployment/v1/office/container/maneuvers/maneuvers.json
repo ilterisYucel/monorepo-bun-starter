@@ -3,15 +3,13 @@
     {
       "name": "fl01_start",
       "label": "FL-01: Sistem Başlatma",
-      "description": "Şalter AÇ + BSC start + DC çıkış ON — önkoşul kapısı ileriki faz",
-      "mode": "parallel",
+      "description": "FL-01 başlatma: DC şalterleri KAPAT → DC çıkış ON → BSC Start → Close Contactors (referans konsol FL-01; NEW-8: eskiden şalterleri AÇIYORDU).",
+      "mode": "sequential",
       "steps": [
-        { "deviceId": "CB-1", "command": "open" },
-        { "deviceId": "CB-2", "command": "open" },
-        { "deviceId": "BSC-1", "command": "start" },
-        { "deviceId": "BSC-2", "command": "start" },
-        { "deviceId": "DC-1", "command": "on" },
-        { "deviceId": "DC-2", "command": "on" }
+        { "deviceIds": ["CB-1", "CB-2"], "command": "close" },
+        { "deviceIds": ["DC-1", "DC-2"], "command": "on" },
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "start" },
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "close_contactors" }
       ]
     },
     {
@@ -126,18 +124,15 @@
     {
       "name": "bsc_prepare",
       "label": "BSC Hazırlık",
-      "description": "Kontaktörleri kapat + start — GÜÇ PARAMI YOK (K12: güç PCS S06'da)",
-      "mode": "parallel",
+      "description": "Start (≤30 s Initializing → Normal) SONRA Close Contactors — LGES Request Ack sırası; aynı 40010'a paralel yazım yok (NEW-5). Güç PCS S06'da.",
+      "mode": "sequential",
       "onFailure": "stop",
       "steps": [
-        { "deviceId": "BSC-1", "command": "close_contactors" },
-        { "deviceId": "BSC-2", "command": "close_contactors" },
-        { "deviceId": "BSC-1", "command": "start" },
-        { "deviceId": "BSC-2", "command": "start" }
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "start" },
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "close_contactors" }
       ],
       "rollbackSteps": [
-        { "deviceId": "BSC-1", "command": "stop" },
-        { "deviceId": "BSC-2", "command": "stop" }
+        { "deviceIds": ["BSC-1", "BSC-2"], "command": "stop" }
       ],
       "ui": { "hidden": true }
     }

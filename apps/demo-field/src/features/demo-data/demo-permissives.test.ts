@@ -39,9 +39,10 @@ function state(over: Partial<NovaMimicState> = {}): NovaMimicState {
 const topo = DEMO_TOPOLOGY as NovaTopology;
 
 describe("derivePermissives (UC-5, referans sim.permissives)", () => {
-  it("referans madde başlıklarını üretir (8 madde)", () => {
+  it("referans madde başlıklarını üretir (8 madde + FSS)", () => {
     const perms = derivePermissives(state(), topo, { dir: "chg", powerKw: 200, scope: [1] });
-    expect(perms).toHaveLength(8);
+    expect(perms).toHaveLength(9);
+    expect(perms.some((p) => p.label.includes("Fire suppression"))).toBe(true);
     expect(perms[0].label).toBe("Site status Ready (FL-01)");
     expect(perms.find((p) => p.label.includes("Requested power at POI"))).toBeTruthy();
     expect(perms.some((p) => p.label.includes("Calibration not overdue"))).toBe(true);

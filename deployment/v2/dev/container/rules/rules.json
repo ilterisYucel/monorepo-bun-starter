@@ -1899,7 +1899,7 @@
             "threshold": 1,
             "device": {
               "ids": [
-                "FSS-1"
+                "CONTROL-PANEL-IO-1"
               ]
             }
           }
@@ -1960,7 +1960,7 @@
           "action": "log",
           "level": "error",
           "eventCode": "auto_rule_fss_first_stage",
-          "message": "FSS 1. aşama → HVAC off + BSC Emergency"
+          "message": "Sigma XT 1. aşama rölesi (CP-IO DI) → HVAC off + BSC Emergency"
         }
       ]
     }

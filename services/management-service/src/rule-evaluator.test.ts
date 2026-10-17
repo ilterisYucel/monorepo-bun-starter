@@ -350,3 +350,35 @@ describe("RuleEvaluator — A2 abs operatörleri", () => {
     expect(evaluator().evaluate([absGt], fakeSnapshot({ "bsc-1": { i: snapshotValue(-1680) } }))).toEqual([]);
   });
 });
+
+describe("RuleEvaluator — armAfterFalse (NEW-7)", () => {
+  it("başlangıçta koşul zaten TRUE ise ateşlemez", () => {
+    const ev = evaluator();
+    const rules = [rule({ armAfterFalse: true })];
+    const high = fakeSnapshot({ "bsc-1": { soc: snapshotValue(95) } });
+    expect(ev.evaluate(rules, high)).toEqual([]);
+    clock += 1000;
+    expect(ev.evaluate(rules, high)).toEqual([]);
+  });
+
+  it("boş snapshot kuralı KURMAZ; değer gelip TRUE ise yine ateşlemez", () => {
+    const ev = evaluator();
+    const rules = [rule({ armAfterFalse: true })];
+    ev.evaluate(rules, fakeSnapshot({}));
+    clock += 1000;
+    expect(
+      ev.evaluate(rules, fakeSnapshot({ "bsc-1": { soc: snapshotValue(95) } })),
+    ).toEqual([]);
+  });
+
+  it("gerçek FALSE görüldükten sonraki yükselen kenarda ateşler", () => {
+    const ev = evaluator();
+    const rules = [rule({ armAfterFalse: true })];
+    const high = fakeSnapshot({ "bsc-1": { soc: snapshotValue(95) } });
+    const low = fakeSnapshot({ "bsc-1": { soc: snapshotValue(80) } });
+    ev.evaluate(rules, high);
+    ev.evaluate(rules, low);
+    clock += 1000;
+    expect(ev.evaluate(rules, high)).toEqual([rules[0]]);
+  });
+});

@@ -169,13 +169,19 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
   const [op, setOp] = useState("chgdis");
   const [scope, setScope] = useState<Set<number>>(new Set(units.map((u) => u.n)));
   const [dir, setDir] = useState<"chg" | "dis">("dis");
-  const [powerKw, setPowerKw] = useState(200);
+  // FL-02 gücü MW cinsinden (istasyon toplamı); PCS başına = MW ÷ istasyon PCS sayısı.
+  const [powerMW, setPowerMW] = useState(1);
+  const stationPcs = Math.max(1, units.length * 2);
+  const perPcsKw = (powerMW * 1000) / stationPcs;
+  const powerKw = powerMW * 1000;
   const [target, setTarget] = useState("");
   const [calUnits, setCalUnits] = useState<Set<number>>(new Set());
   const [calWhen, setCalWhen] = useState<"now" | "at">("now");
   const [calTime, setCalTime] = useState("16:00");
   const [unit, setUnit] = useState(units[0]?.n ?? 1);
   const [confirm, setConfirm] = useState(false);
+  // FL-05 / FL-11: iki adımlı onay (referans app.js confirm metinleri).
+  const [armed, setArmed] = useState<"estop" | "maint" | null>(null);
 
   // Units can arrive after mount (telemetry gecikmesi): mount'ta boşken scope
   // boş kalır ve Send devre dışı kalırdı. Units geldiğinde (ve kullanıcı seçim
@@ -198,6 +204,11 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
     () => permissivesFor({ dir, powerKw, scope: scopeList }),
     [permissivesFor, dir, powerKw, scopeList],
   );
+  // FL-02: HERHANGİ bir izin başarısızsa gönderim engellenir (sim.js permissives;
+  // eskiden yalnız "hard" topraklama izni engelliyordu).
+  const failing = permissives.filter((p) => !p.ok);
+  const startupFailing = (startupChecks ?? []).filter((p) => !p.ok);
+  const maxMW = (stationPcs * 1725) / 1000;
 
   const lastFull = useMemo(() => {
     const pick = (name: string): string | undefined =>
@@ -286,13 +297,24 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
                 ))}
               </ul>
               <div className="row" style={{ marginTop: 8 }}>
-                <button type="button" className="btn btn-primary" disabled={busy} onClick={() => onRun("startup", {})}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={busy || startupFailing.length > 0}
+                  title={startupFailing.length ? `Blocked: ${startupFailing.map((p) => p.label).join(" · ")}` : undefined}
+                  onClick={() => onRun("startup", {})}
+                >
                   Start-up
                 </button>
                 <button type="button" className="btn btn-warn" disabled={busy} onClick={() => onRun("shutdown", {})}>
                   Shut-down
                 </button>
               </div>
+              {startupFailing.length ? (
+                <p className="okmsg" style={{ color: "var(--nm-alarm, #c0392b)" }}>
+                  Start-up blocked — {startupFailing.length} check(s) not passed.
+                </p>
+              ) : null}
               <p className="okmsg">{message}</p>
             </div>
           ) : null}
@@ -336,11 +358,22 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
                     </div>
                   </div>
                   <label className="fld">
-                    <span>Active power (kW)</span>
+                    <span>Active power (MW)</span>
                     <span className="inl">
-                      <input type="number" data-testid="ops-power" min={0} max={3568} step={10} value={powerKw} onChange={(e) => setPowerKw(Number(e.target.value))} />
+                      <input
+                        type="number"
+                        data-testid="ops-power"
+                        min={0}
+                        max={maxMW}
+                        step={0.1}
+                        value={powerMW}
+                        onChange={(e) => setPowerMW(Math.max(0, Math.min(maxMW, Number(e.target.value))))}
+                      />
                     </span>
-                    <small>Split equally between the PCS of the container.</small>
+                    <small data-testid="ops-per-pcs">
+                      Station total · per PCS {perPcsKw.toFixed(1)} kW = {powerMW} MW ÷ {stationPcs} PCS in the station (max{" "}
+                      {maxMW.toFixed(2)} MW = {stationPcs} × 1725 kW; POI availability is checked in permissive 8).
+                    </small>
                   </label>
                   <label className="fld">
                     <span>Target SOC (%)</span>
@@ -389,25 +422,26 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
               <div className="fs send">
                 <p className="summary">
                   <b>
-                    {dir === "chg" ? "Charge" : "Discharge"} {powerKw} kW
+                    {dir === "chg" ? "Charge" : "Discharge"} {powerMW} MW
                   </b>{" "}
+                  · {perPcsKw.toFixed(1)} kW / PCS{" "}
                   · {scopeList.length ? `BESS#${scopeList.join(", #")}` : "no group selected"}
                   {target !== "" && target.trim() !== "" ? ` · target ${target} %` : ""}
                 </p>
                 {confirm ? (
                   <div className="confirm">
                     <b>
-                      {dir === "chg" ? "Charge" : "Discharge"} {powerKw} kW on BESS#{scopeList.join(", #")}?
+                      {dir === "chg" ? "Charge" : "Discharge"} {powerMW} MW ({perPcsKw.toFixed(1)} kW per PCS × {stationPcs} PCS) on BESS#{scopeList.join(", #")}?
                     </b>
                     <div className="row">
                       <button
                         type="button"
                         data-testid="ops-confirm"
                         className="btn btn-primary"
-                        disabled={busy || scopeList.length === 0 || permissives.some((p) => !p.ok && p.hard)}
+                        disabled={busy || scopeList.length === 0 || failing.length > 0}
                         onClick={() => {
                           setConfirm(false);
-                          onRun("chgdis", { powerKw, dir, target, scope: scopeList });
+                          onRun("chgdis", { powerMW, perPcsKw, dir, target, scope: scopeList });
                         }}
                       >
                         Confirm and execute
@@ -422,12 +456,17 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
                     type="button"
                     data-testid="ops-send"
                     className="btn btn-primary"
-                    disabled={scopeList.length === 0 || busy || permissives.some((p) => !p.ok && p.hard)}
+                    disabled={scopeList.length === 0 || busy || failing.length > 0}
                     onClick={() => setConfirm(true)}
                   >
                     Send command
                   </button>
                 )}
+                {failing.length ? (
+                  <p className="okmsg" data-testid="ops-blocked" style={{ color: "var(--nm-alarm, #c0392b)" }}>
+                    Blocked — {failing.length} permissive(s) not met: {failing.map((p) => p.label).join(" · ")}
+                  </p>
+                ) : null}
                 {targetStatus ? (
                   <p className="okmsg" data-testid="ops-target-status" style={{ color: "var(--nm-info)" }}>
                     {targetStatus}
@@ -493,7 +532,7 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
                   type="button"
                   className="btn btn-primary"
                   disabled={busy || calUnits.size === 0}
-                  onClick={() => onRun("calib", { when: calWhen, at: calTime })}
+                  onClick={() => onRun("calib", { when: calWhen, at: calTime, units: [...calUnits].sort((a, b) => a - b) })}
                 >
                   {calWhen === "now" ? "Start calibration" : "Schedule calibration"}
                 </button>
@@ -515,9 +554,32 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
                 </select>
               </label>
               <SequenceList steps={def.sequence} />
-              <button type="button" className="btn btn-danger big" disabled={busy} onClick={() => onRun("estop", { unit })}>
-                Emergency stop
-              </button>
+              {armed === "estop" ? (
+                <div className="confirm">
+                  <b>Emergency stop BESS#{unit}? BSC Emergency (0x0001) + PCS stop — not reversible without FL-06 recovery.</b>
+                  <div className="row">
+                    <button
+                      type="button"
+                      data-testid="ops-estop-confirm"
+                      className="btn btn-danger"
+                      disabled={busy}
+                      onClick={() => {
+                        setArmed(null);
+                        onRun("estop", { unit });
+                      }}
+                    >
+                      Confirm emergency stop
+                    </button>
+                    <button type="button" className="btn" onClick={() => setArmed(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" className="btn btn-danger big" disabled={busy} onClick={() => setArmed("estop")}>
+                  Emergency stop
+                </button>
+              )}
               <p className="okmsg">{message}</p>
             </div>
           ) : null}
@@ -535,11 +597,41 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
                 </select>
               </label>
               <SequenceList steps={def.sequence} />
-              <div className="row">
-                <button type="button" className="btn btn-primary" disabled={busy} onClick={() => onRun("maint", { unit })}>
-                  Enter maintenance
-                </button>
-              </div>
+              {armed === "maint" ? (
+                <div className="confirm">
+                  <b>Put BESS#{unit} into maintenance? The group is isolated and removed from dispatch.</b>
+                  <div className="row">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      disabled={busy}
+                      onClick={() => {
+                        setArmed(null);
+                        onRun("maint", { unit });
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    <button type="button" className="btn" onClick={() => setArmed(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="row">
+                  <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setArmed("maint")}>
+                    Enter maintenance
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled
+                    title="Exit maintenance sequence not defined in the backend yet (no maintenance operation in operations.json)"
+                  >
+                    Exit maintenance
+                  </button>
+                </div>
+              )}
               <p className="okmsg">{message}</p>
             </div>
           ) : null}

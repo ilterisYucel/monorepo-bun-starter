@@ -203,28 +203,14 @@
       "offset": 0
     },
     {
-      "kind": "register",
-      "from": {
-        "deviceId": "BSC-1",
-        "table": "input",
-        "address": 30118,
-        "size": 2
-      },
+      "kind": "constant",
       "to": 784,
-      "ratio": 0.001,
-      "offset": 0
+      "value": 14688
     },
     {
-      "kind": "register",
-      "from": {
-        "deviceId": "BSC-1",
-        "table": "input",
-        "address": 30122,
-        "size": 2
-      },
+      "kind": "constant",
       "to": 785,
-      "ratio": 0.001,
-      "offset": 0
+      "value": 11016
     },
     {
       "kind": "constant",
