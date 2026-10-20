@@ -1,358 +1,369 @@
 ---
 status: active
 space: architecture
-tags: [mimari, ws-tunnel, bootstrap, kimlik, peer, dev-prod, spec]
+tags: [mimari, ws-tunnel, bootstrap, kimlik, hub-servis, hexagonal, sqlite, spec]
 review_date: 2026-10-16
 ---
 
 # ws-tunnel Bootstrap ve Peer Kimliği — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ✅ ONAYLANDI (2026-10-16) — İP-1 sonrası sırada (aşama 2-4).
-> **İlişkili:** [WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md](./WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md), [WS-TUNNEL-URUN-TESCILI.md](./WS-TUNNEL-URUN-TESCILI.md), [AGENTS-WS-TUNNEL.md](../../AGENTS-WS-TUNNEL.md), [AGENTS-DEPLOYMENT.md](../../AGENTS-DEPLOYMENT.md)
+> **Durum:** 🟢 DOĞRULANMIŞ (2026-10-16) — KAPANIŞ tamam.
+> **KAPANIŞ:** [WS-TUNNEL-BOOTSTRAP-KIMLIK-KAPANIS.md](./WS-TUNNEL-BOOTSTRAP-KIMLIK-KAPANIS.md)
+> **İlişkili:** [WS-TUNNEL-HUB-SERVIS-MIMARISI.md](./WS-TUNNEL-HUB-SERVIS-MIMARISI.md), [WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md](./WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md), [WS-TUNNEL-DOMAIN-KALINTI-ARINDIRMA-MIMARISI.md](./WS-TUNNEL-DOMAIN-KALINTI-ARINDIRMA-MIMARISI.md), [AGENTS-WS-TUNNEL.md](../../AGENTS-WS-TUNNEL.md)
 
 ## 1. Amaç ve Bağlam
 
-Bugün peer kimliği **elle üretilip elle taşınıyor**: admin, peer için bir uplink token'ı girer (`admin-routes.ts` → `upsertToken`), token peer'ın `.env`'ine yazılır ve hub'a kaydedilir. Bu akış, demo/ortam taşımayı yavaşlatır (her peer için manuel token işi), token'ı peer'ın üretmesine/kimliğini kendi ilan etmesine yakın bir modeldir ve token yaşam döngüsü (üretim, tek kullanım, iptal) merkezi değildir.
+Bugün peer kimliği **env'de tek paylaşılan token** ile yönetiliyor (`EnvPeerTokenStore`, P2). Bu, demo/tek-peer için yeterli; ancak çoklu peer, tek-kullanımlık bootstrap, kalıcı kimlik ve iptal (revocation) yoktur. Kimlik otoritesi **hub-servis** olacaktır:
 
-**Çözüm yönü:** Kimlik otoritesi **hub** olur. Hub, yeni peer için **tek kullanımlık, TTL'li bootstrap token** üretir; bu token peer'a güvenli kanaldan (env var) iletilir. Peer, token'ı **HTTP üzerinden** kalıcı kimliğiyle (`peerSecret`) takas eder; sonraki WS bağlantıları mevcut Bearer-token yoluyla kurulur. Böylece **WS/tünel protokolü hiç değişmez**; bootstrap tamamen tüketici (web-service) katmanında yaşar.
+1. Hub, yeni peer için **tek kullanımlık, TTL'li bootstrap token** üretir.
+2. Peer, bu token'ı **HTTP üzerinden** kalıcı kimliğiyle (`peerSecret`) takas eder.
+3. Sonraki WS bağlantıları mevcut Bearer-token yoluyla kurulur — **WS/tünel protokolü değişmez**.
+4. Admin, peer'ı iptal eder → kimlik geçersiz + aktif bağlantı düşer.
 
-**Dev/prod ayrımı:** Lokal geliştirmede TLS/domain/bootstrap derdi olmamalı. Bu bir **deployment sözleşmesidir** — pakete dev/prod bayrağı eklenmez; hub dev yapılandırması token'sız register kabul eder, üretimde bootstrap zorunludur.
+**Konum:** Hub-servis (P2) hexagonal çekirdeği. Kimlik akışları **use-case + port**; sqlite yalnız **outbound adapter**. `@gd-monorepo/ws-tunnel` paketi **değişmez** (wire aynı).
 
 ### Kapsam
 
 | Katman | Bu SPEC'te |
 |:-------|:-----------|
 | Hub-üretimli bootstrap token (üretim/claim/iptal) | ✅ dahil |
-| Kalıcı peer kimliği (`peerSecret`) ve WS auth sürekliliği | ✅ dahil |
+| Kalıcı `peerSecret` (sqlite hash) + WS auth sürekliliği | ✅ dahil |
 | Revocation + aktif bağlantı düşürme + re-enrollment | ✅ dahil |
-| Dev/prod mod sözleşmesi (deployment) | ✅ dahil |
-| Paket (`@gd-monorepo/ws-tunnel`) protokol/kod değişikliği | ❌ hariç — sıfır değişiklik |
+| Dev/prod auth modu (env vs sqlite) | ✅ dahil |
+| Paket (`@gd-monorepo/ws-tunnel`) değişikliği | ❌ hariç — sıfır değişiklik |
 | mTLS / client-cert / public-key pinning | ❌ hariç (§10 A1) |
-| Çoklu tenant / merkezi kimlik sunucusu (IdP) | ❌ hariç (§10 A2) |
-| Keşif + opak servis erişimi | ❌ hariç → `WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md` |
+| Tarayıcı kullanıcı login'i / cookie front-door | ❌ hariç — P3 |
+| Monorepo web-service entegrasyonu | ❌ hariç — P3 |
 
 ## 2. Kararlar (kullanıcı onaylı, tarihli)
 
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
-| K1 | Bootstrap token **hub-üretimli**, tek kullanımlık, 24 saat TTL | Üretim yalnız hub'da; peer kendi kimliğini ilan etmez |
-| K2 | Takas **HTTP üzerinden** (mevcut register API deseni) | WS/tünel protokolü DEĞİŞMEZ; pakete sıfır dokunuş |
-| K3 | Kalıcı kimlik = uzun ömürlü rastgele `peerSecret` | Mevcut token-hash modelinin genelleşmesi; mTLS/pubkey-pin sonraki adım (A1) |
-| K4 | Dev/prod **paket bayrağı değil**, deployment sözleşmesi | Dev: `ws://` + token opsiyonel; Prod: `wss://` + bootstrap zorunlu |
-| K5 | Revocation = kimliği sil + aktif WS'i düşür | Re-enrollment yeni bootstrap ile; mevcut `removeToken` genişler |
+| K1 | Bootstrap token **hub-üretimli**, tek kullanımlık, 24 saat TTL | Yalnız hub üretir; peer kendi kimliğini ilan etmez |
+| K2 | Takas **HTTP üzerinden** (hub-servis inbound) | WS/tünel protokolü DEĞİŞMEZ; paket sıfır değişiklik |
+| K3 | Kalıcı kimlik = hub-üretimli rastgele `peerSecret`; **sqlite'ta hash** | Düz metin saklanmaz; mevcut Bearer-token yolu aynı |
+| K4 | **Auth modu:** `PEER_TOKEN` env = dev/simple; sqlite + bootstrap = prod | `HUB_AUTH_MODE=headless` yerine env varlığına göre seçim; fail-fast |
+| K5 | Revocation = kimliği iptal + **aktif WS kapat** | Re-enrollment yalnız yeni bootstrap ile |
+| K6 | **Hexagonal:** bootstrap/claim/revoke use-case; sqlite yalnız adapter | Domain/application sqlite/env import ETMEZ |
+| K7 | Wire v1/v2 birebir | Tagli peer'lar aynı frame'lerle çalışmaya devam eder |
 
 ## 3. Mevcut Durum / Kök Nedenler
 
 | Kod | Bulgu | Kanıt |
 |:----|:------|:------|
-| B1 | Token admin tarafından elle giriliyor (peer üretmiyor); ölçeklenmez ve demo/ortam taşımayı yavaşlatır | `services/web-service/src/presentation/routes/admin-routes.ts` — `upsertToken(field.id, body.uplinkToken)` |
-| B2 | Kimlik deposu yalnız kalıcı token hash'i tutar; bootstrap/TTL/tek-kullanım kavramı yok | `services/web-service/src/infrastructure/field-uplink/field-registry.ts#FieldRegistry` — `token_hash` |
-| B3 | WS auth mevcut Bearer-token → hash yolu; yeniden kullanılabilir | `services/web-service/src/presentation/routes/field-uplink-ws-routes.ts#fieldUplinkWsRoutes` |
-| B4 | Kimlik iptalinde aktif bağlantı düşürme yok (yalnız kayıt silinir) | `services/web-service/src/infrastructure/field-uplink/field-registry.ts#FieldRegistry` — `removeToken` |
-| B5 | Dev/prod mod ve token'sız lokal geliştirme sözleşmesi dokümante değil | `AGENTS-DEPLOYMENT.md`; loopback demo (`packages/ws-tunnel/examples`) |
+| B1 | Peer auth tek env token'ı; çoklu peer/tek-kullanım/TTL yok | `hub-servis/src/infrastructure/outbound/env-peer-token-store.ts#EnvPeerTokenStore` |
+| B2 | Sqlite adapter yalnız `authenticate` iskeleti; bootstrap/claim/revoke yok | `hub-servis/src/infrastructure/outbound/sqlite-peer-credential-store.ts#SqlitePeerCredentialStore` |
+| B3 | Hub'da bootstrap üretim/claim uçları yok | `hub-servis/src/infrastructure/inbound/fastify-server.ts#buildHubServer` |
+| B4 | Revocation'da aktif bağlantı düşürme yok | `hub-servis/src/infrastructure/inbound/peer-channel-hub.ts#PeerChannelHub` |
+| B5 | Legacy `FieldRegistry` token modeli web-service'te (P3'te emekli) | `services/web-service/src/infrastructure/field-uplink/field-registry.ts#FieldRegistry` |
 
 ## 4. Mimari
 
-### 4.1 Bootstrap akışı (üretim → takas → sürekli kimlik)
+### 4.1 Bootstrap akışı (hub-servis)
 
 ```
-1) Admin:  POST /api/admin/peers/bootstrap   →  { peerId, bootstrapToken, expiresAt }
-                                                  (DB: sha256(bootstrapToken), TTL 24h, used=false)
-2) Teslim: BOOTSTRAP_TOKEN=<token> env ile peer'a                          ← güvenli kanal (env/config/QR)
-3) Peer:   POST /api/peers/bootstrap/claim  { peerId, bootstrapToken }  →  { peerSecret }
-                                                  (token used=true; DB: sha256(peerSecret))
-4) Peer:   WS /ws/field  Authorization: Bearer <peerSecret>                  ← MEVCUT yol, protokol aynı
-5) Hub:    authenticateToken(peerSecret) → register-ack ok
+1) Admin:  POST /admin/peers            { peerId }
+              → { peerId, bootstrapToken, expiresAt }        (DB: bootstrap hash, TTL 24h, used=false)
+2) Teslim: BOOTSTRAP_TOKEN=<token> env/QR/config ile peer'a
+3) Peer:   POST /peers/bootstrap/claim  { peerId, bootstrapToken }
+              → { peerSecret }                                (token used=true; DB: secret hash)
+4) Peer:   WS /ws/peer  Authorization: Bearer <peerSecret>    ← MEVCUT yol, protokol aynı
+5) Admin:  DELETE /admin/peers/:peerId
+              → kimlik revoked + aktif WS kapatılır
 ```
 
-- **Adım 3 tek kullanımlıktır**: aynı bootstrap token ikinci kez claim edilemez.
-- **Adım 4-5 mevcut mekanizmadır** (`field_uplinks.token_hash` + Bearer) — yeni protokol yok.
-- Peer agent kalıcı `peerSecret`'i kendi lokal deposunda saklar; sonraki açılışlarda env'e gerek yok.
+### 4.2 Hexagonal yerleşim
 
-### 4.2 Dev vs Prod
+```
+application/  CreateBootstrap · ClaimBootstrap · RevokePeer
+domain/ports/ IPeerBootstrapRepository · IPeerDisconnector
+infrastructure/outbound/ SqlitePeerCredentialRepository (bootstrap + secret + revoke)
+infrastructure/inbound/  admin-routes (POST/DELETE) · bootstrap-routes (claim)
+config/       auth modu seçimi (env vs sqlite) — fail-fast
+```
 
-| Boyut | Dev | Prod |
-|:------|:----|:-----|
-| Taşıma | `ws://` (TLS yok) | `wss://` (TLS zorunlu — NIS-2) |
-| Domain | `localhost` yeterli | hub domaini |
-| Register auth | Token opsiyonel (yalnız dev env; hub dev config) | Bootstrap/`peerSecret` zorunlu (fail-closed) |
-| Bootstrap | Opsiyonel/sabit dev token | Zorunlu, tek kullanımlık |
-| Paket farkı | YOK | YOK |
+- `domain`/`application` sqlite/env/HTTP bilmez.
+- Bootstrap token ve `peerSecret` yalnız **hash** olarak saklanır; düz metin yalnız yanıtta bir kez.
 
 ## 5. Purity Kuralları
 
-1. Paket (`@gd-monorepo/ws-tunnel`) bu SPEC kapsamında **değişmez** — bootstrap tüketici katmanındadır.
-2. Sırlar asla düz metin saklanmaz: `bootstrapToken` ve `peerSecret` yalnız `sha256` hash olarak DB'de (`field_uplinks` deseni).
-3. `peerSecret`/`bootstrapToken` log'lara yazılmaz (redacted; mevcut secret-log kuralı).
-4. Dev modu **yalnız** açık dev yapılandırmasında token'sız kabul eder; prod'da bu yol kapalıdır (fail-closed).
-5. Bootstrap/claim uçları tüketicide (web-service); domain/oturum kavramı pakete girmez.
-6. WS/tünel protokolü ve `packages/ws-tunnel` sözleşmeleri bu işte referans dışıdır — dokunulmaz.
+1. `hub-servis/src/{domain,application}` altında sqlite/env/Fastify importu YASAK.
+2. Sırlar düz metin saklanmaz/loglanmaz; `sha256` hash + sabit-zamanlı karşılaştırma.
+3. Bootstrap tek kullanım + TTL + fail-closed; süresi geçmiş/kullanılmış token reddedilir.
+4. Auth modu seçimi fail-fast; ne `PEER_TOKEN` ne sqlite hazırsa açılış reddedilir.
+5. WS/tünel wire şekilleri değişmez; revocation yalnız kimliği ve bağlantıyı düşürür.
+6. `peerSecret` yalnız sahibine (claim yanıtı) bir kez döner; loglanmaz.
 
 ## 6. Use Case'ler
 
-### 6.1 UC-1 — Hub bootstrap token üretimi
+### 6.1 UC-1 — CreateBootstrap (admin)
 
-**Status:** ✅ Approved (2026-10-16)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
-- dahil: admin peer bootstrap üretimi, tek kullanım + TTL + hash saklama, audit.
-- hariç: claim (UC-2); revocation (UC-3); dev mod (UC-4); paket değişikliği.
+- dahil: admin (consumer token) peer oluşturma + tek kullanımlık bootstrap üretimi.
+- hariç: claim (UC-2); revocation (UC-3).
 
 **Akış:**
-1. Admin `POST /api/admin/peers/bootstrap` çağırır.
-2. Hub tek kullanımlık `bootstrapToken` üretir, `sha256`'ini TTL ile saklar.
-3. Düz metin token yalnız yanıtta bir kez döner.
+1. Admin `POST /admin/peers {peerId}` çağırır (consumer token).
+2. Use-case rastgele token üretir; hash + TTL(24h) + used=false saklanır.
+3. Düz metin token yalnız yanıtta döner.
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-1.1 | Bootstrap üretimi hub'da yapılmalı; düz metin token tek kez yanıtta, DB'de yalnız hash saklanmalı | AK-1.1 |
-| FR-1.2 | Token tek kullanımlık ve 24 saat TTL'li olmalı (`used`, `expires_at`) | AK-1.2 |
-| FR-1.3 | Üretim audit'lenmeli (peer_bootstrap_created) | AK-1.3 |
+| FR-1.1 | Bootstrap yalnız admin (consumer token) ile üretilmeli; düz metin tek kez yanıtta, DB'de hash | AK-1.1 |
+| FR-1.2 | Token tek kullanımlık + 24 saat TTL olmalı | AK-1.2 |
+| FR-1.3 | Aynı peer için yeni bootstrap, önceki kullanılmamış token'ı geçersiz kılmalı | AK-1.3 |
 
 **Kabul Senaryoları (GWT):**
-1. **AK-1.1 — GIVEN** admin bootstrap ister **WHEN** istek işlenir **THEN** düz metin token döner ve DB'de yalnız hash bulunur.
-2. **AK-1.2 — GIVEN** yeni token üretildi **WHEN** kayıt incelenir **THEN** `expires_at = +24h` ve `used = false`'dır.
-3. **AK-1.3 — GIVEN** bootstrap üretildi **WHEN** denetim incelenir **THEN** `peer_bootstrap_created` kaydı mevcuttur.
+1. **AK-1.1 — GIVEN** admin consumer token **WHEN** `POST /admin/peers` **THEN** düz metin token döner, DB'de yalnız hash.
+2. **AK-1.2 — GIVEN** yeni token **WHEN** kayıt incelenir **THEN** `expires_at=+24h`, `used=false`.
+3. **AK-1.3 — GIVEN** kullanılmamış eski token **WHEN** yeni bootstrap üretilir **THEN** eski token claim edilemez.
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-1.1 | Bootstrap hub'da üretilir, hash saklanır | unit | ⬜ |
-| AK-1.2 | TTL + tek kullanım alanları yazılır | unit | ⬜ |
-| AK-1.3 | Üretim audit olayı basılır | unit | ⬜ |
+| AK-1.1 | Admin üretim + hash | unit | ⬜ |
+| AK-1.2 | TTL + tek kullanım | unit | ⬜ |
+| AK-1.3 | Yeni token eskiyi geçersiz kılar | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-1: YENİ bootstrap deposu + üretim ucu (`POST /api/admin/peers/bootstrap`)
-- [ ] T-2: Bootstrap üretim/TTL/tek-kullanım testleri
-- [ ] T-3: `event-codes.ts` — `peer_bootstrap_created` + audit yazımı
+- [ ] T-1: `IPeerBootstrapRepository` portu + sqlite adapter (bootstrap tablosu)
+- [ ] T-2: `CreateBootstrap` use-case + testler
+- [ ] T-3: `POST /admin/peers` rotası (consumer token) + testler
 
 **Edge Cases:**
 | Durum | Davranış |
 |:------|:---------|
-| Aynı peer için yeni bootstrap | Önceki kullanılmamış token geçersiz kılınır |
-| Yetkisiz çağrı | 401/403 (admin/teknik) |
+| Yetkisiz çağrı | 401 |
+| Boş peerId | 400 |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `services/web-service/src/infrastructure/field-uplink/field-registry.ts#FieldRegistry` | Bootstrap deposu + üretim |
-| `services/web-service/src/presentation/routes/admin-routes.ts` | Bootstrap üretim ucu |
-| `packages/platform/logging/src/event-codes.ts` | `peer_bootstrap_created` olay kodu |
+| `hub-servis/src/domain/ports/peer-bootstrap-repository.ts` | YENİ — port |
+| `hub-servis/src/application/create-bootstrap.ts` | YENİ — use-case |
+| `hub-servis/src/infrastructure/inbound/routes/admin-routes.ts` | YENİ — admin rotaları |
 
-### 6.2 UC-2 — Peer bootstrap claim → kalıcı kimlik
+### 6.2 UC-2 — ClaimBootstrap (peer)
 
-**Status:** ✅ Approved (2026-10-16)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
-- dahil: claim ucu, `peerSecret` üretimi, tek kullanım işaretleme, mevcut WS auth sürekliliği.
-- hariç: üretim (UC-1); revocation (UC-3); mTLS (A1).
+- dahil: token doğrulama, kalıcı `peerSecret` üretimi, tek kullanım işaretleme, WS auth sürekliliği.
+- hariç: üretim (UC-1); revocation (UC-3).
 
 **Akış:**
-1. Peer `BOOTSTRAP_TOKEN` ile `POST /api/peers/bootstrap/claim` çağırır.
-2. Hub token'ı hash+TTL+tek-kullanım ile doğrular.
-3. Geçerliyse kalıcı `peerSecret` üretir (hash DB'ye, düz metin yanıtta), token'ı `used=true` yapar.
+1. Peer `POST /peers/bootstrap/claim {peerId, bootstrapToken}` çağırır.
+2. Use-case bootstrap'ı hash + TTL + used ile doğrular.
+3. Geçerliyse rastgele `peerSecret` üretir (hash DB'ye, düz metin yanıtta), token used=true.
 4. Peer sonraki bağlantıları `peerSecret` ile kurar (mevcut Bearer yolu).
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-2.1 | Claim, bootstrap token'ı hash + TTL + tek-kullanım ile doğrulamalı (fail-closed) | AK-2.1 |
-| FR-2.2 | Geçerli claim kalıcı `peerSecret` üretmeli (düz metin yanıtta, hash DB'de) | AK-2.2 |
+| FR-2.1 | Claim bootstrap'ı hash + TTL + tek-kullanım ile doğrulamalı (fail-closed) | AK-2.1 |
+| FR-2.2 | Geçerli claim kalıcı `peerSecret` üretmeli; DB'de hash, yanıtta düz metin | AK-2.2 |
 | FR-2.3 | Kullanılmış/süresi geçmiş token ikinci claim'de reddedilmeli | AK-2.3 |
-| FR-2.4 | Sonraki WS bağlantıları `peerSecret` ile mevcut Bearer-token yolunu kullanmalı (protokol değişmez) | AK-2.4 |
+| FR-2.4 | Sonraki WS bağlantıları `peerSecret` ile mevcut Bearer yolunu kullanmalı | AK-2.4 |
 
 **Kabul Senaryoları (GWT):**
-1. **AK-2.1 — GIVEN** geçerli bootstrap token **WHEN** claim çağrılır **THEN** doğrulama başarılı olur.
-2. **AK-2.2 — GIVEN** geçerli claim **WHEN** işlenir **THEN** `peerSecret` döner ve hash'i DB'de saklanır.
-3. **AK-2.3 — GIVEN** token daha önce kullanıldı **WHEN** tekrar claim edilir **THEN** reddedilir.
-4. **AK-2.4 — GIVEN** peer `peerSecret` aldı **WHEN** `/ws/field`'a bağlanır **THEN** mevcut token doğrulaması kabul eder.
+1. **AK-2.1 — GIVEN** geçerli bootstrap **WHEN** claim **THEN** doğrulama başarılı.
+2. **AK-2.2 — GIVEN** geçerli claim **WHEN** işlenir **THEN** `peerSecret` döner, hash DB'de.
+3. **AK-2.3 — GIVEN** token kullanıldı **WHEN** tekrar claim **THEN** 409/400 reddedilir.
+4. **AK-2.4 — GIVEN** peer secret aldı **WHEN** `/ws/peer`'a bağlanır **THEN** sqlite auth kabul eder.
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-2.1 | Claim doğrulaması hash+TTL+tek-kullanım | unit | ⬜ |
-| AK-2.2 | Kalıcı `peerSecret` üretilir | unit | ⬜ |
-| AK-2.3 | Tekrar claim reddedilir | unit | ⬜ |
-| AK-2.4 | WS auth mevcut yoldan çalışır | integration | ⬜ |
+| AK-2.1 | Hash+TTL+tek kullanım | unit | ⬜ |
+| AK-2.2 | Kalıcı secret | unit | ⬜ |
+| AK-2.3 | Tekrar claim reddi | unit | ⬜ |
+| AK-2.4 | WS auth sürekliliği | integration | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-4: Claim ucu (`POST /api/peers/bootstrap/claim`) + `peerSecret` üretimi
-- [ ] T-5: Tek kullanım işaretleme + reddi
-- [ ] T-6: Claim/tek-kullanım/`peerSecret` testleri
+- [ ] T-4: `ClaimBootstrap` use-case + testler
+- [ ] T-5: `POST /peers/bootstrap/claim` rotası + testler
+- [ ] T-6: Güvenli token/secret üretimi (`crypto.randomBytes`) + hash
 
 **Edge Cases:**
 | Durum | Davranış |
 |:------|:---------|
-| Süresi geçmiş token | Reddedilir; audit |
-| Bilinmeyen `peerId` | Reddedilir |
-| Claim sonrası eski bootstrap yeniden kullanımı | Reddedilir |
+| Süresi geçmiş token | 400/410; audit yok (P2) |
+| Bilinmeyen peerId | 404 |
+| Claim sonrası eski token | reddedilir |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `services/web-service/src/infrastructure/field-uplink/field-registry.ts#FieldRegistry` | Claim + `peerSecret` üretimi |
-| `services/web-service/src/presentation/routes/field-routes.ts` | Claim ucu |
+| `hub-servis/src/application/claim-bootstrap.ts` | YENİ — use-case |
+| `hub-servis/src/infrastructure/inbound/routes/bootstrap-routes.ts` | YENİ — claim rotası |
+| `hub-servis/src/infrastructure/outbound/sqlite-peer-credential-store.ts` | Bootstrap + secret metodları |
 
-### 6.3 UC-3 — Revocation + re-enrollment
+### 6.3 UC-3 — RevokePeer (iptal + düşürme)
 
-**Status:** ✅ Approved (2026-10-16)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
-- dahil: kimlik iptali, aktif WS düşürme, re-enrollment.
-- hariç: üretim/claim (UC-1/2).
+- dahil: kimlik iptali, aktif WS düşürme, re-enrollment zorunluluğu.
+- hariç: üretim/claim (UC-1/UC-2).
 
 **Akış:**
-1. Admin peer'ı düşürür → kimlik silinir.
-2. Hub aktif WS bağlantısını kapatır.
-3. Yeniden bağlanma yeni bootstrap token gerektirir.
+1. Admin `DELETE /admin/peers/:peerId` (consumer token).
+2. Use-case kimliği revoked işaretler; `IPeerDisconnector` ile aktif bağlantı kapatılır.
+3. Yeniden bağlanma yeni bootstrap gerektirir.
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-3.1 | Revocation kimliği silmeli ve aktif WS'i düşürmeli | AK-3.1 |
-| FR-3.2 | Re-enrollment yalnız yeni bootstrap token ile mümkün olmalı | AK-3.2 |
+| FR-3.1 | Revocation kimliği iptal etmeli (authenticate false) | AK-3.1 |
+| FR-3.2 | Revocation aktif WS'i düşürmeli (`IPeerDisconnector`) | AK-3.2 |
+| FR-3.3 | Re-enrollment yalnız yeni bootstrap ile mümkün olmalı | AK-3.3 |
 
 **Kabul Senaryoları (GWT):**
-1. **AK-3.1 — GIVEN** peer bağlı **WHEN** revocation uygulanır **THEN** kimlik silinir ve WS kapanır.
-2. **AK-3.2 — GIVEN** peer düşürüldü **WHEN** eski `peerSecret` ile bağlanır **THEN** reddedilir; yalnız yeni bootstrap ile döner.
+1. **AK-3.1 — GIVEN** geçerli peer **WHEN** revoke **THEN** eski secret ile auth reddedilir.
+2. **AK-3.2 — GIVEN** peer bağlı **WHEN** revoke **THEN** WS kapanır.
+3. **AK-3.3 — GIVEN** peer iptal edildi **WHEN** eski secret ile bağlanır **THEN** reddedilir; yeni bootstrap gerekir.
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-3.1 | Revocation kimlik + aktif bağlantı | unit | ⬜ |
-| AK-3.2 | Re-enrollment bootstrap gerektirir | unit | ⬜ |
+| AK-3.1 | Kimlik iptali | unit | ⬜ |
+| AK-3.2 | Aktif WS düşürme | unit | ⬜ |
+| AK-3.3 | Re-enrollment bootstrap | unit | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-7: Revocation + aktif WS düşürme (mevcut `removeToken` genişler)
-- [ ] T-8: Revocation/re-enrollment testleri
+- [ ] T-7: `IPeerDisconnector` portu + `PeerChannelHub.disconnect`
+- [ ] T-8: `RevokePeer` use-case + testler
+- [ ] T-9: `DELETE /admin/peers/:peerId` rotası + testler
 
 **Edge Cases:**
 | Durum | Davranış |
 |:------|:---------|
-| Bağlı olmayan peer revocation | Yalnız kimlik silinir (idempotent) |
+| Bağlı olmayan peer | yalnız kimlik iptali (idempotent) |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `services/web-service/src/infrastructure/field-uplink/field-registry.ts#FieldRegistry` | `removeToken` + aktif WS kapatma |
-| `services/web-service/src/presentation/routes/admin-routes.ts` | Revocation ucu |
+| `hub-servis/src/domain/ports/peer-disconnector.ts` | YENİ — port |
+| `hub-servis/src/application/revoke-peer.ts` | YENİ — use-case |
+| `hub-servis/src/infrastructure/inbound/routes/admin-routes.ts` | DELETE rotası |
 
-### 6.4 UC-4 — Dev/prod mod sözleşmesi
+### 6.4 UC-4 — Auth modu (dev/prod)
 
-**Status:** ✅ Approved (2026-10-16)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
-- dahil: dev modda token'sız register kabulü, prod fail-closed, deployment dokümantasyonu.
-- hariç: paket değişikliği; wildcard subdomain.
+- dahil: env-token (dev/simple) ile sqlite+bootstrap (prod) seçimi; fail-fast; uçtan uca doğrulama.
+- hariç: tarayıcı login (P3); mTLS (A1).
 
 **Akış:**
-1. Dev yapılandırması: hub token'sız register kabul eder (`ws://`).
-2. Prod yapılandırması: bootstrap/`peerSecret` zorunlu (`wss://`).
-3. `BOOTSTRAP_TOKEN=xxx` env'i ile demo/ortam taşıma hızlanır.
+1. `PEER_TOKEN` tanımlıysa `EnvPeerTokenStore` (dev/simple).
+2. Değilse sqlite credential repository (prod); bootstrap uçları aktif.
+3. İkisi de yoksa açılış fail-fast.
 
 **Gereksinimler (FR-x):**
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
-| FR-4.1 | Dev modda (yalnız açık dev yapılandırması) token'sız register kabul edilmeli | AK-4.1 |
-| FR-4.2 | Prod'da token'sız register reddedilmeli; paket dev/prod bayrağı taşımamalı | AK-4.2 |
+| FR-4.1 | Auth modu config'ten seçilmeli; ikisi de yoksa açılış reddedilmeli | AK-4.1 |
+| FR-4.2 | Bootstrap → claim → register → revoke uçtan uca çalışmalı | AK-4.2 |
 
 **Kabul Senaryoları (GWT):**
-1. **AK-4.1 — GIVEN** dev yapılandırması **WHEN** token'sız peer register eder **THEN** kabul edilir.
-2. **AK-4.2 — GIVEN** prod yapılandırması **WHEN** token'sız register denenir **THEN** 401 reddedilir; pakete bayrak eklenmez.
+1. **AK-4.1 — GIVEN** ne `PEER_TOKEN` ne sqlite yolu **WHEN** başlatılır **THEN** açılış hata ile durur.
+2. **AK-4.2 — GIVEN** sqlite modu **WHEN** bootstrap→claim→register→revoke **THEN** akış tamamlanır.
 
 **Kabul Kriterleri:**
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-4.1 | Dev token'sız kabul | unit | ⬜ |
-| AK-4.2 | Prod fail-closed + paket dokunulmaz | kod inceleme | ⬜ |
+| AK-4.1 | Mod seçimi fail-fast | unit | ⬜ |
+| AK-4.2 | E2E bootstrap akışı | integration | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-9: Hub dev-config kapısı (token'sız register — yalnız dev env)
-- [ ] T-10: `AGENTS-DEPLOYMENT.md`/env örneği — dev/prod bootstrap sözleşmesi + host-based erişim geçiş işaretçisi (A4: `WS-TUNNEL-SUBDOMAIN-YONLENDIRME-MIMARISI.md`)
+- [ ] T-10: `HubConfig` auth modu + `main.ts` wiring (env/sqlite)
+- [ ] T-11: Bootstrap uçtan uca integration testi
 
 **Edge Cases:**
 | Durum | Davranış |
 |:------|:---------|
-| Dev bayrağı prod'da yanlışlıkla açık | Fail-closed varsayılan; bayrak açıkça dev-only |
+| Her iki mod da yapılandırılmış | `PEER_TOKEN` (dev) öncelikli; log uyarısı |
 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `services/web-service/src/presentation/routes/field-uplink-ws-routes.ts#fieldUplinkWsRoutes` | Dev-config token kapısı |
-| `AGENTS-DEPLOYMENT.md` | Dev/prod bootstrap sözleşmesi (referans) |
+| `hub-servis/src/config/hub-config.ts` | Auth modu seçimi |
+| `hub-servis/src/main.ts` | Credential store wiring |
 
 ### 6.5 Paket Geneli Görevler
 
-- [ ] T-11: `AGENTS-WS-TUNNEL.md` — "Bootstrap ve peer kimliği sözleşmesi (MANDATORY)" bölümü
-- [ ] T-12: YENİ `tools/bootstrap-demo.mjs` — uçtan uca (`BOOTSTRAP_TOKEN` → claim → kalıcı kimlik → register)
+- [ ] T-12: `AGENTS-WS-TUNNEL.md` bootstrap sözleşmesi + `hub-servis/README.md` uç/env tablosu
 
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
 | Durum | Davranış |
 |:------|:---------|
 | Bootstrap üretimi | Düz metin tek kez; DB hash + TTL(24h) + used=false |
-| Claim (geçerli) | `peerSecret` üretilir; token used=true |
-| Claim (kullanılmış/süre aşımı) | Reddedilir; audit |
-| WS register (kalıcı secret) | Mevcut `authenticateToken` yolu — değişmez |
-| Revocation | Kimlik silinir + aktif WS kapatılır |
-| Re-enrollment | Yeni bootstrap token zorunlu |
-| Dev mod | Token opsiyonel (yalnız dev env); prod'da kapalı |
-| Sır log'u | Asla loglanmaz (redacted) |
+| Claim (geçerli) | `peerSecret` üretilir; token used=true; secret hash DB |
+| Claim (kullanılmış/süre aşımı) | Reddedilir (fail-closed) |
+| WS register (secret) | sqlite `authenticate` — mevcut yol |
+| Revocation | Kimlik revoked + aktif WS kapatılır |
+| Re-enrollment | Yeni bootstrap zorunlu |
+| Dev mod (`PEER_TOKEN`) | Env token; bootstrap uçları pasif |
+| Sır log'u | Asla loglanmaz |
 
-Beklenen hata → `Result`; beklenmeyen → `DomainError`. Kimlik yolları fail-closed'dır.
+Beklenen hata → yerel `Result`; beklenmeyen → `DomainError`. Kimlik yolları fail-closed'dır.
 
 ## 8. Başarı Kriterleri (SC-x)
 
 | Kod | Kriter | Ölçüm |
 |:----|:-------|:------|
-| SC-1 | `BOOTSTRAP_TOKEN=xxx` ile peer otomatik register olur ve kalıcı kimlik alır; ikinci açılışta env gerekmez | `tools/bootstrap-demo.mjs` PASS |
-| SC-2 | Prod'da token'sız / kullanılmış / süresi geçmiş bootstrap reddedilir (fail-closed) | unit + integration yeşil |
-| SC-3 | Revocation aktif bağlantıyı düşürür; re-enrollment yalnız yeni bootstrap ile çalışır | unit yeşil |
-| SC-4 | ws-tunnel paketinde bu SPEC kapsamında DEĞİŞİKLİK YOK | `git diff` (paket boş) |
+| SC-1 | Bootstrap → claim → register → revoke uçtan uca çalışır | integration testi |
+| SC-2 | Kullanılmış/süresi geçmiş token ve iptal edilmiş secret reddedilir (fail-closed) | unit + integration |
+| SC-3 | Hexagonal sınır korunur (domain/application'da sqlite/env yok) | grep + kod inceleme |
+| SC-4 | `@gd-monorepo/ws-tunnel` paketi DEĞİŞMEZ; wire v1/v2 aynı | `git diff` + integration |
 
 ## 9. Aşama Eşlemesi (iş akışı)
 
 | Aşama | Ürün |
 |:------|:-----|
 | 1. SPEC | Bu doküman (✅ Approved 2026-10-16) |
-| 2. JSDoc | T-1/T-4/T-7 sözleşmeleri (bootstrap deposu, claim, revocation) |
-| 3. TEST | T-2, T-6, T-8 kırmızı testler |
-| 4. IMPL | T-1, T-3, T-4, T-5, T-7, T-9, T-10, T-11, T-12 |
-| 5. KAPANIŞ | `WS-TUNNEL-BOOTSTRAP-KIMLIK-KAPANIS.md` (Doğrulama + Test Kapsamı) |
+| 2. JSDoc | T-1/T-2/T-4/T-8 sözleşmeleri |
+| 3. TEST | T-2, T-4, T-8, T-10 kırmızı testler |
+| 4. IMPL | Port/adapter + use-case + rotalar + wiring |
+| 5. KAPANIŞ | `WS-TUNNEL-BOOTSTRAP-KIMLIK-KAPANIS.md` |
 
 ## 10. Açık Kararlar
 
 | # | Konu | Durum |
 |:--|:-----|:------|
-| A1 | mTLS / client-cert / public-key pinning | İhtiyaç belirince ayrı SPEC (RevPi fabrika cert'i cihaz üreticisi işi) |
-| A2 | Çoklu tenant / merkezi IdP (OIDC/LDAP) | İlk pilot sonrası |
-| A3 | Bootstrap token teslimi (QR/config dosyası alternatifi) | Env var yeterli; alternatifler ileri iş |
-| A4 | `peerSecret` rotasyonu (periyodik) | İhtiyaç belirince |
+| A1 | mTLS / client-cert / public-key pinning | İhtiyaç belirince |
+| A2 | Kalıcı hub audit adapter'ı (bootstrap/claim/revoke olayları) | İhtiyaç belirince |
+| A3 | Bootstrap token teslimi (QR/config dosyası) | Env yeterli; alternatif ileri iş |
+| A4 | `peerSecret` periyodik rotasyonu | İhtiyaç belirince |
+| A5 | Çoklu secret / aynı peer'a birden fazla cihaz | Tek secret (YAGNI) |
 
 ## 11. İleri İş (bu pakette YAPILMAZ — referans)
 
-1. **mTLS/pubkey-pinning:** TOFU pinning + client cert (A1).
-2. **Merkezi IdP/SSO:** OIDC/LDAP entegrasyonu (A2).
-3. **Otomatik rotasyon:** periyodik `peerSecret` yenileme (A4).
-4. **Opak servis erişimi:** `WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md`.
+1. **P3** monorepo web-service consumer entegrasyonu + tarayıcı cookie front-door.
+2. **A4** host-based erişim.
+3. **İP-4** isim/marka, LICENSE, registry publish.
 
 ## 12. T Görev Özeti
 
 | Kod | Görev | UC | Dosya |
 |:----|:------|:---|:------|
-| T-1 | Bootstrap deposu + üretim ucu | UC-1 | `services/web-service/src/infrastructure/field-uplink/field-registry.ts`, `presentation/routes/admin-routes.ts` |
-| T-2 | Bootstrap üretim/TTL/tek-kullanım testleri | UC-1 | `services/web-service/src/infrastructure/field-uplink/field-registry.test.ts` |
-| T-3 | `peer_bootstrap_created` audit olayı | UC-1 | `packages/platform/logging/src/event-codes.ts` |
-| T-4 | Claim ucu + `peerSecret` üretimi | UC-2 | `presentation/routes/field-routes.ts`, `infrastructure/field-uplink/field-registry.ts` |
-| T-5 | Tek kullanım işaretleme + reddi | UC-2 | `services/web-service/src/infrastructure/field-uplink/field-registry.ts` |
-| T-6 | Claim/tek-kullanım/`peerSecret` testleri | UC-2 | `services/web-service/src/infrastructure/field-uplink/field-registry.test.ts` |
-| T-7 | Revocation + aktif WS düşürme | UC-3 | `services/web-service/src/infrastructure/field-uplink/field-registry.ts` |
-| T-8 | Revocation/re-enrollment testleri | UC-3 | `services/web-service/src/infrastructure/field-uplink/field-registry.test.ts` |
-| T-9 | Hub dev-config token kapısı | UC-4 | `services/web-service/src/presentation/routes/field-uplink-ws-routes.ts` |
-| T-10 | Dev/prod bootstrap sözleşmesi dokümanı/env + A4 host-based işaretçisi | UC-4 | `AGENTS-DEPLOYMENT.md` |
-| T-11 | `AGENTS-WS-TUNNEL.md` bootstrap sözleşmesi bölümü | Genel | `AGENTS-WS-TUNNEL.md` |
-| T-12 | Uçtan uca bootstrap demo | Genel | `tools/bootstrap-demo.mjs` |
+| T-1 | `IPeerBootstrapRepository` + sqlite adapter | UC-1 | `hub-servis/src/domain/ports/peer-bootstrap-repository.ts`, `infrastructure/outbound/sqlite-peer-credential-store.ts` |
+| T-2 | `CreateBootstrap` use-case | UC-1 | `hub-servis/src/application/create-bootstrap.ts` |
+| T-3 | `POST /admin/peers` rotası | UC-1 | `hub-servis/src/infrastructure/inbound/routes/admin-routes.ts` |
+| T-4 | `ClaimBootstrap` use-case | UC-2 | `hub-servis/src/application/claim-bootstrap.ts` |
+| T-5 | `POST /peers/bootstrap/claim` rotası | UC-2 | `hub-servis/src/infrastructure/inbound/routes/bootstrap-routes.ts` |
+| T-6 | Token/secret üretimi + hash | UC-2 | `hub-servis/src/application/claim-bootstrap.ts` |
+| T-7 | `IPeerDisconnector` + `PeerChannelHub.disconnect` | UC-3 | `hub-servis/src/domain/ports/peer-disconnector.ts`, `infrastructure/inbound/peer-channel-hub.ts` |
+| T-8 | `RevokePeer` use-case | UC-3 | `hub-servis/src/application/revoke-peer.ts` |
+| T-9 | `DELETE /admin/peers/:peerId` rotası | UC-3 | `hub-servis/src/infrastructure/inbound/routes/admin-routes.ts` |
+| T-10 | Auth modu + wiring | UC-4 | `hub-servis/src/config/hub-config.ts`, `hub-servis/src/main.ts` |
+| T-11 | Bootstrap E2E integration testi | UC-4 | `hub-servis/src/bootstrap.integration.test.ts` |
+| T-12 | Sözleşme + README güncellemesi | Genel | `AGENTS-WS-TUNNEL.md`, `hub-servis/README.md` |
 
-**review_date:** 2026-10-16 — ilk sürüm; ✅ onaylandı, İP-1 sonrası sırada.
+**review_date:** 2026-10-16 — 🟢 doğrulanmış (KAPANIŞ: WS-TUNNEL-BOOTSTRAP-KIMLIK-KAPANIS.md).

@@ -9,7 +9,7 @@ review_date: 2026-09-07
 
 Tarih: 2026-09-07
 Durum: Onaylanmış tasarım — geliştirme bekliyor
-İlgili dokümanlar: [field-superadmin-architecture.md](./field-superadmin-architecture.md), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md), [WS-TUNNEL-URUN-TESCILI.md](./WS-TUNNEL-URUN-TESCILI.md), [ROLLER-VE-FIELD-UI-PLAN](../roadmap/roller-ve-field-ui-plan.md), [EPIAS-VERI-ANALIZI](../analysis/EPIAS-VERI-ANALIZI.md)
+İlgili dokümanlar: [field-superadmin-architecture.md](./field-superadmin-architecture.md), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md), [WS-TUNNEL-URUN-TESCILI.md](./WS-TUNNEL-URUN-TESCILI.md), [ROLLER-VE-FIELD-UI-PLAN](../roadmap/roller-ve-field-ui-plan.md), [EPIAS-VERI-ANALIZI](../analysis/EPIAS-VERI-ANALIZI.md)
 Doğrulama dokümanı: [BOSS-UYGULAMA-DOGRULAMA.md](./BOSS-UYGULAMA-DOGRULAMA.md)
 
 ---
@@ -182,7 +182,7 @@ Veri: field summary payload genişletmesi (gauge verileri) + **ws-tunnel uplink 
 
 - Gauge'ler field snapshot'ından (`admin_fields` genişletilmiş payload): SoC, güç, sıcaklık + alarm sayısı.
 - Iframe `src` = boss subpath `/fields/:fid/ui/*` — istekler **uplink tünelinden** field web-service'e akar (§7.4); SPA statikleri + API + WS aynı kanaldan köprülenir.
-- Konteyner kartlarına tıklayınca field uygulaması **kendi** konteyner tüneliyle container UI'yı açar (iç içe tam ekran — KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md R3 deseni).
+- Konteyner kartlarına tıklayınca field uygulaması **kendi** konteyner tüneliyle container UI'yı açar (iç içe tam ekran — deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md R3 deseni).
 - **"Tam Ekran"** ile §5'teki davranış.
 
 ### 4.4 Varlıklar — `/assets`
@@ -355,7 +355,7 @@ Boss web-service'e eklenecek endpoint'ler (veri kaynağı: boss stack'teki `exte
 #### 7.4.1 Yön kısıtı (neden boss→konteyner doğrudan YOK)
 
 - Tünel bileşenleri yalnızca field tier'da register edilir: `services/web-service/src/config/container.ts:290` (`sessionGateway`, `tier === "field"`), `:306` (`tunnelProxy`, `tier === "field"`). Boss tier'da bunların hiçbiri yoktur — yalnızca `fieldPoller` (`container.ts:321`, 30 sn HTTP poll).
-- Fiziksel yön tektir: **konteyner → field** outbound WSS (KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md R4/R5). Boss, field'ın üstünde bir katmandır ve konteynerlere giden inbound kanalı yoktur.
+- Fiziksel yön tektir: **konteyner → field** outbound WSS (deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md R4/R5). Boss, field'ın üstünde bir katmandır ve konteynerlere giden inbound kanalı yoktur.
 - Sonuç: boss'tan konteynere doğrudan bağlantı **mimari gereği imkânsızdır**; konteyner görünümüne ancak field uygulaması üzerinden ulaşılır.
 
 #### 7.4.2 Seçilen model (D7): field→boss ws-tunnel uplink
@@ -449,5 +449,5 @@ Faz kapanışlarında [BOSS-UYGULAMA-DOGRULAMA.md](./BOSS-UYGULAMA-DOGRULAMA.md)
 
 - [EPIAS-VERI-ANALIZI.md](../analysis/EPIAS-VERI-ANALIZI.md) — EPİAŞ erişim modeli, veri kataloğu, ilk faz serileri
 - [field-superadmin-architecture.md](./field-superadmin-architecture.md) — üç katmanlı federasyon, FieldPoller
-- [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) — tünel/oturum sözleşmesi, tam ekran deseni (R3)
+- [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) — tünel/oturum sözleşmesi, tam ekran deseni (R3)
 - `apps/superadmin`, `apps/field` (`nav-visibility.ts`, `SidebarV2` paternleri), `packages/ui` (FieldMap/FieldCard/SummaryCard/DeviceGauges/MultiLineChartV2)

@@ -1,7 +1,7 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-10-16
-> Tarandı: 302 test dosyası, 2622 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-10-20
+> Tarandı: 321 test dosyası, 2616 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
@@ -506,16 +506,6 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/field/src/features/containers/components/RegisterContainerForm.test.tsx` (5 test)
-
-1. (RegisterContainerForm) **"adres alanı render edilmez (mimari sözleşme)"**
-2. (RegisterContainerForm) **"boş containerId → hata, register çağrılmaz"**
-3. (RegisterContainerForm) **"32 karakterden kısa token → hata, register çağrılmaz"**
-4. (RegisterContainerForm) **"geçerli girdi → register + success + onRegistered + alanlar temizlenir"**
-5. (RegisterContainerForm) **"API hatası → hata mesajı, onRegistered çağrılmaz"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
 ### `apps/field/src/features/containers/hooks/containerGaugeBlocks.test.ts` (11 test)
 
 1. (buildDeviceGaugeBlocks — BSC (V2 formatı)) **"cihaz başına success temalı 4 gauge üretir (canonical eşleme)"**
@@ -920,7 +910,7 @@
 
 ### `packages/core/src/modbus/client-rtu.test.ts` (7 test)
 
-1. (ModbusRtuClient (T3)) **"config varsayılanlarıyla SerialPort kurulur (connect anında)"**
+1. (ModbusRtuClient (T3)) **"config varsayılanlarıyla port kurulur (connect anında)"**
 2. (ModbusRtuClient (T3)) **"connect open eventi ile bağlanır"**
 3. (ModbusRtuClient (T3)) **"connect error eventi → 'Modbus RTU connection failed'"**
 4. (ModbusRtuClient (T3)) **"connect timeout → port kapatılır + path bağlamlı hata"**
@@ -1001,6 +991,16 @@
 29. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C)) **"rollback ham register'ları aynen geri yazar (float kayma yok)"**
 30. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C) > ModbusDevice yazma limiti (Faz C)) **"125 register üstü yazma grubu reddedilir"**
 31. (ModbusDevice.read() ISP sözleşmesi > ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF) > ModbusDevice.write() > ModbusDevice.writeAtomic() (TEİAŞ #22 — transactional) > ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel) > ModbusDevice config doğrulaması (Faz C) > ModbusDevice writeAtomic ham backup (Faz C) > ModbusDevice yazma limiti (Faz C) > ModbusDevice bağlantı cooldown (mevcut davranış karakterizasyonu)) **"kopuk bağlantıda reconnect dener; 10 sn içinde ikinci deneme reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/core/src/modbus/serial-socket-adapter.test.ts` (5 test)
+
+1. (SerialSocketAdapter) **"isOpen port durumunu yansıtır"**
+2. (SerialSocketAdapter) **"'open' / 'error' / 'close' olayları aktarılır"**
+3. (SerialSocketAdapter) **"'data' Uint8Array → Buffer olarak iletilir"**
+4. (SerialSocketAdapter) **"write → port.write + callback başarı/hata iletir"**
+5. (SerialSocketAdapter) **"close best-effort — hata yutulur"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1113,7 +1113,7 @@
 
 ### `packages/platform/commands/src/maneuver-migration.test.ts` (12 test)
 
-1. (konteyner maneuvers.json (A3 migrasyon)) **"fail-fast yüklenir — 11 kayıt"**
+1. (konteyner maneuvers.json (A3 migrasyon)) **"fail-fast yüklenir — 12 kayıt"**
 2. (konteyner maneuvers.json (A3 migrasyon)) **"registry isimle çözer (bsc_prepare, fl03, fl05 force)"**
 3. (konteyner maneuvers.json (A3 migrasyon)) **"K12: hiçbir adımda BSC charge/discharge komutu YOK"**
 4. (konteyner maneuvers.json (A3 migrasyon)) **"bsc_prepare güç param'ı TAŞIMAZ (K12 sözleşmesi)"**
@@ -2140,7 +2140,7 @@
 ### `packages/ui/src/nova/DemoAdminView.test.tsx` (5 test)
 
 1. (DemoAdminView (UC-8)) **"5 sekme + mapping tablosu + canlı değer gösterir"**
-2. (DemoAdminView (UC-8)) **"Add container sekmesi form + register çağrısı"**
+2. (DemoAdminView (UC-8)) **"Containers sekmesi hub durum tablosunu gösterir (register formu YOK)"**
 3. (DemoAdminView (UC-8)) **"Register catalogue araması + poll planları"**
 4. (DemoAdminView (UC-8)) **"Modbus trace sekmesi gerçek yazma izi notunu gösterir"**
 5. (DemoAdminView (UC-8)) **"gerçek yazma izi verilirse adresli satırları gösterir"**
@@ -2471,6 +2471,221 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/ws-tunnel-agent/src/args.test.ts` (3 test)
+
+1. (parseArgs) **"varsayılan komut run + seçenekler"**
+2. (parseArgs) **"alt komutlar ve config show"**
+3. (parseArgs) **"geçersiz girdi hata fırlatır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-agent/src/claim-client.test.ts` (3 test)
+
+1. (BootstrapClaimClient) **"AK-2.1: doğru URL/gövde ile claim eder"**
+2. (BootstrapClaimClient) **"AK-2.3: 4xx/ağ hatası fail-closed hata döner"**
+3. (BootstrapClaimClient) **"AK-2.4: yanıttaki peerId eşleşmezse reddeder"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-agent/src/config.test.ts` (8 test)
+
+1. (parseAgentConfig) **"AK-1.1: zorunlu alanlar eksikse alan adıyla reddeder"**
+2. (parseAgentConfig) **"AK-1.2: PEER_ID yoksa hostname kullanılır; kimlik alanlarından biri zorunlu"**
+3. (parseAgentConfig) **"AK-1.3: http/https dışı URL reddedilir"**
+4. (parseAgentConfig) **"AK-1.4: TLS_INSECURE yalnız https hedefte etkin; config show secret maskeler"**
+5. (parseAgentConfig) **"varsayılanlar: peerType=device, heartbeat/liveness"**
+6. (parseAgentConfig > env-file) **"KEY=VALUE parse eder; yorum/boş satır/tırnak"**
+7. (parseAgentConfig > env-file) **"serialize → readEnvFile roundtrip"**
+8. (parseAgentConfig > env-file) **"mergeConfigEnv: env dosya üzerine yazar, secret dosyada kalır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-agent/src/hmac-signer.test.ts` (4 test)
+
+1. (HMAC signer) **"sign → verify roundtrip"**
+2. (HMAC signer) **"yanlış secret / tahrif edilmiş token reddedilir"**
+3. (HMAC signer) **"süresi geçmiş token reddedilir"**
+4. (HMAC signer) **"generateSecret 32 byte hex üretir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-agent/src/install.test.ts` (4 test)
+
+1. (config-store) **"AK-2.2: config 0600 ile yazılır ve geri okunur"**
+2. (config-store) **"AK-4.4: removeInstallFiles var olan dosyaları siler, olmayanı atlar"**
+3. (config-store > uninstallAgent) **"AK-4.4: systemctl stop/disable + daemon-reload çağırır, dosyaları siler"**
+4. (config-store > uninstallAgent) **"AK-4.4: systemctl hatası olsa da dosyaları temizler"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-agent/src/setup-server.test.ts` (5 test)
+
+1. (shouldStartSetup) **"AK-3.1: config yoksa setup açılır, varsa açılmaz"**
+2. (shouldStartSetup > SetupAgent) **"AK-3.2: /test config doğrular ve hub /health çağırır"**
+3. (shouldStartSetup > SetupAgent) **"AK-3.2: bootstrap modunda claim eder ve aynı token için tekrar claim etmez"**
+4. (shouldStartSetup > SetupAgent) **"AK-3.3/3.4: geçerli form config yazar; eksik alan 400 döner"**
+5. (shouldStartSetup > SetupAgent) **"AK-3.4: hub erişilemezse test hata döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-agent/src/systemd-unit.test.ts` (2 test)
+
+1. (renderSystemdUnit) **"AK-4.1: zorunlu satırları üretir"**
+2. (renderSystemdUnit) **"user verilmezse User satırı yok"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/claim-bootstrap.test.ts` (3 test)
+
+1. (ClaimBootstrap) **"AK-2.1/AK-2.2: geçerli bootstrap → peerSecret, yalnız hash saklanır"**
+2. (ClaimBootstrap) **"AK-2.3: kullanılmış/süresi geçmiş bootstrap reddedilir"**
+3. (ClaimBootstrap) **"eksik girdi reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/create-bootstrap.test.ts` (3 test)
+
+1. (CreateBootstrap) **"AK-1.1: token üretir, yalnız hash'i saklar"**
+2. (CreateBootstrap) **"AK-1.2: TTL 24 saat (varsayılan)"**
+3. (CreateBootstrap) **"boş peerId reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/open-service-access.test.ts` (5 test)
+
+1. (OpenServiceAccess) **"AK-3.1: duyurulmamış servis → not_found"**
+2. (OpenServiceAccess) **"AK-3.1: bağlı olmayan peer → transient"**
+3. (OpenServiceAccess) **"AK-3.3: allowlist dışı → forbidden"**
+4. (OpenServiceAccess) **"AK-3.2: oturum yoksa açar, varsa yeniden kullanır"**
+5. (OpenServiceAccess) **"A2 kök-montaj: allowlist dışı path serbest, blocklist yine kapalı"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/open-session.test.ts` (3 test)
+
+1. (OpenSession) **"AK-4.1: bağlı peer için oturum açar"**
+2. (OpenSession) **"bilinmeyen peer → not_found"**
+3. (OpenSession) **"bağlı olmayan peer → transient"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/register-peer.test.ts` (5 test)
+
+1. (RegisterPeer) **"AK-1.1: geçersiz token → Forbidden, kayıt yok"**
+2. (RegisterPeer) **"AK-1.2: opak olmayan servis duyurusu reddedilir"**
+3. (RegisterPeer) **"AK-1.3: geçerli register → registry + tracker"**
+4. (RegisterPeer) **"geçersiz peerType reddedilir"**
+5. (RegisterPeer) **"AK-1.4: yeniden register servis listesini değiştirir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/relay-control.test.ts` (4 test)
+
+1. (RelayControl) **"AK-4.2: bilinmeyen peer → not_found"**
+2. (RelayControl) **"AK-4.2: bağlı olmayan peer → transient"**
+3. (RelayControl) **"AK-4.2: bağlı peer → kontrol mesajı opak iletilir"**
+4. (RelayControl) **"AK-4.3: peer'dan gelen mesaj consumer portuna opak akar"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/application/revoke-peer.test.ts` (2 test)
+
+1. (RevokePeer) **"AK-3.1/AK-3.2: kimliği iptal eder ve bağlantıyı düşürür"**
+2. (RevokePeer) **"boş peerId reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/bootstrap.integration.test.ts` (1 test)
+
+1. (bootstrap uçtan uca (sqlite)) **"AK-4.2: bootstrap → claim → register → revoke"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/config/hub-config.test.ts` (10 test)
+
+1. (loadHubConfig HUB_HOST_MAP) **"host[:port]=peer/service kayıtlarını çözer (küçük harfe indirir)"**
+2. (loadHubConfig HUB_HOST_MAP) **"geçersiz kayıt → açılış reddedilir"**
+3. (loadHubConfig HUB_HOST_MAP) **"tanımsızsa boş harita"**
+4. (loadHubConfig HUB_HOST_MAP > hostMapPorts) **"yalnızca host:port anahtarlarından port çıkarır"**
+5. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS) **"BYO cert/key → tls (selfSigned=false)"**
+6. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS) **"HUB_TLS_ENABLED=1 (cert yok) → self-signed"**
+7. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS) **"TLS env'i yoksa tls undefined (http)"**
+8. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS > loadHubConfig oturum/akış ömrü) **"varsayılanlar: 4 sa TTL, 15 dk idle, 5 dk stream idle"**
+9. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS > loadHubConfig oturum/akış ömrü) **"HUB_SESSION_TTL_MS / HUB_SESSION_IDLE_MS / HUB_STREAM_IDLE_MS override"**
+10. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS > loadHubConfig oturum/akış ömrü) **"geçersiz değer → açılış reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/domain/peer-connection-tracker.test.ts` (5 test)
+
+1. (PeerConnectionTracker) **"markConnected → connected; bilinmeyen → idle"**
+2. (PeerConnectionTracker) **"sweep eşiği aşınca stale yapar"**
+3. (PeerConnectionTracker) **"heartbeat stale'i connected'a döndürür"**
+4. (PeerConnectionTracker) **"markError durumu error yapar; markClosed kaydı düşürür"**
+5. (PeerConnectionTracker) **"snapshot tüm durumları döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/infrastructure/inbound/peer-channel-hub.test.ts` (4 test)
+
+1. (PeerChannelHub) **"AK-1.3: geçerli register → ok ack + registry/tracker"**
+2. (PeerChannelHub) **"AK-1.1: geçersiz token → rejected + kapanış"**
+3. (PeerChannelHub) **"AK-4.3: bilinmeyen kontrol mesajı consumer portuna akar"**
+4. (PeerChannelHub) **"kapanış → kayıt düşer"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/infrastructure/inbound/routes/access-routes.test.ts` (15 test)
+
+1. (access-routes peer session cookie) **"peerSessionCookie verilirse oturum token'ı cookie olarak eklenir"**
+2. (access-routes peer session cookie) **"peerSessionCookie yoksa cookie eklenmez"**
+3. (access-routes peer session cookie) **"mevcut cookie korunarak oturum cookie'si eklenir"**
+4. (access-routes peer session cookie > access-routes host-based kök-montaj (A2)) **"eşlenen host'ta tam path upstream'e gider (prefix strip yok)"**
+5. (access-routes peer session cookie > access-routes host-based kök-montaj (A2)) **"eşlenmeyen host + path parametresiz → 404"**
+6. (access-routes peer session cookie > access-routes host-based kök-montaj (A2)) **"hostMap varken path-modu geriye dönük çalışır"**
+7. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi) **"cookie yolunda authorization + özel başlıklar iletilir"**
+8. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi) **"consumer-token yolunda authorization iletilmez"**
+9. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi) **"hop-by-hop başlıklar iletilmez"**
+10. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi) **"cookie yolunda WS'e cookie+authorization taşınır, handshake-özgü düşer"**
+11. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi) **"consumer-token yolunda WS authorization sızmaz"**
+12. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"bayat tunnel_session cookie + consumer token yok → 401 'Oturum suresi doldu' + cookie temizlenir"**
+13. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"cookie yok + consumer token yok → 401 'Consumer token gerekli' (geriye dönük)"**
+14. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"bayat cookie olsa da geçerli consumer token yolu çalışır"**
+15. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"bayat session cookie ile WS → 1008 'oturum suresi doldu' (neden çözümü)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/infrastructure/outbound/env-consumer-credentials.test.ts` (2 test)
+
+1. (EnvConsumerCredentials) **"AK-4.1: consumer token ayrı doğrulanır"**
+2. (EnvConsumerCredentials) **"boş token ile kurulum reddedilir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/infrastructure/outbound/env-peer-token-store.test.ts` (2 test)
+
+1. (EnvPeerTokenStore) **"AK-5.1: geçerli token true, geçersiz false"**
+2. (EnvPeerTokenStore) **"boş token ile kurulum reddedilir (fail-fast)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/infrastructure/outbound/sqlite-peer-credential-store.test.ts` (6 test)
+
+1. (SqlitePeerCredentialStore) **"AK-2.2: create → claim → kalıcı secret authenticate"**
+2. (SqlitePeerCredentialStore) **"AK-2.3: token tek kullanımlık"**
+3. (SqlitePeerCredentialStore) **"süresi geçmiş bootstrap reddedilir"**
+4. (SqlitePeerCredentialStore) **"yanlış token reddedilir"**
+5. (SqlitePeerCredentialStore) **"AK-1.3: yeni bootstrap eski token'ı geçersiz kılar"**
+6. (SqlitePeerCredentialStore) **"AK-3.1: revoke secret'ı geçersiz kılar, bekleyen bootstrap silinir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel-hub/src/integration.test.ts` (1 test)
+
+1. (hub-servis uçtan uca (gerçek WS + Fastify)) **"SC-2/SC-3: register → keşif → opak erişim → relay"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/ws-tunnel/src/channel/ws-socket-client.test.ts` (5 test)
 
 1. (WsSocketClient (T2.1c)) **"send/ping/close raw'a delege edilir"**
@@ -2481,7 +2696,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ws-tunnel/src/client/tunnel-client.test.ts` (25 test)
+### `packages/ws-tunnel/src/client/tunnel-client.test.ts` (29 test)
 
 1. (TunnelClient (T3.2) > HTTP akışı) **"stream-open → ack (durum + başlıklar) → gövde frame'leri + FIN"**
 2. (TunnelClient (T3.2) > HTTP akışı) **"yönlendirme: /api/* → web-service, diğer → statik"**
@@ -2491,23 +2706,27 @@
 6. (TunnelClient (T3.2) > HTTP akışı) **"akış tavanı aşılınca 503 + stream-close"**
 7. (TunnelClient (T3.2) > HTTP akışı) **"field stream-close → akış iptal edilir"**
 8. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"upgrade → 101 ack + çift yönlü WS_OP frame'leri"**
-9. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"loopback WS kapanınca stream-close gönderilir"**
-10. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"boşta kalan akış idle timeout ile kapatılır"**
-11. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"bilinmeyen streamId'li window/close/binary yok sayılır"**
-12. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"kredi bekleyen akış stream-close ile temiz kapanır"**
-13. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"ack sonrası kredi beklerken kapanma → çökme/çıkış frame'i yok"**
-14. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gövde ortasında kapanma → akış durur (abort)"**
-15. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"upstream erişilemez → ack 502 + stream-close"**
-16. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gövdesiz yanıt (204) → yalnızca FIN frame"**
-17. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"istek gövdesi tavan aşımı → RST + stream-close"**
-18. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"GET akışında gövde frame'i yok sayılır"**
-19. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"upstream gövde ortasında koparsa stream-close fetch-error"**
-20. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"WS köprüsü: WS olmayan upstream → stream-close ws-error"**
-21. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"WS köprüsü: binary opcode upstream'e binary iletilir"**
-22. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"kapanmış akışa gelen WS_OP frame'i yok sayılır"**
-23. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"FIN sonrası akış temizlenir — sıradaki stream-open 503 ALMAZ (sızıntı regresyonu)"**
-24. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gzip basliklari ack'e TASINMAZ (content-encoding/content-length strip)"**
-25. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler) > max yaş sweep) **"azami yaş dolan akış max-age ile kapatılır"**
+9. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"stream-open headers upstream WS handshake'ine taşınır (handshake-özgü hariç)"**
+10. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"wsOrigin: ws→http, wss→https origin üretir (tarayıcı davranışı)"**
+11. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"subprotocol upstream ile pazarlanır (RFC 6455 relay)"**
+12. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"upstream WS reddi (403) → ack gerçek statusCode + stream-close (hızlı-fail)"**
+13. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"loopback WS kapanınca stream-close gönderilir"**
+14. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"boşta kalan akış idle timeout ile kapatılır"**
+15. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"bilinmeyen streamId'li window/close/binary yok sayılır"**
+16. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"kredi bekleyen akış stream-close ile temiz kapanır"**
+17. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"ack sonrası kredi beklerken kapanma → çökme/çıkış frame'i yok"**
+18. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gövde ortasında kapanma → akış durur (abort)"**
+19. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"upstream erişilemez → ack 502 + stream-close"**
+20. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gövdesiz yanıt (204) → yalnızca FIN frame"**
+21. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"istek gövdesi tavan aşımı → RST + stream-close"**
+22. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"GET akışında gövde frame'i yok sayılır"**
+23. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"upstream gövde ortasında koparsa stream-close fetch-error"**
+24. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"WS köprüsü: WS olmayan upstream → ack statusCode + stream-close ws-rejected (hızlı-fail)"**
+25. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"WS köprüsü: binary opcode upstream'e binary iletilir"**
+26. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"kapanmış akışa gelen WS_OP frame'i yok sayılır"**
+27. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"FIN sonrası akış temizlenir — sıradaki stream-open 503 ALMAZ (sızıntı regresyonu)"**
+28. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gzip basliklari ack'e TASINMAZ (content-encoding/content-length strip)"**
+29. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler) > max yaş sweep) **"azami yaş dolan akış max-age ile kapatılır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2555,7 +2774,7 @@
 ### `packages/ws-tunnel/src/connector/tunnel-connector.spec.ts` (7 test)
 
 1. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"K2.1: start → connected < 5 sn (gerçek WS, ölçümlü)"**
-2. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"heartbeat + telemetry snapshot gerçek WS üzerinden akar"**
+2. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"heartbeat gerçek WS üzerinden akar (telemetri pakette DEĞİL)"**
 3. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"T2.5: register-ack.config aralığı canlı uygular"**
 4. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"T2.5: config-update frame'i heartbeat aralığını canlı değiştirir"**
 5. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"T2.5: geçersiz config-update eski aralığı korur"**
@@ -2564,63 +2783,59 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ws-tunnel/src/connector/tunnel-connector.test.ts` (55 test)
+### `packages/ws-tunnel/src/connector/tunnel-connector.test.ts` (51 test)
 
 1. (TunnelConnector (T2.1b) > start() / bağlanma) **"start() → connecting + ilk URL'e Bearer'lı bağlanır"**
 2. (TunnelConnector (T2.1b) > start() / bağlanma) **"open sonrası register mesajı gönderir (peerId + peerType + protocolVersion)"**
 3. (TunnelConnector (T2.1b) > start() / bağlanma) **"AK-1.5: services boş/undefined ise register gövdesinde alan YOK"**
 4. (TunnelConnector (T2.1b) > start() / bağlanma) **"AK-1.1: config.services doluysa register mesajına eklenir (opak duyuru)"**
 5. (TunnelConnector (T2.1b) > start() / bağlanma) **"çift start() no-op — ikinci soket açılmaz"**
-6. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"ack ok → ilk heartbeat + connected + snapshot push"**
+6. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"ack ok → ilk heartbeat + connected"**
 7. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"ack ok → field_connected bilgi logu"**
-8. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"heartbeat her 15 sn'de bir gönderilir"**
-9. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"telemetri snapshot her 15 sn'de bir push edilir (boş veri push edilmez)"**
-10. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"boş snapshot telemetry frame'i üretmez"**
-11. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"snapshot hatası bağlantıyı etkilemez (kademeli bozulma)"**
-12. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"connected iken WS kapanırsa backoff → 1 sn sonra yeniden bağlanır"**
-13. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"kopuş warn logu (ws_connection_lost) üretir"**
-14. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"üstel backoff: 1, 2, 4 sn (jitter 0)"**
-15. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"başarılı bağlantı deneme sayacını sıfırlar"**
-16. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"register timeout (10 sn) → backoff"**
-17. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"register-ack rejected → backoff + security logu"**
-18. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"401 pre-upgrade → sıradaki URL denenir; tümü reddedilirse backoff"**
-19. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"reddedilen soketin geç kapanma olayı durumu bozmaz"**
-20. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"60 sn pong yoksa bağlantı kapatılır + backoff"**
-21. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"pong gelirse bağlantı canlı kalır"**
-22. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"heartbeat gönderiminde ping atılır"**
-23. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"connected iken stop → offline + soket kapanır + yeniden bağlanmaz"**
-24. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"stop sonrası start tekrar bağlanır"**
-25. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"offline durumda stop no-op"**
-26. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"register-ack.config aralıkları değiştirir (heartbeat 5 sn)"**
-27. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"config-update frame'i restart'sız aralık değiştirir"**
-28. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"geçersiz config-update reddedilir — eski aralık korunur"**
-29. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"geçersiz register-ack config'i de reddedilir ama bağlantı kurulur"**
-30. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"malform JSON yok sayılır — çökme yok"**
-31. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"bilinmeyen mesaj tipi yok sayılır"**
-32. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"soket hatası loglanır (close olayı backoff'u yönetir)"**
-33. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"error frame'i loglanır"**
-34. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"kodsuz error frame'i 'unknown' ile loglanır"**
-35. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"register-ack status alanı yoksa 'unknown' ile reddedilir"**
-36. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"403 pre-upgrade de security logu üretir"**
-37. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması)) **"bayat soketin tüm olayları yok sayılır"**
-38. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması)) **"bayat register timeout'u yeni bağlantıyı bozmaz"**
-39. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası geç kapanma olayı durumu bozmaz"**
-40. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası geç open register göndermez"**
-41. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası rejected yeniden bağlanmaz (tek URL)"**
-42. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası rejected sıradaki URL'i denemez (çok URL)"**
-43. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri) **"snapshot beklerken bağlantı koparsa telemetri gönderilmez"**
-44. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri) **"Error olmayan snapshot hatası da loglanır"**
-45. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma) **"log çağrıları atlanır — çökme yok"**
-46. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"bilinmeyen kontrol mesajı abonelere iletilir"**
-47. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"unsubscribe sonrası iletilmez"**
-48. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"sendControl JSON text frame gönderir"**
-49. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"sendBinary ham binary frame gönderir"**
-50. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"gelen binary frame abonelere iletilir"**
-51. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"bağlı değilken sendControl/sendBinary no-op"**
-52. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş URL listesi reddedilir"**
-53. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş token reddedilir"**
-54. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş peerId reddedilir"**
-55. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > snapshot yarışı ve hata biçimleri > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"pozitif olmayan aralıklar reddedilir"**
+8. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"eventCodes verilmezse nötr varsayılan kullanılır"**
+9. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"heartbeat her 15 sn'de bir gönderilir"**
+10. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"connected iken WS kapanırsa backoff → 1 sn sonra yeniden bağlanır"**
+11. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"kopuş warn logu (ws_connection_lost) üretir"**
+12. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"üstel backoff: 1, 2, 4 sn (jitter 0)"**
+13. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"başarılı bağlantı deneme sayacını sıfırlar"**
+14. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"register timeout (10 sn) → backoff"**
+15. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"register-ack rejected → backoff + security logu"**
+16. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"401 pre-upgrade → sıradaki URL denenir; tümü reddedilirse backoff"**
+17. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"reddedilen soketin geç kapanma olayı durumu bozmaz"**
+18. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"60 sn pong yoksa bağlantı kapatılır + backoff"**
+19. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"pong gelirse bağlantı canlı kalır"**
+20. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"heartbeat gönderiminde ping atılır"**
+21. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"connected iken stop → offline + soket kapanır + yeniden bağlanmaz"**
+22. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"stop sonrası start tekrar bağlanır"**
+23. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"offline durumda stop no-op"**
+24. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"register-ack.config aralıkları değiştirir (heartbeat 5 sn)"**
+25. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"config-update frame'i restart'sız aralık değiştirir"**
+26. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"geçersiz config-update reddedilir — eski aralık korunur"**
+27. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"geçersiz register-ack config'i de reddedilir ama bağlantı kurulur"**
+28. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"malform JSON yok sayılır — çökme yok"**
+29. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"bilinmeyen mesaj tipi yok sayılır"**
+30. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"soket hatası loglanır (close olayı backoff'u yönetir)"**
+31. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"error frame'i loglanır"**
+32. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"kodsuz error frame'i 'unknown' ile loglanır"**
+33. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"register-ack status alanı yoksa 'unknown' ile reddedilir"**
+34. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"403 pre-upgrade de security logu üretir"**
+35. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması)) **"bayat soketin tüm olayları yok sayılır"**
+36. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması)) **"bayat register timeout'u yeni bağlantıyı bozmaz"**
+37. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası geç kapanma olayı durumu bozmaz"**
+38. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası geç open register göndermez"**
+39. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası rejected yeniden bağlanmaz (tek URL)"**
+40. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası rejected sıradaki URL'i denemez (çok URL)"**
+41. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma) **"log çağrıları atlanır — çökme yok"**
+42. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"bilinmeyen kontrol mesajı abonelere iletilir"**
+43. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"unsubscribe sonrası iletilmez"**
+44. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"sendControl JSON text frame gönderir"**
+45. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"sendBinary ham binary frame gönderir"**
+46. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"gelen binary frame abonelere iletilir"**
+47. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"bağlı değilken sendControl/sendBinary no-op"**
+48. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş URL listesi reddedilir"**
+49. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş token reddedilir"**
+50. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş peerId reddedilir"**
+51. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"pozitif olmayan heartbeat aralığı reddedilir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2649,7 +2864,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ws-tunnel/src/protocol/messages.test.ts` (40 test)
+### `packages/ws-tunnel/src/protocol/messages.test.ts` (25 test)
 
 1. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION) **"2'dir — sürümlü protokol (v2: peerId+peerType register) (tasarım §12.3)"**
 2. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"tam config'i kabul eder"**
@@ -2661,36 +2876,21 @@
 8. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"ondalıklı değeri reddeder"**
 9. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"tip uyuşmazlığını reddeder"**
 10. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG) **"heartbeat 15 sn — tasarım §4.3"**
-11. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG) **"telemetry 15 sn"**
-12. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG) **"dondurulmuştur (immutable)"**
-13. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState) **"geçerli durumları tanır"**
-14. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState) **"geçersiz durumları reddeder"**
-15. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"RegisterMessage alanlarını sabitler"**
-16. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"RegisterAckMessage opsiyonel config taşır"**
-17. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"HeartbeatMessage ms timestamp taşır"**
-18. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"TelemetryMessage TelemetryData dizisi taşır"**
-19. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"ConfigUpdateMessage tam config taşır"**
-20. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"ErrorMessage kod + mesaj taşır"**
-21. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"EventMessage jenerik olay bildirimi taşır (Boss Faz 5)"**
-22. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"StreamOpenMessage akış açılışını taşır (§5.2)"**
-23. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"StreamOpenMessage upgrade bayrağı WS köprüsü taşır (§5.3)"**
-24. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"OpenSessionMessage eşlenmiş konteyner rolü taşır (§5.5)"**
-25. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"OpenSessionAckMessage konteyner JWT + süre taşır"**
-26. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"TunnelConnectorState 5 durumludur"**
-27. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"TunnelOperationalConfig yalnızca iki opsiyonel alan taşır"**
-28. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"PeerConnectionState transport ConnectionState'ından ayrıdır"**
-29. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)) **"operationExecuteSchema: geçerli istek kabul edilir"**
-30. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)) **"operationExecuteSchema: eksik/boş zorunlu alanlar RED"**
-31. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)) **"operationExecuteSchema: bilinmeyen anahtar RED (strict güven sınırı)"**
-32. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)) **"OperationControlMessage union tipi iki yönü de kapsar"**
-33. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.4: TUNNEL_PEER_TYPES device tipini içerir"**
-34. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.1: serviceAnnouncementSchema id + kozmetik meta kabul eder"**
-35. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.1: meta opsiyoneldir (yalnız id ile geçerli)"**
-36. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.1: boş id RED"**
-37. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.2: opak olmayan alan RED (strict — target/protocol/health eklenemez)"**
-38. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.2: meta içindeki bilinmeyen alan RED"**
-39. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.3: services'siz RegisterMessage geçerlidir (geriye uyumlu v2)"**
-40. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri > operation-execute / operation-result (WS-TUNNEL-KAPASITE §6) > opak servis duyurusu (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.1)) **"AK-1.1/1.3: RegisterMessage services dizisi taşır"**
+11. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG) **"dondurulmuştur (immutable)"**
+12. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState) **"geçerli durumları tanır"**
+13. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState) **"geçersiz durumları reddeder"**
+14. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"RegisterMessage alanlarını sabitler"**
+15. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"RegisterAckMessage opsiyonel config taşır"**
+16. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"HeartbeatMessage ms timestamp taşır"**
+17. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"ConfigUpdateMessage tam config taşır"**
+18. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"ErrorMessage kod + mesaj taşır"**
+19. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"StreamOpenMessage akış açılışını taşır (§5.2)"**
+20. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"StreamOpenMessage upgrade bayrağı WS köprüsü taşır (§5.3)"**
+21. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"OpenSessionMessage eşlenmiş konteyner rolü taşır (§5.5)"**
+22. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"OpenSessionAckMessage konteyner JWT + süre taşır"**
+23. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"TunnelConnectorState 5 durumludur"**
+24. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"TunnelOperationalConfig yalnızca heartbeat alanı taşır"**
+25. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"PeerConnectionState transport ConnectionState'ından ayrıdır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2735,6 +2935,17 @@
 22. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"RST frame → tarayıcı 1011 ile kapatılır"**
 23. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"binary tarayıcı mesajı Binary opcode taşır"**
 24. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"bilinmeyen streamId'ye WS mesajı yok sayılır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/ws-tunnel/src/result/result.test.ts` (6 test)
+
+1. (yerel Result) **"ok/err durumları ve değer erişimi"**
+2. (yerel Result) **"okVoid değersiz başarı üretir"**
+3. (yerel Result) **"unwrapOr fallback uygular"**
+4. (yerel Result) **"map/andThen/match hata taşır"**
+5. (yerel Result) **"hata üzerinde unwrap / başarı üzerinde error fırlatır"**
+6. (yerel Result > yerel DomainError taksonomisi) **"boş code/message reddedilir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3010,7 +3221,7 @@
 
 ### `services/management-service/src/container-rules.test.ts` (20 test)
 
-1. (konteyner rules.json — kural envanteri) **"zod-valid + fail-fast yüklenir; 43 kural"**
+1. (konteyner rules.json — kural envanteri) **"zod-valid + fail-fast yüklenir; 47 kural"**
 2. (konteyner rules.json — kural envanteri) **"K-A4: FL-06/09/12 kural adı YOKTUR (fail-safe)"**
 3. (konteyner rules.json — kural envanteri) **"K-A8/K-A9: hiçbir aksiyon PCS'e veya BSC charge/discharge'a gitmez"**
 4. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis)) **"tms_cool_on_h1: Current Temp ≥ 25 → force_cool + log; cooldown 60 sn"**
@@ -3020,7 +3231,7 @@
 8. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis)) **"HVAC-1..8 için dörtlü tamam (32 kural)"**
 9. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_overheat_protect: 3 kademeli debounce + HVAC force + BSC emergency"**
 10. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_overcold_protect: 3 kademeli + force_heat + BSC emergency"**
-11. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_humidity_alarm: Return Humidity ≥ 85 → BSC emergency + log + notify"**
+11. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_humidity_alarm: Return Humidity ≥ 75 → BSC emergency + log + notify"**
 12. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK)) **"tms_temp_diff_protect: per-rack R1..R8 (≥10 rack / ≥5 pack) → BSC emergency"**
 13. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340)) **"eşik 180 V + debounce 5 sn; CB open ×2 + BSC open_contactors ×2"**
 14. (konteyner rules.json — kural envanteri > FL-05 normal kontrol (32 kural — hysteresis) > FL-05 korumalar (blok seti — K10: PCS YOK) > FL-02 AUX kaybı (PM5340) > FL-07 kapı kuralları (control-panel-io DI)) **"batarya kapısı AÇIK → ışık + BSC emergency; KAPALI → ışık söndür"**
@@ -3237,29 +3448,29 @@
 5. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"field tier + dev secret → fırlatır"**
 6. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"field tier + geçerli secret → ok"**
 7. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"container tier + dev secret → ok (dev ortamı)"**
-8. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"kapalıysa undefined döner"**
-9. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"etkinse URL listesi + token + containerId ayrıştırılır"**
-10. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"etkin ama URL yoksa fail-fast fırlatır"**
-11. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"etkin ama token yoksa fail-fast fırlatır"**
-12. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"etkin ama containerId yoksa fail-fast fırlatır"**
-13. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"ws:// veya wss:// olmayan URL reddedilir"**
-14. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"field tier'da etkin = hata"**
-15. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3)) **"tek URL de geçerli"**
-16. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + geçerli UUID → config döner"**
-17. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + FIELD_ID yoksa fail-fast fırlatır"**
-18. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + geçersiz UUID fail-fast fırlatır"**
-19. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + FIELD_NAME env'den isim alır"**
-20. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"container tier → undefined (FIELD_ID opsiyonel)"**
-21. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"boss tier → undefined (çok saha ileride)"**
-22. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"field tier varsayılan: admin,teknik"**
-23. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false → [] (debug)"**
-24. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false + AUTH_MFA_REQUIRED_ROLES dolu → yine [] (bayrak öncelikli)"**
-25. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"AUTH_MFA_REQUIRED_ROLES boş string → []"**
-26. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"container tier her zaman []"**
-27. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki)) **"env boşsa undefined — §5.6 varsayılanları geçerli kalır"**
-28. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki)) **"virgüllü ek önekler §5.6 varsayılanlarına EKLENİR"**
-29. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki) > resolveTelemetryIntervalMs) **"tanımsız/geçersizde ws-tunnel varsayılanına (15000) düşer"**
-30. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > fieldConnectorConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki) > resolveTelemetryIntervalMs) **"geçerli değeri kullanır; 1000–300000 aralığına kırpar"**
+8. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"kapalıysa undefined döner"**
+9. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkinse URL listesi + token + containerId ayrıştırılır"**
+10. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkin ama URL yoksa fail-fast fırlatır"**
+11. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkin ama token yoksa fail-fast fırlatır"**
+12. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkin ama containerId yoksa fail-fast fırlatır"**
+13. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"ws:// veya wss:// olmayan URL reddedilir"**
+14. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"field tier'da etkin = hata"**
+15. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"tek URL de geçerli"**
+16. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + geçerli UUID → config döner"**
+17. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + FIELD_ID yoksa fail-fast fırlatır"**
+18. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + geçersiz UUID fail-fast fırlatır"**
+19. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + FIELD_NAME env'den isim alır"**
+20. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"container tier → undefined (FIELD_ID opsiyonel)"**
+21. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"boss tier → undefined (çok saha ileride)"**
+22. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"field tier varsayılan: admin,teknik"**
+23. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false → [] (debug)"**
+24. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false + AUTH_MFA_REQUIRED_ROLES dolu → yine [] (bayrak öncelikli)"**
+25. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"AUTH_MFA_REQUIRED_ROLES boş string → []"**
+26. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"container tier her zaman []"**
+27. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki)) **"env boşsa jenerik varsayılanlar + domain blocklist döner"**
+28. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki)) **"virgüllü ek önekler §5.6 varsayılanlarına EKLENİR"**
+29. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki) > resolveTelemetryIntervalMs) **"tanımsız/geçersizde ws-tunnel varsayılanına (15000) düşer"**
+30. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki) > resolveTelemetryIntervalMs) **"geçerli değeri kullanır; 1000–300000 aralığına kırpar"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3374,97 +3585,22 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/container-proxy/container-proxy-field-channel.test.ts` (4 test)
+### `services/web-service/src/infrastructure/container-session/hub-container-view.test.ts` (5 test)
 
-1. (ContainerProxyFieldChannel) **"sendControl/sendBinary ContainerProxy'ye delege edilir"**
-2. (ContainerProxyFieldChannel) **"onControlMessage aboneyi containerId ile besler; unsubscribe söker"**
-3. (ContainerProxyFieldChannel) **"onBinaryFrame aboneyi ham frame ile besler"**
-4. (ContainerProxyFieldChannel) **"isConnected yalnızca connected durumda true"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-proxy/container-proxy.test.ts` (53 test)
-
-1. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"geçerli token ile register — connected + registry URL"**
-2. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"yanlış token ile register — bağlantı kapatılır, kayıt yok"**
-3. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"token'sız register — bağlantı kapatılır"**
-4. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"registry'de bilinmeyen containerId — kapatılır"**
-5. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"sql yoksa fail-closed — register reddedilir"**
-6. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"reddedilen register ws_register_rejected security logu üretir"**
-7. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"authenticateContainerToken — registry'deki hash ile true"**
-8. (container-proxy T1.1 sözleşmesi (token doğrulama)) **"authenticateContainerToken — bilinmeyen token false"**
-9. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch)) **"health() registry URL'ine token'lı fetch yapar"**
-10. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch)) **"token RAM'de yoksa fetch headersız gider (restart sonrası kademeli)"**
-11. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"historical() WS'e telemetry-query frame'i gönderir ve telemetry-result ile çözülür"**
-12. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"telemetry-query-error → boş dizi (kademeli bozulma)"**
-13. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"K-21: latestQuery() mode:'latest' frame'i gönderir ve telemetry-result ile çözülür"**
-14. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"konteyner kayıtlı değilse veya WS kapalıysa frame gönderilmez — boş dizi"**
-15. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"timeout aşılınca boş dizi döner (queryTimeoutMs enjekte edilir)"**
-16. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"WS kapanınca bekleyen sorgular boş diziyle kapatılır"**
-17. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i)) **"ilgisiz mesajlar bekleyen sorguları etkilemez (observer'a düşer)"**
-18. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar)) **"observer'a connection değişimi bildirilir"**
-19. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar)) **"telemetry mesajı latest günceller + onData"**
-20. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar)) **"close → idle bildirimi"**
-21. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar)) **"unregisterContainer siler"**
-22. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"başarılı register register-ack ok gönderir"**
-23. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"reddedilen register register-ack rejected + kapatma"**
-24. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"register lastSeenAt'i şimdiye kurar"**
-25. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"heartbeat lastSeenAt'i tazeler"**
-26. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"45 sn sessizlik → stale (observer bildirimi dahil)"**
-27. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"stale → heartbeat → connected geri döner"**
-28. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"close sonrası kayıt + lastSeenAt korunur (idle — §12.4)"**
-29. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"kayıtsız container lastSeenAt undefined"**
-30. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"stale eşiği config ile değiştirilebilir"**
-31. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"kapalıysa pushConfigUpdate frame göndermez"**
-32. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"pushConfigUpdate config-update frame'i gönderir"**
-33. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale)) **"operationalConfig register-ack'e gömülür"**
-34. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"sql'siz authenticateContainerToken false"**
-35. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"sql hatasında authenticateContainerToken false (fail-closed)"**
-36. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"registry sorgusu hata verirse register reddedilir"**
-37. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"yeniden register eski bağlantıyı kapatır"**
-38. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"registry'de container_url yoksa health false; historical frame'le yine çalışır"**
-39. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"malform JSON mesajı yok sayılır"**
-40. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"kayıtsız container latestTelemetry boş döner"**
-41. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"historical() from/to/points frame'e taşınır"**
-42. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"historical() gönderim hatası → boş dizi"**
-43. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"allHistorical çoklu konteyner"**
-44. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"health() fetch hatası → false"**
-45. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"start/stop + sweep (kapalı soket → idle)"**
-46. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"removeObserver bildirimi durdurur"**
-47. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"register-ack gönderiminde soket zaten kapalıysa gönderilmez"**
-48. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"unregister sonrası heartbeat yok sayılır"**
-49. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları)) **"security logu yazılamazsa da register reddedilir (fail-closed)"**
-50. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları) > container-proxy Faz 3 kanalı (control + binary)) **"bilinmeyen kontrol mesajı observer'a iletilir"**
-51. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları) > container-proxy Faz 3 kanalı (control + binary)) **"binary frame observer'a iletilir (text parse edilmez)"**
-52. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları) > container-proxy Faz 3 kanalı (control + binary)) **"sendControl açık WS'e JSON gönderir; kapalıysa no-op"**
-53. (container-proxy T1.1 sözleşmesi (token doğrulama) > container-proxy T1.5 sözleşmesi (registry URL + token'lı fetch) > container-proxy Faz 5.1 B2 sözleşmesi (telemetry-query kontrol frame'i) > container-proxy karakterizasyon (değişmeyen davranışlar) > container-proxy T2.4 sözleşmesi (heartbeat + stale) > container-proxy kapsama (T2.4 ek — hata yolları) > container-proxy Faz 3 kanalı (control + binary)) **"sendBinary açık WS'e ham frame gönderir; kapalıysa no-op"**
+1. (HubContainerView) **"presence: connectionStatus + lastSeenAt hub keşfinden"**
+2. (HubContainerView) **"relay telemetry frame'i latestTelemetry'ye yazılır"**
+3. (HubContainerView) **"latestQuery telemetry-query gönderir + yanıtı queryId ile eşler"**
+4. (HubContainerView) **"historical downsampled mod ile sorgular"**
+5. (HubContainerView) **"bağlı olmayan konteyner sorgusu boş döner"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/container-proxy/container-ws-routes.test.ts` (4 test)
+### `services/web-service/src/infrastructure/container-session/hub-maneuver-channel.test.ts` (4 test)
 
-1. (container-ws-routes T1.1 sözleşmesi) **"token yoksa upgrade öncesi 401"**
-2. (container-ws-routes T1.1 sözleşmesi) **"hash'i registry'de olmayan token → 401"**
-3. (container-ws-routes T1.1 sözleşmesi) **"geçerli token + register mesajı → registerContainer(token) çağrılır"**
-4. (container-ws-routes T1.1 sözleşmesi) **"register mesajındaki containerUrl setContainerUrl'ı tetikLEMEZ (trust kalktı)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/fastify-stream-sink.test.ts` (3 test)
-
-1. (FastifyStreamSink) **"status → writeHead (headers varsayılan {})"**
-2. (FastifyStreamSink) **"write/end/destroy birebir delege edilir"**
-3. (FastifyStreamSink) **"onClose → raw 'close' olayına abone olur"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/session-audit.test.ts` (5 test)
-
-1. (SessionAudit (T3.4)) **"ensureSchema session_audit DDL'ini kurar"**
-2. (SessionAudit (T3.4)) **"open → INSERT + security logu; logger hatası fail-closed"**
-3. (SessionAudit (T3.4)) **"close → UPDATE + security logu"**
-4. (SessionAudit (T3.4)) **"SESSION_AUDIT_DDL dışa açıktır (init kullanımı)"**
-5. (SessionAudit (T3.4)) **"IAuditSink sözleşmesini uygular (derleme kanıtı)"**
+1. (HubManeuverChannel) **"AK-3.1: 200 → ok; doğru yol ve gövde"**
+2. (HubManeuverChannel) **"AK-3.2: 503/404 → system_unreachable"**
+3. (HubManeuverChannel) **"diğer hatalar → gövdedeki reason"**
+4. (HubManeuverChannel) **"ağ hatası → system_unreachable"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3473,28 +3609,6 @@
 1. (SessionUserMap) **"toTunnelUser yalnızca tünel alanlarını taşır"**
 2. (SessionUserMap) **"toWebUser geçici oturum kullanıcısı üretir"**
 3. (SessionUserMap) **"round-trip: role korunur"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/tunnel-maneuver-channel.test.ts` (8 test)
-
-1. (TunnelManeuverChannel (C1)) **"connected + 200 yanıt → ok"**
-2. (TunnelManeuverChannel (C1)) **"timer verilince gövdeye eklenir (additive)"**
-3. (TunnelManeuverChannel (C1)) **"timer YOKKEN gövde yalnızca params (mevcut davranış)"**
-4. (TunnelManeuverChannel (C1)) **"bağlantı connected değilse system_unreachable — stream açılmaz"**
-5. (TunnelManeuverChannel (C1)) **"stream: POST /api/maneuvers/:name/execute + params gövdesi + oturum cookie"**
-6. (TunnelManeuverChannel (C1)) **"upstream 404 → ok:false + reason gövdeden"**
-7. (TunnelManeuverChannel (C1)) **"stream hatası → ok:false (tunnel_stream_failed)"**
-8. (TunnelManeuverChannel (C1)) **"oturum yoksa programatik açılır; varsa yeniden kullanılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/tunnel.spec.ts` (4 test)
-
-1. (Faz 3 uçtan uca tünel (K3.1-K3.3)) **"K3.1: curl benzeri GET / → HTML akar (FIN ile biter)"**
-2. (Faz 3 uçtan uca tünel (K3.1-K3.3)) **"K3.2: GET /api/data/latest → JSON akar"**
-3. (Faz 3 uçtan uca tünel (K3.1-K3.3)) **"K3.2: /ws köprüsü çift yönlü WS_OP mesajı taşır"**
-4. (Faz 3 uçtan uca tünel (K3.1-K3.3)) **"K3.3: session_audit INSERT + session_open security logu"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3530,7 +3644,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/field-uplink/field-event-collector.test.ts` (6 test)
+### `services/web-service/src/infrastructure/field-uplink/field-event-collector.test.ts` (7 test)
 
 1. (FieldEventCollector (Faz 5)) **"event frame'i dedupe INSERT ile yazar (ON CONFLICT DO NOTHING)"**
 2. (FieldEventCollector (Faz 5)) **"whitelist dışı olay yok sayılır"**
@@ -3538,23 +3652,7 @@
 4. (FieldEventCollector (Faz 5)) **"countSince sonrasını sayar"**
 5. (FieldEventCollector (Faz 5)) **"demoSeed açıkken ensureSchema 3 örnek bildirim eker (idempotent)"**
 6. (FieldEventCollector (Faz 5)) **"demoSeed kapalıyken ensureSchema seed EKMEZ"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-uplink/field-registry.test.ts` (12 test)
-
-1. (FieldRegistry (Faz 3)) **"token hash'i kaydeder (düz metin SQL'e girmez)"**
-2. (FieldRegistry (Faz 3)) **"bilinmeyen token → authenticate false (fail-closed)"**
-3. (FieldRegistry (Faz 3)) **"register: token eşleşmezse rejected ack + kapanış"**
-4. (FieldRegistry (Faz 3)) **"register: token eşleşirse ok ack + connected"**
-5. (FieldRegistry (Faz 3)) **"heartbeat lastSeenAt'i tazeler; 45 sn sessizlik → stale"**
-6. (FieldRegistry (Faz 3)) **"binary frame ve kontrol mesajı gözlemcilere akar"**
-7. (FieldRegistry (Faz 3)) **"WS kapanırsa idle (kayıt düşer)"**
-8. (FieldRegistry (Faz 3) > opak servis kaydı (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.2)) **"AK-2.1: register servis duyurusunu kaydeder (device tipiyle)"**
-9. (FieldRegistry (Faz 3) > opak servis kaydı (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.2)) **"AK-2.1: services yoksa boş kayıt (peerType varsayılan field)"**
-10. (FieldRegistry (Faz 3) > opak servis kaydı (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.2)) **"AK-1.2/AK-2.7: opak olmayan servis (target) → rejected (fail-closed)"**
-11. (FieldRegistry (Faz 3) > opak servis kaydı (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.2)) **"services dizi değilse rejected"**
-12. (FieldRegistry (Faz 3) > opak servis kaydı (WS-TUNNEL-OPAK-SERVIS-ERISIMI §6.2)) **"WS kapanınca servis kaydı da düşer"**
+7. (FieldEventCollector (Faz 5)) **"attachChannel: hub consumer kanalından event frame'i toplar (P3)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3591,6 +3689,44 @@
 4. (UplinkEventRelay (Faz 5)) **"correlation_id yoksa eventId seq'e düşer"**
 5. (UplinkEventRelay (Faz 5)) **"whitelist varsayılanı alarm + oturum + operasyon koşusu audit'idir"**
 6. (UplinkEventRelay (Faz 5)) **"start → 10 sn interval; stop → döngü biter"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/infrastructure/hub-consumer/consumer-relay.test.ts` (2 test)
+
+1. (ConsumerRelay) **"AK-1.3: { peerId, message } zarfını aboneye iletir"**
+2. (ConsumerRelay) **"AK-1.2: kopunca yeniden bağlanır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/infrastructure/hub-consumer/hub-consumer-channel.test.ts` (4 test)
+
+1. (HubConsumerChannel) **"sendControl → client.sendControl"**
+2. (HubConsumerChannel) **"onControlMessage relay aboneliğine delege eder"**
+3. (HubConsumerChannel) **"presence tazelenince isConnected doğru döner"**
+4. (HubConsumerChannel) **"sendBinary desteklenmiyor"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/infrastructure/hub-consumer/hub-consumer-client.test.ts` (8 test)
+
+1. (HubConsumerClient) **"AK-1.1: peers() tipli liste döner + auth başlığı taşır"**
+2. (HubConsumerClient) **"servicesOf peerId'yi encode eder"**
+3. (HubConsumerClient) **"sendControl POST /control/:peerId"**
+4. (HubConsumerClient) **"openSession POST /sessions"**
+5. (HubConsumerClient) **"access programatik erişim URL'i kurar"**
+6. (HubConsumerClient) **"ok olmayan yanıt HubConsumerError fırlatır"**
+7. (HubConsumerClient) **"createPeer POST /admin/peers"**
+8. (HubConsumerClient) **"revokePeer DELETE /admin/peers/:id"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/infrastructure/hub-consumer/hub-field-registry.test.ts` (4 test)
+
+1. (HubFieldRegistry) **"AK-2.3: presence hub keşfinden tazelenir"**
+2. (HubFieldRegistry) **"upsertToken hub bootstrap üretir (düz metin token döner)"**
+3. (HubFieldRegistry) **"removeToken hub'da iptal eder + presence düşer"**
+4. (HubFieldRegistry) **"hub erişilemezse eski presence korunur (kademeli bozulma)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3926,34 +4062,22 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/field-container-command.spec.ts` (4 test)
+### `services/web-service/src/presentation/routes/field-container-commands.test.ts` (10 test)
 
-1. (field-container-command.spec — çapraz yığın komut (WS4 D3)) **"field → tünel → konteyner upstream → doğrulanmış sonuç geri döner"**
-2. (field-container-command.spec — çapraz yığın komut (WS4 D3)) **"trace başlığı upstream'e ulaşır (D1 — çapraz audit eşlemesi)"**
-3. (field-container-command.spec — çapraz yığın komut (WS4 D3)) **"internal token programatik kanalı açar (system kullanıcısı)"**
-4. (field-container-command.spec — çapraz yığın komut (WS4 D3)) **"yanlış internal token → 403; upstream'e İSTEK GİTMEZ"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/presentation/routes/field-container-commands.test.ts` (13 test)
-
-1. (field-container-commands (D3)) **"yetki yok (token/user yok) → 403; oturum/stream açılmaz"**
-2. (field-container-commands (D3)) **"yanlış internal token → 403 (fail-closed)"**
-3. (field-container-commands (D3)) **"Bearer admin kullanıcı → kabul; guest → 403"**
-4. (field-container-commands (D3)) **"konteyner connected değilse 503 — oturum/stream açılmaz"**
-5. (field-container-commands (D3)) **"mevcut oturum yeniden kullanılır — programatik açılış YOK"**
-6. (field-container-commands (D3)) **"oturum yoksa system kullanıcısıyla programatik açılır"**
-7. (field-container-commands (D3)) **"stream: POST /api/commands/execute-multi + trace + cookie başlıkları"**
-8. (field-container-commands (D3)) **"upstream yanıtı AYNEN döner (200 → gövde)"**
-9. (field-container-commands (D3)) **"upstream 422 → durum kodu aynen, gövde aynen"**
-10. (field-container-commands (D3)) **"audit field_container_command — traceId bağlamda"**
-11. (field-container-commands (D3)) **"audit hatası akışı KESMEZ (best-effort)"**
-12. (field-container-commands (D3)) **"stream destroy (kopma) → 502"**
-13. (field-container-commands (D3)) **"x-gd-trace-id yoksa üretilir"**
+1. (field-container-commands (D3 — hub)) **"yetki yok (token/user yok) → 403; hub'a istek gitmez"**
+2. (field-container-commands (D3 — hub)) **"yanlış internal token → 403 (fail-closed)"**
+3. (field-container-commands (D3 — hub)) **"Bearer admin → kabul; guest → 403"**
+4. (field-container-commands (D3 — hub)) **"hub access: peerId/serviceId/path + trace + system user başlıkları"**
+5. (field-container-commands (D3 — hub)) **"upstream 200 → gövde aynen"**
+6. (field-container-commands (D3 — hub)) **"upstream 422 → durum kodu + gövde aynen"**
+7. (field-container-commands (D3 — hub)) **"audit field_container_command — traceId bağlamda"**
+8. (field-container-commands (D3 — hub)) **"audit hatası akışı KESMEZ (best-effort)"**
+9. (field-container-commands (D3 — hub)) **"hub erişim hatası → 502"**
+10. (field-container-commands (D3 — hub)) **"x-gd-trace-id yoksa üretilir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/field-routes.test.ts` (19 test)
+### `services/web-service/src/presentation/routes/field-routes.test.ts` (13 test)
 
 1. (field-routes karakterizasyon (mevcut davranış)) **"T1.3: boş fieldIds'li teknik /:fieldId/containers erişEMEZ (403)"**
 2. (field-routes karakterizasyon (mevcut davranış)) **"GET /:fieldId/summary → 200 yapı"**
@@ -3965,27 +4089,9 @@
 8. (field-routes karakterizasyon (mevcut davranış)) **"GET /:fieldId/telemetry/downsampled — proxy yoksa {} (kademeli)"**
 9. (field-routes karakterizasyon (mevcut davranış)) **"2026-08-28: saha registry uçları KALDIRILDI — POST/PUT/DELETE 404"**
 10. (field-routes karakterizasyon (mevcut davranış)) **"2026-08-28: saha listesi ucu KALDIRILDI — GET / 404"**
-11. (field-routes karakterizasyon (mevcut davranış)) **"T1.2: register endpoint'i admin için 201 — yalnızca hash saklanır"**
-12. (field-routes karakterizasyon (mevcut davranış)) **"T1.2: kısa token → 400"**
-13. (field-routes karakterizasyon (mevcut davranış)) **"2026-08-30: payload'daki containerUrl YOK SAYILIR — 201 + DB'ye yazılmaz"**
-14. (field-routes karakterizasyon (mevcut davranış)) **"T1.2: teknik → 403"**
-15. (field-routes karakterizasyon (mevcut davranış)) **"T1.2: bilinmeyen saha → 404"**
-16. (field-routes karakterizasyon (mevcut davranış)) **"UC-13: station ile register → 201, DB'ye yazılır + yanıtta döner"**
-17. (field-routes karakterizasyon (mevcut davranış)) **"UC-13: station'sız re-register → mevcut etiket KORUNUR ($5=false)"**
-18. (field-routes karakterizasyon (mevcut davranış)) **"UC-13: station > 64 karakter → 400"**
-19. (field-routes karakterizasyon (mevcut davranış)) **"UC-13: GET /:fieldId/containers station alanını döndürür"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/presentation/routes/field-session-routes.test.ts` (7 test)
-
-1. (field-session-routes (Faz 3)) **"POST /:fid/session → 200 + redirectUrl + Path-scoped cookie"**
-2. (field-session-routes (Faz 3)) **"gateway hatası → 503 (transient)"**
-3. (field-session-routes (Faz 3)) **"DELETE /:fid/session → açık oturum yoksa 404"**
-4. (field-session-routes (Faz 3)) **"/fields/:fid/ui/* → cookie'siz 401"**
-5. (field-session-routes (Faz 3)) **"/fields/:fid/ui/* → oturumlu ama allowlist dışı 403"**
-6. (field-session-routes (Faz 3)) **"FIELD_TUNNEL_ALLOWED_PREFIXES ek önekleri — /src/ gibi dev asset yolu geçer"**
-7. (field-session-routes (Faz 3)) **"/fields/:fid/ui/ws/* → cookie'siz 1008 kapanışı"**
+11. (field-routes karakterizasyon (mevcut davranış)) **"GET /:fieldId/containers — liste hub peer'larından (containerIds) türetilir"**
+12. (field-routes karakterizasyon (mevcut davranış)) **"GET /:fieldId/telemetry/latest — anahtarlar hub container id'leridir"**
+13. (field-routes karakterizasyon (mevcut davranış)) **"containerProxy yoksa containers boş dizi döner"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3993,6 +4099,13 @@
 
 1. (health-route (T0.10)) **"sağlıklı logger → status ok + log yansıması"**
 2. (health-route (T0.10)) **"error drop sonrası → status degraded + sayaç"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/presentation/routes/hub-session-routes.test.ts` (2 test)
+
+1. (hub-session-routes) **"AK-4.1/T-11: oturum açar, cookie set eder, redirect döner"**
+2. (hub-session-routes) **"kimlik yoksa 401"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -4060,30 +4173,6 @@
 3. (operationBossRoutes (C2b)) **"requester yoksa 503 (tier uyuşmazlığı)"**
 4. (operationBossRoutes (C2b)) **"timeout (undefined) → 503 operation_timeout"**
 5. (operationBossRoutes (C2b)) **"rejected sonuç AYNEN döner (200 + status)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/presentation/routes/peer-service-routes.test.ts` (8 test)
-
-1. (peer-service-routes (T14)) **"AK-2.2: GET /peers peer'ları id/type/status/services ile listeler"**
-2. (peer-service-routes (T14)) **"AK-2.3: GET /peers/:id/services servisleri döner"**
-3. (peer-service-routes (T14)) **"AK-2.3: bilinmeyen peer → 404"**
-4. (peer-service-routes (T14)) **"AK-2.5: duyurulmuş servis + bağlı peer → opak proxy yanıtı akar"**
-5. (peer-service-routes (T14)) **"AK-2.5: allowlist dışı yol → 403 (stream açılmaz)"**
-6. (peer-service-routes (T14)) **"AK-2.6: bağlı olmayan peer → 503"**
-7. (peer-service-routes (T14)) **"AK-2.7: duyurulmamış servis → 404"**
-8. (peer-service-routes (T14)) **"AK-2.6: oturum yoksa akışlı erişimde 401 (kimlik gerekli)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/presentation/routes/session-routes.test.ts` (6 test)
-
-1. (session-routes (T3.3)) **"POST session → 302 + Path-scoped HttpOnly cookie + open-session"**
-2. (session-routes (T3.3)) **"gateway conflict → 409"**
-3. (session-routes (T3.3)) **"teknik fieldIds'siz saha için 403"**
-4. (session-routes (T3.3)) **"DELETE session → açık oturum kapatılır (200); yoksa 404"**
-5. (session-routes (T3.3)) **"tünel HTTP: cookie'siz 401; yasaklı yol 403; geçerli → proxy akışı"**
-6. (session-routes (T3.3)) **"tünel WS: geçersiz oturum 1008 ile kapanır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

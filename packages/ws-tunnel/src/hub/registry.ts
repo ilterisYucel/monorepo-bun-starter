@@ -1,4 +1,4 @@
-import { ValidationError } from "@gd-monorepo/result";
+import { ValidationError } from "../result";
 import type { ServiceAnnouncement, TunnelPeerType } from "../protocol";
 
 /**

@@ -9,13 +9,13 @@ import { TunnelClient } from "../client";
 import { ClientSessionStore, ClientSessionServer } from "../session";
 import { HubSessionStore, SessionGateway, TunnelProxy } from "../proxy";
 import type { IStreamSink, IAuditSink } from "../";
-import { FieldHarness } from "./field-harness";
+import { HubHarness } from "./hub-harness";
 import { JoseSignerForTests } from "../session/__test-helpers__/jose-signer";
 
 /**
  * Loopback uçtan uca — paketin KENDİ KENDİNE YETERLİLİK kanıtı.
  * Monorepo'ya hiç değmez: ContainerProxy/Fastify/PG YOKTUR; field tarafı
- * `FieldHarness` (paket içi), konteyner tarafı TunnelConnector + TunnelClient,
+ * `HubHarness` (paket içi), konteyner tarafı TunnelConnector + TunnelClient,
  * field tarafı Gateway + TunnelProxy aynı gerçek WS kanalında loopback.
  */
 const CONTAINER_ID = "container-loop";
@@ -88,7 +88,7 @@ async function startUpstream(): Promise<Upstream> {
 }
 
 describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
-  let harness: FieldHarness;
+  let harness: HubHarness;
   let upstream: Upstream;
   let connector: TunnelConnector;
   let tunnelClient: TunnelClient;
@@ -107,7 +107,7 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
   async function setup(): Promise<void> {
     upstream = await startUpstream();
     const base = `http://127.0.0.1:${upstream.port}`;
-    harness = new FieldHarness();
+    harness = new HubHarness();
     const port = await harness.start();
 
     connector = new TunnelConnector(
@@ -116,12 +116,10 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
         token: TOKEN,
         peerId: CONTAINER_ID,
         heartbeatIntervalMs: 200,
-        telemetryIntervalMs: 200,
         registerTimeoutMs: 3000,
         livenessTimeoutMs: 60000,
       },
       new WsSocketClientFactory(),
-      { snapshot: async () => [] },
       new ReconnectDelay({ baseMs: 50, maxMs: 200, jitterSpanMs: 0, jitter: () => 0 }),
     );
 
@@ -155,7 +153,7 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
     await setup();
     expect(await waitFor(() => connector.connected())).toBe(true);
     const result = await gateway.openSession({
-      fieldId: "f-loop",
+      hubId: "f-loop",
       peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
@@ -172,7 +170,7 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
     await setup();
     expect(await waitFor(() => connector.connected())).toBe(true);
     const outcome = await gateway.openSession({
-      fieldId: "f-loop",
+      hubId: "f-loop",
       peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
@@ -194,7 +192,7 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
     await setup();
     expect(await waitFor(() => connector.connected())).toBe(true);
     const outcome = await gateway.openSession({
-      fieldId: "f-loop",
+      hubId: "f-loop",
       peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });
@@ -215,7 +213,7 @@ describe("loopback uçtan uca (paket içi — ContainerProxy'siz)", () => {
     await setup();
     expect(await waitFor(() => connector.connected())).toBe(true);
     const outcome = await gateway.openSession({
-      fieldId: "f-loop",
+      hubId: "f-loop",
       peerId: CONTAINER_ID,
       user: { id: "u-1", username: "operator", role: "teknik" },
     });

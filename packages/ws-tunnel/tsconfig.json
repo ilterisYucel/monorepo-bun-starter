@@ -8,7 +8,6 @@
     "emitDeclarationOnly": true
   },
   "include": ["src/**/*"],
-  "references": [{ "path": "../result" }],
   "exclude": [
     "node_modules",
     "dist",

@@ -1,4 +1,4 @@
-import type { ISnapshotSource, TunnelTelemetryPoint } from "@gd-monorepo/ws-tunnel";
+import type { ISnapshotSource, TunnelTelemetryPoint } from "../tunnel-extensions";
 import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
 
 /**

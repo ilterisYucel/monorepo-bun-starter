@@ -16,9 +16,10 @@ import {
   serviceTier,
   deviceConfigDir,
   logConfig,
-  fieldConnectorConfig,
+  hubPeerConfig,
   fieldUplinkConfig,
-  fieldTunnelPathAllowlist,
+  resolveTelemetryIntervalMs,
+  hubConsumerConfig,
   wireGuardConfig,
 } from "./default";
 import { resolveSigningKey } from "@gd-monorepo/tamper-logger";
@@ -48,7 +49,6 @@ import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
 import { DemoEarthingInterlock } from "../infrastructure/interlock/demo-earthing-interlock";
-import { TunnelManeuverChannel } from "../infrastructure/container-session/tunnel-maneuver-channel";
 import { OperationResponder } from "../infrastructure/field-uplink/operation-responder";
 import { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
 import { loadTierManeuverRecords } from "../infrastructure/commands/load-maneuver-records";
@@ -77,8 +77,6 @@ const DEFAULT_ALERT_EVENT_CODES: LogEventCode[] = [
   "tamper_detected",
   "audit_sink_failure",
 ];
-import { SessionAudit } from "../infrastructure/container-session";
-import { ContainerProxyFieldChannel } from "../infrastructure/container-proxy/container-proxy-field-channel";
 import { LoginUseCase } from "../application/use-cases/login-use-case";
 import { RefreshTokenUseCase } from "../application/use-cases/refresh-token-use-case";
 import { LogoutUseCase } from "../application/use-cases/logout-use-case";
@@ -91,14 +89,19 @@ import { TokenAdapter } from "../infrastructure/auth/token-adapter";
 import { UserRepository } from "../infrastructure/persistence/user-repository";
 import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
 import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
-import { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
 import { ContainerConnectionTelemetryPublisher } from "../infrastructure/container-proxy/container-connection-telemetry-publisher";
 import { FieldPoller } from "../infrastructure/field-poller";
 import { MarketSeries } from "../infrastructure/market/market-series";
-import { FieldRegistry } from "../infrastructure/field-uplink/field-registry";
-import { FieldUplinkChannel } from "../infrastructure/field-uplink/field-uplink-channel";
 import { FieldUplinkSnapshotSource } from "../infrastructure/field-uplink/field-uplink-snapshot-source";
-import { FieldSessionAudit } from "../infrastructure/field-uplink/field-session-audit";
+import { HubManeuverChannel } from "../infrastructure/container-session/hub-maneuver-channel";
+import { HubContainerView } from "../infrastructure/container-session/hub-container-view";
+import { TelemetrySnapshotPusher } from "../infrastructure/tunnel-extensions";
+import {
+  ConsumerRelay,
+  HubConsumerChannel,
+  HubConsumerClient,
+  HubFieldRegistry,
+} from "../infrastructure/hub-consumer";
 import { makeWireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
 import { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
 import { UplinkEventRelay } from "../infrastructure/field-uplink/uplink-event-relay";
@@ -212,31 +215,36 @@ export function buildContainer() {
     ).singleton(),
 
     // Tier-aware servisler
-    containerProxy: asFunction(({ config, postgres, logger, mq }) => {
-      const tier = serviceTier(config);
-      if (tier === "field") {
-        const proxy = new ContainerProxy(postgres, logger);
-        // PPC sinyal kaynağı (R-07/FL-07): durum değişimi → synthetic
-        // MANAGEMENT telemetrisi (FIELD-MANEVRA-KATALOGU-REV01 §5 seçenek-a).
-        proxy.addObserver(new ContainerConnectionTelemetryPublisher(mq));
-        return proxy;
-      }
-      return undefined;
-    }).singleton(),
+    // P3: field tier konteyner görünümü hub-servis tüketicisinden (ContainerProxy
+    // WS hub görevi hub-servis'e taşındı).
+    containerProxy: asFunction(
+      ({ config, mq, hubConsumerClient, hubConsumerChannel }) => {
+        const tier = serviceTier(config);
+        if (tier !== "field" || !hubConsumerClient || !hubConsumerChannel) {
+          return undefined;
+        }
+        const view = new HubContainerView({
+          peers: () => hubConsumerClient.peers(),
+          sendControl: (peerId, message) => hubConsumerChannel.sendControl(peerId, message),
+          onControlMessage: (subscriber) => hubConsumerChannel.onControlMessage(subscriber),
+        });
+        // PPC sinyal kaynağı (R-07/FL-07): durum geçişi → synthetic MANAGEMENT.
+        view.addObserver(new ContainerConnectionTelemetryPublisher(mq));
+        return view;
+      },
+    ).singleton(),
 
-    // Faz 2 T2.3: TunnelConnector — container tier + FIELD_CONNECT_ENABLED=true.
+    // Faz 2 T2.3: TunnelConnector — container tier + HUB_PEER_ENABLED=true.
     // Bootstrap config fail-fast doğrulanır; kapalıysa kurulmaz (route "offline"
     // bildirir). Operational config register-ack/config-update ile canlı gelir.
-    fieldConnector: asFunction(
+    hubPeerConnector: asFunction(
       ({ config, postgres, realtime, logger }) => {
         const tier = serviceTier(config);
-        const cfg = fieldConnectorConfig(config, tier);
+        const cfg = hubPeerConfig(config, tier);
         if (!cfg) return undefined;
-        const snapshotSource = new RealtimeSnapshotSource(postgres, realtime);
         return new TunnelConnector(
           cfg,
           new WsSocketClientFactory(),
-          snapshotSource,
           new ReconnectDelay({
             baseMs: 1000,
             maxMs: 60000,
@@ -250,9 +258,9 @@ export function buildContainer() {
 
     // Faz 3 (container tier): konteyner oturum deposu + JWT üretici
     containerSessionStore: asFunction(
-      ({ config, authCfg, fieldConnector }) => {
+      ({ config, authCfg, hubPeerConnector }) => {
         const tier = serviceTier(config);
-        if (tier !== "container" || !fieldConnector) return undefined;
+        if (tier !== "container" || !hubPeerConnector) return undefined;
         return new ClientSessionStore(
           new JoseTokenSigner(authCfg.jwtSecret),
         );
@@ -261,12 +269,12 @@ export function buildContainer() {
 
     // Faz 3 (container tier): open-session/session-end frame'leri
     containerSessionServer: asFunction(
-      ({ config, fieldConnector, containerSessionStore, logger }) => {
+      ({ config, hubPeerConnector, containerSessionStore, logger }) => {
         const tier = serviceTier(config);
-        if (!fieldConnector || !containerSessionStore) return undefined;
+        if (!hubPeerConnector || !containerSessionStore) return undefined;
         void tier;
         return new ClientSessionServer(
-          fieldConnector,
+          hubPeerConnector,
           containerSessionStore,
           logger,
         );
@@ -275,9 +283,9 @@ export function buildContainer() {
 
     // Faz 3 (container tier): stream multiplex + çift upstream + WS köprüsü
     tunnelClient: asFunction(
-      ({ config, fieldConnector }) => {
+      ({ config, hubPeerConnector }) => {
         const tier = serviceTier(config);
-        if (tier !== "container" || !fieldConnector) return undefined;
+        if (tier !== "container" || !hubPeerConnector) return undefined;
         return TunnelClient.create({
           webServiceUrl: config.get<string>("tunnel.apiUpstream"),
           staticUrl: config.get<string>("tunnel.staticUpstream"),
@@ -289,57 +297,14 @@ export function buildContainer() {
     // Field grafik sayfası tarihsel seriyi AYNI outbound WS kanalından ister —
     // konteynere inbound HTTP açılmaz (tasarım R4/R5).
     telemetryQueryResponder: asFunction(
-      ({ config, fieldConnector, timescale, postgres, logger }) => {
+      ({ config, hubPeerConnector, timescale, postgres, logger }) => {
         const tier = serviceTier(config);
-        if (tier !== "container" || !fieldConnector) return undefined;
+        if (tier !== "container" || !hubPeerConnector) return undefined;
         const source = new TelemetrySeriesSource(
           new DeviceRegistry(postgres),
           timescale,
         );
-        return new TelemetryQueryResponder(fieldConnector, source, logger);
-      },
-    ).singleton(),
-
-    // Faz 3 (field tier): oturum yönetimi + tünel proxy
-    fieldSessionStore: asFunction(({ config }) => {
-      const tier = serviceTier(config);
-      if (tier !== "field") return undefined;
-      return new HubSessionStore();
-    }).singleton(),
-
-    sessionAudit: asFunction(({ config, postgres, logger }) => {
-      const tier = serviceTier(config);
-      if (tier !== "field") return undefined;
-      return new SessionAudit(postgres, logger);
-    }).singleton(),
-
-    sessionGateway: asFunction(
-      ({ config, containerProxy, fieldSessionStore, sessionAudit, logger }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field" || !containerProxy || !fieldSessionStore || !sessionAudit) {
-          return undefined;
-        }
-        const channel = new ContainerProxyFieldChannel(containerProxy);
-        return new SessionGateway(
-          channel,
-          fieldSessionStore,
-          sessionAudit,
-          logger,
-          // WS4 D2: 1 interaktif UI oturumu + 1 programatik (manevra/kural)
-          // oturumu — ikincisi operatörün UI oturumunu düşürmez.
-          { maxSessionsPerPeer: 2 },
-        );
-      },
-    ).singleton(),
-
-    tunnelProxy: asFunction(
-      ({ config, containerProxy, fieldSessionStore, logger }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field" || !containerProxy || !fieldSessionStore) {
-          return undefined;
-        }
-        const channel = new ContainerProxyFieldChannel(containerProxy);
-        return new TunnelProxy(channel, fieldSessionStore, logger);
+        return new TelemetryQueryResponder(hubPeerConnector, source, logger);
       },
     ).singleton(),
 
@@ -378,7 +343,6 @@ export function buildContainer() {
         return new TunnelConnector(
           cfg,
           new WsSocketClientFactory(),
-          new FieldUplinkSnapshotSource(containerProxy),
           new ReconnectDelay({
             baseMs: 1000,
             maxMs: 60000,
@@ -387,6 +351,31 @@ export function buildContainer() {
           }),
           logger,
         );
+      },
+    ).singleton(),
+
+    // Telemetri snapshot push — DOMAIN mesajı (paket dışında; jenerik kontrol kanalı).
+    telemetrySnapshotPusher: asFunction(
+      ({ config, postgres, realtime, hubPeerConnector, uplinkConnector, containerProxy }) => {
+        const tier = serviceTier(config);
+        const intervalMs = resolveTelemetryIntervalMs(
+          process.env.TUNNEL_TELEMETRY_INTERVAL_MS,
+        );
+        if (tier === "container" && hubPeerConnector) {
+          return new TelemetrySnapshotPusher(
+            hubPeerConnector,
+            new RealtimeSnapshotSource(postgres, realtime),
+            { intervalMs, isConnected: () => hubPeerConnector.connected() },
+          );
+        }
+        if (tier === "field" && uplinkConnector && containerProxy) {
+          return new TelemetrySnapshotPusher(
+            uplinkConnector,
+            new FieldUplinkSnapshotSource(containerProxy),
+            { intervalMs, isConnected: () => uplinkConnector.connected() },
+          );
+        }
+        return undefined;
       },
     ).singleton(),
 
@@ -419,57 +408,11 @@ export function buildContainer() {
       },
     ).singleton(),
 
-    // Boss tier: field uplink kayıt defteri + kanal + oturum + tünel proxy.
-    fieldRegistry: asFunction(({ postgres, config }) => {
+    // Boss tier: hub-backed field kayıt defteri (P3 — hub-servis otorite).
+    fieldRegistry: asFunction(({ config, hubConsumerClient }) => {
       const tier = serviceTier(config);
-      if (tier === "boss") return new FieldRegistry(postgres);
-      return undefined;
-    }).singleton(),
-
-    fieldUplinkChannel: asFunction(({ fieldRegistry }) => {
-      if (!fieldRegistry) return undefined;
-      return new FieldUplinkChannel(fieldRegistry);
-    }).singleton(),
-
-    bossFieldSessionStore: asFunction(({ config }) => {
-      const tier = serviceTier(config);
-      if (tier === "boss") return new HubSessionStore();
-      return undefined;
-    }).singleton(),
-
-    fieldSessionAudit: asFunction(({ config, postgres, logger }) => {
-      const tier = serviceTier(config);
-      if (tier === "boss") return new FieldSessionAudit(postgres, logger);
-      return undefined;
-    }).singleton(),
-
-    fieldGateway: asFunction(
-      ({ fieldUplinkChannel, bossFieldSessionStore, fieldSessionAudit, logger }) => {
-        if (!fieldUplinkChannel || !bossFieldSessionStore || !fieldSessionAudit) {
-          return undefined;
-        }
-        return new SessionGateway(
-          fieldUplinkChannel,
-          bossFieldSessionStore,
-          fieldSessionAudit,
-          logger,
-        );
-      },
-    ).singleton(),
-
-    fieldTunnelProxy: asFunction(
-      ({ fieldUplinkChannel, bossFieldSessionStore, logger }) => {
-        if (!fieldUplinkChannel || !bossFieldSessionStore) return undefined;
-        return new TunnelProxy(fieldUplinkChannel, bossFieldSessionStore, logger, {
-          cookieName: "field_session",
-        });
-      },
-    ).singleton(),
-
-    // Boss tier: field-app tünel allowlist'i (FIELD_TUNNEL_ALLOWED_PREFIXES).
-    fieldTunnelPathAllowlist: asFunction(({ config }) => {
-      if (serviceTier(config) !== "boss") return undefined;
-      return fieldTunnelPathAllowlist(config);
+      if (tier !== "boss" || !hubConsumerClient) return undefined;
+      return new HubFieldRegistry({ client: hubConsumerClient });
     }).singleton(),
 
     // Boss tier: WireGuard yedek yol (Faz 4 — WG_CLIENT_PRIVATE_KEY varsa).
@@ -538,18 +481,13 @@ export function buildContainer() {
     // Field tier: uzak adım kanalı — tünel proxy üzerinden konteynerin KENDİ
     // manevra yürütme rotasına gider (Faz C1; katman sızmaz).
     tunnelManeuverChannel: asFunction(
-      ({ config, containerProxy, sessionGateway, tunnelProxy, logger }) => {
+      ({ config, hubConsumerClient, logger }) => {
         const tier = serviceTier(config);
-        if (tier !== "field" || !containerProxy || !sessionGateway || !tunnelProxy) {
-          return undefined;
-        }
-        const fieldId = config.get<string | undefined>("site.fieldId");
-        if (!fieldId) return undefined;
-        return new TunnelManeuverChannel({
-          fieldId,
-          containerProxy,
-          gateway: sessionGateway,
-          tunnelProxy,
+        if (tier !== "field") return undefined;
+        if (!hubConsumerClient) return undefined;
+        return new HubManeuverChannel({
+          client: hubConsumerClient,
+          serviceId: config.get<string>("hub.containerServiceId"),
           logger,
         });
       },
@@ -608,12 +546,29 @@ export function buildContainer() {
     ).singleton(),
 
     // Boss tier: field'a operation-execute gönderir (Faz C2b).
-    operationRequester: asFunction(
-      ({ config, fieldUplinkChannel }) => {
-        const tier = serviceTier(config);
-        if (tier !== "boss" || !fieldUplinkChannel) return undefined;
-        return new OperationRequester({ channel: fieldUplinkChannel });
-      },
+    operationRequester: asFunction(({ config, hubConsumerChannel }) => {
+      const tier = serviceTier(config);
+      if (tier !== "boss" || !hubConsumerChannel) return undefined;
+      return new OperationRequester({ channel: hubConsumerChannel });
+    }).singleton(),
+
+    // P3: hub-servis consumer (HUB_MODE=hub iken kurulur).
+    hubConsumer: asFunction(({ config }) =>
+      hubConsumerConfig(config, serviceTier(config)),
+    ).singleton(),
+    hubConsumerClient: asFunction(({ hubConsumer }) =>
+      hubConsumer ? new HubConsumerClient(hubConsumer) : undefined,
+    ).singleton(),
+    hubConsumerRelay: asFunction(({ hubConsumer }) =>
+      hubConsumer
+        ? new ConsumerRelay({ url: hubConsumer.wsUrl, token: hubConsumer.token })
+        : undefined,
+    ).singleton(),
+    hubConsumerChannel: asFunction(
+      ({ hubConsumerClient, hubConsumerRelay, logger }) =>
+        hubConsumerClient && hubConsumerRelay
+          ? new HubConsumerChannel(hubConsumerClient, hubConsumerRelay, logger)
+          : undefined,
     ).singleton(),
 
     // Repository ve Use-Case'ler

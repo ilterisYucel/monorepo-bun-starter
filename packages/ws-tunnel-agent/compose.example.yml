@@ -1,0 +1,29 @@
+# ws-tunnel agent — compose örneği.
+# Config yoksa (env eksikse) 8080'de setup UI açılır; config volume'e yazılır.
+# Bootstrap modunda tek kullanımlık token ile claim edilir, kalıcı secret
+# volume'e yazılır ve sonraki başlatmalarda env'deki token'ı ezer.
+name: ws-tunnel-agent
+
+services:
+  agent:
+    build:
+      context: ../..
+      dockerfile: packages/ws-tunnel-agent/Dockerfile
+    image: ws-tunnel-agent:local
+    container_name: ws-tunnel-agent
+    environment:
+      HUB_URL: ${HUB_URL:-http://hub-servis:5003}
+      PEER_ID: ${PEER_ID:-revpi-1}
+      SERVICE_ID: ${SERVICE_ID:-revpi-dashboard}
+      LOCAL_TARGET: ${LOCAL_TARGET:-http://cockpit-app:41443}
+      PEER_TOKEN: ${PEER_TOKEN:-}
+      BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
+      TLS_INSECURE: ${TLS_INSECURE:-0}
+    volumes:
+      - agent-config:/etc/agent
+    ports:
+      - "${SETUP_PORT:-8080}:8080"
+    restart: unless-stopped
+
+volumes:
+  agent-config:

@@ -176,17 +176,6 @@ export const demoApi = {
   },
 
   /** Konteyner service-token kaydı (Admin › Add container) — mevcut register ucu. */
-  registerContainer: async (
-    fieldId: string,
-    containerId: string,
-    token: string,
-    station?: string,
-  ): Promise<void> => {
-    await apiClient.post(
-      `/fields/${fieldId}/containers/${containerId}/register`,
-      { token, ...(station ? { station } : {}) },
-    );
-  },
 };
 
 export interface CommandWrite {

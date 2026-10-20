@@ -19,6 +19,52 @@ name: v2-dev-demo-field
 
 services:
   # ─────────────────────────────── FIELD ────────────────────────────────────
+  hub-servis:
+    image: ${HUB_IMAGE:-ws-tunnel-hub:local}
+    container_name: demo-field-hub-servis
+    environment:
+      PORT: "5003"
+      HOST: 0.0.0.0
+      # Env modu: container peer'ları paylaşılan HUB_PEER_TOKEN ile bağlanır.
+      PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
+      CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
+      HUB_PEER_SESSION_COOKIE: ${HUB_PEER_SESSION_COOKIE:-container_session}
+    ports:
+      - "5009:5003"
+    networks:
+      - field-network
+      - demo-bridge
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Peer agent — saha SPA'sını hub'a opak servis olarak duyurur (agent demosu).
+  # Erişim: hub /peers/demo-field-agent/services/field-ui/
+  demo-field-agent:
+    image: ${AGENT_IMAGE:-ws-tunnel-agent:local}
+    container_name: demo-field-agent
+    environment:
+      HUB_URL: http://hub-servis:5003
+      PEER_ID: ${AGENT_PEER_ID:-demo-field-agent}
+      SERVICE_ID: ${AGENT_SERVICE_ID:-field-ui}
+      LOCAL_TARGET: ${AGENT_LOCAL_TARGET:-http://field-web:80}
+      PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
+      TLS_INSECURE: ${AGENT_TLS_INSECURE:-0}
+    networks:
+      - field-network
+      - demo-bridge
+    restart: unless-stopped
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   field-timescaledb:
     image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
     container_name: demo-field-timescaledb
@@ -166,6 +212,8 @@ services:
       FIELD_WEB_SERVICE_URL: ${FIELD_WEB_SERVICE_URL:-http://field-web-service:5002}
       FIELD_ID: ${FIELD_ID:-}
       FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
+      HUB_CONSUMER_URL: ${HUB_CONSUMER_URL:-http://hub-servis:5003}
+      HUB_CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
     volumes:
       - ../../../../services/management-service/src:/app/services/management-service/src
       - ../../../../services/management-service/run.ts:/app/services/management-service/run.ts
@@ -221,8 +269,8 @@ services:
       FIELD_UPLINK_WS_URL: ${FIELD_UPLINK_WS_URL:-}
       FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}
       FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
-      TUNNEL_FIELD_API_UPSTREAM: ${TUNNEL_FIELD_API_UPSTREAM:-http://field-web-service:5002}
-      TUNNEL_FIELD_STATIC_UPSTREAM: ${TUNNEL_FIELD_STATIC_UPSTREAM:-http://field-web:80}
+      HUB_CONSUMER_URL: ${HUB_CONSUMER_URL:-http://hub-servis:5003}
+      HUB_CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
     ports:
       - "5002:5002"
     volumes:
@@ -302,6 +350,9 @@ services:
       NODE_ENV: production
     ports:
       - "8088:80"
+    volumes:
+      # Hub alias sözleşmesi (/peers/*, /containers/<cid>/ui/*) — app klasöründe.
+      - ./nginx/demo-field.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       field-web-service:
         condition: service_healthy
@@ -310,6 +361,7 @@ services:
     logging: *logging
 
 volumes:
+  demo-field-hub-data:
   demo-field-timescale-data:
   demo-field-redis-data:
   demo-integration-state-data:

@@ -31,6 +31,9 @@ export interface IContainerProxy {
 
   unregisterContainer(containerId: string): void;
 
+  /** Kayıtlı/bağlı konteyner kimlikleri (sorgu) — hub modunda hub peer'ları. */
+  containerIds(): string[];
+
   latestTelemetry(containerId: string): TelemetryData[];
 
   // ELEGANT-EXCEPTION: "historical" is a noun (short for "historical data")

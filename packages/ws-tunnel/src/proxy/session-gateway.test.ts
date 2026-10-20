@@ -105,7 +105,7 @@ describe("SessionGateway (T3.3)", () => {
 
   it("2026-08-30: guest oturum AÇABİLİR — konteyner rolü guest (birebir)", async () => {
     const pending = gateway.openSession({
-      fieldId: "f-1",
+      hubId: "f-1",
       peerId: "c-1",
       user: makeUser({ role: "guest" }),
     });
@@ -138,7 +138,7 @@ describe("SessionGateway (T3.3)", () => {
       undefined,
     );
     const result = await offlineGateway.openSession({
-      fieldId: "f-1",
+      hubId: "f-1",
       peerId: "c-1",
       user: makeUser(),
     });
@@ -167,7 +167,7 @@ describe("SessionGateway (T3.3)", () => {
 
   it("ack zaman aşımı → 503 (TransientError)", async () => {
     const result = gateway.openSession({
-      fieldId: "f-1",
+      hubId: "f-1",
       peerId: "c-1",
       user: makeUser(),
     });
@@ -188,7 +188,7 @@ describe("SessionGateway (T3.3)", () => {
     );
     failingGateway.initialize();
     const pending = failingGateway.openSession({
-      fieldId: "f-1",
+      hubId: "f-1",
       peerId: "c-1",
       user: makeUser(),
     });
@@ -259,7 +259,7 @@ describe("SessionGateway (T3.3)", () => {
 
   async function openSession() {
     const pending = gateway.openSession({
-      fieldId: "f-1",
+      hubId: "f-1",
       peerId: "c-1",
       user: makeUser(),
       remoteIp: "10.0.0.5",

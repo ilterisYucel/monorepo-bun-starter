@@ -8,7 +8,7 @@ review_date: 2026-10-16
 # ws-tunnel Domain Arındırma ve Bağımsız Paket — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
+> **Durum:** ✅ ONAYLANDI (2026-10-16) — geliştirme sürüyor.
 > **İlişkili:** [WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md](./WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md) (A8), [KUTUPHANE-CIKARMA-PLANI.md](./KUTUPHANE-CIKARMA-PLANI.md), [../roadmap/ws-tunnel-kutuphane-yol-haritasi.md](../roadmap/ws-tunnel-kutuphane-yol-haritasi.md)
 
 ## 1. Amaç ve Bağlam
@@ -100,7 +100,7 @@ Domain'e ait her şey (telemetri, operasyon, olay, domain sabit/kod/isim) **tük
 
 ### 6.1 UC-1 — Telemetri/operation/event'i paketten çıkar, tüketiciye taşı
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
 - dahil: paket yüzeyinden çıkarma, connector telemetri timer/snapshot temizliği, `tunnel-extensions` modülü, tüketici import güncellemeleri.
@@ -167,7 +167,7 @@ Domain'e ait her şey (telemetri, operasyon, olay, domain sabit/kod/isim) **tük
 
 ### 6.2 UC-2 — `Result` yerel gömme + bağımlılık sınırı
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
 - dahil: yerel `Result`+hata sınıfları, import göçü, dependency çıkarımı.
@@ -217,7 +217,7 @@ Domain'e ait her şey (telemetri, operasyon, olay, domain sabit/kod/isim) **tük
 
 ### 6.3 UC-3 — İsim ve varsayılan arındırma
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
 - dahil: upstream router, cookie/allowlist varsayılanları, event code'ları, `hubId`, `HubHarness`, JSDoc/README.
@@ -280,7 +280,7 @@ Domain'e ait her şey (telemetri, operasyon, olay, domain sabit/kod/isim) **tük
 
 ### 6.4 UC-4 — Bağımsız paket arayüzü (d.ts + exports)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** 🟢 Doğrulanmış (2026-10-16)
 
 **Kapsam:**
 - dahil: d.ts üretimi, `exports` haritası, taze proje import yürüyüşü.
@@ -396,4 +396,4 @@ Domain'e ait her şey (telemetri, operasyon, olay, domain sabit/kod/isim) **tük
 | T-17 | AGENTS-WS-TUNNEL.md + İP-1 SPEC bağımlılık satırı | Genel | `AGENTS-WS-TUNNEL.md`, `WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md` |
 | T-18 | Demo güncellemeleri | Genel | `tools/peer-service-demo.mjs`, `packages/ws-tunnel/examples/loopback-demo.mjs` |
 
-**review_date:** 2026-10-16 — ilk sürüm, developer onayı bekliyor.
+**review_date:** 2026-10-16 — 🟢 doğrulanmış (KAPANIŞ: WS-TUNNEL-DOMAIN-KALINTI-ARINDIRMA-KAPANIS.md).

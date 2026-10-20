@@ -230,10 +230,11 @@ services:
       TIMESCALE_CHUNK_INTERVAL: "6 hours"
       TIMESCALE_COMPRESS_AFTER: "6 hours"
       TIMESCALE_RETENTION_AFTER: "24 hours"
-      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-true}
-      FIELD_WS_URL: ${FIELD_WS_URL:-ws://field-web-service:5002/ws/container}
-      CONTAINER_TOKEN: ${CONTAINER_TOKEN:-}
+      HUB_PEER_ENABLED: ${HUB_PEER_ENABLED:-true}
+      HUB_PEER_URL: ${HUB_PEER_URL:-ws://hub-servis:5003/ws/peer}
+      HUB_PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
       CONTAINER_ID: ${CONTAINER_ID:-container-1}
+      TUNNEL_SERVICE_ID: ${TUNNEL_SERVICE_ID:-container-api}
       # Tünel HTTP köprüsü hedefleri (session/stream + komut proxy):
       # field → konteyner kontrol frame'leri bu upstream'e iletilir.
       TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container-web-service:5001}

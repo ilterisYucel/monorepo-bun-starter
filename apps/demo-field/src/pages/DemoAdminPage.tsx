@@ -36,23 +36,6 @@ export const DemoAdminPage: React.FC = () => {
     telemetryCount: c.latestTelemetry?.length ?? 0,
   }));
 
-  const registerContainer = async (
-    containerId: string,
-    token: string,
-    station?: string,
-  ): Promise<string | undefined> => {
-    try {
-      await demoApi.registerContainer(fieldId, containerId, token, station);
-      await containers.refetch();
-      return undefined;
-    } catch (e) {
-      const status = (e as { response?: { status?: number } }).response?.status;
-      if (status === 403) return "not authorised (admin/boss; password change or MFA may be pending)";
-      if (status === 400) return "invalid token (at least 32 characters)";
-      return (e as Error).message;
-    }
-  };
-
   const actions: DemoAdminActions = {
     setMapping: admin.setMapping,
     resetMapping: admin.resetMapping,
@@ -91,7 +74,6 @@ export const DemoAdminPage: React.FC = () => {
       runs={runs}
       logs={logs}
       writes={writes.data ?? []}
-      registerContainer={registerContainer}
       containerStatus={containerStatus}
       admin={{
         mapping: admin.mapping,

@@ -1,7 +1,6 @@
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import type { ILogger } from "@gd-monorepo/ws-tunnel";
-import type { EventMessage } from "@gd-monorepo/ws-tunnel";
-import type { FieldRegistry } from "./field-registry";
+import type { IHubChannel, ILogger } from "@gd-monorepo/ws-tunnel";
+import type { EventMessage } from "../tunnel-extensions";
 
 const DDL = `
   CREATE TABLE IF NOT EXISTS field_events (
@@ -152,16 +151,18 @@ export class FieldEventCollector {
     }
   }
 
-  /** Registry observer'ına abone olur (komut). */
-  attach(registry: FieldRegistry): void {
-    this.unsubscribe = registry.addObserver({
-      onControlMessage: (fieldId, message) => {
-        const msg = message as { type?: string };
-        if (msg.type === "event") {
-          void this.collect(fieldId, message as EventMessage);
-        }
-      },
-    });
+  /** Hub consumer kanalına abone olur (komut — P3 hub modu). */
+  attachChannel(channel: IHubChannel): void {
+    this.unsubscribe = channel.onControlMessage((peerId, message) =>
+      this.handle(peerId, message),
+    );
+  }
+
+  private handle(fieldId: string, message: unknown): void {
+    const msg = message as { type?: string };
+    if (msg.type === "event") {
+      void this.collect(fieldId, message as EventMessage);
+    }
   }
 
   /** Aboneliği kaldırır (komut). */

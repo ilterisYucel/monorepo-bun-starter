@@ -339,7 +339,7 @@ Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — 
 - Testler davranışı sabitler, implementasyonu değil — public API'den test et.
 - Edge-case listesi JSDoc kontratından türetilir: sıfır değerler, sınır değerleri, boş girdiler, hata kategorileri.
 - Zaman tabanlı davranışlar (backoff, TTL, tick) `vi.useFakeTimers` ile deterministik test edilir.
-- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
+- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
 
 ### 8.5 Yol haritası eşlemesi (test-önce görevler)
 
@@ -354,7 +354,7 @@ Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — 
 
 ### 8.6 Faz kapanışı doğrulaması (MANDATORY)
 
-Her faz kapanışında [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](../docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) güncellenir:
+Her faz kapanışında [deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](../docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) güncellenir:
 
 1. Matrisin tüm satırları doldurulur: değişen dosyalar (satır ref'li + commit hash), nedeni, testler, geçme durumu, sisteme etkisi.
 2. Kabul kriterleri teker teker kanıtla işaretlenir (test çıktısı, curl, DB kaydı, Playwright trace).

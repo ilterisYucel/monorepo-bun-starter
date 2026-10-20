@@ -123,12 +123,10 @@ const connector = new TunnelConnector(
     token: TOKEN,
     peerId: CONTAINER_ID,
     heartbeatIntervalMs: 1000,
-    telemetryIntervalMs: 1000,
     registerTimeoutMs: 2000,
     livenessTimeoutMs: 10000,
   },
   new WsSocketClientFactory(),
-  { snapshot: async () => [] },
   new ReconnectDelay({ baseMs: 200, maxMs: 500, jitterSpanMs: 0, jitter: () => 0 }),
 );
 const sessionServer = new ClientSessionServer(connector, store, logger);
@@ -147,7 +145,7 @@ const user = {
   id: "u-1", username: "operator", role: "teknik", name: "Operator",
   fieldIds: ["f-1"], mustChangePassword: false, createdAt: "", updatedAt: "",
 };
-const outcome = await gateway.openSession({ fieldId: "f-1", peerId: CONTAINER_ID, user });
+const outcome = await gateway.openSession({ hubId: "f-1", peerId: CONTAINER_ID, user });
 check("B: open-session → konteyner JWT (K3.3)", outcome.isOk(), outcome.isOk() ? `expiresInSec=${outcome.unwrap().expiresInSec}` : "hata");
 const session = outcome.isOk() ? outcome.unwrap() : undefined;
 fieldStore.register({
@@ -191,7 +189,7 @@ const browserSocket = {
 const streamId = await tunnelProxy.startWsBridge({ session: fieldStore.byToken(session.token), path: "/ws/telemetry", browserSocket });
 check("E: /ws köprüsü açıldı (101)", streamId !== undefined, `streamId=${streamId}`);
 if (streamId !== undefined) {
-  tunnelProxy.sendWsToContainer(streamId, Buffer.from("subscribe"), false);
+  tunnelProxy.sendWsToPeer(streamId, Buffer.from("subscribe"), false);
   const echoOk = await waitFor(() => browserReceived.length >= 1, 5000);
   check("E: /ws çift yönlü mesaj (K3.2)", echoOk, browserReceived.join(","));
 }

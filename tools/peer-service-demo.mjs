@@ -153,12 +153,10 @@ const connector = new TunnelConnector(
     peerType: "device",
     services: [{ id: SERVICE_ID, meta: { title: "RevPi Admin" } }],
     heartbeatIntervalMs: 200,
-    telemetryIntervalMs: 200,
     registerTimeoutMs: 3000,
     livenessTimeoutMs: 60000,
   },
   new WsSocketClientFactory(),
-  { snapshot: async () => [] },
   new ReconnectDelay({ baseMs: 50, maxMs: 200, jitterSpanMs: 0, jitter: () => 0 }),
 );
 const sessionStore = new ClientSessionStore(

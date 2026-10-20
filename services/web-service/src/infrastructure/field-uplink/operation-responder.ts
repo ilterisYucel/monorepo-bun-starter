@@ -4,12 +4,12 @@
 
 import {
   operationExecuteSchema,
-} from "@gd-monorepo/ws-tunnel";
+} from "../tunnel-extensions";
 import type {
   OperationExecuteMessage,
   OperationResultMessage,
   OperationStepResult,
-} from "@gd-monorepo/ws-tunnel";
+} from "../tunnel-extensions";
 import type { ITunnelChannel } from "@gd-monorepo/ws-tunnel";
 import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type { OperationExecutor, OperationRunResult } from "@gd-monorepo/platform-commands";

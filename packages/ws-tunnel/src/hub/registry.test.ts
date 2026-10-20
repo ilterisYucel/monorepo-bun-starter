@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ValidationError } from "@gd-monorepo/result";
+import { ValidationError } from "../result";
 import { HubPeerRegistry } from "./registry";
 
 /**

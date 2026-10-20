@@ -1,0 +1,23 @@
+{
+  "name": "@gd-monorepo/ws-tunnel-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ws-tunnel hub-servisi — jenerik peer kaydı, keşif, opak erişim ve consumer relay (hexagonal).",
+  "scripts": {
+    "start": "bun run src/main.ts",
+    "build": "bun build src/main.ts --outdir dist --target bun",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/websocket": "11.2.0",
+    "@gd-monorepo/ws-tunnel": "*",
+    "fastify": "5.8.5",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.0.0",
+    "jose": "^5.0.0"
+  }
+}

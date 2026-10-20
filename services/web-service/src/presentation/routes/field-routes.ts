@@ -1,8 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { User, TelemetryData } from "@gd-monorepo/shared-types";
-import type { ContainerProxy } from "../../infrastructure/container-proxy/container-proxy";
+import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import { sha256Hex } from "../../infrastructure/auth/service-token";
 
 interface FieldRow {
   id: string;
@@ -11,21 +10,6 @@ interface FieldRow {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
-}
-
-interface FieldContainerRow {
-  field_id: string;
-  container_id: string;
-  container_url: string | null;
-  layout: {
-    x: number;
-    y: number;
-    z: number;
-    rotation?: { x: number; y: number; z: number };
-    scale?: number;
-  };
-  /** BESS MV istasyon etiketi (bkz. UC-13) — konteyner eklerken verilir. */
-  station: string | null;
 }
 
 async function ensureSchema(db: ISqlDatabase): Promise<void> {
@@ -40,26 +24,6 @@ async function ensureSchema(db: ISqlDatabase): Promise<void> {
     )
   `);
 
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS field_containers (
-      field_id UUID REFERENCES fields(id) ON DELETE CASCADE,
-      container_id TEXT NOT NULL,
-      container_url TEXT,
-      token_hash TEXT,
-      layout JSONB DEFAULT '{"x":0,"y":0,"z":0}',
-      PRIMARY KEY (field_id, container_id)
-    )
-  `);
-
-  // Faz 1 T1.1: mevcut kurulumlar için token_hash kolonu migrasyonu
-  await db.execute(
-    "ALTER TABLE field_containers ADD COLUMN IF NOT EXISTS token_hash TEXT",
-  );
-
-  // UC-13: BESS MV istasyon etiketi (konteyner eklerken verilir).
-  await db.execute(
-    "ALTER TABLE field_containers ADD COLUMN IF NOT EXISTS station TEXT",
-  );
 }
 
 function getUserFieldIds(user: User): string[] {
@@ -78,7 +42,7 @@ function userCanAccessField(user: User, fieldId: string): boolean {
 
 export async function fieldRoutes(
   fastify: FastifyInstance,
-  deps: { db: ISqlDatabase; containerProxy?: ContainerProxy },
+  deps: { db: ISqlDatabase; containerProxy?: IContainerProxy },
 ): Promise<void> {
   await ensureSchema(deps.db);
 
@@ -86,7 +50,7 @@ export async function fieldRoutes(
   // stack'ten KALDIRILDI — tek saha modeli (FIELD_ID env + açılış seed'i).
   // Çok saha yönetimi ileride ayrı bir boss uygulamasında yaşayacak.
   // Burada yalnızca saha BAŞINA veri uçları vardır: summary / containers /
-  // telemetry + konteyner register'ı.
+  // telemetry.
 
   fastify.get("/:fieldId/summary", async (request, reply) => {
     const { fieldId } = request.params as { fieldId: string };
@@ -101,27 +65,24 @@ export async function fieldRoutes(
     );
     if (!field) return reply.status(404).send({ error: "Saha bulunamadi" });
 
-    const containers = await deps.db.query<FieldContainerRow>(
-      "SELECT * FROM field_containers WHERE field_id = $1",
-      [fieldId],
-    );
+    const containerIds = deps.containerProxy?.containerIds() ?? [];
 
     const containerResults = await Promise.allSettled(
-      containers.map(async (c) => {
+      containerIds.map(async (containerId) => {
         const latest = deps.containerProxy
-          ? deps.containerProxy.latestTelemetry(c.container_id)
+          ? deps.containerProxy.latestTelemetry(containerId)
           : [];
         const connected = deps.containerProxy
-          ? deps.containerProxy.connectionStatus().get(c.container_id) ===
+          ? deps.containerProxy.connectionStatus().get(containerId) ===
             "connected"
           : false;
         // Faz 2 T2.4: gerçek son-heartbeat zamanı (önceden sahte now()).
         const lastSeenAtMs = deps.containerProxy
-          ? deps.containerProxy.lastSeenAt(c.container_id)
+          ? deps.containerProxy.lastSeenAt(containerId)
           : undefined;
 
         return {
-          containerId: c.container_id,
+          containerId,
           connected,
           ...(lastSeenAtMs !== undefined
             ? { lastSeenAt: new Date(lastSeenAtMs).toISOString() }
@@ -144,29 +105,24 @@ export async function fieldRoutes(
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
     }
 
-    const rows = await deps.db.query<FieldContainerRow>(
-      "SELECT * FROM field_containers WHERE field_id = $1",
-      [fieldId],
-    );
+    const containerIds = deps.containerProxy?.containerIds() ?? [];
 
     const fieldResults = await Promise.allSettled(
-      rows.map(async (c) => {
+      containerIds.map(async (containerId) => {
         const status =
-          deps.containerProxy?.connectionStatus().get(c.container_id) ?? "idle";
-        const lastSeenAtMs = deps.containerProxy?.lastSeenAt(c.container_id);
+          deps.containerProxy?.connectionStatus().get(containerId) ?? "idle";
+        const lastSeenAtMs = deps.containerProxy?.lastSeenAt(containerId);
         // K-21: talep-üzeri taze snapshot (DB'den) → hızlı tepki; erişilemezse
         // push snapshot'a düşülür (kademeli bozulma).
         const fresh = deps.containerProxy?.latestQuery
-          ? await deps.containerProxy.latestQuery(c.container_id)
+          ? await deps.containerProxy.latestQuery(containerId)
           : [];
         const latestTelemetry =
           fresh.length > 0
             ? fresh
-            : (deps.containerProxy?.latestTelemetry(c.container_id) ?? []);
+            : (deps.containerProxy?.latestTelemetry(containerId) ?? []);
         return {
-          containerId: c.container_id,
-          layout: c.layout,
-          station: c.station,
+          containerId,
           connectionStatus: status,
           // Faz 2 T2.4: gerçek son-heartbeat zamanı
           ...(lastSeenAtMs !== undefined
@@ -190,17 +146,12 @@ export async function fieldRoutes(
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
     }
 
-    const containers = await deps.db.query<FieldContainerRow>(
-      "SELECT * FROM field_containers WHERE field_id = $1",
-      [fieldId],
-    );
+    const containerIds = deps.containerProxy?.containerIds() ?? [];
 
     const telemetry: Record<string, TelemetryData[]> = {};
-    for (const c of containers) {
+    for (const containerId of containerIds) {
       if (deps.containerProxy) {
-        telemetry[c.container_id] = deps.containerProxy.latestTelemetry(
-          c.container_id,
-        );
+        telemetry[containerId] = deps.containerProxy.latestTelemetry(containerId);
       }
     }
 
@@ -226,14 +177,10 @@ export async function fieldRoutes(
       return reply.status(400).send({ error: "geçersiz tag anahtarı" });
     }
 
-    const containerRows = await deps.db.query<FieldContainerRow>(
-      "SELECT * FROM field_containers WHERE field_id = $1",
-      [fieldId],
-    );
-
+    const knownContainerIds = deps.containerProxy?.containerIds() ?? [];
     const containerIds = query.containerIds
       ? query.containerIds.split(",")
-      : containerRows.map((c) => c.container_id);
+      : knownContainerIds;
 
     if (!deps.containerProxy) {
       return reply.send({});
@@ -295,74 +242,5 @@ export async function fieldRoutes(
     return reply.send(results);
   });
 
-  fastify.post(
-    "/:fieldId/containers/:containerId/register",
-    async (request, reply) => {
-      const { fieldId, containerId } = request.params as {
-        fieldId: string;
-        containerId: string;
-      };
-      const user = (request as unknown as { user: User }).user;
-      if (user.role !== "admin" && user.role !== "boss") {
-        return reply
-          .status(403)
-          .send({ error: "Konteyner kayit yetkiniz yok" });
-      }
 
-      // 2026-08-30: containerUrl ALANI KALDIRILDI — mimari sözleşme: field
-      // konteynere URL ile bağlanmaz; bağlantı konteynerden field'a outbound
-      // WSS'tir (TunnelConnector). Eski kurulumlardaki kolon değeri artık
-      // güncellenmez (NULL kalır); payload'daki containerUrl yok sayılır.
-      const { token, station } = request.body as {
-        token?: string;
-        station?: string;
-      };
-      if (typeof token !== "string" || token.length < 32) {
-        return reply
-          .status(400)
-          .send({ error: "token en az 32 karakter olmali" });
-      }
-      // UC-13: opsiyonel istasyon etiketi (BESS MV istasyonu). Gövdede
-      // verilmezse mevcut etiket KORUNUR (station'sız re-register tag'i silmez).
-      const stationProvided = station !== undefined && station !== null;
-      let stationValue: string | null = null;
-      if (stationProvided) {
-        if (typeof station !== "string") {
-          return reply.status(400).send({ error: "station metin olmali" });
-        }
-        const trimmed = station.trim();
-        if (trimmed.length > 64) {
-          return reply
-            .status(400)
-            .send({ error: "station en fazla 64 karakter" });
-        }
-        stationValue = trimmed === "" ? null : trimmed;
-      }
-
-      const field = await deps.db.queryOne<{ id: string }>(
-        "SELECT id FROM fields WHERE id = $1",
-        [fieldId],
-      );
-      if (!field) {
-        return reply.status(404).send({ error: "Saha bulunamadi" });
-      }
-
-      // Düz token DB'ye ASLA yazılmaz — yalnızca SHA-256 hash'i saklanır.
-      // station yalnızca gövdede verildiyse güncellenir ($5); aksi halde mevcut
-      // değer korunur (kanonik eşleme kaybolmaz).
-      const stored = await deps.db.queryOne<{ station: string | null }>(
-        `INSERT INTO field_containers (field_id, container_id, token_hash, station)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (field_id, container_id) DO UPDATE
-       SET token_hash = EXCLUDED.token_hash,
-           station = CASE WHEN $5 THEN EXCLUDED.station ELSE field_containers.station END
-       RETURNING station`,
-        [fieldId, containerId, sha256Hex(token), stationValue, stationProvided],
-      );
-
-      return reply
-        .status(201)
-        .send({ registered: true, containerId, station: stored?.station ?? null });
-    },
-  );
 }

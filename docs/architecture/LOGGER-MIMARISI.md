@@ -9,7 +9,7 @@ review_date: 2026-12-01
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
 > **Durum:** 🟢 Doğrulanmış (2026-10-05) — T-1…T-5 tamam; doğrulama [LOGGER-KAPANIS.md](./LOGGER-KAPANIS.md)'de.
-> **İlişkili:** [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) (ilk tüketici — UC-6 bilgi logları), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (§522 log kategorileri — TamperLogger'da kalır).
+> **İlişkili:** [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) (ilk tüketici — UC-6 bilgi logları), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (§522 log kategorileri — TamperLogger'da kalır).
 > **TamperLogger ile ilişki:** Bu paket `@gd-monorepo/tamper-logger`'ın YERİNE GEÇMEZ — imzasız, hafif, sink-pluggable genel logger'dır. Önemli/denetlenebilir loglar (alarm, audit, security, hata geçişleri) TamperLogger'da kalır; operasyonel/bilgi logları bu pakete taşınır.
 
 ---

@@ -3,13 +3,11 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { TunnelConnector } from "./tunnel-connector";
 import { WsSocketClientFactory } from "../channel";
 import { ReconnectDelay } from "./reconnect-delay";
-import type { ISnapshotSource } from "../snapshot";
-import type { TunnelTelemetryPoint } from "../types";
 
 /**
  * T2.5 / K2.1 — TunnelConnector ↔ field WS integration (gerçek ws sunucusu):
  * - K2.1: açılıştan (start) connected'a < 5 sn — gerçek WS üzerinde ölçülür.
- * - register → register-ack → heartbeat → telemetry snapshot akışı uçtan uca.
+ * - register → register-ack → heartbeat akışı uçtan uca (telemetri pakette DEĞİL).
  * - T2.5: register-ack.config + config-update frame'i aralıkları CANLI değiştirir
  *   (restart yok); geçersiz config eski aralığı korur.
  * - WS kopunca backoff → yeniden bağlanma; stop() → yeniden bağlanma yok.
@@ -24,7 +22,6 @@ interface FieldServer {
   connections: WebSocket[];
   registers: unknown[];
   heartbeats: number[];
-  telemetryFrames: Array<{ data: TunnelTelemetryPoint[] }>;
   setOnRegister(cb: (ws: WebSocket) => void): void;
 }
 
@@ -33,7 +30,6 @@ async function startFieldServer(): Promise<FieldServer> {
   const connections: WebSocket[] = [];
   const registers: unknown[] = [];
   const heartbeats: number[] = [];
-  const telemetryFrames: Array<{ data: TunnelTelemetryPoint[] }> = [];
   let onRegister: ((ws: WebSocket) => void) | undefined;
 
   wss.on("connection", (ws) => {
@@ -45,8 +41,6 @@ async function startFieldServer(): Promise<FieldServer> {
         onRegister?.(ws);
       } else if (msg.type === "heartbeat") {
         heartbeats.push(Date.now());
-      } else if (msg.type === "telemetry") {
-        telemetryFrames.push(msg);
       }
     });
   });
@@ -59,7 +53,6 @@ async function startFieldServer(): Promise<FieldServer> {
     connections,
     registers,
     heartbeats,
-    telemetryFrames,
     setOnRegister: (cb) => {
       onRegister = cb;
     },
@@ -76,19 +69,6 @@ async function waitFor(cond: () => boolean, timeoutMs: number): Promise<void> {
   }
 }
 
-const sampleSnapshot: ISnapshotSource = {
-  snapshot: async () => [
-    {
-      deviceId: "bsc-1",
-      name: "Voltage",
-      value: 750,
-      description: "",
-      unit: "V",
-      timestamp: new Date().toISOString(),
-    },
-  ],
-};
-
 function makeConnector(port: number): TunnelConnector {
   return new TunnelConnector(
     {
@@ -96,12 +76,10 @@ function makeConnector(port: number): TunnelConnector {
       token: "service-token-abcdef",
       peerId: "container-1",
       heartbeatIntervalMs: 100,
-      telemetryIntervalMs: 100,
       registerTimeoutMs: 2000,
       livenessTimeoutMs: 10000,
     },
     new WsSocketClientFactory(),
-    sampleSnapshot,
     new ReconnectDelay({ baseMs: 200, maxMs: 1000, jitterSpanMs: 0, jitter: () => 0 }),
   );
 }
@@ -157,7 +135,7 @@ describe("TunnelConnector integration (gerçek WS — T2.5/K2.1)", () => {
     expect(connector.state()).toBe("connected");
   });
 
-  it("heartbeat + telemetry snapshot gerçek WS üzerinden akar", async () => {
+  it("heartbeat gerçek WS üzerinden akar (telemetri pakette DEĞİL)", async () => {
     const server = await setup();
     server.setOnRegister((ws) => ack(ws));
 
@@ -165,14 +143,8 @@ describe("TunnelConnector integration (gerçek WS — T2.5/K2.1)", () => {
     connectors.push(connector);
     void connector.start();
 
-    await waitFor(
-      () => server.heartbeats.length >= 2 && server.telemetryFrames.length >= 1,
-      5000,
-    );
-    expect(server.telemetryFrames[0].data[0]).toMatchObject({
-      deviceId: "bsc-1",
-      name: "Voltage",
-    });
+    await waitFor(() => server.heartbeats.length >= 2, 5000);
+    expect(server.heartbeats.length).toBeGreaterThanOrEqual(2);
   });
 
   it("T2.5: register-ack.config aralığı canlı uygular", async () => {
@@ -244,7 +216,8 @@ describe("TunnelConnector integration (gerçek WS — T2.5/K2.1)", () => {
     await waitFor(() => connector.connected(), 5000);
     server.connections[0].close();
     await waitFor(() => server.connections.length >= 2, 5000);
-    expect(connector.connected()).toBe(true);
+    // register-ack bir tick sonra gelebilir — durum geçişini bekle (flaky önlemi).
+    await waitFor(() => connector.connected(), 5000);
   });
 
   it("stop() sonrası yeniden bağlanma olmaz", async () => {

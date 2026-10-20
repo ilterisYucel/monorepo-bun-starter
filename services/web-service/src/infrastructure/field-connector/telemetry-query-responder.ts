@@ -1,5 +1,5 @@
-import { telemetryQuerySchema } from "@gd-monorepo/ws-tunnel";
-import type { TelemetryQueryErrorMessage, TelemetryResultMessage } from "@gd-monorepo/ws-tunnel";
+import { telemetryQuerySchema } from "../tunnel-extensions";
+import type { TelemetryQueryErrorMessage, TelemetryResultMessage } from "../tunnel-extensions";
 import type { LogEventCode } from "@gd-monorepo/platform-logging";
 
 import { TamperLogger } from "@gd-monorepo/tamper-logger";

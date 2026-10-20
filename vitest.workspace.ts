@@ -8,6 +8,8 @@ export default defineWorkspace([
   "packages/tamper-logger",
   "packages/logger",
   "packages/ws-tunnel",
+  "packages/ws-tunnel-hub",
+  "packages/ws-tunnel-agent",
   "packages/platform/messaging",
   "packages/platform/commands",
   "packages/platform/container-access",

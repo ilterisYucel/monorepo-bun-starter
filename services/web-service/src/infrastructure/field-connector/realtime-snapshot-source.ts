@@ -1,7 +1,7 @@
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { RealtimeManager } from "../../realtime/realtime-manager";
-import type { ISnapshotSource } from "@gd-monorepo/ws-tunnel";
+import type { ISnapshotSource } from "../tunnel-extensions";
 
 /**
  * RealtimeSnapshotSource — container tier telemetri snapshot kaynağı.

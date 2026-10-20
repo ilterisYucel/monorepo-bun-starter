@@ -2,7 +2,7 @@
 
 > Soru: "Soket tünel, her sistemi birbirine bağlamak için generic olarak yeterli mi?
 > Herhangi 2 servisi mi bağlar yoksa yalnızca web-servisleri mi?"
-> İlişkili dökümanlar: `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` (§4.2, §5.x, §12.3),
+> İlişkili dökümanlar: `deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` (§4.2, §5.x, §12.3),
 > `WS-TUNNEL-URUN-TESCILI.md`, `BOSS-UYGULAMA-MIMARISI.md` §7.4,
 > `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`.
 >
@@ -69,7 +69,7 @@ Kontrol kanalında bugün akan backend-to-backend trafik (kanıt — desen hazı
 
 Standart çözüm: erişilemeyen (NAT arkası) taraf **tek outbound bağlantı** açar; tüm
 trafik o bağlantıdan çoklanır. Bizim `TunnelConnector` tam olarak bu desendir ve
-`KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` R4/R5 kararlarının sonucudur (konteyner inbound
+`deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` R4/R5 kararlarının sonucudur (konteyner inbound
 TCP/HTTP almaz; field konteynere BAĞLANMAZ, konteyner field'a bağlanır). Yaygın
 uygulamalar HTTP odaklıdır; bizim farkımız ek olarak generic kontrol kanalı taşımamız —
 bu bir avantajdır, değişiklik gerektirmez.

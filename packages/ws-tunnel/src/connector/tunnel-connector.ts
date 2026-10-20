@@ -1,11 +1,10 @@
 import { TUNNEL_PROTOCOL_VERSION, DEFAULT_TUNNEL_OPERATIONAL_CONFIG, tunnelOperationalConfigSchema } from "../protocol";
 
-import type { TunnelConnectorState, TunnelOperationalConfig, HeartbeatMessage, RegisterMessage, ServiceAnnouncement, TelemetryMessage, TunnelPeerType } from "../protocol";
+import type { TunnelConnectorState, TunnelOperationalConfig, HeartbeatMessage, RegisterMessage, ServiceAnnouncement, TunnelPeerType } from "../protocol";
 
-import { ValidationError } from "@gd-monorepo/result";
+import { ValidationError } from "../result";
 import type { ILogger } from "../logger";
 import type { ISocketClient, ISocketClientFactory, ITunnelChannel } from "../channel";
-import type { ISnapshotSource } from "../snapshot";
 import type { ReconnectDelay } from "./reconnect-delay";
 
 /** TunnelConnector yapılandırması — bootstrap env'den türetilir (tasarım §6.1). */
@@ -14,7 +13,7 @@ export interface TunnelConnectorConfig {
   wsUrls: readonly string[];
   /** Service token — upgrade'de `Authorization: Bearer` header'ı olarak taşınır. */
   token: string;
-  /** Peer kimliği — register mesajının `peerId` alanı (konteyner: containerId, field: fieldId). */
+  /** Peer kimliği — register mesajının `peerId` alanı. */
   peerId: string;
   /** Peer türü — hub kayıt/doğrulama tarafını seçer. Varsayılan: "container". */
   peerType?: TunnelPeerType;
@@ -25,20 +24,43 @@ export interface TunnelConnectorConfig {
   services?: readonly ServiceAnnouncement[];
   /** Heartbeat gönderim aralığı (ms) — operational config ile değişebilir. */
   heartbeatIntervalMs: number;
-  /** Telemetri snapshot push aralığı (ms) — operational config ile değişebilir. */
-  telemetryIntervalMs: number;
+  /**
+   * Log olay kodları — nötr varsayılanlar; tüketici kendi (domain) kodlarını
+   * enjekte eder. Paket domain sözlüğü bilmez.
+   */
+  eventCodes?: Partial<TunnelConnectorEventCodes>;
   /** Register sonrası ack bekleme süresi (ms) — aşarsa backoff. */
   registerTimeoutMs: number;
   /** Pong alınmazsa bağlantı yarı-ölü sayılır (ms). */
   livenessTimeoutMs: number;
 }
 
+/** Connector log olay kodları — nötr varsayılanlar. */
+export interface TunnelConnectorEventCodes {
+  connected: string;
+  connectionLost: string;
+  registerRejected: string;
+  configRejected: string;
+}
+
+/** Varsayılan olay kodları — transport-nötr. */
+export const DEFAULT_TUNNEL_EVENT_CODES: Readonly<TunnelConnectorEventCodes> =
+  Object.freeze({
+    connected: "tunnel_connected",
+    connectionLost: "tunnel_connection_lost",
+    registerRejected: "tunnel_register_rejected",
+    configRejected: "tunnel_config_rejected",
+  });
+
 /**
  * TunnelConnector — client→hub outbound WS istemcisi (tasarım §6).
  *
- * Sorumluluklar (Faz 2): register + 15 sn heartbeat + telemetry snapshot push +
- * PPC durumu (`state()`) + operational config alımı (register-ack.config /
- * config-update — restart'sız). Tünel stream'leri Faz 3'te aynı kanala eklenir.
+ * Sorumluluklar: register + heartbeat + PPC durumu (`state()`) + operational
+ * config alımı (register-ack.config / config-update — restart'sız). Tünel
+ * stream'leri aynı kanala eklenir.
+ *
+ * Domain mesajları (telemetri/operasyon/olay) TAŞIMAZ; bilinmeyen tipler
+ * `onMessage` abonelerine akar.
  *
  * Durum makinesi (tasarım §6 diyagramı):
  * ```
@@ -51,9 +73,8 @@ export interface TunnelConnectorConfig {
  * connected → offline: stop()
  * ```
  *
- * Yan etkiler: `ws` soketi (enjekte fabrikadan), ILogger (geçiş-odaklı
- * loglar — field_connected/field_disconnected/ws_connection_lost/
- * ws_register_rejected/field_config_rejected/telemetry_push_failed).
+ * Yan etkiler: `ws` soketi (enjekte fabrikadan), ILogger (geçiş-odaklı loglar —
+ * kodlar `eventCodes` ile enjekte edilir; varsayılanlar nötrdür).
  */
 export class TunnelConnector implements ITunnelChannel {
   private stateValue: TunnelConnectorState = "offline";
@@ -63,12 +84,12 @@ export class TunnelConnector implements ITunnelChannel {
   private urlIndex = 0;
   private stopped = false;
   private heartbeatTimer?: ReturnType<typeof setInterval>;
-  private telemetryTimer?: ReturnType<typeof setInterval>;
   private registerTimer?: ReturnType<typeof setTimeout>;
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private lastHeartbeatSentAt?: number;
   private lastPongAt = 0;
   private operational: Required<TunnelOperationalConfig>;
+  private readonly eventCodes: TunnelConnectorEventCodes;
   private readonly messageSubscribers: Set<(message: unknown) => void> = new Set();
   private readonly binarySubscribers: Set<(data: Buffer) => void> = new Set();
 
@@ -77,7 +98,6 @@ export class TunnelConnector implements ITunnelChannel {
   constructor(
     private readonly config: TunnelConnectorConfig,
     private readonly socketFactory: ISocketClientFactory,
-    private readonly snapshotSource: ISnapshotSource,
     private readonly reconnectDelay: ReconnectDelay,
     private readonly logger?: ILogger,
     private readonly now: () => number = () => Date.now(),
@@ -100,15 +120,18 @@ export class TunnelConnector implements ITunnelChannel {
         "peerId bos olamaz",
       );
     }
-    if (config.heartbeatIntervalMs <= 0 || config.telemetryIntervalMs <= 0) {
+    if (config.heartbeatIntervalMs <= 0) {
       throw new ValidationError(
         "tunnel-connector.invalid-interval",
-        "heartbeat/telemetry araliklari pozitif olmali",
+        "heartbeat araligi pozitif olmali",
       );
     }
     this.operational = {
       heartbeatIntervalMs: config.heartbeatIntervalMs,
-      telemetryIntervalMs: config.telemetryIntervalMs,
+    };
+    this.eventCodes = {
+      ...DEFAULT_TUNNEL_EVENT_CODES,
+      ...config.eventCodes,
     };
   }
 
@@ -200,7 +223,7 @@ export class TunnelConnector implements ITunnelChannel {
       socket.send(this.registerFrame());
       this.registerTimer = setTimeout(() => {
         if (gen !== this.generation) return;
-        this.log("warn", "app", "ws_connection_lost", "Hub register ack alinamadi", {
+        this.log("warn", "app", this.eventCodes.connectionLost, "Hub register ack alinamadi", {
           reason: "register-timeout",
         });
         this.closeAndBackoff();
@@ -228,7 +251,7 @@ export class TunnelConnector implements ITunnelChannel {
 
     socket.onError((error) => {
       if (gen !== this.generation) return;
-      this.log("warn", "app", "ws_connection_lost", "Hub WS soket hatasi", {
+      this.log("warn", "app", this.eventCodes.connectionLost, "Hub WS soket hatasi", {
         error: error.message,
       });
     });
@@ -241,7 +264,7 @@ export class TunnelConnector implements ITunnelChannel {
     socket.onRejected((statusCode) => {
       if (gen !== this.generation) return;
       if (statusCode === 401 || statusCode === 403) {
-        this.log("warn", "security", "ws_register_rejected", "Hub baglantisi reddedildi", {
+        this.log("warn", "security", this.eventCodes.registerRejected, "Hub baglantisi reddedildi", {
           statusCode,
           url,
         });
@@ -268,7 +291,7 @@ export class TunnelConnector implements ITunnelChannel {
       case "register-ack": {
         const ack = msg as { status?: unknown; config?: unknown };
         if (ack.status !== "ok") {
-          this.log("warn", "security", "ws_register_rejected", "Hub register reddetti", {
+          this.log("warn", "security", this.eventCodes.registerRejected, "Hub register reddetti", {
             status: String(ack.status ?? "unknown"),
           });
           this.closeAndBackoff();
@@ -283,9 +306,7 @@ export class TunnelConnector implements ITunnelChannel {
         this.stateValue = "registered";
         this.sendHeartbeat(); // registered → connected (ilk heartbeat)
         this.scheduleHeartbeat();
-        this.scheduleTelemetry();
-        void this.pushSnapshot();
-        this.log("info", "app", "field_connected", "Hub baglantisi kuruldu", {
+        this.log("info", "app", this.eventCodes.connected, "Hub baglantisi kuruldu", {
           peerId: this.config.peerId,
           peerType: this.peerType(),
         });
@@ -300,7 +321,7 @@ export class TunnelConnector implements ITunnelChannel {
       }
       case "error": {
         const err = msg as { code?: unknown; message?: unknown };
-        this.log("warn", "app", "ws_connection_lost", "Hub protokol hatasi", {
+        this.log("warn", "app", this.eventCodes.connectionLost, "Hub protokol hatasi", {
           code: String(err.code ?? "unknown"),
           message: String(err.message ?? ""),
         });
@@ -318,7 +339,7 @@ export class TunnelConnector implements ITunnelChannel {
     this.lastHeartbeatSentAt = ts;
     this.socket?.ping();
     if (ts - this.lastPongAt >= this.config.livenessTimeoutMs) {
-      this.log("warn", "app", "ws_connection_lost", "Hub baglantisi yari-olu", {
+      this.log("warn", "app", this.eventCodes.connectionLost, "Hub baglantisi yari-olu", {
         reason: "liveness-timeout",
       });
       this.closeAndBackoff();
@@ -331,24 +352,10 @@ export class TunnelConnector implements ITunnelChannel {
     }
   }
 
-  private async pushSnapshot(): Promise<void> {
-    try {
-      const data = await this.snapshotSource.snapshot();
-      if (data.length === 0) return;
-      if (this.stateValue !== "connected") return;
-      const frame: TelemetryMessage = { type: "telemetry", data };
-      this.send(frame);
-    } catch (error) {
-      this.log("warn", "app", "telemetry_push_failed", "Telemetri snapshot alinamadi", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
   private applyOperationalConfig(input: unknown): void {
     const parsed = tunnelOperationalConfigSchema.safeParse(input);
     if (!parsed.success) {
-      this.log("warn", "app", "field_config_rejected", "Gecersiz operational config", {
+      this.log("warn", "app", this.eventCodes.configRejected, "Gecersiz operational config", {
         reason: "schema",
       });
       return;
@@ -356,11 +363,9 @@ export class TunnelConnector implements ITunnelChannel {
     this.operational = { ...this.operational, ...parsed.data };
     if (this.stateValue === "connected" || this.stateValue === "registered") {
       this.scheduleHeartbeat();
-      this.scheduleTelemetry();
     }
-    this.log("info", "app", "field_connected", "Operational config uygulandi", {
+    this.log("info", "app", this.eventCodes.connected, "Operational config uygulandi", {
       heartbeatIntervalMs: this.operational.heartbeatIntervalMs,
-      telemetryIntervalMs: this.operational.telemetryIntervalMs,
     });
   }
 
@@ -369,14 +374,6 @@ export class TunnelConnector implements ITunnelChannel {
     this.heartbeatTimer = setInterval(
       () => this.sendHeartbeat(),
       this.operational.heartbeatIntervalMs,
-    );
-  }
-
-  private scheduleTelemetry(): void {
-    if (this.telemetryTimer) clearInterval(this.telemetryTimer);
-    this.telemetryTimer = setInterval(
-      () => void this.pushSnapshot(),
-      this.operational.telemetryIntervalMs,
     );
   }
 
@@ -393,7 +390,7 @@ export class TunnelConnector implements ITunnelChannel {
     this.stateValue = "backoff";
     this.attempt += 1;
     const delay = this.reconnectDelay.delayFor(this.attempt);
-    this.log("warn", "app", "ws_connection_lost", "Hub baglantisi koptu", {
+    this.log("warn", "app", this.eventCodes.connectionLost, "Hub baglantisi koptu", {
       reason,
       attempt: this.attempt,
       reconnectInMs: delay,
@@ -403,11 +400,9 @@ export class TunnelConnector implements ITunnelChannel {
 
   private clearTimers(): void {
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-    if (this.telemetryTimer) clearInterval(this.telemetryTimer);
     if (this.registerTimer) clearTimeout(this.registerTimer);
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.heartbeatTimer = undefined;
-    this.telemetryTimer = undefined;
     this.registerTimer = undefined;
     this.reconnectTimer = undefined;
   }

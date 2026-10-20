@@ -36,7 +36,7 @@ devDependency — test yardımcısı; üretim kodu `ITokenSigner` enjeksiyonuyla
 bun packages/ws-tunnel/examples/loopback-demo.mjs
 ```
 
-Paket içi demo: `FieldHarness` (hub ucu) ↔ `TunnelConnector` + `TunnelClient`
+Paket içi demo: `HubHarness` (hub ucu) ↔ `TunnelConnector` + `TunnelClient`
 (client ucu) ↔ `SessionGateway` + `TunnelProxy` — tek gerçek WS kanalında
 register → oturum → tünel HTTP → WS köprüsü. Aynı akış test olarak da çalışır:
 
@@ -57,7 +57,7 @@ bun nx run ws-tunnel:test   # loopback.spec.ts dahil
 const client = TunnelClient.create({ webServiceUrl, staticUrl });
 client.attach(connector);
 
-// Hub ucu: IHubChannel adapter'i (ör. paket içi FieldHarness veya
+// Hub ucu: IHubChannel adapter'i (ör. paket içi HubHarness veya
 // tüketicinin ContainerProxy sarmalayıcısı) + IStreamSink (tüketicinin
 // HTTP framework adapter'i) + IAuditSink + ITokenSigner enjekte edilir
 const gateway = new SessionGateway(channel, store, audit, logger);
@@ -65,4 +65,4 @@ const proxy = new TunnelProxy(channel, store, logger);
 ```
 
 Tünel rolü YORUMLAMAZ: `TunnelRole` serbest string'dir — eşleme ve RBAC
-tüketiciye aittir. Detaylı protokol: `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.
+tüketiciye aittir. Detaylı protokol: `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.

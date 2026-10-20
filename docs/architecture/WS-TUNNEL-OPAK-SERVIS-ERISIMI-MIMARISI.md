@@ -98,7 +98,7 @@ Boss/Site Admin UI ── GET /peers ──► HUB (registry okuma)
 4. Pakete HTTP route kodu ve telemetri tipi girmez; keşif/erişim tüketicide (web-service) yaşar.
 5. Keşif push-based'tir; ağ taraması (mDNS/ARP/port scan) YASAKTIR.
 6. Peer↔peer doğrudan erişim yoktur; tüm trafik hub üzerinden akar. İstisna: nested hub — field, kendi konteynerlerinin hub'ıdır (iki-hop: boss→field→container).
-7. Bağımlılık sınırı: `ws` + `zod` + `@gd-monorepo/result` dışında paket bağımlılığı eklenemez.
+7. Bağımlılık sınırı: yalnız `ws` + `zod` (+ test yardımcısı `jose` devDep). `@gd-monorepo/*` importu YASAK; `Result` yerel (`src/result/`).
 
 ## 6. Use Case'ler
 
@@ -270,7 +270,7 @@ Boss/Site Admin UI ── GET /peers ──► HUB (registry okuma)
 | Erişim — peer yarı-ölü | Mevcut timeout/`system_unreachable` kademeli bozulma |
 | Servis listesi değişikliği | Reconnect ile yeni register (K7) |
 
-Beklenen hata → `Result`; beklenmeyen → `DomainError` (@gd-monorepo/result sözleşmesi). Paket `decode` garantisi ve branch kapıları değişmez.
+Beklenen hata → yerel `Result`; beklenmeyen → yerel `DomainError` (paket içi sözleşme). Paket `decode` garantisi ve branch kapıları değişmez.
 
 ## 8. Başarı Kriterleri (SC-x)
 

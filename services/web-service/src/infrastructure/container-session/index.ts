@@ -1,6 +1,5 @@
-// Konteyner oturum modülü (field tier) — web-service'te kalanlar.
-// HubSessionStore/SessionGateway/TunnelProxy 2026-09-01'de
-// @gd-monorepo/ws-tunnel'a taşındı (KUTUPHANE-CIKARMA-PLANI.md);
-// SessionAudit (PG + TamperLogger) IAuditSink implementasyonu olarak kaldı.
-
-export { SessionAudit, SESSION_AUDIT_DDL } from "./session-audit";
+// Konteyner oturum modülü (field tier) — hub-servis tüketicisi.
+// HubSessionStore/SessionGateway/TunnelProxy @gd-monorepo/ws-tunnel'da;
+// field tier görünümü hub'dan beslenir.
+export { HubContainerView } from "./hub-container-view";
+export type { HubContainerViewConfig } from "./hub-container-view";
