@@ -16,7 +16,6 @@ import {
   serviceTier,
   deviceConfigDir,
   logConfig,
-  hubPeerConfig,
   fieldUplinkConfig,
   resolveTelemetryIntervalMs,
   hubConsumerConfig,
@@ -40,6 +39,7 @@ import {
   TunnelProxy,
 } from "@gd-monorepo/ws-tunnel";
 import { JoseTokenSigner } from "../infrastructure/auth/jose-token-signer";
+import { StatelessSessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
@@ -225,64 +225,15 @@ export function buildContainer() {
       },
     ).singleton(),
 
-    // Faz 2 T2.3: TunnelConnector — container tier + HUB_PEER_ENABLED=true.
-    // Bootstrap config fail-fast doğrulanır; kapalıysa kurulmaz (route "offline"
-    // bildirir). Operational config register-ack/config-update ile canlı gelir.
-    hubPeerConnector: asFunction(
-      ({ config, postgres, realtime, logger }) => {
-        const tier = serviceTier(config);
-        const cfg = hubPeerConfig(config, tier);
-        if (!cfg) return undefined;
-        return new TunnelConnector(
-          cfg,
-          new WsSocketClientFactory(),
-          new ReconnectDelay({
-            baseMs: 1000,
-            maxMs: 60000,
-            jitterSpanMs: 1000,
-            jitter: Math.random,
-          }),
-          logger,
-        );
-      },
-    ).singleton(),
-
-    // Faz 3 (container tier): konteyner oturum deposu + JWT üretici
-    containerSessionStore: asFunction(
-      ({ config, authCfg, hubPeerConnector }) => {
-        const tier = serviceTier(config);
-        if (tier !== "container" || !hubPeerConnector) return undefined;
-        return new ClientSessionStore(
-          new JoseTokenSigner(authCfg.jwtSecret),
-        );
-      },
-    ).singleton(),
-
-    // Faz 3 (container tier): open-session/session-end frame'leri
-    containerSessionServer: asFunction(
-      ({ config, hubPeerConnector, containerSessionStore, logger }) => {
-        const tier = serviceTier(config);
-        if (!hubPeerConnector || !containerSessionStore) return undefined;
-        void tier;
-        return new ClientSessionServer(
-          hubPeerConnector,
-          containerSessionStore,
-          logger,
-        );
-      },
-    ).singleton(),
-
-    // Faz 3 (container tier): stream multiplex + çift upstream + WS köprüsü
-    tunnelClient: asFunction(
-      ({ config, hubPeerConnector }) => {
-        const tier = serviceTier(config);
-        if (tier !== "container" || !hubPeerConnector) return undefined;
-        return TunnelClient.create({
-          webServiceUrl: config.get<string>("tunnel.apiUpstream"),
-          staticUrl: config.get<string>("tunnel.staticUpstream"),
-        });
-      },
-    ).singleton(),
+    // Container tier: agent imzalı `container_session` JWT'sini STATELESS doğrular
+    // (SPEC KONTEYNER-AGENT-KAYIT K2/K3 — yerel oturum kaydı yoktur).
+    containerSessionAuthenticator: asFunction(({ config, authCfg }) => {
+      const tier = serviceTier(config);
+      if (tier !== "container") return undefined;
+      return new StatelessSessionAuthenticator(
+        new JoseTokenSigner(authCfg.jwtSecret),
+      );
+    }).singleton(),
 
     // Log altyapısı (TamperLogger — Faz 0 T0.5/T0.6).
     // asValue ile KAYDEDİLMEZ: awilix v11 async factory'leri await'lemez.

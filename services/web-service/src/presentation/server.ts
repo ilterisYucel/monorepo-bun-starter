@@ -66,8 +66,6 @@ import type { FieldEventCollector } from "../infrastructure/field-uplink/field-e
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
 import type { FieldPoller } from "../infrastructure/field-poller";
-import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
-import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
 import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
 import type { HubConsumerClient } from "../infrastructure/hub-consumer";
 import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
@@ -75,6 +73,8 @@ import type { PathAllowlist } from "@gd-monorepo/ws-tunnel";
 import { sessionCookieValue } from "@gd-monorepo/ws-tunnel";
 import { toWebUser } from "../infrastructure/container-session/session-user-map";
 import { MaterializedViewManager, type IMessageQueue } from "@gd-monorepo/core";
+import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
+import type { ISessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
 
 
 export interface ServerDependencies {
@@ -100,8 +100,8 @@ export interface ServerDependencies {
   fieldRegistry?: HubFieldRegistry;
   wireGuard?: WireGuardConnection;
   fieldEventCollector?: FieldEventCollector;
-  hubPeerConnector?: TunnelConnector;
-  sessionStore?: ClientSessionStore;
+  /** Container tier: agent imzalı `container_session` doğrulayıcısı. */
+  containerSessionAuthenticator?: ISessionAuthenticator;
   /** Field tier: boss uplink oturumları (field_session cookie'si). */
   uplinkSessionStore?: ClientSessionStore;
   /** Boss tier: field app tünel allowlist'i (deployment config). */
@@ -208,16 +208,10 @@ export class WebServiceServer {
     // Faz 3 (container tier): container_session cookie'si Bearer yerine geçer.
     // Boss Faz 3 (field tier): field_session cookie'si aynı model —
     // boss'tan gelen saha uzaktan görünüm oturumu uplinkSessionStore'dan doğrulanır.
-    const sessionRbacOptions = deps.sessionStore
+    const sessionRbacOptions = deps.containerSessionAuthenticator
       ? {
-          sessionAuthenticator: async (cookie: string | undefined) => {
-            // P1: ws-tunnel cookie varsayılanı nötrleşti → container cookie
-            // adı AÇIKÇA geçilir (container_session).
-            const sessionUser = await deps.sessionStore!.authenticate(
-              sessionCookieValue(cookie, "container_session") ?? "",
-            );
-            return sessionUser ? toWebUser(sessionUser) : undefined;
-          },
+          sessionAuthenticator: (cookie: string | undefined) =>
+            deps.containerSessionAuthenticator!.authenticate(cookie),
         }
       : deps.uplinkSessionStore
         ? {
@@ -242,7 +236,7 @@ export class WebServiceServer {
     // T2.2: TunnelConnector PPC durumu — container UI "Field Bağlantısı" beslemesi
     this.app.get(
       "/api/status",
-      makeStatusRoute({ hubPeerConnector: deps.hubPeerConnector }),
+      makeStatusRoute({}),
     );
 
     await this.app.register(
@@ -350,7 +344,7 @@ export class WebServiceServer {
         await telemetryWsRoutes(fastify, {
           realtime: deps.realtime,
           tokens: deps.tokens,
-          sessionStore: deps.sessionStore,
+          sessionAuthenticator: deps.containerSessionAuthenticator,
         });
       },
     );

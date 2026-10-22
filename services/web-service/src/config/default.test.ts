@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
-import { authConfig, seedUsers, hubPeerConfig, siteFieldConfig, mfaRequiredRoles, fieldTunnelPathAllowlist, resolveTelemetryIntervalMs } from "./default";
+import { authConfig, seedUsers, siteFieldConfig, mfaRequiredRoles, fieldTunnelPathAllowlist, resolveTelemetryIntervalMs } from "./default";
 
 /**
  * default.ts T1.6 + T2.3 sözleşmesi:
@@ -8,9 +8,8 @@ import { authConfig, seedUsers, hubPeerConfig, siteFieldConfig, mfaRequiredRoles
  * - field/boss tier'da SEED_*_PASSWORD zorunludur — yoksa fırlatır
  *   (fail-fast); container tier dev default'larını korur.
  * - field/boss tier'da dev/default JWT_SECRET ile açılış REDDEDİLİR.
- * - T2.3: hubPeerConfig — kapalıysa undefined; etkinse
- *   HUB_PEER_URL/HUB_PEER_TOKEN/CONTAINER_ID zorunlu (fail-fast);
- *   virgüllü URL listesi ayrıştırılır; yalnızca container tier'da geçerli.
+ * - Container kaydı agent üzerinden yapılır; natif peer config'i yoktur
+ *   (SPEC KONTEYNER-AGENT-KAYIT K1).
  */
 
 function makeLoader(env: Record<string, string> = {}): ConfigLoader {
@@ -87,67 +86,6 @@ describe("authConfig (T1.6)", () => {
   it("container tier + dev secret → ok (dev ortamı)", () => {
     const loader = makeLoader({ SERVICE_TIER: "container" });
     expect(authConfig(loader).jwtSecret).toBe("dev-secret-change-in-production");
-  });
-});
-
-describe("hubPeerConfig (T2.3)", () => {
-  const fullEnv = {
-    SERVICE_TIER: "container",
-    HUB_PEER_ENABLED: "true",
-    HUB_PEER_URL: "ws://field-a:5002, ws://field-b:5002",
-    HUB_PEER_TOKEN: "service-token-abcdef",
-    CONTAINER_ID: "container-1",
-  };
-
-  it("kapalıysa undefined döner", () => {
-    const loader = makeLoader({ SERVICE_TIER: "container" });
-    expect(hubPeerConfig(loader, "container")).toBeUndefined();
-  });
-
-  it("etkinse URL listesi + token + containerId ayrıştırılır", () => {
-    const loader = makeLoader(fullEnv);
-    const cfg = hubPeerConfig(loader, "container");
-    expect(cfg).toBeDefined();
-    expect(cfg?.wsUrls).toEqual(["ws://field-a:5002", "ws://field-b:5002"]);
-    expect(cfg?.token).toBe("service-token-abcdef");
-    expect(cfg?.peerId).toBe("container-1");
-    expect(cfg?.peerType).toBe("container");
-    expect(cfg?.heartbeatIntervalMs).toBe(15000);
-    expect(cfg?.eventCodes?.connected).toBe("field_connected");
-  });
-
-  it("etkin ama URL yoksa fail-fast fırlatır", () => {
-    const loader = makeLoader({
-      ...fullEnv,
-      HUB_PEER_URL: "",
-    });
-    expect(() => hubPeerConfig(loader, "container")).toThrow();
-  });
-
-  it("etkin ama token yoksa fail-fast fırlatır", () => {
-    const loader = makeLoader({ ...fullEnv, HUB_PEER_TOKEN: "" });
-    expect(() => hubPeerConfig(loader, "container")).toThrow();
-  });
-
-  it("etkin ama containerId yoksa fail-fast fırlatır", () => {
-    const loader = makeLoader({ ...fullEnv, CONTAINER_ID: "" });
-    expect(() => hubPeerConfig(loader, "container")).toThrow();
-  });
-
-  it("ws:// veya wss:// olmayan URL reddedilir", () => {
-    const loader = makeLoader({ ...fullEnv, HUB_PEER_URL: "http://field:5002" });
-    expect(() => hubPeerConfig(loader, "container")).toThrow();
-  });
-
-  it("field tier'da etkin = hata", () => {
-    const loader = makeLoader({ ...fullEnv, SERVICE_TIER: "field" });
-    expect(() => hubPeerConfig(loader, "field")).toThrow();
-  });
-
-  it("tek URL de geçerli", () => {
-    const loader = makeLoader({ ...fullEnv, HUB_PEER_URL: "wss://field.local/ws" });
-    const cfg = hubPeerConfig(loader, "container");
-    expect(cfg?.wsUrls).toEqual(["wss://field.local/ws"]);
   });
 });
 

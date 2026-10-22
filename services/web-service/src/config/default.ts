@@ -219,67 +219,6 @@ export function deviceConfigDir(loader: ConfigLoader): string {
 const REGISTER_TIMEOUT_MS = 10000;
 const LIVENESS_TIMEOUT_MS = 60000;
 
-/**
- * TunnelConnector bootstrap config (tasarım §6.1, T2.3):
- * - Kapalıysa undefined döner (TunnelConnector awilix'te kurulmaz).
- * - Etkinse HUB_PEER_URL (virgüllü liste), HUB_PEER_TOKEN ve CONTAINER_ID
- *   zorunludur — eksikse fail-fast fırlatır (yanlış yapılandırma sessizce
- *   "bağlı değil" görünmesin).
- * - Yalnızca container tier'da geçerlidir; başka tier'da etkin = hata.
- */
-export function hubPeerConfig(
-  loader: ConfigLoader,
-  tier: ServiceTier,
-): TunnelConnectorConfig | undefined {
-  const enabled = loader.get<boolean>("hubPeer.enabled");
-  if (!enabled) return undefined;
-
-  if (tier !== "container") {
-    throw new Error(
-      "[Config] HUB_PEER_ENABLED yalnizca container tier'da gecerlidir",
-    );
-  }
-
-  const wsUrlRaw = loader.get<string | undefined>("hubPeer.url");
-  const token = loader.get<string | undefined>("hubPeer.token");
-  const containerId = loader.get<string | undefined>("site.containerId");
-  if (!wsUrlRaw || !token || !containerId) {
-    throw new Error(
-      "[Config] HUB_PEER_ENABLED=true iken HUB_PEER_URL, HUB_PEER_TOKEN ve CONTAINER_ID zorunludur",
-    );
-  }
-
-  const wsUrls = wsUrlRaw
-    .split(",")
-    .map((url) => url.trim())
-    .filter((url) => url.length > 0);
-  if (wsUrls.length === 0) {
-    throw new Error("[Config] HUB_PEER_URL bos olamaz");
-  }
-  for (const url of wsUrls) {
-    if (!url.startsWith("ws://") && !url.startsWith("wss://")) {
-      throw new Error(
-        `[Config] Gecersiz HUB_PEER_URL adresi: ${url} (ws:// veya wss:// olmali)`,
-      );
-    }
-  }
-
-  return {
-    wsUrls,
-    token,
-    peerId: containerId,
-    peerType: "container",
-    // Hub modu: container kendi servisini duyurur (opak yol için).
-    ...(serviceAnnouncement() !== undefined
-      ? { services: serviceAnnouncement()! }
-      : {}),
-    heartbeatIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs,
-    eventCodes: GD_PMS_TUNNEL_EVENT_CODES,
-    registerTimeoutMs: REGISTER_TIMEOUT_MS,
-    livenessTimeoutMs: LIVENESS_TIMEOUT_MS,
-  };
-}
-
 /** Hub consumer bağlantı bilgisi (HUB_MODE=hub). */
 export interface HubConsumerConnection {
   readonly baseUrl: string;

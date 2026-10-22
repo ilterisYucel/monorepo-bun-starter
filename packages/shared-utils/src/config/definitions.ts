@@ -747,38 +747,6 @@ export const siteFieldId: ConfigDefinition<string | undefined> = {
 };
 
 // =============================================================================
-// TunnelConnector (Faz 2 — container → field outbound WS)
-// =============================================================================
-
-export const hubPeerEnabled: ConfigDefinition<boolean> = {
-  key: "hubPeer.enabled",
-  env: "HUB_PEER_ENABLED",
-  filePath: "hubPeer.enabled",
-  default: false,
-  validate: (v) => v === true || v === "true" || v === "1",
-  description: "Hub peer connector'ı etkinlestirir (yalnizca container tier)",
-};
-
-export const hubPeerUrl: ConfigDefinition<string | undefined> = {
-  key: "hubPeer.url",
-  env: "HUB_PEER_URL",
-  filePath: "hubPeer.url",
-  default: undefined,
-  description:
-    "Hub peer WS URL listesi — virgulle ayrilmis, sirayla denenir (ana + yedek)",
-};
-
-export const hubPeerToken: ConfigDefinition<string | undefined> = {
-  key: "hubPeer.token",
-  env: "HUB_PEER_TOKEN",
-  filePath: "hubPeer.token",
-  default: undefined,
-  secret: true,
-  description:
-    "Hub peer token'ı — hub-servis PEER_TOKEN ile aynı değer (env modu)",
-};
-
-// =============================================================================
 // TunnelClient loopback upstream'leri (Faz 3 — container tier)
 // =============================================================================
 
@@ -1146,9 +1114,6 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   siteFieldId,
 
   // Hub peer connector (container tier)
-  hubPeerEnabled,
-  hubPeerUrl,
-  hubPeerToken,
 
   // TunnelClient upstream'leri (Faz 3)
   tunnelApiUpstream,

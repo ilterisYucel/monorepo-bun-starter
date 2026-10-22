@@ -60,9 +60,7 @@ export async function main() {
   const logger = await buildTamperLogger(config, postgres);
   container.register({ logger: asValue(logger) });
 
-  const sessionStore = c.containerSessionStore as any;
-  const containerSessionServer = c.containerSessionServer as any;
-  const tunnelClient = c.tunnelClient as any;
+  const containerSessionAuthenticator = c.containerSessionAuthenticator as any;
   const uplinkConnector = c.uplinkConnector as any;
   const uplinkSessionServer = c.uplinkSessionServer as any;
   const uplinkTunnelClient = c.uplinkTunnelClient as any;
@@ -98,13 +96,12 @@ export async function main() {
     fieldRegistry: c.fieldRegistry as any,
     wireGuard: c.wireGuard as any,
     fieldEventCollector: c.fieldEventCollector as any,
-    hubPeerConnector: c.hubPeerConnector as any,
     maneuverRegistry: c.maneuverRegistry as any,
     maneuverExecutor: c.maneuverExecutor as any,
     operationRunStore: c.operationRunStore as any,
     operationDefStore: c.operationDefStore as any,
     operationRequester: c.operationRequester as any,
-    sessionStore,
+    containerSessionAuthenticator,
     uplinkSessionStore,
     mvManager,
     mq,
@@ -145,12 +142,9 @@ export async function main() {
     stopping = true;
     console.log(`[run] ${signal} alindi, kapatiliyor...`);
     await server.stop();
-    if (containerSessionServer) containerSessionServer.stop();
-    if (tunnelClient) tunnelClient.stop();
     if (telemetrySnapshotPusher) telemetrySnapshotPusher.stop();
     if (deps.containerProxy) await deps.containerProxy.stop();
     if (deps.fieldPoller) deps.fieldPoller.stop();
-    if (deps.hubPeerConnector) await deps.hubPeerConnector.stop();
     if (deps.fieldEventCollector) deps.fieldEventCollector.stop();
     if (deps.fieldRegistry) await deps.fieldRegistry.stop();
     if (uplinkConnector) await uplinkConnector.stop();
@@ -245,19 +239,6 @@ export async function main() {
       uplinkSessionServer.start();
     }
   }
-  // Faz 2: TunnelConnector sunucu dinlemeye başladıktan sonra bağlanır —
-  // register ack'i beklemez; kendi backoff döngüsünü yönetir.
-  if (deps.hubPeerConnector) {
-    await deps.hubPeerConnector.start();
-    // Faz 3 (container tier): tünel + oturum katmanları kanala abone olur
-    if (tunnelClient) {
-      tunnelClient.attach(deps.hubPeerConnector);
-    }
-    if (containerSessionServer) {
-      containerSessionServer.start();
-    }
-  }
-
   // Telemetri snapshot push (domain; paket dışında) — connector bağlanınca başlar.
   if (telemetrySnapshotPusher) {
     telemetrySnapshotPusher.start();

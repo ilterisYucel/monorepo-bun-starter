@@ -6,14 +6,14 @@ import type { AddressInfo } from "node:net";
 import { telemetryWsRoutes } from "./ws-routes";
 import type { RealtimeManager } from "./realtime-manager";
 import type { ITokenService } from "../../domain/services/ITokenService";
-import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
+import type { ISessionAuthenticator } from "../container-session/stateless-session-authenticator";
 import type { User } from "@gd-monorepo/shared-types";
 
 /**
  * ws-routes sözleşmesi (2026-08-30 — T1.5 karakterizasyonu):
  * - /ws/telemetry handshake'inde query `token` ZORUNLUDUR; yok/geçersiz → 401.
  * - Access token geçerliyse bağlantı kurulur; tünel oturum token'ı da
- *   sessionStore.authenticate ile kabul edilir (Faz 3).
+ *   sessionAuthenticator ile kabul edilir (agent imzalı token).
  * - subscribe/unsubscribe mesajları realtime'a delege edilir ve karşılık
  *   döner; malform mesaj "error" tipi yanıt üretir; kapanışta unsubscribeAll.
  */
@@ -50,12 +50,13 @@ function makeTokens(): ITokenService {
   };
 }
 
-function makeSessionStore(): ClientSessionStore {
+function makeSessionAuthenticator(): ISessionAuthenticator {
   return {
-    authenticate: vi.fn().mockImplementation(async (token: string) =>
+    authenticate: vi.fn(),
+    authenticateToken: vi.fn().mockImplementation(async (token: string) =>
       token === "gecerli-session" ? user : undefined,
     ),
-  } as unknown as ClientSessionStore;
+  };
 }
 
 const servers: Array<{ close: () => Promise<void> }> = [];
@@ -63,7 +64,7 @@ const servers: Array<{ close: () => Promise<void> }> = [];
 async function startServer(options: {
   realtime: RealtimeManager;
   tokens: ITokenService;
-  sessionStore?: ClientSessionStore;
+  sessionAuthenticator?: ISessionAuthenticator;
 }): Promise<number> {
   const app = Fastify();
   await app.register(websocket);
@@ -138,16 +139,22 @@ describe("ws-routes /ws/telemetry (T1.5) @nis2-security", () => {
     ws.close();
   });
 
-  it("tünel oturum token'ı sessionStore üzerinden kabul edilir (Faz 3)", async () => {
+  it("agent imzalı oturum token'ı kabul edilir", async () => {
     const realtime = makeRealtime();
-    const sessionStore = makeSessionStore();
-    const port = await startServer({ realtime, tokens: makeTokens(), sessionStore });
+    const sessionAuthenticator = makeSessionAuthenticator();
+    const port = await startServer({
+      realtime,
+      tokens: makeTokens(),
+      sessionAuthenticator,
+    });
     const ws = connect(port, "gecerli-session");
     await new Promise<void>((resolve, reject) => {
       ws.once("open", () => resolve());
       ws.once("error", reject);
     });
-    expect(sessionStore.authenticate).toHaveBeenCalledWith("gecerli-session");
+    expect(sessionAuthenticator.authenticateToken).toHaveBeenCalledWith(
+      "gecerli-session",
+    );
     ws.close();
   });
 

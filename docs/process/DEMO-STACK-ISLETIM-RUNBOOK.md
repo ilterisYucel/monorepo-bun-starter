@@ -23,14 +23,15 @@ review_date: 2026-10-22
   ```
 - Env dosyaları (gitignore'lu; şablonları `.env.example`):
   - `deployment/v2/dev/field/.env`: `HUB_PEER_TOKEN`, `HUB_CONSUMER_TOKEN`, `FIELD_TOPOLOGY_PATH` (compose sabitler).
-  - `deployment/v2/dev/container{,_2}/.env`: `HUB_PEER_ENABLED=true`, `HUB_PEER_URL=ws://hub-servis:5003/ws/peer`,
-    `HUB_PEER_TOKEN=<field ile AYNI>`, `CONTAINER_ID=container-1|container-2`.
+  - `deployment/v2/dev/container{,_2}/.env`: `HUB_PEER_TOKEN=<field ile AYNI>`, `CONTAINER_ID=container-1|container-2`.
+    Kayıt **agent** ile yapılır (`container-agent`/`container2-agent`); `HUB_SECRET` = web-service `JWT_SECRET`.
+    Web-service peer env'leri (`HUB_PEER_ENABLED`/`HUB_PEER_URL`) ve `TUNNEL_*_UPSTREAM` artık YOKTUR.
   - Eski `FIELD_CONNECT_ENABLED` / `FIELD_WS_URL` / `CONTAINER_TOKEN` bu modelde kullanılmaz.
 
 ## 2. Stack'i kaldırma / durdurma
 
 ```bash
-bun run start:demo-integration   # 3 compose: container + container2 + field (hub, agent dahil)
+bun run start:demo-integration   # 3 compose: container + container2 + field (hub + 3 agent)
 bun run stop:demo-integration
 ```
 
@@ -38,13 +39,15 @@ Sağlık ve bağlantı kontrolü:
 
 ```bash
 curl -s http://localhost:5009/health              # hub
-curl -s http://localhost:5009/peers | jq '.peers[].peerId'   # container-1, container-2, demo-field-agent
+curl -s http://localhost:5009/peers | jq '.peers[] | [.peerId, .peerType]'   # container-1/2 (container, agent), demo-field-agent (device)
 curl -s http://localhost:5002/health              # field web-service
 curl -s http://localhost:8088/login -o /dev/null -w '%{http_code}\n'
 ```
 
 Beklenen: hub `200`, iki konteyner `connected`, field `200`, SPA `200`.
-**Register adımı yok** — peer görünmüyorsa `HUB_PEER_TOKEN` iki tarafta aynı mı kontrol et.
+**Register adımı yok** — kayıt agent'lar tarafından yapılır. Peer görünmüyorsa
+`container-agent` loglarına (`[peer-agent] ...`) ve `HUB_PEER_TOKEN` eşitliğine bak;
+oturum 401'lerinde `HUB_SECRET` = web-service `JWT_SECRET` olduğunu doğrula.
 
 ## 3. İstasyon topolojisi (EMS domain)
 
