@@ -222,9 +222,14 @@ function buildStation(topo: NovaTopology, p: string): string {
     cx: 420 + st.cells.findIndex((c) => c.id === fd.cell) * 100,
   }));
   const right = fs.find((x) => x.fd.side === "R");
+  // Kablolar çakışmasın: hatlar şeritlere (lane, hücrelerin solunda) doğru
+  // döner; hücresi şeride YAKIN olan fider daha YUKARIDA döner, uzaktaki
+  // aşağıdan geçer → yatay kısım diğer fiderin dikey inişini kesmez.
+  const order = [...fs].sort((a, b) => a.cx - b.cx).map((x) => x.f);
+  const turnY = (f: string): number => 212 + order.indexOf(f) * 20;
   fs.forEach(({ f, fd, cx }) => {
     const lane = lanes[fd.side];
-    const y = fd.side === "R" ? 212 : 232;
+    const y = turnY(f);
     let d = `M${cx} 170V${y}`;
     const crosses = fd.side === "L" && right !== undefined && right.cx < cx;
     d += crosses ? `H${lanes.R + 8}a8 8 0 0 0 -16 0H${lane}` : `H${lane}`;

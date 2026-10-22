@@ -25,15 +25,19 @@ export const TREND_POWER_NAMES = ["Grid Active Power"];
 export const DemoTrendsSection: React.FC = () => {
   const { fieldId, activeStation, stationSystems, restPhases } = useDemoProjectContext();
   const L = DEMO_TOPOLOGY.limits;
-  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0];
-  const pcs = useMemo(() => [...pcsIdsForStation(station.key)], [station.key]);
-  const containerId = stationSystems[station.key];
+  // GD-1 tek MV istasyonu: trendler iki fiderin (H04 + H05) konteynerlerini ve
+  // PCS çiftlerini birlikte kapsar.
+  void activeStation;
+  const station = { key: "site", name: DEMO_TOPOLOGY.station.name };
+  const pcs = useMemo(() => DEMO_STATIONS.flatMap((s) => [...pcsIdsForStation(s.key)]), []);
+  const containerIds = useMemo(() => Object.values(stationSystems), [stationSystems]);
+  const containerId = containerIds[0];
 
   const containerTrends = useQuery({
     queryKey: ["demo-station-trends-bsc", fieldId, station.key, containerId],
     queryFn: () =>
       demoApi.downsampled(fieldId, {
-        containerIds: containerId ? [containerId] : [],
+        containerIds,
         from: new Date(Date.now() - TREND_WINDOW_MS).toISOString(),
         to: new Date().toISOString(),
         points: TREND_POINTS,
@@ -106,6 +110,8 @@ export const DemoTrendsSection: React.FC = () => {
           yTicks={[10, 15, 20, 25, 30, 35]}
           series={[{ label: "Highest", points: trendData.temp, color: "var(--nm-c-hot)", area: true }]}
           limits={[
+            { value: L.tripC ?? 32, label: `Trip ${L.tripC ?? 32} °C (H02 opens)`, cls: "hot" },
+            { value: L.derateC, label: `Limit PCS ${L.derateC} °C (50 % derate)`, cls: "hot" },
             { value: L.tempMax, label: `Upper ${L.tempMax} °C`, cls: "hot" },
             { value: L.tempMin, label: `Lower ${L.tempMin} °C`, cls: "cold" },
           ]}

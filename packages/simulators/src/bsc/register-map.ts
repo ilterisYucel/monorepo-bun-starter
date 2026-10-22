@@ -230,10 +230,19 @@ export const CONTROLLER = {
   DISABLED_RACKS_97_99:   40026, // bit16
   DISABLED_RESERVED_1:    40027, // uint16 — Reserved
   DISABLED_RESERVED_2:    40028, // uint16 — Reserved
-  // ELEGANT-EXCEPTION: 40030/40031 resmi Rev AF haritasında YOKTUR (C2B 40028'de biter).
-  // Simulator'ın eski güç modeli için geçici; evdeki PC güncellemesinde kaldırılacak.
-  CHARGE_POWER_SETPOINT:  40030, // uint16 — Charge power setpoint (kW, scale 0.01)
-  DISCHARGE_POWER_SETPOINT: 40031, // uint16 — Discharge power setpoint (kW, scale 0.01)
+} as const;
+
+/**
+ * SIMULATOR-ONLY demo güç girişi — LGES Flex BSC Rev AF haritasında YOKTUR.
+ * Gerçek BSC'de güç PCS (S06) ile belirlenir; BSC'nin güç setpoint'i yoktur
+ * (C2B 40028'de biter). Demo simülatörü PCS'i göremediği için DC gücünü bu
+ * iki register'dan alır. Adresler LGES Controller bloğunun (40000–40200)
+ * DIŞINDA tutulur ki gerçek bir BSC'ye yanlışlıkla yazılmasın; bu register'lar
+ * yalnız demo (v2) device-config'lerinde "SIM ..." adıyla yer alır.
+ */
+export const SIM_ONLY = {
+  CHARGE_POWER_SETPOINT:    49000, // uint16 — demo DC şarj gücü (kW, scale 0.1 → max 6553.5 kW)
+  DISCHARGE_POWER_SETPOINT: 49001, // uint16 — demo DC deşarj gücü (kW, scale 0.1)
 } as const;
 
 // ============================================================================
@@ -263,11 +272,7 @@ export const COMMAND = {
   EXIT_MANUAL:             0x0007,
   EVENT_CLEAR:             0x0009,
   RESET:                   0x000A,
-  // ELEGANT-EXCEPTION: 0x000B resmi Rev AF haritasında kaldırıldı ("removed").
-  // BSC'ye charge/discharge komutu YOKTUR — güç PCS tarafından kontrol edilir.
-  // Simulator'ın güç modeli henüz PCS-tabanlı olmadığı için geçici tutuldu;
-  // evdeki PC simulator güncellemesinde kaldırılacak (bkz. docs/BSC-VERI-ANALIZI.md).
-  DISCHARGE:               0x000B,
+  // 0x000B Rev AF'de "removed": BSC'nin charge/discharge komutu YOKTUR (güç PCS'te).
 } as const;
 
 /** Request Acknowledge values (NAMEPLATE.REQUEST_ACKNOWLEDGE — address 30030) */

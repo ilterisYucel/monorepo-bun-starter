@@ -14,8 +14,8 @@ export const DEMO_TOPOLOGY: NovaTopology = {
   id: "GDE-202030",
   name: "GD-1",
   location: "Polatlı, Ankara",
-  powerMW: 62,
-  energyMWh: 64.224,
+  powerMW: 30,
+  energyMWh: 32.112,
 
   station: {
     name: "MV STATION #1",
@@ -34,8 +34,8 @@ export const DEMO_TOPOLOGY: NovaTopology = {
   },
 
   feeders: {
-    A: { cell: "H04", side: "L", units: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
-    B: { cell: "H05", side: "R", units: [10, 11, 12, 13, 14, 15, 16, 17, 18] },
+    A: { cell: "H04", side: "L", units: [1, 2, 3, 4, 5] },
+    B: { cell: "H05", side: "R", units: [6, 7, 8, 9] },
   },
 
   unit: {
@@ -46,7 +46,7 @@ export const DEMO_TOPOLOGY: NovaTopology = {
     rackKWh: 223,
     cellsSeries: 408,
     bus: { ratingA: 2000, rackFuseA: 220, dcCB: "SYW6GZ-4000", imd: "Bender isoPV1685RTU" },
-    rack: { packs: 17, bpu: true, packKWh: 13.118, cellsPerPack: 24 },
+    rack: { packs: 17, bpu: true, packKWh: 13.122, cellsPerPack: 72, config: "3P24S" },
     sections: [
       { id: 1, bank: "A", racks: [1, 2, 3, 4], hvac: [1, 2] },
       { id: 2, bank: "A", racks: [5, 6, 7, 8], hvac: [3, 4] },
@@ -113,7 +113,7 @@ export const DEMO_TOPOLOGY: NovaTopology = {
 };
 
 /** Demo sanal ünite sayısı (SPEC K1 — 9 ünite). */
-export const DEMO_UNIT_COUNT = 18;
+export const DEMO_UNIT_COUNT = 9;
 
 /**
  * Pack künyesi (UC-13 DEV — referans `topology.js#unit.pack` birebir).

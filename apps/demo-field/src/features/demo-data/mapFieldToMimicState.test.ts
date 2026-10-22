@@ -72,24 +72,27 @@ describe("fanOutUnits (FR-2.1)", () => {
     expect(a[8].n).toBe(9);
   });
 
-  it("PCS gücünü ünite sayısına böler", () => {
-    const [u] = fanOutUnits(proto, 9);
-    expect(u.pcs[0].pMW).toBeCloseTo(1.2 / 9, 6);
+  it("PCS gücünü BÖLMEZ (her grup PCS'i aynı setpoint'i taşır); kopyalar işaretli", () => {
+    const units = fanOutUnits(proto, 9);
+    expect(units[0].pcs[0].pMW).toBeCloseTo(1.2, 6);
+    expect(units[8].pcs[0].pMW).toBeCloseTo(1.2, 6);
+    expect(units[0].mirrored).toBeUndefined();
+    expect(units[1].mirrored).toBe(true);
   });
 });
 
 describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
-  it("tek konteyneri 18 üniteye fan-out eder (K-22)", () => {
+  it("tek konteyneri 9 üniteye fan-out eder (GD-1)", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(18);
+    expect(state.units).toHaveLength(9);
   });
 
   it("her fiderin son ünitesinde H03 (hat sonu) yoktur", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
     const byN = new Map(state.units.map((u) => [u.n, u]));
+    expect(byN.get(5)?.rmu.H03).toBeNull();
     expect(byN.get(9)?.rmu.H03).toBeNull();
-    expect(byN.get(18)?.rmu.H03).toBeNull();
-    expect(byN.get(8)?.rmu.H03).toBe("closed");
+    expect(byN.get(4)?.rmu.H03).toBe("closed");
   });
 
   it("banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)", () => {
@@ -107,8 +110,9 @@ describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
 
   it("saha toplam gücünü korur (POI işaretli)", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    // -600 kW şarj + 400 kW deşarj = -0.20 MW
-    expect(state.poiMW).toBeCloseTo(-0.2, 3);
+    // -600 kW şarj + 400 kW deşarj = -0.20 MW / grup; 2026-10-15: her grup kopyası
+    // gerçek PCS çiftinin gücünü taşır (bölme yok) → POI = grup sayısı × -0.20 MW
+    expect(state.poiMW).toBeCloseTo(-0.2 * state.units.length, 3);
   });
 
   it("hücre ΔV türetir (3.400−3.350 V → 50 mV)", () => {
@@ -145,11 +149,20 @@ describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
     expect(state.station.kV).toBe(34.5);
   });
 
-  it("MV telemetrisi yokken varsayılan kapalı + nominal kV", () => {
+  it("MV telemetrisi yokken fail-closed: kesici AÇIK + ölçüm 0 (uydurma nominal yok)", () => {
     const noMv = REAL_TELEMETRY.filter((r) => r.deviceId !== "DEMO-MV-1");
     const state = mapFieldToMimicState([container(noMv)], DEMO_TOPOLOGY);
-    expect(state.station.H05).toBe("closed");
-    expect(state.station.kV).toBe(DEMO_TOPOLOGY.station.nominalKV);
+    expect(state.station.H05).toBe("open");
+    expect(state.station.kV).toBe(0);
+    expect(state.station.hz).toBe(0);
+  });
+
+  it("fider CT: H04 = fider A, H05 = fider B (topolojiden; eskiden ters)", () => {
+    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
+    const kV = state.station.kV > 0 ? state.station.kV : DEMO_TOPOLOGY.station.nominalKV;
+    const amps = (mw: number): number => Math.round((Math.abs(mw) * 1000) / (Math.sqrt(3) * kV));
+    expect(state.station.iA.H04).toBe(amps(state.feederMW.A ?? 0));
+    expect(state.station.iA.H05).toBe(amps(state.feederMW.B ?? 0));
   });
 
   it("boş konteynerde boş ünite listesi döner", () => {
@@ -186,9 +199,9 @@ describe("mapFieldToMimicState — container cihazları (UC-9)", () => {
     expect(u.dc?.voltage).toBe(1300);
   });
 
-  it("AK-9.2: fan-out yeni cihazları 18 üniteye kopyalar; ambient outside temp", () => {
+  it("AK-9.2: fan-out yeni cihazları 9 üniteye kopyalar; ambient outside temp", () => {
     const state = mapFieldToMimicState([container(WITH_DEVICES)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(18);
+    expect(state.units).toHaveLength(9);
     expect(state.units.every((u) => u.hvac?.[0].supplyT === 21)).toBe(true);
     expect(state.units.every((u) => u.aux?.kW === 20)).toBe(true);
     expect(state.ambient).toBe(14);
@@ -223,17 +236,17 @@ describe("UC-13 istasyon-bazlı fan-out", () => {
     const state = mapFieldToMimicState([tagged("c1", "bess1", 60), tagged("c2", "bess2", 40)], DEMO_TOPOLOGY, {
       extraTelemetry: mv,
     });
-    expect(state.units).toHaveLength(18);
-    // K-22: station1 = 1–9 (kendi konteyneri c1 → 60), station2 = 10–18 (c2 → 40)
+    expect(state.units).toHaveLength(9);
+    // GD-1: station1 = H04 1–5 (c1 → 60), station2 = H05 6–9 (c2 → 40)
     expect(state.units.find((u) => u.n === 1)?.banks[0].soc).toBe(60);
-    expect(state.units.find((u) => u.n === 9)?.banks[0].soc).toBe(60);
-    expect(state.units.find((u) => u.n === 10)?.banks[0].soc).toBe(40);
-    expect(state.units.find((u) => u.n === 18)?.banks[0].soc).toBe(40);
+    expect(state.units.find((u) => u.n === 5)?.banks[0].soc).toBe(60);
+    expect(state.units.find((u) => u.n === 6)?.banks[0].soc).toBe(40);
+    expect(state.units.find((u) => u.n === 9)?.banks[0].soc).toBe(40);
   });
 
   it("etiket yoksa legacy tek prototip (güç korunumu) korunur", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(18);
+    expect(state.units).toHaveLength(9);
   });
 
   it("K-18: istasyon PCS çifti — station1 PCS-3/4, station2 PCS-1/2", () => {
@@ -255,9 +268,9 @@ describe("UC-13 istasyon-bazlı fan-out", () => {
       DEMO_TOPOLOGY,
       { extraTelemetry: mv },
     );
-    // fan-out güç korunumu (K-22): station1 (9 ünite) 0.9/9=0.1; station2 (9 ünite) 0.6/9≈0.0667
-    expect(state.units.find((u) => u.n === 1)?.pcs[0].pMW).toBeCloseTo(0.1, 5);
-    expect(state.units.find((u) => u.n === 10)?.pcs[0].pMW).toBeCloseTo(0.6 / 9, 5);
+    // 2026-10-15: her grup PCS'i gerçek PCS gücünü taşır (bölme yok)
+    expect(state.units.find((u) => u.n === 1)?.pcs[0].pMW).toBeCloseTo(0.9, 5);
+    expect(state.units.find((u) => u.n === 6)?.pcs[0].pMW).toBeCloseTo(0.6, 5);
   });
 
   it("UC-13: BSC ChargeStatus bankaya taşınır (istasyon modu için)", () => {

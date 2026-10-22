@@ -35,17 +35,17 @@ const state: NovaMimicState = {
   poiMW: 3,
   feederMW: { A: 1.5, B: 1.5 },
   units: [
-    ...Array.from({ length: 9 }, (_, i) => mkUnit(i + 1, "dis", 0.3)),
-    ...Array.from({ length: 9 }, (_, i) => mkUnit(i + 10, "chg", 0.5)),
+    ...Array.from({ length: 5 }, (_, i) => mkUnit(i + 1, "dis", 0.3)),
+    ...Array.from({ length: 4 }, (_, i) => mkUnit(i + 6, "chg", 0.5)),
   ],
 };
 
 describe("demo-stations", () => {
-  it("AK-11.6 / K-22: 2 istasyon, 9+9 ünite, toplam 18", () => {
+  it("GD-1 (2026-10-15): H04 → BESS 1–5, H05 → BESS 6–9, toplam 9", () => {
     expect(DEMO_STATIONS).toHaveLength(2);
-    expect(DEMO_STATIONS[0].units).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    expect(DEMO_STATIONS[1].units).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18]);
-    expect(stationCoverage()).toEqual({ units: 18, expected: 18 });
+    expect(DEMO_STATIONS[0].units).toEqual([1, 2, 3, 4, 5]);
+    expect(DEMO_STATIONS[1].units).toEqual([6, 7, 8, 9]);
+    expect(stationCoverage()).toEqual({ units: 9, expected: 9 });
   });
 
   it("K-18: her istasyon kendi PCS çiftini kontrol eder", () => {
@@ -64,41 +64,41 @@ describe("demo-stations", () => {
 
   it("stationForUnit doğru istasyonu döner", () => {
     expect(stationForUnit(1)?.index).toBe(0);
-    expect(stationForUnit(9)?.index).toBe(0);
-    expect(stationForUnit(10)?.index).toBe(1);
-    expect(stationForUnit(18)?.index).toBe(1);
-    expect(stationForUnit(19)).toBeUndefined();
+    expect(stationForUnit(5)?.index).toBe(0);
+    expect(stationForUnit(6)?.index).toBe(1);
+    expect(stationForUnit(9)?.index).toBe(1);
+    expect(stationForUnit(10)).toBeUndefined();
   });
 
   it("AK-11.5: stationTopo yalnız o istasyonun fiderini taşır", () => {
     const t1 = stationTopoByIndex(0);
     expect(Object.keys(t1.feeders)).toEqual(["A"]);
-    expect(t1.feeders.A?.units).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(t1.feeders.A?.units).toEqual([1, 2, 3, 4, 5]);
     expect(t1.station.name).toBe("BESS MV STATION #1");
     expect(t1.station.poiLabel).toBe("TO MV STATION Q04");
     const t2 = stationTopoByIndex(1);
     expect(Object.keys(t2.feeders)).toEqual(["B"]);
-    expect(t2.feeders.B?.units).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18]);
+    expect(t2.feeders.B?.units).toEqual([6, 7, 8, 9]);
   });
 
   it("stateForStation üniteleri ve feeder/POI değerini süzer", () => {
     const s1 = stateForStation(state, DEMO_STATIONS[0]);
-    expect(s1.units.map((u) => u.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    // 9 × (+0.3 + 0.3) = 5.4 MW discharge
-    expect(s1.poiMW).toBeCloseTo(5.4);
-    expect(s1.feederMW.A).toBeCloseTo(5.4);
+    expect(s1.units.map((u) => u.n)).toEqual([1, 2, 3, 4, 5]);
+    // 5 × (+0.3 + 0.3) = 3.0 MW discharge
+    expect(s1.poiMW).toBeCloseTo(3.0);
+    expect(s1.feederMW.A).toBeCloseTo(3.0);
     const s2 = stateForStation(state, DEMO_STATIONS[1]);
-    expect(s2.units.map((u) => u.n)).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18]);
-    // 9 × (−0.5 −0.5) = −9.0 MW charge
-    expect(s2.poiMW).toBeCloseTo(-9.0);
-    expect(s2.feederMW.B).toBeCloseTo(-9.0);
+    expect(s2.units.map((u) => u.n)).toEqual([6, 7, 8, 9]);
+    // 4 × (−0.5 −0.5) = −4.0 MW charge
+    expect(s2.poiMW).toBeCloseTo(-4.0);
+    expect(s2.feederMW.B).toBeCloseTo(-4.0);
   });
 
   it("stationTopo orijinal DEMO_TOPOLOGY'yi bozmaz", () => {
     stationTopo(DEMO_STATIONS[0]);
     stationTopo(DEMO_STATIONS[1]);
     expect(Object.keys(DEMO_TOPOLOGY.feeders)).toEqual(["A", "B"]);
-    expect(DEMO_TOPOLOGY.feeders.B.units).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18]);
+    expect(DEMO_TOPOLOGY.feeders.B.units).toEqual([6, 7, 8, 9]);
   });
 });
 
@@ -110,11 +110,11 @@ describe("kollektör tipi + illüstratif PV (AK-11.9)", () => {
     expect(collectorType(81.45)).toBe("Metal Clad");
   });
 
-  it("demoPlantTotals (K-22): BESS 62.1 + PV ≈ 43.4 → Metal Clad", () => {
+  it("demoPlantTotals: BESS 31.05 (9 × 2 × 1.725) + PV ≈ 43.4 → Metal Clad", () => {
     const t = demoPlantTotals();
-    expect(t.bessMW).toBeCloseTo(62.1, 2);
+    expect(t.bessMW).toBeCloseTo(31.05, 2);
     expect(t.sourceMW).toBeCloseTo(43.4, 1);
-    expect(t.installedMW).toBeCloseTo(105.5, 1);
+    expect(t.installedMW).toBeCloseTo(74.45, 1);
     expect(t.collector).toBe("Metal Clad");
   });
 

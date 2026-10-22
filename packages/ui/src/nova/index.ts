@@ -84,6 +84,7 @@ export type {
   DemoPermission,
 } from "./DemoOperationsView";
 export {
+  DEMO_REST_ENABLED,
   DEMO_REST_MINUTES,
   deriveRestState,
   lastFullRunFinishedAt,

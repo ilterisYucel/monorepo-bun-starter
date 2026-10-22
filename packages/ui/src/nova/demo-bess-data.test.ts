@@ -36,10 +36,14 @@ describe("demo-bess-data (UC-4, D-1 türetim)", () => {
     expect(m.tMaxPack).toBeLessThanOrEqual(17);
   });
 
-  it("rack register tablosu referans listesi (30 satır) + adresler", () => {
-    const rows = rackRegisters(input, 3, { soc: 60, soh: 98, vdc: 1300, chgLimitKw: 160, disLimitKw: 160 });
-    expect(rows).toHaveLength(30);
-    expect(rows.every((r) => r.value.length > 0)).toBe(true);
+  it("rack register tablosu: v14 katalog (43 satır), yalnız canlı değer, adresler", () => {
+    const rows = rackRegisters(3, { "Rack SOC": 61.5, "Rack State": 9 });
+    expect(rows).toHaveLength(43);
+    expect(rows.find((r) => r.name === "Rack SOC")?.value).toBe("61.5 %");
+    expect(rows.find((r) => r.name === "Rack State")?.value).toBe("9 · Normal");
+    // Veri yoksa uydurma yok
+    expect(rows.find((r) => r.name === "Rack SOH")?.value).toBe("— no data");
+    expect(rows.find((r) => r.name === "Rack Status Flags")?.polled).toBe(false);
     expect(rows.some((r) => r.name === "Rack SOC")).toBe(true);
     // base = 30170 + 150·(3−1) = 30470; offset 50 → 30520
     expect(rows.find((r) => r.name === "Rack State")?.address).toBe("30520");

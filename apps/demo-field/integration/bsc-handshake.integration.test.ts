@@ -78,7 +78,7 @@ describe("BSC komut el sıkışması", () => {
     // Temiz durum: reset → oto-init → START (akım akar), sonra STOP.
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 10); // RESET
     await sleep(8000);
-    await modbusWriteSingle(BSC_PORT, 40030, 5000); // şarj setpoint 50 kW
+    await modbusWriteSingle(BSC_PORT, 49000, 500); // SIM-only şarj setpoint 50 kW (0.1 kW)
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 2); // START (akım akar)
     await sleep(2000);
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 3); // STOP
@@ -97,7 +97,7 @@ describe("BSC komut el sıkışması", () => {
   it("C2: akım akarken EMERGENCY (0x0001) kabul edilir (en yüksek öncelik)", async () => {
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 10); // RESET
     await sleep(8000);
-    await modbusWriteSingle(BSC_PORT, 40030, 5000);
+    await modbusWriteSingle(BSC_PORT, 49000, 500);
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 2); // START (akım akar)
     await sleep(2000);
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 1); // EMERGENCY

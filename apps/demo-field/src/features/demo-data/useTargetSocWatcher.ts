@@ -61,9 +61,13 @@ export function useTargetSocWatcher(
     if (!targetReached(soc, target, dir)) return;
 
     firing.current = true;
-    const containerId = stationKey ? stationSystems[stationKey] : undefined;
-    void demoManeuverApi
-      .stop(containerId ? [containerId] : undefined)
+    // Hedefin istasyonu yoksa (GD-1 tek istasyon) tüm fider konteynerleri durdurulur.
+    const containerIds = stationKey
+      ? [stationSystems[stationKey]].filter((x): x is string => !!x)
+      : Object.values(stationSystems);
+    void Promise.all(
+      containerIds.length ? containerIds.map((id) => demoManeuverApi.stop([id])) : [demoManeuverApi.stop(undefined)],
+    )
       .catch(() => undefined)
       .finally(() => {
         clear();

@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from "react-router-dom";
 import {
   DemoKpiStrip,
   DemoProjectStrip,
-  DemoStationBar,
   NOVA_ICONS,
   RegisterValue,
   DEFAULT_MIMIC_DEVICES,
@@ -20,8 +19,9 @@ import {
 } from "@gd-monorepo/ui";
 import { useDemoProject, type DemoProjectData } from "../features/demo-data/useDemoProject";
 import { useTargetSocWatcher } from "../features/demo-data/useTargetSocWatcher";
+import { availablePoiMW } from "../features/demo-data/demo-permissives";
 import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
-import { DEMO_STATIONS, stateForStation, stationTopoByIndex, stationsForContainers } from "../features/demo-data/demo-stations";
+import { stationsForContainers } from "../features/demo-data/demo-stations";
 import { deriveKpis } from "../features/demo-data/deriveKpis";
 import { siteFieldId } from "../lib/site-field";
 import { isTunnelMode } from "../lib/api-base";
@@ -73,14 +73,14 @@ export const DemoProjectLayout: React.FC = () => {
   const [activeStation, setActiveStation] = useState(0);
   const L = DEMO_TOPOLOGY.limits;
 
-  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0];
-  const stationState = useMemo(() => stateForStation(state, station), [state, station]);
-  const stationTopology = useMemo(() => stationTopoByIndex(activeStation), [activeStation]);
-  const stationKpis = useMemo(() => deriveKpis(stationState, stationTopology), [stationState, stationTopology]);
-  const stationAlerts = useMemo(
-    () => project.alerts.filter((a) => a.unitNo === undefined || station.units.includes(a.unitNo)),
-    [project.alerts, station],
-  );
+  // 2026-10-15 (sahibi): GD-1 TEK MV istasyonudur — H04 fideri BESS#1–5, H05
+  // fideri BESS#6–9 (referans topology.js). Site layout / Devices / Operations
+  // tüm sahayı tek görünümde gösterir; istasyon seçici kaldırıldı. DEMO_STATIONS
+  // yalnız fider ↔ konteyner ↔ PCS çifti eşlemesi için kullanılır.
+  const stationState = state;
+  const stationTopology = DEMO_TOPOLOGY;
+  const stationKpis = useMemo(() => deriveKpis(state, DEMO_TOPOLOGY), [state]);
+  const stationAlerts = project.alerts;
 
   // İstasyon → konteyner eşlemesi (field register `station` etiketi; ön yüz girdisi).
   const stationSystems = useMemo(() => {
@@ -95,21 +95,6 @@ export const DemoProjectLayout: React.FC = () => {
   // UC-13: hedef SOC gözlemcisi — stop'u hedefin istasyonunun konteynerine yönlendirir.
   useTargetSocWatcher(state, runs, stationSystems);
 
-  const stationBar = useMemo(
-    () =>
-      DEMO_STATIONS.map((s) => {
-        const st = stationTopoByIndex(s.index);
-        const k = deriveKpis(stateForStation(state, s), st);
-        return {
-          index: s.index,
-          name: s.name,
-          first: s.units[0] ?? 0,
-          last: s.units[s.units.length - 1] ?? 0,
-          faults: k.alarms + k.warns,
-        };
-      }),
-    [state],
-  );
 
   const openDevices = (n: number, tab = "battery"): void => {
     navigate(`${base}/devices?tab=${tab}&unit=${n}`);
@@ -150,7 +135,12 @@ export const DemoProjectLayout: React.FC = () => {
       {
         icon: <NOVA_ICONS.bolt />,
         label: "Station power · H03",
-        value: rv(nomapSource(DEV.mv, "active power at the station meter"), `${f(Math.abs(k.poiMW), 2)} MW`),
+        value: rv(
+          calcSource("Σ PCS active power − group AUX load (H03 meter not mapped yet, M2)", [
+            pcsSource(DEV.pcs("A"), "pcs.p"),
+          ]),
+          `${f(Math.abs(k.poiMW), 2)} MW`,
+        ),
         sub: k.poiMW > 0.05 ? "Export → grid" : k.poiMW < -0.05 ? "Import ← grid" : "No flow",
         sev: k.poiMW > 0.05 ? "dis" : k.poiMW < -0.05 ? "chg" : null,
       },
@@ -212,7 +202,10 @@ export const DemoProjectLayout: React.FC = () => {
       (a, b) => a + Math.max(0, (b.soc - L.socMin) / 100) * (U.containerMWh / 2) * (b.soh / 100),
       0,
     );
-    const dis = stationKpis.poiMW > 0 ? stationKpis.poiMW : 0;
+    // Anlık akış DEĞİL: kullanılabilir gruplardan Σ min(PCS max, BSC limit), kayıp + AUX sonrası (iki yön).
+    const auxKwTotal = state.units.reduce((a, u) => a + (u.aux?.kW ?? 0), 0);
+    const dis = availablePoiMW(state, DEMO_TOPOLOGY, [], "dis", auxKwTotal);
+    const chg = availablePoiMW(state, DEMO_TOPOLOGY, [], "chg", auxKwTotal);
     return [
       { label: "Rated power", value: rv(modelSource("project configuration (connection point)"), `${DEMO_TOPOLOGY.powerMW} MWe`), sub: `POI ${DEMO_TOPOLOGY.station.nominalKV} kV` },
       { label: "Rated energy", value: rv(modelSource("project configuration (BESS containerMWh)"), `${f(DEMO_TOPOLOGY.energyMWh, 3)} MWh`), sub: `${n} × ${f(U.containerMWh, 3)} MWh` },
@@ -229,7 +222,7 @@ export const DemoProjectLayout: React.FC = () => {
           ]),
           `${f(dis, 1)} MW`,
         ),
-        sub: "discharge at POI",
+        sub: `discharge · ${f(chg, 1)} MW charge at POI`,
       },
       {
         label: "Dischargeable",
@@ -274,7 +267,6 @@ export const DemoProjectLayout: React.FC = () => {
           location={DEMO_TOPOLOGY.location}
           items={stripItems}
         />
-        <DemoStationBar stations={stationBar} active={activeStation} onSelect={setActiveStation} />
         <DemoKpiStrip tiles={tiles} />
         <Outlet />
       </div>

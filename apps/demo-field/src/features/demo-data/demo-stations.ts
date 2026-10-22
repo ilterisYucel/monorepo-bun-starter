@@ -79,7 +79,11 @@ const signedPcs = (p: { state: string; pMW: number }): number =>
 /** Tüm saha state'ini bir istasyonun ünitelerine süz; fider/POI o istasyondan türetilir. */
 export function stateForStation(state: NovaMimicState, station: DemoStation): NovaMimicState {
   const units = state.units.filter((u) => station.units.includes(u.n));
-  const mw = units.reduce((a, u) => a + u.pcs.reduce((b, p) => b + signedPcs(p), 0), 0);
+  // POI = Σ PCS − grup AUX (PMS hesabı; H03 sayaç haritası yok — M2).
+  const mw = units.reduce(
+    (a, u) => a + u.pcs.reduce((b, p) => b + signedPcs(p), 0) - (u.aux?.kW ?? 0) / 1000,
+    0,
+  );
   return {
     ...state,
     units,

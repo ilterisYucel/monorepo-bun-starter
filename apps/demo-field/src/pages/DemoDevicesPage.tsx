@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from "react";
+import { useRmuStore } from "../features/demo-data/stores/RmuStore";
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { demoApi } from "../features/demo-data/demoApi";
+import { stationForUnit } from "../features/demo-data/demo-stations";
 import {
   DEMO_DEVICE_TABS,
   DemoAuxPanel,
@@ -13,7 +17,6 @@ import {
   DemoPackSchematic,
   DemoTrendChart,
   POS_TEXT,
-  busbarZoneHistory,
   packFill,
   packMarkers,
   rackPacks,
@@ -69,7 +72,7 @@ export const DemoDevicesPage: React.FC = () => {
         </header>
         <div className="tg">
           <h4>{stationTopology.station.name}</h4>
-          {DEMO_TOPOLOGY.station.cells.map((c) => {
+          {DEMO_TOPOLOGY.station.cells.filter((c) => c.role !== "aux").map((c) => {
             const pos = stationState.station[c.id as "H01" | "H02" | "H04" | "H05"];
             const on = sel.kind === "cell" && sel.id === c.id;
             return (
@@ -84,15 +87,21 @@ export const DemoDevicesPage: React.FC = () => {
             <small>{DEMO_TOPOLOGY.aux?.trKVA ?? 400} kVA</small>
           </button>
         </div>
-        <div className="tg">
-          <h4>Battery groups</h4>
-          {stationState.units.map((u) => {
+        {Object.entries(DEMO_TOPOLOGY.feeders).map(([fid, fd]) => (
+        <div className="tg" key={fid}>
+          <h4>
+            Battery groups · {fd.cell} Feeder {fid} · BESS#{fd.units[0]}–{fd.units[fd.units.length - 1]}
+          </h4>
+          {stationState.units.filter((u) => fd.units.includes(u.n)).map((u) => {
             const on = sel.kind === "unit" && sel.n === u.n;
             return (
               <div key={u.n}>
                 <button type="button" className={`ti ${on ? "on" : ""}`} onClick={() => select({ kind: "unit", n: u.n, tab: "battery" })}>
                   BESS#{u.n}
-                  <small>Feeder {u.rmu.H02 === "closed" ? "in service" : "isolated"}</small>
+                  <small>
+                    Feeder {fid} ({fd.cell}) · {u.rmu.H02 === "closed" ? "in service" : "isolated"}
+                    {u.mirrored ? " · SIM copy" : ""}
+                  </small>
                 </button>
                 {on ? (
                   <div className="tsub">
@@ -107,6 +116,7 @@ export const DemoDevicesPage: React.FC = () => {
             );
           })}
         </div>
+        ))}
       </nav>
 
       <div className="dmain">
@@ -142,7 +152,8 @@ const StationCellView: React.FC<{ id: string }> = ({ id }) => {
     const qMvar = state.units.reduce((a, u) => a + u.pcs.reduce((b, p) => b + (p.reactiveKvar ?? 0), 0), 0) / 1000;
     const pf = poi !== 0 || qMvar !== 0 ? Math.abs(poi) / Math.sqrt(poi * poi + qMvar * qMvar) : 1;
     const auxKw = state.units[0]?.aux?.kW ?? 0;
-    const perPhase = iA / 3;
+    // iA, P/(√3·U) ile hesaplanan HAT akımıdır; dengeli 3 fazda her faz akımı = iA (iA/3 değil).
+    const perPhase = iA;
     const ld = [1, 2, 3];
     return (
       <>
@@ -171,15 +182,15 @@ const StationCellView: React.FC<{ id: string }> = ({ id }) => {
           </div>
           <div>
             <small>Energy exported</small>
-            <b className="num">128.4 MWh</b>
+            <b className="num" style={{ color: "var(--nm-warn, #b45309)" }} title="H03 metering has no register map yet (M2)">no map</b>
           </div>
           <div>
             <small>Energy imported</small>
-            <b className="num">121.7 MWh</b>
+            <b className="num" style={{ color: "var(--nm-warn, #b45309)" }} title="H03 metering has no register map yet (M2)">no map</b>
           </div>
           <div>
             <small>POI closed-loop trim</small>
-            <b className="num">0 kW</b>
+            <b className="num" style={{ color: "var(--nm-warn, #b45309)" }} title="POI closed loop not implemented in the backend yet">not implemented</b>
           </div>
           <div>
             <small>AUX load (in POI)</small>
@@ -294,12 +305,65 @@ const StationCellView: React.FC<{ id: string }> = ({ id }) => {
   );
 };
 
+/**
+ * RMU operatör kontrolü (2026-10-15): saha RMU telemetrisi yok → H02 kesici ve
+ * toprak ayırıcı elle açılır/kapanır. İzinler/uyarılar anında güncellenir.
+ */
+const RmuControl: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
+  const setH02Open = useRmuStore((s) => s.setH02Open);
+  const setEarthed = useRmuStore((s) => s.setEarthed);
+  const h02Closed = unit.rmu.H02 === "closed";
+  return (
+    <div className="card" style={{ padding: 12, marginBottom: 12 }} data-testid="rmu-control">
+      <div className="dh">
+        <h3>RMU · BESS#{unit.n} · operator control</h3>
+        <p className="dsub">No RMU signal from site yet — position is set here by the operator and used by permissives.</p>
+      </div>
+      <div className="row" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <b>H02 breaker: {h02Closed ? "CLOSED" : "OPEN"}</b>
+        <button type="button" className="btn btn-warn" disabled={!h02Closed} onClick={() => setH02Open(unit.n, true)}>
+          Open H02
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={h02Closed || unit.rmu.es}
+          title={unit.rmu.es ? "Open the earthing switch first" : undefined}
+          onClick={() => setH02Open(unit.n, false)}
+        >
+          Close H02
+        </button>
+        <span style={{ width: 16 }} />
+        <b>Earthing switch: {unit.rmu.es ? "CLOSED (earthed)" : "OPEN"}</b>
+        <button
+          type="button"
+          className="btn btn-warn"
+          disabled={unit.rmu.es || h02Closed}
+          title={h02Closed ? "Open H02 first (interlock)" : undefined}
+          onClick={() => setEarthed(unit.n, true)}
+        >
+          Close earth
+        </button>
+        <button type="button" className="btn" disabled={!unit.rmu.es} onClick={() => setEarthed(unit.n, false)}>
+          Open earth
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const UnitBody: React.FC<{ unit: NovaUnitState; tab: DemoDeviceSection; stationKv?: number }> = ({ unit, tab, stationKv }) => {
   if (tab === "mv") return <DemoMvPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />;
   if (tab === "pcs") return <DemoPcsPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />;
   if (tab === "hvac") return <DemoHvacPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />;
   if (tab === "fss") return <DemoFssPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />;
-  if (tab === "rmutr") return <DemoRmuTrPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />;
+  if (tab === "rmutr")
+    return (
+      <>
+        <RmuControl unit={unit} />
+        <DemoRmuTrPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />
+      </>
+    );
   if (tab === "aux") return <DemoAuxPanel unit={unit} topology={DEMO_TOPOLOGY} stationKv={stationKv} />;
   return <BatteryBody unit={unit} />;
 };
@@ -309,6 +373,9 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
   const U = DEMO_TOPOLOGY.unit;
   const [sel, setSel] = useState<{ bank: number; r: number } | null>({ bank: 0, r: 0 });
   const [packSel, setPackSel] = useState(0);
+  // Pack/hücre seviyesi veri LGES Modbus haritasında YOK — yalnız simülasyon
+  // türetimi. Varsayılan KAPALI; açılırsa açıkça "SIM" etiketiyle gösterilir.
+  const [showSim, setShowSim] = useState(false);
   const bank = sel ? unit.banks[sel.bank] : undefined;
   const pcs = sel ? unit.pcs[sel.bank] : undefined;
   const rackNo = sel ? sel.bank * U.racksPerBank + sel.r + 1 : 1;
@@ -331,6 +398,12 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
     <>
       <div className="dh">
         <h3>BESS#{unit.n} · container</h3>
+        {unit.mirrored ? (
+          <p className="dsub" style={{ color: "var(--nm-warn, #b45309)" }}>
+            SIM copy — this group has no own BSC/PCS device yet; values mirror the station's real container,
+            with power, current and limits split by group count.
+          </p>
+        ) : null}
       </div>
       <div className="bsum">
         {unit.banks.map((b, i) => {
@@ -341,10 +414,10 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
                 DC BUS#{i + 1} · BSC-{unit.n}{b.id} · PCS-{unit.n}{b.id}
               </h4>
               <dl className="kv2">
-                <dt>BSC state</dt>
-                <dd>{p ? `${p.state === "chg" ? "2" : p.state === "dis" ? "3" : "1"} · ${p.state === "chg" ? "Charging" : p.state === "dis" ? "Discharging" : "Standby"}` : "—"}</dd>
-                <dt>Racks online</dt>
-                <dd>{b.dcb === "closed" ? `${U.racksPerBank} / ${U.racksPerBank}` : `0 / ${U.racksPerBank}`}</dd>
+                <dt>BSC state (30036)</dt>
+                <dd>{b.bscState !== undefined ? `${b.bscState} · ${BSC_STATE[b.bscState] ?? "?"}` : "—"}</dd>
+                <dt>Racks online (30038)</dt>
+                <dd>{b.online !== undefined ? `${b.online} / ${U.racksPerBank}` : "—"}</dd>
                 <dt>SOC · SOH</dt>
                 <dd>
                   {f(b.soc)} % · {f(b.soh)} %
@@ -359,9 +432,11 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
                 <dd className={b.tmax > L.tempMax ? "c-alarm" : (b.tmin ?? b.tmax) < L.tempMin ? "c-cold" : ""}>
                   {f(b.tmax)} · {f(b.tmin ?? b.tmax)} °C
                 </dd>
-                <dt>Battery · room</dt>
-                <dd>{f(b.tmax - 1.2)} · {f((unit.ambient ?? 22) + 1.5)} °C</dd>
-                <dt>Heat gen · HVAC cooling</dt>
+                <dt>Cell T avg · HVAC return air</dt>
+                <dd>
+                  {b.tavg !== undefined ? f(b.tavg) : "—"} · {unit.hvac?.length ? f(unit.hvac.reduce((a, h) => a + h.returnT, 0) / unit.hvac.length) : "—"} °C
+                </dd>
+                <dt>Heat gen (PMS est.) · HVAC cooling</dt>
                 <dd>
                   {f(60 * ((p ? Math.abs(signedP(p)) : 0) / U.pcsMaxMW) ** 2)} · {(unit.hvac ?? []).filter((h) => h.mode === "cool").length * 10.2} kW
                 </dd>
@@ -388,6 +463,10 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
                 {U.rack?.packs ?? 17} packs + BPU · {U.rackKWh} kWh
               </p>
             </div>
+            <label className="dsub" style={{ display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
+              <input type="checkbox" checked={showSim} onChange={(e) => setShowSim(e.target.checked)} />
+              Pack/hücre detayı (SIM — Modbus'ta yok)
+            </label>
           </div>
           <div className="rackgrid">
             <div>
@@ -398,28 +477,42 @@ const BatteryBody: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
                 onSelect={setPackSel}
                 tempMin={L.tempMin}
                 tempMax={L.tempMax}
+                simValues={showSim}
               />
-              <h4>Hottest pack · JF1 TC map (18 sensors)</h4>
-              <Tcmap values={tcMap18(input)} tempMin={L.tempMin} tempMax={L.tempMax} />
+              {showSim ? (
+                <>
+                  <h4>SIM · Hottest pack · JF1 TC map (18 sensors — Modbus'ta yok, türetilmiş)</h4>
+                  <Tcmap values={tcMap18(input)} tempMin={L.tempMin} tempMax={L.tempMax} />
+                </>
+              ) : (
+                <p className="dsub">
+                  LGES Flex BSC Modbus haritası pack/hücre seviyesinde veri vermez; raf seviyesinde yalnız
+                  max/min hücre gerilimi ve sıcaklığı okunur (sağdaki register tablosu).
+                </p>
+              )}
             </div>
             <div>
-              <RackRegisterTable rows={rackRegisters(input, bscRack, bank)} />
+              <RackRegisterTable rows={rackRegisters(bscRack, bank.rackRaw?.[sel.r])} />
             </div>
           </div>
-          <DemoPackSchematic
-            rackNo={rackNo}
-            input={input}
-            packIndex={packSel}
-            spec={DEMO_PACK_SPEC}
-          />
-          <DemoPackDetail
-            rackNo={rackNo}
-            input={input}
-            tempMin={L.tempMin}
-            tempMax={L.tempMax}
-            selected={packSel}
-            onSelect={setPackSel}
-          />
+          {showSim ? (
+            <>
+              <DemoPackSchematic
+                rackNo={rackNo}
+                input={input}
+                packIndex={packSel}
+                spec={DEMO_PACK_SPEC}
+              />
+              <DemoPackDetail
+                rackNo={rackNo}
+                input={input}
+                tempMin={L.tempMin}
+                tempMax={L.tempMax}
+                selected={packSel}
+                onSelect={setPackSel}
+              />
+            </>
+          ) : null}
         </div>
       ) : null}
 
@@ -444,14 +537,18 @@ const PackColumn: React.FC<{
   onSelect: (k: number) => void;
   tempMin: number;
   tempMax: number;
-}> = ({ packs, markers, selected, onSelect, tempMin, tempMax }) => {
+  /** false → pack değerleri (türetilmiş) gösterilmez; yalnız fiziksel yerleşim. */
+  simValues?: boolean;
+}> = ({ packs, markers, selected, onSelect, tempMin, tempMax, simValues = false }) => {
   const ph = 15;
-  const top = 34;
-  const H = top + packs.length * ph + 20;
+  const top = 6;
+  // LGES JF1 raf yerleşimi: 17 pack üstte, BPU EN ALTTA.
+  const bpuY = top + packs.length * ph + 2;
+  const H = bpuY + 20 + 20;
   return (
     <svg className="pkcol" viewBox={`0 0 230 ${H}`} role="img" aria-label="Rack packs">
-      <rect className="bx-bpu" x={58} y={6} width={80} height={20} rx={2} />
-      <text className="bx-t8" x={98} y={20} textAnchor="middle">
+      <rect className="bx-bpu" x={58} y={bpuY} width={80} height={20} rx={2} />
+      <text className="bx-t8" x={98} y={bpuY + 14} textAnchor="middle">
         BPU · fuse · MC± · PC
       </text>
       {packs
@@ -465,7 +562,9 @@ const PackColumn: React.FC<{
           const mn = markers.tMinPack === no;
           const vx = markers.vMaxPack === no;
           const vn = markers.vMinPack === no;
-          const tags = [mx && "▲Tmax", mn && "▼Tmin", vx && "Vmax", vn && "Vmin"].filter(Boolean).join(" ");
+          const tags = simValues
+            ? [mx && "▲Tmax", mn && "▼Tmin", vx && "Vmax", vn && "Vmin"].filter(Boolean).join(" ")
+            : "";
           return (
             <g
               key={no}
@@ -479,13 +578,13 @@ const PackColumn: React.FC<{
                 y={y}
                 width={80}
                 height={ph - 3}
-                style={{ fill: packFill(t, tempMin, tempMax) }}
+                style={simValues ? { fill: packFill(t, tempMin, tempMax) } : undefined}
               />
               <text className="bx-t8" x={50} y={y + 10} textAnchor="end">
                 P{String(no).padStart(2, "0")}
               </text>
               <text className="bx-tv" x={98} y={y + 10} textAnchor="middle" style={{ fontSize: 9 }}>
-                {f(t)} °C
+                {simValues ? `${f(t)} °C` : ""}
               </text>
               {tags ? (
                 <text className={`bx-t8${mx ? " hot" : mn ? " cold" : ""}`} x={144} y={y + 10}>
@@ -496,7 +595,7 @@ const PackColumn: React.FC<{
           );
         })}
       <text className="bx-t8" x={98} y={H - 4} textAnchor="middle">
-        {packs.length} × {DEMO_TOPOLOGY.unit.rackKWh} kWh · 24S3P
+        {packs.length} × {DEMO_TOPOLOGY.unit.rack?.packKWh ?? 13.122} kWh · {DEMO_TOPOLOGY.unit.rack?.config ?? "3P24S"}
       </text>
     </svg>
   );
@@ -551,19 +650,47 @@ const ContainerThermal: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
     .flatMap((sc) => sc.hvac)
     .map((id) => unit.hvac?.find((h) => h.id === id))
     .filter((h): h is NonNullable<typeof h> => !!h);
-  const ambient = unit.ambient ?? 24;
-  const air = hvacs.length ? hvacs.reduce((a, h) => a + h.returnT, 0) / hvacs.length : ambient + 1.5;
-  const sup = hvacs.length ? hvacs.reduce((a, h) => a + h.supplyT, 0) / hvacs.length : ambient;
-  const cooling = hvacs.some((h) => h.comp);
-  const heating = hvacs.some((h) => h.heater);
-  const cellMax = bank?.tmax ?? ambient + 3;
-  const cellMin = bank?.tmin ?? cellMax - 2;
-  const history = useMemo(
-    () => busbarZoneHistory({ cellMax, cellMin, air, sup, cooling, heating }, unit.n * 10 + bi, Date.now()),
-    [cellMax, cellMin, air, sup, cooling, heating, unit.n, bi],
-  );
+  // Gerçek geçmiş (son 4 sa): konteynerin BSC (Max/Min/Avg Pack Temp) + HVAC
+  // (Current/Supply Temp) downsampled telemetrisi. Eskiden sin+hash ile
+  // sentezleniyordu (uydurma) — veri yoksa grafik "No data" gösterir.
+  const { fieldId, stationSystems } = useDemoProjectContext();
+  const st = stationForUnit(unit.n);
+  const containerId = st ? stationSystems[st.key] : undefined;
+  const bscId = `BSC-${bi + 1}`;
+  const hvacIds = new Set(hvacs.map((h) => `HVAC-${h.id}`));
+  const hist = useQuery({
+    queryKey: ["demo-container-thermal", fieldId, containerId, bscId],
+    queryFn: () =>
+      demoApi.downsampled(fieldId, {
+        containerIds: containerId ? [containerId] : [],
+        from: new Date(Date.now() - 4 * 3600_000).toISOString(),
+        to: new Date().toISOString(),
+        points: 120,
+        names: ["Max Pack Temp", "Min Pack Temp", "Avg Pack Temp", "Current Temp", "Supply Temp"],
+      }),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
+    enabled: fieldId.length > 0 && containerId !== undefined,
+  });
+  const rows = useMemo(() => Object.values(hist.data ?? {}).flat(), [hist.data]);
+  const series = (devOk: (id: string) => boolean, name: string) =>
+    rows
+      .filter((r) => devOk(r.deviceId) && r.name === name && typeof r.value === "number")
+      .map((r) => ({ t: Date.parse(r.timestamp), value: r.value as number }))
+      .sort((a, b) => a.t - b.t);
+  const avgByTime = (name: string) => {
+    const m = new Map<number, number[]>();
+    for (const p of series((id) => hvacIds.has(id), name)) m.set(p.t, [...(m.get(p.t) ?? []), p.value]);
+    return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([t, v]) => ({ t, value: v.reduce((a, x) => a + x, 0) / v.length }));
+  };
+  const tmaxS = series((id) => id === bscId, "Max Pack Temp");
+  const tminS = series((id) => id === bscId, "Min Pack Temp");
+  const tavgS = series((id) => id === bscId, "Avg Pack Temp");
+  const airS = avgByTime("Current Temp");
+  const supS = avgByTime("Supply Temp");
   const pts = (k: "tmin" | "tmax" | "tavg" | "air" | "sup") =>
-    history.samples.map((s) => ({ t: s.t, value: s[k] }));
+    ({ tmin: tminS, tmax: tmaxS, tavg: tavgS, air: airS, sup: supS })[k];
+  const history = { phases: [] as never[] };
   return (
     <>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
@@ -576,7 +703,7 @@ const ContainerThermal: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
           ))}
         </span>
       </div>
-      <p className="dsub">last 4 h · cells vs HVAC air · shaded = HVAC cooling / heating</p>
+      <p className="dsub">last 4 h · BSC {bscId} pack temperatures vs HVAC air (recorded telemetry)</p>
       <div className="charts one">
         <DemoTrendChart
           title="Busbar zone · cell temperature vs HVAC"
@@ -603,6 +730,17 @@ const ContainerThermal: React.FC<{ unit: NovaUnitState }> = ({ unit }) => {
       </div>
     </>
   );
+};
+
+/** LGES Rev AF raf +50 Rack State enum'u (v14 katalog). */
+const RACK_STATE: Record<number, string> = {
+  0: "Initialization", 1: "ID Set", 2: "ID Set Complete", 3: "BMIC Init", 4: "Pack SOH Read Fail",
+  5: "BMIC Wake Fail", 7: "No Configuration", 8: "Initial Diag", 9: "Normal", 10: "Normal Power Saving",
+  11: "Protective Power Saving", 12: "Manual", 13: "Emergency",
+};
+/** LGES Rev AF 30036 BSC State enum'u. */
+const BSC_STATE: Record<number, string> = {
+  0: "None", 1: "Not Initialized", 2: "Initializing", 3: "Normal", 4: "Normal Power Saving", 5: "Manual", 6: "Emergency",
 };
 
 const RackTable: React.FC<{
@@ -637,12 +775,13 @@ const RackTable: React.FC<{
           <tbody>
             {unit.banks.map((b, i) =>
               b.racks.map((t, r) => {
-                const v = b.rackV?.[r] ?? b.vdc;
-                const avgV = v / U.cellsSeries;
-                const dv = Math.max(0.004, (100 - b.soh) * 0.0006);
-                const markers = packMarkers({ no: r + 1, soc: b.rackSoc?.[r] ?? b.soc, soh: b.soh, v, temp: t, tmin: b.tmin, cellsSeries: U.cellsSeries });
-                const tavg = t - 0.6;
-                const tmin = b.tmin ?? t - 1.4;
+                // Yalnız canlı raf register'ları (+50 durum, +58/+59, +64/+66,
+                // +84/+85, +89/+90/+91, +92 konum). Yoksa "—" — türetme YOK.
+                const raw = b.rackRaw?.[r] ?? {};
+                const val = (k: string, d = 1): string => (raw[k] !== undefined ? f(raw[k] as number, d) : "—");
+                const st = raw["Rack State"];
+                const tmin = raw["Rack Min Pack Temp"];
+                const loc = raw["Rack Max Temp Location"];
                 return (
                   <tr
                     key={`${b.id}${r}`}
@@ -652,17 +791,17 @@ const RackTable: React.FC<{
                   >
                     <td>Rack#{i * U.racksPerBank + r + 1}</td>
                     <td>#{i + 1}</td>
-                    <td className="txt">Running</td>
-                    <td>{f(b.rackSoc?.[r] ?? b.soc)}</td>
-                    <td>{f(b.soh)}</td>
-                    <td>{f(v, 0)}</td>
-                    <td>{f(b.rackI?.[r] ?? 0)}</td>
-                    <td>{f(avgV + dv / 2, 3)}</td>
-                    <td>{f(avgV - dv / 2, 3)}</td>
-                    <td className={t > L.tempMax ? "sev-alarm" : t < L.tempMin ? "sev-cold" : ""}>{f(t)}</td>
-                    <td>{f(tavg)}</td>
-                    <td className={tmin < L.tempMin ? "sev-cold" : ""}>{f(tmin)}</td>
-                    <td>P{markers.tMaxPack}</td>
+                    <td className="txt">{st !== undefined ? `${st} · ${RACK_STATE[st] ?? "?"}` : "—"}</td>
+                    <td>{val("Rack SOC")}</td>
+                    <td>{val("Rack SOH")}</td>
+                    <td>{val("Rack Cell Sum Voltage", 0)}</td>
+                    <td>{val("Rack Current")}</td>
+                    <td>{val("Rack Max Cell Voltage", 3)}</td>
+                    <td>{val("Rack Min Cell Voltage", 3)}</td>
+                    <td className={t > L.tempMax ? "sev-alarm" : t < L.tempMin ? "sev-cold" : ""}>{val("Rack Max Pack Temp")}</td>
+                    <td>{val("Rack Avg Pack Temp")}</td>
+                    <td className={tmin !== undefined && tmin < L.tempMin ? "sev-cold" : ""}>{val("Rack Min Pack Temp")}</td>
+                    <td>{loc !== undefined ? String(loc) : "—"}</td>
                   </tr>
                 );
               }),

@@ -1,5 +1,5 @@
 import React from "react";
-import { DemoReadyCard } from "@gd-monorepo/ui";
+import { DEMO_REST_ENABLED, DemoReadyCard } from "@gd-monorepo/ui";
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
 
@@ -18,6 +18,7 @@ export const DemoReadySection: React.FC = () => {
       <DemoReadyCard
         units={units}
         rest={rest}
+        showRest={DEMO_REST_ENABLED}
         ambient={stationState.ambient ?? state.ambient}
         tempMin={L.tempMin}
         tempMax={L.tempMax}

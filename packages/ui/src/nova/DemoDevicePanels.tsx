@@ -561,8 +561,8 @@ export const DemoAuxPanel: React.FC<DemoDevicePanelProps> = ({ unit, topology })
         </div>
       </div>
       <p className="dsub">
-        The POI closed loop includes this load: the PCS setpoint is corrected so the H03 meter reads exactly the
-        requested power (discharge: PCS = (P + AUX) / η, charge: PCS = (P − AUX) · η).
+        Planned (not implemented yet): the POI closed loop will include this load — the PCS setpoint is corrected so
+        the H03 meter reads exactly the requested power (discharge: PCS = (P + AUX) / η, charge: PCS = (P − AUX) · η).
       </p>
       <h4>Container load list · nominal</h4>
       <div className="tblwrap">

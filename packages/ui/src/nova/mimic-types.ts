@@ -67,6 +67,8 @@ export interface NovaRackConfig {
   bpu: boolean;
   packKWh?: number;
   cellsPerPack?: number;
+  /** Pack hücre konfigürasyonu (LGES JF1: 3P24S = 72 hücre, 13.122 kWh). */
+  config?: string;
 }
 
 /** Konteyner AUX yükü (Calculation_BESS — UC-5 AUX paneli). */
@@ -166,11 +168,15 @@ export interface NovaTopology {
 
 export interface NovaBankState {
   id: string;
+  /** BSC telemetrisi yok/okunamadı — değerler gösterim içindir, izinler BLOKLANIR. */
+  noData?: boolean;
   soc: number;
   soh: number;
   vdc: number;
   tmax: number;
   tmin?: number;
+  /** BSC 30150 Avg Pack Temp (°C). */
+  tavg?: number;
   dTdt10?: number;
   dvmV: number;
   /** Raf başına maks pack sıcaklığı (°C). */
@@ -181,6 +187,10 @@ export interface NovaBankState {
   rackV?: number[];
   /** Raf başına akım (A). */
   rackI?: number[];
+  /** Raf başına ham raf telemetrisi (taban ad → değer, " R<n>" soneki atılmış) — register tablosu. */
+  rackRaw?: Array<Record<string, number>>;
+  /** BSC seviyesi ham telemetri (raf soneki olmayan satırlar: ad → değer) — Admin canlı değer. */
+  raw?: Record<string, number>;
   /** BSC durumu (30036) — 3 = Normal. */
   bscState?: number;
   /** Çevrimiçi raf sayısı (30038). */
@@ -193,6 +203,8 @@ export interface NovaBankState {
 export interface NovaPcsState {
   id: string;
   state: "chg" | "dis" | "stby" | "rest" | "fault" | "off";
+  /** PCS durum telemetrisi yok — "off" olarak raporlanır. */
+  noData?: boolean;
   pMW: number;
   igbtC: number;
   limited: boolean;
@@ -306,6 +318,11 @@ export interface NovaDcState {
 
 export interface NovaUnitState {
   n: number;
+  /**
+   * Bu ünitenin kendi cihazı YOK — değerler istasyonun gerçek konteynerinden
+   * (sıra 1) kopyalanmış demo çoğaltmasıdır. UI bunu görünür etiketlemelidir.
+   */
+  mirrored?: boolean;
   rmu: NovaRmuState;
   status?: NovaUnitStatus;
   banks: NovaBankState[];
