@@ -1,0 +1,1 @@
+import"./SpriteTextureProvider-DfcPxfXW.js";
