@@ -1,4 +1,4 @@
-// Boss tier: field'da operasyon tetikleme rotası (WS-TUNNEL-KAPASITE §5.2).
+// Boss tier: field'da operasyon tetikleme rotası (SPEC UC-4 — hub access HTTP).
 // Boss yalnızca YÖNLENDİRİR — iş mantığı field'dadır (katman sızmaz).
 
 import { randomUUID } from "node:crypto";
@@ -23,10 +23,10 @@ function traceFrom(request: FastifyRequest): string | undefined {
  *
  * Sözleşme (test: operation-boss-routes.test.ts):
  * - Yetki: admin/teknik (Bearer) veya iç token; yoksa 403.
- * - operationId boss üretir (korelasyon); requester üzerinden operation-
- *   execute gönderilir; sonuç beklenir.
- * - Timeout/kopukluk (undefined) → 503 operation_timeout (§8: operation-result
- *   yerine timeout).
+ * - operationId boss üretir (korelasyon); requester hub access HTTP üzerinden
+ *   field'ın yürütme ucunu çağırır; terminal sonuç beklenir.
+ * - Timeout/kopukluk (undefined) → 503 operation_timeout (terminal sonuç
+ *   yerine timeout — kademeli bozulma).
  * - Sonuç AYNEN döner (status: completed/failed/rolled_back/rejected).
  * - Requester kurulmamışsa (tier boss değilse) 503.
  */

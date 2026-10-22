@@ -42,6 +42,7 @@ import { alarmRoutes } from "./routes/alarm-routes";
 import { makeCommandRoutes } from "./routes/command-routes";
 import { maneuverOperationRoutes } from "./routes/maneuver-routes";
 import { operationBossRoutes } from "./routes/operation-boss-routes";
+import { eventRoutes } from "./routes/event-routes";
 import { LogRepository } from "../infrastructure/persistence/log-repository";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { CommandWriteStore } from "../infrastructure/persistence/command-write-store";
@@ -121,6 +122,8 @@ export interface ServerDependencies {
   operationRunStore?: OperationRunStore;
   operationDefStore?: OperationDefStore;
   operationRequester?: OperationRequester;
+  /** Field tier: saha kimliği — olay ucu (`GET /api/events`) eventId öneki. */
+  siteFieldId?: string;
 }
 
 export class WebServiceServer {
@@ -315,7 +318,21 @@ export class WebServiceServer {
       );
     }
 
-    // Boss tier: field'da operasyon tetikleme (WS-TUNNEL §5.2).
+    // Field tier: boss olay toplama ucu (SPEC UC-5 — HTTP pull).
+    if (deps.siteFieldId) {
+      await this.app.register(
+        async (fastify) => {
+          await eventRoutes(fastify, {
+            sql: deps.postgres,
+            fieldId: deps.siteFieldId!,
+            internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+          });
+        },
+        { prefix: "/api" },
+      );
+    }
+
+    // Boss tier: field'da operasyon tetikleme (SPEC UC-4 — HTTP relay).
     await this.app.register(
       async (fastify) => {
         await operationBossRoutes(fastify, {

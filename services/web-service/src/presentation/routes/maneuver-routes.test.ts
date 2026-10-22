@@ -89,6 +89,7 @@ async function inject(
     user?: User;
     internalToken?: string;
     payload?: unknown;
+    headers?: Record<string, string>;
   } = {},
 ) {
   const app = Fastify();
@@ -118,6 +119,7 @@ async function inject(
       ...(options.internalToken !== undefined
         ? { "x-internal-token": options.internalToken }
         : {}),
+      ...(options.headers ?? {}),
     },
   });
 }
@@ -196,6 +198,29 @@ describe("manevra/operasyon rotaları — yürütme + okuma", () => {
         deviceIds: ["PCS-2"],
         trigger: "manual",
         createdBy: "admin",
+      },
+    );
+  });
+
+  it("UC-4: x-gd-operation-id kökeni → trigger boss:<id> + createdBy boss", async () => {
+    const deps = makeDeps();
+    const res = await inject("POST", "/api/operations/field_charge/execute", deps, {
+      internalToken: "secret-token",
+      payload: { params: { powerKw: 200 } },
+      headers: {
+        "x-gd-operation-id": "op-9",
+        "x-gd-trace-id": "trace-9",
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(deps.executor.execute).toHaveBeenCalledWith(
+      "operation",
+      "field_charge",
+      { powerKw: 200 },
+      {
+        trigger: "boss:op-9",
+        createdBy: "boss",
+        traceId: "trace-9",
       },
     );
   });

@@ -65,11 +65,9 @@ export async function main() {
   const tunnelClient = c.tunnelClient as any;
   const uplinkConnector = c.uplinkConnector as any;
   const uplinkSessionServer = c.uplinkSessionServer as any;
-  const operationResponder = c.operationResponder as any;
   const uplinkTunnelClient = c.uplinkTunnelClient as any;
   const uplinkSessionStore = c.uplinkSessionStore as any;
   const telemetrySnapshotPusher = c.telemetrySnapshotPusher as any;
-  const hubConsumerChannel = c.hubConsumerChannel as any;
   const hubConsumerClient = c.hubConsumerClient as any;
   const hubConsumerServiceId =
     c.hubConsumerClient && typeof c.config?.get === "function"
@@ -100,7 +98,6 @@ export async function main() {
     fieldRegistry: c.fieldRegistry as any,
     wireGuard: c.wireGuard as any,
     fieldEventCollector: c.fieldEventCollector as any,
-    uplinkEventRelay: c.uplinkEventRelay as any,
     hubPeerConnector: c.hubPeerConnector as any,
     maneuverRegistry: c.maneuverRegistry as any,
     maneuverExecutor: c.maneuverExecutor as any,
@@ -116,6 +113,7 @@ export async function main() {
     requestContext,
     hubConsumerClient,
     hubConsumerServiceId,
+    siteFieldId: siteField?.fieldId,
   };
 
   // Mevcut tüm cihazlar için retention, chunk ve compress ayarlarını uygula.
@@ -150,16 +148,13 @@ export async function main() {
     if (containerSessionServer) containerSessionServer.stop();
     if (tunnelClient) tunnelClient.stop();
     if (telemetrySnapshotPusher) telemetrySnapshotPusher.stop();
-    if (hubConsumerChannel) hubConsumerChannel.stop();
     if (deps.containerProxy) await deps.containerProxy.stop();
     if (deps.fieldPoller) deps.fieldPoller.stop();
     if (deps.hubPeerConnector) await deps.hubPeerConnector.stop();
     if (deps.fieldEventCollector) deps.fieldEventCollector.stop();
-    if (deps.uplinkEventRelay) deps.uplinkEventRelay.stop();
     if (deps.fieldRegistry) await deps.fieldRegistry.stop();
     if (uplinkConnector) await uplinkConnector.stop();
     if (uplinkSessionServer) uplinkSessionServer.stop();
-    if (operationResponder) operationResponder.stop();
     if (uplinkTunnelClient) uplinkTunnelClient.stop();
     await mq.close();
     await timescale.close();
@@ -235,7 +230,7 @@ export async function main() {
     await deps.fieldRegistry.ensureSchema();
     if (deps.fieldEventCollector) {
       await deps.fieldEventCollector.ensureSchema();
-      deps.fieldEventCollector.attachChannel(hubConsumerChannel);
+      deps.fieldEventCollector.start();
     }
     await deps.fieldRegistry.start();
   }
@@ -243,17 +238,11 @@ export async function main() {
   // katmanları aynı kanala abone olur.
   if (uplinkConnector) {
     await uplinkConnector.start();
-    if (deps.uplinkEventRelay) {
-      deps.uplinkEventRelay.start();
-    }
     if (uplinkTunnelClient) {
       uplinkTunnelClient.attach(uplinkConnector);
     }
     if (uplinkSessionServer) {
       uplinkSessionServer.start();
-    }
-    if (operationResponder) {
-      operationResponder.start();
     }
   }
   // Faz 2: TunnelConnector sunucu dinlemeye başladıktan sonra bağlanır —
@@ -275,10 +264,6 @@ export async function main() {
   }
 
   // P3: hub-servis consumer kanalı (field/boss tier) — relay + presence.
-  if (hubConsumerChannel) {
-    hubConsumerChannel.start();
-    console.log("[run] Hub consumer kanali etkin (field/boss tier).");
-  }
 
   console.log(`[run] Hazir (tier: ${tier}).`);
 }

@@ -40,6 +40,16 @@ function traceFrom(request: FastifyRequest): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+/**
+ * Boss kökenli operasyon kimliği (SPEC UC-4) — hub relay'den gelen istekler
+ * `x-gd-operation-id` taşır; koşu `boss:<id>` + `createdBy=boss` ile işaretlenir.
+ * Manuel/UI çağrılarında başlık yoktur → mevcut davranış korunur.
+ */
+function bossOperationId(request: FastifyRequest): string | undefined {
+  const value = request.headers["x-gd-operation-id"];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 /** Senkron bekleme üst sınırı (KURAL-MOTORU-V2 §3.2) — aşarsa 202 dönülür. */
 const EXECUTE_TIMEOUT_MS = 15_000;
 
@@ -188,6 +198,7 @@ export async function maneuverOperationRoutes(
     }
     const { name } = request.params as { name: string };
     const body = executeBodySchema.parse(request.body);
+    const bossOpId = bossOperationId(request);
     const result = await executeWithTimeout(
       deps.executor,
       "operation",
@@ -197,8 +208,8 @@ export async function maneuverOperationRoutes(
         ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
         ...(body.timer !== undefined ? { timer: body.timer } : {}),
         ...(body.systems !== undefined && body.systems.length > 0 ? { remoteSystem: body.systems[0] } : {}),
-        trigger: "manual",
-        createdBy: user.username,
+        trigger: bossOpId ? `boss:${bossOpId}` : "manual",
+        createdBy: bossOpId ? "boss" : user.username,
         ...(traceFrom(request) !== undefined
           ? { traceId: traceFrom(request) }
           : {}),

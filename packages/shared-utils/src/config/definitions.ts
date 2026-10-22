@@ -839,6 +839,19 @@ export const hubContainerServiceId: ConfigDefinition<string> = {
     "Hub modunda container peer'ının duyurduğu servis kimliği (komut/manevra erişimi)",
 };
 
+/**
+ * Hub modunda field peer'ının duyurduğu servis kimliği — boss→field operasyon
+ * tetikleme ve olay toplama (GET /api/events) bu servis üzerinden yapılır.
+ */
+export const hubFieldServiceId: ConfigDefinition<string> = {
+  key: "hub.fieldServiceId",
+  env: "HUB_FIELD_SERVICE_ID",
+  filePath: "hub.fieldServiceId",
+  default: "field-api",
+  description:
+    "Hub modunda field peer'ının duyurduğu servis kimliği (boss→field operasyon + olay erişimi)",
+};
+
 /** Hub relay telemetri cache TTL'i (ms) — field container latest snapshot. */
 export const tunnelLatestCacheTtlMs: ConfigDefinition<number> = {
   key: "tunnel.latestCacheTtlMs",
@@ -1150,6 +1163,7 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   fieldTunnelAllowedPrefixes,
   hubConsumerUrl,
   hubContainerServiceId,
+  hubFieldServiceId,
   tunnelLatestCacheTtlMs,
   hubConsumerToken,
 

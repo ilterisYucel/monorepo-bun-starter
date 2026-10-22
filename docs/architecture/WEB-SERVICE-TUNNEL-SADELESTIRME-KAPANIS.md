@@ -114,3 +114,131 @@ Container↔field telemetri veri yolu, kontrol-kanalı domain mesajlarından (pu
 | G5 | 5 dk pencere + Redis OOM durumunda bayat/boş snapshot (S-4) | orta | Redis kapasitesi (noeviction) gözden geçir — altyapı işi, kod kapsamı dışı |
 
 **review_date:** 2026-10-22
+
+---
+
+## REV.02 — Boss→field Operasyon + Field→boss Olay (HTTP Sadeleştirme)
+
+> **İş akışı aşaması:** 5/5 — KAPANIŞ (REV.02 — UC-4/UC-5, K9–K12).
+> **SPEC:** [WEB-SERVICE-TUNNEL-SADELESTIRME-MIMARISI.md](./WEB-SERVICE-TUNNEL-SADELESTIRME-MIMARISI.md) (✅ Approved 2026-10-22 — REV.02).
+> **Kapsam:** boss→field operasyon WS kontrol kanalı (`operation-execute`/`operation-result`, `OperationResponder`) → hub access HTTP; field→boss olay WS push (`UplinkEventRelay`) → HTTP pull (`GET /api/events` + `FieldEventCollector` poller); `EventMessage` taşıma; ek hub-consumer temizliği; i18n (K12) incelemesi (kod değişikliği YOK).
+
+### A. DOĞRULAMA
+
+#### A.1 Değişiklik Matrisi
+
+| # | Dosya | Değişiklik | Test ref'i | Geçme | Neden (SPEC ref) |
+|:--|:------|:-----------|:-----------|:------|:-----------------|
+| 1 | `services/web-service/src/infrastructure/field-uplink/operation-requester.ts#OperationRequester` | WS `operation-execute` kanal yerine `HubConsumerClient.access` HTTP; `send()` imzası AYNI; terminal-only durum eşlemesi | `operation-requester.test.ts` | 🟢 | UC-4 / FR-4.1 / FR-4.3 / T-9 |
+| 2 | `services/web-service/src/infrastructure/field-uplink/operation-responder.ts` (+ `operation-responder.test.ts`) | SİLİNDİ — field WS `operation-execute` yanıtlayıcı | — (grep=0) | 🟢 | UC-4 / FR-4.4 / T-11 |
+| 3 | `services/web-service/src/infrastructure/field-uplink/operation-flow.spec.ts` | SİLİNDİ — WS operasyon akış spec'i | — | 🟢 | UC-4 / T-11 |
+| 4 | `services/web-service/src/presentation/routes/maneuver-routes.ts#bossOperationId` | `x-gd-operation-id` varsa `trigger=boss:<id>` + `createdBy=boss` (+ `traceId`); yoksa `manual`/kullanıcı | `maneuver-routes.test.ts` "UC-4: x-gd-operation-id kökeni" | 🟢 | UC-4 / FR-4.2 / T-10 |
+| 5 | `services/web-service/src/presentation/routes/operation-boss-routes.ts#operationBossRoutes` | Sözleşme AYNI (`{result}` / 503 `operation_timeout`); JSDoc HTTP'ye güncellendi | `operation-boss-routes.test.ts` | 🟢 | UC-4 / FR-4.5 |
+| 6 | `services/web-service/src/infrastructure/field-uplink/uplink-event-relay.ts` (+ test) | SİLİNDİ — field→boss WS `event` push | — | 🟢 | UC-5 / FR-5.4 / T-14 |
+| 7 | `services/web-service/src/infrastructure/field-uplink/event-message.ts#EventMessage` | YENİ — `EventMessage` DTO (`tunnel-extensions`'tan taşındı) | `field-event-collector.test.ts` | 🟢 | UC-5 / T-14 |
+| 8 | `services/web-service/src/infrastructure/tunnel-extensions/messages.ts` | operation/event domain tipleri çıkarıldı; yalnız `TelemetryMessage`/`TunnelTelemetryPoint`/`ISnapshotSource` (telemetri-push uplink) kaldı | — (grep) | 🟢 | UC-4 / UC-5 / FR-4.4 / T-14 |
+| 9 | `services/web-service/src/presentation/routes/event-routes.ts#eventRoutes` | YENİ — `GET /api/events?after&limit` (whitelist + `eventId=<fieldId>:<corr|seq>` + `ORDER BY ts ASC`) | `event-routes.test.ts` | 🟢 | UC-5 / FR-5.1 / FR-5.2 / T-12 |
+| 10 | `services/web-service/src/infrastructure/field-uplink/field-event-collector.ts#FieldEventCollector` | push (`attachChannel`) → poller: `poll()` + `peers()` keşfi + cursor + 2 sn örtüşme + fail-safe tur + dedupe `ON CONFLICT` | `field-event-collector.test.ts` | 🟢 | UC-5 / FR-5.3 / FR-5.4 / T-13 |
+| 11 | `services/web-service/src/infrastructure/hub-consumer/consumer-relay.ts` + `hub-consumer-channel.ts` (+ testler) | SİLİNDİ — işlevsiz WS relay/channel (sapma S-6) | — | 🟢 | temizlik / K9–K11 |
+| 12 | `services/web-service/src/infrastructure/hub-consumer/index.ts` | `ConsumerRelay`/`HubConsumerChannel` export'ları kaldırıldı | — | 🟢 | temizlik |
+| 13 | `services/web-service/src/config/container.ts#buildContainer` | `operationResponder`/`uplinkEventRelay`/`hubConsumerRelay`/`hubConsumerChannel` kayıtları kaldırıldı; `operationRequester` `{channel}`→`{client, serviceId}`; `fieldEventCollector` HTTP client'a bağlandı; `containerProxy` guard `hubConsumerClient`'a indirildi | — (kod inceleme) | 🟢 | UC-4 / UC-5 / T-11 / T-14 |
+| 14 | `services/web-service/src/index.ts#main` | responder/relay/channel lifecycle kaldırıldı; collector `ensureSchema`+`start()` (attachChannel yerine); `siteFieldId` wiring | — | 🟢 | UC-4 / UC-5 |
+| 15 | `services/web-service/src/presentation/server.ts#registerRoutes` | `eventRoutes` (field, `siteFieldId`) kaydı; `operationBossRoutes` yorum güncellendi | — | 🟢 | UC-4 / UC-5 |
+| 16 | `packages/shared-utils/src/config/definitions.ts#hubFieldServiceId` | YENİ config `hub.fieldServiceId` (env `HUB_FIELD_SERVICE_ID`, default `field-api`) | — (config tanımı) | 🟢 | UC-4 / FR-4.1 / T-9 |
+| 17 | `AGENTS-KOMUT-MANEVRA.md` | Boss→field kanal satırı WS → HTTP relay + `GET /api/events` pull | — | 🟢 | doküman senkronu |
+
+#### A.2 Test Kanıtları
+
+| Kapsam | Komut | Sonuç |
+|:-------|:------|:------|
+| Tüm repo (unit/component/integration) | `bun run test` | 311 dosya / 2586 test PASS |
+| Demo entegrasyon suite | `bun run test:demo-integration` | 10 dosya / 108 test PASS |
+| Doküman lint (SPEC) | `bun run spec:check docs/architecture/WEB-SERVICE-TUNNEL-SADELESTIRME-MIMARISI.md` | 0 hata / 0 uyarı |
+| Diff ölçümü | `git diff --stat` | 24 dosya (tracked) — +966 / −1580 (net −614; brüt silme 1580 ≥ 700 → SC-6 ✅); 3 yeni dosya untracked (`event-routes.ts`, `event-routes.test.ts`, `event-message.ts`) |
+
+#### A.3 Kabul Kriteri Kanıtları
+
+| Kod | Kriter (SPEC özeti) | Kanıt (test/dosya) | Durum |
+|:----|:--------------------|:-------------------|:------|
+| AK-4.1 | HTTP relay yolu (WS frame yok) | `operation-requester.test.ts` "hub access POST'u system kimliği + köken başlıklarıyla atar; 200 sonucu eşler" | 🟢 |
+| AK-4.2 | Köken (trigger/createdBy/trace) | `operation-requester.test.ts` (başlıklar) + `maneuver-routes.test.ts` "UC-4: x-gd-operation-id kökeni → trigger boss:<id> + createdBy boss" | 🟢 |
+| AK-4.3 | Durum eşlemesi (200/422/202/4xx/5xx/ağ/timeout) | `operation-requester.test.ts` (202/422/404/403/5xx/ağ/timeout senaryoları) | 🟢 |
+| AK-4.4 | WS operation kalıntısı yok | grep=0 (`operation-execute` yok); `operation-result` yalnız requester DTO `type` alanı + JSDoc + test fixture (dış şekil uyumu FR-4.5) | 🟢 |
+| AK-4.5 | Boss sözleşmesi sabit (200 `{result}` / 503 `operation_timeout`) | `operation-boss-routes.test.ts` "admin → requester.send → 200 {result}" + "timeout (undefined) → 503 operation_timeout" | 🟢 |
+| AK-5.1 | Events ucu (whitelist + after + limit + artan ts) | `event-routes.test.ts` "whitelist + after + limit ile sorgular; eventId/level/category eşler" | 🟢 |
+| AK-5.2 | Dedupe korunur (`ON CONFLICT (field_id, event_id)`) | `field-event-collector.test.ts` "field peer'ı keşfeder … dedupe INSERT yazar" | 🟢 |
+| AK-5.3 | Poller keşif + cursor | `field-event-collector.test.ts` (backlog cursor + "ikinci tur cursor - 2 sn örtüşmesinden devam eder") | 🟢 |
+| AK-5.4 | Fail-safe tur (hata yutulur, cursor ilerlemez) | `field-event-collector.test.ts` "peer erişilemezse tur atlanır, cursor ilerlemez" | 🟢 |
+| AK-5.5 | Notifications şekli sabit | `notification-routes.test.ts` (collector `list`/`countSince` sözleşmesi değişmedi) | 🟢 |
+
+#### A.4 Sapmalar
+
+| # | Sapma | Açıklama | Etki |
+|:--|:------|:---------|:-----|
+| S-6 | Hub consumer WS relay/channel temizliği | `consumer-relay.ts` + `hub-consumer-channel.ts` (+ testler) + DI kayıtları artık işlevsizdi (operasyon/event WS kanalları kalkınca tüketen kalmadı) | Kapsam genişlemesi; işlevsiz kod silindi, davranış değişmez |
+| S-7 | Demo'da field peer açılmadı | SPEC A-4 — boss→field operasyon + olay uçtan uca curl doğrulaması yok | Unit + mevcut 108/108 integration yeterli (kullanıcı kararı) |
+| S-8 | Field peer session cookie adı | Hub `peerSessionCookie` config'i deployment tarafında `field_session` olmalı; kod zaten `field_session` kullanıyor (`server.ts#sessionRbacOptions` + `container.ts#uplinkSessionStore` `"field-session"`) | Kod değişikliği gerekmedi; deployment notu |
+| S-9 | `web-service:typecheck` gürültüsü | TS6305/TS2347 proje-referans gürültüsü pre-existing; yeni dosyalarda yalnız TS6305 görüldü | Typecheck kapısı dışı; kalıcı kod hatası değil |
+
+#### A.5 Gözle Kontrol Maddeleri
+
+- [x] **SC-7:** WS operation/event frame üretimi/tüketimi grep=0 — `operation-execute` yok; `operation-result` yalnız `operation-requester.ts#OperationResult` DTO `type` alanı + JSDoc (dış şekil uyumu, FR-4.5)
+- [x] **SC-2:** `packages/ws-tunnel*` altında 0 değişiklik — `git status` boş
+- [x] **SC-3:** `bun run test` → 311 dosya / 2586 PASS
+- [x] **SC-4:** `bun run test:demo-integration` → 108/108
+- [x] **SC-5:** `bun run spec:check` (SPEC) → 0 hata / 0 uyarı
+- [x] **SC-6:** brüt silme 1580 ≥ 700 (net −614)
+- [x] **SC-8:** boss operasyon + event yolları unit testlerle kapsanır (`operation-requester.test.ts`, `operation-boss-routes.test.ts`, `maneuver-routes.test.ts`, `event-routes.test.ts`, `field-event-collector.test.ts`)
+- [x] **SC-9 / K12:** i18n incelemesi (SPEC §11) kanıtla işlendi — kod değişikliği YOK (bkz. A.6)
+- [x] **K12 — KORUNUR:** `GD_PMS_TUNNEL_EVENT_CODES`, `DEFAULT_ALERT_EVENT_CODES`, `tunnel_session`/`container_session`/`field_session` cookie enjeksiyonları, `UPLINK_EVENT_WHITELIST`/`COLLECTED_EVENT_CODES`, TamperLogger/alertRules, superadmin `NotificationsPage` i18n etiketleri — hiçbiri diff'te yok (git diff yalnız UC-4/UC-5 bileşenleri)
+- [x] **Elegant Object:** `OperationRequester`/`FieldEventCollector` `readonly` alanlar, tek primary constructor, komut/query ayrımı (`send`/`poll`/`start`/`stop` komut-void; `list`/`countSince` query), statik metot yok
+- [x] **Purity-6:** field `trigger=boss:<id>` + `createdBy=boss` işaretlemesi — `maneuver-routes.ts#bossOperationId` + test
+- [x] **Kod referansı:** satır-numarası referansı YOK (`#sembol` çapası)
+
+#### A.6 Genel Durum Özeti
+
+Boss→field operasyon WS kontrol kanalı (`operation-execute`/`operation-result`, `OperationResponder`) silindi; `OperationRequester` artık hub opak relay üzerinden field'ın kendi `POST /api/operations/:name/execute` ucunu çağırıyor (`serviceId: field-api`, system kimliği + `x-gd-operation-id`/`x-gd-trace-id`) ve terminal-only durum eşlemesi yapıyor (200→completed/rolled_back/failed, 422→failed, 202→failed/still_running, 4xx→rejected, 5xx→failed, ağ/timeout→undefined→503). Field tarafında aynı rota `x-gd-operation-id` varlığında koşuyu `trigger=boss:<id>` + `createdBy=boss` ile işaretliyor (audit izlenebilirliği korunur). Field→boss olay WS push'u (`UplinkEventRelay`) silindi; yerine field `GET /api/events` ucu (whitelist + `eventId=<fieldId>:<corr|seq>` + `ORDER BY ts ASC`) ve boss `FieldEventCollector` poller'ı (`peers()` keşfi, cursor, 2 sn örtüşme, fail-safe tur, `ON CONFLICT` dedupe) geldi. `EventMessage` `field-uplink/event-message.ts`'e taşındı; `messages.ts` yalnız telemetri-push tiplerini taşıyor. Ek temizlik (S-6) işlevsiz hub consumer WS relay/channel katmanını kaldırdı. i18n/eventCode/cookie enjeksiyonları (K12) korundu — kod değişikliği YOK. Tüm kapılar yeşil: 2586 unit + 108 demo-entegrasyon testi, `ws-tunnel*` 0 satır değişiklik, brüt silme 1580.
+
+**review_date:** 2026-10-22
+
+### B. TEST KAPSAMI
+
+#### B.1 Kapsam Matrisi (durum → koşul → beklenen → test ref'i)
+
+| Durum | Koşul | Beklenen (THEN) | Test ref'i |
+|:------|:------|:----------------|:-----------|
+| Operasyon tetikleme | boss tier | hub access POST `/api/operations/<name>/execute` + system kimliği + `x-gd-operation-id`/`x-gd-trace-id` | `operation-requester.test.ts` "hub access POST'u …" |
+| 200 completed | field `status: completed` | `{type: operation-result, operationId, status: completed}` | `operation-requester.test.ts` |
+| 200 rolled_back + outcomes | field `status: rolled_back` + `outcomes` | `results` özetine dönüşür (`step`/`system`/`maneuver`/`ok`/`reason`) | `operation-requester.test.ts` "200 + outcomes → results özetine dönüşür" |
+| 202 uzun koşu | field `status: running` | `failed` + `reason: still_running` (terminal-only) | `operation-requester.test.ts` "202 (uzun koşu) → failed/still_running" |
+| 422 | field `failed` + `reason` | `failed` + gövde `reason` | `operation-requester.test.ts` "422 → failed + gövdedeki reason" |
+| 404/403 | field `not_found` / boş | `rejected` (+ `not_found` / `invalid_request`) | `operation-requester.test.ts` "404/403 → rejected" |
+| 5xx | field 502 | `failed` + `remote_http_502` | `operation-requester.test.ts` "5xx → failed" |
+| Ağ hatası / timeout | `access` throw / hiç resolve | `undefined` | `operation-requester.test.ts` "ağ hatası → undefined" + "timeout → undefined" |
+| Boss rotası timeout | `send` → `undefined` | 503 `operation_timeout` | `operation-boss-routes.test.ts` "timeout (undefined) → 503" |
+| Boss rotası requester yok | tier boss değil | 503 `operation_requester_unavailable` | `operation-boss-routes.test.ts` |
+| Field kökeni | `x-gd-operation-id` var | `trigger=boss:<id>` + `createdBy=boss` + `traceId` | `maneuver-routes.test.ts` "UC-4: x-gd-operation-id kökeni" |
+| Events yetki | yetkisiz istek | 403 (fail-closed) | `event-routes.test.ts` "yetkisiz istek → 403" |
+| Events delta | `after` + `limit` | whitelist'li `log_events`, `ORDER BY ts ASC`, `eventId=<fieldId>:<corr|seq>` | `event-routes.test.ts` "whitelist + after + limit ile sorgular" |
+| Events `after` yok / `correlation` yok | epoch / `seq` | epoch'tan; `eventId=<fieldId>:<seq>` | `event-routes.test.ts` "after yoksa epoch; correlation yoksa seq" |
+| Events geçersiz `after` | `"dun"` | 400 `invalid_after` | `event-routes.test.ts` "geçersiz after → 400" |
+| Events limit kırpma | `5000` / `0` | `1000` / `1` | `event-routes.test.ts` "limit 1..1000 aralığına kırpılır" |
+| Events iç token | `x-internal-token` | 200 (hub programatik yolu) | `event-routes.test.ts` "iç token ile erişir" |
+| Poller keşif | `peers()` → field connected | backlog cursor (1 saat) + `limit=200` + dedupe INSERT | `field-event-collector.test.ts` "field peer'ı keşfeder" |
+| Poller whitelist savunma | `eventCode` dışı | yok sayılır (INSERT yok) | `field-event-collector.test.ts` "whitelist dışı olay yok sayılır" |
+| Poller örtüşme | 2. tur | cursor − 2 sn'den devam | `field-event-collector.test.ts` "ikinci tur cursor - 2 sn örtüşmesinden devam eder" |
+| Poller fail-safe | peer throw | tur atlanır, cursor ilerlemez | `field-event-collector.test.ts` "peer erişilemezse tur atlanır" |
+| Poller bağlı değil | peer `disconnected`/`container` | atlanır (0 çağrı) | `field-event-collector.test.ts` "bağlı olmayan field peer'ı atlanır" |
+| Demo seed | `demoSeed` açık/kapalı | 3 örnek bildirim (idempotent) / 0 | `field-event-collector.test.ts` "demoSeed açıkken/kapalıyken" |
+
+#### B.2 KAPSANMAYAN Boşluklar
+
+| # | Boşluk | Risk | İleri iş |
+|:--|:-------|:-----|:---------|
+| G6 | `OperationRequester#json` gövde çözümü hata yolu (JSON olmayan gövde) açık testi yok — try/catch üstü kapalı örtüşür | düşük | non-JSON gövde stub'ı ile açık test |
+| G7 | `withTimeout` zaman aşımı sınırında yarış (timer vs response aynı anda) deterministik testi yok | düşük | fake timer ile sınır senaryosu |
+| G8 | Boss→field operasyon + olay uçtan uca (field peer hub'a açık) doğrulanmadı — S-7/A-4 | orta | field peer'ı demo stack'e açıp curl/entegrasyon (ayrı iş) |
+| G9 | `GET /api/events` whitelist'i ile boss `COLLECTED_EVENT_CODES` arasında drift (iki liste elle senkron) | düşük | tek kaynak sabiti (paylaşılan modül) — ayrı SPEC |
+| G10 | `FieldEventCollector#list`/`countSince` JOIN edge (field satırı silinmiş → `field_name` null fallback) açık testi yok | düşük | `list` testi genişlet |
+
+**review_date:** 2026-10-22

@@ -44,7 +44,6 @@ import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
 import { DemoEarthingInterlock } from "../infrastructure/interlock/demo-earthing-interlock";
-import { OperationResponder } from "../infrastructure/field-uplink/operation-responder";
 import { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
 import { loadTierManeuverRecords } from "../infrastructure/commands/load-maneuver-records";
 import { CommandChannel } from "../infrastructure/commands/command-channel";
@@ -92,14 +91,11 @@ import { HubManeuverChannel } from "../infrastructure/container-session/hub-mane
 import { HubContainerView } from "../infrastructure/container-session/hub-container-view";
 import { TelemetrySnapshotPusher } from "../infrastructure/tunnel-extensions";
 import {
-  ConsumerRelay,
-  HubConsumerChannel,
   HubConsumerClient,
   HubFieldRegistry,
 } from "../infrastructure/hub-consumer";
 import { makeWireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
 import { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
-import { UplinkEventRelay } from "../infrastructure/field-uplink/uplink-event-relay";
 import { RequestContext } from "../presentation/middleware/request-context";
 import { WebServiceServer } from "../presentation/server";
 import type { ConfigLoader } from "@gd-monorepo/shared-utils";
@@ -212,10 +208,9 @@ export function buildContainer() {
     // Tier-aware servisler
     // P3: field tier konteyner görünümü hub-servis tüketicisinden (ContainerProxy
     // WS hub görevi hub-servis'e taşındı).
-    containerProxy: asFunction(
-      ({ config, mq, hubConsumerClient, hubConsumerChannel }) => {
+    containerProxy: asFunction(({ config, mq, hubConsumerClient }) => {
         const tier = serviceTier(config);
-        if (tier !== "field" || !hubConsumerClient || !hubConsumerChannel) {
+        if (tier !== "field" || !hubConsumerClient) {
           return undefined;
         }
         const view = new HubContainerView({
@@ -399,30 +394,16 @@ export function buildContainer() {
       return makeWireGuardConnection(postgres, wgConfig, logger);
     }).singleton(),
 
-    // Boss tier: field olay toplayıcı (Faz 5 — alarm/audit aktarımı).
-    fieldEventCollector: asFunction(({ config, postgres, logger }) => {
-      const tier = serviceTier(config);
-      if (tier === "boss") {
+    // Boss tier: field olay toplayıcı (Faz 5) — REV.02: HTTP pull (UC-5).
+    fieldEventCollector: asFunction(
+      ({ config, postgres, logger, hubConsumerClient }) => {
+        const tier = serviceTier(config);
+        if (tier !== "boss") return undefined;
         return new FieldEventCollector(postgres, logger, {
+          ...(hubConsumerClient ? { client: hubConsumerClient } : {}),
+          serviceId: config.get<string>("hub.fieldServiceId"),
           demoSeed: config.get<boolean>("fieldEvents.demoSeed"),
         });
-      }
-      return undefined;
-    }).singleton(),
-
-    // Field tier: log_events delta → uplink `event` frame'leri (Faz 5).
-    uplinkEventRelay: asFunction(
-      ({ config, uplinkConnector, postgres, logger }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field" || !uplinkConnector) return undefined;
-        const fieldId = config.get<string | undefined>("site.fieldId");
-        if (!fieldId) return undefined;
-        return new UplinkEventRelay(
-          uplinkConnector,
-          postgres,
-          fieldId,
-          logger,
-        );
       },
     ).singleton(),
 
@@ -509,23 +490,17 @@ export function buildContainer() {
       },
     ).singleton(),
 
-    // Field tier: boss'tan gelen operation-execute'leri yanıtlar (Faz C2b).
-    operationResponder: asFunction(
-      ({ config, uplinkConnector, maneuverExecutor, logger }) => {
+    // Boss tier: field'da operasyonu hub access HTTP ile tetikler (REV.02 — UC-4).
+    operationRequester: asFunction(
+      ({ config, hubConsumerClient }) => {
         const tier = serviceTier(config);
-        if (tier !== "field" || !uplinkConnector || !maneuverExecutor) {
-          return undefined;
-        }
-        return new OperationResponder(uplinkConnector, maneuverExecutor, logger);
+        if (tier !== "boss" || !hubConsumerClient) return undefined;
+        return new OperationRequester({
+          client: hubConsumerClient,
+          serviceId: config.get<string>("hub.fieldServiceId"),
+        });
       },
     ).singleton(),
-
-    // Boss tier: field'a operation-execute gönderir (Faz C2b).
-    operationRequester: asFunction(({ config, hubConsumerChannel }) => {
-      const tier = serviceTier(config);
-      if (tier !== "boss" || !hubConsumerChannel) return undefined;
-      return new OperationRequester({ channel: hubConsumerChannel });
-    }).singleton(),
 
     // P3: hub-servis consumer (HUB_MODE=hub iken kurulur).
     hubConsumer: asFunction(({ config }) =>
@@ -534,18 +509,6 @@ export function buildContainer() {
     hubConsumerClient: asFunction(({ hubConsumer }) =>
       hubConsumer ? new HubConsumerClient(hubConsumer) : undefined,
     ).singleton(),
-    hubConsumerRelay: asFunction(({ hubConsumer }) =>
-      hubConsumer
-        ? new ConsumerRelay({ url: hubConsumer.wsUrl, token: hubConsumer.token })
-        : undefined,
-    ).singleton(),
-    hubConsumerChannel: asFunction(
-      ({ hubConsumerClient, hubConsumerRelay, logger }) =>
-        hubConsumerClient && hubConsumerRelay
-          ? new HubConsumerChannel(hubConsumerClient, hubConsumerRelay, logger)
-          : undefined,
-    ).singleton(),
-
     // Repository ve Use-Case'ler
     userRepo: asFunction(
       ({ postgres }) => new UserRepository(postgres),
