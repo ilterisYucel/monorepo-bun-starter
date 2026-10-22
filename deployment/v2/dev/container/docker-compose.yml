@@ -87,6 +87,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
       PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
+      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-field-device-service}
       # Station 1 (BESS#1-5) → PCS-3'ün BMS yüzü (PCS-1:15502, PCS-2:15503, PCS-3:15504, PCS-4:15505)
       PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15504}
       DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}

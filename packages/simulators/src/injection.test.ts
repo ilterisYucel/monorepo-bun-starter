@@ -15,7 +15,7 @@ import { WattoxPcsSimulator } from "./wattox-pcs";
  */
 describe("simülatör inject sözleşmesi", () => {
   it("IMD: fault/healthy/device_error uygular, bilinmeyeni reddeder", () => {
-    const sim = new ImdSimulator();
+    const sim = new ImdSimulator({ deviceId: "IMD-1" });
     expect(sim.inject("fault")).toBe(true);
     expect(sim.inject("warning")).toBe(true);
     expect(sim.inject("healthy")).toBe(true);
@@ -24,7 +24,7 @@ describe("simülatör inject sözleşmesi", () => {
   });
 
   it("ControlPanelIo: kapı senaryolarını uygular", () => {
-    const sim = new ControlPanelIoSimulator();
+    const sim = new ControlPanelIoSimulator({ deviceId: "CPIO-1" });
     expect(sim.inject("battery_door_open")).toBe(true);
     expect(sim.readDiscreteInput(0)).toBe(true);
     expect(sim.inject("battery_door_close")).toBe(true);
@@ -33,21 +33,21 @@ describe("simülatör inject sözleşmesi", () => {
   });
 
   it("DcMeter: overcurrent ölçümü yazar", () => {
-    const sim = new DcMeterSimulator();
+    const sim = new DcMeterSimulator({ deviceId: "DCM-1" });
     expect(sim.inject("overcurrent")).toBe(true);
     expect(sim.inject("nominal")).toBe(true);
     expect(sim.inject("yok")).toBe(false);
   });
 
   it("HVAC: hot/nominal uygular", () => {
-    const sim = new HvacSimulator();
+    const sim = new HvacSimulator({ deviceId: "HVAC-1" });
     expect(sim.inject("hot")).toBe(true);
     expect(sim.inject("nominal")).toBe(true);
     expect(sim.inject("yok")).toBe(false);
   });
 
   it("BSC: overheat/diff_temp/fault/nominal uygular", () => {
-    const sim = new BSCSimulator({ rackCount: 8, registers: [] });
+    const sim = new BSCSimulator({ deviceId: "BSC-1", rackCount: 8, registers: [] });
     expect(sim.inject("overheat")).toBe(true);
     expect(sim.inject("diff_temp")).toBe(true);
     expect(sim.inject("fault")).toBe(true);
@@ -57,7 +57,7 @@ describe("simülatör inject sözleşmesi", () => {
 
 
   it("WattoxPcs: fault/door_open/nominal uygular", () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",});
     expect(sim.inject("fault")).toBe(true);
     expect(sim.inject("door_open")).toBe(true);
     expect(sim.inject("nominal")).toBe(true);
@@ -65,7 +65,7 @@ describe("simülatör inject sözleşmesi", () => {
   });
 
   it("EnergyAnalyzer: aux_loss/nominal uygular", () => {
-    const sim = new EnergyAnalyzerSimulator();
+    const sim = new EnergyAnalyzerSimulator({ deviceId: "EA-1" });
     expect(sim.inject("aux_loss")).toBe(true);
     expect(sim.inject("nominal")).toBe(true);
     expect(sim.inject("yok")).toBe(false);

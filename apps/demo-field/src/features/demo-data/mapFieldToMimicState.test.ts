@@ -82,17 +82,18 @@ describe("fanOutUnits (FR-2.1)", () => {
 });
 
 describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
-  it("tek konteyneri 9 üniteye fan-out eder (GD-1)", () => {
+  it("legacy (etketsiz) tek prototipi iki istasyona fan-out eder (2×9 = 18)", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(9);
+    expect(state.units).toHaveLength(18);
   });
 
   it("her fiderin son ünitesinde H03 (hat sonu) yoktur", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
     const byN = new Map(state.units.map((u) => [u.n, u]));
-    expect(byN.get(5)?.rmu.H03).toBeNull();
     expect(byN.get(9)?.rmu.H03).toBeNull();
-    expect(byN.get(4)?.rmu.H03).toBe("closed");
+    expect(byN.get(18)?.rmu.H03).toBeNull();
+    expect(byN.get(5)?.rmu.H03).toBe("closed");
+    expect(byN.get(14)?.rmu.H03).toBe("closed");
   });
 
   it("banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)", () => {
@@ -199,9 +200,9 @@ describe("mapFieldToMimicState — container cihazları (UC-9)", () => {
     expect(u.dc?.voltage).toBe(1300);
   });
 
-  it("AK-9.2: fan-out yeni cihazları 9 üniteye kopyalar; ambient outside temp", () => {
+  it("AK-9.2: fan-out yeni cihazları tüm ünitelere kopyalar; ambient outside temp", () => {
     const state = mapFieldToMimicState([container(WITH_DEVICES)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(9);
+    expect(state.units).toHaveLength(18);
     expect(state.units.every((u) => u.hvac?.[0].supplyT === 21)).toBe(true);
     expect(state.units.every((u) => u.aux?.kW === 20)).toBe(true);
     expect(state.ambient).toBe(14);
@@ -236,20 +237,20 @@ describe("UC-13 istasyon-bazlı fan-out", () => {
     const state = mapFieldToMimicState([tagged("c1", "bess1", 60), tagged("c2", "bess2", 40)], DEMO_TOPOLOGY, {
       extraTelemetry: mv,
     });
-    expect(state.units).toHaveLength(9);
-    // GD-1: station1 = H04 1–5 (c1 → 60), station2 = H05 6–9 (c2 → 40)
+    expect(state.units).toHaveLength(18);
+    // station1 = BESS#1–9 (c1 → 60), station2 = BESS#10–18 (c2 → 40)
     expect(state.units.find((u) => u.n === 1)?.banks[0].soc).toBe(60);
-    expect(state.units.find((u) => u.n === 5)?.banks[0].soc).toBe(60);
-    expect(state.units.find((u) => u.n === 6)?.banks[0].soc).toBe(40);
-    expect(state.units.find((u) => u.n === 9)?.banks[0].soc).toBe(40);
+    expect(state.units.find((u) => u.n === 9)?.banks[0].soc).toBe(60);
+    expect(state.units.find((u) => u.n === 10)?.banks[0].soc).toBe(40);
+    expect(state.units.find((u) => u.n === 18)?.banks[0].soc).toBe(40);
   });
 
   it("etiket yoksa legacy tek prototip (güç korunumu) korunur", () => {
     const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    expect(state.units).toHaveLength(9);
+    expect(state.units).toHaveLength(18);
   });
 
-  it("K-18: istasyon PCS çifti — station1 PCS-3/4, station2 PCS-1/2", () => {
+  it("K-18: istasyon PCS çifti — station1 PCS-1/2, station2 PCS-3/4", () => {
     const mv = REAL_TELEMETRY.filter((r) => r.deviceId === "DEMO-MV-1");
     const taggedPcs = (id: string, station: string, pcsA: string, pcsB: string, p: number): FieldContainer => ({
       containerId: id,
@@ -264,13 +265,13 @@ describe("UC-13 istasyon-bazlı fan-out", () => {
       ],
     });
     const state = mapFieldToMimicState(
-      [taggedPcs("c1", "bess1", "PCS-3", "PCS-4", 900), taggedPcs("c2", "bess2", "PCS-1", "PCS-2", 600)],
+      [taggedPcs("c1", "bess1", "PCS-1", "PCS-2", 900), taggedPcs("c2", "bess2", "PCS-3", "PCS-4", 600)],
       DEMO_TOPOLOGY,
       { extraTelemetry: mv },
     );
     // 2026-10-15: her grup PCS'i gerçek PCS gücünü taşır (bölme yok)
     expect(state.units.find((u) => u.n === 1)?.pcs[0].pMW).toBeCloseTo(0.9, 5);
-    expect(state.units.find((u) => u.n === 6)?.pcs[0].pMW).toBeCloseTo(0.6, 5);
+    expect(state.units.find((u) => u.n === 10)?.pcs[0].pMW).toBeCloseTo(0.6, 5);
   });
 
   it("UC-13: BSC ChargeStatus bankaya taşınır (istasyon modu için)", () => {

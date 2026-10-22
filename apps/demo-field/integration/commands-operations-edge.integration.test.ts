@@ -65,13 +65,13 @@ describe("B1 — komut katmanı edge-case'ler", () => {
   });
 
   it("eksik zorunlu param → 400", async () => {
-    expect((await cExecute({ deviceId: "BSC-1", command: "set_charge_power" })).status).toBe(400);
+    expect((await fExecute({ deviceId: "PCS-1", command: "charge" })).status).toBe(400);
   });
 
   it("raw telemetries komutu → 200", async () => {
     const r = await cExecute({
       deviceId: "BSC-1",
-      telemetries: [{ name: "Charge Power Setpoint", value: 10 }],
+      telemetries: [{ name: "Controller Heartbeat", value: 10 }],
     });
     expect(r.status).toBe(200);
     expect((r.body as { success?: boolean }).success).toBe(true);
@@ -116,11 +116,15 @@ describe("B2 — operasyon katmanı edge-case'ler", () => {
     expect((await fOperation("yok_boyle_op")).status).toBe(404);
   });
 
-  it("divideTotal floor: charge powerKw=25 → BSC setpoint 12", async () => {
+  it("divideTotal floor: charge powerKw=25 → PCS-1 S06 = -12 kW", async () => {
     const r = await fOperation("charge", { params: { powerKw: 25 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(r.status);
-    // Ham oku (unified pencere yavaş sinyali düşürebilir): 12 kW → raw 120 (SIM-only 49000, scale 0.1).
-    const ok = await waitFor(async () => (await modbusRead(15501, 3, 49000, 1)).values[0] === 120, 20000);
+    // PCS-1 EMS S06 (0x0e19 = 3609, sint16 kW): 25/2 = 12.5 → 12 kW, şarj negatif.
+    const ok = await waitFor(async () => {
+      const raw = (await modbusRead(1502, 3, 3609, 1)).values[0] ?? 0;
+      const signed = raw > 0x7fff ? raw - 0x10000 : raw;
+      return signed === -12;
+    }, 20000);
     expect(ok).toBe(true);
     await fOperation("standby");
   }, 60_000);

@@ -19,9 +19,11 @@ RUN echo 'server { \
   listen 80; \
   root /usr/share/nginx/html; \
   index index.html; \
+  resolver 127.0.0.11 valid=10s ipv6=off; \
   \
   location ~ ^/fields/[^/]+/ui/ { \
-    proxy_pass http://web-service:5003; \
+    set $backend http://web-service:5003; \
+    proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
     proxy_set_header Connection "upgrade"; \
@@ -34,7 +36,8 @@ RUN echo 'server { \
   } \
   \
   location /api { \
-    proxy_pass http://web-service:5003; \
+    set $backend http://web-service:5003; \
+    proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
     proxy_set_header Connection "upgrade"; \

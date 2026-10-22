@@ -84,6 +84,22 @@ async function waitFor(
 
 test.describe.configure({ mode: "serial", timeout: 90_000 });
 
+/** Test sonrası durum temizliği: kapı/IMD + BSC emergency kilidini çöz. */
+test.afterEach(async ({ request }) => {
+  await inject(request, "CONTROL-PANEL-IO-1", "battery_door_close").catch(() => undefined);
+  await inject(request, "IMD-1", "healthy").catch(() => undefined);
+  const token = await login(request).catch(() => "");
+  if (token) {
+    // standby = pcs_standby + bsc_stop; bsc_stop EMERGENCY'den çıkışı sağlar.
+    await request
+      .post(`${FIELD_API}/api/operations/standby/execute`, {
+        headers: { authorization: `Bearer ${token}` },
+        data: {},
+      })
+      .catch(() => undefined);
+  }
+});
+
 test("FL-07: kapı açık → oda ışığı yanar (kural → komut → fiziksel etki)", async ({ request }) => {
   test.skip(!FIELD_ID, "FIELD_ID yok");
   const token = await login(request);

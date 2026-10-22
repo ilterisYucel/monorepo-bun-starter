@@ -28,6 +28,7 @@ RUN echo 'server { \
   listen 80; \
   root /usr/share/nginx/html; \
   index index.html; \
+  resolver 127.0.0.11 valid=10s ipv6=off; \
   \
   location / { \
     try_files $uri $uri/ /index.html; \
@@ -38,7 +39,8 @@ RUN echo 'server { \
   } \
   \
   location /api { \
-    proxy_pass http://field-web-service:5002; \
+    set $backend http://field-web-service:5002; \
+    proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
     proxy_set_header Connection "upgrade"; \
@@ -52,7 +54,8 @@ RUN echo 'server { \
   } \
   \
   location /containers/ { \
-    proxy_pass http://field-web-service:5002; \
+    set $backend http://field-web-service:5002; \
+    proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
     proxy_set_header Connection "upgrade"; \

@@ -68,7 +68,7 @@ function adapter(overrides: { target?: IBmsTarget; mapping?: ReturnType<typeof p
   const sources = overrides.sources ?? {
     "BSC-1": fakeSource({ 30055: 5500, 30059: 15000000, 30037: 0b1 }),
   };
-  return new BscPcsConnectorAdapter({
+  return new BscPcsConnectorAdapter({ deviceId: "BSC-PCS-CONNECTOR-1",
     mapping: overrides.mapping ?? parseBscPcsMapping(VALID_MAPPING_JSON),
     source: new AdapterSourceReader(new Map(Object.entries(sources))),
     target: overrides.target,
@@ -479,5 +479,77 @@ describe("BscPcsConnectorAdapter", () => {
     const conn = adapter({});
     await conn.writeHoldingRegister(0, 123);
     expect(await conn.readHoldingRegister(0)).toBe(0);
+  });
+});
+
+describe("BscPcsConnectorAdapter — ters kanal (PCS→BSC)", () => {
+  const makeWithPowerLink = (reading: { totalKw: number; available: number; total: number }, applied: number[]) => {
+    const reader = {
+      readTotal: vi.fn(async () => reading),
+      close: vi.fn(async () => undefined),
+    };
+    const conn = new BscPcsConnectorAdapter({
+      deviceId: "BSC-PCS-CONNECTOR-1",
+      mapping: parseBscPcsMapping(VALID_MAPPING_JSON),
+      source: new AdapterSourceReader(
+        new Map([["BSC-1", fakeSource({ 30055: 5500, 30059: 15000000, 30037: 0b1 })]]),
+      ),
+      target: fakeTarget().target,
+      now: () => clock,
+      powerLink: { reader, input: { applyPowerKw: (kw: number) => applied.push(kw) } },
+    });
+    return { conn, reader };
+  };
+
+  it("toplam güç BSC girdisine yazılır; kaynak durumu 0", async () => {
+    const applied: number[] = [];
+    const { conn, reader } = makeWithPowerLink({ totalKw: -400, available: 2, total: 2 }, applied);
+    await conn.tick(1);
+    expect(reader.readTotal).toHaveBeenCalledTimes(1);
+    expect(applied).toEqual([-400]);
+    expect(await conn.readInputRegister(8)).toBe(0);
+  });
+
+  it("kısmi erişim → durum 1", async () => {
+    const applied: number[] = [];
+    const { conn } = makeWithPowerLink({ totalKw: -100, available: 1, total: 2 }, applied);
+    await conn.tick(1);
+    expect(applied).toEqual([-100]);
+    expect(await conn.readInputRegister(8)).toBe(1);
+  });
+
+  it("hiç erişim → durum 2, güç 0", async () => {
+    const applied: number[] = [];
+    const { conn } = makeWithPowerLink({ totalKw: 0, available: 0, total: 2 }, applied);
+    await conn.tick(1);
+    expect(applied).toEqual([0]);
+    expect(await conn.readInputRegister(8)).toBe(2);
+  });
+
+  it("powerLink yoksa güç girdisi çağrılmaz (geriye uyum)", async () => {
+    const { target } = fakeTarget();
+    const conn = adapter({ target });
+    await conn.tick(1);
+    expect(await conn.readInputRegister(8)).toBe(0);
+  });
+});
+
+describe("BscPcsConnectorAdapter — powerScale", () => {
+  it("okunan toplam güç scale ile çarpılıp BSC'ye yazılır (demo 2 PCS → 9 grup)", async () => {
+    const applied: number[] = [];
+    const reader = {
+      readTotal: vi.fn(async () => ({ totalKw: -20, available: 2, total: 2 })),
+      close: vi.fn(async () => undefined),
+    };
+    const conn = new BscPcsConnectorAdapter({
+      deviceId: "BSC-PCS-CONNECTOR-1",
+      mapping: parseBscPcsMapping(VALID_MAPPING_JSON),
+      source: new AdapterSourceReader(new Map([["BSC-1", fakeSource({ 30055: 5500, 30059: 15000000, 30037: 0b1 })]])),
+      target: fakeTarget().target,
+      now: () => clock,
+      powerLink: { reader, input: { applyPowerKw: (kw: number) => applied.push(kw) }, scale: 9 },
+    });
+    await conn.tick(1);
+    expect(applied).toEqual([-180]);
   });
 });

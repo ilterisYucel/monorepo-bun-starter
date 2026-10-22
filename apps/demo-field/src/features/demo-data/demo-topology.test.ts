@@ -3,9 +3,9 @@ import { listNovaUnits } from "@gd-monorepo/ui";
 import { DEMO_TOPOLOGY, DEMO_UNIT_COUNT, cellCommandName } from "./demo-topology";
 
 describe("demo-topology (UC-1/T-1, K1)", () => {
-  it("9 ünite tanımlar (GD-1: fider A/H04 1–5, B/H05 6–9)", () => {
+  it("istasyon şablonu 9 ünite (A/H04 1–5, B/H05 6–9); toplam 2×9 = 18", () => {
     const units = listNovaUnits(DEMO_TOPOLOGY);
-    expect(DEMO_UNIT_COUNT).toBe(9);
+    expect(DEMO_UNIT_COUNT).toBe(18);
     expect(units.map((u) => u.n)).toEqual(Array.from({ length: 9 }, (_, i) => i + 1));
     expect(units.filter((u) => u.feeder === "A")).toHaveLength(5);
     expect(units.filter((u) => u.feeder === "B")).toHaveLength(4);

@@ -82,16 +82,16 @@ describe("commandTraceRows (B-2 türetim)", () => {
   const run = (over: Partial<OperationRunRecord>): OperationRunRecord =>
     ({
       id: "r1", kind: "operation", name: "charge", trigger: "manual", status: "completed",
-      steps: { params: { powerKw: 200 }, definition: { steps: [{ command: "set_charge_power", deviceTypes: ["bsc"] }] } },
+      steps: { params: {}, definition: { steps: [{ command: "start", deviceTypes: ["bsc"] }] } },
       startedAt: "2026-10-08T09:00:00.000Z", finishedAt: null, createdBy: "admin", traceId: null,
       ...over,
     }) as OperationRunRecord;
 
   it("BSC komutunu register/adres ile satırlaştırır", () => {
-    const rows = commandTraceRows([run({ name: "bsc_charge" })], []);
+    const rows = commandTraceRows([run({ name: "bsc_prepare" })], []);
     expect(rows[0].device).toBe("BSC");
-    expect(rows[0].addr).toBe("40030");
-    expect(rows[0].value).toBe("200 kW");
+    expect(rows[0].addr).toBe("40010");
+    expect(rows[0].value).toBe("2");
   });
 
   it("PCS komutunu adresle eşler + log satırlarını ekler", () => {

@@ -104,6 +104,17 @@ const connectorSimSubsetSchema = z.object({
     })
     .optional(),
   intervalMs: z.number().int().positive().optional(),
+  pcsSources: z
+    .array(
+      z.object({
+        deviceId: z.string().min(1),
+        host: z.string().min(1),
+        port: z.number().int().positive(),
+        unitId: z.number().int().positive().optional(),
+      }),
+    )
+    .optional(),
+  powerScale: z.number().positive().optional(),
 });
 
 const connectorConfigSchema = z.object({

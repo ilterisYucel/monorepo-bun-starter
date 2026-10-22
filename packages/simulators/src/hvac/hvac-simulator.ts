@@ -3,6 +3,8 @@ import { HOLDING, INPUT, ALARMS } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { HvacSimulatorAdapter } from "./hvac-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 interface HvacState {
   remoteOn: boolean;
@@ -91,11 +93,13 @@ function defaultState(): HvacState {
 }
 
 export interface HvacSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class HvacSimulator {
+export class HvacSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: HvacState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
@@ -103,7 +107,8 @@ export class HvacSimulator {
   private injectedHumidity: number | undefined;
   private compressorStarts = 0;
 
-  constructor(config: HvacSimulatorConfig = {}) {
+  constructor(config: HvacSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = defaultState();
     this.network = config.network;
   }

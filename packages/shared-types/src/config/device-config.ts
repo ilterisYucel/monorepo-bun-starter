@@ -76,11 +76,23 @@ export interface ConnectorDeviceSubset {
   telemetry: TelemetryConfigEntry[];
 }
 
+/** PCS güç kaynağı endpoint'i — connector ters kanalı (S16 okuma). */
+export interface PcsPowerSource {
+  deviceId: string;
+  host: string;
+  port: number;
+  unitId?: number;
+}
+
 /** Connector sim-subset — yalnız SimulatorHost'un okuduğu sim tarafı. */
 export interface ConnectorSimSubset {
   registerMap: string;
   target?: { host?: string; port?: number };
   intervalMs?: number;
+  /** Ters kanal: PCS EMS S16 → BSC güç girdisi (opsiyonel). */
+  pcsSources?: PcsPowerSource[];
+  /** Ters kanal güç ölçeği (okunan toplam × scale). Demo: 9 (istasyon ölçeği). */
+  powerScale?: number;
 }
 
 /** BSC config'i içindeki `connector` bölümü (BSC→PCS link simülasyonu). */

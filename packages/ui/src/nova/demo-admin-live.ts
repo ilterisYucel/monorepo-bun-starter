@@ -198,16 +198,10 @@ const PCS_CMD: Record<string, { addr: string; value?: string; meaning: string }>
 const BSC_CMD: Record<string, { addr: string; value: string; meaning: string }> = {
   start: { addr: "40010", value: "2", meaning: "Command Request = Start" },
   stop: { addr: "40010", value: "3", meaning: "Command Request = Stop" },
-  charge: { addr: "40010", value: "2", meaning: "Command Request = Charge (Start)" },
-  discharge: { addr: "40010", value: "11", meaning: "Command Request = Discharge" },
-  set_charge_power: { addr: "40030", value: "kW", meaning: "Charge Power Setpoint" },
-  set_discharge_power: { addr: "40031", value: "kW", meaning: "Discharge Power Setpoint" },
   emergency: { addr: "40010", value: "1", meaning: "Command Request = Emergency" },
   open_contactors: { addr: "40010", value: "4", meaning: "Command Request = Open All Contactors" },
   close_contactors: { addr: "40010", value: "5", meaning: "Command Request = Close Contactors" },
   // Operasyon/manevra adımları manevra adı taşır
-  bsc_charge: { addr: "40010", value: "2", meaning: "Command Request = Charge (Start)" },
-  bsc_discharge: { addr: "40010", value: "11", meaning: "Command Request = Discharge" },
   bsc_stop: { addr: "40010", value: "3", meaning: "Command Request = Stop" },
 };
 

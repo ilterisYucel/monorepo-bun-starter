@@ -95,9 +95,9 @@ describe("C — yazma hattı (gerçek Timescale verisi)", () => {
     const latencies: number[] = [];
     for (let i = 0; i < 10; i++) {
       const t0 = Date.now();
-      const { status } = await api(CONTAINER_URL, containerToken, "/api/commands/execute", {
+      const { status } = await api(FIELD_URL, fieldToken, "/api/commands/execute", {
         method: "POST",
-        body: JSON.stringify({ deviceId: "BSC-1", command: "set_charge_power", params: { powerKw: 10 + i } }),
+        body: JSON.stringify({ deviceId: "PCS-1", command: "charge", params: { powerKw: 10 + i } }),
       });
       expect(status).toBe(200);
       latencies.push(Date.now() - t0);

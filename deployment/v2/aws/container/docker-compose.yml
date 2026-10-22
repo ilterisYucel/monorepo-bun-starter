@@ -117,6 +117,7 @@ services:
       # BSC→PCS connector BMS hedefi — field PCS'ler aynı edge-network'te
       # field-device-service'te koşar (BSC-PCS-CONNECTOR-MIMARISI §6).
       PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
+      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-field-device-service}
       PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
     depends_on:
       container-redis:

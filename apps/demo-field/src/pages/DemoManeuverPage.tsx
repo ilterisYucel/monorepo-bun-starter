@@ -137,10 +137,9 @@ export const DemoManeuverPage: React.FC = () => {
     [state.units, readyUnits],
   );
 
-  // GD-1 tek istasyon (H04: BESS#1–5, H05: BESS#6–9). Her fider kendi
-  // konteyneri + PCS çifti ile sürülür; komut kapsamdaki fiderlere ayrı ayrı gider.
-  void activeStation;
-  const activeKey: string | undefined = undefined;
+  // Aktif istasyon (gdems `A.k`): komutlar o istasyonun konteyneri + PCS çifti
+  // ile sürülür; kapsam aktif istasyonun üniteleridir.
+  const activeKey = DEMO_STATIONS[activeStation]?.key;
   const feedersFor = (scope: number[]) =>
     DEMO_STATIONS.filter((s) => scope.length === 0 || s.units.some((n) => scope.includes(n)));
   const systemsOf = (key: string): string[] | undefined => {
@@ -209,7 +208,7 @@ export const DemoManeuverPage: React.FC = () => {
     setMessage(
       failed.length
         ? `Rejected: ${failed.join(" · ")}`
-        : `Command accepted (${name}) · ${feeders.map((s) => s.cell).join(" + ")}.`,
+        : `Command accepted (${name}) · ${feeders.map((s) => s.name).join(" + ")}.`,
     );
     setBusy(false);
   };
@@ -285,7 +284,8 @@ export const DemoManeuverPage: React.FC = () => {
     setBusy(true);
     setMessage("");
     try {
-      await Promise.all(DEMO_STATIONS.map((s) => demoManeuverApi.stop(systemsOf(s.key))));
+      const key = DEMO_STATIONS[activeStation]?.key;
+      await demoManeuverApi.stop(key ? systemsOf(key) : undefined);
       setMessage("Standby command sent.");
     } catch (e) {
       setMessage(`Stop failed: ${(e as Error).message}`);

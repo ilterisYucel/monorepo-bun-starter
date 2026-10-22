@@ -60,10 +60,8 @@ async function containerRows(): Promise<Row[]> {
   const containers = body as Array<{ latestTelemetry?: Row[] }>;
   return containers?.[0]?.latestTelemetry ?? [];
 }
-async function bscChargeSetpoint(): Promise<number> {
-  const r = (await containerRows()).find(
-    (x) => x.deviceId === "BSC-1" && x.name === "Charge Power Setpoint",
-  );
+async function bscSoc(): Promise<number> {
+  const r = (await containerRows()).find((x) => x.deviceId === "BSC-1" && x.name === "BSC SOC");
   return r ? Number(r.value) : NaN;
 }
 async function bscChargeStatus(): Promise<number> {
@@ -168,20 +166,20 @@ describe("demo manevra kataloğu (AK-10.1/10.2)", () => {
   });
 });
 
-describe("powerKw tüm katmanlara yayılır (Q1)", () => {
-  it("girilen güç BSC şarj setpointine yansır (powerKw/2 BSC)", async () => {
-    const exec1 = await exec("charge", { params: { powerKw: 20 }, deviceIds: ["PCS-1", "PCS-2"] });
+describe("powerKw fiziksel zincire yayılır (Q1)", () => {
+  it("girilen güç PCS S06 → connector → BSC SOC'yi şarj yönünde değiştirir", async () => {
+    const before = await bscSoc();
+    const exec1 = await exec("charge", { params: { powerKw: 300 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(exec1.status);
-    let setpoint = Number.NaN;
+    let after = before;
     for (let i = 0; i < 15; i++) {
-      setpoint = await bscChargeSetpoint();
-      if (Math.abs(setpoint - 10) < 0.2) break;
       await sleep(1500);
+      after = await bscSoc();
+      if (after > before + 0.2) break;
     }
-    expect(Number.isFinite(setpoint)).toBe(true);
-    expect(setpoint).toBeCloseTo(10, 1); // 20 kW / 2 BSC
+    expect(after).toBeGreaterThan(before);
     await standby();
-  }, 60_000);
+  }, 90_000);
 });
 
 describe("şarj/deşarj fiziksel etki (AK-10.4)", () => {

@@ -87,7 +87,7 @@ export const DemoDevicesPage: React.FC = () => {
             <small>{DEMO_TOPOLOGY.aux?.trKVA ?? 400} kVA</small>
           </button>
         </div>
-        {Object.entries(DEMO_TOPOLOGY.feeders).map(([fid, fd]) => (
+        {Object.entries(stationTopology.feeders).map(([fid, fd]) => (
         <div className="tg" key={fid}>
           <h4>
             Battery groups · {fd.cell} Feeder {fid} · BESS#{fd.units[0]}–{fd.units[fd.units.length - 1]}

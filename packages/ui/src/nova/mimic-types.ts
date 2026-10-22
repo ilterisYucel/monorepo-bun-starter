@@ -352,6 +352,8 @@ export interface NovaStationState {
 
 export interface NovaMimicState {
   station: NovaStationState;
+  /** İstasyon key → o istasyonun MV pano durumu (istasyon başına 1 MV). */
+  stations?: Record<string, NovaStationState>;
   poiMW: number;
   feederMW: Record<string, number>;
   units: NovaUnitState[];

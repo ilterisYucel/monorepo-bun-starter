@@ -1,3 +1,5 @@
+export { requireDeviceId } from "./contracts";
+export type { ISimulator } from "./contracts";
 export { XRackSimulator, XRackSimulatorAdapter } from "./xrack";
 export { BSCSimulator, BSCSimulatorAdapter, parseBSCMap } from "./bsc";
 export type { BSCSimulatorConfig, ParsedRegister } from "./bsc";

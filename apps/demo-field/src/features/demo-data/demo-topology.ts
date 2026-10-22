@@ -112,8 +112,8 @@ export const DEMO_TOPOLOGY: NovaTopology = {
   },
 };
 
-/** Demo sanal ünite sayısı (SPEC K1 — 9 ünite). */
-export const DEMO_UNIT_COUNT = 9;
+/** Demo toplam sanal ünite sayısı — 2 istasyon × 9 ünite. */
+export const DEMO_UNIT_COUNT = 18;
 
 /**
  * Pack künyesi (UC-13 DEV — referans `topology.js#unit.pack` birebir).
@@ -160,10 +160,12 @@ export const DEMO_PACK_SPEC = {
 
 /** Demo MV istasyon cihazı (canlı station pozisyonu/kV/Hz + komutlar). */
 export const DEMO_MV_DEVICE_ID = "DEMO-MV-1";
+/** İstasyon başına 1 MV simülatörü (bess1 → -1, bess2 → -2). */
+export const DEMO_MV_DEVICE_IDS = ["DEMO-MV-1", "DEMO-MV-2"] as const;
 
 /** Field-tier cihazlar (unified telemetri kaynağı; konteyner payload'ında YOK).
  * 4 PCS: PCS-1/2 → Station 1, PCS-3/4 → Station 2 (K-18). */
-export const FIELD_DEVICE_IDS = ["PCS-1", "PCS-2", "PCS-3", "PCS-4", DEMO_MV_DEVICE_ID];
+export const FIELD_DEVICE_IDS = ["PCS-1", "PCS-2", "PCS-3", "PCS-4", ...DEMO_MV_DEVICE_IDS];
 
 /** OG hücre aksiyonu → demo-MV cihaz config komut adı (UC-4). */
 export function cellCommandName(

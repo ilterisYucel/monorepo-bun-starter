@@ -34,12 +34,13 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole("tab", { name: "Operations" }).click();
 });
 
-test("power input sınırları (min 0 / max 3568) tanımlı", async ({ page }) => {
+test("power input sınırları (MW, min 0 / max > 0) tanımlı", async ({ page }) => {
   test.skip(!fieldId(), "FIELD_ID yok");
   const power = page.getByTestId("ops-power");
   await expect(power).toBeVisible({ timeout: 20_000 });
   await expect(power).toHaveAttribute("min", "0");
-  await expect(power).toHaveAttribute("max", "3568");
+  // UC: güç girişi MW'a geçti; üst sınır istasyon PCS sayısına göre hesaplanır.
+  expect(Number(await power.getAttribute("max"))).toBeGreaterThan(0);
 });
 
 test("gizli manevralar katalogda render edilmez (bsc_prepare/bsc_stop)", async ({ page }) => {

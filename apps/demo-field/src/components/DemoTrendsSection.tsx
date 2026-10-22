@@ -25,13 +25,14 @@ export const TREND_POWER_NAMES = ["Grid Active Power"];
 export const DemoTrendsSection: React.FC = () => {
   const { fieldId, activeStation, stationSystems, restPhases } = useDemoProjectContext();
   const L = DEMO_TOPOLOGY.limits;
-  // GD-1 tek MV istasyonu: trendler iki fiderin (H04 + H05) konteynerlerini ve
-  // PCS çiftlerini birlikte kapsar.
-  void activeStation;
-  const station = { key: "site", name: DEMO_TOPOLOGY.station.name };
-  const pcs = useMemo(() => DEMO_STATIONS.flatMap((s) => [...pcsIdsForStation(s.key)]), []);
-  const containerIds = useMemo(() => Object.values(stationSystems), [stationSystems]);
-  const containerId = containerIds[0];
+  // gdems `activate(pi, k)`: trendler AKTİF istasyonun konteyneri (SOC/SOH/
+  // sıcaklık) + PCS çifti (güç) üzerinden çizilir; istasyon geçişi grafikleri değiştirir.
+  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0]!;
+  const pcs = useMemo(() => [...pcsIdsForStation(station.key)], [station.key]);
+  const containerId = stationSystems[station.key];
+  const containerIds = useMemo(() => (containerId !== undefined ? [containerId] : []), [containerId]);
+  // Gösterim ölçeği: 1 gerçek PCS çifti, istasyonun 9 grubunu temsil eder.
+  const powerScale = (station.units.length * 2) / Math.max(1, pcs.length);
 
   const containerTrends = useQuery({
     queryKey: ["demo-station-trends-bsc", fieldId, station.key, containerId],
@@ -64,8 +65,10 @@ export const DemoTrendsSection: React.FC = () => {
 
   const trendData = useMemo(() => {
     const bsc = Object.values(containerTrends.data ?? {}).flat();
-    return buildTrendSeries([...bsc, ...(powerTrends.data ?? [])]);
-  }, [containerTrends.data, powerTrends.data]);
+    const data = buildTrendSeries([...bsc, ...(powerTrends.data ?? [])]);
+    // Güç: ölçülen 2 PCS → istasyon ölçeği (×9); SOC/sıcaklık zaten istasyon değeri.
+    return { ...data, power: data.power.map((p) => ({ ...p, value: p.value * powerScale })) };
+  }, [containerTrends.data, powerTrends.data, powerScale]);
   // K-18: ölçeği veriye yakınlaştır — SOC ±5 (5'in katı), güç min ±1 MW.
   const bands = useMemo(() => trendBands(trendData), [trendData]);
 

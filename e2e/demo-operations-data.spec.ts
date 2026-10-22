@@ -230,7 +230,7 @@ test.describe("demo-field operasyon veri kontrolü (charge/discharge/standby/cal
       .toBe("ok");
   });
 
-  test("charge/discharge farklı güç: PCS başına floor(total/2) uygular", async ({ request }) => {
+  test("charge/discharge farklı güç: PCS başına floor(total/4) uygular", async ({ request }) => {
     const token = await login(request);
     const cases = [
       { op: "charge", powerKw: 60, sign: -1 },
@@ -239,18 +239,18 @@ test.describe("demo-field operasyon veri kontrolü (charge/discharge/standby/cal
       { op: "discharge", powerKw: 60, sign: 1 },
     ];
     for (const c of cases) {
-      const expected = c.sign * Math.floor(c.powerKw / 2);
+      const expected = c.sign * Math.floor(c.powerKw / 4);
       const res = await exec(request, token, c.op, { powerKw: c.powerKw });
       expect(res.status).toBe("completed");
       await expect
         .poll(
           async () => {
             const p1 = num((await pcs(request, token, "PCS-1"))["Grid Active Power"]);
-            const p2 = num((await pcs(request, token, "PCS-2"))["Grid Active Power"]);
-            if (p1 === undefined || p2 === undefined) return "veri yok";
-            return Math.abs(p1 - expected) <= 1 && Math.abs(p2 - expected) <= 1
+            const p4 = num((await pcs(request, token, "PCS-4"))["Grid Active Power"]);
+            if (p1 === undefined || p4 === undefined) return "veri yok";
+            return Math.abs(p1 - expected) <= 1 && Math.abs(p4 - expected) <= 1
               ? "ok"
-              : `p1=${p1} p2=${p2} exp=${expected}`;
+              : `p1=${p1} p4=${p4} exp=${expected}`;
           },
           { timeout: 30_000, intervals: [2000] },
         )

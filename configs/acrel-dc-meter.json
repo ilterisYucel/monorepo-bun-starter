@@ -11,10 +11,6 @@
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "dc-meter"
-  },
   "telemetry": [
     {
       "name": "Alarm Word",

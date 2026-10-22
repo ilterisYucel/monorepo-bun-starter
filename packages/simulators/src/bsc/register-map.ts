@@ -232,18 +232,6 @@ export const CONTROLLER = {
   DISABLED_RESERVED_2:    40028, // uint16 — Reserved
 } as const;
 
-/**
- * SIMULATOR-ONLY demo güç girişi — LGES Flex BSC Rev AF haritasında YOKTUR.
- * Gerçek BSC'de güç PCS (S06) ile belirlenir; BSC'nin güç setpoint'i yoktur
- * (C2B 40028'de biter). Demo simülatörü PCS'i göremediği için DC gücünü bu
- * iki register'dan alır. Adresler LGES Controller bloğunun (40000–40200)
- * DIŞINDA tutulur ki gerçek bir BSC'ye yanlışlıkla yazılmasın; bu register'lar
- * yalnız demo (v2) device-config'lerinde "SIM ..." adıyla yer alır.
- */
-export const SIM_ONLY = {
-  CHARGE_POWER_SETPOINT:    49000, // uint16 — demo DC şarj gücü (kW, scale 0.1 → max 6553.5 kW)
-  DISCHARGE_POWER_SETPOINT: 49001, // uint16 — demo DC deşarj gücü (kW, scale 0.1)
-} as const;
 
 // ============================================================================
 // ENUM VALUE MAPS

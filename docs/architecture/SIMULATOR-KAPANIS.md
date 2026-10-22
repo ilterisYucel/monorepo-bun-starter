@@ -1,8 +1,8 @@
 ---
 status: active
 space: architecture
-tags: [kapanis, dogrulama, test-kapsami, simulator, modbus-server, self-host, jsmodbus]
-review_date: 2026-10-13
+tags: [kapanis, dogrulama, test-kapsami, simulator, modbus-server, self-host, jsmodbus, contract]
+review_date: 2026-10-21
 ---
 
 # Simülatör Altyapısı — Kapanış (Doğrulama + Test Kapsamı)
@@ -11,6 +11,7 @@ review_date: 2026-10-13
 > **SPEC:** [SIMULATOR-MIMARISI.md](./SIMULATOR-MIMARISI.md) (onaylı — AK/FR/SC kaynağı; REV.01/REV.02 dahil).
 > **Doğrulama tarihi:** 2026-12-01 — T-1…T-9 tamam.
 > **REV notu (2026-10-05):** `SimulatorHost` BSC builder artık `config.details?.rackCount` okur (default 8); `transport.rackCount` referansı kaldırıldı (DEVICE-SERVICE-MIMARISI REV.01 K6).
+> **REV.03 (2026-10-21):** Simülatör sözleşmesi `ISimulator` formalize edildi (UC-5) — bkz. §C (aşağıda).
 
 ## A. DOĞRULAMA
 
@@ -164,4 +165,65 @@ Simülatör altyapısı in-process adapter (`SimulatorTransport`) deseninden sel
 | G6 | `AdapterSourceReader` geçiş shim'i üretimde kullanılmıyor | düşük | registry silinmesiyle kaldırılır (`host.ts` yalnız `TcpSourceReader` kullanır) |
 | G7 | Tick hatası izolasyonu otomatik testle sabitlenmedi (yalnız gözle) | düşük | `simulator-server.test.ts`'e throw eden tick senaryosu eklenebilir |
 
-**review_date:** 2026-10-13
+## C. REV.03 — Simülatör Sözleşmesi (UC-5)
+
+> REV.03 kapanışı: `ISimulator` interface'i tek kaynak olarak `contracts.ts`'te; host ve tüm simülatörler bu sözleşmeye bağlandı (SPEC K8/UC-5). REV.02'ye kadar olan kapsam (A/B bölümleri) değişmedi.
+
+### C.1 Değişiklik Matrisi (REV.03)
+
+| # | Dosya | Değişiklik | Neden (SPEC ref) |
+|:--|:------|:-----------|:-----------------|
+| 1 | `packages/simulators/src/contracts.ts#ISimulator` | YENİ — `deviceId` (readonly) + `start()` + `stop()` + opsiyonel `inject(scenario)` | K8 / FR-5.1 / FR-5.2 |
+| 2 | `packages/simulators/src/contracts.ts#requireDeviceId` | YENİ — boş `deviceId` fail-fast (`IllegalArgumentException` eşdeğeri) | K8 / edge |
+| 3 | `packages/simulators/src/host.ts#SelfHostedSimulator` | `ISimulator`'ü genişletir (self-host ek olarak port açar) | K8 / FR-5.3 |
+| 4 | `packages/simulators/src/host.ts#SimulatorBuilder` | `ISimulator` döner (duck-typing dallanması kalktı) | K8 / FR-5.3 |
+| 5 | `packages/simulators/src/host.ts#SimulatorHost` | `ISimulator` üzerinden yönetim + `inject` interface üzerinden sorgulanır | FR-5.2 / FR-5.3 |
+| 6 | `packages/simulators/src/*/*-simulator.ts` | Tüm simülatörlere `deviceId` readonly alanı (config'ten) | FR-5.1 |
+| 7 | `packages/simulators/src/contracts.test.ts` | YENİ — interface uyumu + opsiyonel inject testleri | T-11 / FR-5.1..5.3 |
+| 8 | `packages/simulators/src/index.ts` | Barrel export (`ISimulator`, `requireDeviceId`) | T-13 / FR-5.4 |
+| 9 | `docs/architecture/SIMULATOR-MIMARISI.md` §4.4 | Yeni simülatör üretim checklist'i yayınlandı | K8 / FR-5.4 |
+
+### C.2 Test Kanıtları (REV.03)
+
+| Kapsam | Komut | Sonuç |
+|:-------|:------|:------|
+| Tam test paketi | `bun run test` | 294 dosya / 2558 test yeşil |
+| Simülatörler (birim) | `nx run simulators:test` | yeşil (`contracts.test.ts` dahil) |
+| Tip denetimi | `tsc --noEmit` (simulators) | temiz (tüm simülatörler `ISimulator` karşılar) |
+| Lint kapısı | `bun run spec:check docs/architecture/SIMULATOR-MIMARISI.md` | 0 hata |
+
+### C.3 Kabul Kriteri Kanıtları (REV.03)
+
+| Kod | Kriter (SPEC özeti) | Kanıt (test/dosya) | Durum |
+|:----|:--------------------|:-------------------|:------|
+| AK-5.1 | Sözleşme uyumu (deviceId/start/stop) | `contracts.test.ts` + typecheck | 🟢 |
+| AK-5.2 | Opsiyonel inject (desteklemeyen → false) | `contracts.test.ts` | 🟢 |
+| AK-5.3 | Host interface kullanımı | `contracts.test.ts` + kod inceleme `host.ts#SimulatorBuilder` | 🟢 |
+| AK-5.4 | Checklist dokümanı | `SIMULATOR-MIMARISI.md` §4.4 gözle kontrol | 🟢 |
+| SC-7 | Tüm simülatörler `ISimulator`'ü karşılar | typecheck + `nx run simulators:test` | 🟢 |
+| SC-8 | Checklist SPEC §4.4'te yayınlı | gözle kontrol | 🟢 |
+
+### C.4 Sapmalar (REV.03)
+
+| # | Sapma | Açıklama |
+|:--|:------|:---------|
+| 1 | `inject` desteklemeyen simülatör `false` döner, hata fırlatmaz | SPEC K8 `inject` opsiyonel; `CbSimulator` gibi senaryo desteği olmayanlar interface'i uygulamaz — `host.inject` `false` döner (mevcut davranış korunur). |
+| 2 | Base class YOK — yaşam döngüsü `SimulatorServer` kompozisyonu | SPEC K8 kararı; kalıtım yerine kompozisyon (Elegant Object). |
+
+### C.5 Kapsam Matrisi (REV.03)
+
+| Durum | Koşul | Beklenen (THEN) | Test ref'i |
+|:------|:------|:----------------|:-----------|
+| `inject` desteklemeyen simülatör | `host.inject(deviceId, scenario)` | `false` döner, hata fırlatmaz | `contracts.test.ts` |
+| Bilinmeyen simülatör tipi | `builders` haritasında yok | fail-fast (mevcut K4 davranışı) | `host.test.ts` |
+| `deviceId` boş | config'te boş/whitespace | constructor fail-fast | `contracts.test.ts` (`requireDeviceId`) |
+| `start()`/`stop()` ikinci çağrı | idempotent | no-op | `simulator-server.test.ts` (REV.02 kapsamı) |
+
+### C.6 KAPSANMAYAN Boşluklar (REV.03)
+
+| # | Boşluk | Risk | İleri iş |
+|:--|:-------|:-----|:---------|
+| G1 | Coverage ≥%90 raporu (SC-3) bu oturumda koşulmadı | düşük | `nx run simulators:test --coverage` |
+| G2 | Yeni simülatör checklist'i bir sonraki gerçek üretimde sınanmadı (yalnız dokümante) | düşük | İlk yeni simülatörde checklist izlenir |
+
+**review_date:** 2026-10-21

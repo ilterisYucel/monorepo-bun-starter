@@ -879,9 +879,5 @@
   ],
   "pollIntervalMs": 2000,
   "commands": {},
-  "type": "energy-analyzer",
-  "transport": {
-    "kind": "simulator",
-    "type": "energy-analyzer"
-  }
+  "type": "energy-analyzer"
 }

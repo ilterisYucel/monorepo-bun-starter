@@ -5,6 +5,8 @@ import { COILS, DISCRETE } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { ControlPanelIoAdapter } from "./control-panel-io-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 interface ControlPanelIoState {
   batteryDoorOpen: boolean;
@@ -43,16 +45,19 @@ export interface FssStateInput {
  * - Bilinmeyen adres: DI false döner, COIL yazımı yok sayılır.
  */
 export interface ControlPanelIoSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class ControlPanelIoSimulator {
+export class ControlPanelIoSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: ControlPanelIoState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
 
-  constructor(config: ControlPanelIoSimulatorConfig = {}) {
+  constructor(config: ControlPanelIoSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = {
       batteryDoorOpen: false,
       panelDoorOpen: false,

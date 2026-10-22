@@ -5,7 +5,7 @@ describe("HvacSimulator", () => {
   let sim: HvacSimulator;
 
   beforeEach(() => {
-    sim = new HvacSimulator();
+    sim = new HvacSimulator({ deviceId: "HVAC-1" });
   });
 
   describe("initial state", () => {
@@ -131,13 +131,13 @@ describe("HvacSimulator", () => {
 
 describe("HvacSimulator — Faz 1 ekleri (compressor action / server RH)", () => {
   it("server humidity (0x2003) yaz/oku", () => {
-    const sim = new HvacSimulator();
+    const sim = new HvacSimulator({ deviceId: "HVAC-1" });
     sim.writeHoldingRegister(0x2003, 450);
     expect(sim.readHoldingRegister(0x2003)).toBe(450);
   });
 
   it("kompresör çalıştırma sayacı 0→çalışma geçişinde artar (0x1028)", () => {
-    const sim = new HvacSimulator();
+    const sim = new HvacSimulator({ deviceId: "HVAC-1" });
     expect(sim.readInputRegister(0x1029)).toBe(0); // low word
     sim.writeHoldingRegister(0x202, 1); // remote on
     sim.inject("hot"); // kompresör soğutma ister

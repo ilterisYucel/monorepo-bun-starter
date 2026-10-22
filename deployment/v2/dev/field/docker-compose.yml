@@ -106,6 +106,7 @@ services:
       - "127.0.0.1:15502:15502"   # PCS-1 BMS yüzü
       - "127.0.0.1:15503:15503"   # PCS-2 BMS yüzü
       - "127.0.0.1:15540:15540"   # DEMO-MV-1
+      - "127.0.0.1:15541:15541"   # DEMO-MV-2
       - "127.0.0.1:15591:15591"   # DebugInjector (dev-only)
     depends_on:
       field-redis:

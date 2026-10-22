@@ -3940,14 +3940,15 @@
           "value": 1
         }
       ],
-      "timeoutMs": 3000,
+      "timeoutMs": 6000,
       "validate": {
         "reads": [
           {
             "name": "PCS Operation Status",
             "expect": 0
           }
-        ]
+        ],
+        "minWaitMs": 1200
       }
     },
     "standby": {
@@ -3958,14 +3959,15 @@
           "value": 1
         }
       ],
-      "timeoutMs": 3000,
+      "timeoutMs": 6000,
       "validate": {
         "reads": [
           {
             "name": "PCS Operation Status",
             "expect": 1
           }
-        ]
+        ],
+        "minWaitMs": 1200
       }
     },
     "fault_reset": {
@@ -4076,6 +4078,12 @@
           }
         ]
       }
+    }
+  },
+  "details": {
+    "gridLink": {
+      "deviceId": "DEMO-MV-2",
+      "feeder": "H04"
     }
   }
 }

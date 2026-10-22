@@ -153,14 +153,14 @@ describe("CommandJobBuilder.build", () => {
     expect(stop.unwrap().atomic).toBe(false);
   });
 
-  it("gerçek config (source of truth): BSC global 30264/30265 + DC-METER voltage + stop (K1)", () => {
+  it("gerçek config (source of truth): BSC rack diff-temp 30264/30265 + DC-METER voltage + stop (K1)", () => {
     const source = sourceFromDir(
       fileURLToPath(new URL("../../../../configs", import.meta.url)),
     );
 
     const bsc = source.load("BSC-1")!;
-    const globalRack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp (Global)");
-    const globalPack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack (Global)");
+    const globalRack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp R1");
+    const globalPack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack R1");
     expect(globalRack?.registerAddress).toBe(30264);
     expect(globalPack?.registerAddress).toBe(30265);
 

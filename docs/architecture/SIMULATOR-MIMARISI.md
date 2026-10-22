@@ -8,7 +8,10 @@ review_date: 2026-12-01
 # Simülatör Altyapısı — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** 🟢 Doğrulanmış (2026-10-05) — T-1…T-9 tamam, doğrulama SIMULATOR-KAPANIS.md'de.
+> **Durum:** 🟡 Geliştirmede (2026-10-21) — REV.03 onaylı; T-10…T-14 tamam, KAPANIŞ güncellemesi bekliyor. REV.02'ye kadar T-1…T-9 doğrulanmış (SIMULATOR-KAPANIS.md).
+> **REV.03 (2026-10-21):** Simülatör sözleşmesi formalize edildi — ortak yüzey `ISimulator`
+> (deviceId + start/stop + opsiyonel inject) tek interface'te; yeni simülatör üretim
+> checklist'i dokümante edildi (UC-5, K8).
 > **REV.01 (2026-10-05):** UC-1 köprü mekanizması jsmodbus **event modeline** çevrildi
 > (hook modeli yazma reddini/exception 0x02'yi desteklemiyor); `writeProtected` holding/coil
 > **aralık listesi** olarak netleştirildi; AK-1.2 buna göre yeniden yazıldı. Gerekçe: jsmodbus
@@ -48,6 +51,7 @@ review_date: 2026-12-01
 | K5 | **Tick simülatörün kendisine taşınır** (`start()` içinde setInterval; opsiyonel `tickIntervalMs`, default 1000 ms) | UC-2 |
 | K6 | **Connector sim-stack master'ı olur:** TCP master (kaynak BSC server'ına + hedef PCS BMS'ye) + kendi server portu; `from.deviceId` host port indeksinden çözülür; `PCS_BMS_TARGET_*` env'i host option'ı; master jsmodbus client API'si kullanır (core sarmalayıcısı DEĞİL — simulators core'a bağımlı OLMAZ) | UC-4 |
 | K7 | **Config biçimi DEĞİŞMEZ:** `kind:"simulator"` KALIR (host'un tek sinyali); `connection.host/port` = server bind adresi (127.0.0.1 + benzersiz statik port); çakışan 4 port düzeltilir (15501-15504) | UC-3 |
+| K8 | **Simülatör sözleşmesi (REV.03):** TEK interface `ISimulator` — `deviceId` (readonly) + `start()` + `stop()` + opsiyonel `inject(scenario)`. Base class YOK; ortak yaşam döngüsü `SimulatorServer` kompozisyonuyla paylaşılır (Elegant Object: kompozisyon > kalıtım). Host `SimulatorBuilder` bu interface'i döner | UC-5 |
 
 ---
 
@@ -118,6 +122,32 @@ class SimulatorHost {
 ### 4.3 Simülatör deseni (self-host)
 
 Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (köprü + tick açar) + `stop(): Promise<void>` — `SimulatorTransport`'ın tick/sunucu rolleri sınıfın içine geçer; `IModbusSimulatorAdapter` sözleşmesi DEĞİŞMEZ (register portu olarak kalır, artık köprünün veri kaynağıdır).
+
+### 4.4 Simülatör sözleşmesi (REV.03)
+
+```ts
+export interface ISimulator {
+  readonly deviceId: string;
+  start(): Promise<void>;
+  stop(): Promise<void>;
+  /** Opsiyonel — yalnız senaryo enjeksiyonunu destekleyen simülatörler uygular. */
+  inject?(scenario: string): boolean;
+}
+```
+
+- `contracts.ts` (`packages/simulators/src/`) tek kaynak; `host.ts#SimulatorBuilder` ve `SelfHostedSimulator` bu interface'e bağlanır.
+- `inject` opsiyoneldir: desteklemeyen simülatör (örn. `CbSimulator`) uygulamaz; `host.inject()` `false` döner.
+- Yaşam döngüsü gövdesi her simülatörde `SimulatorServer` kompozisyonudur (start/stop/tick); base class yoktur.
+
+**Yeni simülatör üretim checklist'i:**
+
+1. `register-map.ts` — cihaz register haritası (tek kaynak, `as const`).
+2. `<X>SimulatorConfig` — tek config objesi (DI kuralı 3); constructor'a tek parametre.
+3. `<X>Simulator implements ISimulator` — `deviceId` config'ten; `start()`/`stop()` `SimulatorServer`'a delege.
+4. `inject(scenario)` — yalnız senaryo desteği varsa.
+5. Host kaydı — `builders` map'ine tek satır (`SimulatorBuilder` uyumlu).
+6. Config — production `configs/<cihaz>.json`; sim ek yükü varsa `configs/<cihaz>-sim*.json` (DEVICE-CONFIG-KAYNAK-AYRIMI SPEC).
+7. Testler — register-accurate okuma/yazma + `start`/`stop` idempotentliği + (varsa) `inject`.
 
 ---
 
@@ -347,6 +377,65 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | `packages/simulators/src/bsc-pcs-connector/connector.ts` | TCP master dönüşümü |
 | `packages/simulators/src/bsc-pcs-connector/connector.test.ts` | Gerçek server'lı testler |
 
+### 6.5 UC-5 — Simülatör Sözleşmesi (REV.03)
+
+**Status:** 🟡 Geliştirmede (T-10…T-14 tamam)
+
+**Kapsam:**
+- dahil: `ISimulator` interface'i (deviceId/start/stop/opsiyonel inject), host'un interface'e bağlanması, mevcut simülatörlerin `deviceId` sağlaması, üretim checklist'i
+- hariç: base class, yeni simülatör davranışı, register haritası değişikliği
+
+**Akış:**
+1. `contracts.ts#ISimulator` tanımlanır (JSDoc: durumlar, edge-case'ler, hata kategorisi).
+2. `host.ts#SelfHostedSimulator`/`SimulatorBuilder` interface'e bağlanır.
+3. Her simülatör `deviceId` alanını config'ten readonly olarak sağlar; `inject` yalnız destekleyenlerde kalır.
+4. Checklist SPEC §4.4'te yayınlanır (yeni simülatör referansı).
+
+**Gereksinimler (FR-x):**
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-5.1 | Tüm simülatörler `ISimulator`'ü sağlamalıdır (deviceId + start + stop) | AK-5.1 |
+| FR-5.2 | `inject` opsiyonel olmalı; desteklemeyen simülatörde host `false` dönmelidir | AK-5.2 |
+| FR-5.3 | Host, simülatörleri yalnız `ISimulator` üzerinden kullanmalıdır (duck-typing dallanması olmadan) | AK-5.3 |
+| FR-5.4 | Yeni simülatör üretim checklist'i dokümante edilmelidir | AK-5.4 |
+
+**Kabul Senaryoları (GWT):**
+
+1. **AK-5.1 — GIVEN** simülatör ailesi **WHEN** tip denetimi koşulur **THEN** her sınıf `ISimulator`'ü karşılar (deviceId/start/stop)
+2. **AK-5.2 — GIVEN** `inject` uygulamayan simülatör **WHEN** `host.inject(deviceId, scenario)` çağrılır **THEN** `false` döner, hata fırlatmaz
+3. **AK-5.3 — GIVEN** `SimulatorBuilder` **WHEN** host simülatörü örnekler **THEN** dönen değer `ISimulator`'dür; host `inject` varlığını interface üzerinden sorgular
+4. **AK-5.4 — GIVEN** SPEC §4.4 **WHEN** yeni simülatör üretilir **THEN** checklist adımları (register-map → config → ISimulator → host kaydı → config türevi → test) izlenir
+
+**Kabul Kriterleri:**
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-5.1 | Sözleşme uyumu | typecheck + unit | ⬜ |
+| AK-5.2 | Opsiyonel inject | unit | ⬜ |
+| AK-5.3 | Host interface kullanımı | unit | ⬜ |
+| AK-5.4 | Checklist dokümanı | gözle kontrol | ⬜ |
+
+**T Görev Listesi:**
+- [x] T-10: `contracts.ts#ISimulator` + JSDoc (kırmızı test öncesi sözleşme)
+- [x] T-11: Kırmızı testler — interface uyumu + opsiyonel inject
+- [x] T-12: Mevcut simülatörlere `deviceId` + host'un `ISimulator`'e bağlanması
+- [x] T-13: Checklist yayını (SPEC §4.4) + `index.ts` barrel
+- [x] T-14: `nx run simulators:test` + typecheck yeşil
+
+**Edge Cases:**
+| Durum | Davranış |
+|:------|:---------|
+| `inject` desteklemeyen simülatör | `host.inject` → `false` (mevcut davranış korunur) |
+| Bilinmeyen simülatör tipi | Host fail-fast (mevcut K4 davranışı) |
+| `deviceId` boş | Constructor fail-fast (`IllegalArgumentException` eşdeğeri) |
+
+**Involved Files:**
+| Dosya | Rol / Değişiklik |
+|:------|:----------------|
+| `packages/simulators/src/contracts.ts` | YENİ — `ISimulator` |
+| `packages/simulators/src/host.ts` | `SelfHostedSimulator`/`SimulatorBuilder` interface'e bağlanır |
+| `packages/simulators/src/*/[a-z]*-simulator.ts` | `deviceId` alanı |
+| `packages/simulators/src/index.ts` | Barrel export |
+
 ---
 
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
@@ -372,6 +461,8 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | SC-4 | `spec:check` temiz | `bun run spec:check` |
 | SC-5 | `maneuver-command.spec.ts` E2E yeşil — config dizininden server'lar kalkar, DeviceService TCP'den okur | test |
 | SC-6 | `SimulatorTransport`/`BmsPortServer` sınıfları YOK (silindi) | grep |
+| SC-7 | Tüm simülatörler `ISimulator`'ü karşılar | typecheck + `nx run simulators:test` |
+| SC-8 | Yeni simülatör checklist'i SPEC §4.4'te yayınlı | gözle kontrol |
 
 ---
 
@@ -380,10 +471,10 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | Aşama | Ürün |
 |:------|:-----|
 | 1. SPEC | Bu doküman |
-| 2. JSDoc | T-1 köprü sözleşmesi |
-| 3. TEST | T-2 (kırmızı) |
-| 4. IMPL | T-3..T-9 |
-| 5. KAPANIŞ | `SIMULATOR-KAPANIS.md` |
+| 2. JSDoc | T-1 köprü sözleşmesi; T-10 `ISimulator` sözleşmesi |
+| 3. TEST | T-2 (kırmızı); T-11 kontrat testleri (kırmızı) |
+| 4. IMPL | T-3..T-9; T-12..T-13 |
+| 5. KAPANIŞ | `SIMULATOR-KAPANIS.md` (REV.03 güncellemesi); T-14 doğrulama |
 
 ---
 
@@ -419,3 +510,8 @@ Her simülatör sınıfı: `constructor(config)` + `start(): Promise<void>` (kö
 | T-7 | Connector → sim-stack TCP master dönüşümü | UC-4 |
 | T-8 | Config port düzeltmeleri (15501-15504, config + config-docker) | UC-3 |
 | T-9 | E2E harness — maneuver-command.spec host entegrasyonu | UC-3 |
+| T-10 | `contracts.ts#ISimulator` + JSDoc | UC-5 |
+| T-11 | Kırmızı kontrat testleri (interface + opsiyonel inject) | UC-5 |
+| T-12 | Simülatörlere `deviceId` + host `ISimulator` bağlama | UC-5 |
+| T-13 | Checklist yayını + barrel export | UC-5 |
+| T-14 | `nx run simulators:test` + typecheck doğrulaması | UC-5 |

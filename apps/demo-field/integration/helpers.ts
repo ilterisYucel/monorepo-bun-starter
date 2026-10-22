@@ -194,8 +194,6 @@ export async function normalizeContainer(token: string): Promise<void> {
     }).catch(() => undefined);
 
   for (const d of ["BSC-1", "BSC-2"]) {
-    await cmd(d, "set_charge_power", { powerKw: 0 });
-    await cmd(d, "set_discharge_power", { powerKw: 0 });
     await cmd(d, "stop");
     await cmd(d, "start");
   }
@@ -245,6 +243,13 @@ export async function normalizeStack(fieldToken: string, containerToken: string)
   await normalizeField(fieldToken);
   await waitForContainerSession(fieldToken);
   await normalizeContainer(containerToken);
+  // Deterministik SOC: testler şarj/deşarj yönünü sabit başlangıçtan ölçer.
+  await Promise.all([
+    inject(CONTAINER_INJECT_URL, "BSC-1", "soc:50").catch(() => false),
+    inject(CONTAINER_INJECT_URL, "BSC-2", "soc:50").catch(() => false),
+    inject(CONTAINER2_INJECT_URL, "BSC-1", "soc:50").catch(() => false),
+    inject(CONTAINER2_INJECT_URL, "BSC-2", "soc:50").catch(() => false),
+  ]);
   await sleep(2000);
 }
 

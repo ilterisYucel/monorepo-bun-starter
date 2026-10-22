@@ -517,6 +517,18 @@ export const deviceBmsTargetHost: ConfigDefinition<string | undefined> = {
 };
 
 /** BSC→PCS connector BMS hedef port override — verilmezse mapping portu. */
+/**
+ * PCS→BSC ters kanal host override (PCS_EMS_TARGET_HOST).
+ * Connector `pcsSources` host'larını ezer (docker: `field-device-service`).
+ */
+export const devicePcsPowerHost: ConfigDefinition<string | undefined> = {
+  key: "device.pcsPowerHost",
+  env: "PCS_EMS_TARGET_HOST",
+  filePath: "device.pcsPowerHost",
+  default: undefined,
+  description: "PCS→BSC ters kanal PCS EMS host'u — connector pcsSources host'unu ezer",
+};
+
 export const deviceBmsTargetPort: ConfigDefinition<number | undefined> = {
   key: "device.bmsTargetPort",
   env: "PCS_BMS_TARGET_PORT",
@@ -1049,6 +1061,7 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   deviceConfigDir,
   deviceBmsTargetHost,
   deviceBmsTargetPort,
+  devicePcsPowerHost,
   servicePollIntervalMs,
   workerConcurrency,
   managementIntervalMs,

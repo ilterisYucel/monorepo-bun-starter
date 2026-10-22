@@ -1188,9 +1188,5 @@
     }
   },
   "pollIntervalMs": 2000,
-  "type": "hvac",
-  "transport": {
-    "kind": "simulator",
-    "type": "hvac"
-  }
+  "type": "hvac"
 }

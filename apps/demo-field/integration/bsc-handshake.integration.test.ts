@@ -11,6 +11,7 @@ import {
   sleep,
   modbusRead,
   modbusWriteSingle,
+  api,
 } from "./helpers";
 
 /**
@@ -34,6 +35,13 @@ beforeAll(async () => {
   fieldToken = await login(FIELD_URL);
   containerToken = await login(CONTAINER_URL);
 });
+
+/** PCS şarj/deşarj → connector ters kanalı → BSC DC gücü (PCS-BSC-GUC-LINKI). */
+const fieldOperation = (name: string, body: Record<string, unknown> = {}) =>
+  api(FIELD_URL, fieldToken, `/api/operations/${name}/execute`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 
 describe("BSC komut el sıkışması", () => {
   it("C3: komut sonrası 40010 finalize ile 0'a döner", async () => {
@@ -75,12 +83,13 @@ describe("BSC komut el sıkışması", () => {
   });
 
   it("C1/C2/M9: akım akarken stop 'Current Flows' (0x000A) ile reddedilir", async () => {
-    // Temiz durum: reset → oto-init → START (akım akar), sonra STOP.
+    // Temiz durum: reset → oto-init → PCS şarj (connector gücü BSC'ye taşır) → START → STOP.
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 10); // RESET
     await sleep(8000);
-    await modbusWriteSingle(BSC_PORT, 49000, 500); // SIM-only şarj setpoint 50 kW (0.1 kW)
+    await fieldOperation("charge", { params: { powerKw: 50 }, deviceIds: ["PCS-1", "PCS-2"] });
+    await sleep(3000); // connector ters kanalı PCS gücünü BSC'ye yazar
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 2); // START (akım akar)
-    await sleep(2000);
+    await sleep(3000);
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 3); // STOP
 
     let ack = 0;
@@ -92,12 +101,14 @@ describe("BSC komut el sıkışması", () => {
     }
     // LGES: normalde akım akarken stop reddedilir ve ack = Current Flows.
     expect(ack).toBe(0x000a);
+    await fieldOperation("standby");
   });
 
   it("C2: akım akarken EMERGENCY (0x0001) kabul edilir (en yüksek öncelik)", async () => {
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 10); // RESET
     await sleep(8000);
-    await modbusWriteSingle(BSC_PORT, 49000, 500);
+    await fieldOperation("charge", { params: { powerKw: 50 }, deviceIds: ["PCS-1", "PCS-2"] });
+    await sleep(3000);
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 2); // START (akım akar)
     await sleep(2000);
     await modbusWriteSingle(BSC_PORT, COMMAND_REQUEST, 1); // EMERGENCY
@@ -110,6 +121,13 @@ describe("BSC komut el sıkışması", () => {
       await sleep(500);
     }
     expect(ack).toBe(2); // DONE
+
+    // Temizlik: Emergency → Normal (sonraki suite'ler temiz state görsün).
+    await api(CONTAINER_URL, containerToken, "/api/maneuvers/bsc_recovery/execute", {
+      method: "POST",
+      body: "{}",
+    });
+    await sleep(3000);
   });
 
   it("M5: close_contactors timeoutMs N×400+5000 (8 rack → 8200 ms)", () => {

@@ -126,9 +126,11 @@ async function main() {
 
   // Self-host simülatörler (BSC/… + BSC→PCS connector) — device-service TCP okur.
   const { devices: deviceConfigs } = new DeviceConfigLoader(configDir, opsLogger).load();
+  const pcsPowerHost = config.get<string | undefined>("device.pcsPowerHost");
   const host = new SimulatorHost(deviceConfigs, {
     configDir,
     ...(bmsTarget ? { bmsTarget } : {}),
+    ...(pcsPowerHost !== undefined ? { pcsPowerHost } : {}),
   });
   await host.start();
 

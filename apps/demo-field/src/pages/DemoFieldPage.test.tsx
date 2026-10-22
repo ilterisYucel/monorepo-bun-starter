@@ -103,10 +103,10 @@ describe("DemoFieldPage — site layout (UC-4)", () => {
     expect(screen.getByText("Site layout")).toBeTruthy();
   });
 
-  it("GD-1 tek MV istasyonu: istasyon seçici YOK (H04 1–5 + H05 6–9 tek single-line)", () => {
+  it("istasyon seçici var (2 istasyon × 9 ünite; çizim aktif istasyonu gösterir)", () => {
     renderPage();
-    expect(screen.queryAllByRole("button", { name: "BESS MV St. #1" })).toHaveLength(0);
-    expect(screen.queryAllByRole("button", { name: "BESS MV St. #2" })).toHaveLength(0);
+    expect(screen.getAllByText(/BESS MV St\. #1/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/BESS MV St\. #2/).length).toBeGreaterThan(0);
   });
 
   it("DemoMimic mount olurken tema değişkenlerini light'a EZMEZ (dark korunur)", () => {

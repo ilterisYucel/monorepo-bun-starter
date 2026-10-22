@@ -5,6 +5,8 @@ import { COILS, DISCRETE, INPUT, PANEL_STATUS, ZONE_STATE } from "./register-map
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { FssAdapter } from "./fss-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 const ZONE_COUNT = 3;
 const DETECTOR_COUNT = 2;
@@ -44,6 +46,7 @@ interface FssState {
  * - Bilinmeyen adres → 0/false (hata yok).
  */
 export interface FssSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
   /** Söndürme gecikmesi (s) — referans 30. */
@@ -52,14 +55,16 @@ export interface FssSimulatorConfig {
   readonly h2AlarmLEL?: number;
 }
 
-export class FssSimulator {
+export class FssSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: FssState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private readonly releaseDelayS: number;
   private readonly h2AlarmLEL: number;
   private server: SimulatorServer | undefined;
 
-  constructor(config: FssSimulatorConfig = {}) {
+  constructor(config: FssSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.releaseDelayS = config.releaseDelayS ?? 30;
     this.h2AlarmLEL = config.h2AlarmLEL ?? 10;
     this.network = config.network;

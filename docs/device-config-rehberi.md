@@ -4,7 +4,9 @@
 > **Kapsam:** Kök `configs/*.json` (source of truth) ve `deployment/<site>/<tier>/device-configs/*.json` (proje kopyaları) dosyalarında Modbus cihazlarının nasıl tanımlanacağı.
 > **Temel fikir:** Bir cihaz dosyası = cihazın kimliği + bağlantı bilgisi + okunacak/yazılacak değerlerin listesi. Sistem gerisini halleder.
 >
-> **Akış (MANDATORY):** Yeni cihaz config'i **önce kök `configs/`'e gerçek alet adıyla** eklenir (örn. `flex-bsc.json`); register/bitfield/alarm/canonical burada sabitlenir. Projede kullanılırken buradan `deployment/<site>/<tier>/device-configs/`'e **kopyalanır** ve yalnız projeye özgü değişkenler (host, port, slaveId, instance adı/id) değiştirilir. Register listesi ve alarmlar projeye göre **değişmez**.
+> **Akış (MANDATORY):** Yeni cihaz config'i **önce kök `configs/`'e gerçek alet adıyla** eklenir (örn. `flex-bsc.json`); register/bitfield/alarm/canonical burada sabitlenir. Projede kullanılırken buradan `deployment/<site>/<tier>/device-configs/`'e **kopyalanır** ve yalnız projeye özgü değişkenler (host, port, slaveId, instance adı/id, `transport`) değiştirilir. Register listesi ve alarmlar projeye göre **değişmez**.
+>
+> **Simülatör ayrımı:** Kök `configs/*.json` **production-only**'dir — `transport`, `details`, `connector` gibi simülatöre özgü alanlar kökte BULUNMAZ. Simülatörün ek yüke ihtiyacı varsa **tam kapsamlı türev** dosya `configs/sim/` altında üretilir: `<cihaz>-sim[-<eşleşme>].json` (örn. `configs/sim/flex-bsc-sim-with-wattox.json`, `configs/sim/wattox-pcs-sim.json`). Türev, production içeriğin tamamını + sim alanlarını taşır. Sim tier'ı türevden, gerçek cihaz tier'ı production dosyasından türetilir. Detay: [DEVICE-CONFIG-KAYNAK-AYRIMI-MIMARISI.md](architecture/DEVICE-CONFIG-KAYNAK-AYRIMI-MIMARISI.md).
 
 ## 1. En küçük örnek
 

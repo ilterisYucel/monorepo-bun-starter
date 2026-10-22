@@ -11,7 +11,7 @@ import { listNovaUnits } from "@gd-monorepo/ui";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { FieldContainer } from "./demoApi";
 import { BANK_DEVICE_MAP, DEMO_MV_DEVICE_ID, DEMO_UNIT_COUNT } from "./demo-topology";
-import { stationsForContainers } from "./demo-stations";
+import { DEMO_STATIONS, stationsForContainers } from "./demo-stations";
 import { fanOutUnits } from "./fanOutUnits";
 import {
   buildAux,
@@ -269,7 +269,12 @@ function derivePower(
   topo: NovaTopology,
   station: NovaStationState,
 ): { poiMW: number; feederMW: Record<string, number>; iA: Record<string, number> } {
-  const meta = new Map(listNovaUnits(topo).map((m) => [m.n, m.feeder]));
+  const meta = new Map<number, string>(listNovaUnits(topo).map((m) => [m.n, m.feeder]));
+  // 2 istasyon × 9 ünite: ünite→fider eşlemesi istasyon config'inden (10–18 dahil).
+  for (const st of DEMO_STATIONS) {
+    for (const n of st.feeders.A) meta.set(n, "A");
+    for (const n of st.feeders.B) meta.set(n, "B");
+  }
   const feederMW: Record<string, number> = {};
   for (const f of Object.keys(topo.feeders)) feederMW[f] = 0;
 
@@ -282,7 +287,7 @@ function derivePower(
     let unitMW = -auxMW;
     for (const pcs of u.pcs) unitMW += signedMW(pcs);
     poiMW += unitMW;
-    if (f !== undefined) feederMW[f] += unitMW;
+    if (f !== undefined) feederMW[f] = (feederMW[f] ?? 0) + unitMW;
   }
 
   const kV = station.kV > 0 ? station.kV : topo.station.nominalKV;
@@ -370,6 +375,9 @@ export function mapFieldToMimicState(
   const allRows = [...containers.flatMap((c) => c.latestTelemetry), ...extra];
   const tagged = containers.some((c) => typeof c.station === "string" && c.station.length > 0);
   const units: NovaUnitState[] = [];
+  /** İstasyon key → o istasyonun MV panosu (istasyon başına 1 MV simülatörü). */
+  const stations: Record<string, NovaStationState> = {};
+  const lastUnitByStation: number[] = [];
 
   if (!tagged) {
     // Legacy/eski kurulum (etiket yok): tarihsel field kablajı PCS-1/2 ile tek
@@ -382,6 +390,11 @@ export function mapFieldToMimicState(
       u.n = seq[i] ?? i + 1;
     });
     units.push(...stUnits);
+    for (const g of stationsForContainers([])) {
+      stations[g.station.key] = buildStation(indexByDevice(allRows).get(g.station.mvDeviceId), topo);
+      const lastUnit = g.station.units.at(-1);
+      if (lastUnit !== undefined) lastUnitByStation.push(lastUnit);
+    }
   } else {
     // UC-13: konteyner `station` etiketine göre istasyon-bazlı fan-out.
     for (const g of stationsForContainers(containers)) {
@@ -390,28 +403,32 @@ export function mapFieldToMimicState(
         .flatMap((c) => c.latestTelemetry);
       const rows = [...containerRows, ...extra];
       if (rows.length === 0) continue;
-      const proto = buildProto(indexByDevice(rows), topo, g.station.pcs);
+      const byDevice = indexByDevice(rows);
+      const proto = buildProto(byDevice, topo, g.station.pcs);
       const stUnits = fanOutUnits(proto, g.station.units.length);
       g.station.units.forEach((n, i) => {
         if (stUnits[i]) stUnits[i].n = n;
       });
       units.push(...stUnits);
+      stations[g.station.key] = buildStation(byDevice.get(g.station.mvDeviceId), topo);
+      const lastUnit = g.station.units.at(-1);
+      if (lastUnit !== undefined) lastUnitByStation.push(lastUnit);
     }
     units.sort((a, b) => a.n - b.n);
   }
 
-  // Son ünitede H03 (radyal hat sonu) yoktur.
-  const lastByN = new Set(
-    listNovaUnits(topo)
-      .filter((m) => m.last)
-      .map((m) => m.n),
-  );
+  // Son ünitede H03 (radyal hat sonu) yoktur — her istasyonun son ünitesi.
+  const lastByN = new Set<number>(lastUnitByStation);
   for (const u of units) {
     if (lastByN.has(u.n)) u.rmu.H03 = null;
   }
 
   const byDeviceAll = indexByDevice(allRows);
-  const station = buildStation(byDeviceAll.get(DEMO_MV_DEVICE_ID), topo);
+  const station =
+    Object.values(stations)[0] ?? buildStation(byDeviceAll.get(DEMO_MV_DEVICE_ID), topo);
+  if (Object.keys(stations).length === 0) {
+    stations["bess1"] = station;
+  }
   const { poiMW, feederMW, iA } = derivePower(units, topo, station);
   station.iA = iA;
 
@@ -419,6 +436,7 @@ export function mapFieldToMimicState(
 
   return {
     station,
+    stations,
     poiMW,
     feederMW,
     units,

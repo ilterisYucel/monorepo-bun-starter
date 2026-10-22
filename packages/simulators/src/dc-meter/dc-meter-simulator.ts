@@ -4,6 +4,8 @@ import { INPUT } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { DcMeterAdapter } from "./dc-meter-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 /** float32 → BE kelime çifti (Modbus register çifti kodlaması). */
 function floatToWords(value: number): [number, number] {
@@ -24,11 +26,13 @@ function floatToWords(value: number): [number, number] {
  * - Bilinmeyen adres → 0.
  */
 export interface DcMeterSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class DcMeterSimulator {
+export class DcMeterSimulator implements ISimulator {
+  readonly deviceId: string;
   private voltage = 750.0;
   private current = 100.0;
   private power = 75.0;
@@ -36,7 +40,8 @@ export class DcMeterSimulator {
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
 
-  constructor(config: DcMeterSimulatorConfig = {}) {
+  constructor(config: DcMeterSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.network = config.network;
   }
 

@@ -15,7 +15,7 @@ import {
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DemoTrendsSection } from "../components/DemoTrendsSection";
 import { demoApi } from "../features/demo-data/demoApi";
-import { DEMO_MV_DEVICE_ID, cellCommandName } from "../features/demo-data/demo-topology";
+import { cellCommandName } from "../features/demo-data/demo-topology";
 import { DEMO_COLLECTOR, DEMO_SOURCE, DEMO_STATIONS, demoPlantTotals } from "../features/demo-data/demo-stations";
 
 const OVERLAYS: Array<{ id: OverlayMode; label: string }> = [
@@ -28,9 +28,8 @@ const OVERLAYS: Array<{ id: OverlayMode; label: string }> = [
 const PLANT = demoPlantTotals();
 
 /**
- * GD-1 (GDE-202030) stand-alone BESS'tir: tek MV istasyonu, H04 fideri
- * BESS#1–5, H05 fideri BESS#6–9 (2026-10-15 sahibi). PV kaynak istasyonları /
- * Metal Clad kollektör bu projeye ait DEĞİL → plant overview gösterilmez.
+ * İstasyon başına 1 MV simülatörü; çizim aktif istasyonun 9 ünitesi + 2 fideri.
+ * Plant overview (collector) bu projede gösterilmez.
  */
 const SHOW_PLANT_OVERVIEW = false;
 
@@ -69,11 +68,13 @@ export const DemoFieldPage: React.FC = () => {
     [stationTopology, cellId],
   );
 
+  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0]!;
+
   const handleCellCommand = async (id: string, action: DemoCellAction): Promise<void> => {
     setCellBusy(true);
     setCellMsg("");
     try {
-      const r = await demoApi.executeCommand(DEMO_MV_DEVICE_ID, cellCommandName(id, action));
+      const r = await demoApi.executeCommand(station.mvDeviceId, cellCommandName(id, action));
       setCellMsg(r.success === false ? `Interlocked: ${r.reason ?? "rejected"}` : "Command applied.");
       await queryClient.invalidateQueries({ queryKey: ["demo-field-containers"] });
     } catch (e) {

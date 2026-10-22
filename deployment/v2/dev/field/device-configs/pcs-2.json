@@ -693,7 +693,7 @@
     {
       "name": "IGBT Temp A1",
       "description": "IGBT Temp A1",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12116,
       "registerTableType": "HOLDING_REGISTER",
@@ -708,7 +708,7 @@
     {
       "name": "IGBT Temp B1",
       "description": "IGBT Temp B1",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12117,
       "registerTableType": "HOLDING_REGISTER",
@@ -723,7 +723,7 @@
     {
       "name": "IGBT Temp C1",
       "description": "IGBT Temp C1",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12118,
       "registerTableType": "HOLDING_REGISTER",
@@ -738,7 +738,7 @@
     {
       "name": "IGBT Temp A2",
       "description": "IGBT Temp A2",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12160,
       "registerTableType": "HOLDING_REGISTER",
@@ -753,7 +753,7 @@
     {
       "name": "IGBT Temp B2",
       "description": "IGBT Temp B2",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12161,
       "registerTableType": "HOLDING_REGISTER",
@@ -768,7 +768,7 @@
     {
       "name": "IGBT Temp C2",
       "description": "IGBT Temp C2",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12162,
       "registerTableType": "HOLDING_REGISTER",
@@ -783,7 +783,7 @@
     {
       "name": "Reactor Temperature 1",
       "description": "Reactor Temperature 1",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12120,
       "registerTableType": "HOLDING_REGISTER",
@@ -798,7 +798,7 @@
     {
       "name": "Reactor Temperature 2",
       "description": "Reactor Temperature 2",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12163,
       "registerTableType": "HOLDING_REGISTER",
@@ -813,7 +813,7 @@
     {
       "name": "Filter Capacitor Temperature",
       "description": "Filter Capacitor Temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 8232,
       "registerTableType": "HOLDING_REGISTER",
@@ -828,7 +828,7 @@
     {
       "name": "Internal Cavity Temperature",
       "description": "Internal Cavity Temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 8231,
       "registerTableType": "HOLDING_REGISTER",
@@ -859,7 +859,7 @@
     {
       "name": "Ambient Temperature",
       "description": "Ambient Temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12119,
       "registerTableType": "HOLDING_REGISTER",
@@ -901,7 +901,7 @@
     {
       "name": "Grounding Insulation Impedance 1",
       "description": "Grounding Insulation Impedance 1",
-      "unit": "kΩ",
+      "unit": "k\u03a9",
       "protocol": "MODBUS",
       "registerAddress": 12138,
       "registerTableType": "HOLDING_REGISTER",
@@ -915,7 +915,7 @@
     {
       "name": "Grounding Insulation Impedance 2",
       "description": "Grounding Insulation Impedance 2",
-      "unit": "kΩ",
+      "unit": "k\u03a9",
       "protocol": "MODBUS",
       "registerAddress": 12167,
       "registerTableType": "HOLDING_REGISTER",
@@ -1209,7 +1209,7 @@
     {
       "name": "Highest Cell Temperature",
       "description": "Highest Cell Temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 780,
       "registerTableType": "HOLDING_REGISTER",
@@ -1225,7 +1225,7 @@
     {
       "name": "Lowest Cell Temperature",
       "description": "Lowest Cell Temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 781,
       "registerTableType": "HOLDING_REGISTER",
@@ -3895,7 +3895,7 @@
     {
       "telemetry": "Cabinet Door Open",
       "severity": "warning",
-      "description": "PCS kabin kapısı açık"
+      "description": "PCS kabin kap\u0131s\u0131 a\u00e7\u0131k"
     },
     {
       "telemetry": "Local Emergency Stop",
@@ -3915,7 +3915,7 @@
   ],
   "commands": {
     "start": {
-      "label": "Başlat",
+      "label": "Ba\u015flat",
       "telemetries": [
         {
           "name": "Start Command",
@@ -3940,14 +3940,15 @@
           "value": 1
         }
       ],
-      "timeoutMs": 3000,
+      "timeoutMs": 6000,
       "validate": {
         "reads": [
           {
             "name": "PCS Operation Status",
             "expect": 0
           }
-        ]
+        ],
+        "minWaitMs": 1200
       }
     },
     "standby": {
@@ -3958,14 +3959,15 @@
           "value": 1
         }
       ],
-      "timeoutMs": 3000,
+      "timeoutMs": 6000,
       "validate": {
         "reads": [
           {
             "name": "PCS Operation Status",
             "expect": 1
           }
-        ]
+        ],
+        "minWaitMs": 1200
       }
     },
     "fault_reset": {
@@ -3987,7 +3989,7 @@
       }
     },
     "charge": {
-      "label": "Şarj",
+      "label": "\u015earj",
       "telemetries": [
         {
           "name": "Active Power Setpoint",
@@ -4001,7 +4003,7 @@
           "max": 1725,
           "default": 500,
           "required": true,
-          "label": "Güç (kW)"
+          "label": "G\u00fc\u00e7 (kW)"
         }
       },
       "timeoutMs": 5000,
@@ -4015,7 +4017,7 @@
       }
     },
     "discharge": {
-      "label": "Deşarj",
+      "label": "De\u015farj",
       "telemetries": [
         {
           "name": "Active Power Setpoint",
@@ -4029,7 +4031,7 @@
           "max": 1725,
           "default": 500,
           "required": true,
-          "label": "Güç (kW)"
+          "label": "G\u00fc\u00e7 (kW)"
         }
       },
       "timeoutMs": 5000,
@@ -4043,7 +4045,7 @@
       }
     },
     "set_power_zero": {
-      "label": "Gücü Sıfırla",
+      "label": "G\u00fcc\u00fc S\u0131f\u0131rla",
       "telemetries": [
         {
           "name": "Active Power Setpoint",
@@ -4076,6 +4078,12 @@
           }
         ]
       }
+    }
+  },
+  "details": {
+    "gridLink": {
+      "deviceId": "DEMO-MV-1",
+      "feeder": "H05"
     }
   }
 }

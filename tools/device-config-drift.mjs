@@ -9,6 +9,8 @@
  * DEĞİŞMEZ; deployment yalnız proje değişkeni (deviceId/name/connection/transport) taşır.
  * - Eksik girdi → HATA.
  * - Fazla girdi → allowlist'te ise UYARI (ör. demo-only setpoint), değilse HATA.
+ * - Kökteki `*-sim*.json` türevleri kaynak SAYILMAZ (DEVICE-CONFIG-KAYNAK-AYRIMI);
+ *   karşılaştırma production kök config'le yapılır (türev telemetry'yi kopyalar).
  *
  * Çıkış kodu: HATA varsa 1.
  */
@@ -76,6 +78,33 @@ for (const { cfg } of rootConfigs) {
 }
 
 const issues = [];
+
+// Kök config production-only olmalı (DEVICE-CONFIG-KAYNAK-AYRIMI K1/FR-1.1).
+const SIM_ONLY_KEYS = ["transport", "details", "connector"];
+for (const { path, cfg } of rootConfigs) {
+  for (const key of SIM_ONLY_KEYS) {
+    if (key in cfg) issues.push(["error", path, `sim-only-key: ${key}`]);
+  }
+}
+
+// Sim türevi production içeriği kapsamalı (K2/FR-1.2): eksik telemetry/bitfield/komut → HATA.
+const simVariants = loadDeviceConfigs(join(rootDir, "sim"));
+for (const { path, cfg } of simVariants) {
+  const base = rootByType.get(cfg.type ?? cfg.deviceId);
+  if (base === undefined) {
+    issues.push(["error", path, `sim türevi için kök config yok (type=${cfg.type ?? cfg.deviceId})`]);
+    continue;
+  }
+  for (const issue of compareDeviceConfig(base, cfg)) {
+    if (issue.kind === "missing") issues.push(["error", path, `sim eksik: ${issue.key}`]);
+  }
+  for (const command of Object.keys(base.commands ?? {})) {
+    if (!(command in (cfg.commands ?? {}))) {
+      issues.push(["error", path, `sim eksik komut: ${command}`]);
+    }
+  }
+}
+
 for (const dir of findDeployConfigDirs(deployDir)) {
   for (const { cfg } of loadDeviceConfigs(dir)) {
     const type = cfg.type ?? cfg.deviceId;

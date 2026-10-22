@@ -52,9 +52,5 @@
     "H05_earth_open": { "label": "H05 toprağı aç", "telemetries": [{ "name": "H05 Earth Open", "value": 1 }], "timeoutMs": 2000, "validate": { "reads": [{ "name": "H05 Earth", "expect": 0 }] } },
     "H01_earth_open": { "label": "H01 toprağı aç", "telemetries": [{ "name": "H01 Earth Open", "value": 1 }], "timeoutMs": 2000, "validate": { "reads": [{ "name": "H01 Earth", "expect": 0 }] } },
     "H01_earth_close": { "label": "H01 toprağı kapat (kilitli)", "telemetries": [{ "name": "H01 Earth Close", "value": 1 }], "timeoutMs": 2000, "validate": { "reads": [{ "name": "H01 Earth", "expect": 1 }] } }
-  },
-  "transport": {
-    "kind": "simulator",
-    "type": "demo-mv-station"
   }
 }

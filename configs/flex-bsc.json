@@ -6,7 +6,7 @@
   "protocol": "MODBUS",
   "connection": {
     "host": "127.0.0.1",
-    "port": 15501,
+    "port": 502,
     "slaveId": 1
   },
   "telemetry": [
@@ -881,11 +881,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R1",
-      "description": "BMS SW Name (Rack 1)",
+      "name": "BMS SW Name R1 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 30178,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R1 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30180,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R1 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30182,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R1 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30184,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -1608,11 +1662,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R2",
-      "description": "BMS SW Name (Rack 2)",
+      "name": "BMS SW Name R2 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 30328,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R2 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30330,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R2 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30332,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R2 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30334,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -2335,11 +2443,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R3",
-      "description": "BMS SW Name (Rack 3)",
+      "name": "BMS SW Name R3 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 30478,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R3 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30480,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R3 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30482,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R3 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30484,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -3062,11 +3224,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R4",
-      "description": "BMS SW Name (Rack 4)",
+      "name": "BMS SW Name R4 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 30628,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R4 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30630,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R4 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30632,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R4 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30634,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -3789,11 +4005,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R5",
-      "description": "BMS SW Name (Rack 5)",
+      "name": "BMS SW Name R5 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 30778,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R5 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30780,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R5 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30782,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R5 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30784,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -4516,11 +4786,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R6",
-      "description": "BMS SW Name (Rack 6)",
+      "name": "BMS SW Name R6 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 30928,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R6 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30930,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R6 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30932,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R6 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30934,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -5243,11 +5567,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R7",
-      "description": "BMS SW Name (Rack 7)",
+      "name": "BMS SW Name R7 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 31078,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R7 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31080,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R7 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31082,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R7 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31084,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -5970,11 +6348,65 @@
       "maxStaleMs": 60000
     },
     {
-      "name": "BMS SW Name R8",
-      "description": "BMS SW Name (Rack 8)",
+      "name": "BMS SW Name R8 W1",
+      "description": "BMS SW Name (128-bit) word 1",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 31228,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R8 W2",
+      "description": "BMS SW Name (128-bit) word 2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31230,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R8 W3",
+      "description": "BMS SW Name (128-bit) word 3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31232,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      },
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "BMS SW Name R8 W4",
+      "description": "BMS SW Name (128-bit) word 4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31234,
       "registerTableType": "INPUT_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
@@ -6877,34 +7309,905 @@
       "tags": {}
     },
     {
-      "name": "Rack Max Diff Temp (Global)",
-      "description": "Max Difference of Temperature in Rack (online rack'ler arası — Flex map 30264)",
-      "unit": "°C",
+      "name": "Rack Disabled R1",
+      "description": "Rack Disabled R1",
+      "unit": "-",
       "protocol": "MODBUS",
-      "registerAddress": 30264,
-      "registerTableType": "INPUT_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.1,
+      "registerAddress": 1,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {},
+      "tags": {
+        "rack_id": "1"
+      }
+    },
+    {
+      "name": "Rack Online R1",
+      "description": "Rack Online R1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 9,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      }
+    },
+    {
+      "name": "Rack Alarm R1",
+      "description": "Rack Alarm R1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 17,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      }
+    },
+    {
+      "name": "Rack Warning R1",
+      "description": "Rack Warning R1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 25,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      }
+    },
+    {
+      "name": "Rack Fault R1",
+      "description": "Rack Fault R1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 33,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R1",
+      "description": "Rack Non-balancing R1",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 41,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "1"
+      }
+    },
+    {
+      "name": "Rack Disabled R2",
+      "description": "Rack Disabled R2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      }
+    },
+    {
+      "name": "Rack Online R2",
+      "description": "Rack Online R2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 10,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      }
+    },
+    {
+      "name": "Rack Alarm R2",
+      "description": "Rack Alarm R2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 18,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      }
+    },
+    {
+      "name": "Rack Warning R2",
+      "description": "Rack Warning R2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 26,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      }
+    },
+    {
+      "name": "Rack Fault R2",
+      "description": "Rack Fault R2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 34,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R2",
+      "description": "Rack Non-balancing R2",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 42,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "2"
+      }
+    },
+    {
+      "name": "Rack Disabled R3",
+      "description": "Rack Disabled R3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      }
+    },
+    {
+      "name": "Rack Online R3",
+      "description": "Rack Online R3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 11,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      }
+    },
+    {
+      "name": "Rack Alarm R3",
+      "description": "Rack Alarm R3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 19,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      }
+    },
+    {
+      "name": "Rack Warning R3",
+      "description": "Rack Warning R3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 27,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      }
+    },
+    {
+      "name": "Rack Fault R3",
+      "description": "Rack Fault R3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 35,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R3",
+      "description": "Rack Non-balancing R3",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 43,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "3"
+      }
+    },
+    {
+      "name": "Rack Disabled R4",
+      "description": "Rack Disabled R4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      }
+    },
+    {
+      "name": "Rack Online R4",
+      "description": "Rack Online R4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      }
+    },
+    {
+      "name": "Rack Alarm R4",
+      "description": "Rack Alarm R4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 20,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      }
+    },
+    {
+      "name": "Rack Warning R4",
+      "description": "Rack Warning R4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 28,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      }
+    },
+    {
+      "name": "Rack Fault R4",
+      "description": "Rack Fault R4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 36,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R4",
+      "description": "Rack Non-balancing R4",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 44,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "4"
+      }
+    },
+    {
+      "name": "Rack Disabled R5",
+      "description": "Rack Disabled R5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      }
+    },
+    {
+      "name": "Rack Online R5",
+      "description": "Rack Online R5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 13,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      }
+    },
+    {
+      "name": "Rack Alarm R5",
+      "description": "Rack Alarm R5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 21,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      }
+    },
+    {
+      "name": "Rack Warning R5",
+      "description": "Rack Warning R5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 29,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      }
+    },
+    {
+      "name": "Rack Fault R5",
+      "description": "Rack Fault R5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 37,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R5",
+      "description": "Rack Non-balancing R5",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 45,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "5"
+      }
+    },
+    {
+      "name": "Rack Disabled R6",
+      "description": "Rack Disabled R6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      }
+    },
+    {
+      "name": "Rack Online R6",
+      "description": "Rack Online R6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 14,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      }
+    },
+    {
+      "name": "Rack Alarm R6",
+      "description": "Rack Alarm R6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 22,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      }
+    },
+    {
+      "name": "Rack Warning R6",
+      "description": "Rack Warning R6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 30,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      }
+    },
+    {
+      "name": "Rack Fault R6",
+      "description": "Rack Fault R6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 38,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R6",
+      "description": "Rack Non-balancing R6",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 46,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "6"
+      }
+    },
+    {
+      "name": "Rack Disabled R7",
+      "description": "Rack Disabled R7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      }
+    },
+    {
+      "name": "Rack Online R7",
+      "description": "Rack Online R7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 15,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      }
+    },
+    {
+      "name": "Rack Alarm R7",
+      "description": "Rack Alarm R7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 23,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      }
+    },
+    {
+      "name": "Rack Warning R7",
+      "description": "Rack Warning R7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 31,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      }
+    },
+    {
+      "name": "Rack Fault R7",
+      "description": "Rack Fault R7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 39,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R7",
+      "description": "Rack Non-balancing R7",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 47,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "7"
+      }
+    },
+    {
+      "name": "Rack Disabled R8",
+      "description": "Rack Disabled R8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      }
+    },
+    {
+      "name": "Rack Online R8",
+      "description": "Rack Online R8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 16,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      }
+    },
+    {
+      "name": "Rack Alarm R8",
+      "description": "Rack Alarm R8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 24,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      }
+    },
+    {
+      "name": "Rack Warning R8",
+      "description": "Rack Warning R8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 32,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      }
+    },
+    {
+      "name": "Rack Fault R8",
+      "description": "Rack Fault R8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      }
+    },
+    {
+      "name": "Rack Non-balancing R8",
+      "description": "Rack Non-balancing R8",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 48,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "rack_id": "8"
+      }
+    },
+    {
+      "name": "Controller Heartbeat 2",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40001,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
       "deadband": "auto",
       "maxStaleMs": 60000
     },
     {
-      "name": "Rack Max Diff Temp Pack (Global)",
-      "description": "Max Difference of Temperature in Pack (online rack'ler arası — Flex map 30265)",
-      "unit": "°C",
+      "name": "Controller Heartbeat 3",
+      "description": "Controller Heartbeat",
+      "unit": "-",
       "protocol": "MODBUS",
-      "registerAddress": 30265,
-      "registerTableType": "INPUT_REGISTER",
+      "registerAddress": 40002,
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
-      "scale": 0.1,
+      "scale": 1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {},
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 4",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40003,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 5",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40004,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 6",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40005,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 7",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40006,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 8",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40007,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 9",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40008,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Controller Heartbeat 10",
+      "description": "Controller Heartbeat",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 40009,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
       "deadband": "auto",
       "maxStaleMs": 60000
     }
@@ -25541,6 +26844,222 @@
       "tags": {
         "rack_id": "8"
       }
+    },
+    {
+      "registerAddress": 30271,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "1"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R1",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R1",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30421,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "2"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R2",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R2",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30571,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "3"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R3",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R3",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30721,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "4"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R4",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R4",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 30871,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "5"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R5",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R5",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 31021,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "6"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R6",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R6",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 31171,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "7"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R7",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R7",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "registerAddress": 31321,
+      "registerType": "INPUT_REGISTER",
+      "tags": {
+        "rack_id": "8"
+      },
+      "fields": [
+        {
+          "bitStart": 8,
+          "bitEnd": 15,
+          "name": "Rack Calibration Count R8",
+          "description": "Recalibration count (0-9 cyclic)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "bitStart": 0,
+          "bitEnd": 7,
+          "name": "Rack Calibration Request R8",
+          "description": "0x01 = full charge recommended (SOC recalibration)",
+          "unit": "-",
+          "scale": 1,
+          "offset": 0
+        }
+      ]
     }
   ],
   "pollIntervalMs": 1000,
@@ -25582,7 +27101,11 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2,
+              6
+            ]
           }
         ]
       },
@@ -25628,7 +27151,11 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2,
+              8
+            ]
           }
         ]
       },
@@ -25651,7 +27178,11 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2,
+              9
+            ]
           }
         ]
       },
@@ -25720,7 +27251,11 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2,
+              18
+            ]
           }
         ]
       },
@@ -25743,7 +27278,10 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2
+            ]
           }
         ]
       },
@@ -25754,137 +27292,36 @@
     }
   },
   "type": "bsc",
-  "transport": {
-    "kind": "simulator",
-    "type": "bsc"
-  },
-  "details": {
-    "rackCount": 8
-  },
-  "connector": {
-    "device": {
-      "deviceId": "BSC-PCS-CONNECTOR-1",
-      "name": "BSC-PCS Connector",
-      "type": "bsc-pcs-connector",
-      "pollIntervalMs": 5000,
-      "connection": {
-        "host": "127.0.0.1",
-        "port": 15505
-      },
-      "telemetry": [
-        {
-          "name": "Connector Link Status",
-          "description": "PCS BMS port baglanti durumu (0 kopuk / 1 bagli)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 0,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN",
-          "canonical": "connector_link"
-        },
-        {
-          "name": "Connector Source Status",
-          "description": "Kaynak durumu (0 ok / 1 kismi / 2 yok)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 1,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        },
-        {
-          "name": "Connector Last Write Time Low",
-          "description": "Son basarili yazim zamani (unix sn, dusuk word)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 2,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        },
-        {
-          "name": "Connector Last Write Time High",
-          "description": "Son basarili yazim zamani (unix sn, yuksek word)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 3,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        },
-        {
-          "name": "Connector Write Counter Low",
-          "description": "Toplam basarili yazim sayaci (dusuk word)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 4,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        },
-        {
-          "name": "Connector Write Counter High",
-          "description": "Toplam basarili yazim sayaci (yuksek word)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 5,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        },
-        {
-          "name": "Connector Fail Counter Low",
-          "description": "Toplam basarisiz yazim sayaci (dusuk word)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 6,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        },
-        {
-          "name": "Connector Fail Counter High",
-          "description": "Toplam basarisiz yazim sayaci (yuksek word)",
-          "unit": "-",
-          "protocol": "MODBUS",
-          "registerAddress": 7,
-          "registerTableType": "INPUT_REGISTER",
-          "registerDataType": "UINT16",
-          "scale": 1,
-          "offset": 0,
-          "priority": 0,
-          "byteOrder": "BIG_ENDIAN"
-        }
-      ]
-    },
-    "sim": {
-      "registerMap": "mappings/bsc-pcs-mapping.json"
-    }
-  },
   "heartbeat": {
     "telemetry": "Controller Heartbeat",
-    "intervalMs": 1000
-  }
+    "intervalMs": 1000,
+    "extraTelemetries": [
+      "Controller Heartbeat 2",
+      "Controller Heartbeat 3",
+      "Controller Heartbeat 4",
+      "Controller Heartbeat 5",
+      "Controller Heartbeat 6",
+      "Controller Heartbeat 7",
+      "Controller Heartbeat 8",
+      "Controller Heartbeat 9",
+      "Controller Heartbeat 10"
+    ]
+  },
+  "alarms": [
+    {
+      "telemetry": "BSC Fault",
+      "severity": "error",
+      "description": "BSC arıza (30037 b2)"
+    },
+    {
+      "telemetry": "BSC Alarm",
+      "severity": "warning",
+      "description": "BSC alarm (30037 b0)"
+    },
+    {
+      "telemetry": "BSC Warning",
+      "severity": "warning",
+      "description": "BSC uyarı (30037 b1)"
+    }
+  ]
 }

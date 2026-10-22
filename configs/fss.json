@@ -11,10 +11,6 @@
     "slaveId": 1
   },
   "pollIntervalMs": 2000,
-  "transport": {
-    "kind": "simulator",
-    "type": "fss"
-  },
   "telemetry": [
     {
       "name": "Panel Status",

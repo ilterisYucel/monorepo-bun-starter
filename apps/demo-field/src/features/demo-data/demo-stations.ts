@@ -16,12 +16,13 @@ export interface DemoStation {
   readonly index: number;
   readonly key: string;
   readonly name: string;
-  readonly feeder: "A" | "B";
-  readonly cell: string;
+  /** İstasyonun iki fideri ve üniteleri (A: 5, B: 4) — gdems şablonu. */
+  readonly feeders: { readonly A: readonly number[]; readonly B: readonly number[] };
   readonly units: readonly number[];
-  /** İstasyonu kontrol eden field PCS çifti (2 PCS/istasyon — K-18).
-   *  Station #1 (BESS#1-5) → PCS-3/4, Station #2 (BESS#6-9) → PCS-1/2. */
+  /** İstasyonu kontrol eden field PCS çifti (2 gerçek PCS/istasyon, K-18). */
   readonly pcs: readonly [string, string];
+  /** İstasyonun MV simülatörü (istasyon başına 1; H04/H05 bu panonun fiderleri). */
+  readonly mvDeviceId: string;
 }
 
 /** Collector (grid ile istasyonlar arası ortak bara) — 31.05 MW ≤ 50 → MV STATION. */
@@ -33,14 +34,24 @@ export const DEMO_COLLECTOR = {
   cellOf: (index: number): string => `Q0${index + 4}`,
 } as const;
 
+const range = (from: number, count: number): number[] => Array.from({ length: count }, (_, i) => from + i);
+
 export const DEMO_STATIONS: readonly DemoStation[] = [
-  { index: 0, key: "bess1", name: "BESS MV STATION #1", feeder: "A", cell: "H04", units: DEMO_TOPOLOGY.feeders.A.units, pcs: ["PCS-3", "PCS-4"] },
-  { index: 1, key: "bess2", name: "BESS MV STATION #2", feeder: "B", cell: "H05", units: DEMO_TOPOLOGY.feeders.B.units, pcs: ["PCS-1", "PCS-2"] },
+  {
+    index: 0, key: "bess1", name: "BESS MV STATION #1",
+    feeders: { A: range(1, 5), B: range(6, 4) }, units: range(1, 9),
+    pcs: ["PCS-1", "PCS-2"], mvDeviceId: "DEMO-MV-1",
+  },
+  {
+    index: 1, key: "bess2", name: "BESS MV STATION #2",
+    feeders: { A: range(10, 5), B: range(15, 4) }, units: range(10, 9),
+    pcs: ["PCS-3", "PCS-4"], mvDeviceId: "DEMO-MV-2",
+  },
 ];
 
 /** İstasyon key'i (bess1/bess2) → field PCS çifti; bilinmeyen key'de ilk istasyon. */
 export function pcsIdsForStation(key: string | undefined): readonly [string, string] {
-  return DEMO_STATIONS.find((s) => s.key === key)?.pcs ?? DEMO_STATIONS[0].pcs;
+  return DEMO_STATIONS.find((s) => s.key === key)?.pcs ?? DEMO_STATIONS[0]!.pcs;
 }
 
 /** Ünite numarası hangi istasyonda? */
@@ -53,9 +64,11 @@ export function stationUnits(station: DemoStation): number[] {
   return [...station.units];
 }
 
-/** İstasyon topolojisi: DEMO_TOPOLOGY'nin yalnız o istasyonun fider dilimi. */
+/**
+ * İstasyon topolojisi: gdems `stationTopo` — çizim DEĞİŞMEZ (2 fider, 9 ünite),
+ * yalnız üniteler istasyona göre yeniden numaralanır (st1: 1–9, st2: 10–18).
+ */
 export function stationTopo(station: DemoStation): NovaTopology {
-  const feeder = DEMO_TOPOLOGY.feeders[station.feeder];
   return {
     ...DEMO_TOPOLOGY,
     station: {
@@ -63,13 +76,16 @@ export function stationTopo(station: DemoStation): NovaTopology {
       name: station.name,
       poiLabel: `TO ${DEMO_COLLECTOR.name} ${DEMO_COLLECTOR.cellOf(station.index)}`,
     },
-    feeders: { [station.feeder]: { ...feeder, units: [...feeder.units] } },
+    feeders: {
+      A: { ...DEMO_TOPOLOGY.feeders.A!, units: [...station.feeders.A] },
+      B: { ...DEMO_TOPOLOGY.feeders.B!, units: [...station.feeders.B] },
+    },
   };
 }
 
 /** İndekse göre istasyon topolojisi (UI seçici). */
 export function stationTopoByIndex(index: number): NovaTopology {
-  const station = DEMO_STATIONS[index] ?? DEMO_STATIONS[0];
+  const station = DEMO_STATIONS[index] ?? DEMO_STATIONS[0]!;
   return stationTopo(station);
 }
 
@@ -79,16 +95,22 @@ const signedPcs = (p: { state: string; pMW: number }): number =>
 /** Tüm saha state'ini bir istasyonun ünitelerine süz; fider/POI o istasyondan türetilir. */
 export function stateForStation(state: NovaMimicState, station: DemoStation): NovaMimicState {
   const units = state.units.filter((u) => station.units.includes(u.n));
+  const feederA = new Set(station.feeders.A);
+  const feederMW: Record<string, number> = { A: 0, B: 0 };
+  let poi = 0;
   // POI = Σ PCS − grup AUX (PMS hesabı; H03 sayaç haritası yok — M2).
-  const mw = units.reduce(
-    (a, u) => a + u.pcs.reduce((b, p) => b + signedPcs(p), 0) - (u.aux?.kW ?? 0) / 1000,
-    0,
-  );
+  for (const u of units) {
+    const own = u.pcs.reduce((b, p) => b + signedPcs(p), 0) - (u.aux?.kW ?? 0) / 1000;
+    const f = feederA.has(u.n) ? "A" : "B";
+    feederMW[f] = (feederMW[f] ?? 0) + own;
+    poi += own;
+  }
   return {
     ...state,
+    station: state.stations?.[station.key] ?? state.station,
     units,
-    feederMW: { [station.feeder]: mw },
-    poiMW: mw,
+    feederMW,
+    poiMW: poi,
   };
 }
 

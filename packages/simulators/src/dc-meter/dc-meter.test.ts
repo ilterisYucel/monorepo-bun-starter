@@ -14,7 +14,7 @@ describe("DcMeterSimulator (FL-08 DC kısa devre koruması)", () => {
   let sim: DcMeterSimulator;
 
   beforeEach(() => {
-    sim = new DcMeterSimulator();
+    sim = new DcMeterSimulator({ deviceId: "DCM-1" });
     sim.tick(1);
   });
 
@@ -87,7 +87,7 @@ describe("DcMeterAdapter (salt okuma sözleşmesi)", () => {
   let adapter: DcMeterAdapter;
 
   beforeEach(() => {
-    adapter = new DcMeterAdapter(new DcMeterSimulator());
+    adapter = new DcMeterAdapter(new DcMeterSimulator({ deviceId: "DCM-1" }));
   });
 
   it("readInputRegisters ardışık kelimeler döner (float çifti)", async () => {

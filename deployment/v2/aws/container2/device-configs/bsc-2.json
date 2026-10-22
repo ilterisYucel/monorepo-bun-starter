@@ -7309,32 +7309,6 @@
       "tags": {}
     },
     {
-      "name": "Charge Power Setpoint",
-      "description": "Charge Power Setpoint",
-      "unit": "kW",
-      "protocol": "MODBUS",
-      "registerAddress": 40030,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.01,
-      "offset": 0,
-      "priority": 3,
-      "byteOrder": "BIG_ENDIAN"
-    },
-    {
-      "name": "Discharge Power Setpoint",
-      "description": "Discharge Power Setpoint",
-      "unit": "kW",
-      "protocol": "MODBUS",
-      "registerAddress": 40031,
-      "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 0.01,
-      "offset": 0,
-      "priority": 3,
-      "byteOrder": "BIG_ENDIAN"
-    },
-    {
       "name": "Rack Disabled R1",
       "description": "Rack Disabled R1",
       "unit": "-",
@@ -27315,99 +27289,41 @@
         "telemetry": "Command Request",
         "value": 0
       }
-    },
-    "set_charge_power": {
-      "label": "\u015earj G\u00fcc\u00fc Ayarla",
-      "telemetries": [
-        {
-          "name": "Charge Power Setpoint",
-          "value": "{{powerKw}}"
-        }
-      ],
-      "params": {
-        "powerKw": {
-          "type": "number",
-          "min": 0,
-          "max": 2500,
-          "default": 50,
-          "required": true,
-          "label": "\u015earj G\u00fcc\u00fc (kW)"
-        }
-      },
-      "timeoutMs": 3000
-    },
-    "set_discharge_power": {
-      "label": "De\u015farj G\u00fcc\u00fc Ayarla",
-      "telemetries": [
-        {
-          "name": "Discharge Power Setpoint",
-          "value": "{{powerKw}}"
-        }
-      ],
-      "params": {
-        "powerKw": {
-          "type": "number",
-          "min": 0,
-          "max": 2500,
-          "default": 50,
-          "required": true,
-          "label": "De\u015farj G\u00fcc\u00fc (kW)"
-        }
-      },
-      "timeoutMs": 3000
-    },
-    "charge": {
-      "label": "\u015earj",
-      "telemetries": [
-        {
-          "name": "Command Request",
-          "value": 2
-        }
-      ],
-      "atomic": true,
-      "timeoutMs": 35000,
-      "validate": {
-        "reads": [
-          {
-            "name": "Request Acknowledge",
-            "expect": 2,
-            "accept": [
-              2,
-              6
-            ]
-          }
-        ]
-      },
-      "finalize": {
-        "telemetry": "Command Request",
-        "value": 0
-      }
-    },
-    "discharge": {
-      "label": "De\u015farj",
-      "telemetries": [
-        {
-          "name": "Command Request",
-          "value": 11
-        }
-      ],
-      "atomic": true,
-      "timeoutMs": 35000,
-      "validate": {
-        "reads": [
-          {
-            "name": "Request Acknowledge",
-            "expect": 2
-          }
-        ]
-      },
-      "finalize": {
-        "telemetry": "Command Request",
-        "value": 0
-      }
     }
   },
   "type": "bsc",
+  "heartbeat": {
+    "telemetry": "Controller Heartbeat",
+    "intervalMs": 1000,
+    "extraTelemetries": [
+      "Controller Heartbeat 2",
+      "Controller Heartbeat 3",
+      "Controller Heartbeat 4",
+      "Controller Heartbeat 5",
+      "Controller Heartbeat 6",
+      "Controller Heartbeat 7",
+      "Controller Heartbeat 8",
+      "Controller Heartbeat 9",
+      "Controller Heartbeat 10"
+    ]
+  },
+  "alarms": [
+    {
+      "telemetry": "BSC Fault",
+      "severity": "error",
+      "description": "BSC ar\u0131za (30037 b2)"
+    },
+    {
+      "telemetry": "BSC Alarm",
+      "severity": "warning",
+      "description": "BSC alarm (30037 b0)"
+    },
+    {
+      "telemetry": "BSC Warning",
+      "severity": "warning",
+      "description": "BSC uyar\u0131 (30037 b1)"
+    }
+  ],
   "transport": {
     "kind": "simulator",
     "type": "bsc"
@@ -27415,7 +27331,7 @@
   "details": {
     "rackCount": 8,
     "initialSocPercent": 72,
-    "simSpeedMultiplier": 20
+    "simSpeedMultiplier": 133
   },
   "connector": {
     "device": {
@@ -27532,46 +27448,36 @@
           "offset": 0,
           "priority": 0,
           "byteOrder": "BIG_ENDIAN"
+        },
+        {
+          "name": "Connector Power Source Status",
+          "description": "PCS guc kaynagi durumu (0 ok / 1 kismi / 2 yok)",
+          "unit": "-",
+          "protocol": "MODBUS",
+          "registerAddress": 8,
+          "registerTableType": "INPUT_REGISTER",
+          "registerDataType": "UINT16",
+          "scale": 1,
+          "offset": 0,
+          "priority": 0,
+          "byteOrder": "BIG_ENDIAN"
         }
       ]
     },
     "sim": {
       "registerMap": "mappings/bsc-2-pcs-mapping.json",
       "target": {
-        "port": 15503
-      }
+        "host": "field-device-service",
+        "port": 15505
+      },
+      "pcsSources": [
+        {
+          "deviceId": "PCS-4",
+          "host": "127.0.0.1",
+          "port": 505
+        }
+      ],
+      "powerScale": 9
     }
-  },
-  "heartbeat": {
-    "telemetry": "Controller Heartbeat",
-    "intervalMs": 1000,
-    "extraTelemetries": [
-      "Controller Heartbeat 2",
-      "Controller Heartbeat 3",
-      "Controller Heartbeat 4",
-      "Controller Heartbeat 5",
-      "Controller Heartbeat 6",
-      "Controller Heartbeat 7",
-      "Controller Heartbeat 8",
-      "Controller Heartbeat 9",
-      "Controller Heartbeat 10"
-    ]
-  },
-  "alarms": [
-    {
-      "telemetry": "BSC Fault",
-      "severity": "error",
-      "description": "BSC ar\u0131za (30037 b2)"
-    },
-    {
-      "telemetry": "BSC Alarm",
-      "severity": "warning",
-      "description": "BSC alarm (30037 b0)"
-    },
-    {
-      "telemetry": "BSC Warning",
-      "severity": "warning",
-      "description": "BSC uyar\u0131 (30037 b1)"
-    }
-  ]
+  }
 }

@@ -3,6 +3,8 @@ import { COILS, DISCRETE, INPUT, HOLDING } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { DcOutputSimulatorAdapter } from "./modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -45,16 +47,19 @@ function defaultState(): DcOutputState {
 }
 
 export interface DcOutputSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class DcOutputSimulator {
+export class DcOutputSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: DcOutputState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
 
-  constructor(config: DcOutputSimulatorConfig = {}) {
+  constructor(config: DcOutputSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = defaultState();
     this.network = config.network;
   }

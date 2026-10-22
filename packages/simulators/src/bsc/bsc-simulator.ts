@@ -18,7 +18,6 @@ import {
   ACKNOWLEDGE,
   BSC_INFO_BITS,
   RACK_STATE,
-  SIM_ONLY,
 } from "./register-map";
 import {
   capacityToSocVoltage,
@@ -29,6 +28,9 @@ import {
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { BSCSimulatorAdapter } from "./bsc-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { IBatteryPowerInput } from "./power-input";
+import type { ISimulator } from "../contracts";
 
 // ─── types ──────────────────────────────────────────────────────────────────
 
@@ -53,6 +55,7 @@ interface RackState {
 }
 
 export interface BSCSimulatorConfig {
+  readonly deviceId: string;
   rackCount: number;
   registers: RegisterDef[];
   initialSocPercent?: number;
@@ -97,6 +100,11 @@ function writeSint32(map: Map<number, number>, addr: number, value: number): voi
   }
 }
 
+/** Nominal DC güç limiti (kW) — BSC Diagnosis (demo). */
+const NOMINAL_POWER_LIMIT_KW = 500;
+/** Çift yönlü verim (gdems: şarj ×η, deşarj ÷η). */
+const ROUND_TRIP_EFFICIENCY = 0.975;
+
 function setBit(value: number, bit: number, on: boolean): number {
   if (on) return value | (1 << bit);
   return value & ~(1 << bit);
@@ -104,7 +112,8 @@ function setBit(value: number, bit: number, on: boolean): number {
 
 // ─── simulator ──────────────────────────────────────────────────────────────
 
-export class BSCSimulator {
+export class BSCSimulator implements ISimulator, IBatteryPowerInput {
+  readonly deviceId: string;
   private rackCount: number;
   private config: BSCSimulatorConfig;
   private registers: RegisterDef[];
@@ -128,16 +137,27 @@ export class BSCSimulator {
   private injectedMaxPackTemp: number | undefined;
   private injectedRack1DiffTemp: number | undefined;
   private injectedFault = false;
+  /** Dış güç girdisi (PCS→BSC): kW, negatif = şarj, pozitif = deşarj. */
+  private externalPowerKw = 0;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
 
   constructor(config: BSCSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.config = config;
     this.rackCount = config.rackCount;
     this.registers = config.registers;
     this.network = config.network;
     this.initRegisters();
     this.initRackStates(config.initialSocPercent ?? 50);
+  }
+
+  /**
+   * Komut — dış güç girdisi (PCS-BSC-GUC-LINKI K1/K3).
+   * Sonlu olmayan değer 0 kabul edilir; işaret: negatif = şarj, pozitif = deşarj.
+   */
+  applyPowerKw(kw: number): void {
+    this.externalPowerKw = Number.isFinite(kw) ? kw : 0;
   }
 
   /** Komut — self-host sunucu + tick açar (network yoksa no-op). Idempotent. */
@@ -170,6 +190,15 @@ export class BSCSimulator {
    * Bilinmeyen senaryo → `false`.
    */
   inject(scenario: string): boolean {
+    if (scenario.startsWith("soc:")) {
+      const pct = Number(scenario.slice(4));
+      if (!Number.isFinite(pct)) return false;
+      const clamped = Math.min(Math.max(pct, MIN_SOC_PERCENT), MAX_SOC_PERCENT);
+      for (const [, state] of this.rackStates) {
+        state.storedCapacityKwh = socToCapacity(clamped);
+      }
+      return true;
+    }
     switch (scenario) {
       case "overheat":
         this.injectedMaxPackTemp = 800;
@@ -251,8 +280,6 @@ export class BSCSimulator {
     // Holding register defaults
     this.holdingRegisters.set(CONTROLLER.HEARTBEAT, 0);
     this.holdingRegisters.set(CONTROLLER.COMMAND_REQUEST, 0);
-    this.holdingRegisters.set(SIM_ONLY.CHARGE_POWER_SETPOINT, 0);
-    this.holdingRegisters.set(SIM_ONLY.DISCHARGE_POWER_SETPOINT, 0);
     for (const reg of Object.values(CONTROLLER)) {
       if (
         reg === CONTROLLER.HEARTBEAT ||
@@ -351,32 +378,33 @@ export class BSCSimulator {
 
   // ── rack state update ────────────────────────────────────────────────────
 
+  /**
+   * Efektif DC gücü (kW, işaretli): BSC Normal/Manual değilse 0; SOC kapılı
+   * limitler girdi gücünü kırpar (PCS-BSC-GUC-LINKI K6/FR-1.3).
+   */
+  private effectivePowerKw(): number {
+    if (this.bscState !== BSC_STATE.NORMAL && this.bscState !== BSC_STATE.MANUAL) return 0;
+    const soc = this.computeAverageSoc();
+    const chargeLimitKw = soc >= MAX_SOC_PERCENT ? 0 : NOMINAL_POWER_LIMIT_KW;
+    const dischargeLimitKw = soc <= MIN_SOC_PERCENT ? 0 : NOMINAL_POWER_LIMIT_KW;
+    if (this.externalPowerKw < 0) return Math.max(this.externalPowerKw, -chargeLimitKw);
+    return Math.min(this.externalPowerKw, dischargeLimitKw);
+  }
+
   private updateRackStates(elapsedSeconds: number): void {
-    const cmd = this.activeCommand;
-    const chargeSetpoint = this.holdingRegisters.get(SIM_ONLY.CHARGE_POWER_SETPOINT) ?? 0;
-    const dischargeSetpoint = this.holdingRegisters.get(SIM_ONLY.DISCHARGE_POWER_SETPOINT) ?? 0;
-
-    let powerKw = 0;
-    if (cmd === COMMAND.START) {
-      // Net demo DC gücü: şarj (+) − deşarj (−). BSC komutu yön taşımaz.
-      powerKw = (chargeSetpoint - dischargeSetpoint) * 0.1;
-    }
-
-    console.log(`[BSC-Sim] updateRackStates: cmd=${cmd} bscState=${this.bscState} chargeSp=${chargeSetpoint} powerKw=${powerKw}`);
+    const powerKw = this.effectivePowerKw();
+    // gdems formülü: ΔE = P × dt/3600 × η (şarj), P × dt/3600 / η (deşarj).
+    const hours = (elapsedSeconds * (this.config.simSpeedMultiplier ?? 1)) / 3600;
+    const deltaEnergy =
+      powerKw < 0
+        ? Math.abs(powerKw) * hours * ROUND_TRIP_EFFICIENCY
+        : -powerKw * hours / ROUND_TRIP_EFFICIENCY;
 
     for (const [, state] of this.rackStates) {
       if (!state.status) continue;
-
-      if (this.bscState === BSC_STATE.NORMAL || this.bscState === BSC_STATE.MANUAL) {
-        // K-20: demo hız çarpanı yalnız enerji entegrasyonunu ölçekler — tick 1 sn.
-        const deltaEnergy = powerKw * ((elapsedSeconds * (this.config.simSpeedMultiplier ?? 1)) / 60);
-        state.storedCapacityKwh += deltaEnergy;
-        state.storedCapacityKwh = Math.max(state.storedCapacityKwh, socToCapacity(MIN_SOC_PERCENT));
-        state.storedCapacityKwh = Math.min(state.storedCapacityKwh, socToCapacity(MAX_SOC_PERCENT));
-        if (state.id === 1) {
-          console.log(`[BSC-Sim] Rack1 storedCapacity=${state.storedCapacityKwh.toFixed(2)} kWh SOC=${capacityToSocVoltage(state.storedCapacityKwh).soc.toFixed(3)}% delta=${deltaEnergy.toFixed(4)}kWh`);
-        }
-      }
+      state.storedCapacityKwh += deltaEnergy;
+      state.storedCapacityKwh = Math.max(state.storedCapacityKwh, socToCapacity(MIN_SOC_PERCENT));
+      state.storedCapacityKwh = Math.min(state.storedCapacityKwh, socToCapacity(MAX_SOC_PERCENT));
     }
   }
 
@@ -389,15 +417,11 @@ export class BSCSimulator {
     // BSC Info bitfield
     let info = 0;
 
-    // b4:b5 — charge status from command
-    const cmd = this.activeCommand;
+    // b4:b5 — charge status: 01 charge, 10 discharge, 11 idle (akım yönü).
+    const netSp = this.effectivePowerKw();
     let chargeStatusBits: number;
-    const netSp =
-      (this.holdingRegisters.get(SIM_ONLY.CHARGE_POWER_SETPOINT) ?? 0) -
-      (this.holdingRegisters.get(SIM_ONLY.DISCHARGE_POWER_SETPOINT) ?? 0);
-    // 30037 b5-4: 01 charge, 10 discharge, 11 idle — akım yönünden türetilir.
-    if (cmd === COMMAND.START && netSp > 0) chargeStatusBits = 0b01; // Charge
-    else if (cmd === COMMAND.START && netSp < 0) chargeStatusBits = 0b10; // Discharge
+    if (netSp < 0) chargeStatusBits = 0b01; // Charge
+    else if (netSp > 0) chargeStatusBits = 0b10; // Discharge
     else chargeStatusBits = 0b11; // Idle
     // Shift into b4:b5
     info |= chargeStatusBits << BSC_INFO_BITS.CHARGE_STATUS;
@@ -426,10 +450,7 @@ export class BSCSimulator {
     this.inputRegisters.set(SYSTEM_SUMMARY.BSC_SOC, avgSocPct);
     this.inputRegisters.set(SYSTEM_SUMMARY.BSC_SOH, avgSohPct);
 
-    // DC Voltage / Current
-    const sysCmd = this.activeCommand;
-    const chargeSetpoint = this.holdingRegisters.get(SIM_ONLY.CHARGE_POWER_SETPOINT) ?? 0;
-    const dischargeSetpoint = this.holdingRegisters.get(SIM_ONLY.DISCHARGE_POWER_SETPOINT) ?? 0;
+    // DC Voltage / Current — güç dış girdiden (PCS) gelir.
 
     let totalVoltage = 0;
     let voltCount = 0;
@@ -442,9 +463,7 @@ export class BSCSimulator {
     const avgVoltage = voltCount > 0 ? totalVoltage / voltCount : 1300;
     writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE, Math.round(avgVoltage * 10000));
 
-    let powerKw: number;
-    if (sysCmd === COMMAND.START) powerKw = (chargeSetpoint - dischargeSetpoint) * 0.1;
-    else powerKw = 0;
+    const powerKw = this.effectivePowerKw();
     const totalCurrent = avgVoltage > 0 ? Math.round((powerKw * 1000 / avgVoltage) / 0.001) : 0;
     writeSint32(this.inputRegisters, SYSTEM_SUMMARY.DC_CURRENT, totalCurrent);
 
@@ -455,13 +474,18 @@ export class BSCSimulator {
       writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DC_VOLTAGE_ANTICIPATED, 0);
     }
 
-    // Power limits — from setpoint registers
-    // Güç limitleri BSC'nin kendi değerlendirmesidir (setpoint'ten TÜRETİLMEZ):
-    // demo nominal 500 kW; SOC sınırlarında LGES Diagnosis (Over/Under SOC) 0'a çeker.
-    void sysCmd; void chargeSetpoint; void dischargeSetpoint;
+    // Power limits — BSC Diagnosis: SOC sınırlarında 0, aksi halde nominal (kW×1000).
     const socNow = this.computeAverageSoc();
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.CHARGE_POWER_LIMIT, socNow >= 100 ? 0 : 500 * 1000);
-    writeUint32(this.inputRegisters, SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT, socNow <= 0 ? 0 : 500 * 1000);
+    writeUint32(
+      this.inputRegisters,
+      SYSTEM_SUMMARY.CHARGE_POWER_LIMIT,
+      socNow >= MAX_SOC_PERCENT ? 0 : NOMINAL_POWER_LIMIT_KW * 1000,
+    );
+    writeUint32(
+      this.inputRegisters,
+      SYSTEM_SUMMARY.DISCHARGE_POWER_LIMIT,
+      socNow <= MIN_SOC_PERCENT ? 0 : NOMINAL_POWER_LIMIT_KW * 1000,
+    );
 
     // Summary stats
     this.inputRegisters.set(SUMMARY_STATS.MAX_SOC, avgSocPct);
@@ -532,13 +556,7 @@ export class BSCSimulator {
 
       const { soc, voltage } = capacityToSocVoltage(state.storedCapacityKwh);
 
-      const rackCmd = this.activeCommand;
-      const chargeSp = this.holdingRegisters.get(SIM_ONLY.CHARGE_POWER_SETPOINT) ?? 0;
-      const dischargeSp = this.holdingRegisters.get(SIM_ONLY.DISCHARGE_POWER_SETPOINT) ?? 0;
-
-      let rackPowerKw: number;
-      if (rackCmd === COMMAND.START) rackPowerKw = (chargeSp - dischargeSp) * 0.1;
-      else rackPowerKw = 0;
+      const rackPowerKw = this.effectivePowerKw();
 
 
       // State
@@ -550,10 +568,10 @@ export class BSCSimulator {
       status = setBit(status, 7, true);   // b7: DC Line Closed
       // b4:b3 charge/discharge (Rack Data +51, doküman): 00=Idle,
       // 01=Discharge, 10=Charge — 30037 sistem sözcüğünün TERSİ.
-      if (rackPowerKw > 0) {
+      if (rackPowerKw < 0) {
         status = setBit(status, 3, false);  // b3=0
         status = setBit(status, 4, true);   // b4=1 → 10 = Charge
-      } else if (rackPowerKw < 0) {
+      } else if (rackPowerKw > 0) {
         status = setBit(status, 3, true);   // b3=1
         status = setBit(status, 4, false);  // b4=0 → 01 = Discharge
       }
@@ -584,10 +602,18 @@ export class BSCSimulator {
       this.inputRegisters.set(sBase + RS.SOC, Math.round(soc * 100));
       this.inputRegisters.set(sBase + RS.SOH, Math.round(99 * 100));
 
-      // Power limits — total system power on each rack
-      // Rack limitleri setpoint'ten türetilmez (bkz. sistem limitleri).
-      writeUint32(this.inputRegisters, sBase + RS.CHARGE_POWER_LIMIT, 500 * 1000);
-      writeUint32(this.inputRegisters, sBase + RS.DISCHARGE_POWER_LIMIT, 500 * 1000);
+      // Power limits — SOC kapılı nominal (bkz. sistem limitleri).
+      const rackSoc = soc;
+      writeUint32(
+        this.inputRegisters,
+        sBase + RS.CHARGE_POWER_LIMIT,
+        rackSoc >= MAX_SOC_PERCENT ? 0 : NOMINAL_POWER_LIMIT_KW * 1000,
+      );
+      writeUint32(
+        this.inputRegisters,
+        sBase + RS.DISCHARGE_POWER_LIMIT,
+        rackSoc <= MIN_SOC_PERCENT ? 0 : NOMINAL_POWER_LIMIT_KW * 1000,
+      );
 
       // Cell sum voltage (V * 10000)
       writeUint32(this.inputRegisters, sBase + RS.CELL_SUM_VOLTAGE, Math.round(voltage * 10000));
@@ -865,13 +891,7 @@ export class BSCSimulator {
    * setpoint'i > 0 ise akım akar (Stop/Open All bu durumda reddedilir).
    */
   private isCurrentFlowing(): boolean {
-    if (this.activeCommand !== COMMAND.START) {
-      return false;
-    }
-    const setpoint =
-      (this.holdingRegisters.get(SIM_ONLY.CHARGE_POWER_SETPOINT) ?? 0) +
-      (this.holdingRegisters.get(SIM_ONLY.DISCHARGE_POWER_SETPOINT) ?? 0);
-    return setpoint > 0;
+    return this.effectivePowerKw() !== 0;
   }
 
   private resetSimulator(): void {

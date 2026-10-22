@@ -284,9 +284,5 @@
       }
     }
   },
-  "type": "dc-output",
-  "transport": {
-    "kind": "simulator",
-    "type": "dc-output"
-  }
+  "type": "dc-output"
 }

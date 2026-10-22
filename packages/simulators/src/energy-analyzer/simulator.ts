@@ -5,6 +5,8 @@ import { INPUT } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { EnergyAnalyzerSimulatorAdapter } from "./modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -96,17 +98,20 @@ function updatePhase(p: PhaseValues, baseCurrent: number, secs: number): void {
 }
 
 export interface EnergyAnalyzerSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class EnergyAnalyzerSimulator {
+export class EnergyAnalyzerSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: EnergyAnalyzerState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
   private injectedLineVoltage: number | undefined;
 
-  constructor(config: EnergyAnalyzerSimulatorConfig = {}) {
+  constructor(config: EnergyAnalyzerSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = defaultState();
     this.network = config.network;
   }

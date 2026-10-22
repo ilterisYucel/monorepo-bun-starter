@@ -50,13 +50,13 @@ describe("v2/dev container kuralları (F2.6)", () => {
     expect(conds.find((c) => c.telemetry === "Return Humidity")!.threshold).toBe(75);
   });
 
-  it("bsc_over_soc / bsc_over_offline_rack: charge limit 0", () => {
-    const soc = loadRules().find((x) => x.name === "bsc_over_soc")!;
-    expect((soc.then as Array<{ action: string; command?: string }>).some((a) => a.command === "set_charge_power")).toBe(true);
-    const off = loadRules().find((x) => x.name === "bsc_over_offline_rack")!;
-    const cmds = (off.then as Array<{ command?: string }>).map((a) => a.command);
-    expect(cmds).toContain("set_charge_power");
-    expect(cmds).toContain("set_discharge_power");
+  it("bsc_over_soc / bsc_over_offline_rack: BSC güç komutu İÇERMEZ (yalnız log)", () => {
+    for (const name of ["bsc_over_soc", "bsc_over_offline_rack"]) {
+      const rule = loadRules().find((x) => x.name === name)!;
+      const actions = rule.then as Array<{ action: string; command?: string }>;
+      expect(actions.filter((a) => a.action === "command")).toHaveLength(0);
+      expect(actions.some((a) => a.action === "log")).toBe(true);
+    }
   });
 
   it("fire_emergency / fss_first_stage: 8 HVAC force_off + 2 BSC emergency", () => {

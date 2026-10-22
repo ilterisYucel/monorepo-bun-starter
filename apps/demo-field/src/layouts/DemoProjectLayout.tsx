@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import {
   DemoKpiStrip,
   DemoProjectStrip,
+  DemoStationBar,
   NOVA_ICONS,
   RegisterValue,
   DEFAULT_MIMIC_DEVICES,
@@ -21,8 +22,9 @@ import { useDemoProject, type DemoProjectData } from "../features/demo-data/useD
 import { useTargetSocWatcher } from "../features/demo-data/useTargetSocWatcher";
 import { availablePoiMW } from "../features/demo-data/demo-permissives";
 import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
-import { stationsForContainers } from "../features/demo-data/demo-stations";
+import { DEMO_STATIONS, stateForStation, stationTopo, stationsForContainers } from "../features/demo-data/demo-stations";
 import { deriveKpis } from "../features/demo-data/deriveKpis";
+import { deriveAlerts } from "../features/demo-data/deriveAlerts";
 import { siteFieldId } from "../lib/site-field";
 import { isTunnelMode } from "../lib/api-base";
 
@@ -73,14 +75,16 @@ export const DemoProjectLayout: React.FC = () => {
   const [activeStation, setActiveStation] = useState(0);
   const L = DEMO_TOPOLOGY.limits;
 
-  // 2026-10-15 (sahibi): GD-1 TEK MV istasyonudur — H04 fideri BESS#1–5, H05
-  // fideri BESS#6–9 (referans topology.js). Site layout / Devices / Operations
-  // tüm sahayı tek görünümde gösterir; istasyon seçici kaldırıldı. DEMO_STATIONS
-  // yalnız fider ↔ konteyner ↔ PCS çifti eşlemesi için kullanılır.
-  const stationState = state;
-  const stationTopology = DEMO_TOPOLOGY;
-  const stationKpis = useMemo(() => deriveKpis(state, DEMO_TOPOLOGY), [state]);
-  const stationAlerts = project.alerts;
+  // gdems `activate(pi, k)`: aktif istasyon tüm görünümleri belirler — çizim
+  // her zaman 9 ünite + 2 fiderdir; istasyon geçişi tüm sekmeleri değiştirir.
+  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0]!;
+  const stationState = useMemo(() => stateForStation(state, station), [state, station]);
+  const stationTopology = useMemo(() => stationTopo(station), [station]);
+  const stationKpis = useMemo(() => deriveKpis(stationState, stationTopology), [stationState, stationTopology]);
+  const stationAlerts = useMemo(
+    () => deriveAlerts(stationState, stationTopology),
+    [stationState, stationTopology],
+  );
 
   // İstasyon → konteyner eşlemesi (field register `station` etiketi; ön yüz girdisi).
   const stationSystems = useMemo(() => {
@@ -196,19 +200,19 @@ export const DemoProjectLayout: React.FC = () => {
 
   const stripItems = useMemo(() => {
     const U = DEMO_TOPOLOGY.unit;
-    const n = state.units.length || DEMO_TOPOLOGY.feeders.A.units.length + DEMO_TOPOLOGY.feeders.B.units.length;
-    const banks = state.units.filter((u) => u.rmu.H02 === "closed").flatMap((u) => u.banks);
+    const n = stationState.units.length || DEMO_TOPOLOGY.feeders.A!.units.length + DEMO_TOPOLOGY.feeders.B!.units.length;
+    const banks = stationState.units.filter((u) => u.rmu.H02 === "closed").flatMap((u) => u.banks);
     const disMWh = banks.reduce(
       (a, b) => a + Math.max(0, (b.soc - L.socMin) / 100) * (U.containerMWh / 2) * (b.soh / 100),
       0,
     );
     // Anlık akış DEĞİL: kullanılabilir gruplardan Σ min(PCS max, BSC limit), kayıp + AUX sonrası (iki yön).
-    const auxKwTotal = state.units.reduce((a, u) => a + (u.aux?.kW ?? 0), 0);
-    const dis = availablePoiMW(state, DEMO_TOPOLOGY, [], "dis", auxKwTotal);
-    const chg = availablePoiMW(state, DEMO_TOPOLOGY, [], "chg", auxKwTotal);
+    const auxKwTotal = stationState.units.reduce((a, u) => a + (u.aux?.kW ?? 0), 0);
+    const dis = availablePoiMW(stationState, stationTopology, [], "dis", auxKwTotal);
+    const chg = availablePoiMW(stationState, stationTopology, [], "chg", auxKwTotal);
     return [
-      { label: "Rated power", value: rv(modelSource("project configuration (connection point)"), `${DEMO_TOPOLOGY.powerMW} MWe`), sub: `POI ${DEMO_TOPOLOGY.station.nominalKV} kV` },
-      { label: "Rated energy", value: rv(modelSource("project configuration (BESS containerMWh)"), `${f(DEMO_TOPOLOGY.energyMWh, 3)} MWh`), sub: `${n} × ${f(U.containerMWh, 3)} MWh` },
+      { label: "Rated power", value: rv(modelSource("project configuration (connection point)"), `${stationTopology.powerMW} MWe`), sub: `POI ${stationTopology.station.nominalKV} kV` },
+      { label: "Rated energy", value: rv(modelSource("project configuration (BESS containerMWh)"), `${f(stationTopology.energyMWh, 3)} MWh`), sub: `${n} × ${f(U.containerMWh, 3)} MWh` },
       { label: "Battery", value: rv(modelSource("unit nameplate"), `${n} × ${U.container}`), sub: `${U.banks.length * U.racksPerBank} racks × ${U.rackKWh} kWh` },
       { label: "PCS", value: rv(modelSource("unit nameplate"), `${n * 2} × ${f(U.pcsKVA / 1000, 3)} MVA`), sub: `Wattox · ${U.pcsAcV} V` },
       { label: "MV", value: rv(modelSource("unit nameplate"), `${n} × ${f(U.trKVA / 1000, 2)} MVA`), sub: U.trRatio },
@@ -235,14 +239,14 @@ export const DemoProjectLayout: React.FC = () => {
         ),
         sub: `to SOC ${L.socMin} %`,
       },
-      { label: "AUX load", value: rv(nomapSource("PM5340-1", "total active power"), `${f(state.units[0]?.aux?.kW ?? 0, 1)} kW`), sub: `TR ${DEMO_TOPOLOGY.aux?.trKVA ?? 400} kVA` },
+      { label: "AUX load", value: rv(nomapSource("PM5340-1", "total active power"), `${f(stationState.units[0]?.aux?.kW ?? 0, 1)} kW`), sub: `TR ${DEMO_TOPOLOGY.aux?.trKVA ?? 400} kVA` },
       {
         label: "Ambient",
-        value: rv(hvacSource("HVAC-1", "hvac.outsideT"), state.ambient !== undefined ? `${f(state.ambient)} °C` : "—"),
+        value: rv(hvacSource("HVAC-1", "hvac.outsideT"), stationState.ambient !== undefined ? `${f(stationState.ambient)} °C` : "—"),
         sub: "HVAC Outside Temp",
       },
     ];
-  }, [state, stationKpis.poiMW, L.socMin]);
+  }, [stationState, stationTopology, stationKpis.poiMW, L.socMin]);
 
   const ctx: DemoProjectContextValue = {
     ...project,
@@ -266,6 +270,21 @@ export const DemoProjectLayout: React.FC = () => {
           id={DEMO_TOPOLOGY.id}
           location={DEMO_TOPOLOGY.location}
           items={stripItems}
+        />
+        <DemoStationBar
+          stations={DEMO_STATIONS.map((s) => {
+            const st = stateForStation(state, s);
+            const topo = stationTopo(s);
+            return {
+              index: s.index,
+              name: s.name,
+              first: s.units[0] ?? 0,
+              last: s.units.at(-1) ?? 0,
+              faults: deriveAlerts(st, topo).length,
+            };
+          })}
+          active={activeStation}
+          onSelect={setActiveStation}
         />
         <DemoKpiStrip tiles={tiles} />
         <Outlet />
