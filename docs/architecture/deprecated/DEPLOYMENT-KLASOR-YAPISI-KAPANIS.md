@@ -146,3 +146,5 @@ Refaktör, onaylı SPEC'in 6 use-case'ini (UC-1 … UC-6) ve 29 görevini (T-1 �
 | G6 | `tools/register-container.sh` mantığının unit testi yok | Düşük — script arayüzü değişti ama davranış testlenmedi | Shell script smoke testi |
 | G7 | AWS edge / v2 / boss / office stack'lerinin gerçek `docker compose up` çalışma zamanı smoke'u | Orta — CI e2e yalnızca `v1/dev/{container,field}` ayağa kaldırır | AWS deploy doğrulaması |
 | G8 | `maneuver-migration.test.ts` 11 vs 12 veri/test uyumsuzluğu düzeltilmedi | Düşük — refaktörle ilgisiz, önceden var | Ayrı düzeltme görevi (A.4 #1) |
+
+> **REV (2026-10-22):** `register-container.sh` kaldırıldı — konteyner kaydı hub peer modeline geçti (`HUB_PEER_TOKEN`); istasyon eşlemesi EMS topolojisinde.

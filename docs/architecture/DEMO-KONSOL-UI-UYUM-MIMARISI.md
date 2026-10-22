@@ -2,13 +2,15 @@
 status: active
 space: architecture
 tags: [mimari, demo, konsol, ui, nova, field, fss, simulator, spec]
-review_date: 2026-10-08
+review_date: 2026-10-22
 ---
 
 # DEMO-KONSOL-UI-UYUM — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** ✅ APPROVED (2026-10-08) — implementasyon developer onayıyla başladı (T-1…T-36).
+> **Durum:** ✅ APPROVED (2026-10-08); **REV.02 (2026-10-22)** — istasyon modeli 2×9 + istasyon başına MV
+> + **EMS topoloji endpoint'i** (istasyon→konteyner eşlemesi hub'a sızmaz; register kalktı). Onaylı.
+> **REV.02 kapsamı:** K-11/K-14/K-17 güncellendi, K-18/K-19 eklendi; UC-11 FR/AK hizalandı.
 > **İlişkili:** [DEMO-FIELD-KONSOL-MIMARISI.md](./DEMO-FIELD-KONSOL-MIMARISI.md), [DEMO-FIELD-MIMARISI.md](./DEMO-FIELD-MIMARISI.md), [SPEC-SABLONU.md](./SPEC-SABLONU.md), `bess-scada-diagram-reference.md`
 > **Referans kaynak:** `~/Downloads/gdpms-console/gdems` (framework-free konsol demosu; `demo/app.js`, `demo/app.css`, `demo/index.html`, `demo/devices.js`, `demo/market-view.js`, `demo/bess-scada.js`, `src/charts.js`, `src/icons.js`, `src/topology.js`, `src/maneuvers.js`) — bu SPEC'in görsel/yerleşim sözleşmesi.
 
@@ -37,11 +39,13 @@ Dün tamamlanan DEMO-FIELD-KONSOL işi (`demo-field` SPA + `packages/ui/src/nova
 | K-8 | Veri katmanı genişletilir (tek konteyner → 9 ünite fan-out korunur) | `mapFieldToMimicState` container `latestTelemetry`'den HVAC-1..8, PM5340-1, CONTROL-PANEL-IO-1, CB-1/2, DC-METER-1, IMD-1 okur; `NovaUnitState` yeni alanlar (`hvac`, `aux`, `fss`, `dc`, `imd`); ambient = HVAC-1 `Outside Temp`. |
 | K-9 | Backend gap'leri UI hazır bırakılır (dummy değil) | B-1 kalibrasyon `scheduleAt`, B-2 ham Modbus trace, B-3 fault injection — UI/akış tam; backend uçları geldiğinde canlıya döner. |
 | K-10 | Open-Closed: yalnız ekleme | `demo-field` ve `nova` dışındaki tüketiciler etkilenmez; backend sözleşmeleri (manevra/operasyon/alarm/log/external) değişmez; simülatör mevcut sürücü sözleşmelerini (register-map + adapter) uygular. |
-| K-11 | Plant overview kartı referans `plant-view.js#collectorSvg` portu (eklemeli) | 2 BESS MV istasyonu (manuel config: **#1 = BESS#1–5, #2 = BESS#6–9**) + **2 PV MV istasyonu (illüstratif/statik solar üretim; backend inverter verisi yok, tooltip M7 "simulated")** → **collector** tek hat + istasyon kartları; collector tipi gdems kuralıyla (`COLLECTOR_LIMIT_MW=50`): kurulu 31.05 + ~50.4 ≈ 81.4 MW > 50 → **"METAL CLAD · 34.5 kV"**; **Peak shaving disabled** (gerçek controller yok); istasyon kartına **tıklama** site layout'u o istasyona geçirir (`stationTopo`); plant güç trendi downsampled seriden; **günlük enerji** downsampled POI güç entegrasyonu (yaklaşık). |
-| K-14 | İstasyon barı (stBar) + istasyon-bazlı KPI (referans `app.js#renderStBar`/`#kpis`) | `activeStation` context'te (plant kartı + stBar + site layout tek kaynak); stBar `DemoProjectStrip` ile `DemoKpiStrip` arasında; KPI'lar (`stationKpis = deriveKpis(stationState, stationTopology)`) seçili istasyona göre (Availability/Avg SOC/SOH/Cell temp/Faults istasyon bazlı); güç tile etiketi "Station power · H03". pinfo site-geneli kalır. |
+| K-11 | Plant overview kartı referans `plant-view.js#collectorSvg` portu (eklemeli) | **2 BESS MV istasyonu × 9 ünite** (`#1 = BESS#1–9`, `#2 = BESS#10–18`; her istasyon 2 fider: A 5, B 4) + *2 PV MV istasyonu (illüstratif)* → collector tek hat + istasyon kartları; collector tipi: kurulu 62.1 + ~43.4 ≈ 105.5 MW > 50 → **"METAL CLAD · 34.5 kV"**; istasyon kartına tıklama site layout'u o istasyona geçirir (`stationTopo`); plant güç trendi downsampled seriden; günlük enerji downsampled POI entegrasyonu (yaklaşık). |
+| K-14 | İstasyon barı (stBar) + istasyon-bazlı KPI (referans `app.js#renderStBar`/`#kpis`) | **stBar aktif**: `activeStation` context'te; geçiş topoloji + state + KPI + alert + trend + komutları değiştirir (gdems `activate(pi,k)`). Çizim her zaman **aktif istasyonun 9 ünitesi + 2 fideri** (18 ünite tek çizimde DEĞİL). KPI/alert/attention seçili istasyona göre (`deriveKpis`/`deriveAlerts(stationState, stationTopology)`); güç tile etiketi "Station power · H03". |
 | K-15 | Konteyner→istasyon etiketi (UC-13) | `field_containers.station` kolonu (inline `ALTER`); register payload opsiyonel `station` (trim ≤64); `GET /:fieldId/containers` `station` döner; konteyner telemetrisi `STATION_ID` env ile `station` tag'i taşır; frontend istasyonları bu etiketten türetir (fallback: mevcut `DEMO_STATIONS`). |
 | K-16 | Her konteyner için AYRI docker-compose | `deployment/v2/dev/container/` (container-1) + `deployment/v2/dev/container2/` (container-2; kendi compose + `.env` + config kopyaları; kendi network'ü + `demo-bridge` external). `start/stop:demo-integration` üç compose'u sıralar; register aracı iki konteyneri otomatik kaydeder (bess1/bess2). Yalnızca dev. |
-| K-17 | İstasyon bazlı uzak yürütme — station bilgisi backend'e/config'e GİRMEZ | Ön yüz seçili istasyonun **konteyner id'sini** execute isteğinde `systems` ile gönderir; field executor uzak (`system`) adımı O konteynerin ws-tünelinden yürütür (`ExecuteOptions.remoteSystem`). `operations.json`/servisler/config'ler değişmez; station↔konteyner eşlemesi yalnız `field_containers.station` (register) + ön yüzde. |
+| K-17 | İstasyon bilgisi **hub/ws-tunnel'a GİRMEZ** — EMS domain'de yaşar | İstasyon/fider/ünite mantıksal modeli + konteyner→istasyon eşlemesi **EMS web-service** topolojisindedir: `GET /api/fields/:fieldId/topology` (`FIELD_TOPOLOGY_PATH` JSON; site config). Hub yalnız peer kimliği taşır; register adımı YOK (konteynerler `HUB_PEER_TOKEN` ile otomatik peer). Uzak yürütme aynı: seçili istasyonun konteyner id'si `systems` ile gider. |
+| K-18 | İstasyon başına **1 MV simülatörü** (2 fider o panonun H04/H05 hücreleri) | `DEMO-MV-1` = bess1 (H04→BESS#1–5, H05→BESS#6–9), `DEMO-MV-2` = bess2 (H04→#10–14, H05→#15–18); GridLink bus'ları MV cihazı başına; PCS eşlemesi st1→PCS-1/2, st2→PCS-3/4. Hücre komutları aktif istasyonun MV cihazına gider. |
+| K-19 | Güç semantiği (gdems benzetimi) | Operatör istasyon MW girer → grup payı **MW÷9** (operasyona `powerKw`), backend gerçek PCS çiftine böler → **PCS başına MW÷18**; ekran bir PCS'in değerini 9 üniteye yansıtır (istasyon = MW). BSC SOC fiziği için connector `powerScale: 9`; `simSpeedMultiplier` 133. Ops max = 9×2×1.725 = **31.05 MW/istasyon**. |
 | K-12 | Register-source (tooltip) modu referans `regsrc.js` portu | Header'a `Source: Values · Tooltip · Inline` segmenti (localStorage persist); `RegisterValue` sarmalayıcı + **tek** global hover kartı; kaynak türleri `reg`/`calc`/`nomap`/`model` renk lejantı; veri mevcut `demo-registers.ts` kataloğundan; **backend sözleşmesi değişmez** (salt görünüm). |
 | K-13 | Bu tur kapsamı: yalnız Site layout sayfası + paylaşılan üst blok | Tooltip kablolaması: Site layout (mimic, unit detail, attention, plant overview) + pinfo/KPI. Devices/Operations/Grid & Market/Faults/Admin kablolaması **2. tur** (bkz. A-6). |
 
@@ -637,7 +641,7 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 ### 6.11 UC-11 — Plant overview (Site layout üstü, collector + istasyon kartları)
 
 **Status:** ✏️ Specified (onay bekliyor)
-- **Kapsam dahil:** Site layout sekmesinde, trendlerin üstünde **plant overview kartı**: **collector** tek hat (grid → Q01 incomer → Q02 metering → collector bus → istasyon fiderleri → **BESS MV istasyon kartları**) + yan panel (Main source yok + Manual/Peak modu + canlı KPI + günlük enerji) + plant güç trendi. **İstasyon kartına tıklama** alttaki site layout'u (mimic + unit detail + attention) o istasyona geçirir. Kaynak: `plant-view.js#collectorSvg`, `#render`, `#plantSrc`; istasyon bölümü manuel config (ileride backend config'i). 2 istasyon: **#1 = BESS#1–5 (Feeder A)**, **#2 = BESS#6–9 (Feeder B)**; collector **"MV STATION · 34.5 kV"** (31.05 MW ≤ 50).
+- **Kapsam dahil:** Site layout sekmesinde, trendlerin üstünde **plant overview kartı**: **collector** tek hat + yan panel + plant güç trendi. **İstasyon kartına tıklama** site layout'u o istasyona geçirir. Kaynak: `plant-view.js#collectorSvg`, `#render`, `#plantSrc`; istasyon bölümü **EMS topolojisinden** (`GET /fields/:id/topology`). 2 istasyon × 9 ünite: **#1 = BESS#1–9**, **#2 = BESS#10–18** (her biri 2 fider: A 5, B 4); collector **"METAL CLAD · 34.5 kV"** (105.5 MW > 50).
 - **Kapsam hariç:** Main-source (PV/wind) MV station view, peak shaving algoritması (kaynak yok → disabled), source unit table, collector Metal Clad — A-5 ileri iş.
 
 **Akış:**
@@ -651,26 +655,26 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 | Kod | Gereksinim | AK |
 |:----|:-----------|:---|
 | FR-11.1 | Kart MUST collector tek hattını gösterir (grid, Q01 incomer, Q02 metering, collector bus, istasyon fiderleri) | AK-11.1 |
-| FR-11.2 | Her istasyon kartı MUST isim, BESS#aralık, n × 3.568 MWh, güç, SOC barı, ünite mini kutucukları ve durum taşır | AK-11.2 |
+| FR-11.2 | Her istasyon kartı MUST isim, BESS#aralık (9 ünite), 9 × 3.568 MWh, güç, SOC barı, ünite mini kutucukları ve durum taşır | AK-11.2 |
 | FR-11.3 | Collector/POI/istasyon değerleri MUST canlı ve yön sınıflı (dis/chg) olur | AK-11.3 |
 | FR-11.4 | Yan panel MUST Manual aktif + Peak shaving disabled + canlı KPI + günlük enerji gösterir | AK-11.4 |
-| FR-11.5 | İstasyon kartı tıklaması MUST site layout'u (mimic + unit detail + attention) o istasyona geçirir | AK-11.5 |
-| FR-11.6 | İstasyon bölümü MUST manuel config'ten gelir (2 istasyon: BESS#1–5, BESS#6–9) | AK-11.6 |
+| FR-11.5 | İstasyon kartı/stBar seçimi MUST tüm görünümleri (mimic + unit detail + attention + trend + komut) o istasyona geçirmesi | AK-11.5 |
+| FR-11.6 | İstasyon bölümü MUST EMS topolojisinden gelir (`/fields/:id/topology`); fallback statik config. 2 istasyon × 9 ünite, container eşlemesi topolojide | AK-11.6 |
 | FR-11.7 | Günlük enerji MUST POI serisi entegrasyonundan gelir; seri yoksa "—" (uydurma yok) | AK-11.7 |
-| FR-11.8 | İstasyon barı MUST seçili istasyonu gösterir/değiştirir; KPI'lar seçili istasyona göre hesaplanır | AK-11.8 |
+| FR-11.8 | İstasyon barı MUST seçili istasyonu gösterir/değiştirir; KPI/alert/trend seçili istasyona göre hesaplanır | AK-11.8 |
 | FR-11.9 | Kart MUST 2 PV MV istasyonu (illüstratif) içerir; collector tipini kurulu güce göre (Metal Clad / MV station) gösterir | AK-11.9 |
 | FR-11.10 | PV istasyon kartına tıklama MUST o istasyonun tek-hat çizimini (srcKpi + birimler) site layout yerine gösterir; BESS seçimi geri döndürür | AK-11.10 |
 | FR-11.11 | "Solar production & peak shaving · today" grafiği MUST production/POI + shaved/released bandları + threshold gösterir (illüstratif) | AK-11.11 |
 
 **GWT Kabul Senaryoları:**
 1. **AK-11.1 — GIVEN** 2 istasyonlu config **WHEN** kart render edilir **THEN** `svg.po` içinde Q01/Q02 ve 2 istasyon kutusu bulunur
-2. **AK-11.2 — GIVEN** istasyon #1 **WHEN** kart yazılır **THEN** "BESS#1–5 · 5 × 3.568 MWh" ve 5 ünite kutucuğu görünür
+2. **AK-11.2 — GIVEN** istasyon #1 **WHEN** kart yazılır **THEN** "BESS#1–9 · 9 × 3.568 MWh" ve 9 ünite kutucuğu görünür
 3. **AK-11.3 — GIVEN** istasyon poiMW>0 **WHEN** satır yazılır **THEN** MW `dis` sınıflıdır; poiMW<0 `chg`
 4. **AK-11.4 — GIVEN** ana kaynak yok **WHEN** panel render edilir **THEN** Manual `aria-pressed=true`, Peak `disabled`
-5. **AK-11.5 — GIVEN** kart #2 tıklanır **WHEN** `onStationSelect(1)` **THEN** seçili istasyon #2 olur ve mimic BESS#6–9 gösterir
-6. **AK-11.6 — GIVEN** `DEMO_STATIONS` **WHEN** okunur **THEN** toplam 9 ünite (5+4) ve 2 istasyon tanımlıdır
+5. **AK-11.5 — GIVEN** kart #2 / stBar tıklanır **WHEN** `onStationSelect(1)` **THEN** tüm görünümler istasyon #2'ye geçer (mimic BESS#10–18, trend/KPI/komut hedefi)
+6. **AK-11.6 — GIVEN** `GET /fields/:id/topology` **WHEN** okunur **THEN** 2 istasyon × 9 ünite ve container eşlemesi (bess1→container-1, bess2→container-2) döner
 7. **AK-11.7 — GIVEN** downsampled seri boş **WHEN** günlük enerji yazılır **THEN** tüm satırlar "—"
-8. **AK-11.8 — GIVEN** 2 istasyon **WHEN** stBar'da #2 seçilir **THEN** KPI'lar BESS#6–9 ünitelerine göre hesaplanır
+8. **AK-11.8 — GIVEN** 2 istasyon **WHEN** stBar'da #2 seçilir **THEN** KPI/alert/trend BESS#10–18 ünitelerine göre hesaplanır
 9. **AK-11.9 — GIVEN** illüstratif solar config **WHEN** kart render edilir **THEN** "PV MV STATION #1/#2" kutuları ve collector "METAL CLAD · 34.5 kV" görünür
 10. **AK-11.10 — GIVEN** plant kartı **WHEN** PV #1 kutusuna tıklanır **THEN** site layout yerine "PV MV STATION #1" tek-hat çizimi (7 birim + srcKpi) görünür; BESS#1 seçilince mimic geri gelir
 11. **AK-11.11 — GIVEN** illüstratif solar **WHEN** kart render edilir **THEN** "Solar production & peak shaving · today" grafiği + peakSum (production/shaved/released/threshold) görünür
@@ -683,7 +687,7 @@ Konteyner tier `RealtimeSnapshotSource` tüm online cihazların latest telemetri
 | AK-11.3 | Collector/POI yön | unit | ⬜ |
 | AK-11.4 | Manual/Peak mod + KPI | unit | ⬜ |
 | AK-11.5 | İstasyon kartı tıklaması geçiş | unit | ⬜ |
-| AK-11.6 | İstasyon manuel config (5+4) | unit | ⬜ |
+| AK-11.6 | İstasyon EMS topolojisi (2×9 + container eşlemesi) | unit + entegrasyon | ⬜ |
 | AK-11.7 | Günlük enerji boş durum | unit | ⬜ |
 | AK-11.8 | stBar + istasyon-bazlı KPI | unit | ⬜ |
 | AK-11.9 | PV kutuları + collector tipi (Metal Clad) | unit | ⬜ |

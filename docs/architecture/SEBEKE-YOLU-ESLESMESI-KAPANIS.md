@@ -33,7 +33,7 @@ review_date: 2026-10-21
 
 | Kapsam | Komut | Sonuç |
 |:-------|:------|:------|
-| Tam test paketi | `bun run test` | 294 dosya / 2559 test yeşil |
+| Tam test paketi | `bun run test` | 317 dosya / 2602 test yeşil (hub merge sonrası) |
 | Demo entegrasyon (docker, gerçek stack) | `bun run test:demo-integration` | **108/108 yeşil** (host gridLink wiring dahil) |
 | Simülatörler (birim) | `nx run simulators:test` | yeşil (grid-link bus + pcs-deenergized + host dahil) |
 | Lint kapısı (SPEC) | `bun run spec:check docs/architecture/SEBEKE-YOLU-ESLESMESI-MIMARISI.md` | 0 hata |
@@ -97,3 +97,9 @@ Field tier'a in-process `GridLinkBus` eklendi: MV simülatörü şalter pozisyon
 | G4 | Topoloji grafiğinden otomatik eşleşme | düşük | SPEC A-2 — MVP açık config |
 
 **review_date:** 2026-10-21
+
+### REV.01 — İstasyon başına MV (2026-10-22)
+
+- **Değişiklik:** Tek paylaşımlı MV yerine **istasyon başına 1 MV simülatörü** (`DEMO-MV-1` = bess1, `DEMO-MV-2` = bess2). Host artık MV cihazı başına `GridLinkBus` kuruyor; PCS `details.gridLink.deviceId` ile kendi istasyonunun bus'ını seçiyor, `feeder` H04/H05 o panonun iki fideri. Config: PCS-1/2→MV-1, PCS-3/4→MV-2.
+- **Kanıt:** `host.test.ts` "her MV kendi bus'ına yayınlar; fider kesicisi yalnız bağlı PCS'i düşürür" (iki MV + iki PCS, canlı Modbus); stack'te `DEMO-MV-2` H04 açılınca yalnız PCS-3 de-enerjili (Vab 0), kapatınca 4000.
+- **Test:** `bun run test` 2602 yeşil; `bun run test:demo-integration` **108/108** (hub mimarisi).

@@ -2,13 +2,15 @@
 status: active
 space: architecture
 tags: [mimari, simulator, pcs, mv-station, breaker, energization, spec]
-review_date: 2026-10-21
+review_date: 2026-10-22
 ---
 
 # Şebeke Yolu Eşleşmesi — Mimarisi (SPEC)
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
-> **Durum:** 🟡 Geliştirmede (2026-10-21) — SPEC onaylı; T-1…T-7 tamam, KAPANIŞ bekliyor.
+> **Durum:** 🟡 Geliştirmede (2026-10-21) — SPEC onaylı; T-1…T-7 tamam.
+> **REV.01 (2026-10-22):** İstasyon başına **1 MV simülatörü** (DEMO-MV-1/-2); GridLink bus'ları
+> **MV cihazı başına** kurulur (PCS-1/2→MV-1, PCS-3/4→MV-2). Config `details.gridLink {deviceId, feeder}`.
 > **İlişkili:** [SIMULATOR-MIMARISI.md](./SIMULATOR-MIMARISI.md) (ISimulator REV.03), [PCS-BSC-GUC-LINKI-MIMARISI.md](./PCS-BSC-GUC-LINKI-MIMARISI.md) (P1).
 
 ## 1. Amaç ve Bağlam
@@ -30,8 +32,8 @@ review_date: 2026-10-21
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
 | K1 | Zincir semantiği gdems `computeEnergization` ile aynı: POI H01 → fider kesici (H04/H05) → RMU H02; **kopuk zincir (kesici AÇIK) → PCS standby, güç 0, AC gerilim 0** | UC-1, UC-2 |
-| K2 | Bağlama config'te açık: `details.gridLink {deviceId, breaker}` (sim türevi şemayı, deployment değeri taşır) | UC-3 |
-| K3 | Bus host tarafından field tier'da oluşturulur; yayıncı MV simülatörü, tüketici PCS simülatörü (in-process, aynı süreç) | UC-1 |
+| K2 | Bağlama config'te açık: `details.gridLink {deviceId, feeder}` — `deviceId` MV simülatörü (istasyon başına 1), `feeder` H04/H05 (sim türevi şemayı, deployment değeri taşır) | UC-3 |
+| K3 | Bus host tarafından field tier'da **her MV simülatörü için ayrı** oluşturulur; yayıncı o MV, tüketici kendi `deviceId`'sine bağlı PCS (in-process, aynı süreç) | UC-1 |
 | K4 | De-enerjili PCS: `opStatus = standby`, setpoint/grid/DC güç 0, `REG_GRID_V_AB = 0`; komutlar kabul edilir ama çıkış yok | UC-2 |
 | K5 | `gridLink` yoksa PCS enerjili varsayılan (geriye uyum) | UC-3 |
 | K6 | DC kesici eşleşmesi (container tier, ayrı süreç) MVP DIŞI | §11 |
@@ -64,7 +66,7 @@ WattoxPcsSimulator (details.gridLink.breaker)
 - `GridLinkBus` — `packages/simulators/src/grid-link/bus.ts`: `setBreaker(cell, closed)`, `isEnergized(breaker)`; saf in-memory, thread-safe (tek süreç).
 - `DemoMvStationSimulator` — `writeCoil` sonrası bus'a yayın (bus yoksa no-op).
 - `WattoxPcsSimulator` — AC gerilim/güç sorgularında ve setpoint yazımında `isEnergized` kontrolü.
-- `SimulatorHost` — `details.gridLink` olan PCS + `demo-mv-station` varsa bus'ı kurar ve iki tarafa enjekte eder.
+- `SimulatorHost` — her `demo-mv-station` için bir `GridLinkBus` kurar; MV kendi bus'ına yayınlar, PCS `details.gridLink.deviceId` ile o MV'nin bus'ını tüketir.
 
 ### 4.3 Config şeması
 
@@ -72,7 +74,7 @@ WattoxPcsSimulator (details.gridLink.breaker)
 
 ```json
 "details": {
-  "gridLink": { "deviceId": "DEMO-MV-1", "breaker": "H02" }
+  "gridLink": { "deviceId": "DEMO-MV-2", "feeder": "H04" }
 }
 ```
 

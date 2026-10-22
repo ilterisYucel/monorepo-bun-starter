@@ -39,7 +39,7 @@ review_date: 2026-10-21
 
 | Kapsam | Komut | Sonuç |
 |:-------|:------|:------|
-| Tam test paketi | `bun run test` | 294 dosya / 2559 test yeşil |
+| Tam test paketi | `bun run test` | 317 dosya / 2602 test yeşil (hub merge sonrası) |
 | Demo entegrasyon (docker, gerçek stack) | `bun run test:demo-integration` | **108/108 test yeşil** |
 | Playwright demo (chromium) | `E2E_ADMIN_PASSWORD=... bunx playwright test --project=chromium` | 29 passed / 22 failed / 5 skipped (kalan hatalar harness/state/UI eski beklentileri — B.2) |
 | Lint kapısı (SPEC) | `bun run spec:check docs/architecture/PCS-BSC-GUC-LINKI-MIMARISI.md` | 0 hata |
@@ -65,7 +65,8 @@ review_date: 2026-10-21
 
 | # | Sapma | Açıklama |
 |:--|:------|:---------|
-| 1 | `simSpeedMultiplier` 20 → 1200 | Demo hızı için SOC entegrasyonu hızlandırıldı; `updateRackStates` `hours = elapsedSeconds × simSpeedMultiplier / 3600` formülüyle birleşti. |
+| 1 | `simSpeedMultiplier` 20 → 1200 → **133** | SOC formülü `/3600`e çevrildi; powerScale 9 ile birlikte gerçek saha SOC hızı korunacak şekilde 133’e çekildi (`hours = elapsedSeconds × 133 / 3600`). |
+| 9 | Connector `powerScale: 9` | İstasyon başına 2 gerçek PCS, 9 grubun temsilcisidir; BSC SOC fiziği için okunan toplam ×9 ölçeklenir (config `connector.sim.powerScale`). |
 | 2 | SOC verimi asimetrik: şarj `×0.975`, deşarj `÷0.975` | SPEC K2 η=0.975 tek yönlü yazıyordu; gdems `sim.js` referansında şarj çarpma, deşarj bölme olarak uygulandı (round-trip kaybı). |
 | 3 | Container `bsc_charge`/`bsc_discharge` SİLİNDİ; field yalnız `pcs_charge`/`pcs_discharge`; container `over_soc`/`offline_rack` log-only | BSC güç setpoint komutları fiziksel olarak kalktığı için (K1) kural/manevra katmanı da bu komutları çağırmayı bıraktı; `offline_rack` limiti artık kural komutla değil log ile işaretleniyor (B.2/G2). |
 | 4 | UI BSC_CMD'den `charge`/`discharge`/`bsc_charge`/`bsc_discharge` kaldırıldı | SPEC UC-3 "hariç: UI değişikliği" diyordu; komut kalkınca UI'nin ölü komut yollamaması için kapsam dışı UI düzeltmesi yapıldı (ölü kod temizliği). |
@@ -114,3 +115,10 @@ BSC güç akışı PCS→BSC yönüne döndü: SIM_ONLY setpoint register'ları 
 | G5 | Fault injection / thermal senaryoları | düşük | SIMULATOR ileri iş §11 |
 
 **review_date:** 2026-10-21
+
+### REV.02 — Hub mimarisi + istasyon ölçeği (2026-10-22)
+
+- **Kaynak:** `zero-trust-application-tunnel` main'e alındıktan sonra PCS→BSC zinciri hub/peer mimarisinde yeniden doğrulandı. Konteynerler `HUB_PEER_TOKEN` ile otomatik bağlanır (register yok); uzak `systems` yürütmesi aynı kaldı.
+- **Ölçek:** Connector `powerScale: 9` eklendi (`configs/sim/flex-bsc-sim-with-wattox.json` + v2 BSC kopyaları); `simSpeedMultiplier` 133’e çekildi. İstasyon başına PCS çifti: st1→PCS-1/2, st2→PCS-3/4 (BMS hedefleri ve `pcsSources` buna göre).
+- **Prep:** Demo operasyonlarına `bsc_prepare` (start+close_contactors) eklendi; PCS `standby`/`stop` `minWaitMs: 1200` ile BSC CURRENT_FLOWS yarışı kapatıldı.
+- **Kanıt:** `bun run test` → 317 dosya / **2602 test**; `bun run test:demo-integration` (hub stack) → **108/108**; canlı: PCS S06 → connector → BSC SOC yönü ve MV-2 fider → PCS de-enerjili davranışı doğrulandı.

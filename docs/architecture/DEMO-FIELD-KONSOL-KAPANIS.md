@@ -320,3 +320,11 @@ zoom/pan clamp'ı harita dışına taşmaz (B.1).
 | G17 | Çok-saha backend (A7) ve "New project" oluşturma (A8) ertelendi — portföy statik, tek `FIELD_ID` | orta | Çok-saha modeli + gerçek proje kaydı (SPEC §11.4) |
 
 **review_date:** 2026-10-13
+
+---
+
+## REV.02 — Hub peer modeli (2026-10-22)
+
+- `tools/register-container.sh` ve `bun run register:demo-integration` **kaldırıldı** (zero-trust hub modeli): konteynerler `HUB_PEER_TOKEN` (paylaşılan env) ile hub'a peer olarak bağlanır; field web-service bağlı peer'ları otomatik görür. Admin "Add container" akışı da kaldırıldı.
+- İstasyon→konteyner eşlemesi artık EMS topolojisinde (`GET /fields/:id/topology`); A.1'deki `register-container.sh` satırı tarihsel kayıttır.
+- Doğrulama akışı ve komutlar: `docs/process/DEMO-STACK-ISLETIM-RUNBOOK.md`.

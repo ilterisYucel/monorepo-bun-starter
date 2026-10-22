@@ -1235,3 +1235,15 @@ UC-13 istasyon bazlı yürütme uçtan uca düzeltildi ve dayanıklı hale getir
 > - Kalıcı iş: yavaş manevra repro testi (70 sn'lik sahte upstream) + ws-tunnel stream yaşam döngüsü analizi (kredi/flow-control veya idle-sweep şüphesi) + sim ack loglaması.
 
 **review_date:** 2026-10-14
+
+---
+
+## REV.02 — İstasyon modeli + EMS topolojisi (2026-10-22)
+
+> **Kapsam:** SPEC `DEMO-KONSOL-UI-UYUM-MIMARISI.md` REV.02 (K-11/K-14/K-17/K-18/K-19).
+
+- **İstasyon modeli:** 2 istasyon × 9 ünite — bess1 = BESS#1–9 (container-1), bess2 = BESS#10–18 (container-2); çizim her zaman aktif istasyonun 9 ünitesi + 2 fideri (A 5 / B 4). `DEMO_UNIT_COUNT = 18`.
+- **İstasyon geçişi:** stBar yeniden aktif; `stationState = stateForStation(...)`, `stationTopology = stationTopo(...)`; KPI/alert/trend/komutlar seçili istasyona göre.
+- **EMS topolojisi:** `GET /api/fields/:fieldId/topology` (`FIELD_TOPOLOGY_PATH`; `deployment/v2/dev/field/topology.json`) istasyon/fider/ünite + **konteyner→istasyon eşlemesini** döner. Hub'a domain eklenmez; register adımı kalktı (konteynerler `HUB_PEER_TOKEN` ile otomatik peer).
+- **Kaldırılanlar:** Admin "Add container"/`registerContainer` akışı (tunnel hub modeli), `containers[].station` bağımlılığı, SIM güç manevraları.
+- **Kanıt:** `bun run test` 317 dosya / **2602 test**; `bun run test:demo-integration` **108/108**; topology 200; Devices ağacı istasyon 2'de BESS#10–18 (regresyon testi `DemoDevicesPage.test.tsx`).
