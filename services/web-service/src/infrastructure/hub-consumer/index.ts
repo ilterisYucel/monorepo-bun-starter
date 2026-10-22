@@ -8,6 +8,4 @@ export type {
   HubSessionResult,
   HubAccessRequest,
 } from "./hub-consumer-client";
-export { HubFieldRegistry } from "./hub-field-registry";
-export type { HubFieldRegistryConfig } from "./hub-field-registry";
 

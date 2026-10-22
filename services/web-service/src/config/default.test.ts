@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
-import { authConfig, seedUsers, siteFieldConfig, mfaRequiredRoles, fieldTunnelPathAllowlist, resolveTelemetryIntervalMs } from "./default";
+import { authConfig, seedUsers, siteFieldConfig, mfaRequiredRoles } from "./default";
 
 /**
  * default.ts T1.6 + T2.3 sözleşmesi:
@@ -173,40 +173,5 @@ describe("mfaRequiredRoles (MFA_ENABLED flag)", () => {
   it("container tier her zaman []", () => {
     const loader = makeLoader({ SERVICE_TIER: "container" });
     expect(mfaRequiredRoles(loader, "container")).toEqual([]);
-  });
-});
-
-describe("fieldTunnelPathAllowlist (Boss Faz 3 dev eki)", () => {
-  it("env boşsa jenerik varsayılanlar + domain blocklist döner", () => {
-    const loader = makeLoader({});
-    const allowlist = fieldTunnelPathAllowlist(loader);
-    expect(allowlist.allowedPrefixes).toContain("/api/");
-    expect(allowlist.blockedPrefixes).toContain("/api/auth/login");
-  });
-
-  it("virgüllü ek önekler §5.6 varsayılanlarına EKLENİR", () => {
-    const loader = makeLoader({
-      FIELD_TUNNEL_ALLOWED_PREFIXES: "/src/, /@vite/,/node_modules/",
-    });
-    const allowlist = fieldTunnelPathAllowlist(loader);
-    expect(allowlist?.allowedPrefixes).toContain("/");
-    expect(allowlist?.allowedPrefixes).toContain("/api/");
-    expect(allowlist?.allowedPrefixes).toContain("/src/");
-    expect(allowlist?.allowedPrefixes).toContain("/@vite/");
-    expect(allowlist?.allowedPrefixes).toContain("/node_modules/");
-    expect(allowlist?.blockedPrefixes).toContain("/api/auth/login");
-  });
-});
-
-describe("resolveTelemetryIntervalMs", () => {
-  it("tanımsız/geçersizde ws-tunnel varsayılanına (15000) düşer", () => {
-    expect(resolveTelemetryIntervalMs(undefined)).toBe(15000);
-    expect(resolveTelemetryIntervalMs("abc")).toBe(15000);
-  });
-
-  it("geçerli değeri kullanır; 1000–300000 aralığına kırpar", () => {
-    expect(resolveTelemetryIntervalMs("2000")).toBe(2000);
-    expect(resolveTelemetryIntervalMs("10")).toBe(1000);
-    expect(resolveTelemetryIntervalMs("999999")).toBe(300000);
   });
 });

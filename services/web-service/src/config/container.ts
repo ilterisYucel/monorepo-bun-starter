@@ -16,10 +16,7 @@ import {
   serviceTier,
   deviceConfigDir,
   logConfig,
-  fieldUplinkConfig,
-  resolveTelemetryIntervalMs,
   hubConsumerConfig,
-  wireGuardConfig,
 } from "./default";
 import { resolveSigningKey } from "@gd-monorepo/tamper-logger";
 
@@ -27,17 +24,6 @@ import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
 import { isLogEventCode } from "@gd-monorepo/platform-logging";
 import type { LogEventCode } from "@gd-monorepo/platform-logging";
 
-import {
-  TunnelConnector,
-  WsSocketClientFactory,
-  ReconnectDelay,
-  ClientSessionStore,
-  ClientSessionServer,
-  TunnelClient,
-  HubSessionStore,
-  SessionGateway,
-  TunnelProxy,
-} from "@gd-monorepo/ws-tunnel";
 import { JoseTokenSigner } from "../infrastructure/auth/jose-token-signer";
 import { StatelessSessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
@@ -84,17 +70,9 @@ import { UserRepository } from "../infrastructure/persistence/user-repository";
 import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
 import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import { ContainerConnectionTelemetryPublisher } from "../infrastructure/container-proxy/container-connection-telemetry-publisher";
-import { FieldPoller } from "../infrastructure/field-poller";
-import { MarketSeries } from "../infrastructure/market/market-series";
-import { FieldUplinkSnapshotSource } from "../infrastructure/field-uplink/field-uplink-snapshot-source";
 import { HubManeuverChannel } from "../infrastructure/container-session/hub-maneuver-channel";
 import { HubContainerView } from "../infrastructure/container-session/hub-container-view";
-import { TelemetrySnapshotPusher } from "../infrastructure/tunnel-extensions";
-import {
-  HubConsumerClient,
-  HubFieldRegistry,
-} from "../infrastructure/hub-consumer";
-import { makeWireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
+import { HubConsumerClient } from "../infrastructure/hub-consumer";
 import { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
 import { RequestContext } from "../presentation/middleware/request-context";
 import { WebServiceServer } from "../presentation/server";
@@ -241,109 +219,6 @@ export function buildContainer() {
     // `container.register({ logger: asValue(logger) })` ile enjekte edilir.
 
     requestContext: asFunction(() => new RequestContext()).singleton(),
-
-    fieldPoller: asFunction(
-      ({ postgres, config }) => {
-        const tier = serviceTier(config);
-        if (tier === "boss") return new FieldPoller(postgres);
-        return undefined;
-      },
-    ).singleton(),
-
-    // Boss tier: EPİAŞ piyasa serileri okuyucusu (external_series — Faz 2).
-    marketSeries: asFunction(
-      ({ postgres, config }) => {
-        const tier = serviceTier(config);
-        if (tier === "boss") return new MarketSeries(postgres);
-        return undefined;
-      },
-    ).singleton(),
-
-    // --- Faz 3: field uplink (BOSS-UYGULAMA-MIMARISI.md §7.4) ---
-
-    // Field tier: boss cloud'a outbound uplink (TunnelConnector, peerType:"field").
-    uplinkConnector: asFunction(
-      ({ config, containerProxy, logger }) => {
-        const tier = serviceTier(config);
-        const cfg = fieldUplinkConfig(config, tier);
-        if (!cfg || !containerProxy) return undefined;
-        return new TunnelConnector(
-          cfg,
-          new WsSocketClientFactory(),
-          new ReconnectDelay({
-            baseMs: 1000,
-            maxMs: 60000,
-            jitterSpanMs: 1000,
-            jitter: Math.random,
-          }),
-          logger,
-        );
-      },
-    ).singleton(),
-
-    // Telemetri snapshot push — YALNIZ field→boss uplink (K6 kapsam dışı).
-    // Container→field yolu HTTP relay'e taşındı (bkz. HubContainerView).
-    telemetrySnapshotPusher: asFunction(
-      ({ config, uplinkConnector, containerProxy }) => {
-        const tier = serviceTier(config);
-        const intervalMs = resolveTelemetryIntervalMs(
-          process.env.TUNNEL_TELEMETRY_INTERVAL_MS,
-        );
-        if (tier === "field" && uplinkConnector && containerProxy) {
-          return new TelemetrySnapshotPusher(
-            uplinkConnector,
-            new FieldUplinkSnapshotSource(containerProxy),
-            { intervalMs, isConnected: () => uplinkConnector.connected() },
-          );
-        }
-        return undefined;
-      },
-    ).singleton(),
-
-    // Field tier: boss'tan gelen open-session/stream frame'lerini yanıtlar.
-    uplinkSessionStore: asFunction(
-      ({ config, authCfg, uplinkConnector }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field" || !uplinkConnector) return undefined;
-        return new ClientSessionStore(
-          new JoseTokenSigner(authCfg.jwtSecret, "field-session"),
-        );
-      },
-    ).singleton(),
-
-    uplinkSessionServer: asFunction(
-      ({ uplinkConnector, uplinkSessionStore, logger }) => {
-        if (!uplinkConnector || !uplinkSessionStore) return undefined;
-        return new ClientSessionServer(uplinkConnector, uplinkSessionStore, logger);
-      },
-    ).singleton(),
-
-    uplinkTunnelClient: asFunction(
-      ({ config, uplinkConnector }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field" || !uplinkConnector) return undefined;
-        return TunnelClient.create({
-          webServiceUrl: config.get<string>("uplink.apiUpstream"),
-          staticUrl: config.get<string>("uplink.staticUpstream"),
-        });
-      },
-    ).singleton(),
-
-    // Boss tier: hub-backed field kayıt defteri (P3 — hub-servis otorite).
-    fieldRegistry: asFunction(({ config, hubConsumerClient }) => {
-      const tier = serviceTier(config);
-      if (tier !== "boss" || !hubConsumerClient) return undefined;
-      return new HubFieldRegistry({ client: hubConsumerClient });
-    }).singleton(),
-
-    // Boss tier: WireGuard yedek yol (Faz 4 — WG_CLIENT_PRIVATE_KEY varsa).
-    wireGuard: asFunction(({ config, postgres, logger }) => {
-      const tier = serviceTier(config);
-      if (tier !== "boss") return undefined;
-      const wgConfig = wireGuardConfig(config);
-      if (!wgConfig) return undefined;
-      return makeWireGuardConnection(postgres, wgConfig, logger);
-    }).singleton(),
 
     // Boss tier: field olay toplayıcı (Faz 5) — REV.02: HTTP pull (UC-5).
     fieldEventCollector: asFunction(
