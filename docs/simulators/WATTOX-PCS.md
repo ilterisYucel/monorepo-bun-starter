@@ -18,7 +18,18 @@ PCS'nin iki ayrı Modbus kölesi vardır (gerçek donanımın EMS/BMS link ayrı
 
 `wattox-pcs/simulator.ts#WattoxPcsSimulatorConfig`: `ratedPowerKw` (1725),
 `ratedVoltageV` (1500), `ratedCurrentA` (1900), `bmsPort` (verilirse BMS yüzü açılır),
-`network` (verilirse EMS self-host açılır).
+`network` (verilirse EMS self-host açılır), `commandSource` (PCS12: 0 HMI / 1 EMS),
+`gridLink` + `gridFeeder` (opsiyonel şebeke yolu bağı — aşağıda).
+
+Demo config (`transport` + `details`):
+
+```json
+{ "transport": { "kind": "simulator", "type": "wattox-pcs", "bmsPort": 15502 },
+  "details": { "gridLink": { "deviceId": "DEMO-MV-1", "feeder": "H04" } } }
+```
+
+`bmsPort` PCS BMS yüzünün dinlediği porttur (demo: PCS-1 15502 … PCS-4 15505);
+`details.gridLink` host tarafından `ctx.gridLink`/`ctx.gridFeeder`'a çözülür.
 
 - Constructor: `initBms()` (BMS bloğu doldurulur) + `initSettings()` (fabrika ayarları).
 - BMS başlangıç örnekleri: `BMS_TOTAL_VOLTAGE` 1500.0 V, `BMS_SOC` %50.0, `BMS_SOH` %98.0,
@@ -43,7 +54,11 @@ PCS'nin iki ayrı Modbus kölesi vardır (gerçek donanımın EMS/BMS link ayrı
 
 1. `ensureBmsServer()` — `bmsPort` config'liyse BMS yüzü köprüsünü **tembel** başlatır
    (idempotent).
-2. **Güç/setpoint anlık yazımda eşitlendiği için** tick yalnızca **enerji sayaçlarını** işler:
+2. **Şebeke yolu kontrolü** (`syncGridState`) — `gridLink` tanımlıysa `isEnergized(feeder)`
+   sorgulanır (H01 ∧ fider ∧ H02). Zincir kopuksa PCS **de-enerjili** davranır:
+   `OP_STANDBY`, aktif/DC güç 0, DC akım 0, PF 0. Yeniden enerjide güç **otomatik
+   uygulanmaz** (bkz. [GRID-LINK.md](GRID-LINK.md)).
+3. **Güç/setpoint anlık yazımda eşitlendiği için** tick yalnızca **enerji sayaçlarını** işler:
    - `OP_CHARGING` → `chargeEnergyKwh += |setpointRaw| × (elapsedSeconds/3600)`
    - `OP_DISCHARGING` → `dischargeEnergyKwh += |setpointRaw| × (elapsedSeconds/3600)`
 

@@ -19,7 +19,8 @@ telemetrisi ve bir controller'ın gönderdiği komutlara verilen yanıtlar.
 | :--- | :--- | :--- |
 | `rackCount` | Toplam rack sayısı (host'tan `details.rackCount`) | 8 (host) |
 | `registers` | Excel türevi register tanımları (`parseBSCMap` çıktısı) | — |
-| `initialSocPercent` | Başlangıç SOC (%) | **50** |
+| `initialSocPercent` | Başlangıç SOC (%) — host `details.initialSocPercent` | **50** |
+| `simSpeedMultiplier` | SOC enerji entegrasyonu hız çarpanı (K-20); tick/telemetri ritmi 1 sn KALIR — host `details.simSpeedMultiplier` | **1** (demo **133**) |
 | `network` | Verilirse self-host Modbus TCP açılır | — |
 
 - Constructor (`bsc/bsc-simulator.ts#BSCSimulator.constructor`): `initRegisters()` +
@@ -59,20 +60,22 @@ telemetrisi ve bir controller'ın gönderdiği komutlara verilen yanıtlar.
 6. `updatePerRackRegisters()` — rack başına input register'ları.
 7. `updateRackFlags()` — discrete input rack bayrakları.
 
-### 3.1 `updateRackStates` — güç modeli
+### 3.1 `updateRackStates` — güç modeli (dış güç girdisi)
 
 `bsc/bsc-simulator.ts#BSCSimulator.updateRackStates`:
 
-- Holding'ten okunur: `COMMAND_REQUEST` (40010), `CHARGE_POWER_SETPOINT` (40030),
-  `DISCHARGE_POWER_SETPOINT` (40031).
-- Rack gücü (`powerKw`):
-  - `cmd === START (0x02)` → `chargeSetpoint × 0.01` (pozitif = şarj)
-  - `cmd === DISCHARGE (0x0B)` → `-(dischargeSetpoint × 0.01)` (negatif = deşarj)
-  - aksi → 0
+- **Güç, holding setpoint'lerinden DEĞİL, dış girdiden gelir**
+  (`bsc/power-input.ts#IBatteryPowerInput` → `#BSCSimulator.applyPowerKw`).
+  PCS→BSC ters kanalı (konnektör `powerLink`) toplam PCS gücünü yazar; gerçek
+  sahada DC gücü PCS üretir, BSC yalnız ölçer.
+  - İşaret: `kw < 0` şarj (SOC ↑), `kw > 0` deşarj (SOC ↓) — Wattox S06/S16
+    konvansiyonu. Sonlu olmayan değer 0 kabul edilir.
+- **Etkin güç kırpması** (`#BSCSimulator.effectivePowerKw`): `±NOMINAL_POWER_LIMIT_KW`
+  (500 kW) ve SOC sınırları — max SOC'de şarj 0, min SOC'de deşarj 0.
 - **Yalnızca `status === true` (online) rack'ler** için:
-  `deltaEnergy = powerKw × (elapsedSeconds / 60)` → `storedCapacityKwh += deltaEnergy`.
-- **Clamp:** enerji entegrasyonu %3,5 (MIN_SOC) ile %97 (MAX_SOC) arasında tutulur
-  (`socToCapacity(MIN_SOC)` ≤ capacity ≤ `socToCapacity(MAX_SOC)`).
+  `ΔE = |P| × h × η` (şarj) / `P × h / η` (deşarj); `h = elapsedSeconds ×
+  simSpeedMultiplier / 3600`, `η = ROUND_TRIP_EFFICIENCY (0.975)`.
+- **Clamp:** enerji entegrasyonu %3,5 (MIN_SOC) ile %97 (MAX_SOC) arasında tutulur.
 - Enerji entegrasyonu yalnızca `bscState === NORMAL || MANUAL` iken yapılır.
 
 ### 3.2 `updateSystemRegisters` — sistem okuma register'ları
@@ -89,12 +92,13 @@ telemetrisi ve bir controller'ın gönderdiği komutlara verilen yanıtlar.
 | 30057–58 | `DC_VOLTAGE_ANTICIPATED` | Online yoksa ortalama gerilim ×10000, varsa 0 |
 | 30059–60 | `SYSTEM_SUMMARY.DC_VOLTAGE` | Ortalama DC gerilim ×10000 (uint32) |
 | 30061–62 | `SYSTEM_SUMMARY.DC_CURRENT` | `powerKw×1000 / avgVoltage` (sint32) |
-| 30063–64 | `CHARGE_POWER_LIMIT` | Şarjda `chargeSp×10`; deşarjda 0; komut yokken nominal **500 kW** |
-| 30065–66 | `DISCHARGE_POWER_LIMIT` | Deşarjda `dischargeSp×10`; şarjda 0; komut yokken nominal 500 kW |
+| 30063–64 | `CHARGE_POWER_LIMIT` | Max SOC'de 0; aksi nominal **500 kW** (×1000) |
+| 30065–66 | `DISCHARGE_POWER_LIMIT` | Min SOC'de 0; aksi nominal 500 kW (×1000) |
 | 30100–30157 | `SUMMARY_STATS.*` | MAX/AVG/MIN SOC, SOH, cell-sum gerilimi, akım, sıcaklık, konumlar |
 
 - **`BSC_INFO` (30037) bitleri** (`register-map.ts#BSC_INFO_BITS`):
-  - b4:b5 `CHARGE_STATUS`: START → `0b01` (şarj), DISCHARGE → `0b10` (deşarj), aksi `0b11` (idle)
+  - b4:b5 `CHARGE_STATUS` — **güç işaretinden** (dış girdi): `P < 0` → `0b01` (şarj),
+    `P > 0` → `0b10` (deşarj), `P = 0` → `0b11` (idle)
   - b10 `PRE_VPC` (avgSoc > %95), b11 `VPC` (> %90), b12 `SPC` (> %85)
 - **Not:** ortalama gerilim, online rack'lerin gerilimlerinin ortalamasıdır;
   online rack yoksa fallback 1300 V kullanılır.
@@ -107,7 +111,7 @@ telemetrisi ve bir controller'ın gönderdiği komutlara verilen yanıtlar.
 - Summary tabanı = nameplate + `RACK_SUMMARY_BASE_OFFSET (50)` → rack 1 için **30220**
 
 Yazılanlar (online rack): `HEARTBEAT`, `STATE = NORMAL (0x09)`, `STATUS_FLAGS`
-(b8 Battery Ready, b7 DC Line Closed, b3/b4 şarj/deşarj), `COMPONENT_STATUS`
+(b8 Battery Ready, b7 DC Line Closed, b3/b4 şarj/deşarj — **güç işaretinden**), `COMPONENT_STATUS`
 (MC+/MC-/CB kapalı, fan), `COMPONENT_FEEDBACK`, `LIVE_UNIT_COUNT = 200`,
 `SOC` (×100), `SOH` (99×100), güç limitleri, `CELL_SUM_VOLTAGE` (V×10000),
 `CURRENT` (sint32), hücre gerilimleri, `MAX/MIN/AVG_PACK_TEMPERATURE`,
@@ -120,6 +124,21 @@ Offline rack'ler idle değerlerde bırakılır.
 `i` = Disabled, `N+i` = Online (`state.status`), `2N+i` = Alarm, `3N+i` = Warning,
 `4N+i` = Fault, `5N+i` = Non-Balancing. Alarm/Warning/Fault **hep `false`** (sağlıklı).
 
+### 3.5 `inject(scenario)` — senaryo enjeksiyonu
+
+`bsc/bsc-simulator.ts#BSCSimulator.inject` (`ISimulator.inject`; yalnız dev/debug):
+
+| Senaryo | Etki |
+| :--- | :--- |
+| `soc:<pct>` | Tüm rack'lerin SOC'sini `<pct>`'e çeker (%3,5–%97 aralığına kırpılır) |
+| `overheat` | Max pack sıcaklığı 80,0 °C (`tms_overheat_protect`) |
+| `diff_temp` | Rack 1 sıcaklık farkı 15,0 °C (`tms_temp_diff_protect`) |
+| `fault` | `BSC_INFO` fault biti set (arıza görünümü) |
+| `nominal` | Enjeksiyonları temizler (sağlıklı) |
+
+- Enjeksiyonlar her tick'te geçerlidir (override); bilinmeyen senaryo `false` döner.
+- Demo entegrasyon testleri bu API'yi kullanır (SOC başlangıcı, overheat alarmı).
+
 ---
 
 ## 4. Yazma davranışı — hangi register'a yazınca ne olur?
@@ -131,8 +150,8 @@ tablosuna yazılır; ayrıca:
 | :--- | :--- | :--- |
 | **40000** | `CONTROLLER.HEARTBEAT` | `lastControllerHeartbeat = tickCount` → LOC alarmı sıfırlanır |
 | **40010** | `CONTROLLER.COMMAND_REQUEST` | `handleCommand(value)` **anında** çalışır |
-| **40030** | `CHARGE_POWER_SETPOINT` | Saklanır; **sonraki tick'te** güç modeline girer (scale 0.01 kW) |
-| **40031** | `DISCHARGE_POWER_SETPOINT` | Saklanır; sonraki tick'te güç modeline girer |
+| **40030** | `CHARGE_POWER_SETPOINT` | **Yalnız saklanır** — güç modeli dış girdiden beslenir (tüketilmez) |
+| **40031** | `DISCHARGE_POWER_SETPOINT` | **Yalnız saklanır** (tüketilmez) |
 
 ### Komut tablosu (`handleCommand` → 40010)
 
@@ -149,8 +168,7 @@ tablosuna yazılır; ayrıca:
 | `EXIT_MANUAL` | 0x0007 | `MANUAL` ise `NORMAL`; rack'ler online |
 | `EVENT_CLEAR` | 0x0009 | ACK = DONE |
 | `RESET` | 0x000A | `resetSimulator()` — register/rack state sıfırlanır, durum `NOT_INITIALIZED` |
-| `DISCHARGE` | 0x000B | Durum `NORMAL`; rack'ler online (resmi haritada **kaldırılmış**, geçici — `register-map.ts#COMMAND` ELEGANT-EXCEPTION) |
-| Bilinmeyen | — | ACK = `INVALID_REQUEST` (0x0030) |
+| Bilinmeyen / `0x000B` | — | ACK = `INVALID_REQUEST` (0x0030) — **0x000B Rev AF'de kaldırıldı**; BSC'de charge/discharge komutu YOKTUR (güç PCS'te) |
 
 **Kabul kuralları:**
 - `NOT_INITIALIZED` iken `START` dışındaki komut → ACK = `UNDER_INITIALIZING` (0x0007), reddedilir.
@@ -176,7 +194,8 @@ Tam liste: `bsc/register-map.ts`. Önemli bloklar:
 **HOLDING REGISTERS (4x) — oku/yaz**
 - `CONTROLLER.HEARTBEAT` 40000, `CONTROLLER.COMMAND_REQUEST` 40010
 - `MANUAL_RACKS_*` 40011–40017, `DISABLED_RACKS_*` 40020–40026 + reserved 40027–40028
-- `CHARGE_POWER_SETPOINT` 40030, `DISCHARGE_POWER_SETPOINT` 40031 (geçici, ELEGANT-EXCEPTION)
+- `CHARGE_POWER_SETPOINT` 40030, `DISCHARGE_POWER_SETPOINT` 40031 (saklanır; güç
+  modelini sürmez — charge/discharge komutu yoktur)
 
 **DISCRETE INPUTS (1x)** — rack bayrakları: Disabled `n`, Online `N+n`, Alarm `2N+n`,
 Warning `3N+n`, Fault `4N+n`, Non-Balancing `5N+n` (toplam `6N`).
@@ -205,6 +224,7 @@ Warning `3N+n`, Fault `4N+n`, Non-Balancing `5N+n` (toplam `6N`).
   `RackState.disabled` pratikte hep `false` kalır.
 - **Kalibrasyon tetiklenemez:** `CALIBRATION_INFO` ve `RECALIBRATION_NO` her tick 0.
 - **Sıcaklık/cell gerilimi sabit:** gerçek ölçüm yerine sabit değerler (3.5288 V,
-  ~23 °C) yazılır.
-- **DISCHARGE komutu** resmi Rev AF haritasında yoktur; güç normalde PCS tarafından
-  kontrol edilir (bkz. `docs/analysis/BSC-VERI-ANALIZI.md`).
+  ~23 °C) yazılır; `inject` ile 80 °C / 15 °C fark override edilebilir.
+- **Charge/discharge komutu yoktur** (Rev AF, 0x000B kaldırıldı): güç PCS'ten gelir
+  (konnektör ters kanalı); setpoint register'ları saklanır ama güç modelini sürmez
+  (bkz. `docs/analysis/BSC-VERI-ANALIZI.md`).
