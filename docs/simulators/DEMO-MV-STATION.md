@@ -15,20 +15,24 @@
 - **Kesiciler kapalı:** H01, H02, H04, H05 = `true`
 - **Toprak ayırıcıları açık:** H01, H04, H05 = `false`
 - Bara gerilimi `kV = 34.5`, frekans `hz = 50`
+- **Şebeke yolu bus'ı** (`gridLink`): yayın gelmeyen hücre "kapalı" varsayılır
+  (`GridLinkBus`); her coil yazımından sonra güncel pozisyonlar yayınlanır.
 
 ---
 
 ## 2. `start()` / `stop()` / `port()`
 
 Standart `SelfHostedSimulator` deseni. **Tick boştur** (`tick: () => {}`):
-zamanla değişen dinamik simülasyon yoktur; tüm değişiklikler coil yazımında anında olur.
+zamanla değişen dinamik simülasyon yoktur; tüm değişiklikler coil yazımında anında olur
+ve `publish()` ile şebeke yolu bus'ına yayınlanır (`gridLink` varsa).
 
 ---
 
 ## 3. `tick(elapsedSeconds)` — yok
 
 `tick: () => {}` olarak bağlanır. Kesici/toprak pozisyonları yalnızca coil
-yazımıyla değişir.
+yazımıyla değişir; her yazımdan sonra `publish()` şalterleri bus'a yazar
+(`demo-mv-station/demo-mv-simulator.ts#DemoMvStationSimulator.publish`).
 
 ---
 
@@ -60,6 +64,15 @@ yazımıyla değişir.
 3. H01 toprağı POI'den enerjili olduğu için **her zaman** kilitli (H01_ES_CLOSE no-op).
 
 Bilinmeyen coil ve interlock ihlali → **değişiklik yok** (sessiz reddedilir).
+
+### Şebeke yolu yayını (gridLink)
+
+- Host (`host.ts#createGridLinks`) her `demo-mv-station` config'i için bir
+  `GridLinkBus` kurar; demo'da **DEMO-MV-1** ve **DEMO-MV-2** ayrı bus'lardır.
+- PCS simülatörleri `details.gridLink: { deviceId, feeder }` ile bu bus'ı sorgular;
+  zincir `H01 ∧ fider (H04/H05) ∧ H02` kapanmadan PCS enerjili sayılmaz.
+- Demo eşlemesi: PCS-1/H04 + PCS-2/H05 → `DEMO-MV-1`; PCS-3/H04 + PCS-4/H05 →
+  `DEMO-MV-2`. Detay: [GRID-LINK.md](GRID-LINK.md).
 
 ---
 
