@@ -85,7 +85,6 @@ Yukarıdaki sayılar hedeftir. Gerçek envanter (backend yoğun katmanlar):
 | ui | 10 | 66 | **WebSocket/HttpPolling transport'ları (13), TranslationProvider (5), RackCard (5) testli (T2/T4)**; kart komponentlerinin çoğu açık (Storybook var) |
 | superadmin | 1 | 3 | **Smoke testli (T4)** — sayfa katmanı açık |
 | container-desktop | 0 | 0 | Vitest config/setup hazırlandı (matchMedia + alias); renderer import'u vite:import-analysis alias sınırı nedeniyle AÇIK (plan notu) |
-| demo-backend | 1 | 1 | Smoke only — legacy |
 
 **Toplam: 140 test dosyası / 1354 test** (root `bun run test:unit` — workspace'e field+superadmin eklendi, T6).
 
@@ -109,7 +108,6 @@ Yukarıdaki sayılar hedeftir. Gerçek envanter (backend yoğun katmanlar):
 | `web-service` (application) | Use cases with mocked repos | `LoginUseCase` returns tokens on valid credentials, throws on invalid |
 | `data-service` | Job handler logic | `TelemetryWriter.write()` formats SQL INSERT correctly |
 | `device-service` | Config loader, poller | `ConfigLoader.load()` parses device JSON; poller produces correct job payload |
-| `demo-backend` | Route handlers, service logic | Simulator adapter returns expected telemetry |
 | `ui` | Utilities, transports, hooks | `hexToNumber()`, `WebSocketTransport` state machine, `useRealtimeTelemetry()` |
 | `web` | Zustand stores, maneuver transforms | `LogStore.add()` deduplicates; maneuver transform splits power across devices |
 | `desktop` | Main process utilities | Crash handler, auto-updater logic |
@@ -341,7 +339,7 @@ Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — 
 - Testler davranışı sabitler, implementasyonu değil — public API'den test et.
 - Edge-case listesi JSDoc kontratından türetilir: sıfır değerler, sınır değerleri, boş girdiler, hata kategorileri.
 - Zaman tabanlı davranışlar (backoff, TTL, tick) `vi.useFakeTimers` ile deterministik test edilir.
-- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
+- Hata yolları: beklenen hatalar `Result` dönüşüyle, beklenmeyenler throw ile — ikisi de ayrı ayrı test edilir (bkz. docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md Faz 0 ek 2).
 
 ### 8.5 Yol haritası eşlemesi (test-önce görevler)
 
@@ -356,7 +354,7 @@ Değiştirilecek testsiz modüllerde önce **mevcut davranış** sabitlenir — 
 
 ### 8.6 Faz kapanışı doğrulaması (MANDATORY)
 
-Her faz kapanışında [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](../docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) güncellenir:
+Her faz kapanışında [deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](../docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) güncellenir:
 
 1. Matrisin tüm satırları doldurulur: değişen dosyalar (satır ref'li + commit hash), nedeni, testler, geçme durumu, sisteme etkisi.
 2. Kabul kriterleri teker teker kanıtla işaretlenir (test çıktısı, curl, DB kaydı, Playwright trace).

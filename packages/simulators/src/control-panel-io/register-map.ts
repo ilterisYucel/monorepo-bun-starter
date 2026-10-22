@@ -22,4 +22,8 @@ export const DISCRETE = {
   FSS_FAULT: 3, // true = FSS arıza
   FSS_DISCHARGED: 4, // true = söndürme aktive edildi
   FSS_2ND_STAGE: 5, // true = 2. aşama aktive
+  // EP203 yangın paneli (F1): herhangi bir bölgede yangın → Fire rölesi;
+  // 1. Stage = tahliye bölgesi / uzaktan manuel release.
+  FIRE: 6, // true = yangın (herhangi bölge)
+  FIRST_STAGE: 7, // true = 1. aşama (release/manual)
 } as const;

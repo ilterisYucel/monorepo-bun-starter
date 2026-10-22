@@ -11,8 +11,8 @@ import type { JobType, DeviceJob } from "@gd-monorepo/shared-types";
  *   varsayılanları burada yaşar; config ile dışarıdan override edilir.
  *
  * Karakterize davranışlar (eski BullMQAdapter'dan taşındı):
- * - Retry haritası: READ_DEVICE:1, WRITE_TELEMETRY:5+backoff,
- *   COMMAND_DEVICE:3, MANAGEMENT:1, WS_BROADCAST:2, FETCH_EXTERNAL:3.
+ * - Retry haritası: READ_DEVICE:1, WRITE_TELEMETRY:1 (retry yok),
+ *   COMMAND_DEVICE:1, MANAGEMENT:1, WS_BROADCAST:2, FETCH_EXTERNAL:3.
  * - queueNames/retryOptions override; bilinmeyen JobType anahtarı yok sayılır.
  * - executeAndWait: nesne sonuç / nesne-olmayan → {success:true} / hata →
  *   {success:false, reason}.
@@ -176,8 +176,8 @@ beforeEach(() => {
 describe("PlatformMessageQueue retry haritası (T0.12)", () => {
   it("harita politika değerlerini taşır", () => {
     expect(JOB_RETRY_OPTIONS.READ_DEVICE.attempts).toBe(1);
-    expect(JOB_RETRY_OPTIONS.WRITE_TELEMETRY.attempts).toBe(5);
-    expect(JOB_RETRY_OPTIONS.COMMAND_DEVICE.attempts).toBe(3);
+    expect(JOB_RETRY_OPTIONS.WRITE_TELEMETRY.attempts).toBe(1);
+    expect(JOB_RETRY_OPTIONS.COMMAND_DEVICE.attempts).toBe(1);
     expect(JOB_RETRY_OPTIONS.MANAGEMENT.attempts).toBe(1);
     expect(JOB_RETRY_OPTIONS.WS_BROADCAST.attempts).toBe(2);
     expect(JOB_RETRY_OPTIONS.FETCH_EXTERNAL.attempts).toBe(3);
@@ -189,13 +189,15 @@ describe("PlatformMessageQueue retry haritası (T0.12)", () => {
     expect(attemptsFor(QUEUE_NAMES.READ_DEVICE)).toBe(1);
   });
 
-  it("WRITE_TELEMETRY kuyruğu attempts:5 + backoff ile açılır", async () => {
+  it("WRITE_TELEMETRY kuyruğu attempts:1 (retry yok) ile açılır", async () => {
     const mq = new PlatformMessageQueue(makeConnection());
     await mq.addJob(job("WRITE_TELEMETRY"));
     const opts = queueNamed(QUEUE_NAMES.WRITE_TELEMETRY).options
       .defaultJobOptions ?? {};
-    expect(opts.attempts).toBe(5);
-    expect(opts.backoff).toEqual({ type: "exponential", delay: 1000 });
+    // Telemetri 1 sn'de eskir; retry (moveToDelayed) yolu kapalı olmalı —
+    // AWS missing-key sarmalının tek tetikleyicisi retry'ydi.
+    expect(opts.attempts).toBe(1);
+    expect(opts.backoff).toBeUndefined();
   });
 
   it("her tip kendi seçenekleriyle açılır", async () => {
@@ -232,7 +234,7 @@ describe("PlatformMessageQueue config enjeksiyonu", () => {
     expect(attemptsFor(QUEUE_NAMES.READ_DEVICE)).toBe(9);
     // diğer tipler etkilenmez
     await mq.addJob(job("COMMAND_DEVICE"));
-    expect(attemptsFor(QUEUE_NAMES.COMMAND_DEVICE)).toBe(3);
+    expect(attemptsFor(QUEUE_NAMES.COMMAND_DEVICE)).toBe(1);
   });
 
   it("bilinmeyen JobType anahtarları yok sayılır", async () => {
@@ -346,6 +348,7 @@ describe("PlatformMessageQueue yüzeyi (IMessageQueue)", () => {
     const mq = new PlatformMessageQueue(makeConnection());
     await mq.registerWorkerFor("READ_DEVICE", processor, {
       concurrency: 3,
+      stalledInterval: 120000,
       onCompleted,
       onFailed,
     });
@@ -353,6 +356,8 @@ describe("PlatformMessageQueue yüzeyi (IMessageQueue)", () => {
     const worker = workerMocks[0]!;
     expect(worker.name).toBe(QUEUE_NAMES.READ_DEVICE);
     expect(worker.options.concurrency).toBe(3);
+    // stall koruması: statement_timeout (30 sn) üstünde tutulmalı.
+    expect(worker.options.stalledInterval).toBe(120000);
 
     const jobData = job("READ_DEVICE");
     worker.handlers["completed"]!({ data: jobData });

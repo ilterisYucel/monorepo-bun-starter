@@ -104,7 +104,7 @@ Rack başına 6 flag bloğu: Disabled (1–N), Online (N+1–2N), Alarm (2N+1–
 ## Config Dosya Düzeni
 
 - **Canonical kök: `configs/`** — model adıyla: `bsc.json`, `hvac.json` (eski `*-simulator.json` adları kaldırıldı).
-- Uygulama kopyaları: `packages/services/device-service/deployment/sample-config/` (bsc-1, bsc-2 — instance) ve `deployment/dev/container/device-configs/` — canonical'den türetilir.
+- Uygulama kopyaları: `services/device-service/deployment/sample-config/` (bsc-1, bsc-2 — instance) ve `deployment/dev/container/device-configs/` — canonical'den türetilir.
 - Config'ler "uygulama bazlı" değildir; aynı cihaz config'i hangi tier'da koşarsa koşsun geçerlidir — tier farkı runtime tag'lerinde (`container_id`/`field_id`) ortaya çıkar.
 
 ## Field'a Çekilecek Veriler (proxy + hafif aggregate)

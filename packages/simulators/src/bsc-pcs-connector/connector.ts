@@ -11,9 +11,14 @@ import type { IBmsTarget } from "./tcp-target";
 import type { ISourceReader } from "./source-reader";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
+import type { IBatteryPowerInput } from "../bsc/power-input";
+import type { IPowerReader } from "./pcs-power-reader";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 /** BscPcsConnectorAdapter yapılandırması — tek obje (DI kuralı 3). */
 export interface BscPcsConnectorAdapterConfig {
+  readonly deviceId: string;
   mapping: BscPcsMapping;
   /** Kaynak okuma kanalı — üretimde `TcpSourceReader` (gerçek Modbus TCP). */
   source: ISourceReader;
@@ -22,6 +27,8 @@ export interface BscPcsConnectorAdapterConfig {
   now?: () => number;
   /** Verilirse connector kendi izleme register'larını self-host sunucuda yayınlar. */
   network?: SimulatorNetworkConfig;
+  /** Ters kanal (PCS→BSC): S16 okuyucu + BSC güç girdisi (opsiyonel). */
+  powerLink?: { reader: IPowerReader; input: IBatteryPowerInput; scale?: number };
 }
 
 /** İzleme register'ları (kendi config telemetrisi bunları okur). */
@@ -33,6 +40,7 @@ const REG_WRITE_COUNT_LOW = 0x0004;
 const REG_WRITE_COUNT_HIGH = 0x0005;
 const REG_FAIL_COUNT_LOW = 0x0006;
 const REG_FAIL_COUNT_HIGH = 0x0007;
+const REG_POWER_SOURCE = 0x0008; // 0 ok / 1 kısmi / 2 yok
 
 /**
  * BscPcsConnectorAdapter — sözleşme (test: connector.test.ts):
@@ -43,7 +51,8 @@ const REG_FAIL_COUNT_HIGH = 0x0007;
  *   diğer bitleri bozulmaz; bilinmeyen bitler 0).
  * - İzleme register'ları readInputRegister ile okunur; yazma girişimi yok sayılır.
  */
-export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
+export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter, ISimulator {
+  readonly deviceId: string;
   private readonly mapping: BscPcsMapping;
   private readonly source: ISourceReader;
   private readonly target: IBmsTarget;
@@ -58,13 +67,19 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
   private lastWriteAt = 0;
   private writeCount = 0;
   private failCount = 0;
+  private powerSourceStatus = 0;
+  private readonly powerLink:
+    | { reader: IPowerReader; input: IBatteryPowerInput; scale?: number }
+    | undefined;
   private connected = false;
 
   constructor(config: BscPcsConnectorAdapterConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.mapping = config.mapping;
     this.source = config.source;
     this.now = config.now ?? (() => Date.now());
     this.network = config.network;
+    this.powerLink = config.powerLink;
     if (config.target) {
       this.target = config.target;
     } else {
@@ -77,6 +92,9 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
 
   /** Komut — kaynakları okur, dönüştürür, değişenleri BMS portuna yazar. */
   async tick(_elapsedSeconds: number): Promise<void> {
+    // 0. Ters kanal: PCS gücü → BSC (K4); BSC→PCS yazımından bağımsız.
+    await this.syncPowerLink();
+
     // 1. Kaynak okumaları + ayna güncelleme (kademeli bozulma)
     let readFailures = 0;
     for (const entry of this.mapping.mappings) {
@@ -85,8 +103,45 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
         continue;
       }
       try {
-        const raw = await this.source.read(entry.from);
+        if (entry.kind === "computed") {
+          // C8: akım limiti = güç limiti ÷ DC gerilim (LGES'te limit register'ı yok).
+          const numRaw = await this.source.read(entry.numerator.from);
+          let denRaw = await this.source.read(entry.denominator.from);
+          if (denRaw === 0 && entry.denominator.from.fallbackAddress !== undefined) {
+            denRaw = await this.source.read({
+              ...entry.denominator.from,
+              address: entry.denominator.from.fallbackAddress,
+              fallbackAddress: undefined,
+            });
+          }
+          const denPhysical = denRaw * entry.denominator.scale;
+          if (denPhysical !== 0) {
+            const physical = (numRaw * entry.numerator.scale) / denPhysical;
+            this.applyMirror(entry.to, Math.round(physical * entry.ratio + entry.offset));
+          }
+          continue;
+        }
+        if (entry.kind === "socEnergy") {
+          // PCS15: B19/B20 = SOC × anma enerji (charge: 1−SOC).
+          const socRaw = await this.source.read(entry.soc.from);
+          const fraction = Math.min(Math.max(socRaw * entry.soc.scale, 0), 1);
+          const energyKwh =
+            entry.mode === "charge"
+              ? (1 - fraction) * entry.ratedKwh
+              : fraction * entry.ratedKwh;
+          this.applyMirror(entry.to, Math.round(energyKwh * entry.ratio + entry.offset));
+          continue;
+        }
+        let raw = await this.source.read(entry.from);
         if (entry.kind === "register") {
+          // M12: birincil 0 ise (ör. onlayn rack yokken 30059=0) yedek adrese düş.
+          if (raw === 0 && entry.from.fallbackAddress !== undefined) {
+            raw = await this.source.read({
+              ...entry.from,
+              address: entry.from.fallbackAddress,
+              fallbackAddress: undefined,
+            });
+          }
           const transformed = Math.round(raw * entry.ratio + entry.offset);
           this.applyMirror(entry.to, transformed);
         } else {
@@ -104,6 +159,15 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
     }
     this.sourceStatus =
       readFailures === this.mapping.mappings.length ? 2 : readFailures > 0 ? 1 : 0;
+
+    // PCS14: BSC kaynağı tümüyle okunamıyorsa (sourceStatus=2) kayıp bitini set et
+    // (ör. BMS Status Word bit0 = "BMS no communication"); sağlıklıyken temizle.
+    if (this.mapping.lossBit !== undefined) {
+      const { to, bit } = this.mapping.lossBit;
+      const current = this.mirror.get(to) ?? 0;
+      const next = this.sourceStatus === 2 ? current | (1 << bit) : current & ~(1 << bit);
+      this.applyMirror(to, next);
+    }
 
     // 2. Değişen adresleri topla
     const dirty: Array<{ address: number; value: number }> = [];
@@ -156,6 +220,20 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
     this.connected = false;
     await this.target.close();
     await this.source.close?.();
+    await this.powerLink?.reader.close();
+  }
+
+  /**
+   * Ters kanal senkronizasyonu: PCS toplam gücü BSC girdisine yazılır.
+   * Power link yoksa no-op (geriye uyum — FR-2.4).
+   */
+  private async syncPowerLink(): Promise<void> {
+    if (this.powerLink === undefined) return;
+    const reading = await this.powerLink.reader.readTotal();
+    this.powerSourceStatus =
+      reading.available === 0 ? 2 : reading.available < reading.total ? 1 : 0;
+    // Demo ölçeği: 2 gerçek PCS, N sanal grubun temsilcisidir (ör. ×9).
+    this.powerLink.input.applyPowerKw(reading.totalKw * (this.powerLink.scale ?? 1));
   }
 
   /** Komut — kendi izleme sunucusunu + tick açar (network yoksa no-op). Idempotent. */
@@ -195,6 +273,7 @@ export class BscPcsConnectorAdapter implements IModbusSimulatorAdapter {
       case REG_WRITE_COUNT_HIGH: return this.writeCount >>> 16;
       case REG_FAIL_COUNT_LOW: return this.failCount & 0xffff;
       case REG_FAIL_COUNT_HIGH: return this.failCount >>> 16;
+      case REG_POWER_SOURCE: return this.powerSourceStatus;
       default: return 0;
     }
   }

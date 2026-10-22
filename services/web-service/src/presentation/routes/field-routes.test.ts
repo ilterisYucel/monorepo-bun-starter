@@ -3,7 +3,7 @@ import Fastify from "fastify";
 import { fieldRoutes } from "./field-routes";
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { User } from "@gd-monorepo/shared-types";
-import type { ContainerProxy } from "../../infrastructure/container-proxy/container-proxy";
+import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
 
 /**
  * field-routes KARAKTERİZASYONU (TESTING.md §8.2) — Faz 1 T1.2/T1.3
@@ -12,7 +12,7 @@ import type { ContainerProxy } from "../../infrastructure/container-proxy/contai
  * - 2026-08-28: saha REGISTRY uçları (liste/oluştur/güncelle/sil) field
  *   stack'ten KALDIRILDI — tek saha modeli (FIELD_ID env + açılış seed'i).
  *   Burada yalnızca saha başına veri uçları (summary/containers/telemetry)
- *   ve konteyner register'ı test edilir.
+ *   test edilir; konteyner listesi hub peer'larından türetilir.
  */
 
 const mockUser = (overrides: Partial<User> = {}): User => ({
@@ -35,9 +35,6 @@ function makeDb(overrides: Partial<ISqlDatabase> = {}): ISqlDatabase {
       if (sql.includes("FROM fields")) {
         return Promise.resolve([{ id: "f-1", name: "Saha 1" }, { id: "f-2", name: "Saha 2" }]);
       }
-      if (sql.includes("FROM field_containers")) {
-        return Promise.resolve([{ field_id: "f-1", container_id: "c-1", container_url: "", layout: {} }]);
-      }
       return Promise.resolve([]);
     }),
     queryOne: vi.fn().mockImplementation((sql: string) => {
@@ -57,23 +54,24 @@ function makeDb(overrides: Partial<ISqlDatabase> = {}): ISqlDatabase {
   };
 }
 
-function makeProxy(): ContainerProxy {
+function makeProxy(): IContainerProxy {
   return {
     latestTelemetry: vi.fn().mockReturnValue([]),
     connectionStatus: vi.fn().mockReturnValue(new Map([["c-1", "idle"]])),
     lastSeenAt: vi.fn().mockReturnValue(undefined),
+    containerIds: vi.fn().mockReturnValue(["c-1"]),
     pushConfigUpdate: vi.fn(),
     historical: vi.fn().mockResolvedValue([]),
     allHistorical: vi.fn().mockResolvedValue({}),
     start: vi.fn(),
     stop: vi.fn(),
-  } as unknown as ContainerProxy;
+  } as unknown as IContainerProxy;
 }
 
 async function buildApp(opts: {
   user?: User;
   db?: ISqlDatabase;
-  proxy?: ContainerProxy | undefined;
+  proxy?: IContainerProxy | undefined;
 }) {
   const app = Fastify();
   app.addHook("onRequest", (request, _reply, done) => {
@@ -96,7 +94,7 @@ async function buildApp(opts: {
 
 describe("field-routes karakterizasyon (mevcut davranış)", () => {
   let db: ISqlDatabase;
-  let proxy: ContainerProxy;
+  let proxy: IContainerProxy;
 
   beforeEach(() => {
     db = makeDb();
@@ -193,71 +191,30 @@ describe("field-routes karakterizasyon (mevcut davranış)", () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it("T1.2: register endpoint'i admin için 201 — yalnızca hash saklanır", async () => {
+  it("GET /:fieldId/containers — liste hub peer'larından (containerIds) türetilir", async () => {
     const app = await buildApp({ user: mockUser({ role: "admin" }), db, proxy });
-    const token = "t".repeat(32);
-    const res = await app.inject({
-      method: "POST",
-      url: "/api/fields/f-1/containers/c-1/register",
-      payload: { token },
-    });
-    expect(res.statusCode).toBe(201);
-    const insertCall = (db.execute as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
-      String(c[0]).includes("INSERT INTO field_containers"),
-    );
-    expect(insertCall).toBeDefined();
-    expect(JSON.stringify(insertCall)).not.toContain(token);
-    // 2026-08-30: container_url artık DB'ye YAZILMAZ (URL mimarinin alanı değil)
-    expect(String(insertCall?.[0])).not.toContain("container_url");
+    const res = await app.inject({ method: "GET", url: "/api/fields/f-1/containers" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual([
+      expect.objectContaining({ containerId: "c-1", connectionStatus: "idle" }),
+    ]);
+    expect(proxy.containerIds).toHaveBeenCalled();
   });
 
-  it("T1.2: kısa token → 400", async () => {
+  it("GET /:fieldId/telemetry/latest — anahtarlar hub container id'leridir", async () => {
     const app = await buildApp({ user: mockUser({ role: "admin" }), db, proxy });
     const res = await app.inject({
-      method: "POST",
-      url: "/api/fields/f-1/containers/c-1/register",
-      payload: { token: "kisa" },
+      method: "GET",
+      url: "/api/fields/f-1/telemetry/latest",
     });
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(200);
+    expect(Object.keys(res.json())).toEqual(["c-1"]);
   });
 
-  it("2026-08-30: payload'daki containerUrl YOK SAYILIR — 201 + DB'ye yazılmaz", async () => {
-    const app = await buildApp({ user: mockUser({ role: "admin" }), db, proxy });
-    const res = await app.inject({
-      method: "POST",
-      url: "/api/fields/f-1/containers/c-1/register",
-      payload: { containerUrl: "file:///etc/passwd", token: "t".repeat(32) },
-    });
-    expect(res.statusCode).toBe(201);
-    const insertCall = (db.execute as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
-      String(c[0]).includes("INSERT INTO field_containers"),
-    );
-    expect(String(insertCall?.[0])).not.toContain("container_url");
-  });
-
-  it("T1.2: teknik → 403", async () => {
-    const app = await buildApp({ user: mockUser(), db, proxy });
-    const res = await app.inject({
-      method: "POST",
-      url: "/api/fields/f-1/containers/c-1/register",
-      payload: { token: "t".repeat(32) },
-    });
-    expect(res.statusCode).toBe(403);
-  });
-
-  it("T1.2: bilinmeyen saha → 404", async () => {
-    const db404 = makeDb({
-      queryOne: vi.fn().mockImplementation((sql: string) => {
-        if (sql.includes("INSERT INTO fields")) return Promise.resolve({ id: "f-9" });
-        return Promise.resolve(undefined);
-      }),
-    });
-    const app = await buildApp({ user: mockUser({ role: "admin" }), db: db404, proxy });
-    const res = await app.inject({
-      method: "POST",
-      url: "/api/fields/f-x/containers/c-1/register",
-      payload: { token: "t".repeat(32) },
-    });
-    expect(res.statusCode).toBe(404);
+  it("containerProxy yoksa containers boş dizi döner", async () => {
+    const app = await buildApp({ user: mockUser({ role: "admin" }), db });
+    const res = await app.inject({ method: "GET", url: "/api/fields/f-1/containers" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual([]);
   });
 });

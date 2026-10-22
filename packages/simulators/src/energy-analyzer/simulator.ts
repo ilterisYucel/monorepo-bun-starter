@@ -5,6 +5,8 @@ import { INPUT } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { EnergyAnalyzerSimulatorAdapter } from "./modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -96,16 +98,20 @@ function updatePhase(p: PhaseValues, baseCurrent: number, secs: number): void {
 }
 
 export interface EnergyAnalyzerSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class EnergyAnalyzerSimulator {
+export class EnergyAnalyzerSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: EnergyAnalyzerState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
+  private injectedLineVoltage: number | undefined;
 
-  constructor(config: EnergyAnalyzerSimulatorConfig = {}) {
+  constructor(config: EnergyAnalyzerSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = defaultState();
     this.network = config.network;
   }
@@ -132,6 +138,25 @@ export class EnergyAnalyzerSimulator {
     return this.server?.port() ?? this.network?.port ?? 0;
   }
 
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut).
+   * - `aux_loss`: hat-nötr gerilimi 150.0 V'a sabitler (FL-02 tetikleyicisi)
+   * - `nominal`: enjeksiyon kaldırılır (doğal dalgalanma)
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "aux_loss":
+        this.injectedLineVoltage = 150;
+        return true;
+      case "nominal":
+        this.injectedLineVoltage = undefined;
+        return true;
+      default:
+        return false;
+    }
+  }
+
   tick(elapsedSeconds: number): void {
     const s = this.state;
     const secs = Math.min(elapsedSeconds, 5);
@@ -139,6 +164,13 @@ export class EnergyAnalyzerSimulator {
     updatePhase(s.phaseA, 120, secs);
     updatePhase(s.phaseB, 115, secs);
     updatePhase(s.phaseC, 125, secs);
+
+    if (this.injectedLineVoltage !== undefined) {
+      for (const phase of [s.phaseA, s.phaseB, s.phaseC]) {
+        phase.voltageLN = this.injectedLineVoltage;
+        phase.voltageLL = this.injectedLineVoltage * Math.sqrt(3);
+      }
+    }
 
     const totalI = s.phaseA.current + s.phaseB.current + s.phaseC.current;
     s.neutralCurrent += (Math.abs(s.phaseA.current - s.phaseB.current + s.phaseC.current) * 0.15 - s.neutralCurrent) * 0.2 * secs;

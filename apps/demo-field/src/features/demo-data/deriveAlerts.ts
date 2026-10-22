@@ -35,7 +35,29 @@ export const SEV_TEXT: Record<NovaAlertSeverity, string> = {
 const f = (v: number, d = 1): string =>
   (Math.round(v * 10 ** d) / 10 ** d).toFixed(d).replace(".", ",");
 
-export function deriveAlerts(
+/** Uyarının kararlı kimliği — operatörün "temizle" kaydı bu anahtarla tutulur. */
+export function alertKey(a: NovaAlert): string {
+  return `${a.unitNo ?? "-"}|${a.cell ?? "-"}|${a.title}`;
+}
+
+// ELEGANT-EXCEPTION: modül-düzeyi temizleme kümesi — deriveAlerts'i çağıran
+// tüm türevler (KPI, izinler, TEİAŞ) aynı operatör temizlemesini görmelidir.
+// FaultClearStore tek yazıcıdır.
+let clearedKeys: ReadonlySet<string> = new Set();
+
+/** Operatörün Admin'den temizlediği uyarı anahtarlarını ayarlar (FaultClearStore). */
+export function setClearedAlertKeys(keys: Iterable<string>): void {
+  clearedKeys = new Set(keys);
+}
+
+/** Operatör temizlemesi uygulanmış uyarılar (KPI, izinler, Faults). */
+export function deriveAlerts(state: NovaMimicState, topo: NovaTopology): NovaAlert[] {
+  const raw = deriveAlertsRaw(state, topo);
+  return clearedKeys.size === 0 ? raw : raw.filter((a) => !clearedKeys.has(alertKey(a)));
+}
+
+/** Ham uyarılar — temizleme UYGULANMAMIŞ (Admin listesi + temizleme budaması). */
+export function deriveAlertsRaw(
   state: NovaMimicState,
   topo: NovaTopology,
 ): NovaAlert[] {

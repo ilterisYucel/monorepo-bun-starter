@@ -111,7 +111,6 @@ function makeConfig(overrides: Partial<ModbusDeviceConfig> = {}): ModbusDeviceCo
             bitStart: 0,
             bitEnd: 0,
             name: "BSC Alarm",
-            dataTag: "d1",
             description: "Alarm biti",
             unit: "-",
           },
@@ -150,6 +149,67 @@ describe("ModbusDevice.read() ISP sözleşmesi", () => {
     );
     const results = await device.read();
     expect(results.map((t) => t.name)).toEqual(["Voltage"]);
+  });
+});
+
+describe("ModbusDevice.read() sentinel filtresi (M1 — 0x7FFF/0x8000/0xFFFF)", () => {
+  it("UINT16 0xFFFF sentinel değeri sonuçtan çıkarılır, diğerleri korunur", async () => {
+    const config = makeConfig({
+      bitfieldConfigs: undefined,
+      telemetryList: [
+        holdingTelemetry({ name: "A", registerAddress: 100 }),
+        holdingTelemetry({ name: "B", registerAddress: 101 }),
+      ],
+    });
+    const transport = makeTransport({
+      readHoldingRegisters: vi.fn().mockResolvedValue([0xffff, 230]),
+    });
+    const device = new ModbusDevice(config, transport);
+    const results = await device.read();
+    const names = results.map((t) => t.name);
+    expect(names).not.toContain("A");
+    expect(names).toContain("B");
+    expect(results.find((t) => t.name === "B")!.value).toBe(230);
+  });
+
+  it("INT16 0x7FFF ve 0x8000 sentinel değerleri çıkarılır", async () => {
+    const config = makeConfig({
+      bitfieldConfigs: undefined,
+      telemetryList: [
+        holdingTelemetry({ name: "Max", registerAddress: 100, registerDataType: "INT16" }),
+        holdingTelemetry({ name: "Min", registerAddress: 101, registerDataType: "INT16" }),
+        holdingTelemetry({ name: "Ok", registerAddress: 102, registerDataType: "INT16" }),
+      ],
+    });
+    const transport = makeTransport({
+      readHoldingRegisters: vi.fn().mockResolvedValue([0x7fff, 0x8000, 25]),
+    });
+    const device = new ModbusDevice(config, transport);
+    const names = (await device.read()).map((t) => t.name);
+    expect(names).toEqual(["Ok"]);
+  });
+
+  it("FLOAT32 NaN sentinel değeri çıkarılır", async () => {
+    const config = makeConfig({
+      bitfieldConfigs: undefined,
+      telemetryList: [
+        holdingTelemetry({ name: "P", registerAddress: 100, registerDataType: "FLOAT32" }),
+      ],
+    });
+    const transport = makeTransport({
+      readHoldingRegisters: vi.fn().mockResolvedValue([0x7fff, 0xffff]),
+    });
+    const device = new ModbusDevice(config, transport);
+    expect((await device.read()).map((t) => t.name)).toEqual([]);
+  });
+
+  it("normal değerler korunur (regresyon)", async () => {
+    const device = new ModbusDevice(
+      makeConfig({ bitfieldConfigs: undefined }),
+      makeTransport({ readHoldingRegisters: vi.fn().mockResolvedValue([230]) }),
+    );
+    const results = await device.read();
+    expect(results.find((t) => t.name === "Voltage")!.value).toBe(230);
   });
 });
 
@@ -519,7 +579,6 @@ describe("ModbusDevice okuma gruplaması (Faz B — adres sıralı + paralel)", 
               bitStart: 0,
               bitEnd: 31,
               name: "BigWord",
-              dataTag: "big",
               description: "32 bitlik kelime",
               unit: "-",
             },
@@ -550,7 +609,6 @@ describe("ModbusDevice config doğrulaması (Faz C)", () => {
                   bitStart: 0,
                   bitEnd: 32,
                   name: "X",
-                  dataTag: "x",
                   description: "x",
                   unit: "-",
                 },
@@ -576,7 +634,6 @@ describe("ModbusDevice config doğrulaması (Faz C)", () => {
                   bitStart: 5,
                   bitEnd: 3,
                   name: "X",
-                  dataTag: "x",
                   description: "x",
                   unit: "-",
                 },
@@ -602,7 +659,6 @@ describe("ModbusDevice config doğrulaması (Faz C)", () => {
                   bitStart: 0,
                   bitEnd: 0,
                   name: "X",
-                  dataTag: "x",
                   description: "x",
                   unit: "-",
                 },

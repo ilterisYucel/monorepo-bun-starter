@@ -27,7 +27,7 @@ const startBridge = async (sim: WattoxPcsSimulator): Promise<number> => {
 
 describe("TcpBmsTarget", () => {
   it("BMS-yüzü bridge'e FC 0x10 yazar; simülatör deposu güncellenir", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",});
     const port = await startBridge(sim);
 
     const target = new TcpBmsTarget("127.0.0.1", port);
@@ -38,7 +38,7 @@ describe("TcpBmsTarget", () => {
   });
 
   it("sunucu kapalıyken connect throw eder", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",});
     const port = await startBridge(sim);
     await bridge!.stop();
     bridge = undefined;
@@ -49,7 +49,7 @@ describe("TcpBmsTarget", () => {
   });
 
   it("close sonrası yeniden connect + yazım çalışır (retry deseni)", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",});
     const port = await startBridge(sim);
 
     const target = new TcpBmsTarget("127.0.0.1", port);
@@ -63,7 +63,7 @@ describe("TcpBmsTarget", () => {
   });
 
   it("BMS bloğu dışına yazım → Modbus exception throw", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",});
     const port = await startBridge(sim);
 
     const target = new TcpBmsTarget("127.0.0.1", port);

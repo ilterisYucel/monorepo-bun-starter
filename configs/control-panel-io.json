@@ -222,9 +222,5 @@
       "severity": "error",
       "description": "FSS 2. aşama aktive (K5)"
     }
-  ],
-  "transport": {
-    "kind": "simulator",
-    "type": "control-panel-io"
-  }
+  ]
 }

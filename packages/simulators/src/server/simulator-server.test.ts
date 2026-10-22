@@ -33,7 +33,7 @@ const connectClient = async (port: number): Promise<ModbusTCPClient> => {
 
 describe("SimulatorServer — UC-2 self-host", () => {
   it("AK-2.1 — network config ile start() sonrası TCP'den okuma", async () => {
-    sim = new DcMeterSimulator({ network: { host: "127.0.0.1", port: 0 } });
+    sim = new DcMeterSimulator({ deviceId: "DCM-1", network: { host: "127.0.0.1", port: 0 } });
     await sim.start();
 
     const port = sim.port();
@@ -45,7 +45,7 @@ describe("SimulatorServer — UC-2 self-host", () => {
   });
 
   it("AK-2.2 — stop idempotent; start sonrası yeniden açılır", async () => {
-    sim = new DcMeterSimulator({ network: { host: "127.0.0.1", port: 0 } });
+    sim = new DcMeterSimulator({ deviceId: "DCM-1", network: { host: "127.0.0.1", port: 0 } });
     await sim.start();
     await sim.stop();
     await sim.stop();
@@ -58,7 +58,7 @@ describe("SimulatorServer — UC-2 self-host", () => {
   });
 
   it("network yoksa start() no-op'tur", async () => {
-    sim = new DcMeterSimulator();
+    sim = new DcMeterSimulator({ deviceId: "DCM-1" });
     await expect(sim.start()).resolves.toBeUndefined();
     expect(sim.port()).toBe(0);
   });

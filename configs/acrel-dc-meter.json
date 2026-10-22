@@ -11,10 +11,6 @@
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "dc-meter"
-  },
   "telemetry": [
     {
       "name": "Alarm Word",
@@ -22,7 +18,7 @@
       "unit": "",
       "protocol": "MODBUS",
       "registerAddress": 19,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
       "scale": 1,
       "offset": 0,
@@ -38,7 +34,7 @@
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 50,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "FLOAT32",
       "scale": 1,
       "offset": 0,
@@ -54,7 +50,7 @@
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 52,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "FLOAT32",
       "scale": 1,
       "offset": 0,
@@ -70,7 +66,7 @@
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 54,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "FLOAT32",
       "scale": 1,
       "offset": 0,

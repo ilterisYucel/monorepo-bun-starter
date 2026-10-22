@@ -9,9 +9,9 @@ import { z } from "zod";
  * Değerlendirme sırası: "eq" eşitlik, "neq" eşitsizlik, "gt"/"gte"/"lt"/"lte"
  * sayısal sıralama — karşılaştırma RuleEvaluator'da yapılır.
  */
-export type RuleOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+export type RuleOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "abs_gt" | "abs_gte";
 
-export const ruleOperatorSchema = z.enum(["eq", "neq", "gt", "gte", "lt", "lte"]);
+export const ruleOperatorSchema = z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "abs_gt", "abs_gte"]);
 
 /**
  * Cihaz seçicisi.
@@ -198,6 +198,10 @@ export const ruleActionSchema = z.discriminatedUnion("action", [
  * - `enabled`: varsayılan true (tüketici çözümler).
  * - `cooldownMs`: aksiyon seti çalıştıktan sonra yeni yükselen kenarın
  *   bastırıldığı süre (varsayılan 0 = her kenar tetikler).
+ * - `armAfterFalse`: true ise kural ilk açılışta (servis başlangıcı) koşul zaten
+ *   TRUE olsa bile ATEŞLEMEZ; önce en az bir kez FALSE görülmesi gerekir.
+ *   Kurtarma (recovery) kuralları için: "E-stop kalktı" bir GEÇİŞTİR, başlangıçta
+ *   E-stop'un zaten kapalı olması kurtarma manevrasını tetiklememeli (NEW-7).
  * - `when` + `then`: bkz. ilgili tipler.
  *
  * Değerlendirme kenar-tetikli ve dedup'ludur — RuleEvaluator sözleşmesi
@@ -207,6 +211,7 @@ export interface AutomationRule {
   name: string;
   enabled?: boolean;
   cooldownMs?: number;
+  armAfterFalse?: boolean;
   when: AutomationRuleWhen;
   then: RuleAction[];
 }
@@ -216,6 +221,7 @@ export const automationRuleSchema = z
     name: z.string().min(1),
     enabled: z.boolean().optional(),
     cooldownMs: z.number().min(0).optional(),
+    armAfterFalse: z.boolean().optional(),
     when: automationRuleWhenSchema,
     then: z.array(ruleActionSchema).min(1),
   })

@@ -611,6 +611,65 @@ describe("OperationExecutor — uzak adım kanalı (Faz C)", () => {
     expect(result.outcomes[0]!.reason).toBe("maneuver_not_found");
   });
 
+  it("UC-13: remoteSystem verilince uzak adım o konteynere yönlenir (config system override)", async () => {
+    const { executor, remoteExecute } = remoteHarness();
+    const result = await executor.execute("operation", "field_charge", {}, {
+      remoteSystem: "container-2",
+    });
+    expect(result.status).toBe("completed");
+    expect(remoteExecute).toHaveBeenCalledWith(
+      "container-2",
+      "bsc_prepare",
+      expect.any(Object),
+    );
+  });
+
+  it("UC-13: remoteSystem koşu kaydına (steps.remoteSystem) yazılır — istasyon ayrımı", async () => {
+    const begin = vi.fn(async () => undefined);
+    const registry = new ManeuverRegistry({
+      maneuvers: [maneuver()],
+      operations: [operation({ steps: [{ system: "container-1", maneuver: "bsc_prepare" }] })],
+    });
+    const executor = new OperationExecutor({
+      registry,
+      targets: { resolveAvailable: async () => ["PCS-1"], filterAvailable: async (ids) => ids },
+      channel: { execute: async () => ({ deviceId: "x", success: true }), schedule: async () => undefined } as ICommandChannel,
+      runs: { begin, finish: async () => undefined } as unknown as IOperationRunStore,
+      remoteChannel: { execute: async () => ({ ok: true }) } as never,
+      now: () => new Date("2026-09-22T10:00:00.000Z"),
+      generateId: () => "run-1",
+    });
+    await executor.execute("operation", "field_charge", {}, { remoteSystem: "container-2" });
+    const draft = (begin.mock.calls[0] as unknown[])[0] as { steps: { remoteSystem?: string } };
+    expect(draft.steps.remoteSystem).toBe("container-2");
+  });
+
+  it("UC-13: uzak adım yanıt vermezse remote_timeout ile failed (run kilitlenmez)", async () => {
+    vi.useFakeTimers();
+    try {
+      const registry = new ManeuverRegistry({
+        maneuvers: [maneuver()],
+        operations: [operation({ onFailure: "stop", steps: [{ system: "container-1", maneuver: "bsc_prepare" }] })],
+      });
+      const executor = new OperationExecutor({
+        registry,
+        targets: { resolveAvailable: async () => ["PCS-1"], filterAvailable: async (ids) => ids },
+        channel: { execute: async () => ({ deviceId: "x", success: true }), schedule: async () => undefined } as ICommandChannel,
+        runs: { begin: async () => undefined, finish: async () => undefined } as unknown as IOperationRunStore,
+        remoteChannel: { execute: () => new Promise<{ ok: boolean }>(() => undefined) } as never,
+        now: () => new Date("2026-09-22T10:00:00.000Z"),
+        generateId: () => "run-1",
+      });
+      const pending = executor.execute("operation", "field_charge", {}, { remoteTimeoutMs: 120_000 });
+      await vi.advanceTimersByTimeAsync(120_000);
+      const result = await pending;
+      expect(result.status).toBe("failed");
+      expect(result.outcomes[0]!.reason).toBe("remote_timeout");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("uzak rollback adımı: yalnızca BAŞARILI adımlar kompanse edilir (ok → rollback_step_ok)", async () => {
     const registry = new ManeuverRegistry({
       maneuvers: [maneuver()],

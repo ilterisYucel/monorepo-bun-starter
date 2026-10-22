@@ -12,8 +12,6 @@ export interface BitfieldField {
   bitEnd: number;
   /** Telemetry veri adı (örn: "bsc1_alarm") */
   name: string;
-  /** Veri etiketi (örn: "bsc1_alarm_flag") */
-  dataTag: string;
   /** İnsan tarafından okunabilir açıklama */
   description: string;
   /** Değer 0 olduğunda gösterilecek etiket (opsiyonel) */

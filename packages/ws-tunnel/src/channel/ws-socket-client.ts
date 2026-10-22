@@ -84,6 +84,7 @@ export class WsSocketClient implements ISocketClient {
 export class WsSocketClientFactory implements ISocketClientFactory {
   private readonly creator: (
     url: string,
+    protocols: string[],
     options: { headers: Record<string, string> },
   ) => WebSocket;
 
@@ -92,14 +93,20 @@ export class WsSocketClientFactory implements ISocketClientFactory {
   constructor(
     creator?: (
       url: string,
+      protocols: string[],
       options: { headers: Record<string, string> },
     ) => WebSocket,
   ) {
     this.creator =
-      creator ?? ((url, options) => new WebSocket(url, options));
+      creator ??
+      ((url, protocols, options) => new WebSocket(url, protocols, options));
   }
 
-  create(url: string, headers: Record<string, string>): ISocketClient {
-    return new WsSocketClient(this.creator(url, { headers }));
+  create(
+    url: string,
+    headers: Record<string, string>,
+    protocols: string[] = [],
+  ): ISocketClient {
+    return new WsSocketClient(this.creator(url, protocols, { headers }));
   }
 }

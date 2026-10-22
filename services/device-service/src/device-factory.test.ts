@@ -67,7 +67,7 @@ describe("DeviceFactory — transport seçimi (yalnız TCP/RTU)", () => {
   });
 
   it("canonical alanı tags.canonical olarak taşınır (AGENTS MANDATORY sözleşmesi)", async () => {
-    sim = new DcMeterSimulator({ network: { host: "127.0.0.1", port: 0 } });
+    sim = new DcMeterSimulator({ deviceId: "DCM-1", network: { host: "127.0.0.1", port: 0 } });
     await sim.start();
 
     const config = makeConfig({
@@ -101,7 +101,7 @@ describe("DeviceFactory — transport seçimi (yalnız TCP/RTU)", () => {
   });
 
   it("canonical verilmeyen telemetride tags.canonical YOKTUR", async () => {
-    sim = new DcMeterSimulator({ network: { host: "127.0.0.1", port: 0 } });
+    sim = new DcMeterSimulator({ deviceId: "DCM-1", network: { host: "127.0.0.1", port: 0 } });
     await sim.start();
 
     const config = makeConfig({

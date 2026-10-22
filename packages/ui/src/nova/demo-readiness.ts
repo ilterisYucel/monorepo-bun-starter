@@ -1,10 +1,17 @@
 /**
  * Ready/Rest saf türevleri (SPEC UC-7, FR-7.3, K7). IO/hook yoktur; `now`
- * dışarıdan verilir → deterministik test. Dinlenme eşiği demo için 30 dk.
+ * dışarıdan verilir → deterministik test. Dinlenme eşiği 2 saat (LGES).
  */
 
 /** Demo dinlenme eşiği (dk) — K7/A5 kararı (2026-10-07). */
-export const DEMO_REST_MINUTES = 30;
+export const DEMO_REST_MINUTES = 120; // LGES: tam şarj/deşarj sonrası 2 saat dinlenme
+
+/**
+ * Dinlenme özelliği anahtarı — 2026-10-15 sahibi kararı: dinlenme süresi
+ * ŞİMDİLİK TAMAMEN KALDIRILDI (kart, trend gölgesi, KPI "Rest" modu yok).
+ * Yeniden açmak için true yapılır; türev fonksiyonlar korunur.
+ */
+export const DEMO_REST_ENABLED = false;
 
 const REST_RUN_NAMES = new Set(["full_charge", "full_discharge"]);
 
@@ -51,4 +58,28 @@ export function thermalReady(
     const lo = b.tmin ?? b.tmax;
     return lo >= limits.tempMin && b.tmax <= limits.tempMax;
   });
+}
+
+export interface RestPhase {
+  t0: number;
+  t1: number;
+  kind: "rest";
+}
+
+/**
+ * Tam şarj/deşarj bitişlerinden dinlenme fazları (trend gölgelemesi, UC-3).
+ * Her run bitişinden `restMinutes` boyunca bir faz üretir (saf).
+ */
+export function restPhasesForRuns(
+  runs: Array<{ name: string; finishedAt: string | null }>,
+  restMinutes = DEMO_REST_MINUTES,
+): RestPhase[] {
+  const out: RestPhase[] = [];
+  for (const r of runs) {
+    if (!REST_RUN_NAMES.has(r.name) || !r.finishedAt) continue;
+    const t0 = Date.parse(r.finishedAt);
+    if (Number.isNaN(t0)) continue;
+    out.push({ t0, t1: t0 + restMinutes * 60_000, kind: "rest" });
+  }
+  return out.sort((a, b) => a.t0 - b.t0);
 }

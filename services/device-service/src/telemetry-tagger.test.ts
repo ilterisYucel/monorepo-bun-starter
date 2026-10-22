@@ -59,4 +59,5 @@ describe("TelemetryTagger", () => {
 
     expect(out.tags).toEqual({ device_id: "BSC-1" });
   });
+
 });

@@ -9,8 +9,9 @@
 
 import { readFileSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
-import type { DeviceConfigFile } from "@gd-monorepo/shared-types";
+import type { ConnectorSimSubset, DeviceConfigFile } from "@gd-monorepo/shared-types";
 import type { SimulatorNetworkConfig } from "./server";
+import type { ISimulator } from "./contracts";
 import { BSCSimulator, parseBSCMap } from "./bsc";
 import { HvacSimulator } from "./hvac";
 import { CbSimulator } from "./cb";
@@ -19,15 +20,59 @@ import { DcMeterSimulator } from "./dc-meter";
 import { EnergyAnalyzerSimulator } from "./energy-analyzer";
 import { ControlPanelIoSimulator } from "./control-panel-io";
 import { ImdSimulator } from "./imd";
+import { FssSimulator } from "./fss";
 import { WattoxPcsSimulator } from "./wattox-pcs";
 import { DemoMvStationSimulator } from "./demo-mv-station";
+import { GridLinkBus } from "./grid-link";
 import { BscPcsConnectorAdapter, parseBscPcsMapping, TcpSourceReader } from "./bsc-pcs-connector";
 import type { BscPcsMapping } from "./bsc-pcs-connector";
+import { TcpPcsPowerReader } from "./bsc-pcs-connector/pcs-power-reader";
+import type { IBatteryPowerInput } from "./bsc/power-input";
 
-/** Host tarafından yönetilen, self-host edilebilen simülatör yüzeyi. */
-export interface SelfHostedSimulator {
-  start(): Promise<void>;
-  stop(): Promise<void>;
+/** PCS güç kaynağı host override'ı uygular (env PCS_EMS_TARGET_HOST). */
+function resolvePcsSources(
+  sources: NonNullable<ConnectorSimSubset["pcsSources"]>,
+  host: string | undefined,
+): Array<{ deviceId: string; host: string; port: number; unitId?: number }> {
+  if (host === undefined || host.length === 0) return [...sources];
+  return sources.map((source) => ({ ...source, host }));
+}
+
+/** `details.gridLink.feeder` (PCS↔fider eşleşmesi). */
+function detailGridFeeder(config: DeviceConfigFile): string | undefined {
+  const link = config.details?.["gridLink"];
+  if (typeof link !== "object" || link === null) return undefined;
+  const feeder = (link as { feeder?: unknown }).feeder;
+  return typeof feeder === "string" && feeder.length > 0 ? feeder : undefined;
+}
+
+/** `details.gridLink.deviceId` — PCS'in bağlı olduğu MV simülatörü. */
+function detailGridDeviceId(config: DeviceConfigFile): string | undefined {
+  const link = config.details?.["gridLink"];
+  if (typeof link !== "object" || link === null) return undefined;
+  const deviceId = (link as { deviceId?: unknown }).deviceId;
+  return typeof deviceId === "string" && deviceId.length > 0 ? deviceId : undefined;
+}
+
+/**
+ * Field tier şebeke yolu: HER `demo-mv-station` için ayrı bus (istasyon başına
+ * 1 MV simülatörü; iki fider aynı panonun H04/H05 hücreleridir).
+ */
+function createGridLinks(configs: readonly DeviceConfigFile[]): Map<string, GridLinkBus> {
+  const buses = new Map<string, GridLinkBus>();
+  for (const config of configs) {
+    if ((config.type ?? config.transport?.type) === "demo-mv-station") {
+      buses.set(config.deviceId, new GridLinkBus());
+    }
+  }
+  return buses;
+}
+
+/**
+ * Host tarafından yönetilen, self-host edilebilen simülatör yüzeyi.
+ * Ortak sözleşme `ISimulator`; self-host ek olarak dinlenen portu açar.
+ */
+export interface SelfHostedSimulator extends ISimulator {
   port(): number;
 }
 
@@ -43,8 +88,16 @@ export interface SimulatorBuildContext {
   readonly deviceId: string;
   readonly network: SimulatorNetworkConfig;
   readonly rackCount: number;
+  /** BSC başlangıç SOC'u (%) — `details.initialSocPercent` (yoksa sim 50). */
+  readonly initialSocPercent?: number;
+  /** Demo hız çarpanı — `details.simSpeedMultiplier` (yoksa 1 = gerçek zaman). */
+  readonly simSpeedMultiplier?: number;
   readonly registerMap: string | undefined;
   readonly bmsPort: number | undefined;
+  /** Field tier şebeke yolu bus'ı (MV + PCS varsa). */
+  readonly gridLink?: GridLinkBus;
+  /** PCS'in bağlı olduğu fider hücresi. */
+  readonly gridFeeder?: string;
 }
 
 export type SimulatorBuilder = (context: SimulatorBuildContext) => SelfHostedSimulator;
@@ -53,12 +106,16 @@ export type SimulatorBuilder = (context: SimulatorBuildContext) => SelfHostedSim
 export interface SimulatorHostOptions {
   /** BSC→PCS connector BMS hedef override (env PCS_BMS_TARGET_*). */
   readonly bmsTarget?: { readonly host?: string; readonly port?: number };
+  /** PCS→BSC ters kanal host override (env PCS_EMS_TARGET_HOST). */
+  readonly pcsPowerHost?: string;
   /** Bağıl registerMap yollarını çözmek için config dizini. */
   readonly configDir?: string;
 }
 
 interface PlannedSimulator {
   readonly deviceId: string;
+  /** Simülatör tipi (host wiring kararları için; ör. "bsc" → güç girdisi). */
+  readonly simType: string;
   readonly build: () => SelfHostedSimulator;
 }
 
@@ -75,11 +132,16 @@ export class SimulatorHost {
   private readonly configs: readonly DeviceConfigFile[];
   private readonly options: SimulatorHostOptions;
   private readonly index = new Map<string, number>();
+  private readonly instances = new Map<string, SelfHostedSimulator>();
+  /** BSC dış güç girdileri (connector ters kanalı için). */
+  private readonly powerInputs = new Map<string, IBatteryPowerInput>();
+  private readonly gridLinks: Map<string, GridLinkBus>;
   private running: RunningSimulator[] = [];
 
   constructor(configs: readonly DeviceConfigFile[], options: SimulatorHostOptions = {}) {
     this.configs = configs;
     this.options = options;
+    this.gridLinks = createGridLinks(configs);
     this.registerDefaults();
   }
 
@@ -90,30 +152,49 @@ export class SimulatorHost {
             JSON.parse(readFileSync(ctx.registerMap, "utf-8")) as Record<string, unknown>[],
           ).registers
         : [];
-      return new BSCSimulator({ rackCount: ctx.rackCount, registers, network: ctx.network });
+      return new BSCSimulator({
+        deviceId: ctx.deviceId,
+        rackCount: ctx.rackCount,
+        ...(ctx.initialSocPercent !== undefined ? { initialSocPercent: ctx.initialSocPercent } : {}),
+        ...(ctx.simSpeedMultiplier !== undefined
+          ? { simSpeedMultiplier: ctx.simSpeedMultiplier }
+          : {}),
+        registers,
+        network: ctx.network,
+      });
     });
-    this.builders.set("hvac", (ctx) => new HvacSimulator({ network: ctx.network }));
-    this.builders.set("cb", (ctx) => new CbSimulator({ network: ctx.network }));
-    this.builders.set("dc-output", (ctx) => new DcOutputSimulator({ network: ctx.network }));
-    this.builders.set("dc-meter", (ctx) => new DcMeterSimulator({ network: ctx.network }));
+    this.builders.set("hvac", (ctx) => new HvacSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
+    this.builders.set("cb", (ctx) => new CbSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
+    this.builders.set("dc-output", (ctx) => new DcOutputSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
+    this.builders.set("dc-meter", (ctx) => new DcMeterSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
     this.builders.set(
       "energy-analyzer",
-      (ctx) => new EnergyAnalyzerSimulator({ network: ctx.network }),
+      (ctx) => new EnergyAnalyzerSimulator({ deviceId: ctx.deviceId, network: ctx.network }),
     );
     this.builders.set(
       "control-panel-io",
-      (ctx) => new ControlPanelIoSimulator({ network: ctx.network }),
+      (ctx) => new ControlPanelIoSimulator({ deviceId: ctx.deviceId, network: ctx.network }),
     );
-    this.builders.set("imd", (ctx) => new ImdSimulator({ network: ctx.network }));
+    this.builders.set("imd", (ctx) => new ImdSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
+    this.builders.set("fss", (ctx) => new FssSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
     this.builders.set(
       "demo-mv-station",
-      (ctx) => new DemoMvStationSimulator({ network: ctx.network }),
+      (ctx) =>
+        new DemoMvStationSimulator({
+          deviceId: ctx.deviceId,
+          network: ctx.network,
+          ...(ctx.gridLink !== undefined ? { gridLink: ctx.gridLink } : {}),
+        }),
     );
     this.builders.set(
       "wattox-pcs",
       (ctx) =>
         new WattoxPcsSimulator({
+          deviceId: ctx.deviceId,
           ...(ctx.bmsPort !== undefined ? { bmsPort: ctx.bmsPort } : {}),
+          ...(ctx.gridLink !== undefined && ctx.gridFeeder !== undefined
+            ? { gridLink: ctx.gridLink, gridFeeder: ctx.gridFeeder }
+            : {}),
           network: ctx.network,
         }),
     );
@@ -129,11 +210,17 @@ export class SimulatorHost {
         await simulator.start();
         const port = simulator.port();
         this.index.set(item.deviceId, port);
+        this.instances.set(item.deviceId, simulator);
+        if (item.simType === "bsc") {
+          this.powerInputs.set(item.deviceId, simulator as unknown as IBatteryPowerInput);
+        }
         running.push({ deviceId: item.deviceId, port, stop: () => simulator.stop() });
       }
     } catch (error) {
       await Promise.allSettled(running.map((entry) => entry.stop()));
       this.index.clear();
+      this.instances.clear();
+      this.powerInputs.clear();
       throw error;
     }
     this.running = running;
@@ -145,11 +232,21 @@ export class SimulatorHost {
     await Promise.allSettled(this.running.map((entry) => entry.stop()));
     this.running = [];
     this.index.clear();
+    this.instances.clear();
+    this.powerInputs.clear();
   }
 
   /** Sorgu — çalışan simülatörün portu. */
   portFor(deviceId: string): number | undefined {
     return this.index.get(deviceId);
+  }
+
+  /**
+   * Komut — cihazın simülatörüne senaryo enjekte eder (dev/debug).
+   * Cihaz yok veya enjeksiyon desteklenmiyorsa `false` döner.
+   */
+  inject(deviceId: string, scenario: string): boolean {
+    return this.instances.get(deviceId)?.inject?.(scenario) ?? false;
   }
 
   private plan(): PlannedSimulator[] {
@@ -177,17 +274,29 @@ export class SimulatorHost {
         throw new Error(`[SimulatorHost] Bilinmeyen simulator tipi: ${simType} (${config.deviceId})`);
       }
 
-      const network = readNetwork(config, config.deviceId);
+      const network = this.bindNetwork(config, config.deviceId);
       claim(network.port, config.deviceId);
 
       const context: SimulatorBuildContext = {
         deviceId: config.deviceId,
         network,
         rackCount: detailNumber(config, "rackCount") ?? 8,
+        ...(detailNumber(config, "initialSocPercent") !== undefined
+          ? { initialSocPercent: detailNumber(config, "initialSocPercent") }
+          : {}),
+        ...(detailNumber(config, "simSpeedMultiplier") !== undefined
+          ? { simSpeedMultiplier: detailNumber(config, "simSpeedMultiplier") }
+          : {}),
         registerMap: this.resolveMap(transport.registerMap),
         bmsPort: transport.bmsPort,
+        ...(this.gridLinks.get(detailGridDeviceId(config) ?? config.deviceId) !== undefined
+          ? { gridLink: this.gridLinks.get(detailGridDeviceId(config) ?? config.deviceId) }
+          : {}),
+        ...(detailGridFeeder(config) !== undefined
+          ? { gridFeeder: detailGridFeeder(config) }
+          : {}),
       };
-      planned.push({ deviceId: config.deviceId, build: () => builder(context) });
+      planned.push({ deviceId: config.deviceId, simType, build: () => builder(context) });
     }
 
     for (const config of this.configs) {
@@ -221,12 +330,31 @@ export class SimulatorHost {
           (id) => [id, { host: source.host ?? "127.0.0.1", port: source.port }] as const,
         ),
       );
+      const pcsSources = connector.sim.pcsSources;
+      const powerLink =
+        pcsSources !== undefined && pcsSources.length > 0
+          ? {
+              reader: new TcpPcsPowerReader(resolvePcsSources(pcsSources, this.options.pcsPowerHost)),
+              input: {
+                applyPowerKw: (kw: number): void => {
+                  this.powerInputs.get(config.deviceId)?.applyPowerKw(kw);
+                },
+              },
+              scale: connector.sim.powerScale ?? 1,
+            }
+          : undefined;
       const adapter = new BscPcsConnectorAdapter({
+        deviceId: connector.device.deviceId,
         mapping,
         source: new TcpSourceReader(endpoints),
         network: monitoring,
+        ...(powerLink !== undefined ? { powerLink } : {}),
       });
-      planned.push({ deviceId: connector.device.deviceId, build: () => adapter });
+      planned.push({
+        deviceId: connector.device.deviceId,
+        simType: "bsc-pcs-connector",
+        build: () => adapter,
+      });
     }
 
     return planned;
@@ -236,6 +364,18 @@ export class SimulatorHost {
     if (path === undefined) return undefined;
     if (isAbsolute(path)) return path;
     return resolve(this.options.configDir ?? ".", path);
+  }
+
+  /**
+   * Simülatör sunucusunun BAĞLANMA (bind) adresi. Test/kapsayıcı ortamında
+   * `SIMULATOR_BIND_HOST` (ör. 0.0.0.0) ile ezilebilir; varsayılan config
+   * `connection.host` (127.0.0.1). Device-service istemcisi config host'una
+   * (loopback) bağlanmaya devam eder.
+   */
+  private bindNetwork(config: DeviceConfigFile, deviceId: string): SimulatorNetworkConfig {
+    const network = readNetwork(config, deviceId);
+    const override = process.env.SIMULATOR_BIND_HOST;
+    return override !== undefined && override.length > 0 ? { ...network, host: override } : network;
   }
 }
 

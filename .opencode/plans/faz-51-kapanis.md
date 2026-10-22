@@ -40,7 +40,7 @@ Kalan: temizlik, canonical normalizasyonu, E2E yumuşatılmış assert, tüm tes
 - Playwright `--list` (e2e keşfi hatasız).
 
 ### 5. DOGRULAMA.md Faz 5.1 girişi (zorunlu — AGENTS.md)
-`docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`:
+`docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`:
 - Faz 5.1 başlığı: amaç (Faz 5 sonrası "veri yok" onarımı), B1–B5 satır referansları:
   - B1: `realtime-manager.ts` `writeBatchToRingBuffer` lTrim genişletmesi (satır no) + test
   - B2: `field-connector.ts` (shared-types) telemetry-query/result şemaları; `telemetry-query-responder.ts`; `container-proxy.ts` `historical()` pending-map + 10s timeout; `field-routes.ts` `/telemetry/:containerId`; `useFieldTelemetryProvider.ts`

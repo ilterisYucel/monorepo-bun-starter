@@ -97,7 +97,7 @@ açılışta fail-fast). Eski statik frontend kataloğu kaldırılmıştır; UI 
 | `OperationExecutor` | `packages/platform/commands/src/operation-executor.ts` | Paralel/sıralı yürütür, rollback, sonuç toplar; HTTP bilgisi YOK |
 | `CommandJobBuilder` | `packages/platform/commands/src/command-job-builder.ts` | Komutu BullMQ job'una çevirir (mevcut) |
 | Yürütme rotaları | `services/web-service/src/presentation/routes/maneuver-routes.ts` | `GET /api/maneuvers`, `POST /api/maneuvers/:name/execute`, operasyon uçları, `GET /api/operations/runs/:id` |
-| Boss→field kanal | `services/web-service/src/presentation/routes/operation-boss-routes.ts` + `TunnelManeuverChannel` | `operation-execute`/`operation-result` tünel mesajları |
+| Boss→field kanal | `services/web-service/src/presentation/routes/operation-boss-routes.ts` + `field-uplink/operation-requester.ts` (hub access HTTP) | `POST /api/operations/:name/execute` relay (event: `GET /api/events` pull) |
 | Frontend API | `apps/container-web/src/features/control/services/maneuverApi.ts` | Registry tabanlı katalog/execute istemcisi |
 | Frontend panel | `apps/container-web/src/features/control/components/ManeuverPanel.tsx` | Kartları sunucu kataloğundan render eder |
 

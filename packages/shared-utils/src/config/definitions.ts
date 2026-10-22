@@ -498,7 +498,7 @@ export const deviceConfigDir: ConfigDefinition<string> = {
   key: "device.configDir",
   env: "DEVICE_CONFIG_DIR",
   filePath: "device.configDir",
-  default: "../../deployment/dev/container/device-configs",
+  default: "../../deployment/v1/dev/container/device-configs",
   description: "Cihaz konfigürasyon dosyalarinin bulundugu dizin (servis cwd'sine goreli; tier deployment dizini)"
 };
 
@@ -517,6 +517,18 @@ export const deviceBmsTargetHost: ConfigDefinition<string | undefined> = {
 };
 
 /** BSC→PCS connector BMS hedef port override — verilmezse mapping portu. */
+/**
+ * PCS→BSC ters kanal host override (PCS_EMS_TARGET_HOST).
+ * Connector `pcsSources` host'larını ezer (docker: `field-device-service`).
+ */
+export const devicePcsPowerHost: ConfigDefinition<string | undefined> = {
+  key: "device.pcsPowerHost",
+  env: "PCS_EMS_TARGET_HOST",
+  filePath: "device.pcsPowerHost",
+  default: undefined,
+  description: "PCS→BSC ters kanal PCS EMS host'u — connector pcsSources host'unu ezer",
+};
+
 export const deviceBmsTargetPort: ConfigDefinition<number | undefined> = {
   key: "device.bmsTargetPort",
   env: "PCS_BMS_TARGET_PORT",
@@ -738,32 +750,32 @@ export const siteFieldId: ConfigDefinition<string | undefined> = {
 // TunnelConnector (Faz 2 — container → field outbound WS)
 // =============================================================================
 
-export const fieldConnectEnabled: ConfigDefinition<boolean> = {
-  key: "fieldConnect.enabled",
-  env: "FIELD_CONNECT_ENABLED",
-  filePath: "fieldConnect.enabled",
+export const hubPeerEnabled: ConfigDefinition<boolean> = {
+  key: "hubPeer.enabled",
+  env: "HUB_PEER_ENABLED",
+  filePath: "hubPeer.enabled",
   default: false,
   validate: (v) => v === true || v === "true" || v === "1",
-  description: "TunnelConnector'u etkinlestirir (yalnizca container tier) — Faz 2 T2.3",
+  description: "Hub peer connector'ı etkinlestirir (yalnizca container tier)",
 };
 
-export const fieldConnectWsUrl: ConfigDefinition<string | undefined> = {
-  key: "fieldConnect.wsUrl",
-  env: "FIELD_WS_URL",
-  filePath: "fieldConnect.wsUrl",
+export const hubPeerUrl: ConfigDefinition<string | undefined> = {
+  key: "hubPeer.url",
+  env: "HUB_PEER_URL",
+  filePath: "hubPeer.url",
   default: undefined,
   description:
-    "Field WS URL listesi — virgulle ayrilmis, sirayla denenir (ana + yedek). DNS adi tercih edilir (tasarim 6.1)",
+    "Hub peer WS URL listesi — virgulle ayrilmis, sirayla denenir (ana + yedek)",
 };
 
-export const fieldConnectToken: ConfigDefinition<string | undefined> = {
-  key: "fieldConnect.token",
-  env: "CONTAINER_TOKEN",
-  filePath: "fieldConnect.token",
+export const hubPeerToken: ConfigDefinition<string | undefined> = {
+  key: "hubPeer.token",
+  env: "HUB_PEER_TOKEN",
+  filePath: "hubPeer.token",
   default: undefined,
   secret: true,
   description:
-    "Konteyner service token'i — field registry token_hash'i ile eslesir (tasarim 3.2)",
+    "Hub peer token'ı — hub-servis PEER_TOKEN ile aynı değer (env modu)",
 };
 
 // =============================================================================
@@ -816,6 +828,56 @@ export const uplinkStaticUpstream: ConfigDefinition<string> = {
   default: "http://web:5174",
   description:
     "Boss'tan gelen field-app tünel akışlarının SPA/asset upstream'i (field web nginx)",
+};
+
+export const hubContainerServiceId: ConfigDefinition<string> = {
+  key: "hub.containerServiceId",
+  env: "HUB_CONTAINER_SERVICE_ID",
+  filePath: "hub.containerServiceId",
+  default: "container-api",
+  description:
+    "Hub modunda container peer'ının duyurduğu servis kimliği (komut/manevra erişimi)",
+};
+
+/**
+ * Hub modunda field peer'ının duyurduğu servis kimliği — boss→field operasyon
+ * tetikleme ve olay toplama (GET /api/events) bu servis üzerinden yapılır.
+ */
+export const hubFieldServiceId: ConfigDefinition<string> = {
+  key: "hub.fieldServiceId",
+  env: "HUB_FIELD_SERVICE_ID",
+  filePath: "hub.fieldServiceId",
+  default: "field-api",
+  description:
+    "Hub modunda field peer'ının duyurduğu servis kimliği (boss→field operasyon + olay erişimi)",
+};
+
+/** Hub relay telemetri cache TTL'i (ms) — field container latest snapshot. */
+export const tunnelLatestCacheTtlMs: ConfigDefinition<number> = {
+  key: "tunnel.latestCacheTtlMs",
+  env: "TUNNEL_LATEST_CACHE_TTL_MS",
+  filePath: "tunnel.latestCacheTtlMs",
+  default: 2000,
+  validate: (v) => (v === undefined ? 2000 : Number(v)),
+  description:
+    "HubContainerView latest telemetri cache TTL'i (ms) — talep-üzeri HTTP sorgusunu seyreltir",
+};
+
+export const hubConsumerUrl: ConfigDefinition<string | undefined> = {
+  key: "hub.consumerUrl",
+  env: "HUB_CONSUMER_URL",
+  filePath: "hub.consumerUrl",
+  default: undefined,
+  description: "Hub-servis taban URL'i (field/boss tier zorunlu, örn. http://hub-servis:5003)",
+};
+
+export const hubConsumerToken: ConfigDefinition<string | undefined> = {
+  key: "hub.consumerToken",
+  env: "HUB_CONSUMER_TOKEN",
+  filePath: "hub.consumerToken",
+  default: undefined,
+  secret: true,
+  description: "Hub-servis consumer token'i (peer token'indan AYRI)",
 };
 
 export const fieldTunnelAllowedPrefixes: ConfigDefinition<string> = {
@@ -1049,6 +1111,7 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   deviceConfigDir,
   deviceBmsTargetHost,
   deviceBmsTargetPort,
+  devicePcsPowerHost,
   servicePollIntervalMs,
   workerConcurrency,
   managementIntervalMs,
@@ -1082,10 +1145,10 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   siteContainerId,
   siteFieldId,
 
-  // TunnelConnector (Faz 2)
-  fieldConnectEnabled,
-  fieldConnectWsUrl,
-  fieldConnectToken,
+  // Hub peer connector (container tier)
+  hubPeerEnabled,
+  hubPeerUrl,
+  hubPeerToken,
 
   // TunnelClient upstream'leri (Faz 3)
   tunnelApiUpstream,
@@ -1098,6 +1161,11 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   uplinkApiUpstream,
   uplinkStaticUpstream,
   fieldTunnelAllowedPrefixes,
+  hubConsumerUrl,
+  hubContainerServiceId,
+  hubFieldServiceId,
+  tunnelLatestCacheTtlMs,
+  hubConsumerToken,
 
   // WireGuard yedek yol (Boss Faz 4)
   wgConfigDir,

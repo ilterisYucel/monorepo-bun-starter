@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ImdSimulator } from "./index";
+import { ImdSimulator, ImdAdapter } from "./index";
 import { INPUT } from "./register-map";
 
 /**
@@ -12,7 +12,7 @@ describe("ImdSimulator (FL-11 toprak direnci — gerçek map, K4)", () => {
   let sim: ImdSimulator;
 
   beforeEach(() => {
-    sim = new ImdSimulator();
+    sim = new ImdSimulator({ deviceId: "IMD-1" });
     sim.tick(1);
   });
 
@@ -80,5 +80,42 @@ describe("ImdSimulator (FL-11 toprak direnci — gerçek map, K4)", () => {
     it("bilinmeyen adres 0 döner", () => {
       expect(sim.readInputRegister(999)).toBe(0);
     });
+  });
+
+  describe("ImdAdapter — FC03 holding okuma (doküman D00007)", () => {
+    it("readHoldingRegisters ölçüm değerini döner (FC03 zorunlu)", async () => {
+      const sim = new ImdSimulator({ deviceId: "IMD-1" });
+      sim.tick(1);
+      const adapter = new ImdAdapter(sim);
+      const hi = sim.readInputRegister(INPUT.INSULATION_RESISTANCE) as number;
+      expect(await adapter.readHoldingRegister(INPUT.INSULATION_RESISTANCE)).toBe(hi);
+    });
+  });
+});
+
+describe("ImdSimulator — LGES eşikleri (F2.6): 225 kΩ uyarı / 150 kΩ arıza", () => {
+  it("200 kΩ → yalnız Prewarning; Insulation Alarm 0", () => {
+    const sim = new ImdSimulator({ deviceId: "IMD-1" });
+    expect(sim.inject("warning")).toBe(true);
+    sim.tick(1);
+    expect(sim.readInputRegister(INPUT.PREWARNING)).not.toBe(0);
+    expect(sim.readInputRegister(INPUT.ALARM)).toBe(0);
+  });
+
+  it("100 kΩ (fault) → Insulation Alarm aktif", () => {
+    const sim = new ImdSimulator({ deviceId: "IMD-1" });
+    expect(sim.inject("fault")).toBe(true);
+    sim.tick(1);
+    expect(sim.readInputRegister(INPUT.ALARM)).not.toBe(0);
+  });
+
+  it("healthy → temiz (uyarı/arıza 0)", () => {
+    const sim = new ImdSimulator({ deviceId: "IMD-1" });
+    sim.inject("fault");
+    sim.tick(1);
+    sim.inject("healthy");
+    sim.tick(1);
+    expect(sim.readInputRegister(INPUT.ALARM)).toBe(0);
+    expect(sim.readInputRegister(INPUT.PREWARNING)).toBe(0);
   });
 });

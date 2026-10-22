@@ -6,6 +6,9 @@ import type { TelemetryData } from "@gd-monorepo/shared-types";
 import { DeviceRegistry } from "../../infrastructure/persistence/device-registry";
 import { loadDeviceConfig } from "../../infrastructure/config-loader";
 
+/** Grup anahtarı tag adı — SQL interpolasyonu güvenliği (enjeksiyon sınırı). */
+const TAG_KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
 export async function unifiedRoutes(
   fastify: FastifyInstance,
   options: {
@@ -74,6 +77,40 @@ export async function unifiedRoutes(
     }
   });
 
+  /**
+   * Her (deviceId,name) için en yeni satır — `getLatestPerName` (pencere bazlı).
+   * Hub relay telemetrisi bu ucu kullanır; `getLatestN` limit taramasından ucuzdur.
+   */
+  fastify.get("/telemetry/latest-per-name", async (request, reply) => {
+    await registry.refresh();
+    const { deviceIds, names, windowMs } = request.query as {
+      deviceIds?: string;
+      names?: string;
+      windowMs?: string;
+    };
+    const ids = deviceIds ? deviceIds.split(",") : [];
+    const nameFilter = names ? names.split(",") : undefined;
+    const parsedWindow = Number(windowMs);
+    const targetWindowMs =
+      Number.isFinite(parsedWindow) && parsedWindow > 0
+        ? Math.min(parsedWindow, 24 * 3600 * 1000)
+        : 5 * 60 * 1000;
+    const targets = registry.online().filter(
+      (d) => ids.length === 0 || ids.includes(d.id),
+    );
+    const results = await Promise.allSettled(
+      targets.map((d) =>
+        timescale.getLatestPerName(d.id, {
+          windowMs: targetWindowMs,
+          ...(nameFilter !== undefined ? { names: nameFilter } : {}),
+        }),
+      ),
+    );
+    return reply.send({
+      telemetries: results.flatMap((r) => (r.status === "fulfilled" ? r.value : [])),
+    });
+  });
+
   fastify.get("/telemetry/latest", async (request, reply) => {
     await registry.refresh();
 
@@ -86,10 +123,12 @@ export async function unifiedRoutes(
     );
 
     const parsedLimit = Number(limit);
+    // Yüksek telemetrili cihazlar (BSC ~450, PCS ~300 satır/poll) için pencere
+    // yeterince geniş olmalı; yavaş değişen sinyaller (connector 5 sn) düşmesin.
     const LATEST_TELEMETRY_LIMIT =
       Number.isFinite(parsedLimit) && parsedLimit > 0
-        ? Math.min(2000, Math.floor(parsedLimit))
-        : 2000;
+        ? Math.min(20000, Math.floor(parsedLimit))
+        : 20000;
     const results = await Promise.allSettled(
       targetDevices.map((d) =>
         timescale.getLatestN(d.id, LATEST_TELEMETRY_LIMIT, nameFilter),
@@ -118,6 +157,7 @@ export async function unifiedRoutes(
       points,
       names,
       rack_id,
+      tag,
     } = request.query as {
       deviceIds?: string;
       from?: string;
@@ -125,12 +165,16 @@ export async function unifiedRoutes(
       points?: string;
       names?: string;
       rack_id?: string;
+      tag?: string;
     };
 
     if (!from || !to) {
       return reply
         .status(400)
         .send({ error: "from ve to parametreleri gerekli" });
+    }
+    if (tag !== undefined && !TAG_KEY_RE.test(tag)) {
+      return reply.status(400).send({ error: "geçersiz tag anahtarı" });
     }
 
     const ids = deviceIds ? deviceIds.split(",") : [];
@@ -151,6 +195,7 @@ export async function unifiedRoutes(
           to: new Date(to),
           points: targetPoints,
           tags: tagFilter,
+          ...(tag !== undefined ? { tag } : {}),
         }),
       ),
     );
@@ -251,7 +296,7 @@ export async function unifiedRoutes(
   fastify.get("/devices/:deviceId/telemetry-config", async (request, reply) => {
     const { deviceId } = request.params as { deviceId: string };
     const configDir =
-      process.env.DEVICE_CONFIG_DIR ?? "../../deployment/dev/container/device-configs";
+      process.env.DEVICE_CONFIG_DIR ?? "../../deployment/v1/dev/container/device-configs";
 
     const config = loadDeviceConfig(configDir, deviceId);
     if (!config) {

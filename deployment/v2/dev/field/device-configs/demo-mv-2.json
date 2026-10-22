@@ -1,0 +1,573 @@
+{
+  "deviceId": "DEMO-MV-2",
+  "name": "Demo OG K\u00f6\u015fk #2",
+  "manufacturer": "Generic",
+  "model": "MV-Station-Demo",
+  "protocol": "MODBUS",
+  "type": "demo-mv-station",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 15541,
+    "slaveId": 1
+  },
+  "pollIntervalMs": 1000,
+  "telemetry": [
+    {
+      "name": "H01 Breaker",
+      "description": "H01 kesici pozisyonu",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H02 Breaker",
+      "description": "H02 ay\u0131r\u0131c\u0131 pozisyonu",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H04 Breaker",
+      "description": "H04 (fider B) kesici pozisyonu",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H05 Breaker",
+      "description": "H05 (fider A) kesici pozisyonu",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H01 Earth",
+      "description": "H01 toprak ay\u0131r\u0131c\u0131s\u0131",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H04 Earth",
+      "description": "H04 toprak ay\u0131r\u0131c\u0131s\u0131",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H05 Earth",
+      "description": "H05 toprak ay\u0131r\u0131c\u0131s\u0131",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Bus Voltage",
+      "description": "Bara gerilimi",
+      "unit": "kV",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Frequency",
+      "description": "Frekans",
+      "unit": "Hz",
+      "protocol": "MODBUS",
+      "registerAddress": 8,
+      "registerTableType": "INPUT_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.01,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H01 Open",
+      "description": "H01 a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 0,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H01 Close",
+      "description": "H01 kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 1,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H02 Open",
+      "description": "H02 a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 2,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H02 Close",
+      "description": "H02 kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H04 Open",
+      "description": "H04 a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H04 Close",
+      "description": "H04 kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 5,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H05 Open",
+      "description": "H05 a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H05 Close",
+      "description": "H05 kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H01 Earth Close",
+      "description": "H01 toprak kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 9,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H01 Earth Open",
+      "description": "H01 toprak a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 8,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H04 Earth Close",
+      "description": "H04 toprak kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 11,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H04 Earth Open",
+      "description": "H04 toprak a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 10,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H05 Earth Close",
+      "description": "H05 toprak kapat coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 13,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "H05 Earth Open",
+      "description": "H05 toprak a\u00e7 coil",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 12,
+      "registerTableType": "COIL",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    }
+  ],
+  "commands": {
+    "H01_open": {
+      "label": "H01 kesici a\u00e7",
+      "telemetries": [
+        {
+          "name": "H01 Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H01 Breaker",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H01_close": {
+      "label": "H01 kesici kapat",
+      "telemetries": [
+        {
+          "name": "H01 Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H01 Breaker",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "H02_open": {
+      "label": "H02 ay\u0131r\u0131c\u0131 a\u00e7",
+      "telemetries": [
+        {
+          "name": "H02 Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H02 Breaker",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H02_close": {
+      "label": "H02 ay\u0131r\u0131c\u0131 kapat",
+      "telemetries": [
+        {
+          "name": "H02 Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H02 Breaker",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "H04_open": {
+      "label": "H04 kesici a\u00e7",
+      "telemetries": [
+        {
+          "name": "H04 Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H04 Breaker",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H04_close": {
+      "label": "H04 kesici kapat",
+      "telemetries": [
+        {
+          "name": "H04 Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H04 Breaker",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "H04_earth_close": {
+      "label": "H04 topra\u011f\u0131 kapat",
+      "telemetries": [
+        {
+          "name": "H04 Earth Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H04 Earth",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "H04_earth_open": {
+      "label": "H04 topra\u011f\u0131 a\u00e7",
+      "telemetries": [
+        {
+          "name": "H04 Earth Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H04 Earth",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H05_open": {
+      "label": "H05 kesici a\u00e7",
+      "telemetries": [
+        {
+          "name": "H05 Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H05 Breaker",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H05_close": {
+      "label": "H05 kesici kapat",
+      "telemetries": [
+        {
+          "name": "H05 Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H05 Breaker",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "H05_earth_close": {
+      "label": "H05 topra\u011f\u0131 kapat",
+      "telemetries": [
+        {
+          "name": "H05 Earth Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H05 Earth",
+            "expect": 1
+          }
+        ]
+      }
+    },
+    "H05_earth_open": {
+      "label": "H05 topra\u011f\u0131 a\u00e7",
+      "telemetries": [
+        {
+          "name": "H05 Earth Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H05 Earth",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H01_earth_open": {
+      "label": "H01 topra\u011f\u0131 a\u00e7",
+      "telemetries": [
+        {
+          "name": "H01 Earth Open",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H01 Earth",
+            "expect": 0
+          }
+        ]
+      }
+    },
+    "H01_earth_close": {
+      "label": "H01 topra\u011f\u0131 kapat (kilitli)",
+      "telemetries": [
+        {
+          "name": "H01 Earth Close",
+          "value": 1
+        }
+      ],
+      "timeoutMs": 2000,
+      "validate": {
+        "reads": [
+          {
+            "name": "H01 Earth",
+            "expect": 1
+          }
+        ]
+      }
+    }
+  },
+  "transport": {
+    "kind": "simulator",
+    "type": "demo-mv-station"
+  }
+}

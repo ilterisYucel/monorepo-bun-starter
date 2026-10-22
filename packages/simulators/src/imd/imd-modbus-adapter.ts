@@ -5,12 +5,17 @@ import { ImdSimulator } from "./imd-simulator";
 export class ImdAdapter implements IModbusSimulatorAdapter {
   constructor(private readonly simulator: ImdSimulator) {}
 
-  async readHoldingRegister(_address: number): Promise<number> {
-    return 0;
+  async readHoldingRegister(address: number): Promise<number> {
+    // isoPV1685RTU dokümanı (D00007): ölçüm değerleri yalnız FC03 (holding) ile okunur.
+    return this.simulator.readInputRegister(address);
   }
 
-  async readHoldingRegisters(_address: number, _count: number): Promise<number[]> {
-    return [];
+  async readHoldingRegisters(address: number, count: number): Promise<number[]> {
+    const result: number[] = [];
+    for (let i = 0; i < count; i++) {
+      result.push(this.simulator.readInputRegister(address + i));
+    }
+    return result;
   }
 
   async writeHoldingRegister(_address: number, _value: number): Promise<void> {

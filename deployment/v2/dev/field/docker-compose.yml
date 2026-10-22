@@ -1,0 +1,379 @@
+name: v2-dev-demo-field
+
+# DEMO-FIELD (v2) — yerel demo/entegrasyon stack'i, FIELD yarısı.
+#
+# Container yarısı ayrı compose projesidir (deployment/v2/dev/container/docker-compose.yml)
+# ve ORTAK `demo-bridge` ağını TANIMLAR. Bu compose o ağa external olarak katılır;
+# `field-network`'ü kendisi tanımlar.
+#
+# ÇALIŞTIRMA SIRASI: ÖNCE container compose (demo-bridge'i tanımlar), SONRA bu compose.
+#
+#   demo-field SPA: field-web (apps/demo-field nginx, :8088)
+#
+# Network düzeni: device-service mount edilen `service.json`'dan `timescaledb`/
+# `redis` host'larını okur → her tier KENDİ network'ünde bu alias'ları taşır.
+# Çapraz katman trafiği (BSC→PCS connector, konteyner→field uplink) `demo-bridge`'te.
+#
+# Config'ler artık bu app klasörünün kendisindedir (encapsulation; çapraz ref YOK).
+# .env: deployment/v2/dev/field/.env  (şablon: .env.example)
+
+services:
+  # ─────────────────────────────── FIELD ────────────────────────────────────
+  hub-servis:
+    image: ${HUB_IMAGE:-ws-tunnel-hub:local}
+    container_name: demo-field-hub-servis
+    environment:
+      PORT: "5003"
+      HOST: 0.0.0.0
+      # Env modu: container peer'ları paylaşılan HUB_PEER_TOKEN ile bağlanır.
+      PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
+      CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
+      HUB_PEER_SESSION_COOKIE: ${HUB_PEER_SESSION_COOKIE:-container_session}
+    ports:
+      - "5009:5003"
+    networks:
+      - field-network
+      - demo-bridge
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Peer agent — saha SPA'sını hub'a opak servis olarak duyurur (agent demosu).
+  # Erişim: hub /peers/demo-field-agent/services/field-ui/
+  demo-field-agent:
+    image: ${AGENT_IMAGE:-ws-tunnel-agent:local}
+    container_name: demo-field-agent
+    environment:
+      HUB_URL: http://hub-servis:5003
+      PEER_ID: ${AGENT_PEER_ID:-demo-field-agent}
+      SERVICE_ID: ${AGENT_SERVICE_ID:-field-ui}
+      LOCAL_TARGET: ${AGENT_LOCAL_TARGET:-http://field-web:80}
+      PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
+      TLS_INSECURE: ${AGENT_TLS_INSECURE:-0}
+    networks:
+      - field-network
+      - demo-bridge
+    restart: unless-stopped
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  field-timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: demo-field-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=4MB
+      - -ceffective_cache_size=768MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    volumes:
+      - demo-field-timescale-data:/var/lib/postgresql/data
+    networks:
+      field-network:
+        aliases: [timescaledb]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  field-redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: demo-field-redis
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    volumes:
+      - demo-field-redis-data:/data
+    networks:
+      field-network:
+        aliases: [redis]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *logging
+
+  field-device-service:
+    build:
+      context: ../../../../
+      dockerfile: services/device-service/deployment/Dockerfile.dev
+    container_name: demo-field-device-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
+      DEBUG_INJECT_PORT: 15591
+      SIMULATOR_BIND_HOST: 0.0.0.0
+    volumes:
+      - ../../../../services/device-service/src:/app/services/device-service/src
+      - ../../../../services/device-service/run.ts:/app/services/device-service/run.ts
+      - ./device-configs:/app/config-field:ro
+      - ../../../../packages/core/src:/app/packages/core/src
+      - ../../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../../packages/simulators/src:/app/packages/simulators/src
+    # Entegrasyon/protokol test erişimi — SADECE dev. PCS EMS/BMS yüzleri, MV
+    # istasyonu ve debug enjeksiyon ucu host loopback'ine yayınlanır. EMS portları
+    # (502/503) host'ta privileged çakışmayı önlemek için 1502/1503'e eşlenir.
+    ports:
+      - "127.0.0.1:1502:502"      # PCS-1 EMS yüzü
+      - "127.0.0.1:1503:503"      # PCS-2 EMS yüzü
+      - "127.0.0.1:15502:15502"   # PCS-1 BMS yüzü
+      - "127.0.0.1:15503:15503"   # PCS-2 BMS yüzü
+      - "127.0.0.1:15540:15540"   # DEMO-MV-1
+      - "127.0.0.1:15541:15541"   # DEMO-MV-2
+      - "127.0.0.1:15591:15591"   # DebugInjector (dev-only)
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+      - demo-bridge
+    logging: *logging
+
+  # Field-tier telemetri tüketicisi — queue_write_telemetry → field timescale
+  # (unified latest/downsampled buradan beslenir).
+  field-data-service:
+    build:
+      context: ../../../../
+      dockerfile: services/data-service/deployment/Dockerfile.dev
+    container_name: demo-field-data-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: field-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+    volumes:
+      - ../../../../services/data-service/src:/app/services/data-service/src
+      - ../../../../services/data-service/run.ts:/app/services/data-service/run.ts
+      - ../../../../packages/core/src:/app/packages/core/src
+      - ../../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging: *logging
+
+  field-management-service:
+    build:
+      context: ../../../../
+      dockerfile: services/management-service/deployment/Dockerfile.dev
+    container_name: demo-field-management-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      FIELD_WEB_SERVICE_URL: ${FIELD_WEB_SERVICE_URL:-http://field-web-service:5002}
+      FIELD_ID: ${FIELD_ID:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
+      HUB_CONSUMER_URL: ${HUB_CONSUMER_URL:-http://hub-servis:5003}
+      HUB_CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
+    volumes:
+      - ../../../../services/management-service/src:/app/services/management-service/src
+      - ../../../../services/management-service/run.ts:/app/services/management-service/run.ts
+      - ./rules:/app/config:ro
+      - ./device-configs:/app/config-field:ro
+      - ../../../../packages/core/src:/app/packages/core/src
+      - ../../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../../packages/result/src:/app/packages/result/src
+      - ../../../../packages/platform/messaging/src:/app/packages/platform/messaging/src
+      - ../../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../../../../packages/tamper-logger/src:/app/packages/tamper-logger/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-device-service:
+        condition: service_started
+    networks:
+      - field-network
+    logging: *logging
+
+  field-web-service:
+    build:
+      context: ../../../../
+      dockerfile: services/web-service/deployment/Dockerfile.dev
+    container_name: demo-field-web-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: field
+      PORT: 5002
+      HOST: 0.0.0.0
+      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+      FIELD_NAME: ${FIELD_NAME:-Saha Demo}
+      MFA_ENABLED: ${MFA_ENABLED:-false}
+      JWT_SECRET: ${FIELD_JWT_SECRET:?FIELD_JWT_SECRET zorunlu (>=32 karakter)}
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/config-field
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      FIELD_UPLINK_ENABLED: ${FIELD_UPLINK_ENABLED:-false}
+      FIELD_UPLINK_WS_URL: ${FIELD_UPLINK_WS_URL:-}
+      FIELD_UPLINK_TOKEN: ${FIELD_UPLINK_TOKEN:-}
+      FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
+      HUB_CONSUMER_URL: ${HUB_CONSUMER_URL:-http://hub-servis:5003}
+      HUB_CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
+      # EMS domain: istasyon/fider/ünite topolojisi (hub'a sızmaz).
+      FIELD_TOPOLOGY_PATH: /app/config/topology.json
+    ports:
+      - "5002:5002"
+    volumes:
+      - ../../../../services/web-service/src:/app/services/web-service/src
+      - ../../../../packages/ws-tunnel/src:/app/packages/ws-tunnel/src
+      - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
+      - ./device-configs:/app/config-field:ro
+      - ./maneuvers:/app/maneuver-config:ro
+      - ./topology.json:/app/config/topology.json:ro
+      - ../../../../packages/core/src:/app/packages/core/src
+      - ../../../../packages/shared-types/src:/app/packages/shared-types/src
+      - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src
+      - ../../../../packages/platform/logging/src:/app/packages/platform/logging/src
+      - ../../../../packages/platform/commands/src:/app/packages/platform/commands/src
+      - ../../../../packages/result/src:/app/packages/result/src
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - field-network
+      - demo-bridge
+    logging: *logging
+
+  # Piyasa köprüsü — EPİAŞ plugin'i field `external_series` tablosunu besler
+  # (SPEC UC-9/T-22, K9). Kimlik yoksa plugin aktive olmaz → Market boş kalır
+  # (uydurma veri üretilmez). Config: ./plugins/epias-market-prices.json.
+  field-integration-service:
+    build:
+      context: ../../../../
+      dockerfile: services/integration-service/deployment/Dockerfile.dev
+    container_name: demo-field-integration-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: field-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: field-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      TIMESCALE_HOST: field-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      INTEGRATION_PLUGIN_DIR: /app/customer-plugins
+      INTEGRATION_CONFIG_DIR: /app/config/plugins
+      INTEGRATION_STATE_DIR: /app/data/plugins
+    volumes:
+      - ./plugins:/app/config/plugins:ro
+      - demo-integration-state-data:/app/data
+    depends_on:
+      field-redis:
+        condition: service_healthy
+      field-timescaledb:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging: *logging
+
+  # demo-field SPA (nginx) — AWS `field-web` slotunun birebir dev karşılığı.
+  field-web:
+    build:
+      context: ../../../../
+      dockerfile: apps/demo-field/deployment/Dockerfile
+      args:
+        VITE_FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
+    container_name: demo-field-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "8088:80"
+    volumes:
+      # Hub alias sözleşmesi (/peers/*, /containers/<cid>/ui/*) — app klasöründe.
+      - ./nginx/demo-field.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      field-web-service:
+        condition: service_healthy
+    networks:
+      - field-network
+    logging: *logging
+
+volumes:
+  demo-field-hub-data:
+  demo-field-timescale-data:
+  demo-field-redis-data:
+  demo-integration-state-data:
+
+networks:
+  field-network:
+    name: v2-dev-demo-field-network
+    driver: bridge
+  demo-bridge:
+    name: v2-dev-demo-bridge
+    external: true

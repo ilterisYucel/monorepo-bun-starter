@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS builder
+FROM oven/bun:1.4.3@sha256:ec06c3b6cea04192ae6770c434f668ca41d343ad19fa6472216c7b48be39c598 AS builder
 
 WORKDIR /app
 COPY . .
@@ -28,6 +28,7 @@ RUN echo 'server { \
   listen 80; \
   root /usr/share/nginx/html; \
   index index.html; \
+  resolver 127.0.0.11 valid=10s ipv6=off; \
   \
   location / { \
     try_files $uri $uri/ /index.html; \
@@ -38,7 +39,8 @@ RUN echo 'server { \
   } \
   \
   location /api { \
-    proxy_pass http://field-web-service:5002; \
+    set $backend http://field-web-service:5002; \
+    proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
     proxy_set_header Connection "upgrade"; \
@@ -52,7 +54,8 @@ RUN echo 'server { \
   } \
   \
   location /containers/ { \
-    proxy_pass http://field-web-service:5002; \
+    set $backend http://field-web-service:5002; \
+    proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
     proxy_set_header Connection "upgrade"; \

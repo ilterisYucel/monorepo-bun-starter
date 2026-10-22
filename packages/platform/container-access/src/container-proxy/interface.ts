@@ -31,10 +31,22 @@ export interface IContainerProxy {
 
   unregisterContainer(containerId: string): void;
 
+  /** Kayıtlı/bağlı konteyner kimlikleri (sorgu) — hub modunda hub peer'ları. */
+  containerIds(): string[];
+
   latestTelemetry(containerId: string): TelemetryData[];
 
   // ELEGANT-EXCEPTION: "historical" is a noun (short for "historical data")
   historical(containerId: string, params: Omit<DownsampleOptions, "deviceId">): Promise<TelemetryData[]>;
+
+  /**
+   * K-21: talep-üzeri taze snapshot — konteynere `mode:"latest"` sorgusu atar
+   * (her ad için DB'nin en yeni satırı); yanıt gelmezse boş dizi (fallback).
+   */
+  latestQuery(
+    containerId: string,
+    options?: { names?: string[]; windowMs?: number },
+  ): Promise<TelemetryData[]>;
 
   allHistorical(containerIds: string[], params: Omit<DownsampleOptions, "deviceId">): Promise<Record<string, TelemetryData[]>>;
 

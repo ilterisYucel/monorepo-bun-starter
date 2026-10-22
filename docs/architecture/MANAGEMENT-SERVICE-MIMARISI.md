@@ -114,7 +114,7 @@ packages/platform/commands
 
 ## 5. Kural Modeli (Konfigürasyon Sözleşmesi)
 
-Dosya: `deployment/dev/container/rules/rules.json` (mount: `/app/config/rules.json`).
+Dosya: `deployment/v1/dev/container/rules/rules.json` (mount: `/app/config/rules.json`).
 
 ```json
 {
@@ -227,7 +227,7 @@ Her tick'te, her kural için:
 
 - **Tier:** yalnızca **container** (cihazların poll edildiği stack). Field/boss MVP dışı.
 - **Compose:** `dev/container/docker-compose.yml` + `prod/container/docker-compose.yml`'e `management-service` eklenir.
-- **Env (`deployment/.env.container.example`):**
+- **Env (`deployment/v1/dev/container/.env.example`):**
   - `REDIS_HOST` / `REDIS_PORT` (ortak)
   - `DEVICE_CONFIG_DIR=/app/config-docker` (device-service ile aynı mount, `:ro`)
   - `MANAGEMENT_RULES_PATH=/app/config/rules.json` (kendi config mount'u, `:ro`)

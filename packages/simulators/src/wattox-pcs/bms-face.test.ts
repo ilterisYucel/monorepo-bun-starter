@@ -35,7 +35,7 @@ const connectClient = async (port: number): Promise<ModbusTCPClient> => {
 };
 
 const openBms = async (): Promise<{ sim: WattoxPcsSimulator; client: ModbusTCPClient }> => {
-  const sim = new WattoxPcsSimulator({});
+  const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",});
   bridge = createWattoxBmsBridge(sim, { host: "127.0.0.1", port: 0 });
   await bridge.start();
   const client = await connectClient(bridge.port());

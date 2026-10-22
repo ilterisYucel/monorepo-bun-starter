@@ -12,7 +12,7 @@
 | 2 | packages/ui · simulators · plugin-sdk · epias · editor | 26 | 169 |
 | 3 | web-service — presentation · application · domain · config | 22 | 257 |
 | 4 | web-service — infrastructure · device-service · data-service · integration-service | 32 | 258 |
-| 5 | apps — field · container-web · superadmin · demo-backend · e2e | 36 | 202 |
+| 5 | apps — field · container-web · superadmin · e2e | 36 | 202 |
 | 6 | packages/tamper-logger — tamper-evident log kütüphanesi | 14 | 104 |
 | 7 | packages/platform — messaging · container-access · logging | 3 | 35 |
 | 8 | packages/ws-tunnel — çoklanmış WS tüneli (2026-09-01 ayrıldı) | 12 | 214 |
@@ -1526,7 +1526,7 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-## 5. apps — field · container-web · superadmin · demo-backend · e2e
+## 5. apps — field · container-web · superadmin · e2e
 
 ### `apps/field/src/layouts/nav-visibility.test.ts` (4 test)
 **Hedef:** `nav-visibility` — role göre menü görünürlüğü ve acil durdurma butonu görünürlüğü sözleşmesi (admin/teknik tam menü; boss kontrol hariç; guest/developer yalnız Panel; acil durdurma yalnız admin/teknik).
@@ -1871,13 +1871,6 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 3. (describe: "superadmin app (T4 smoke)") **"AuthStore state kontratı (login/logout aksiyonları)"** — `useAuthStore` state'inde `login`/`logout` fonksiyondur ve başlangıçta `isAuthenticated: false` olur.
 
 [DOSYA NOTU] Yalnız import smoke'u — bileşen render testi, route guard'ları ve login/logout davranışı tamamen kapsam dışı (proje 0 testten geliyor).
-
-### `apps/demo-backend/src/demo-backend.test.ts` (1 test)
-**Hedef:** demo-backend — uygulama modüllerinin derlenip export edilebildiği smoke kontratı.
-
-1. (describe: "demo-backend") **"exports application modules"** — `./application/device-job-handler` modülü `DeviceJobHandler` export'unu içerir.
-
-[DOSYA NOTU] Yalnız tek modül import'u — REST/WS uçları ve `DeviceJobHandler` davranışı tamamen kapsam dışı.
 
 ### `e2e/container-realtime.spec.ts` (1 test)
 **Hedef:** Faz 5.1 B5 E2E — konteyner app dev modu realtime: Vite (5173) `/ws` proxy'si üzerinden web-service'e abone olup canlı telemetri alma kanıtı (B5 öncesi 404'tü).
@@ -2554,12 +2547,11 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 | `maneuvers` | MANEUVER_CONTROLS inputs/timerConfig içeriği; kalan 16 manevranın adım yapısı |
 | `RackCard` | Yalnız ilk kart; success/failed ayrımı (maneuver-ui spec'te) |
 
-## apps/superadmin · demo-backend · editor
+## apps/superadmin · editor
 
 | Dosya | Kapsanmayan |
 |-------|-------------|
 | `superadmin/app` | Yalnız import smoke'u — bileşen render, route guard davranışı (auth akışı UC-3 ile `api-client`/`AuthStore` birim testli) |
-| `demo-backend` | Tek smoke — kritik yol genişletmesi kaynakta TODO |
 | `editor/catalog` | Yalnız tek modül — REST/WS uçları ve DeviceJobHandler davranışı |
 
 ## e2e
@@ -2823,7 +2815,7 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 ## 11. Sanal IO Cihaz Ailesi · Field↔Konteyner Komut Kanalı (2026-09-16)
 
 > Kapsam dokümanı: [SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md](../architecture/SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md)
-> DOGRULAMA: [SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md](../architecture/SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md), [FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md](../architecture/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md)
+> DOGRULAMA: [SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md](../architecture/SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md), [deprecated/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md](../architecture/deprecated/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md)
 
 ### `packages/simulators/src/aux-analyser/aux-analyser.test.ts` (`9 test`) — ❌ KALDIRILDI (2026-09-22, K3)
 **Hedef:** AUX enerji analizörüydü — aux-analyser kaldırıldı; AUX = PM5340 tek cihaz (FL-02 PM5340 `Voltage L-N Avg`'den).

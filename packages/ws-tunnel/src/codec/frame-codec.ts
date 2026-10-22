@@ -1,4 +1,4 @@
-import { ValidationError, Result } from "@gd-monorepo/result";
+import { ValidationError, Result } from "../result";
 import {
   FRAME_HEADER_SIZE,
   MAX_FRAME_PAYLOAD,

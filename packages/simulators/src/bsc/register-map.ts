@@ -95,8 +95,8 @@ export const SUMMARY_STATS = {
 /** Starting address of first rack's nameplate block */
 export const RACK_NAMEPLATE_BASE = 30170;
 
-/** Per-rack register block size — prevents overlap between racks */
-export const RACK_STRIDE = 200;
+/** Per-rack register block size — rev AF: Rack N = 30170 + 150·(N−1) */
+export const RACK_STRIDE = 150;
 
 /**
  * Per-rack register offsets within {RACK_NAMEPLATE_BASE + (rackId-1) * RACK_STRIDE}.
@@ -187,7 +187,7 @@ export const BSC_RACK_DIAG = {
 // DISCRETE INPUTS (1x) — Rack Status Flags
 // ============================================================================
 
-// Rack flags are Coils, not Discrete Inputs in the real BSC
+// Rack flags are DISCRETE INPUTS (B2C(BSC Flag), FC02) in the real BSC.
 // These are address offsets from rack 1 — the actual addresses depend on total rack count N:
 //   Rack#n Disabled:  n
 //   Rack#n Online:    N + n
@@ -230,11 +230,8 @@ export const CONTROLLER = {
   DISABLED_RACKS_97_99:   40026, // bit16
   DISABLED_RESERVED_1:    40027, // uint16 — Reserved
   DISABLED_RESERVED_2:    40028, // uint16 — Reserved
-  // ELEGANT-EXCEPTION: 40030/40031 resmi Rev AF haritasında YOKTUR (C2B 40028'de biter).
-  // Simulator'ın eski güç modeli için geçici; evdeki PC güncellemesinde kaldırılacak.
-  CHARGE_POWER_SETPOINT:  40030, // uint16 — Charge power setpoint (kW, scale 0.01)
-  DISCHARGE_POWER_SETPOINT: 40031, // uint16 — Discharge power setpoint (kW, scale 0.01)
 } as const;
+
 
 // ============================================================================
 // ENUM VALUE MAPS
@@ -263,11 +260,7 @@ export const COMMAND = {
   EXIT_MANUAL:             0x0007,
   EVENT_CLEAR:             0x0009,
   RESET:                   0x000A,
-  // ELEGANT-EXCEPTION: 0x000B resmi Rev AF haritasında kaldırıldı ("removed").
-  // BSC'ye charge/discharge komutu YOKTUR — güç PCS tarafından kontrol edilir.
-  // Simulator'ın güç modeli henüz PCS-tabanlı olmadığı için geçici tutuldu;
-  // evdeki PC simulator güncellemesinde kaldırılacak (bkz. docs/BSC-VERI-ANALIZI.md).
-  DISCHARGE:               0x000B,
+  // 0x000B Rev AF'de "removed": BSC'nin charge/discharge komutu YOKTUR (güç PCS'te).
 } as const;
 
 /** Request Acknowledge values (NAMEPLATE.REQUEST_ACKNOWLEDGE — address 30030) */

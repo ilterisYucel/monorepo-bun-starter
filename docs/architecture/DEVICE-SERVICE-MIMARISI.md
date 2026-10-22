@@ -13,7 +13,7 @@ review_date: 2026-12-01
 > nitelikler `DeviceConfigFile.details` (opak `Record<string, unknown>`) altına taşındı.
 > device-service/web-service `details`'i YORUMLAMAZ, yalnız taşır (decoupled); yorum tüketicide
 > (ön yüz `rackCountOf` + simülatör BSC builder). K5/K6 + UC-1 FR-1.3/AK-1.3/T-3..T-5 revize edildi.
-> **İlişkili:** [SIMULATOR-MIMARISI.md](./SIMULATOR-MIMARISI.md) (self-host simülatör sunucuları + host — bu SPEC'in bağımlı eki), [LOGGER-MIMARISI.md](./LOGGER-MIMARISI.md) (operasyonel log kanalı — UC-6 ilk tüketici), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md) (Wattox register seti), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (T0.11/Faz 0 alarm sözleşmesi + log kategorileri §522), [FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md](./FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md) (event yayılım zinciri), [SANAL-IO-CIHAZ-AILESI-MIMARISI.md](./SANAL-IO-CIHAZ-AILESI-MIMARISI.md) (simülatör aile deseni), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md) (komut kanalı).
+> **İlişkili:** [SIMULATOR-MIMARISI.md](./SIMULATOR-MIMARISI.md) (self-host simülatör sunucuları + host — bu SPEC'in bağımlı eki), [LOGGER-MIMARISI.md](./LOGGER-MIMARISI.md) (operasyonel log kanalı — UC-6 ilk tüketici), [PCS-WATTOX-MIMARISI.md](./PCS-WATTOX-MIMARISI.md) (Wattox register seti), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (T0.11/Faz 0 alarm sözleşmesi + log kategorileri §522), [FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md](./FAZ5-OZET-VE-BAGLANTI-ANATOMISI.md) (event yayılım zinciri), [SANAL-IO-CIHAZ-AILESI-MIMARISI.md](./SANAL-IO-CIHAZ-AILESI-MIMARISI.md) (simülatör aile deseni), [KOMUT-MANEVRA-OPERASYON-MIMARISI.md](./KOMUT-MANEVRA-OPERASYON-MIMARISI.md) (komut kanalı).
 > **Yerine geçtiği dokümanlar (silindi — 2026-10-05):** DEVICE-SERVICE-TRANSPORT-MIMARISI.md, BSC-PCS-CONNECTOR-MIMARISI/DOGRULAMA/TEST-KAPSAMI (+PDF) — transport ve connector içerikleri bu dokümana emildi; kanıtlar DEVICE-SERVICE-KAPANIS.md'de özetlendi.
 
 ---
@@ -69,7 +69,7 @@ review_date: 2026-12-01
 | B5 | Constructor'a anonim inline tip — `DeviceEntry` ile birebir aynı | `device-service.ts#DeviceService` |
 | B6 | İki fazlı init (`new` → `createFromConfigs`) + ölü `register()`/`count()` API'leri (sıfır çağıran) | `simulator-registry.ts#SimulatorRegistry` |
 | B7 | `IDevice.read(telemetries?)` parametresi — hiçbir çağıran argüman geçirmiyor | `packages/shared-types/src/device-interface.ts#IDevice` |
-| B8 | T0.7 (`DomainError` + `onFailed`) device-service'te yok — hata yolları ham catch | KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md T0.7 (sapma — A5) |
+| B8 | T0.7 (`DomainError` + `onFailed`) device-service'te yok — hata yolları ham catch | deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md T0.7 (sapma — A5) |
 | B9 | rackCount çift yazım — top-level + `transport.rackCount` aynı config'te | `services/device-service/deployment/sample-config/bsc-1.json` (ikisi de 8) |
 | B10 | In-process `SimulatorTransport` deseni — gerçek TCP yolu bypass (iki ayrı cihaz yolu) | `packages/simulators/src/simulator-transport.ts#SimulatorTransport` |
 | B11 | `bmsTarget` deployment env'i registry'ye sızıyor (deployment-bazlı hedef bilgisi kodda) | `services/device-service/src/simulator-registry.ts#SimulatorRegistry` |
@@ -216,7 +216,7 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/src/device-service.ts` | DeviceEntry `details` passthrough, hoist, DDL `details JSONB` + `rack_count` DROP |
 | `services/device-service/src/types.ts` | SİLİNİR |
 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | top-level `rackCount` kaldırılır; `details` eklenir |
-| `services/device-service/deployment/sample-config/*.json` + `deployment/dev/container/device-configs/*.json` | `rackCount` → `details.rackCount` |
+| `services/device-service/deployment/sample-config/*.json` + `deployment/v1/dev/container/device-configs/*.json` | `rackCount` → `details.rackCount` |
 | `services/web-service/src/presentation/routes/device-routes.ts` | SELECT `details` |
 | `apps/container-web/src/features/devices/types/device.ts` + `features/racks/utils/rackHelpers.ts` + `bscHelpers.ts` + `stores/devicesStore.ts` + `pages/DashBoardPage.tsx` + `pages/ScadaDashboardPage.tsx` | `details` tipi + `rackCountOf` accessor |
 
@@ -439,8 +439,8 @@ Yayılım device-service'in işi DEĞİLDİR — üreticidir; relay/bildirim web
 | `services/device-service/src/device-service.ts` | `simulators` param kaldırılır (fromConfigDir rewiring) |
 | `services/device-service/src/index.ts` | SimulatorRegistry export kaldırılır |
 | `packages/shared-types/src/config/device-config.ts` + `schemas/device-config.ts` | ConnectorConfig |
-| `deployment/dev/container/device-configs/bsc-1.json` | connector bölümü gömülür |
-| `deployment/dev/container/device-configs/bsc-pcs-connector-1.json` | SİLİNİR |
+| `deployment/v1/dev/container/device-configs/bsc-1.json` | connector bölümü gömülür |
+| `deployment/v1/dev/container/device-configs/bsc-pcs-connector-1.json` | SİLİNİR |
 | `services/device-service/run.ts` | SimulatorHost wiring (T-9) |
 
 ### 6.6 UC-6 — Log Sözleşmesi (iki kanal)

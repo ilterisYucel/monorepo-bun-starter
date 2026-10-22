@@ -3,16 +3,20 @@ import { HOLDING, INPUT, ALARMS } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { HvacSimulatorAdapter } from "./hvac-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 interface HvacState {
   remoteOn: boolean;
   coolingSetpoint: number;
   heatingSetpoint: number;
+  monitorTempMode: number;
   highTempAlarm: number;
   lowTempAlarm: number;
   serverTempMax: number;
   serverTempMin: number;
   serverTempAvg: number;
+  serverRH: number;
 
   currentTemp: number;
   outsideTemp: number;
@@ -35,6 +39,12 @@ interface HvacState {
   compressorRuntime: number;
   internalFanRuntime: number;
 
+  forcedEnable: number;
+  forcedCooling: number;
+  forcedAirSupply: number;
+  forcedStandby: number;
+  forcedHeating: number;
+
   alarms: Map<number, number>;
 }
 
@@ -43,11 +53,13 @@ function defaultState(): HvacState {
     remoteOn: false,
     coolingSetpoint: 230,
     heatingSetpoint: 150,
+    monitorTempMode: 4,
     highTempAlarm: 400,
     lowTempAlarm: 0,
     serverTempMax: 230,
     serverTempMin: 220,
     serverTempAvg: 225,
+    serverRH: 500,
 
     currentTemp: 250,
     outsideTemp: 300,
@@ -70,21 +82,33 @@ function defaultState(): HvacState {
     compressorRuntime: 500,
     internalFanRuntime: 800,
 
+    forcedEnable: 0,
+    forcedCooling: 0,
+    forcedAirSupply: 0,
+    forcedStandby: 0,
+    forcedHeating: 0,
+
     alarms: new Map(),
   };
 }
 
 export interface HvacSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class HvacSimulator {
+export class HvacSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: HvacState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
+  private injectedCurrentTemp: number | undefined;
+  private injectedHumidity: number | undefined;
+  private compressorStarts = 0;
 
-  constructor(config: HvacSimulatorConfig = {}) {
+  constructor(config: HvacSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = defaultState();
     this.network = config.network;
   }
@@ -111,10 +135,44 @@ export class HvacSimulator {
     return this.server?.port() ?? this.network?.port ?? 0;
   }
 
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut). Sıcaklık/nem değerleri her tick'te
+   * sabitlenir (drift ezmez).
+   * - `hot`: 32.0 °C (FL-05 overheat)
+   * - `cold`: 0.0 °C (FL-05 overcold)
+   * - `humid`: 90.0 %RH (nem alarmı)
+   * - `nominal`: enjeksiyon kaldırılır (doğal drift)
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "hot":
+        this.injectedCurrentTemp = 320;
+        return true;
+      case "cold":
+        this.injectedCurrentTemp = 0;
+        return true;
+      case "humid":
+        this.injectedHumidity = 900;
+        return true;
+      case "nominal":
+        this.injectedCurrentTemp = undefined;
+        this.injectedHumidity = undefined;
+        return true;
+      default:
+        return false;
+    }
+  }
+
   tick(elapsedSeconds: number): void {
     const s = this.state;
+    const compBefore = s.compressorStatus;
 
-    if (s.remoteOn && s.equipmentStatus !== 3) {
+    // Enjeksiyon override'ları (dev/debug) — tick drift'inden önce sabitlenir.
+    if (this.injectedCurrentTemp !== undefined) s.currentTemp = this.injectedCurrentTemp;
+    if (this.injectedHumidity !== undefined) s.returnHumidity = this.injectedHumidity;
+
+    if (!s.forcedEnable && s.remoteOn && s.equipmentStatus !== 3) {
       s.equipmentStatus = 2;
       s.indoorFanStatus = 2;
       s.outdoorFanStatus = 2;
@@ -151,7 +209,7 @@ export class HvacSimulator {
       s.equipmentRuntime += elapsedSeconds / 3600;
       s.internalFanRuntime += elapsedSeconds / 3600;
       if (s.compressorStatus === 2) s.compressorRuntime += elapsedSeconds / 3600;
-    } else {
+    } else if (!s.forcedEnable) {
       s.equipmentStatus = 1;
       s.indoorFanStatus = 1;
       s.outdoorFanStatus = 1;
@@ -165,12 +223,15 @@ export class HvacSimulator {
     // Alarm checks
     s.alarms.set(ALARMS.HIGH_TEMP, s.currentTemp > s.highTempAlarm ? 1 : 0);
     s.alarms.set(ALARMS.LOW_TEMP, s.currentTemp < s.lowTempAlarm ? 1 : 0);
-    s.alarms.set(ALARMS.OVER_VOLTAGE, s.acInputVoltage > 2530 ? 1 : 0);
-    s.alarms.set(ALARMS.UNDER_VOLTAGE, s.acInputVoltage < 1800 ? 1 : 0);
+    s.alarms.set(ALARMS.AC_OVERVOLTAGE, s.acInputVoltage > 2530 ? 1 : 0);
+    s.alarms.set(ALARMS.AC_UNDERVOLTAGE, s.acInputVoltage < 1800 ? 1 : 0);
     // Other alarms stay at 0 (healthy)
     for (const addr of Object.values(ALARMS)) {
       if (!s.alarms.has(addr)) s.alarms.set(addr, 0);
     }
+
+    // Kompresör çalıştırma sayacı — duran (≠2) → çalışan (2) geçişinde artar.
+    if (s.compressorStatus === 2 && compBefore !== 2) this.compressorStarts++;
   }
 
   readInputRegister(address: number): number {
@@ -197,6 +258,8 @@ export class HvacSimulator {
       case INPUT.COMPRESSOR_RUNTIME_L:   return Math.floor(s.compressorRuntime) & 0xFFFF;
       case INPUT.INTERNAL_FAN_RUNTIME_H: return (Math.floor(s.internalFanRuntime) >>> 16) & 0xFFFF;
       case INPUT.INTERNAL_FAN_RUNTIME_L: return Math.floor(s.internalFanRuntime) & 0xFFFF;
+      case INPUT.COMPRESSOR_ACTION_H:    return (this.compressorStarts >>> 16) & 0xFFFF;
+      case INPUT.COMPRESSOR_ACTION_L:    return this.compressorStarts & 0xFFFF;
       default: {
         const alarm = s.alarms.get(address);
         if (alarm !== undefined) return alarm;
@@ -208,10 +271,19 @@ export class HvacSimulator {
   readHoldingRegister(address: number): number {
     const s = this.state;
 
+    // HVAC dokümanı (MC90HDNC1R-L): bilgi (0x1000) ve alarm (0x300) blokları da
+    // FC03 (holding) ile okunur; ayar/komut blokları aşağıdaki switch'te.
+    if (
+      (address >= 0x1000 && address <= 0x1030) ||
+      (address >= 0x300 && address <= 0x31f)
+    ) {
+      return this.readInputRegister(address);
+    }
+
     switch (address) {
       case HOLDING.SLAVE_ADDRESS:      return 1;
       case HOLDING.BAUD_RATE:          return 9600;
-      case HOLDING.MONITOR_TEMP_MODE:  return 4;
+      case HOLDING.MONITOR_TEMP_MODE:  return s.monitorTempMode;
       case HOLDING.COOLING_SETPOINT:   return s.coolingSetpoint;
       case HOLDING.COOLING_HYSTERESIS:  return 0;
       case HOLDING.COMPRESSOR_START_DELAY: return 5;
@@ -222,6 +294,15 @@ export class HvacSimulator {
       case HOLDING.LOW_TEMP_HYSTERESIS: return 900;
       case HOLDING.HEATING_SETPOINT:   return s.heatingSetpoint;
       case HOLDING.HEATING_HYSTERESIS: return 5;
+      case HOLDING.SERVER_TEMP_MAX:    return s.serverTempMax;
+      case HOLDING.SERVER_TEMP_MIN:    return s.serverTempMin;
+      case HOLDING.SERVER_TEMP_AVG:    return s.serverTempAvg;
+      case HOLDING.SERVER_RH:          return s.serverRH;
+      case HOLDING.FORCED_ENABLE:      return s.forcedEnable;
+      case HOLDING.FORCED_COOLING:     return s.forcedCooling;
+      case HOLDING.FORCED_AIR_SUPPLY:  return s.forcedAirSupply;
+      case HOLDING.FORCED_STANDBY:     return s.forcedStandby;
+      case HOLDING.FORCED_HEATING:     return s.forcedHeating;
       default: return 0;
     }
   }
@@ -231,6 +312,7 @@ export class HvacSimulator {
 
     switch (address) {
       case HOLDING.REMOTE_ON_OFF:  s.remoteOn = (value === 1); break;
+      case HOLDING.MONITOR_TEMP_MODE: s.monitorTempMode = value; break;
       case HOLDING.COOLING_SETPOINT:  s.coolingSetpoint = value; break;
       case HOLDING.HIGH_TEMP_ALARM:   s.highTempAlarm = value; break;
       case HOLDING.LOW_TEMP_ALARM:    s.lowTempAlarm = value; break;
@@ -238,6 +320,44 @@ export class HvacSimulator {
       case HOLDING.SERVER_TEMP_MAX:   s.serverTempMax = value; break;
       case HOLDING.SERVER_TEMP_MIN:   s.serverTempMin = value; break;
       case HOLDING.SERVER_TEMP_AVG:   s.serverTempAvg = value; break;
+      case HOLDING.SERVER_RH:         s.serverRH = value; break;
+      case HOLDING.FORCED_ENABLE: {
+        s.forcedEnable = value === 1 ? 1 : 0;
+        if (s.forcedEnable === 0) {
+          // Zorlama kapatıldı → normal kontrol (standby'a dön)
+          s.forcedCooling = 0; s.forcedHeating = 0; s.forcedStandby = 0; s.forcedAirSupply = 0;
+          s.equipmentStatus = 1; s.indoorFanStatus = 1; s.outdoorFanStatus = 1;
+          s.compressorStatus = 1; s.electricHeatingOn = 0;
+        }
+        break;
+      }
+      case HOLDING.FORCED_COOLING:
+        s.forcedCooling = value === 1 ? 1 : 0;
+        if (s.forcedEnable && s.forcedCooling === 1) {
+          s.equipmentStatus = 2; s.indoorFanStatus = 2; s.outdoorFanStatus = 2;
+          s.compressorStatus = 2; s.electricHeatingOn = 0; s.internalFanSpeed = 1500; s.externalFanSpeed = 1200;
+        }
+        break;
+      case HOLDING.FORCED_HEATING:
+        s.forcedHeating = value === 1 ? 1 : 0;
+        if (s.forcedEnable && s.forcedHeating === 1) {
+          s.equipmentStatus = 2; s.indoorFanStatus = 2; s.outdoorFanStatus = 1;
+          s.compressorStatus = 1; s.electricHeatingOn = 1; s.internalFanSpeed = 800; s.externalFanSpeed = 0;
+        }
+        break;
+      case HOLDING.FORCED_STANDBY:
+        s.forcedStandby = value === 1 ? 1 : 0;
+        if (s.forcedEnable && s.forcedStandby === 1) {
+          s.equipmentStatus = 1; s.indoorFanStatus = 1; s.outdoorFanStatus = 1;
+          s.compressorStatus = 1; s.electricHeatingOn = 0; s.internalFanSpeed = 0; s.externalFanSpeed = 0;
+        }
+        break;
+      case HOLDING.FORCED_AIR_SUPPLY:
+        s.forcedAirSupply = value === 1 ? 1 : 0;
+        if (s.forcedEnable && s.forcedAirSupply === 1) {
+          s.equipmentStatus = 2; s.indoorFanStatus = 2; s.compressorStatus = 1; s.electricHeatingOn = 0;
+        }
+        break;
       case HOLDING.RESET:             if (value === 0x0001) Object.assign(s, defaultState()); break;
       default: break;
     }

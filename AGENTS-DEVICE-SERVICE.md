@@ -27,6 +27,8 @@ IModbusTransport (packages/core/src/modbus/transport/)
    └── ModbusClientTransport   (IModbusClient sarmalayıcı: TCP/RTU)
 ```
 
+**RTU backend (2026-10-20):** `ModbusRtuClient` seri portu `bun-serialport` (bun:ffi) + `SerialSocketAdapter` ile açar — `serialport` (N-API) kaldırıldı; bkz. KAPANIŞ A.14. Port üretimi enjekte edilir (`ModbusRtuPortFactory`); `bun:ffi` yalnız `connect()` anında yüklenir. Donanımsız doğrulama: `bun tools/rtu-loopback-check.mjs`.
+
 Config seçimi açıktır (`transport.kind`):
 
 ```json

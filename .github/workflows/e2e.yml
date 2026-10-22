@@ -27,11 +27,13 @@ jobs:
       SEED_BOSS_PASSWORD: boss12345
       SEED_GUEST_PASSWORD: guest12345
       FIELD_ID: 11111111-2222-3333-4444-555555555555
-      CONTAINER_TOKEN: ci-e2e-container-token-0123456789
       CONTAINER_ID: container-1
-      FIELD_CONNECT_ENABLED: "true"
-      FIELD_WS_URL: ws://host.docker.internal:5002/ws/container
+      FIELD_JWT_SECRET: ci-e2e-field-jwt-secret-0123456789abcdef
+      HUB_PEER_TOKEN: ci-e2e-hub-peer-token-0123456789
+      HUB_CONSUMER_TOKEN: ci-e2e-hub-consumer-token-0123456789
       FIELD_INTERNAL_API_TOKEN: ci-e2e-internal-token-0123456789
+      HUB_PEER_ENABLED: "true"
+      HUB_PEER_URL: ws://hub-servis:5003/ws/peer
       E2E_ADMIN_PASSWORD: admin12345
       E2E_CHANGE_PASSWORD: ci-e2e-yeni-sifre-456
     steps:
@@ -39,7 +41,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: "1.3.14"
+          bun-version: "1.4.3"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile --ignore-scripts
@@ -47,14 +49,26 @@ jobs:
       - name: Build required projects
         run: bun nx run-many --target=build --projects=container-web,field,web-service
 
-      - name: Start container stack
+      - name: Start container stacks
         run: |
-          docker compose -f deployment/dev/container/docker-compose.yml up -d --wait
+          cp deployment/v2/dev/container/.env.example deployment/v2/dev/container/.env
+          cp deployment/v2/dev/container2/.env.example deployment/v2/dev/container2/.env
+          cp deployment/v2/dev/field/.env.example deployment/v2/dev/field/.env
+          # CI sırları (gerçek secret DEĞİL — dev compose zorunlu alanları).
+          sed -i "s|^FIELD_ID=.*|FIELD_ID=$FIELD_ID|" deployment/v2/dev/field/.env
+          sed -i "s|^FIELD_JWT_SECRET=.*|FIELD_JWT_SECRET=$FIELD_JWT_SECRET|" deployment/v2/dev/field/.env
+          sed -i "s|^SEED_ADMIN_PASSWORD=.*|SEED_ADMIN_PASSWORD=$SEED_ADMIN_PASSWORD|" deployment/v2/dev/field/.env
+          sed -i "s|^SEED_BOSS_PASSWORD=.*|SEED_BOSS_PASSWORD=$SEED_BOSS_PASSWORD|" deployment/v2/dev/field/.env
+          sed -i "s|^SEED_GUEST_PASSWORD=.*|SEED_GUEST_PASSWORD=$SEED_GUEST_PASSWORD|" deployment/v2/dev/field/.env
+          sed -i "s|^HUB_PEER_TOKEN=.*|HUB_PEER_TOKEN=$HUB_PEER_TOKEN|" deployment/v2/dev/field/.env deployment/v2/dev/container/.env deployment/v2/dev/container2/.env
+          sed -i "s|^HUB_CONSUMER_TOKEN=.*|HUB_CONSUMER_TOKEN=$HUB_CONSUMER_TOKEN|" deployment/v2/dev/field/.env
+          docker compose --env-file deployment/v2/dev/container/.env -f deployment/v2/dev/container/docker-compose.yml up -d --wait
+          docker compose --env-file deployment/v2/dev/container2/.env -f deployment/v2/dev/container2/docker-compose.yml up -d --wait
           sleep 5
 
-      - name: Start field stack
+      - name: Start field stacks
         run: |
-          docker compose -f deployment/dev/field/docker-compose.yml up -d --wait
+          docker compose --env-file deployment/v2/dev/field/.env -f deployment/v2/dev/field/docker-compose.yml up -d --build --wait
           sleep 5
 
       - name: Setup cross-tier links (register container + change passwords)
@@ -67,10 +81,6 @@ jobs:
           curl -sf -X POST http://localhost:5002/api/auth/change-password \
             -H "authorization: Bearer $FIELD_TOKEN" -H 'content-type: application/json' \
             -d "{\"oldPassword\":\"$SEED_ADMIN_PASSWORD\",\"newPassword\":\"$E2E_CHANGE_PASSWORD\"}" > /dev/null
-          # konteyner kaydı (field DB — token hash)
-          curl -sf -X POST "http://localhost:5002/api/fields/$FIELD_ID/containers/$CONTAINER_ID/register" \
-            -H "authorization: Bearer $FIELD_TOKEN" -H 'content-type: application/json' \
-            -d "{\"token\":\"$CONTAINER_TOKEN\"}" > /dev/null
           # konteyner admin: ilk giriş + şifre değişimi
           CONT_TOKEN=$(curl -sf -X POST http://localhost:5001/api/auth/login \
             -H 'content-type: application/json' \
@@ -83,11 +93,13 @@ jobs:
       - name: Install Playwright
         run: bunx playwright install --with-deps chromium
 
+      # v2 demo-field UI (8088) hedefli spesifikasyonlar. Eski container-web (5173)
+      # varyantları v2'de UI deployment'ı olmadığı için koşulmaz (takip: e2e parity).
       - name: Run E2E tests
-        run: bunx playwright test --project=chromium
+        run: bunx playwright test --project=chromium e2e/demo-*.spec.ts e2e/field-*.spec.ts
         env:
-          BASE_URL: http://localhost:5173
-          FIELD_UI_URL: http://localhost:5174
+          FIELD_UI_URL: http://localhost:8088
+          FIELD_API_URL: http://localhost:5002
           FIELD_ID: ${{ env.FIELD_ID }}
           E2E_ADMIN_PASSWORD: ${{ env.E2E_CHANGE_PASSWORD }}
 
@@ -101,5 +113,6 @@ jobs:
       - name: Stop services
         if: always()
         run: |
-          docker compose -f deployment/dev/field/docker-compose.yml down -v
-          docker compose -f deployment/dev/container/docker-compose.yml down -v
+          docker compose --env-file deployment/v2/dev/field/.env -f deployment/v2/dev/field/docker-compose.yml down -v || true
+          docker compose --env-file deployment/v2/dev/container2/.env -f deployment/v2/dev/container2/docker-compose.yml down -v || true
+          docker compose --env-file deployment/v2/dev/container/.env -f deployment/v2/dev/container/docker-compose.yml down -v || true

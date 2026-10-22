@@ -4,6 +4,8 @@ import { INPUT } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { ImdAdapter } from "./imd-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 const randomFloat = (): number => {
   const buf = new Uint32Array(1);
@@ -22,6 +24,9 @@ interface ImdState {
 }
 
 const HEALTHY_RESISTANCE = 1_000_000; // 1 MΩ
+// LGES IMD eşikleri (MT row 21): uyarı 225 kΩ, arıza 150 kΩ.
+const PREWARNING_OHM = 225_000;
+const FAULT_OHM = 150_000;
 const OK = 0;
 const WARNING = 4;
 
@@ -37,16 +42,20 @@ const WARNING = 4;
  * - Bilinmeyen adres → 0.
  */
 export interface ImdSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class ImdSimulator {
+export class ImdSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: ImdState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
+  private injectedResistance: number | undefined;
 
-  constructor(config: ImdSimulatorConfig = {}) {
+  constructor(config: ImdSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = {
       resistance: HEALTHY_RESISTANCE,
       prewarning: false,
@@ -78,28 +87,66 @@ export class ImdSimulator {
     return this.server?.port() ?? this.network?.port ?? 0;
   }
 
-  /** Zaman adımı — jitter üretir; fault'ta direnci düşük tutar (komut). */
+  /** Zaman adımı — direnç üretir; uyarı/arıza bayrakları LGES eşiklerinden türetilir. */
   tick(_elapsedSeconds: number): void {
     const s = this.state;
-    if (s.alarm) {
-      s.resistance = Math.round(randomFloat() * 80_000) + 10_000;
-      return;
-    }
-    s.resistance = HEALTHY_RESISTANCE + Math.round((randomFloat() - 0.5) * 100_000);
+    s.resistance =
+      this.injectedResistance !== undefined
+        ? this.injectedResistance
+        : HEALTHY_RESISTANCE + Math.round((randomFloat() - 0.5) * 100_000);
+    s.prewarning = s.resistance < PREWARNING_OHM;
+    s.alarm = s.resistance < FAULT_OHM;
   }
 
   /** İzolasyon arızası enjeksiyonu — FL-11 senaryosu (komut). */
   setFault(active: boolean): void {
-    this.state.prewarning = active;
-    this.state.alarm = active;
-    if (!active) {
+    if (active) {
+      this.injectedResistance = 90_000; // < FAULT_OHM
+      this.state.resistance = 90_000;
+      this.state.prewarning = true;
+      this.state.alarm = true;
+    } else {
+      this.injectedResistance = undefined;
       this.state.resistance = HEALTHY_RESISTANCE;
+      this.state.prewarning = false;
+      this.state.alarm = false;
     }
   }
 
   /** Cihaz hatası enjeksiyonu — Device Error kodu (komut). */
   setDeviceError(code: number): void {
     this.state.deviceError = code;
+  }
+
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut).
+   * - `fault`: izolasyon arızası (Alarm/Prewarning = 4) — FL-11 tetikleyicisi
+   * - `device_error`: cihaz hatası kodu 1
+   * - `healthy`: arızayı temizler
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "fault":
+        this.setFault(true);
+        return true;
+      case "warning":
+        // 150–225 kΩ arası: yalnız ön uyarı (Prewarning), arıza YOK.
+        this.injectedResistance = 200_000;
+        this.state.resistance = 200_000;
+        this.state.prewarning = true;
+        this.state.alarm = false;
+        return true;
+      case "healthy":
+        this.setFault(false);
+        this.setDeviceError(0);
+        return true;
+      case "device_error":
+        this.setDeviceError(1);
+        return true;
+      default:
+        return false;
+    }
   }
 
   /** Input register okur — kelime bazlı (UInt32 çifti BE) (sorgu). */

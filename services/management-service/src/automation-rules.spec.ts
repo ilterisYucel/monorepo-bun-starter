@@ -25,7 +25,7 @@ import { ActionExecutor } from "./action-executor";
  */
 
 const RULES_PATH = fileURLToPath(
-  new URL("../../../deployment/dev/container/rules/rules.json", import.meta.url),
+  new URL("../../../deployment/v2/dev/container/rules/rules.json", import.meta.url),
 );
 const DEVICE_CONFIG_DIR = fileURLToPath(
   new URL("../../../configs", import.meta.url),
@@ -139,7 +139,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
   });
 
   describe("FL-08 — DC kısa devre (DC-METER-1)", () => {
-    it("V>1500 + debounce 1 sn → CB open + BSC open_contactors (tüm aktif cihazlar) + audit", async () => {
+    it("V>1500 + debounce 1 sn → CB open + BSC emergency (tüm aktif cihazlar) + audit", async () => {
       const h = harness();
 
       await h.fire("DC-METER-1", [
@@ -165,7 +165,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
         ),
       ).toBe(true);
       expect(bscJobs).toHaveLength(h.counts.bsc);
-      expect(bscJobs.every((j) => j.telemetries[0]?.value === 4)).toBe(true);
+      expect(bscJobs.every((j) => j.telemetries[0]?.value === 1)).toBe(true);
       // Audit zinciri: auto_rule_fired + aksiyon ok'ları
       expect(h.log).toHaveBeenCalledWith(
         expect.objectContaining({ eventCode: "auto_rule_fired" }),
@@ -195,12 +195,12 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
       const bscJobs = h.jobs.filter((j) => j.deviceId.startsWith("BSC-"));
       expect(cbJobs).toHaveLength(h.counts.cb);
       expect(bscJobs).toHaveLength(h.counts.bsc);
-      expect(bscJobs.every((j) => j.telemetries[0]!.value === 4)).toBe(true);
+      expect(bscJobs.every((j) => j.telemetries[0]!.value === 1)).toBe(true);
     });
   });
 
   describe("FL-05 koruma — aşırı sıcak", () => {
-    it("Max Pack Temp > 50 + debounce 5 dk → tüm HVAC force_cool + tüm BSC stop", async () => {
+    it("Max Pack Temp > 50 + debounce 5 dk → tüm HVAC force_cool + tüm BSC emergency", async () => {
       const h = harness();
 
       await h.fire("BSC-1", [telemetry("BSC-1", "Max Pack Temp", 51)]);
@@ -208,11 +208,11 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
       await h.fire("BSC-1", [telemetry("BSC-1", "Max Pack Temp", 51)]);
 
       const cool = h.jobs.filter((j) =>
-        j.telemetries.some((t) => t.name === "Cooling Setpoint"),
+        j.telemetries.some((t) => t.name === "Forced Cooling"),
       );
       expect(cool).toHaveLength(h.counts.hvac);
       const stops = h.jobs.filter(
-        (j) => j.deviceId.startsWith("BSC-") && j.telemetries[0]!.value === 3,
+        (j) => j.deviceId.startsWith("BSC-") && j.telemetries[0]!.value === 1,
       );
       expect(stops).toHaveLength(h.counts.bsc);
     });
@@ -228,20 +228,21 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
       await h.fire("HVAC-1", [telemetry("HVAC-1", "Current Temp", 25.2)]);
 
       const cool = h.jobs.find((j) =>
-        j.telemetries.some((t) => t.name === "Cooling Setpoint"),
+        j.telemetries.some((t) => t.name === "Forced Cooling"),
       );
       expect(cool).toBeDefined();
-      // GERÇEK config sözleşmesi: Remote On/Off ← 1 + Cooling Setpoint ← 10
+      // GERÇEK config sözleşmesi (HVAC §7.3): zorlama modu etkin + zorunlu soğutma
       const byName = Object.fromEntries(
         cool!.telemetries.map((t) => [t.name, t.value]),
       );
-      expect(byName["Remote On/Off"]).toBe(1);
-      expect(byName["Cooling Setpoint"]).toBe(10);
+      expect(byName["Forced Enable Switch"]).toBe(1);
+      expect(byName["Forced Cooling"]).toBe(1);
+      expect(byName["Forced Heating"]).toBe(0);
     });
   });
 
   describe("FL-07 — kapı DI (control-panel-io)", () => {
-    it("Battery Door Open 1 → ışık AÇ + tüm BSC stop", async () => {
+    it("Battery Door Open 1 → ışık AÇ + tüm BSC emergency", async () => {
       const h = harness();
 
       await h.fire("CONTROL-PANEL-IO-1", [
@@ -254,7 +255,7 @@ describe("otomasyon kural zinciri (K9 — gerçek config'lerle)", () => {
       );
       const stops = h.jobs.filter((j) => j.deviceId.startsWith("BSC-"));
       expect(stops).toHaveLength(h.counts.bsc);
-      expect(stops.every((j) => j.telemetries[0]!.value === 3)).toBe(true);
+      expect(stops.every((j) => j.telemetries[0]!.value === 1)).toBe(true);
     });
 
     it("kenar-tetik: kapı kapalıyken KAPATMA kuralı ateşler (ışık söner)", async () => {

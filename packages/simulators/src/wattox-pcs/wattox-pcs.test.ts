@@ -61,7 +61,7 @@ function toInt16(v: number): number {
 
 describe("WattoxPcsSimulator", () => {
   it("ilk değerler: nominal (Stop, 50 Hz, anma güç, şebeke voltajı)", () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
 
     return expect(
@@ -96,7 +96,7 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("start komutu: Stop → Standby; komut register'ı yazılanı tutar", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_START, 1);
     expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_STANDBY);
@@ -104,7 +104,7 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("negatif setpoint → Charging; grid aktif güç birebir setpoint (şarj negatif)", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_START, 1);
     await a.writeHoldingRegister(SET_ACTIVE_POWER, toInt16(-500));
@@ -115,7 +115,7 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("pozitif setpoint → Discharging", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_START, 1);
     await a.writeHoldingRegister(SET_ACTIVE_POWER, 800);
@@ -124,7 +124,7 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("sıfır setpoint → Standby (sıfır güç)", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_START, 1);
     await a.writeHoldingRegister(SET_ACTIVE_POWER, toInt16(-500));
@@ -134,7 +134,7 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("stop komutu: Stop + setpoint sıfırlanır", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_START, 1);
     await a.writeHoldingRegister(SET_ACTIVE_POWER, 800);
@@ -144,7 +144,7 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("standby komutu: herhangi bir işletme durumundan Standby", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_START, 1);
     await a.writeHoldingRegister(SET_ACTIVE_POWER, 800);
@@ -152,19 +152,19 @@ describe("WattoxPcsSimulator", () => {
     expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_STANDBY);
   });
 
-  it("fault set → fault durumu + Fault; reset → temiz + Standby", async () => {
-    const sim = new WattoxPcsSimulator({});
+  it("fault set → fault durumu + Fault; reset → temiz + Stop", async () => {
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     sim.setFaultWord(1, 1 << 5); // word1 bit5: BMS system fault
     expect(await a.readInputRegister(REG_FAULT_STATUS)).toBe(1);
     expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_FAULT);
     await a.writeHoldingRegister(SET_FAULT_RESET, 1);
     expect(await a.readInputRegister(REG_FAULT_STATUS)).toBe(0);
-    expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_STANDBY);
+    expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_STOP);
   });
 
   it("alarm word 3 bit9 (islanding) → alarm durumu 1", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     sim.setAlarmWord(3, 1 << 9);
     expect(await a.readInputRegister(REG_ALARM_STATUS)).toBe(1);
@@ -172,21 +172,21 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("fault word adresleri D01-D10 sıralı okunur", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     sim.setFaultWord(10, 0x1234);
     expect(await a.readInputRegister(FAULT_WORD_1 + 9)).toBe(0x1234);
   });
 
   it("E-stop bitleri: local/remote/BMS", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     sim.setEstop({ local: true, remote: false, bms: true });
     expect(await a.readInputRegister(REG_ESTOP_BUTTON)).toBe(0b101);
   });
 
   it("EMS yüzü BMS bloğunu değiştiremez (RO); setBmsRegister yazar", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     const initial = await a.readInputRegister(BMS_SOC);
     await a.writeHoldingRegister(BMS_SOC, 9999);
@@ -197,36 +197,61 @@ describe("WattoxPcsSimulator", () => {
   });
 
   it("BMS bloğu dışına setBmsRegister reddedilir (throw)", () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     expect(() => sim.setBmsRegister(BMS_BASE - 1, 1)).toThrow();
     expect(() => sim.setBmsRegister(BMS_BASE + 23, 1)).toThrow();
   });
 
   it("komut kaynağı register'ı yazılabilir (EMS=1)", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     await a.writeHoldingRegister(SET_COMMAND_SOURCE, 1);
     expect(await a.readHoldingRegister(SET_COMMAND_SOURCE)).toBe(1);
   });
 
   it("tick: güç setpoint'e yakınsar (anında uygulama — tick kararlı kalır)", () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     sim.tick(1);
     const a = new WattoxPcsAdapter(sim);
     return expect(a.readInputRegister(REG_OP_STATUS)).resolves.toBe(OP_STOP);
   });
 
   it("BMS varsayılanları: SOC %50.0, pack voltaj 1500.0 V", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     expect(await a.readInputRegister(BMS_SOC)).toBe(500);
     expect(await a.readInputRegister(BMS_TOTAL_VOLTAGE)).toBe(15000);
   });
 
   it("çoklu register okuma (FC 0x03 aralığı)", async () => {
-    const sim = new WattoxPcsSimulator({});
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1", commandSource: 1 });
     const a = new WattoxPcsAdapter(sim);
     const words = await a.readInputRegisters(REG_GRID_V_AB, 3);
     expect(words).toEqual([4000, 4000, 4000]);
+  });
+
+  it("FC03 holding okuma sorgu bloklarını döner (doküman FC03 zorunlu)", async () => {
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1" });
+    const a = new WattoxPcsAdapter(sim);
+    expect(await a.readHoldingRegister(REG_OP_STATUS)).toBe(
+      sim.readRegister(REG_OP_STATUS),
+    );
+    expect(await a.readHoldingRegister(REG_RATED_POWER)).toBe(
+      sim.readRegister(REG_RATED_POWER),
+    );
+  });
+});
+
+describe("WattoxPcsSimulator — PCS12 komut kaynağı (S01)", () => {
+  it("S01=0 (HMI) iken start/setpoint yok sayılır; S01=1 (EMS) sonrası uygulanır", async () => {
+    const sim = new WattoxPcsSimulator({ deviceId: "PCS-1",}); // varsayılan commandSource=0
+    const a = new WattoxPcsAdapter(sim);
+    await a.writeHoldingRegister(SET_START, 1);
+    await a.writeHoldingRegister(SET_ACTIVE_POWER, toInt16(-500));
+    expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_STOP); // yok sayıldı
+
+    await a.writeHoldingRegister(SET_COMMAND_SOURCE, 1);
+    await a.writeHoldingRegister(SET_START, 1);
+    expect(await a.readInputRegister(REG_OP_STATUS)).toBe(OP_STANDBY);
   });
 });

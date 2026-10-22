@@ -4,6 +4,8 @@ import { COILS, DISCRETE } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { CbSimulatorAdapter } from "./cb-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 interface CbState {
   closed: boolean;
@@ -22,16 +24,19 @@ interface CbState {
  * - Bilinmeyen adres → 0/false (yok say).
  */
 export interface CbSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class CbSimulator {
+export class CbSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: CbState;
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
 
-  constructor(config: CbSimulatorConfig = {}) {
+  constructor(config: CbSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.state = { closed: true, pendingOpen: false, pendingClose: false };
     this.network = config.network;
   }
@@ -116,7 +121,7 @@ export class CbSimulator {
     }
   }
 
-  /** Aux kontak durumu okur — DI 0 Is Closed (NC), DI 1 Is Open (NO) (sorgu). */
+  /** Aux kontak durumu okur — DI 0 Is Closed (NO), DI 1 Is Open (NC) (sorgu). */
   readDiscreteInput(address: number): boolean {
     switch (address) {
       case DISCRETE.IS_CLOSED:

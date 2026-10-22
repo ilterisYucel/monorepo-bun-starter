@@ -7,14 +7,8 @@ bun install                     # Install deps (Bun only, no npm/pnpm/yarn)
 bun run dev                     # All apps in parallel (max 5)
 bun run dev:container-web                 # Web only (Vite, port 5173)
 bun run dev:container-desktop             # Electron only
-bun run dev:container             # Full stack (Docker dev mode)
-bun run start:container           # Full stack (Docker prod mode)
-bun run stop:container            # Stop container stack
-bun run start:aws-edge            # AWS edge stack (container+field, Makine A)
-bun run stop:aws-edge
-bun run start:aws-boss            # AWS boss stack (Makine B)
-bun run stop:aws-boss
-nx run demo-backend:dev         # Demo Backend (Fastify, port 5000)
+bun run start:demo-integration    # v2 dev demo stack (container + container2 + field)
+bun run stop:demo-integration
 nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
 nx run data-service:dev         # Data Service (BullMQ consumer)
@@ -43,11 +37,12 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 | :--- | :--- | :--- | :--- |
 | `AGENTS-INFRA.md` | Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | Yeni paket/workspace; `nx.json`; tsconfig build; DI arayüzü; framework sürümü | — |
 | `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `deployment/**/device-configs/*.json`; `services/device-service/deployment/sample-config/`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
-| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
+| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `packages/ws-tunnel-hub/**`; `packages/ws-tunnel-agent/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; hub-servis; agent CLI/setup; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
 | `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorHost` | `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
 | `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
+| `AGENTS-DEPLOYMENT.md` | Deployment klasör yapısı & kapsülleme | `deployment/**`; docker-compose; `device-configs`/`maneuvers`/`rules`; `.env` konumu; cross-ref/kapsülleme kuralı; yeni tier/app ekleme | `AGENTS-DEVICE-CONFIG.md` |
 
 ## Testing
 
@@ -87,7 +82,7 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 - **Güvenlik hedef standardı:** OWASP ASVS **Level 2** — kategori → check eşleme matrisi, SAST'in doğrulayamadıkları ve release kontrol listesi: `docs/standards/owasp-asvs-level2.md`.
 - **Kural: testsiz PR merge edilmez.**
 - **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
-- **Faz kapanışı doğrulaması (MANDATORY):** `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur (legacy özel kural — geriye dönük). KONTEYNER fazları dışındaki yeni modüller yukarıdaki 5 aşamalı akışı kullanır ve kendi `<MODUL>-KAPANIS.md` dosyalarını üretir.
+- **Faz kapanışı doğrulaması (MANDATORY):** `deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur (legacy özel kural — geriye dönük). KONTEYNER fazları dışındaki yeni modüller yukarıdaki 5 aşamalı akışı kullanır ve kendi `<MODUL>-KAPANIS.md` dosyalarını üretir.
 
 ## Dependency injection rules (MANDATORY)
 
@@ -103,7 +98,7 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 
 ## Cihaz alarm sözleşmesi (MANDATORY — Faz 0 eki)
 
-> Detay: `docs/architecture/DEVICE-SERVICE-MIMARISI.md` §4.2 + `KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` (Faz 0 alarm sözleşmesi).
+> Detay: `docs/architecture/DEVICE-SERVICE-MIMARISI.md` §4.2 + `deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` (Faz 0 alarm sözleşmesi).
 
 - **Tek kaynak — config kuralı:** Alarm tanımları YALNIZCA device config'teki üst seviye `alarms` bölümündedir: `{ telemetry: <ad>, severity: "error"|"warning"|"info", description?, activeLow? }`. Alarm adı = telemetri adı. Config dışında (kod, tag, enum) alarm kaynağı YOKTUR.
 - **Cihaz tipinden bağımsız:** Değerlendirme yalnızca device-service'te, standart `TelemetryData[]` akışı üzerinde yapılır (`AlarmTransitionDetector` + `alarmSamples`). `IDevice` alarm API'si taşımaz (ISP). Modbus, CANbus, MQTT, simülatör — hepsi aynı yoldan geçer; telemetri üretmek yeterlidir.
@@ -137,12 +132,12 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 
 ## Docker / deployment
 
-- Compose files: site/tier bazlı — `deployment/{dev,prod}/{container,field,boss}/docker-compose.yml`, `deployment/aws/{edge,boss}/docker-compose.yml` (prod + dev) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır.
+- Compose files: proje/tier/app bazlı — `deployment/<proje>/<tier>/<app>/docker-compose.yml` (bugün: `deployment/v2/dev/{container,container2,field}/`) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır. Detay + kapsülleme kuralları: `AGENTS-DEPLOYMENT.md`.
 - Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
-- **Env convention (MANDATORY):** env dosyası ilgili stack dizininde compose'un yanında yaşar — `deployment/<site>/<tier>/.env` (gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/<site>/<tier>/.env` ile geçer (script'ler `package.json`'da hazır). Kökte yalnızca commit'lenen şablonlar kalır: `deployment/.env.<tier>.example` (sır yok; tier dizinine `.env` olarak kopyalanıp doldurulur). Tier dosyasına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `container/.env`'de; field token'ı register API'siyle hash olarak DB'de tutar).
+- **Env convention (MANDATORY):** env dosyası ilgili app klasöründe compose'un yanında yaşar — `deployment/<proje>/<tier>/<app>/.env` (gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/<proje>/<tier>/<app>/.env` ile geçer (script'ler `package.json`'da hazır). Commit'lenen tek şablon ilgili klasördeki `.env.example`'dır (sır yok). Tier/app dosyasına ait olmayan alan YAZILMAZ (örn. hub peer token'ı `HUB_PEER_TOKEN` her iki tarafta aynı değerle yaşar).
 - Backend Dockerfiles: `services/*/deployment/` (prod) + `Dockerfile.dev` (hot-reload).
 - Web Dockerfiles: `apps/container-web/deployment/`.
-- Customer plugins: `deployment/customer-plugins/` (mounted into integration-service at runtime).
+- Customer plugins: `deployment/<proje>/common/customer-plugins/` (mounted into integration-service at runtime).
 
 ## Package manager lock-in
 

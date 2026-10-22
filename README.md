@@ -14,7 +14,6 @@ bun run dev:container-desktop     # Electron only
 bun run dev:container             # Full stack (Docker dev mode)
 bun run start:container           # Full stack (Docker prod mode)
 bun run stop:container            # Stop container stack
-nx run demo-backend:dev           # Demo Backend (Fastify, port 5000)
 nx run web-service:dev            # Web Service (Fastify, port 5001)
 nx run device-service:dev         # Device Service (Modbus poller)
 nx run data-service:dev           # Data Service (BullMQ consumer)
@@ -79,7 +78,7 @@ flowchart TB
 ```
 
 - Three-tier product model: **container** (single site terminal) → **field** (site) → **boss** (multi-site) — composed from the same capabilities via config (`SERVICE_TIER`).
-- Remote container UI access runs over the container→field outbound tunnel (session gateway + RBAC): `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.
+- Remote container UI access runs over the container→field outbound tunnel (session gateway + RBAC): `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.
 
 ---
 
@@ -93,7 +92,6 @@ apps/
   superadmin/             React app — multi-site (boss) management
   editor/                 Low-code SCADA editor (ReactFlow)
   desktop/                Electron app (legacy wrapper)
-  demo-backend/           Legacy Fastify backend (XRack demo)
 packages/
   shared-types/           Pure TS types (telemetry, jobs, auth, transport contracts)
   shared-utils/           ConfigLoader, env sources (currently empty — see TESTING.md)
@@ -137,7 +135,6 @@ Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` 
 | `container-web` / `field` / `superadmin` | Apps | Three-tier frontend |
 | `editor` | App | Low-code SCADA composer |
 | `container-desktop` / `desktop` | Apps | Electron builds |
-| `demo-backend` | App | Legacy demo backend |
 
 ---
 
@@ -152,7 +149,7 @@ Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` 
 | Telemetry tagging & canonical metrics (`tags.canonical`, TelemetryTagger) | AGENTS.md |
 | Plugin architecture (integration-service, EPIAŞ client) | `docs/architecture/PLUGIN-MIMARISI.md` |
 | Editor architecture (product-layer composer) | `docs/architecture/EDITOR-MIMARISI.md` |
-| Remote container UI access (tunnel, session, audit) | `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` |
+| Remote container UI access (tunnel, session, audit) | `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` |
 | Sprite pipeline (AI-generated PixiJS sprites) | `docs/process/SPRITE-URETIMI.md` + `docs/process/SPRITE-STYLE-KIT.md` |
 | Frontend data-source contracts (`ITelemetryTransport` etc.) | AGENTS.md |
 | Color & icon token system (104 colors, 35 icons) | AGENTS.md + Storybook |
@@ -174,25 +171,19 @@ Full documentation classification: **[docs/README.md](./docs/README.md)**.
 
 ## Deployment Stacks
 
-All stacks are Docker Compose files under `deployment/<site>/<tier>/` — the **product layer** (capabilities composed via config). Docs are not bundled into product images.
+All stacks are Docker Compose files under `deployment/<proje>/<tier>/<app>/` — the **product layer** (capabilities composed via config; kapsülleme kuralları: `AGENTS-DEPLOYMENT.md`). Docs are not bundled into product images.
 
 | Stack | Compose file | Exposed ports |
 |-------|--------------|---------------|
-| Container (prod) | `prod/container/docker-compose.yml` | timescaledb 5432, redis 6379, web-service 5001 |
-| Container (dev) | `dev/container/docker-compose.yml` | same + hot-reload |
-| Field (prod) | `prod/field/docker-compose.yml` | timescaledb 5434, redis 6381, web-service 5002 |
-| Field (dev) | `dev/field/docker-compose.yml` | same + hot-reload |
-| Boss (prod) | `prod/boss/docker-compose.yml` | timescaledb 5435, redis 6382, web-service 5003, superadmin 5175 |
-| Boss (dev) | `dev/boss/docker-compose.yml` | same + hot-reload |
-| Demo backend (legacy) | `dev/demo-backend/docker-compose.yml` | demo-backend 3000 |
+| Container-1 (v2, dev) | `v2/dev/container/docker-compose.yml` | web-service 5001 |
+| Container-2 (v2, dev) | `v2/dev/container2/docker-compose.yml` | web-service 5011 |
+| Field (v2, dev) | `v2/dev/field/docker-compose.yml` | demo-field SPA 8088, field API 5002, hub 5009 |
 | **Wiki (docs)** | `docker-compose.wiki.yml` | wiki 8090, postgres 5436 |
 
 ```bash
-bun run start:container       # container stack (prod)
-bun run dev:container         # container stack (dev)
-bun run dev:field-stack       # field stack
-bun run dev:boss-stack        # boss stack
-bun run wiki:up               # documentation wiki (Wiki.js)
+bun run start:demo-integration  # v2 dev demo stack (container + container2 + field)
+bun run stop:demo-integration
+bun run wiki:up                 # documentation wiki (Wiki.js)
 ```
 
 ---

@@ -7,6 +7,9 @@ import { COILS, INPUT_REGS } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { DemoMvStationAdapter } from "./demo-mv-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
+import type { GridLinkBus } from "../grid-link";
 
 type CellId = "H01" | "H02" | "H04" | "H05";
 type EarthId = "H01" | "H04" | "H05";
@@ -19,7 +22,10 @@ interface MvState {
 }
 
 export interface DemoMvStationConfig {
+  readonly deviceId: string;
   readonly network?: SimulatorNetworkConfig;
+  /** Şalter durumlarını yayınlayan in-process bus (opsiyonel). */
+  readonly gridLink?: GridLinkBus;
 }
 
 /**
@@ -29,7 +35,8 @@ export interface DemoMvStationConfig {
  * - H01 toprak ayırıcısı her zaman kilitli (POI enerjili — nova kuralı).
  * - readInputRegister pozisyon/kV/hz; bilinmeyen adres → 0.
  */
-export class DemoMvStationSimulator {
+export class DemoMvStationSimulator implements ISimulator {
+  readonly deviceId: string;
   private state: MvState = {
     breakers: { H01: true, H02: true, H04: true, H05: true },
     earth: { H01: false, H04: false, H05: false },
@@ -37,10 +44,13 @@ export class DemoMvStationSimulator {
     hz: 50,
   };
   private readonly network: SimulatorNetworkConfig | undefined;
+  private readonly gridLink: GridLinkBus | undefined;
   private server: SimulatorServer | undefined;
 
-  constructor(config: DemoMvStationConfig = {}) {
+  constructor(config: DemoMvStationConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.network = config.network;
+    this.gridLink = config.gridLink;
   }
 
   async start(): Promise<void> {
@@ -51,6 +61,7 @@ export class DemoMvStationSimulator {
       tick: () => {},
     });
     await this.server.start();
+    this.publish();
   }
 
   async stop(): Promise<void> {
@@ -111,6 +122,15 @@ export class DemoMvStationSimulator {
         break;
       default:
         break;
+    }
+    this.publish();
+  }
+
+  /** Şalter pozisyonlarını bus'a yayınlar (bus yoksa no-op). */
+  private publish(): void {
+    if (this.gridLink === undefined) return;
+    for (const [cell, closed] of Object.entries(this.state.breakers)) {
+      this.gridLink.setBreaker(cell, closed);
     }
   }
 

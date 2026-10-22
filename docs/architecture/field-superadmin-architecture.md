@@ -43,7 +43,7 @@ Three-tier federated architecture. Each tier owns its database independently. Co
 
 **Key principle:** Container data is never duplicated at the field level. Field queries containers on demand for charts and detail views. Containers push only the latest telemetry snapshot via WebSocket for live gauges.
 
-**Remote UI access (2026-08-19):** The same outbound container→field WebSocket is made duplex and carries a multiplexed HTTP/WS tunnel. Field users open the full container-web UI inside an iframe at `/containers/:containerId/ui`. Full protocol, session/audit model and implementation phases: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
+**Remote UI access (2026-08-19):** The same outbound container→field WebSocket is made duplex and carries a multiplexed HTTP/WS tunnel. Field users open the full container-web UI inside an iframe at `/containers/:containerId/ui`. Full protocol, session/audit model and implementation phases: [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
 
 ---
 
@@ -138,7 +138,7 @@ sequenceDiagram
   F-->>U: streamed response (SPA, /api, /ws)
 ```
 
-Key properties: single outbound connection per container (discovery preserved); container web-service signs session JWTs with its own secret (no secret sharing); field stores `session_audit` rows; RBAC mapping field `admin`/`teknik` → container `admin`, `boss` → `guest`; path allowlist blocks `/api/auth/login` inside the tunnel. Full spec: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
+Key properties: single outbound connection per container (discovery preserved); container web-service signs session JWTs with its own secret (no secret sharing); field stores `session_audit` rows; RBAC mapping field `admin`/`teknik` → container `admin`, `boss` → `guest`; path allowlist blocks `/api/auth/login` inside the tunnel. Full spec: [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
 
 #### REST Endpoints (extended in web-service)
 
@@ -385,7 +385,7 @@ Field frontend: user opens chart with 3 containers, 24h range
    → Return to frontend → TelemetryChart renders multi-series
 ```
 
-> 2026-08-19: `fetchAllHistorical` transport moves to the session tunnel (registry URL + service token) — the self-reported `containerUrl` in `register` is no longer trusted (SSRF). Transport details: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
+> 2026-08-19: `fetchAllHistorical` transport moves to the session tunnel (registry URL + service token) — the self-reported `containerUrl` in `register` is no longer trusted (SSRF). Transport details: [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md).
 
 **PPC Status (container → field connection):**
 ```
@@ -960,7 +960,7 @@ Green dot + "Bağlı" when connected. Red dot + "Bağlantı Yok" when disconnect
 
 ### Phase 9+: Remote UI Tunnel (2026-08-19)
 
-Security baseline → FieldConnector → session tunnel → container-web subpath support → field UI iframe → NIS-2 closure. Detailed task breakdown with acceptance criteria: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (Faz 1–6).
+Security baseline → FieldConnector → session tunnel → container-web subpath support → field UI iframe → NIS-2 closure. Detailed task breakdown with acceptance criteria: [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (Faz 1–6).
 
 ---
 

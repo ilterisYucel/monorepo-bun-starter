@@ -5,12 +5,17 @@ import { DcMeterSimulator } from "./dc-meter-simulator";
 export class DcMeterAdapter implements IModbusSimulatorAdapter {
   constructor(private readonly simulator: DcMeterSimulator) {}
 
-  async readHoldingRegister(_address: number): Promise<number> {
-    return 0;
+  async readHoldingRegister(address: number): Promise<number> {
+    // DJSF1352-RN dokümanı (§7.3.3): ölçüm değerleri yalnız 03H (holding) ile okunur.
+    return this.simulator.readInputRegister(address);
   }
 
-  async readHoldingRegisters(_address: number, _count: number): Promise<number[]> {
-    return [];
+  async readHoldingRegisters(address: number, count: number): Promise<number[]> {
+    const result: number[] = [];
+    for (let i = 0; i < count; i++) {
+      result.push(this.simulator.readInputRegister(address + i));
+    }
+    return result;
   }
 
   async writeHoldingRegister(_address: number, _value: number): Promise<void> {

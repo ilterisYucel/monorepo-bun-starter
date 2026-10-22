@@ -1,44 +1,110 @@
-// OperationRequester — boss tier: field'a operation-execute gönderip
-// operation-result bekleyen istemci (WS-TUNNEL-KAPASITE §5.2).
+// OperationRequester — boss tier: field'da operasyonu hub opak relay (HTTP)
+// üzerinden tetikler ve terminal sonucu bekler (SPEC UC-4).
+//
+// Public imza eski WS istemcisiyle AYNIDIR (`send(fieldId, operationId, name,
+// params, traceId)`) — `operation-boss-routes` sözleşmesi değişmez.
 
-import type {
-  OperationExecuteMessage,
-  OperationResultMessage,
-} from "@gd-monorepo/ws-tunnel";
-import type { IHubChannel } from "@gd-monorepo/ws-tunnel";
+import type { HubConsumerClient } from "../hub-consumer";
+
+/** Operasyon adımı sonucu — makine-okunur özet. */
+export interface OperationStepResult {
+  step: number;
+  system?: string;
+  maneuver?: string;
+  ok: boolean;
+  reason?: string;
+}
+
+/**
+ * Boss'a dönen terminal operasyon sonucu. `type` alanı eski WS frame'inin
+ * yerine geçer (dış şekil değişmez — FR-4.5).
+ */
+export interface OperationResult {
+  type: "operation-result";
+  operationId: string;
+  status: "completed" | "failed" | "rolled_back" | "rejected";
+  reason?: string;
+  results?: OperationStepResult[];
+}
 
 /** OperationRequester yapılandırması — tek obje (DI kuralı 3). */
 export interface OperationRequesterConfig {
-  /** Boss→field hub kanalı (FieldUplinkChannel deseni). */
-  channel: IHubChannel;
-  /** operation-result bekleme üst sınırı (ms) — varsayılan 30 sn. */
+  /** Hub consumer client (opak relay). */
+  client: HubConsumerClient;
+  /** Field peer'ının duyurduğu servis kimliği (`hub.fieldServiceId`). */
+  serviceId: string;
+  /** Terminal yanıt bekleme üst sınırı (ms) — varsayılan 30 sn. */
   timeoutMs?: number;
 }
 
+/** Programatik erişim kimliği — hub, oturumu bu kullanıcı adına açar. */
+const SYSTEM_USER_HEADERS = {
+  "x-tunnel-user-id": "system",
+  "x-tunnel-user-username": "system",
+  "x-tunnel-user-role": "admin",
+};
+
 const DEFAULT_TIMEOUT_MS = 30_000;
 
+/** Yürütme sonucu gövdesi (field `POST /api/operations/:name/execute`). */
+interface OperationRunBody {
+  status?: unknown;
+  reason?: unknown;
+  outcomes?: Array<{
+    stepIndex?: unknown;
+    system?: unknown;
+    maneuver?: unknown;
+    success?: unknown;
+    reason?: unknown;
+  }>;
+}
+
+function mapResults(
+  outcomes: OperationRunBody["outcomes"],
+): OperationStepResult[] | undefined {
+  if (!Array.isArray(outcomes) || outcomes.length === 0) return undefined;
+  return outcomes.map((o, index) => ({
+    step: typeof o.stepIndex === "number" ? o.stepIndex : index,
+    ...(typeof o.system === "string" ? { system: o.system } : {}),
+    ...(typeof o.maneuver === "string" ? { maneuver: o.maneuver } : {}),
+    ok: o.success === true,
+    ...(typeof o.reason === "string" ? { reason: o.reason } : {}),
+  }));
+}
+
+function reasonOf(body: unknown): string | undefined {
+  if (typeof body !== "object" || body === null) return undefined;
+  const { reason, error } = body as { reason?: unknown; error?: unknown };
+  if (typeof reason === "string" && reason.length > 0) return reason;
+  if (typeof error === "string" && error.length > 0) return error;
+  return undefined;
+}
+
 /**
- * OperationRequester — boss tier operasyon tetikleyicisi.
+ * OperationRequester — boss tier operasyon tetikleyicisi (hub access HTTP).
  *
  * Sözleşme (test: operation-requester.test.ts):
- * - `send`: operation-execute frame'i gönderir; AYNI `operationId` ile gelen
- *   operation-result çözülür (korelasyon — queryId deseni).
- * - Timeout / kopuk peer → `undefined` (isteyen 503'e çevirir; WS-TUNNEL §8
- *   "operation-result yerine timeout").
- * - Tek kullanımlık abonelik: sonuç veya timeout sonrası SÖKÜLÜR (sızıntı yok).
+ * - `send`: hub access üzerinden field'ın generic yürütme ucuna POST atar;
+ *   `x-gd-operation-id`/`x-gd-trace-id` başlıkları kökeni taşır.
+ * - Durum eşlemesi TERMINAL-only: 200 → çalıştırma durumu; 422 → failed;
+ *   202 → failed (`still_running`); 4xx/5xx → rejected/failed; ağ hatası veya
+ *   timeout → `undefined` (boss rotası 503 `operation_timeout` üretir).
+ * - Yürütme hatası çağıranı fırlatmaz (kademeli bozulma).
  */
 export class OperationRequester {
-  private readonly channel: IHubChannel;
+  private readonly client: HubConsumerClient;
+  private readonly serviceId: string;
   private readonly timeoutMs: number;
 
   constructor(config: OperationRequesterConfig) {
-    this.channel = config.channel;
+    this.client = config.client;
+    this.serviceId = config.serviceId;
     this.timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   }
 
   /**
-   * Komut — field'da operasyonu tetikler, sonucu bekler. Timeout → undefined
-   * (kopukluk/kademeli bozulma sözleşmesi).
+   * Komut — field'da operasyonu tetikler, terminal sonucu bekler.
+   * Timeout/kopukluk → undefined (kademeli bozulma sözleşmesi).
    */
   async send(
     fieldId: string,
@@ -46,40 +112,112 @@ export class OperationRequester {
     name: string,
     params: Record<string, unknown> = {},
     traceId?: string,
-  ): Promise<OperationResultMessage | undefined> {
-    return new Promise<OperationResultMessage | undefined>((resolve) => {
-      let settled = false;
-      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  ): Promise<OperationResult | undefined> {
+    let response: Response;
+    try {
+      response = await this.withTimeout(
+        this.client.access({
+          peerId: fieldId,
+          serviceId: this.serviceId,
+          path: `/api/operations/${encodeURIComponent(name)}/execute`,
+          method: "POST",
+          headers: {
+            ...SYSTEM_USER_HEADERS,
+            "x-gd-operation-id": operationId,
+            ...(traceId !== undefined ? { "x-gd-trace-id": traceId } : {}),
+          },
+          body: JSON.stringify({ params }),
+        }),
+      );
+    } catch {
+      return undefined;
+    }
 
-      const finish = (value: OperationResultMessage | undefined): void => {
-        if (settled) return;
-        settled = true;
-        if (timeoutId !== undefined) clearTimeout(timeoutId);
-        unsubscribe();
-        resolve(value);
+    const body = await this.json(response);
+    const status = response.status;
+
+    if (status === 200) {
+      const runStatus =
+        body?.status === "failed"
+          ? "failed"
+          : body?.status === "rolled_back"
+            ? "rolled_back"
+            : "completed";
+      const reason = reasonOf(body);
+      const results = mapResults(body?.outcomes);
+      return {
+        type: "operation-result",
+        operationId,
+        status: runStatus,
+        ...(reason !== undefined ? { reason } : {}),
+        ...(results !== undefined ? { results } : {}),
       };
+    }
 
-      const unsubscribe = this.channel.onControlMessage(
-        (peerId: string, message: unknown) => {
-          if (peerId !== fieldId) return;
-          const type = (message as { type?: unknown } | null)?.type;
-          if (type !== "operation-result") return;
-          const result = message as OperationResultMessage;
-          if (result.operationId !== operationId) return;
-          finish(result);
+    if (status === 202) {
+      return {
+        type: "operation-result",
+        operationId,
+        status: "failed",
+        reason: "still_running",
+      };
+    }
+
+    if (status === 422) {
+      const reason = reasonOf(body);
+      const results = mapResults(body?.outcomes);
+      return {
+        type: "operation-result",
+        operationId,
+        status: "failed",
+        ...(reason !== undefined ? { reason } : {}),
+        ...(results !== undefined ? { results } : {}),
+      };
+    }
+
+    if (status >= 400 && status < 500) {
+      return {
+        type: "operation-result",
+        operationId,
+        status: "rejected",
+        reason: reasonOf(body) ?? "invalid_request",
+      };
+    }
+
+    return {
+      type: "operation-result",
+      operationId,
+      status: "failed",
+      reason: reasonOf(body) ?? `remote_http_${status}`,
+    };
+  }
+
+  /** Yanıtı JSON olarak çözer; gövde JSON değilse undefined. */
+  private async json(response: Response): Promise<OperationRunBody | undefined> {
+    try {
+      return (await response.json()) as OperationRunBody;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Terminal yanıtı bekler; süre aşılırsa `undefined` (retry yok). */
+  private withTimeout(request: Promise<Response>): Promise<Response> {
+    return new Promise<Response>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error("operation_timeout")),
+        this.timeoutMs,
+      );
+      request.then(
+        (response) => {
+          clearTimeout(timer);
+          resolve(response);
+        },
+        (error: unknown) => {
+          clearTimeout(timer);
+          reject(error);
         },
       );
-
-      timeoutId = setTimeout(() => finish(undefined), this.timeoutMs);
-
-      const frame: OperationExecuteMessage = {
-        type: "operation-execute",
-        operationId,
-        name,
-        ...(Object.keys(params).length > 0 ? { params } : {}),
-        ...(traceId !== undefined ? { traceId } : {}),
-      };
-      this.channel.sendControl(fieldId, frame);
     });
   }
 }

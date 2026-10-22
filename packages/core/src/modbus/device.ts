@@ -258,7 +258,6 @@ export class ModbusDevice implements IDevice {
         const value = raw * scale + offset;
 
         const configTags: Record<string, string> = {
-          dataTag: field.dataTag,
           ...(field.canonical ? { canonical: field.canonical } : undefined),
           ...(cfg.tags ?? undefined),
           ...(field.tags ?? undefined),
@@ -515,9 +514,17 @@ export class ModbusDevice implements IDevice {
         registers.slice(offset, offset + count),
         telemetry,
       );
+      offset += count;
+
+      // Common encoding rule (LGES Rev AF): 0x7FFF Reserved / 0x8000 Removed /
+      // 0xFFFF N/A → değer YOKTUR; ölçeklenip yayınlanmaz. Arızalı sensörün
+      // 3276.7 °C gibi sahte değer üretip koruma tetiklemesi engellenir (M1).
+      if (this._isInvalidValue(rawValue, telemetry.registerDataType)) {
+        continue;
+      }
+
       const value = rawValue * telemetry.scale + telemetry.offset;
       results.push(this._toTelemetryData(telemetry, value, timestamp));
-      offset += count;
     }
 
     return results;
@@ -686,6 +693,33 @@ export class ModbusDevice implements IDevice {
     }
   }
 
+  /**
+   * Sentinel (geçersiz) ham değer kontrolü — Common encoding rule (LGES Rev AF):
+   * 0x7FFF Reserved, 0x8000 Removed, 0xFFFF N/A. Bu değerler "veri yok" demektir;
+   * ölçeklenip telemetri olarak yayınlanmaz. FLOAT'ta ayrıca NaN/Inf reddedilir.
+   */
+  private _isInvalidValue(
+    rawValue: number,
+    type: ModbusTelemetryData["registerDataType"],
+  ): boolean {
+    switch (type) {
+      case "UINT16":
+        return rawValue === 0xffff;
+      case "INT16":
+        return rawValue === 0x7fff || rawValue === -0x8000;
+      case "UINT32":
+        return rawValue === 0xffffffff;
+      case "INT32":
+        return rawValue === 0x7fffffff || rawValue === -0x80000000;
+      case "FLOAT32":
+      case "FLOAT64":
+      case "4Q_FP_PF":
+        return !Number.isFinite(rawValue);
+      default:
+        return false;
+    }
+  }
+
   private _decodeRegisters(
     registers: number[],
     telemetry: ModbusTelemetryData,
@@ -702,6 +736,8 @@ export class ModbusDevice implements IDevice {
         return decoder.decodeInt32();
       case "FLOAT32":
         return decoder.decodeFloat32();
+      case "4Q_FP_PF":
+        return decoder.decode4QPowerFactor();
       case "FLOAT64":
         return decoder.decodeFloat64();
       default:

@@ -1,4 +1,4 @@
-import { ValidationError } from "@gd-monorepo/result";
+import { ValidationError } from "../result";
 
 /** ReconnectDelay yapılandırması — tüm alanlar zorunlu (birincil constructor). */
 export interface ReconnectDelayConfig {

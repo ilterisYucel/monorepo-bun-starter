@@ -9,7 +9,7 @@ review_date: 2026-08-24
 
 Tarih: 2026-08-19
 Durum: Aktif yol haritası — P1 tamamlandı (device-library migrasyonu), P2+ planlı
-İlişkili: [AGENTS.md](../../AGENTS.md) (üç katman modeli), [field-superadmin-architecture.md](./field-superadmin-architecture.md), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)
+İlişkili: [AGENTS.md](../../AGENTS.md) (üç katman modeli), [field-superadmin-architecture.md](./field-superadmin-architecture.md), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)
 Superseded: `editor-phase-2-config-engine.md`, `editor-phase-3-runtime.md`, `editor-phase-4-builder.md` (bu üç dokümanın önerdiği `config-engine`/`runtime-engine`/`app-builder` platform paketleri iptal edildi)
 
 ## 1. Rol ve Amaç

@@ -29,6 +29,16 @@ export type TelemetryConfigEntry = (
    * TODO: İleride tags yerine ayrı TelemetryData alanına taşınacak.
    */
   canonical?: string;
+  /**
+   * Yazma politikası — mutlak değişim eşiği (opt-in). Sayı pozitif olmalı;
+   * `"auto"` ise ham değeri tam sayı olan girdilerde scale'dan türetilir.
+   */
+  deadband?: number | "auto";
+  /**
+   * Yazma politikası — bayatlama sınırı (TTL). `deadband` tanımlıysa zorunlu;
+   * değer değişmese bile bu süre sonunda satır garantilenir.
+   */
+  maxStaleMs?: number;
 };
 
 /**
@@ -66,11 +76,23 @@ export interface ConnectorDeviceSubset {
   telemetry: TelemetryConfigEntry[];
 }
 
+/** PCS güç kaynağı endpoint'i — connector ters kanalı (S16 okuma). */
+export interface PcsPowerSource {
+  deviceId: string;
+  host: string;
+  port: number;
+  unitId?: number;
+}
+
 /** Connector sim-subset — yalnız SimulatorHost'un okuduğu sim tarafı. */
 export interface ConnectorSimSubset {
   registerMap: string;
   target?: { host?: string; port?: number };
   intervalMs?: number;
+  /** Ters kanal: PCS EMS S16 → BSC güç girdisi (opsiyonel). */
+  pcsSources?: PcsPowerSource[];
+  /** Ters kanal güç ölçeği (okunan toplam × scale). Demo: 9 (istasyon ölçeği). */
+  powerScale?: number;
 }
 
 /** BSC config'i içindeki `connector` bölümü (BSC→PCS link simülasyonu). */
@@ -104,4 +126,20 @@ export interface DeviceConfigFile {
   transport?: DeviceTransportConfig;
   connector?: ConnectorConfig;
   commands?: Record<string, CommandConfig>;
+  /**
+   * Periyodik heartbeat yazımı (örn. LGES BSC 40000 Controller Heartbeat — 1 sn).
+   * Değer her `intervalMs`'de artan sayaçtır (0-255 döngü); yazılmazsa BSC
+   * 20 sn sonra S-C LOC ile tüm rack kontaktörlerini açar.
+   */
+  heartbeat?: DeviceHeartbeatConfig;
+}
+
+/** Heartbeat yazım yapılandırması — holding telemetri adı + aralık. */
+export interface DeviceHeartbeatConfig {
+  /** Holding telemetri adı (config telemetry[]'de HOLDING_REGISTER olmalı). */
+  telemetry: string;
+  /** Yazım aralığı (ms) — doküman: 1 sn. */
+  intervalMs: number;
+  /** Ek heartbeat telemetrileri (40001–40009 — C2B 1 s güncelleme şartı). */
+  extraTelemetries?: string[];
 }

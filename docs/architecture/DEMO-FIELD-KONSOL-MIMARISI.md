@@ -12,6 +12,11 @@ review_date: 2026-10-21
 > **Revizyon (2026-10-07):** gdems kaynağı (`src/topology.js`, `src/maneuvers.js`, `src/mimic.js`,
 > `demo/market-view.js`, `docs/REQUIREMENTS.md`) ile karşılaştırıldı. K1 hizası hücre/RMU
 > `motor`/`auxTr`/`es`, `bus`/`sections`/`auxLoads`/`fss` ve `pcsMaxMW 1.725` ile genişletildi (bkz. B6).
+> **Revizyon (2026-10-13):** gdems **Projeler (home)** sayfası (`demo/home-view.js`,
+> `demo/market-view.js#renderMarket`, `src/geo-europe.js`, `src/projects.js`) incelendi. **UC-11 —
+> Projeler sayfası** eklendi (K13–K19, FR-11.x/AK-11.x, T-32…T-39): portföy haritası, proje seçimi,
+> EPİAŞ PTF kartı + Market paneli, login inişi. **Durum: ✅ Approved (2026-10-13) — implementasyon başlayabilir.**
+> Mevcut UC-1…UC-10 kararları değişmedi.
 > **İlişkili:** [DEMO-FIELD-MIMARISI.md](./DEMO-FIELD-MIMARISI.md) (temel uygulama),
 > [DEMO-FIELD-KAPANIS.md](./DEMO-FIELD-KAPANIS.md), `AGENTS-UI.md`, `AGENTS-FRONTEND.md`,
 > `AGENTS-KOMUT-MANEVRA.md`, `FIELD-MANEVRA-KATALOGU-REV01-MIMARISI.md`.
@@ -45,6 +50,13 @@ Temel demo-field zaten onaylı ve çalışıyor; bu SPEC yalnızca **eksikleri**
 | K10 | **I-1 toprak interlock executor'da (eklemeli)** | `OperationExecutor`'a opsiyonel `preconditions` hook; field web-service bunu demo-MV toprak durumundan besler; toprak kapalıyken şarj/deşarj reddedilir |
 | K11 | **Open-Closed** | Kök servis/platform yalnız **ekler**: `external_series` okuma ucu + `preconditions` hook + alarm resolve `note` (additive) + integration-service config; hook/uca yokken davranış birebir. Ayrıca kapsam düzeltmesi (bugfix): device-service worker yalnız kendi job tiplerine (`READ_DEVICE`/`COMMAND_DEVICE`) kaydolur — aksi halde `FETCH_EXTERNAL`/`WRITE_TELEMETRY` no-op tüketiliyordu (çoklu-tüketici) |
 | K12 | **Konvansiyon** | `Demo` prefix, `ui/nova`, ışık tema, Turkish JSDoc, TDD (JSDoc→kırmızı test→impl) |
+| K13 | **Projeler sayfası tek uygulamada (boss/field ayrılmaz)** | Demo-field'a `/projects` portföy sayfası eklenir; v1 boss "Projeler/Fields" işlevini bu tek uygulamada karşılar; ayrı boss uygulaması/rol bölmesi YOK |
+| K14 | **Portföy = 2 proje, 1 canlı** | `DEMO_PORTFOLIO` iki kayıt taşır: **ÜNSAL DGES** (`live: true` — tek backend `FIELD_ID`/`DEMO_TOPOLOGY` kimliği: GDE-202030, Polatlı, 30 MWe standalone) + **N DGES** (`live: false` — statik demo künyesi: GDE-202050, Antalya, 50 MWe, 60 MWp solar + BESS; canlı API yok) |
+| K15 | **Login inişi `/projects`; proje seçimi → `/field/:fieldId`** | `postLoginDestination` `/projects` döner; harita/kart tıklaması canlı projede `/field/:fieldId` konsolunu açar; `/` → `/projects` yönlendirir |
+| K16 | **Harita gdems SVG portu; yeni çalışma-zamanı bağımlılığı YOK** | `src/geo-europe.js` Natural Earth 1:50m (public domain) ülke path'leri + `d3-geo` Mercator projeksiyon sabitleri TS modülü olarak gömülür; pan/zoom viewBox mantığı saf fonksiyonlara ayrılır |
+| K17 | **EPİAŞ = mevcut seri ucu + mevcut bileşen** | PTF/GİP/SMF `GET /api/unified/timeseries/external`'dan okunur; Market paneli mevcut `DemoMarketView` ile, mini kart yeni `DemoPtfCard` ile çizilir; yeni endpoint/gizli veri YOK |
+| K18 | **Tema = nova-console token'ları** | Harita/kart/PTF stilleri `nova-console.css`'e `--nm-*` değişkenleriyle eklenir (light/dark); hardcode hex yok |
+| K19 | **Open-Closed (UI/rota)** | Yalnız eklemeli: yeni sayfa/bileşen/rota/CSS + `postLoginDestination` dönüş değeri; kök servis/platform ve mevcut UC-1…UC-10 davranışı DEĞİŞMEZ |
 
 ## 3. Mevcut Durum / Kök Nedenler
 
@@ -56,6 +68,9 @@ Temel demo-field zaten onaylı ve çalışıyor; bu SPEC yalnızca **eksikleri**
 | B4 | Şarj/deşarj toprak interlock'u (I-1) yaptırımı yok | FIELD-MANEVRA I-1 (tasarım) |
 | B5 | gdems `sim.js` dispatcher/POI/termal/FSS simülasyon içerir; demo canlı telemetri kullanır | fark kararı §1 |
 | B6 | demo-topology'de hücre `motor`/`auxTr`, RMU `motor`/`es`/ES ve `bus`/`sections`/`auxLoads`/`fss` alanları yok; `pcsMaxMW` 1.7 (gdems 1.725) | `demo-topology.ts`, `mimic-types.ts` |
+| B7 | demo-field gdems portföyünü taşımaz: harita ve proje seçimi yok; yalnız tek `DEMO_TOPOLOGY` sahaya doğrudan inilir; breadcrumb sabit "Projects / ÜNSAL DGES" | `apps/demo-field/src/layouts/DemoShell.tsx#DemoShell`, `apps/demo-field/src/app/routes.tsx#routes` |
+| B8 | login sonrası doğrudan `/field/:fieldId`'ye inilir; portföy inişi yok | `apps/demo-field/src/lib/site-field.ts#postLoginDestination` |
+| B9 | gdems proje künyesi ile demo-field adlandırması birebir değil: gdems `N DGES = GDE-202030 (Polatlı)`, `ÜNSAL DGES = GDE-202050 (Antalya)`; demo-field `ÜNSAL DGES = GDE-202030 (Polatlı)` | `gdems/src/projects.js#PROJECTS` vs `apps/demo-field/src/features/demo-data/demo-topology.ts#DEMO_TOPOLOGY` |
 
 ## 4. Mimari
 
@@ -75,12 +90,16 @@ sections: 4 × (4 raf + 2 HVAC) · auxLoads/fss: UC-4/UC-5 panel verisi
 `DemoContainerScada`, `DemoDeviceTree` + `DemoBatteryPanel`/`DemoPcsPanel`/`DemoHvacPanel`/`DemoMvPanel`/`DemoAuxPanel`,
 `DemoFaultList` + `DemoFaultResolve`, `DemoSequence`, `DemoReadyCard`, `DemoEventLog`, `DemoMarketView` (+ `DemoPfChart`/`DemoPqChart`).
 
+**UC-11 eki (Projeler):** `DemoPortfolioMap` (SVG harita + marker + tip + zoom), `DemoProjectCard`, `DemoPtfCard`,
+`DemoAssetTable`; saf yardımcılar `geo-europe.ts#GEO`/`project`, `demo-portfolio-map.ts#clampViewBox`; veri `demo-portfolio.ts#DEMO_PORTFOLIO`.
+
 ### 4.3 Veri akışları
 
 ```
 Devices/Faults/Ops  → mevcut REST (containers, unified/latest, unified/alarms, /logs, maneuvers/runs)
 Grid & Market       → integration-service (epias plugin) → external_series → GET /api/unified/timeseries/external
 I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak telemetrisi → reject
+Projeler (UC-11)    → DEMO_PORTFOLIO (statik künye) + canlı saha (containers/unified/latest) + EPİAŞ serisi (external) → DemoPortfolioMap/ProjectCard/PtfCard/AssetTable/ DemoMarketView
 ```
 
 ## 5. Purity Kuralları (ZORUNLU)
@@ -526,7 +545,7 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 **Involved Files:**
 | Dosya | Rol / Değişiklik |
 |:------|:----------------|
-| `deployment/dev/demo-edge/docker-compose.yml` | integration-service |
+| `deployment/v2/dev/docker-compose.yml` | integration-service |
 | `services/web-service/src/presentation/routes/unified-routes.ts` #externalSeries | eklemeli okuma ucu |
 | `packages/ui/src/nova/DemoMarketView.tsx` #DemoMarketView | market UI |
 
@@ -579,6 +598,93 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | `packages/platform/commands/src/operation-executor.ts` #preconditions | hook |
 | `services/web-service/src/config/container.ts` | field wiring |
 
+### 6.11 UC-11 — Projeler sayfası (portföy haritası + proje seçimi)
+
+**Status:** ✅ Approved (2026-10-13)
+
+**Kapsam:**
+- dahil: `/projects` portföy sayfası (login inişi); gdems hizalı SVG portföy haritası (Türkiye+Avrupa, zoom/pan, marker, hover canlı tip kartı); 2 proje kartı (ÜNSAL DGES canlı · N DGES statik demo); PTF gün öncesi mini kartı; Asset management portföy tablosu; Market · EPİAŞ paneli (mevcut `DemoMarketView`); "New project" yer tutucu; breadcrumb `Projects` dönüşü; harita/kart stillerinin nova-console temasına portu
+- hariç: çok-saha backend (tek `FIELD_ID`); N DGES için canlı telemetri; gerçek proje oluşturma; gdems sim motoru; v1 boss/field uygulama ayrımı; Admin/data-mapping; kullanıcı/rol bazlı proje yetkisi
+
+**Akış:**
+1. Login sonrası `postLoginDestination` `/projects` döner; kök `/` → `/projects`.
+2. Sayfa EPİAŞ serilerini (`demoMarketApi.external("epias", ptf|gip_wap|smf, limit 48)`) ve canlı saha durumunu (containers + unified/latest → mevcut türev katmanı) çeker.
+3. Harita `DEMO_PORTFOLIO` marker'larını çizer: canlı proje saha durumundan renk alır (deşarj/şarj/standby/fault), statik proje "demo" işaretlidir.
+4. Marker/kart hover → canlı tip kartı (POI/SOC/SOH/faults); canlı kart tıklaması `/field/:fieldId` konsolunu açar.
+5. PTF mini kartı + Asset management tablosu + Market paneli EPİAŞ verisiyle render edilir.
+6. Konsolda breadcrumb `Projects` `/projects`'e döner; konsol sekmeleri portföyde gizlenir.
+
+**Gereksinimler (FR-x):**
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-11.1 | Sistem `/projects` rotasını sunmalı ve login sonrası inişi buraya yönlendirmelidir. | AK-11.1 |
+| FR-11.2 | Sistem, portföyü gdems hizalı SVG haritada iki proje marker'ı ile göstermelidir. | AK-11.2 |
+| FR-11.3 | Sistem, canlı proje marker durumunu sahadan türetmeli (deşarj/şarj/standby/fault) ve statik projeyi "demo" işaretlemelidir. | AK-11.3 |
+| FR-11.4 | Sistem, marker hover'ında canlı tip kartı (POI/SOC/SOH/faults) göstermelidir. | AK-11.4 |
+| FR-11.5 | Sistem, canlı proje seçiminde `/field/:fieldId` konsolunu açmalıdır. | AK-11.5 |
+| FR-11.6 | Sistem, EPİAŞ gün öncesi PTF mini kartını ve Market panelini mevcut seri ucundan beslemelidir. | AK-11.6 |
+| FR-11.7 | Sistem, konsolda breadcrumb `Projects`'i portföye dönüş bağlantısı yapmalıdır. | AK-11.7 |
+| FR-11.8 | Sistem, harita/kart/PTF stillerini nova-console token'larıyla (light/dark) sunmalıdır. | AK-11.8 |
+
+**Kabul Senaryoları (GWT):**
+
+1. **AK-11.1 — GIVEN** geçerli oturum **WHEN** login tamamlanır **THEN** URL `/projects` olur ve portföy haritası görünür
+2. **AK-11.2 — GIVEN** `DEMO_PORTFOLIO` **WHEN** Projeler sayfası render edilir **THEN** iki marker (ÜNSAL DGES, N DGES) görünür
+3. **AK-11.3 — GIVEN** canlı saha `poiMW > 0` **WHEN** marker çizilir **THEN** ÜNSAL marker'ı "dis" sınıfı taşır; N DGES marker'ı "demo" işaretlidir
+4. **AK-11.4 — GIVEN** canlı saha verisi **WHEN** ÜNSAL marker'ına hover yapılır **THEN** tip kartında POI/SOC/SOH/faults değerleri görünür
+5. **AK-11.5 — GIVEN** canlı proje kartı **WHEN** tıklanır **THEN** `/field/:fieldId` konsolu açılır
+6. **AK-11.6 — GIVEN** EPİAŞ PTF serisi **WHEN** sayfa render edilir **THEN** PTF mini kartı ve Market paneli saatlik değerlerle dolar
+7. **AK-11.7 — GIVEN** konsol ekranı **WHEN** breadcrumb `Projects`'e tıklanır **THEN** `/projects` açılır
+8. **AK-11.8 — GIVEN** light ve dark tema **WHEN** harita render edilir **THEN** deniz/kara/marker renkleri token'dan gelir (hardcode hex yok)
+
+**Kabul Kriterleri:**
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-11.1 | `/projects` rotası + login inişi | unit + e2e | ⬜ |
+| AK-11.2 | iki marker render | unit | ⬜ |
+| AK-11.3 | canlı durum rengi + demo işareti | unit | ⬜ |
+| AK-11.4 | hover tip kartı | unit | ⬜ |
+| AK-11.5 | proje seçimi → konsol | unit | ⬜ |
+| AK-11.6 | PTF + Market paneli | unit | ⬜ |
+| AK-11.7 | breadcrumb dönüşü | unit | ⬜ |
+| AK-11.8 | tema token'ları | kod inceleme | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-32: `geo-europe.ts` + `demo-portfolio-map.ts` (saf projeksiyon/viewBox) + testleri
+- [ ] T-33: `DemoPortfolioMap` + `nova-console.css` harita stilleri + testleri
+- [ ] T-34: `DemoProjectCard` + `DemoPtfCard` + testleri
+- [ ] T-35: `DemoAssetTable` portföy tablosu + testi
+- [ ] T-36: `demo-portfolio.ts#DEMO_PORTFOLIO` verisi + testi
+- [ ] T-37: `DemoProjectsPage` + `demoMarketApi` bağlantısı + testi
+- [ ] T-38: rota + `postLoginDestination` `/projects` + `DemoShell` (sekme gizleme/breadcrumb) + testleri
+- [ ] T-39: e2e login inişi düzeltmesi (UI login → konsola geçiş)
+
+**Edge Cases:**
+| Durum | Davranış |
+|:------|:---------|
+| EPİAŞ serisi boş | PTF/Market "veri yok" (uydurma yok) |
+| Canlı saha telemetrisi yok | marker nötr (standby); tip kartı "telemetri yok" |
+| Statik proje (N DGES) tıklaması | konsol AÇILMAZ; "demo, canlı değil" bilgisi |
+| Zoom/pan sınırı | viewBox clamp — harita dışına taşmaz |
+| `DEMO_PORTFOLIO` canlı kaydı yok | harita statik render; seçim devre dışı |
+
+**Involved Files:**
+| Dosya | Rol / Değişiklik |
+|:------|:----------------|
+| `packages/ui/src/nova/geo-europe.ts` #GEO | Natural Earth path verisi + `project` projeksiyonu (gdems portu) |
+| `packages/ui/src/nova/demo-portfolio-map.ts` #clampViewBox | saf viewBox/zoom hesabı |
+| `packages/ui/src/nova/DemoPortfolioMap.tsx` #DemoPortfolioMap | SVG harita + marker + tip + zoom |
+| `packages/ui/src/nova/DemoProjectCard.tsx` #DemoProjectCard | proje kartı |
+| `packages/ui/src/nova/DemoPtfCard.tsx` #DemoPtfCard | EPİAŞ gün öncesi mini kart |
+| `packages/ui/src/nova/DemoAssetTable.tsx` #DemoAssetTable | portföy gelir/enerji tablosu |
+| `packages/ui/src/nova/nova-console.css` | harita/kart/PTF token stilleri |
+| `apps/demo-field/src/features/demo-data/demo-portfolio.ts` #DEMO_PORTFOLIO | portföy künyesi (2 proje) |
+| `apps/demo-field/src/pages/DemoProjectsPage.tsx` #DemoProjectsPage | sayfa + veri bağlantısı |
+| `apps/demo-field/src/app/routes.tsx` #routes | `/projects` + `/` yönlendirme |
+| `apps/demo-field/src/lib/site-field.ts` #postLoginDestination | login → `/projects` |
+| `apps/demo-field/src/layouts/DemoShell.tsx` #DemoShell | portföyde sekme gizleme + breadcrumb |
+| `e2e/demo-faults.spec.ts` #loginUi | login sonrası konsola geçiş |
+
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
 | Durum | Davranış |
@@ -588,6 +694,8 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | EPİAŞ serisi boş | Market "veri yok" (uydurma yok) |
 | Hook reddi | `rejected` + net reason |
 | Alarm resolve audit hatası | Fail-closed (409/5xx) |
+| Portföy statik proje (N DGES) | demo snapshot; canlı seçim DEVRE DIŞI ("demo, canlı değil") |
+| Projeler sayfası EPİAŞ serisi boş | PTF/Market "veri yok" (uydurma yok) |
 | Beklenmeyen hata (tip ihlali) | `DomainError` |
 
 ## 8. Başarı Kriterleri (SC-x)
@@ -599,16 +707,19 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | SC-3 | Kök servis/platform değişiklikleri eklemeli; mevcut testler yeşil | ilgili testler |
 | SC-4 | Market verisi mevcut EPİAŞ entegrasyonundan (kimlik varsa) | `external_series` + uç |
 | SC-5 | Toprak interlock uçtan uca çalışır | entegrasyon testi |
+| SC-6 | `/projects` portföy sayfası 2 proje + harita + EPİAŞ kartlarıyla render eder | gözle + test |
+| SC-7 | Login sonrası iniş `/projects`; canlı proje seçimi `/field/:fieldId` açar | unit + e2e |
+| SC-8 | UC-11 yeni modülleri satır kapsamı ≥ %70; mevcut testler yeşil | vitest coverage |
 
 ## 9. Aşama Eşlemesi (iş akışı)
 
 | Aşama | Ürün |
 |:------|:-----|
 | 1. SPEC | Bu doküman |
-| 2. JSDoc | T-1, T-7, T-10, T-18, T-24, T-26 sözleşmeleri |
-| 3. TEST | T-2, T-5, T-9, T-12, T-15, T-19, T-21, T-23, T-25, T-28, T-30, T-31 kırmızı testleri |
-| 4. IMPL | T-1..T-29 |
-| 5. KAPANIŞ | `DEMO-FIELD-KONSOL-KAPANIS.md` |
+| 2. JSDoc | T-1, T-7, T-10, T-18, T-24, T-26, T-32, T-33, T-34, T-35, T-36, T-37, T-38 sözleşmeleri |
+| 3. TEST | T-2, T-5, T-9, T-12, T-15, T-19, T-21, T-23, T-25, T-28, T-30, T-31 + T-32…T-38 kırmızı testleri |
+| 4. IMPL | T-1..T-29, T-32…T-38 |
+| 5. KAPANIŞ | `DEMO-FIELD-KONSOL-KAPANIS.md` (UC-11 eki ile güncellenir) |
 
 ## 10. Açık Kararlar
 
@@ -619,12 +730,17 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | A3 | Admin (data mapping/site params) | ⛔ Defer — boss/superadmin scope |
 | A4 | Fault isolation per-group (RMU H02 trip) sim davranışı | ⛔ Defer |
 | A5 | Rest süresi varsayılanı admin-config | ✅ Kapandı — demo sabit **30 dk** (2026-10-07 kararı) |
+| A6 | gdems↔demo proje künyesi hizası (N DGES/ÜNSAL DGES ↔ GDE-202030/050) | ⛔ Defer — UC-11 `DEMO_PORTFOLIO`'da canlı kimlik `DEMO_TOPOLOGY`'den, statik künye gdems'ten; birebir reconciliasyon ileri iş |
+| A7 | Çok-saha backend (proje başına FIELD_ID + canlı N DGES) | ⛔ Defer — tek `FIELD_ID` modeli; portföy statiktir |
+| A8 | Proje oluşturma (New project) | ⛔ Defer — UC-11 yer tutucu buton |
 
 ## 11. İleri İş (bu pakette YAPILMAZ — referans)
 
 1. gdems sim motorunun backend'e taşınması (dispatcher/sequencer/POI loop) — bu demo canlı telemetri kullanır.
 2. Admin/master data-mapping paneli — supervisor/superadmin.
 3. FL-08/FL-09 manevraları — GD-PMS REV.01 sonraki revizyon.
+4. Çok-saha backend + gerçek proje kaydı (A7) — portföyün canlı çok-saha modeli.
+5. gdems↔demo proje künyesi reconciliasyonu (A6) — tek proje kaydı kaynağı.
 
 ## 12. T Görev Özeti
 
@@ -661,3 +777,11 @@ I-1 interlock       → field web-service preconditions(N) → DEMO-MV-1 toprak 
 | T-29 | entegrasyon testi (toprak red/izin) | UC-10 | TEST |
 | T-30 | `demo-maneuver-integration.spec.ts` (Z — FL zinciri) | UC-7 | TEST |
 | T-31 | e2e veri kontrolü (FL-01/03/05 + `/latest`) | UC-7 | TEST |
+| T-32 | `geo-europe.ts` + `demo-portfolio-map.ts` saf projeksiyon/viewBox | UC-11 | IMPL |
+| T-33 | `DemoPortfolioMap` + harita CSS | UC-11 | IMPL |
+| T-34 | `DemoProjectCard` + `DemoPtfCard` | UC-11 | IMPL |
+| T-35 | `DemoAssetTable` portföy tablosu | UC-11 | IMPL |
+| T-36 | `demo-portfolio.ts#DEMO_PORTFOLIO` verisi | UC-11 | IMPL |
+| T-37 | `DemoProjectsPage` + `demoMarketApi` bağlantısı | UC-11 | IMPL |
+| T-38 | rota + `postLoginDestination` + `DemoShell` (sekme/breadcrumb) | UC-11 | IMPL |
+| T-39 | e2e login inişi düzeltmesi (UI login → konsol) | UC-11 | TEST |

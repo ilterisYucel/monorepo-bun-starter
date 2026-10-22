@@ -5,7 +5,7 @@ describe("DcOutputSimulator", () => {
   let sim: DcOutputSimulator;
 
   beforeEach(() => {
-    sim = new DcOutputSimulator();
+    sim = new DcOutputSimulator({ deviceId: "DC-1" });
   });
 
   describe("initial state", () => {

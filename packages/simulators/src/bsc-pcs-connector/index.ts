@@ -5,6 +5,9 @@ export type {
   BscPcsRegisterMapping,
   BscPcsBitMapping,
   BscPcsConstantMapping,
+  BscPcsComputedMapping,
+  BscPcsSocEnergyMapping,
+  BscPcsScaledSource,
   BscPcsSourceRef,
 } from "./mapping";
 export { BscPcsConnectorAdapter } from "./connector";

@@ -100,12 +100,16 @@ describe("WsSocketClientFactory (T2.1c)", () => {
     };
     const creator = vi.fn().mockReturnValue(raw);
     const factory = new WsSocketClientFactory(
-      creator as unknown as (url: string, options: { headers: Record<string, string> }) => WebSocket,
+      creator as unknown as (
+        url: string,
+        protocols: string[],
+        options: { headers: Record<string, string> },
+      ) => WebSocket,
     );
     const client: ISocketClient = factory.create("ws://field", {
       Authorization: "Bearer tok",
     });
-    expect(creator).toHaveBeenCalledWith("ws://field", {
+    expect(creator).toHaveBeenCalledWith("ws://field", [], {
       headers: { Authorization: "Bearer tok" },
     });
     client.send("x");

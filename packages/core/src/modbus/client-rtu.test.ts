@@ -5,71 +5,54 @@ import { EventEmitter } from "node:events";
  * ModbusRtuClient sözleşmesi (2026-08-30 — T3 karakterizasyonu):
  * - config varsayılanları: slaveId 1, dataBits 8, stopBits 1, parity none,
  *   timeout 3000.
- * - connect: SerialPort "open" → bağlı; "error" → hata; timeout → port
- *   kapatılır + "Modbus RTU connection timeout" hatası (path bağlamında).
+ * - connect: port "open" → bağlı; "error" → hata; timeout → port kapatılır +
+ *   "Modbus RTU connection timeout" hatası (path bağlamında).
  * - Bağlı değilken read/write "Not connected".
  * - "close"/"error" lifecycle eventleri bağlantıyı düşürür.
+ * - Port üretimi enjekte edilir (varsayılan: connect anında `bun-serialport`).
  */
 
-const ports = vi.hoisted(() => [] as Array<{
-  closed: boolean;
-  close: ReturnType<typeof vi.fn>;
-  once: ReturnType<typeof vi.fn>;
-  removeAllListeners: ReturnType<typeof vi.fn>;
-  emit: (event: string, ...args: unknown[]) => boolean;
-}>);
+class FakePort extends EventEmitter {
+  closed = false;
+  isOpen = false;
+  close = vi.fn(async () => {
+    this.closed = true;
+    this.isOpen = false;
+  });
+  // Testler 'open' olayını elle tetikler (fireOpen) — burada emit YOK.
+  open = vi.fn(async () => {
+    this.isOpen = true;
+  });
+  write = vi.fn(async (_data: Uint8Array) => undefined);
+}
 
-const serialportConfigs = vi.hoisted(() => [] as unknown[]);
-
-vi.mock("serialport", () => {
-  const { EventEmitter: EE } = require("node:events") as typeof import("node:events");
-  class FakePort extends EE {
-    closed = false;
-    close = vi.fn(() => {
-      this.closed = true;
-    });
-    override removeAllListeners = vi.fn();
-    override once = vi.fn();
-  }
-  return {
-    SerialPort: class {
-      constructor(config: unknown) {
-        serialportConfigs.push(config);
-        const fake = new FakePort();
-        ports.push(fake);
-        return fake;
-      }
-    },
-  };
-});
-
-vi.mock("jsmodbus", () => ({
-  ModbusRTUClient: class {
-    readHoldingRegisters = vi.fn();
-    readInputRegisters = vi.fn();
-    readCoils = vi.fn();
-    writeSingleRegister = vi.fn();
-    writeMultipleRegisters = vi.fn();
-    writeSingleCoil = vi.fn();
-    writeMultipleCoils = vi.fn();
-    readDiscreteInputs = vi.fn();
-  },
-}));
+const ports: FakePort[] = [];
+const portConfigs: unknown[] = [];
 
 import { ModbusRtuClient } from "./client-rtu";
+import type { ModbusRtuConfig } from "./client-rtu";
 
-function lastPort(): (typeof ports)[number] {
+function makeClient(config: ModbusRtuConfig) {
+  const port = new FakePort();
+  ports.push(port);
+  return new ModbusRtuClient(config, async (resolved) => {
+    portConfigs.push(resolved);
+    return port;
+  });
+}
+
+function lastPort(): FakePort {
   return ports[ports.length - 1]!;
 }
 
 function fireOpen(): void {
-  const call = lastPort().once.mock.calls.find((c) => c[0] === "open");
-  call?.[1]();
+  lastPort().isOpen = true;
+  lastPort().emit("open");
 }
 
 beforeEach(() => {
   ports.length = 0;
-  serialportConfigs.length = 0;
+  portConfigs.length = 0;
   vi.useFakeTimers();
 });
 
@@ -79,10 +62,19 @@ afterEach(() => {
 });
 
 describe("ModbusRtuClient (T3)", () => {
-  it("config varsayılanlarıyla SerialPort kurulur (connect anında)", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 3 });
+  it("config varsayılanlarıyla port kurulur (connect anında)", async () => {
+    const client = new ModbusRtuClient(
+      { path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 3 },
+      async (resolved) => {
+        portConfigs.push(resolved);
+        const port = new FakePort();
+        ports.push(port);
+        return port;
+      },
+    );
     const pending = client.connect();
-    expect(serialportConfigs[0]).toMatchObject({
+    await vi.advanceTimersByTimeAsync(0);
+    expect(portConfigs[0]).toMatchObject({
       path: "/dev/ttyUSB0",
       baudRate: 9600,
       dataBits: 8,
@@ -94,40 +86,44 @@ describe("ModbusRtuClient (T3)", () => {
   });
 
   it("connect open eventi ile bağlanır", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
+    const client = makeClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
     const pending = client.connect();
+    await vi.advanceTimersByTimeAsync(0);
     fireOpen();
     await pending;
     expect(client.isConnected()).toBe(true);
   });
 
   it("connect error eventi → 'Modbus RTU connection failed'", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
+    const client = makeClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
     const pending = client.connect();
-    const call = lastPort().once.mock.calls.find((c) => c[0] === "error");
-    call?.[1](new Error("ENOENT"));
+    await vi.advanceTimersByTimeAsync(0);
+    lastPort().emit("error", new Error("ENOENT"));
     await expect(pending).rejects.toThrow("Modbus RTU connection failed: ENOENT");
   });
 
   it("connect timeout → port kapatılır + path bağlamlı hata", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
+    const client = makeClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
     const pending = client.connect();
-    vi.advanceTimersByTime(3000);
-    expect(lastPort().closed).toBe(true);
-    await expect(pending).rejects.toThrow(
+    await vi.advanceTimersByTimeAsync(0);
+    const expectation = expect(pending).rejects.toThrow(
       "Modbus RTU connection timeout: 3000ms (/dev/ttyUSB0)",
     );
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(lastPort().closed).toBe(true);
+    await expectation;
   });
 
   it("bağlı değilken okuma 'Not connected' fırlatır", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
+    const client = makeClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
     await expect(client.readHoldingRegisters(0, 1)).rejects.toThrow("Not connected");
     await expect(client.writeSingleCoil(0, true)).rejects.toThrow("Not connected");
   });
 
   it("close eventi bağlantıyı düşürür", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
+    const client = makeClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
     const pending = client.connect();
+    await vi.advanceTimersByTimeAsync(0);
     fireOpen();
     await pending;
     lastPort().emit("close");
@@ -135,8 +131,9 @@ describe("ModbusRtuClient (T3)", () => {
   });
 
   it("bağlıyken port error eventi bağlantıyı düşürür", async () => {
-    const client = new ModbusRtuClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
+    const client = makeClient({ path: "/dev/ttyUSB0", baudRate: 9600, slaveId: 1 });
     const pending = client.connect();
+    await vi.advanceTimersByTimeAsync(0);
     fireOpen();
     await pending;
     expect(client.isConnected()).toBe(true);

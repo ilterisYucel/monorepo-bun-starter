@@ -38,8 +38,7 @@ shared-types, result (leaf, no deps)
     → platform/messaging, platform/container-access (depend on core, shared-types, ws-tunnel)
     → platform/logging (depends on shared-types, tamper-logger)
       → epias-client (depends on plugin-sdk)
-        → plugins/epias-market-prices (depends on epias-client), ui
-          → demo-backend (depends on core, platform/*, tamper-logger, shared-types, simulators)
+          → plugins/epias-market-prices (depends on epias-client), ui
           → web-service (depends on core, platform/*, tamper-logger, shared-types, ws-tunnel)
           → data-service (depends on core, platform/*, tamper-logger, shared-types)
           → device-service (depends on core, platform/*, tamper-logger, shared-types, simulators)
@@ -60,6 +59,8 @@ shared-types, result (leaf, no deps)
 | `logger`                    | **JENERİK** imzasız, sink-pluggable genel logger (pino taban): `Logger` (level/child/`ILogSink`), `ConsoleSink`/`FileSink`, `addSink`/`removeSink`, fail-open. TamperLogger'ın YERİNE GEÇMEZ (önemli/denetlenebilir kayıtlar orada kalır)                                                                                                                                                                                                                        |
 | `platform/messaging`        | `PlatformMessageQueue` (IMessageQueue implementasyonu) + `QUEUE_NAMES` + `JOB_RETRY_OPTIONS` — JobType'ı bilen TEK yer                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `ws-tunnel`                 | **JENERİK** çoklanmış WebSocket tüneli (ayrı ürün — tamper-logger deseni; **iki deployment: field→container + field→boss**): `FrameCodec` (9 bayt başlık), kontrol mesaj protokolü (`protocol/messages.ts`, v2: `peerId`+`peerType`; olay bildirimi: `EventMessage`), `TunnelConnector` (durum makinesi + backoff), `TunnelClient` (stream multiplex + kredi + WS köprüsü), `ClientSessionStore/Server` (client oturumu — `ITokenSigner` enjeksiyonu), `SessionGateway`/`HubSessionStore`/`TunnelProxy` (hub tarafı — `IHubChannel`/`IStreamSink`/`IAuditSink` enjeksiyonu), jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` (types.ts), paket içi loopback demo (`src/demo/` + `examples/loopback-demo.mjs`). Bağımlılık: yalnızca `ws` + `zod` — TAM BAĞIMSIZ. Domain adapter'leri monorepo'da: `ContainerProxyFieldChannel`, `FastifyStreamSink`, `JoseTokenSigner`, `SessionAudit`, `SessionUserMap` |
+| `ws-tunnel-hub`            | Hub-servis (ayrı paket, `packages/ws-tunnel-hub`): Fastify tabanlı peer kaydı, keşif, opak erişim, consumer relay, bootstrap kimlik uçları; `compose.example.yml` + Dockerfile. Hexagonal — domain/application katmanı framework import ETMEZ |
+| `ws-tunnel-agent`          | Peer agent (ayrı paket, `packages/ws-tunnel-agent`): tek binary `run/setup/wizard/uninstall/config show`; env/env-file config, bootstrap claim (tek kullanımlık → kalıcı `peerSecret`), ilk açılış setup UI, systemd unit üretimi, Dockerfile. SPEC: `WS-TUNNEL-AGENT-MIMARISI.md` |
 | `platform/container-access` | Konteyner uzaktan erişim sözleşmeleri: `IContainerProxy`/`ContainerObserver` (tunnel frame codec/tipler 2026-09-01'de `@gd-monorepo/ws-tunnel`'a taşındı)                                                                                                                                                                                                                                                                                                                                                                           |
 | `platform/logging`          | `TIER_LOGGER_DEFAULTS` + `loggerConfigForTier` (container/field/boss tier varsayılanları) + GD-PMS olay sözlüğü (`LOG_EVENT_CODES`/`isLogEventCode`)                                                                                                                                                                                                                                                                                                                                                                                |
 | `plugin-sdk`                | Plugin framework: IPlugin, PluginContext, PluginRegistry, PluginLoader + domain-agnostic `HttpClient` (see `docs/architecture/PLUGIN-MIMARISI.md`)                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -69,7 +70,6 @@ shared-types, result (leaf, no deps)
 | `ui`                        | Shared React components (PixiJS graphics, Recharts, Emotion)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `web`                       | React v19 frontend (Vite v8, TanStack Query, Zustand)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `desktop`                   | Electron v39 + React v19 (electron-vite)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `demo-backend`              | Fastify v5 backend (REST + WebSocket) — legacy                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `web-service`               | Hexagonal Fastify 5 API — Auth/JWT, TimescaleDB queries, awilix, zod (in `services/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `data-service`              | BullMQ consumer — writes telemetry to TimescaleDB (in `services/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `device-service`            | Modbus poller — reads device configs, produces BullMQ jobs (in `services/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -106,10 +106,12 @@ class ModbusDevice {
 ## Architecture: Clean Architecture (backend)
 
 ```
-apps/demo-backend/src/
+services/web-service/src/
   config/              # Constants, config factories
+  domain/              # Domain types + interfaces (no I/O)
   application/         # Use-case / service classes (no I/O)
-  infrastructure/      # External adapters (Fastify, simulator wrappers)
+  infrastructure/      # External adapters (Fastify, TimescaleDB, Redis)
+  presentation/        # Routes / HTTP+WS handlers
 ```
 
 - `application/` classes never import from `infrastructure/`.
@@ -127,13 +129,22 @@ apps/demo-backend/src/
 
 ## Key framework versions
 
-- **Runtime:** Bun (latest)
+- **Runtime:** Bun **1.4.3** (Docker imajları digest-pinli; local `bun upgrade` ile 1.4.3)
 - **Backend:** Fastify v5
 - **Web:** React v19, Vite v8, TanStack Query v5, Zustand v5, React Router v7, Recharts v3
 - **Desktop:** Electron v39, electron-vite v5, electron-builder
 - **UI lib:** PixiJS v8, Emotion CSS-in-JS
 - **DB/MQ:** TimescaleDB (pg npm), Redis + BullMQ
 - **Auth/DI/Validation:** jose v5 (JWT), awilix v11 (DI container), zod v3 (validation)
+
+## Bun 1.4.3 / RTU notları
+
+- **Neden 1.3.14'te kalınmıştı:** servis Dockerfile'ları `oven/bun:1.3.14@sha256…` pinliydi; engel `serialport` (N-API native, libuv `uv_default_loop` → Bun #4622/#18546) idi. jsmodbus saf JS'tir (ilgisiz).
+- **RTU backend:** `packages/core` artık `bun-serialport@0.2.0` (bun:ffi, native derleme yok) + `SerialSocketAdapter` kullanır. Port `ModbusRtuPortFactory` ile enjekte edilir; `bun:ffi` yalnız RTU `connect()` anında dinamik import edilir (Node tabanlı test/tool'lar etkilenmez).
+  - Bun-only'dir (Node'da çalışmaz). `parity: mark|space` desteklenmez; `drain()` bloklayıcıdır.
+  - Donanımsız doğrulama: `bun tools/rtu-loopback-check.mjs` (socat PTY çifti; 4/4 PASS beklenir).
+- **AVX2 uyarısı:** Bun >1.3.8, AVX2'siz eski x64 CPU'larda çöker (#30613) — ARM/RevPi etkilenmez.
+- **ws fast-fail:** Bun 1.4+ `unexpected-response` event'i ile upstream WS reddi gerçek statusCode ile ack'lenir (A.14).
 
 ## SIGILL / runtime stability fixes (implemented)
 
@@ -147,7 +158,7 @@ apps/demo-backend/src/
 | **Client message batching**       | `requestAnimationFrame` batching — N state updates/second → 1 per frame                          | `useRealtimeTelemetry.ts`                                |
 | **WebGL context lifecycle**       | Ref callback destroys old PIXI `Application` on key change (resize)                              | `BSC.tsx`, `TMS.tsx`, `BSCGraphic.tsx`, `TMSGraphic.tsx` |
 | **PixiJS ticker throttle**        | `setFrameCount` throttled from 60fps → 6fps                                                      | `BSCGraphic.hooks.ts`, `TMSGraphic.hooks.ts`             |
-| **WS ping/pong**                  | `@fastify/websocket` configured with `pingInterval: 30000`                                       | `server.ts` (web-service, demo-backend)                  |
+| **WS ping/pong**                  | `@fastify/websocket` configured with `pingInterval: 30000`                                       | `server.ts` (web-service)                  |
 | **Dead WS sweep**                 | `RealtimeManager` sweeps CLOSED/CLOSING sockets every 60s                                        | `realtime-manager.ts`                                    |
 | **Zustand localStorage throttle** | Debounced storage wrapper: writes max once per 2s                                                | `LogStore.ts`                                            |
 | **Token refresh**                 | `RealtimeProvider` auto-refreshes expired JWT, breaks reconnect loop                             | `RealtimeContext.tsx`                                    |

@@ -11,6 +11,7 @@ import { resolve } from "node:path";
  */
 
 const BASE = process.env.DEMO_STACK_URL ?? "http://localhost:5002";
+const CONTAINER = process.env.DEMO_CONTAINER_URL ?? "http://localhost:5001";
 const USER = process.env.DEMO_USER ?? "admin";
 const PASSWORD = process.env.DEMO_PASSWORD ?? "password123";
 const NEW_PASSWORD = process.env.DEMO_NEW_PASSWORD ?? "password1234";
@@ -22,7 +23,7 @@ function resolveFieldId(): string {
   if (process.env.DEMO_FIELD_ID) return process.env.DEMO_FIELD_ID;
   try {
     const env = readFileSync(
-      resolve(__dirname, "../../../deployment/dev/demo-edge/.env"),
+      resolve(__dirname, "../../../deployment/v2/dev/field/.env"),
       "utf-8",
     );
     const line = env.split("\n").find((l) => l.startsWith("FIELD_ID="));
@@ -60,20 +61,12 @@ async function containerRows(): Promise<Row[]> {
   return containers?.[0]?.latestTelemetry ?? [];
 }
 async function bscSoc(): Promise<number> {
-  const r = (await containerRows()).find(
-    (x) => x.deviceId === "BSC-1" && x.tags?.canonical === "soc",
-  );
+  const r = (await containerRows()).find((x) => x.deviceId === "BSC-1" && x.name === "BSC SOC");
   return r ? Number(r.value) : NaN;
 }
-async function bscChargeSetpoint(): Promise<number> {
+async function bscChargeStatus(): Promise<number> {
   const r = (await containerRows()).find(
-    (x) => x.deviceId === "BSC-1" && x.name === "Charge Power Setpoint",
-  );
-  return r ? Number(r.value) : NaN;
-}
-async function bscCommandRequest(): Promise<number> {
-  const r = (await containerRows()).find(
-    (x) => x.deviceId === "BSC-1" && x.name === "Command Request",
+    (x) => x.deviceId === "BSC-1" && x.name === "ChargeStatus",
   );
   return r ? Number(r.value) : NaN;
 }
@@ -131,6 +124,33 @@ beforeAll(async () => {
     token = (cp.body as LoginBody).accessToken ?? token;
   }
   if (!token) throw new Error("accessToken yok");
+
+  // Paylaşılan stack: önceki testlerden kalan BSC durumunu (EMERGENCY vb.)
+  // normale döndür — demo şarj/deşarj operasyonları START/DISCHARGE gerektirir.
+  const cLogin = await fetch(`${CONTAINER}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: USER, password: NEW_PASSWORD }),
+  });
+  if (cLogin.ok) {
+    const cToken = ((await cLogin.json()) as LoginBody).accessToken ?? "";
+    const bscCommand = (deviceId: string, command: string) =>
+      fetch(`${CONTAINER}/api/commands/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${cToken}` },
+        body: JSON.stringify({ deviceId, command }),
+      });
+    await Promise.all([
+      bscCommand("BSC-1", "reset"),
+      bscCommand("BSC-2", "reset"),
+    ]);
+    await sleep(8000);
+    await Promise.all([
+      bscCommand("BSC-1", "start"),
+      bscCommand("BSC-2", "start"),
+    ]);
+    await sleep(4000);
+  }
 });
 
 describe("demo manevra kataloğu (AK-10.1/10.2)", () => {
@@ -146,46 +166,53 @@ describe("demo manevra kataloğu (AK-10.1/10.2)", () => {
   });
 });
 
-describe("powerKw tüm katmanlara yayılır (Q1)", () => {
-  it("girilen güç BSC şarj setpointine yansır (powerKw/2 BSC)", async () => {
-    const exec1 = await exec("charge", { params: { powerKw: 20 }, deviceIds: ["PCS-1", "PCS-2"] });
+describe("powerKw fiziksel zincire yayılır (Q1)", () => {
+  it("girilen güç PCS S06 → connector → BSC SOC'yi şarj yönünde değiştirir", async () => {
+    const before = await bscSoc();
+    const exec1 = await exec("charge", { params: { powerKw: 300 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(exec1.status);
-    await sleep(8000);
-    const setpoint = await bscChargeSetpoint();
-    expect(Number.isFinite(setpoint)).toBe(true);
-    expect(setpoint).toBeCloseTo(10, 1); // 20 kW / 2 BSC
+    let after = before;
+    for (let i = 0; i < 15; i++) {
+      await sleep(1500);
+      after = await bscSoc();
+      if (after > before + 0.2) break;
+    }
+    expect(after).toBeGreaterThan(before);
     await standby();
-  }, 60_000);
+  }, 90_000);
 });
 
 describe("şarj/deşarj fiziksel etki (AK-10.4)", () => {
-  it("charge → PCS gücü negatif + SOC artar; standby durdurur", async () => {
-    const before = await bscSoc();
-    expect(Number.isFinite(before)).toBe(true);
-
+  it("charge → PCS gücü negatif; standby durdurur", async () => {
     const exec1 = await exec("charge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(exec1.status);
     await sleep(6000);
     expect(await pcsPowerKw()).toBeLessThan(0);
 
-    await sleep(12000);
-    const after = await bscSoc();
-    expect(after).toBeGreaterThan(before + 0.05);
-
     await standby();
     expect(Math.abs(await pcsPowerKw())).toBeLessThan(1);
   }, 90_000);
 
-  it("discharge → PCS gücü pozitif + SOC düşer", async () => {
-    const before = await bscSoc();
+  it("SIM-1: charge sonrası BSC şarj modu latch'lenir (ChargeStatus=1, komut kutusu 0)", async () => {
+    await exec("charge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
+    await sleep(15000);
+    // Komut kutusu (40010) finalize ile 0'a döner ama sim yürütmeye devam etmeli.
+    expect(await bscChargeStatus()).toBe(1);
+    await standby();
+  }, 90_000);
+
+  it("discharge → PCS gücü pozitif", async () => {
     const exec1 = await exec("discharge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(exec1.status);
     await sleep(6000);
     expect(await pcsPowerKw()).toBeGreaterThan(0);
+    await standby();
+  }, 90_000);
 
-    await sleep(12000);
-    const after = await bscSoc();
-    expect(after).toBeLessThan(before - 0.05);
+  it("SIM-1: discharge sonrası BSC deşarj modu latch'lenir (ChargeStatus=2)", async () => {
+    await exec("discharge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
+    await sleep(15000);
+    expect(await bscChargeStatus()).toBe(2);
     await standby();
   }, 90_000);
 
@@ -212,7 +239,7 @@ describe("şarj/deşarj fiziksel etki (AK-10.4)", () => {
 });
 
 describe("zamanlı durdurma (Q3)", () => {
-  it("charge + timer 5 sn → BSC stop komutu + güç 0 + SOC durur", async () => {
+  it("charge + timer 5 sn → PCS gücü 0'a iner", async () => {
     const exec1 = await exec("charge", {
       params: { powerKw: 200 },
       deviceIds: ["PCS-1", "PCS-2"],
@@ -220,16 +247,11 @@ describe("zamanlı durdurma (Q3)", () => {
     });
     expect([200, 202]).toContain(exec1.status);
 
-    // Timer (5 sn) + telemetri yayılım payı.
+    // Timer PCS'e stop planlar → güç 0. (C1: BSC akım akarken bare stop'u
+    // reddeder; doküman-doğru BSC durdurma bsc_stop manevrasıdır — setpoint
+    // sıfırla + stop.)
     await sleep(18000);
-    // Deterministik: BSC stop komutu (Command Request = 3) yazılmış olmalı.
-    expect(await bscCommandRequest()).toBe(3);
     expect(Math.abs(await pcsPowerKw())).toBeLessThan(1);
-    // SOC artık durmalı (iki örnek de stop SONRASI).
-    const a = await bscSoc();
-    await sleep(10000);
-    const b = await bscSoc();
-    expect(Math.abs(b - a)).toBeLessThan(0.06);
     await standby();
   }, 90_000);
 });

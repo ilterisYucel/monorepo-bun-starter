@@ -6,7 +6,7 @@ describe("ControlPanelIoSimulator (FL-07 kapı + ışık + FSS DI — K5)", () =
   let sim: ControlPanelIoSimulator;
 
   beforeEach(() => {
-    sim = new ControlPanelIoSimulator();
+    sim = new ControlPanelIoSimulator({ deviceId: "CPIO-1" });
   });
 
   describe("initial state", () => {

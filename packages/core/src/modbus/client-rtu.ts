@@ -1,7 +1,8 @@
 // packages/core/src/modbus/client-rtu.ts
 
 import { ModbusRTUClient as JSModbusRTUClient } from "jsmodbus";
-import { SerialPort } from "serialport";
+import { SerialSocketAdapter } from "./serial-socket-adapter";
+import type { SerialPortLike } from "./serial-socket-adapter";
 import type { IModbusClient } from "./interface";
 import { randomFloat } from "./utils";
 
@@ -11,19 +12,53 @@ export interface ModbusRtuConfig {
   slaveId: number;
   dataBits?: 7 | 8;
   stopBits?: 1 | 2;
-  parity?: "none" | "even" | "odd" | "mark" | "space";
+  /** bun-serialport yalnız none/even/odd destekler. */
+  parity?: "none" | "even" | "odd";
   timeout?: number;
 }
 
+/** Port üreticisi — varsayılanı `bun-serialport`'u yalnız connect anında yükler. */
+export type ModbusRtuPortFactory = (
+  config: Required<ModbusRtuConfig>,
+) => Promise<SerialPortLike>;
+
+const defaultRtuPortFactory: ModbusRtuPortFactory = async (config) => {
+  // Dinamik import: `bun:ffi` yalnız gerçek RTU bağlantısında yüklenir
+  // (Node tabanlı test/araçlar bu modülü hiç çözmez).
+  const { SerialPort } = await import("bun-serialport");
+  return new SerialPort({
+    path: config.path,
+    baudRate: config.baudRate,
+    dataBits: config.dataBits,
+    stopBits: config.stopBits,
+    parity: config.parity,
+    autoOpen: false,
+  });
+};
+
 export class ModbusRtuClient implements IModbusClient {
-  private socket: SerialPort | null = null;
+  private socket: SerialSocketAdapter | null = null;
   private client: JSModbusRTUClient | null = null;
   private readonly config: Required<ModbusRtuConfig>;
   private connected: boolean = false;
   private reconnectAttempts: number = 0;
   private readonly reconnectBaseDelayMs: number = 1000;
 
-  constructor(config: ModbusRtuConfig) {
+  constructor(
+    config: ModbusRtuConfig,
+    private readonly portFactory: ModbusRtuPortFactory = defaultRtuPortFactory,
+  ) {
+    const rawParity = config.parity as string | undefined;
+    if (
+      rawParity !== undefined &&
+      rawParity !== "none" &&
+      rawParity !== "even" &&
+      rawParity !== "odd"
+    ) {
+      throw new Error(
+        "ModbusRtuClient: parity yalniz none/even/odd olabilir (bun-serialport)",
+      );
+    }
     this.config = {
       path: config.path,
       baudRate: config.baudRate,
@@ -36,13 +71,7 @@ export class ModbusRtuClient implements IModbusClient {
   }
 
   async connect(): Promise<void> {
-    this.socket = new SerialPort({
-      path: this.config.path,
-      baudRate: this.config.baudRate,
-      dataBits: this.config.dataBits,
-      stopBits: this.config.stopBits,
-      parity: this.config.parity,
-    });
+    this.socket = new SerialSocketAdapter(await this.portFactory(this.config));
 
     this.client = new JSModbusRTUClient(this.socket, this.config.slaveId);
 
@@ -68,6 +97,9 @@ export class ModbusRtuClient implements IModbusClient {
         clearTimeout(connectTimeout);
         reject(new Error(`Modbus RTU connection failed: ${err.message}`));
       });
+
+      // Dinleyiciler hazır → portu aç ('open' olayı kaçmaz).
+      this.socket!.open();
     });
   }
 

@@ -1,0 +1,213 @@
+{
+  "operations": [
+    {
+      "name": "charge",
+      "label": "\u015earj",
+      "description": "PCS \u015farj/de\u015farj setpointi (S06); BSC g\u00fcc\u00fc fiziksel olarak izler \u2014 BSC g\u00fc\u00e7 komutu YOK (Rev AF).",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_charge"
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "G\u00fc\u00e7 (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "discharge",
+      "label": "De\u015farj",
+      "description": "PCS \u015farj/de\u015farj setpointi (S06); BSC g\u00fcc\u00fc fiziksel olarak izler \u2014 BSC g\u00fc\u00e7 komutu YOK (Rev AF).",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_discharge"
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "G\u00fc\u00e7 (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "full_charge",
+      "label": "Tam \u015earj",
+      "description": "%97'ye \u015farj; SOC e\u015fi\u011fi kural\u0131 dinlenmeye (standby) ge\u00e7irir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_charge"
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "G\u00fc\u00e7 (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "full_discharge",
+      "label": "Tam De\u015farj",
+      "description": "%3,5'e de\u015farj; SOC e\u015fi\u011fi kural\u0131 dinlenmeye (standby) ge\u00e7irir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_discharge"
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "G\u00fc\u00e7 (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "calibration",
+      "label": "SOC Kalibrasyonu",
+      "description": "tam \u015farj \u2192 dinlenme \u2192 tam de\u015farj \u2192 dinlenme (kapasite/SOH \u00f6l\u00e7\u00fcm\u00fc) \u2192 hedef SOC.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_charge"
+        },
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare"
+        },
+        {
+          "maneuver": "pcs_discharge"
+        },
+        {
+          "maneuver": "pcs_stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "G\u00fc\u00e7 (kW)"
+          }
+        ],
+        "hidden": false
+      }
+    },
+    {
+      "name": "standby",
+      "label": "Bekleme",
+      "description": "aktif manevray\u0131 durdurur: PCS setpoint 0 + Standby (S19, enerjili) + BSC stop.",
+      "mode": "sequential",
+      "onFailure": "continue",
+      "steps": [
+        {
+          "maneuver": "pcs_standby"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop"
+        }
+      ],
+      "ui": {
+        "hidden": false
+      }
+    }
+  ]
+}

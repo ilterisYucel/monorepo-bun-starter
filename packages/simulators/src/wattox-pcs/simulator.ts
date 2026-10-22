@@ -6,6 +6,9 @@ import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { WattoxPcsAdapter } from "./modbus-adapter";
 import { createWattoxBmsBridge } from "./bms-face-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
+import type { IGridLink } from "../grid-link";
 import {
   REG_RATED_POWER,
   REG_RATED_VOLTAGE,
@@ -94,6 +97,7 @@ import {
   SET_STOP,
   SET_STANDBY,
   SET_FAULT_RESET,
+  SET_COMMAND_SOURCE,
   OP_STOP,
   OP_STANDBY,
   OP_CHARGING,
@@ -103,6 +107,7 @@ import {
 
 /** WattoxPcsSimulator yapılandırması — tek obje (DI kuralı 3). */
 export interface WattoxPcsSimulatorConfig {
+  readonly deviceId: string;
   ratedPowerKw?: number;
   ratedVoltageV?: number;
   ratedCurrentA?: number;
@@ -110,6 +115,12 @@ export interface WattoxPcsSimulatorConfig {
   bmsPort?: number;
   /** Verilirse EMS self-host Modbus TCP sunucusu açılır (`start()`). */
   network?: SimulatorNetworkConfig;
+  /** PCS12: başlangıç komut kaynağı (0 HMI, 1 EMS). Varsayılan 0. */
+  commandSource?: number;
+  /** Şebeke yolu eşleşmesi (opsiyonel — yoksa PCS enerjili varsayılır). */
+  gridLink?: IGridLink;
+  /** Bağlı olduğu fider hücresi (ör. "H04"/"H05"). */
+  gridFeeder?: string;
 }
 
 const toUint16 = (v: number): number => v & 0xffff;
@@ -117,6 +128,15 @@ const toUint16 = (v: number): number => v & 0xffff;
 const toInt16 = (v: number): number => (v >= 0x8000 ? v - 0x10000 : v);
 /** işaretli mühendislik değeri → raw 16-bit word (register arayüzü raw döner) */
 const raw16 = (v: number): number => (v < 0 ? v + 0x10000 : v) & 0xffff;
+
+/**
+ * S-setting adres blokları (holding uzayında tutulur): 0x0500-0x05FF,
+ * 0x0E00-0x0E3F, 0x1200-0x120F. Bu aralıkların dışı sorgu bloklarıdır (A/B/C/D).
+ */
+const isSettingAddress = (address: number): boolean =>
+  (address >= 0x0500 && address <= 0x05ff) ||
+  (address >= 0x0e00 && address <= 0x0e3f) ||
+  (address >= 0x1200 && address <= 0x120f);
 
 /**
  * WattoxPcsSimulator — durum makinesi:
@@ -131,7 +151,8 @@ const raw16 = (v: number): number => (v < 0 ? v + 0x10000 : v) & 0xffff;
  * EMS yüzü BMS bloğunu DEĞİŞTİREMEZ (RO); BMS yüzü bridge (ModbusServerBridge)
  * `setBmsRegister` ile yazar — gerçek donanımın EMS/BMS link ayrımı.
  */
-export class WattoxPcsSimulator {
+export class WattoxPcsSimulator implements ISimulator {
+  readonly deviceId: string;
   private readonly ratedPowerKw: number;
   private readonly ratedVoltageV: number;
   private readonly ratedCurrentA: number;
@@ -156,13 +177,23 @@ export class WattoxPcsSimulator {
 
   private chargeEnergyKwh = 0;
   private dischargeEnergyKwh = 0;
+  // PCS12: komut kaynağı (S01 0x0E00) — 0 HMI (varsayılan), 1 EMS, 2 arka plan.
+  // EMS komutları (start/stop/standby/reset/setpoint) yalnız S01=1 iken uygulanır.
+  private commandSource = 0;
+  private readonly gridLink: IGridLink | undefined;
+  private readonly gridFeeder: string | undefined;
+  private gridDeEnergized = false;
 
-  constructor(config: WattoxPcsSimulatorConfig = {}) {
+  constructor(config: WattoxPcsSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.ratedPowerKw = config.ratedPowerKw ?? 1725;
     this.ratedVoltageV = config.ratedVoltageV ?? 1500;
     this.ratedCurrentA = config.ratedCurrentA ?? 1900;
     this.bmsPort = config.bmsPort;
     this.network = config.network;
+    this.commandSource = config.commandSource ?? 0;
+    this.gridLink = config.gridLink;
+    this.gridFeeder = config.gridFeeder;
     this.initBms();
     this.initSettings();
   }
@@ -188,6 +219,31 @@ export class WattoxPcsSimulator {
   /** Sorgu — EMS self-host server dinlenen port (start öncesi config portu). */
   port(): number {
     return this.mainServer?.port() ?? this.network?.port ?? 0;
+  }
+
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut) — demo-field fault/alarm testleri.
+   * - `fault`: fault word 1 bit0 (BMS system fault) → "PCS Fault Status" alarmı
+   * - `door_open`: kabin kapısı DI → "Cabinet Door Open" alarmı
+   * - `nominal`: fault/alarm temizle, kapı kapat
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "fault":
+        this.faultWords[0] = 1;
+        return true;
+      case "door_open":
+        this.doorOpen = true;
+        return true;
+      case "nominal":
+        this.faultWords.fill(0);
+        this.alarmWords.fill(0);
+        this.doorOpen = false;
+        return true;
+      default:
+        return false;
+    }
   }
 
   private initBms(): void {
@@ -304,6 +360,7 @@ export class WattoxPcsSimulator {
   }
 
   tick(_elapsedSeconds: number): void {
+    this.syncGridState();
     this.ensureBmsServer();
     // Kararlı durum: güç setpoint'e yazım anında eşitlendi; tick yalnızca
     // türevsel ölçümleri korur (enerji sayaçları işletim sırasında artar).
@@ -311,6 +368,31 @@ export class WattoxPcsSimulator {
       this.chargeEnergyKwh += Math.abs(this.setpointRaw) * (_elapsedSeconds / 3600);
     } else if (this.opStatus === OP_DISCHARGING) {
       this.dischargeEnergyKwh += Math.abs(this.setpointRaw) * (_elapsedSeconds / 3600);
+    }
+  }
+
+  /** Sorgu — şebeke yolu enerjili mi (gridLink yoksa true). */
+  private isGridEnergized(): boolean {
+    if (this.gridLink === undefined || this.gridFeeder === undefined) return true;
+    return this.gridLink.isEnergized(this.gridFeeder);
+  }
+
+  /**
+   * Komut — şebeke yolu kopuksa PCS de-enerjili davranır (SPEC K4/AK-2.1):
+   * standby, güç 0, AC gerilim 0. Yeniden enerjide güç otomatik uygulanmaz.
+   */
+  private syncGridState(): void {
+    if (this.isGridEnergized()) {
+      this.gridDeEnergized = false;
+      return;
+    }
+    if (!this.gridDeEnergized) {
+      this.gridDeEnergized = true;
+      if (this.opStatus !== OP_FAULT) this.opStatus = OP_STANDBY;
+      this.gridActivePowerRaw = 0;
+      this.dcPowerRaw = 0;
+      this.dcCurrentRaw = 0;
+      this.pfRaw = 0;
     }
   }
 
@@ -361,9 +443,9 @@ export class WattoxPcsSimulator {
       case REG_GRID_ACTIVE_POWER: return raw16(this.gridActivePowerRaw);
       case REG_GRID_REACTIVE_POWER: return 0;
       case REG_APPARENT_POWER: return raw16(Math.abs(this.gridActivePowerRaw));
-      case REG_GRID_V_AB: return 4000; // 400.0 V
-      case REG_GRID_V_BC: return 4000;
-      case REG_GRID_V_CA: return 4000;
+      case REG_GRID_V_AB: return this.isGridEnergized() ? 4000 : 0; // 400.0 V
+      case REG_GRID_V_BC: return this.isGridEnergized() ? 4000 : 0;
+      case REG_GRID_V_CA: return this.isGridEnergized() ? 4000 : 0;
       case REG_PHASE_A_CURRENT:
       case REG_PHASE_B_CURRENT:
       case REG_PHASE_C_CURRENT:
@@ -422,14 +504,44 @@ export class WattoxPcsSimulator {
   }
 
   /**
+   * Sorgu — FC03 holding okuma (EMS yüzü).
+   *
+   * Wattox protokolünde EMS yüzü TÜM okumaları FC03 (holding) ile yapar:
+   * hem sorgu blokları (A/B/C/D) hem S-setting'leri aynı adres uzayındadır.
+   * S-setting adresleri `settings` haritasından, kalanı `readRegister`'dan gelir.
+   */
+  readHolding(address: number): number {
+    return isSettingAddress(address)
+      ? this.readSetting(address)
+      : this.readRegister(address);
+  }
+
+  /**
    * Komut — holding register yazımı (EMS yüzü).
    * Komut register'ları ANINDA uygulanır; BMS bloğuna yazım yok sayılır (RO).
    */
   writeSetting(address: number, value: number): void {
     const raw = toUint16(value);
 
+    // PCS12: komut kaynağı her zaman yazılır.
+    if (address === SET_COMMAND_SOURCE) {
+      this.commandSource = raw;
+      this.settings.set(address, raw);
+      return;
+    }
+    // PCS12/CtrlPhil §6: yerel modda (S01≠1) EMS komutları sessizce yok sayılır.
+    const gatedCommands = new Set([SET_ACTIVE_POWER, SET_START, SET_STOP, SET_STANDBY, SET_FAULT_RESET]);
+    if (gatedCommands.has(address) && this.commandSource !== 1) {
+      this.settings.set(address, raw);
+      return;
+    }
+
     switch (address) {
       case SET_ACTIVE_POWER: {
+        if (!this.isGridEnergized()) {
+          this.settings.set(address, raw);
+          return;
+        }
         this.setpointRaw = toInt16(raw);
         this.gridActivePowerRaw = this.setpointRaw;
         this.dcPowerRaw = this.setpointRaw;
@@ -471,7 +583,8 @@ export class WattoxPcsSimulator {
         if (raw === 1) {
           this.faultWords.fill(0);
           this.alarmWords.fill(0);
-          if (this.opStatus === OP_FAULT) this.opStatus = OP_STANDBY;
+          // CtrlPhil: reset komutu PCS'i Stop durumuna döndürür (Standby değil).
+          if (this.opStatus === OP_FAULT) this.opStatus = OP_STOP;
         }
         break;
       default:

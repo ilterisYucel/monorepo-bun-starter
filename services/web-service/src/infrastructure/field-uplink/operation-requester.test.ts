@@ -1,99 +1,177 @@
 import { describe, it, expect, vi } from "vitest";
-import type { IHubChannel } from "@gd-monorepo/ws-tunnel";
+import type { HubConsumerClient } from "../hub-consumer";
 import { OperationRequester } from "./operation-requester";
 
 /**
- * OperationRequester sözleşmesi (WS-TUNNEL-KAPASITE §5.2):
- * - send: operation-execute gönderilir (param/trace aktarımı).
- * - AYNI operationId'li operation-result çözülür; farklı id/peer YOK SAYILIR.
- * - Timeout → undefined; abonelik sökülür (sızıntı yok).
+ * OperationRequester sözleşmesi (SPEC UC-4 — hub access HTTP):
+ * - send: hub access POST `/api/operations/<name>/execute`; system kimliği +
+ *   `x-gd-operation-id`/`x-gd-trace-id` başlıkları taşınır.
+ * - Terminal-only eşleme: 200 → çalıştırma durumu; 422 → failed; 202 →
+ *   failed (`still_running`); 4xx → rejected; 5xx → failed.
+ * - Ağ hatası / timeout → undefined (boss rotası 503 üretir).
  */
 
-interface ChannelHarness {
-  channel: IHubChannel;
-  subscribers: Array<(fieldId: string, message: unknown) => void>;
-  sent: Array<{ fieldId: string; message: unknown }>;
-  /** Abonelik sökme sayacı (referans — kapanış içinde artar). */
-  unsubscribeCount: () => number;
+interface AccessCall {
+  peerId: string;
+  serviceId: string;
+  path: string;
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string | null;
 }
 
-function makeChannel(): ChannelHarness {
-  const subscribers: Array<(fieldId: string, message: unknown) => void> = [];
-  const sent: Array<{ fieldId: string; message: unknown }> = [];
-  let unsubscribes = 0;
-  const channel = {
-    sendControl: (fieldId: string, message: unknown) => {
-      sent.push({ fieldId, message });
-    },
-    onControlMessage: (
-      subscriber: (fieldId: string, message: unknown) => void,
-    ) => {
-      subscribers.push(subscriber);
-      return () => {
-        unsubscribes++;
-        const i = subscribers.indexOf(subscriber);
-        if (i >= 0) subscribers.splice(i, 1);
-      };
-    },
-  } as unknown as IHubChannel;
-  return { channel, subscribers, sent, unsubscribeCount: () => unsubscribes };
+function makeClient(
+  impl: (call: AccessCall) => Promise<Response>,
+): { client: HubConsumerClient; calls: AccessCall[] } {
+  const calls: AccessCall[] = [];
+  const client = {
+    access: vi.fn(async (call: AccessCall) => {
+      calls.push(call);
+      return impl(call);
+    }),
+  } as unknown as HubConsumerClient;
+  return { client, calls };
 }
 
-describe("OperationRequester (C2b)", () => {
-  it("operation-execute frame'i gönderilir + aynı id'li sonuç çözülür", async () => {
-    const h = makeChannel();
-    const requester = new OperationRequester({ channel: h.channel });
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
 
-    const pending = requester.send("f-1", "op-1", "field_charge", { powerKw: 200 }, "t-1");
-    expect(h.sent).toEqual([
-      {
-        fieldId: "f-1",
-        message: {
-          type: "operation-execute",
-          operationId: "op-1",
-          name: "field_charge",
-          params: { powerKw: 200 },
-          traceId: "t-1",
-        },
+describe("OperationRequester (UC-4 — HTTP relay)", () => {
+  it("hub access POST'u system kimliği + köken başlıklarıyla atar; 200 sonucu eşler", async () => {
+    const { client, calls } = makeClient(async () => json({ status: "completed" }));
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
+
+    const result = await requester.send(
+      "f-1",
+      "op-1",
+      "field_charge",
+      { powerKw: 200 },
+      "t-1",
+    );
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({
+      peerId: "f-1",
+      serviceId: "field-api",
+      path: "/api/operations/field_charge/execute",
+      method: "POST",
+      headers: {
+        "x-tunnel-user-id": "system",
+        "x-tunnel-user-username": "system",
+        "x-tunnel-user-role": "admin",
+        "x-gd-operation-id": "op-1",
+        "x-gd-trace-id": "t-1",
       },
-    ]);
+    });
+    expect(JSON.parse(String(calls[0]?.body))).toEqual({
+      params: { powerKw: 200 },
+    });
+    expect(result).toEqual({
+      type: "operation-result",
+      operationId: "op-1",
+      status: "completed",
+    });
+  });
 
-    h.subscribers[0]!("f-1", {
+  it("200 + outcomes → results özetine dönüşür", async () => {
+    const { client } = makeClient(async () =>
+      json({
+        status: "rolled_back",
+        outcomes: [
+          { stepIndex: 0, system: "container-1", maneuver: "bsc_prepare", success: true },
+          { stepIndex: 1, success: false, reason: "write_failed" },
+        ],
+      }),
+    );
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
+
+    await expect(requester.send("f-1", "op-1", "field_charge")).resolves.toEqual({
       type: "operation-result",
       operationId: "op-1",
       status: "rolled_back",
+      results: [
+        { step: 0, system: "container-1", maneuver: "bsc_prepare", ok: true },
+        { step: 1, ok: false, reason: "write_failed" },
+      ],
     });
-    await expect(pending).resolves.toEqual({
+  });
+
+  it("202 (uzun koşu) → failed/still_running (terminal-only)", async () => {
+    const { client } = makeClient(async () => json({ status: "running" }, 202));
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
+
+    await expect(requester.send("f-1", "op-1", "charge")).resolves.toEqual({
       type: "operation-result",
       operationId: "op-1",
-      status: "rolled_back",
+      status: "failed",
+      reason: "still_running",
     });
-    expect(h.unsubscribeCount()).toBe(1);
   });
 
-  it("farklı operationId / peer yok sayılır", async () => {
-    const h = makeChannel();
-    const requester = new OperationRequester({ channel: h.channel, timeoutMs: 50 });
-    const pending = requester.send("f-1", "op-1", "x");
+  it("422 → failed + gövdedeki reason", async () => {
+    const { client } = makeClient(async () =>
+      json({ status: "failed", reason: "current_flows" }, 422),
+    );
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
 
-    h.subscribers[0]!("f-1", { type: "operation-result", operationId: "op-2", status: "completed" });
-    h.subscribers[0]!("f-2", { type: "operation-result", operationId: "op-1", status: "completed" });
-
-    await expect(pending).resolves.toBeUndefined(); // timeout
-    expect(h.unsubscribeCount()).toBe(1);
+    await expect(requester.send("f-1", "op-1", "stop")).resolves.toMatchObject({
+      status: "failed",
+      reason: "current_flows",
+    });
   });
 
-  it("timeout → undefined + abonelik sökülür", async () => {
-    vi.useFakeTimers();
-    try {
-      const h = makeChannel();
-      const requester = new OperationRequester({ channel: h.channel, timeoutMs: 1000 });
-      const pending = requester.send("f-1", "op-1", "x");
-      vi.advanceTimersByTime(1000);
-      await expect(pending).resolves.toBeUndefined();
-      expect(h.unsubscribeCount()).toBe(1);
-    } finally {
-      vi.useRealTimers();
-    }
+  it("404/403 → rejected + gövdedeki error", async () => {
+    const { client } = makeClient(async () => json({ error: "not_found" }, 404));
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
+    await expect(requester.send("f-1", "op-1", "yok")).resolves.toMatchObject({
+      status: "rejected",
+      reason: "not_found",
+    });
+
+    const forbidden = makeClient(async () => json({}, 403));
+    const requester2 = new OperationRequester({
+      client: forbidden.client,
+      serviceId: "field-api",
+    });
+    await expect(requester2.send("f-1", "op-1", "x")).resolves.toMatchObject({
+      status: "rejected",
+      reason: "invalid_request",
+    });
+  });
+
+  it("5xx → failed (remote_http_<status>)", async () => {
+    const { client } = makeClient(async () => new Response("boom", { status: 502 }));
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
+
+    await expect(requester.send("f-1", "op-1", "x")).resolves.toMatchObject({
+      status: "failed",
+      reason: "remote_http_502",
+    });
+  });
+
+  it("ağ hatası → undefined", async () => {
+    const { client } = makeClient(async () => {
+      throw new Error("ECONNREFUSED");
+    });
+    const requester = new OperationRequester({ client, serviceId: "field-api" });
+
+    await expect(requester.send("f-1", "op-1", "x")).resolves.toBeUndefined();
+  });
+
+  it("timeout → undefined", async () => {
+    const { client } = makeClient(
+      () => new Promise<Response>(() => undefined),
+    );
+    const requester = new OperationRequester({
+      client,
+      serviceId: "field-api",
+      timeoutMs: 10,
+    });
+
+    await expect(requester.send("f-1", "op-1", "x")).resolves.toBeUndefined();
   });
 });

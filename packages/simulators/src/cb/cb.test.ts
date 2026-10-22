@@ -12,7 +12,7 @@ describe("CbSimulator (DC Şalter — K2)", () => {
   let sim: CbSimulator;
 
   beforeEach(() => {
-    sim = new CbSimulator();
+    sim = new CbSimulator({ deviceId: "CB-1" });
     sim.tick(1);
   });
 

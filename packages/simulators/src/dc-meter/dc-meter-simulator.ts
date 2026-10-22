@@ -4,6 +4,8 @@ import { INPUT } from "./register-map";
 import { SimulatorServer } from "../server";
 import type { SimulatorNetworkConfig } from "../server";
 import { DcMeterAdapter } from "./dc-meter-modbus-adapter";
+import { requireDeviceId } from "../contracts";
+import type { ISimulator } from "../contracts";
 
 /** float32 → BE kelime çifti (Modbus register çifti kodlaması). */
 function floatToWords(value: number): [number, number] {
@@ -24,11 +26,13 @@ function floatToWords(value: number): [number, number] {
  * - Bilinmeyen adres → 0.
  */
 export interface DcMeterSimulatorConfig {
+  readonly deviceId: string;
   /** Verilirse self-host Modbus TCP sunucusu açılır (`start()`). */
   readonly network?: SimulatorNetworkConfig;
 }
 
-export class DcMeterSimulator {
+export class DcMeterSimulator implements ISimulator {
+  readonly deviceId: string;
   private voltage = 750.0;
   private current = 100.0;
   private power = 75.0;
@@ -36,7 +40,8 @@ export class DcMeterSimulator {
   private readonly network: SimulatorNetworkConfig | undefined;
   private server: SimulatorServer | undefined;
 
-  constructor(config: DcMeterSimulatorConfig = {}) {
+  constructor(config: DcMeterSimulatorConfig) {
+    this.deviceId = requireDeviceId(config.deviceId);
     this.network = config.network;
   }
 
@@ -78,6 +83,29 @@ export class DcMeterSimulator {
     if (values.current !== undefined) this.current = values.current;
     if (values.power !== undefined) this.power = values.power;
     if (values.alarmWord !== undefined) this.alarmWord = values.alarmWord;
+  }
+
+  /**
+   * Senaryo enjeksiyonu (dev/debug komut).
+   * - `overcurrent`: DC akım 1800 A ve gerilim 800 V (FL-08 tetikleyicisi)
+   * - `overvoltage`: DC gerilim 1600 V
+   * - `nominal`: 750 V / 100 A / 75 kW
+   * Bilinmeyen senaryo → `false`.
+   */
+  inject(scenario: string): boolean {
+    switch (scenario) {
+      case "overcurrent":
+        this.setMeasurements({ voltage: 800, current: 1800, power: 1440 });
+        return true;
+      case "overvoltage":
+        this.setMeasurements({ voltage: 1600, current: 100, power: 160 });
+        return true;
+      case "nominal":
+        this.setMeasurements({ voltage: 750, current: 100, power: 75, alarmWord: 0 });
+        return true;
+      default:
+        return false;
+    }
   }
 
   /** Input register okur — kelime bazlı (FLOAT32 çiftleri BE) (sorgu). */

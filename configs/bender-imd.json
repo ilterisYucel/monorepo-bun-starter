@@ -11,10 +11,6 @@
     "slaveId": 1
   },
   "pollIntervalMs": 2000,
-  "transport": {
-    "kind": "simulator",
-    "type": "imd"
-  },
   "telemetry": [
     {
       "name": "Insulation Resistance",
@@ -22,7 +18,7 @@
       "unit": "Ω",
       "protocol": "MODBUS",
       "registerAddress": 8192,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT32",
       "scale": 1,
       "offset": 0,
@@ -35,7 +31,7 @@
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8196,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
       "scale": 1,
       "offset": 0,
@@ -48,7 +44,7 @@
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8197,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
       "scale": 1,
       "offset": 0,
@@ -61,7 +57,7 @@
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8206,
-      "registerTableType": "INPUT_REGISTER",
+      "registerTableType": "HOLDING_REGISTER",
       "registerDataType": "UINT16",
       "scale": 1,
       "offset": 0,

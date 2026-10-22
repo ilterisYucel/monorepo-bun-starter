@@ -24,6 +24,14 @@ export interface WorkerOptions {
    * @param error - Hata nesnesi
    */
   onFailed?: (job: DeviceJob, error: Error) => void;
+
+  /**
+   * BullMQ stall kontrol aralığı (ms). Varsayılan 30000. Asılı bir işlem
+   * (ör. statement_timeout'a takılan DB yazımı) bu aralıkta "stalled" sayılıp
+   * yeniden işlenir; bu, kaybolan anahtar/moveToDelayed sarmalına yol açar.
+   * İşlemin kendi zaman aşımından (statementTimeoutMs) BÜYÜK tutulmalıdır.
+   */
+  stalledInterval?: number;
 }
 
 /**

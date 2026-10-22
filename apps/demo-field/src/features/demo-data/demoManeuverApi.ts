@@ -18,9 +18,9 @@ import { demoApi } from "./demoApi";
  * cihaz setine indirgenir (K6).
  */
 
-/** Sanal ünite kapsamı → gerçek cihaz kimlikleri (tekilleştirilmiş). */
+/** Sanal ünite kapsamı → gerçek cihaz kimlikleri (varsayılan PCS çifti).
+ *  K-18: istasyon bazlı hedef `payload.deviceIds` ile verilir (PCS-1/2 | PCS-3/4). */
 export function scopeToDeviceIds(_scope: number[]): string[] {
-  // Tüm sanal üniteler aynı gerçek konteynerin PCS'lerini paylaşır.
   return ["PCS-1", "PCS-2"];
 }
 
@@ -91,11 +91,14 @@ export const demoManeuverApi = {
     ];
   },
 
-  /** Katalog kaydını yürütür (kapsam → deviceIds). */
+  /** Katalog kaydını yürütür (kapsam → deviceIds; istasyon → systems). */
   execute: async (payload: DemoExecutePayload): Promise<void> => {
     const body = {
       params: payload.params,
-      deviceIds: scopeToDeviceIds(payload.scope),
+      deviceIds: payload.deviceIds ?? scopeToDeviceIds(payload.scope),
+      ...(payload.systems !== undefined && payload.systems.length > 0
+        ? { systems: payload.systems }
+        : {}),
       ...(payload.timer ? { timer: payload.timer } : {}),
     };
     if (payload.kind === "maneuver") {
@@ -113,9 +116,9 @@ export const demoManeuverApi = {
     return runToActive(active);
   },
 
-  /** Aktif manevrayı durdurur — `standby` operasyonu (FR-5.6). */
-  stop: async (): Promise<void> => {
-    await demoApi.executeOperation("standby", {});
+  /** Aktif manevrayı durdurur — `standby` operasyonu (FR-5.6). UC-13: hedef konteyner. */
+  stop: async (systems?: string[]): Promise<void> => {
+    await demoApi.executeOperation("standby", systems && systems.length > 0 ? { systems } : {});
   },
 };
 

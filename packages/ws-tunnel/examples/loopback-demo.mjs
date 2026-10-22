@@ -3,7 +3,7 @@
  * loopback-demo.mjs — ws-tunnel paket içi gözle doğrulama demosu.
  *
  * Monorepo'ya hiç değmez (ContainerProxy/Fastify/PG YOKTUR):
- *   A. TunnelConnector → FieldHarness register (paket içi field ucu).
+ *   A. TunnelConnector → HubHarness register (paket içi field ucu).
  *   B. open-session → konteyner JWT → ack.
  *   C. Tünel HTTP: GET / → SPA HTML akar (FIN ile biter).
  *   D. Tünel HTTP: GET /api/data/latest → JSON akar.
@@ -27,7 +27,7 @@ import {
   SessionGateway,
   TunnelProxy,
 } from "../src/index.ts";
-import { FieldHarness } from "../src/demo/field-harness.ts";
+import { HubHarness } from "../src/demo/hub-harness.ts";
 import { JoseSignerForTests } from "../src/session/__test-helpers__/jose-signer.ts";
 
 const CONTAINER_ID = "container-demo-loop";
@@ -71,7 +71,7 @@ const upstreamPort = httpServer.address().port;
 const base = `http://127.0.0.1:${upstreamPort}`;
 
 // --- field ucu (paket içi) ---
-const harness = new FieldHarness({ registerAckDelayMs: 5 });
+const harness = new HubHarness({ registerAckDelayMs: 5 });
 const fieldPort = await harness.start();
 const fieldStore = new HubSessionStore();
 const audit = {
@@ -92,12 +92,10 @@ const connector = new TunnelConnector(
     token: TOKEN,
     peerId: CONTAINER_ID,
     heartbeatIntervalMs: 200,
-    telemetryIntervalMs: 200,
     registerTimeoutMs: 3000,
     livenessTimeoutMs: 60000,
   },
   new WsSocketClientFactory(),
-  { snapshot: async () => [] },
   new ReconnectDelay({ baseMs: 50, maxMs: 200, jitterSpanMs: 0, jitter: () => 0 }),
 );
 const sessionStore = new ClientSessionStore(
@@ -112,7 +110,7 @@ await connector.start();
 check("A: konteyner field'a kaydoldu", await waitFor(() => connector.connected()), `state=${connector.state()}`);
 
 const outcome = await gateway.openSession({
-  fieldId: "f-demo",
+  hubId: "f-demo",
   peerId: CONTAINER_ID,
   user: { id: "u-1", username: "operator", role: "teknik" },
 });

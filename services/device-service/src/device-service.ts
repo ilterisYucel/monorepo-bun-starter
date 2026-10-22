@@ -21,11 +21,25 @@ import { DeviceConfigLoader } from "./config-loader";
 import { DeviceFactory } from "./device-factory";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
+import { TelemetryWriteFilter } from "./telemetry-write-filter";
+import { HeartbeatWriter } from "./heartbeat-writer";
+import type { HeartbeatConfig } from "./heartbeat-writer";
+import { resolveWritePolicies } from "./write-policy";
+import type { WritePolicy } from "./write-policy";
 import {
   AlarmTransitionDetector,
   alarmSamples,
 } from "./alarm-transition-detector";
+import type { AlarmTransition } from "./alarm-transition-detector";
 import { AlarmStateRepository } from "./alarm-state-repository";
+
+/**
+ * BullMQ stall kontrol aralığı. İşlemin kendi zaman aşımından (komut validate
+ * 35 sn / statement_timeout 30 sn) BÜYÜK olmalı; aksi halde asılı iş stall'a
+ * düşüp çift işlenir ve "Missing key (moveToFinished/moveToDelayed)" sarmalı
+ * işi yutar (AWS 2026-10-14 olayı).
+ */
+const WORKER_STALLED_INTERVAL_MS = 120_000;
 
 interface DeviceEntry {
   device: IDevice;
@@ -38,6 +52,10 @@ interface DeviceEntry {
   details?: Record<string, unknown>;
   configConnection: Record<string, unknown>;
   alarms?: DeviceAlarmRule[];
+  /** Yazma politikası (opt-in) — `name → {deadband, maxStaleMs}`; yoksa always-write. */
+  writePolicy?: Map<string, WritePolicy>;
+  /** Periyodik heartbeat yazımı (LGES BSC 40000) — yoksa yazım yapılmaz. */
+  heartbeat?: HeartbeatConfig;
 }
 
 const CREATE_DEVICES_TABLE = `
@@ -82,6 +100,9 @@ const SET_DEVICE_ONLINE = `UPDATE devices SET status = 'online', last_seen = NOW
 /** Sürekli okuma hatasında hatırlatma periyodu — spam önleme (86.4k log/gün). */
 const FAILURE_REMINDER_MS = 60_000;
 
+/** Politikasız cihazlar için paylaşılan boş harita (always-write). */
+const EMPTY_POLICY: ReadonlyMap<string, WritePolicy> = new Map();
+
 export class DeviceService {
   private readonly devices: Map<string, DeviceEntry>;
   private running: boolean;
@@ -96,6 +117,8 @@ export class DeviceService {
   private readonly alarmDetector: AlarmTransitionDetector;
   private readonly alarmRepository: AlarmStateRepository | undefined;
   private readonly ops: OpsLog;
+  private readonly writeFilter: TelemetryWriteFilter;
+  private readonly heartbeats: Map<string, HeartbeatWriter>;
 
   constructor(
     devices: DeviceEntry[],
@@ -120,6 +143,8 @@ export class DeviceService {
     this.lastReminderAt = new Map();
     this.alarmDetector = new AlarmTransitionDetector();
     this.alarmRepository = sql ? new AlarmStateRepository(sql) : undefined;
+    this.writeFilter = new TelemetryWriteFilter();
+    this.heartbeats = new Map();
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
@@ -177,6 +202,8 @@ export class DeviceService {
           details: c.details,
           configConnection: c.connection,
           alarms: c.alarms,
+          writePolicy: resolveWritePolicies(c.telemetry),
+          heartbeat: c.heartbeat,
         },
       ];
 
@@ -192,6 +219,7 @@ export class DeviceService {
           protocol: "MODBUS",
           type: c.connector.device.type,
           configConnection: c.connector.device.connection,
+          writePolicy: resolveWritePolicies(c.connector.device.telemetry),
         });
       }
       return entries;
@@ -297,6 +325,14 @@ export class DeviceService {
     for (const entry of entries) {
       this.alarmDetector.reset(entry.device.id);
     }
+    // Alarm kurallı cihaz var ama kalıcılık katmanı eksikse geçişler yalnızca
+    // dedup ile tüketilir ve KALICI olarak kaybolur — sessiz kayıp yerine bir kez uyar.
+    const alarmConfigured = entries.some((e) => (e.alarms?.length ?? 0) > 0);
+    if (alarmConfigured && (!this.alarmRepository || !this.logger)) {
+      this.ops.warn(
+        "Alarm kurallari var ama durum tablosu/logger yok — gecisler kalici kaydedilmez",
+      );
+    }
 
     // Yalnız cihaz job tiplerine worker kaydı — `registerWorker` (tüm tipler)
     // kullanılırsa başka tüketiciye ait FETCH_EXTERNAL/WRITE_TELEMETRY job'ları
@@ -307,7 +343,7 @@ export class DeviceService {
         if (!this.running) return;
         await this.readDevice(job as ReadDeviceJob);
       },
-      { concurrency: 10 },
+      { concurrency: 10, stalledInterval: WORKER_STALLED_INTERVAL_MS },
     );
     await this.mq.registerWorkerFor(
       "COMMAND_DEVICE",
@@ -315,14 +351,35 @@ export class DeviceService {
         if (!this.running) return;
         return await this.executeCommand(job as CommandDeviceJob);
       },
-      { concurrency: 10 },
+      { concurrency: 10, stalledInterval: WORKER_STALLED_INTERVAL_MS },
     );
+
+    // Heartbeat yazıcıları (config-driven — örn. LGES BSC 40000): cihaz bağlandıktan
+    // sonra başlar; durdurma `stop()`'ta. Yazılmazsa BSC ~20 sn'de rack'leri açar.
+    for (const entry of entries) {
+      if (!entry.heartbeat) continue;
+      const writer = new HeartbeatWriter(
+        entry.device,
+        entry.device.id,
+        entry.heartbeat,
+        (error) =>
+          this.ops.warn("Heartbeat yazim hatasi", {
+            deviceId: entry.device.id,
+            error: String(error),
+          }),
+      );
+      writer.start();
+      this.heartbeats.set(entry.device.id, writer);
+    }
 
     this.ops.info(`${this.devices.size} cihaz baslatildi`);
   }
 
   async stop(): Promise<void> {
     this.running = false;
+
+    for (const writer of this.heartbeats.values()) writer.stop();
+    this.heartbeats.clear();
 
     const disconnectPromises = Array.from(this.devices.values()).map(
       async (entry) => {
@@ -405,39 +462,71 @@ export class DeviceService {
     const transitions = this.alarmDetector.detect(deviceId, samples);
     if (transitions.length === 0) return;
 
-    for (const transition of transitions) {
-      try {
-        if (transition.kind === "set") {
-          await this.alarmRepository?.activate(deviceId, {
-            name: transition.name,
-            severity: transition.severity,
-            description: transition.description,
-          });
-          await this.logger?.log({
-            level:
-              transition.severity === "warning" ? "warn" : transition.severity,
-            category: "app",
-            eventCode: "device_alarm",
-            message: `Cihaz alarmi aktif: ${transition.name}`,
-            context: {
-              deviceId,
-              alarm: transition.name,
-              severity: transition.severity,
-            },
-          });
-        } else {
-          await this.alarmRepository?.deactivate(deviceId, transition.name);
-          await this.logger?.log({
-            level: "info",
-            category: "app",
-            eventCode: "device_alarm_cleared",
-            message: `Cihaz alarmi kapandi: ${transition.name}`,
-            context: { deviceId, alarm: transition.name },
-          });
-        }
-      } catch {
-        // alarm durumu/лого best-effort — telemetri akışı etkilenmez
+    // Geçişler bağımsızdır → eşzamanlı işlenir. TamperLogger imzalama state'i
+    // (seq/prevHash) çağrı anında senkron güncellendiğinden map çağrı sırası
+    // zincir sırasını korur.
+    await Promise.allSettled(
+      transitions.map((transition) => this.applyTransition(deviceId, transition)),
+    );
+  }
+
+  /**
+   * Tek alarm geçişini uygular — iki kalıcılık katmanı BAĞIMSIZ best-effort:
+   * (1) durum tablosu UPSERT, (2) imzalı geçiş logu. Bir katmanın hatası
+   * diğerini atlamaz; hiçbir hata poll'u kesmez (ops.warn ile görünür).
+   */
+  private async applyTransition(
+    deviceId: string,
+    transition: AlarmTransition,
+  ): Promise<void> {
+    const set = transition.kind === "set";
+    try {
+      if (set) {
+        await this.alarmRepository?.activate(deviceId, {
+          name: transition.name,
+          severity: transition.severity,
+          description: transition.description,
+        });
+      } else {
+        await this.alarmRepository?.deactivate(deviceId, transition.name);
       }
+    } catch (err) {
+      this.ops.warn("Alarm durum tablosu yazilamadi", {
+        deviceId,
+        alarm: transition.name,
+        error: String(err),
+      });
+    }
+
+    try {
+      await this.logger?.log(
+        set
+          ? {
+              level:
+                transition.severity === "warning" ? "warn" : transition.severity,
+              category: "app",
+              eventCode: "device_alarm",
+              message: `Cihaz alarmi aktif: ${transition.name}`,
+              context: {
+                deviceId,
+                alarm: transition.name,
+                severity: transition.severity,
+              },
+            }
+          : {
+              level: "info",
+              category: "app",
+              eventCode: "device_alarm_cleared",
+              message: `Cihaz alarmi kapandi: ${transition.name}`,
+              context: { deviceId, alarm: transition.name },
+            },
+      );
+    } catch (err) {
+      this.ops.warn("Alarm gecis logu yazilamadi", {
+        deviceId,
+        alarm: transition.name,
+        error: String(err),
+      });
     }
   }
 
@@ -536,7 +625,21 @@ export class DeviceService {
   ): Promise<void> {
     const tagger = this.taggers.get(deviceId);
     const enriched = tagger ? tagger.enrich(data) : data;
-    await this.scheduler.publishTelemetry(deviceId, enriched);
+
+    // Yazma politikası yalnız WRITE_TELEMETRY alt kümesini etkiler; MANAGEMENT/WS
+    // tam veriyi alır. State yalnız başarılı enqueue sonrası ilerletilir (K2/K5).
+    const entry = this.devices.get(deviceId);
+    const policies = entry?.writePolicy ?? EMPTY_POLICY;
+    const writeSubset = this.writeFilter.select(deviceId, enriched, policies);
+
+    const { writeEnqueued } = await this.scheduler.publishTelemetry(
+      deviceId,
+      enriched,
+      writeSubset,
+    );
+    if (writeEnqueued && writeSubset.length > 0) {
+      this.writeFilter.markWritten(deviceId, writeSubset);
+    }
   }
 
   private async executeCommand(
@@ -584,6 +687,21 @@ export class DeviceService {
       return { success: false, reason: msg };
     }
 
+    // Momentary coil/bobin darbesi (S1): yazım hemen 0'a çekilir ki gerçek IO
+    // çıkışı sürekli enerjili kalmasın (şalter açma/kapama bobinleri).
+    if (job.pulse) {
+      try {
+        await entry.device.write(
+          job.telemetries.map((t) => ({ ...t, value: 0 })),
+        );
+      } catch (err) {
+        this.ops.warn("Pulse sifirlama hatasi", {
+          deviceId: job.deviceId,
+          error: String(err),
+        });
+      }
+    }
+
     try {
       const allData = await entry.device.read();
       await this.publish(job.deviceId, allData);
@@ -599,19 +717,44 @@ export class DeviceService {
         .catch(() => undefined);
     }
 
-    await this.logCommand(job, true);
-
     const validate = job.validate;
-    if (validate) {
-      return await this.validateReadBack(entry, validate);
+    const result = validate
+      ? await this.validateReadBack(entry, validate)
+      : ({ success: true } as const);
+
+    // Audit sonucu doğrulamadan SONRA yazılır: cihaz komutu reddederse
+    // (ör. LGES "Current Flows") kayıt başarılı görünmemeli (NEW-3).
+    await this.logCommand(job, result.success, result.success ? undefined : result.reason);
+
+    // El sıkışma finalize (C3): doğrulama sonrası komut kutusunu boşalt
+    // (LGES BSC 40010 → 0x0000). Aksi halde tekrar eden aynı komut yeni istek sayılmaz.
+    if (job.finalize) {
+      try {
+        await entry.device.write([
+          {
+            deviceId: job.deviceId,
+            name: job.finalize.name,
+            description: job.finalize.name,
+            value: job.finalize.value,
+            unit: "-",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      } catch (err) {
+        this.ops.warn("Finalize yazim hatasi", {
+          deviceId: job.deviceId,
+          error: String(err),
+        });
+      }
     }
 
-    return { success: true };
+    return result;
   }
 
   /**
    * Komut sonrası read-back doğrulaması — `minWaitMs` bekle, `timeoutMs` boyunca
-   * 50 ms aralıkla oku; eşleşme → `validated:true`, timeout → `validated:false`.
+   * 50 ms aralıkla oku; eşleşme → `validated:true`, timeout → `success:false, validated:false`.
+   * Timeout yumuştur: tek bir okuma süreyi bir okuma süresi kadar aşabilir.
    */
   private async validateReadBack(
     entry: DeviceEntry,
@@ -622,20 +765,38 @@ export class DeviceService {
       await new Promise((r) => setTimeout(r, minWaitMs));
     }
     const start = Date.now();
+    let lastError: string | undefined;
+    let warned = false;
     while (Date.now() - start < validate.timeoutMs) {
       try {
         const readBack = await entry.device.read();
         const allMatch = validate.reads.every((expected) => {
           const actual = readBack.find((r) => r.name === expected.name);
-          return actual !== undefined && expectHolds(actual.value, expected.expect);
+          return actual !== undefined && expectHolds(actual.value, expected.expect, expected.accept);
         });
         if (allMatch) return { success: true, validated: true };
-      } catch {
-        // ELEGANT-EXCEPTION: validation read-back failure; retry in next poll cycle
+      } catch (err) {
+        // ELEGANT-EXCEPTION: geçici okuma hatası doğrulama penceresini kesmemeli;
+        // aynı çağrı içinde 50 ms sonra yeniden denenir (session devam eder).
+        lastError = String(err);
+        if (!warned) {
+          warned = true;
+          this.ops.warn("Read-back sirasinda okuma hatasi — pencere sonuna kadar denenecek", {
+            deviceId: entry.device.id,
+            error: lastError,
+          });
+        }
       }
+      if (Date.now() - start + 50 >= validate.timeoutMs) break;
       await new Promise((r) => setTimeout(r, 50));
     }
-    return { success: true, validated: false, reason: "Validation timeout" };
+    // Doğrulama zaman aşımı BAŞARISIZLIKTIR (NEW-3): cihaz komutu reddettiyse
+    // (BSC Ack ≠ Done) kurallar/sekanslar bunu "ok" saymamalı.
+    return {
+      success: false,
+      validated: false,
+      reason: lastError ? `Validation timeout (last read failed: ${lastError})` : "Validation timeout",
+    };
   }
 
   /** Komut audit'i (T0.11) — kim/hangi komut/sonuç; audit fail-closed'dur. */

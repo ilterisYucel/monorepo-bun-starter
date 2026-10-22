@@ -1,6 +1,6 @@
 // DC Metre register map — DJSF1352-RN (ACREL) sözleşmesi.
 // Kaynak: KONTEYNER-MANEVRA-KATALOGU-REV03-MIMARISI.md §2.6 (K1):
-//   FC03 (input register), salt ölçüm — komut YOKTUR.
+//   FC03 (holding), salt ölçüm — komut YOKTUR.
 //   addr 50/52/54 = DC V/I/P (float32, kW) + alarm word addr 19.
 //
 // Sözleşme:

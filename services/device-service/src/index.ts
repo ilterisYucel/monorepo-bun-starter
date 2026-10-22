@@ -1,3 +1,4 @@
+export { HeartbeatWriter } from "./heartbeat-writer";
 export { DeviceService } from "./device-service";
 export { DeviceConfigLoader } from "./config-loader";
 export { DeviceFactory } from "./device-factory";
