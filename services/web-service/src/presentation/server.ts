@@ -51,6 +51,7 @@ import type { OperationRequester } from "../infrastructure/field-uplink/operatio
 import type { ManeuverRegistry, OperationExecutor } from "@gd-monorepo/platform-commands";
 import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
 import { fieldRoutes } from "./routes/field-routes";
+import { topologyRoutes } from "./routes/topology-routes";
 import { fieldContainerCommandRoutes } from "./routes/field-container-commands";
 import { adminRoutes } from "./routes/admin-routes";
 import { marketRoutes } from "./routes/market-routes";
@@ -354,6 +355,7 @@ export class WebServiceServer {
     await this.app.register(
       async (fastify) => {
         await fieldRoutes(fastify, { db: deps.postgres, containerProxy: deps.containerProxy });
+        await topologyRoutes(fastify);
         // WS4 D3: field → konteyner komut proxy'si — hub-servis REST (consumer).
         if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
           await fieldContainerCommandRoutes(fastify, {

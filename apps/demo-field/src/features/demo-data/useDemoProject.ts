@@ -29,6 +29,7 @@ import type { DemoTrendData } from "./buildTrendSeries";
 import { deriveKpis, type NovaKpis } from "./deriveKpis";
 import { alertKey, deriveAlerts, deriveAlertsRaw, type NovaAlert } from "./deriveAlerts";
 import { DEMO_TOPOLOGY, FIELD_DEVICE_IDS } from "./demo-topology";
+import { stationsFromTopology, type DemoStation } from "./demo-stations";
 import { applyRmuControl, useRmuStore } from "./stores/RmuStore";
 import { useFaultClearStore } from "./stores/FaultClearStore";
 
@@ -46,8 +47,10 @@ export interface DemoProjectData {
   restPhases: RestPhase[];
   rest: RestState;
   readyUnits: DemoReadyUnit[];
-  /** Ham konteyner kayıtları (station etiketiyle) — istasyon→konteyner eşlemesi. */
+  /** Ham konteyner kayıtları. */
   containers: FieldContainer[];
+  /** EMS topolojisinden gelen istasyonlar (yoksa statik fallback). */
+  stations: DemoStation[];
   runs: OperationRunRecord[];
   logs: LogEntry[];
   alarms: DeviceAlarmState[];
@@ -65,18 +68,30 @@ export function useDemoProject(fieldId: string): DemoProjectData {
   const prune = useFaultClearStore((s) => s.prune);
   const h02Open = useRmuStore((s) => s.h02Open);
   const earthed = useRmuStore((s) => s.earthed);
+  // EMS domain topolojisi (istasyon/fider/ünite + konteyner eşlemesi). Endpoint
+  // yoksa statik DEMO_STATIONS'a düşer (standalone/test).
+  const topology = useQuery({
+    queryKey: ["demo-topology", fieldId],
+    queryFn: ({ signal }) => demoApi.topology(fieldId, signal),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    enabled: fieldId.length > 0,
+  });
+  const stations = useMemo(() => stationsFromTopology(topology.data), [topology.data]);
+
   const state = useMemo(
     () => ({
       ...applyRmuControl(
         mapFieldToMimicState(containers.data ?? [], DEMO_TOPOLOGY, {
           extraTelemetry: telemetry.data ?? [],
+          stations,
         }),
         h02Open,
         earthed,
       ),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- cleared: yeniden türetme tetikleyicisi
-    [containers.data, telemetry.data, h02Open, earthed, cleared],
+    [containers.data, telemetry.data, h02Open, earthed, cleared, stations],
   );
   const kpis = useMemo(() => deriveKpis(state, DEMO_TOPOLOGY), [state]);
   const alerts = useMemo(() => deriveAlerts(state, DEMO_TOPOLOGY), [state]);
@@ -171,6 +186,7 @@ export function useDemoProject(fieldId: string): DemoProjectData {
     rest,
     readyUnits,
     containers: containers.data ?? [],
+    stations,
     runs,
     logs: logsQuery.data ?? [],
     alarms: alarmsQuery.data ?? [],

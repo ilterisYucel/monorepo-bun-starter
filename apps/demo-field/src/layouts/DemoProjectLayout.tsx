@@ -22,7 +22,7 @@ import { useDemoProject, type DemoProjectData } from "../features/demo-data/useD
 import { useTargetSocWatcher } from "../features/demo-data/useTargetSocWatcher";
 import { availablePoiMW } from "../features/demo-data/demo-permissives";
 import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
-import { DEMO_STATIONS, stateForStation, stationTopo, stationsForContainers } from "../features/demo-data/demo-stations";
+import { DEMO_STATIONS, stateForStation, stationTopo, type DemoStation } from "../features/demo-data/demo-stations";
 import { deriveKpis } from "../features/demo-data/deriveKpis";
 import { deriveAlerts } from "../features/demo-data/deriveAlerts";
 import { siteFieldId } from "../lib/site-field";
@@ -47,8 +47,10 @@ export interface DemoProjectContextValue extends DemoProjectData {
   stationTopology: NovaTopology;
   /** Seçili istasyonun uyarıları (attention). */
   stationAlerts: DemoProjectData["alerts"];
-  /** İstasyon key → konteyner id (uzak manevra hedefi, UC-13). */
+  /** İstasyon key → konteyner id (uzak manevra hedefi). */
   stationSystems: Record<string, string>;
+  /** Aktif saha istasyonları (EMS topolojisi; yoksa statik fallback). */
+  stations: DemoStation[];
 }
 
 const DemoProjectContext = createContext<DemoProjectContextValue | null>(null);
@@ -77,7 +79,8 @@ export const DemoProjectLayout: React.FC = () => {
 
   // gdems `activate(pi, k)`: aktif istasyon tüm görünümleri belirler — çizim
   // her zaman 9 ünite + 2 fiderdir; istasyon geçişi tüm sekmeleri değiştirir.
-  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0]!;
+  const stations = (project.stations?.length ?? 0) > 0 ? project.stations : [...DEMO_STATIONS];
+  const station = stations[activeStation] ?? stations[0]!;
   const stationState = useMemo(() => stateForStation(state, station), [state, station]);
   const stationTopology = useMemo(() => stationTopo(station), [station]);
   const stationKpis = useMemo(() => deriveKpis(stationState, stationTopology), [stationState, stationTopology]);
@@ -89,12 +92,12 @@ export const DemoProjectLayout: React.FC = () => {
   // İstasyon → konteyner eşlemesi (field register `station` etiketi; ön yüz girdisi).
   const stationSystems = useMemo(() => {
     const map: Record<string, string> = {};
-    for (const g of stationsForContainers(project.containers)) {
-      const id = g.containerIds[0];
-      if (id !== undefined) map[g.station.key] = id;
+    for (const s of stations) {
+      const id = s.containerIds[0];
+      if (id !== undefined) map[s.key] = id;
     }
     return map;
-  }, [project.containers]);
+  }, [stations]);
 
   // UC-13: hedef SOC gözlemcisi — stop'u hedefin istasyonunun konteynerine yönlendirir.
   useTargetSocWatcher(state, runs, stationSystems);
@@ -259,6 +262,7 @@ export const DemoProjectLayout: React.FC = () => {
     stationTopology,
     stationAlerts,
     stationSystems,
+    stations,
   };
 
   return (
@@ -272,7 +276,7 @@ export const DemoProjectLayout: React.FC = () => {
           items={stripItems}
         />
         <DemoStationBar
-          stations={DEMO_STATIONS.map((s) => {
+          stations={stations.map((s) => {
             const st = stateForStation(state, s);
             const topo = stationTopo(s);
             return {

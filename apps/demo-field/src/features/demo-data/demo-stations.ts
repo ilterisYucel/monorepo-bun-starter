@@ -1,3 +1,4 @@
+import type { FieldTopology } from "@gd-monorepo/shared-types";
 import type { NovaMimicState, NovaTopology } from "@gd-monorepo/ui";
 import { DEMO_TOPOLOGY, DEMO_UNIT_COUNT } from "./demo-topology";
 
@@ -23,6 +24,8 @@ export interface DemoStation {
   readonly pcs: readonly [string, string];
   /** İstasyonun MV simülatörü (istasyon başına 1; H04/H05 bu panonun fiderleri). */
   readonly mvDeviceId: string;
+  /** İstasyonu temsil eden konteynerler (hub peer id'leri; EMS topolojisi). */
+  readonly containerIds: readonly string[];
 }
 
 /** Collector (grid ile istasyonlar arası ortak bara) — 31.05 MW ≤ 50 → MV STATION. */
@@ -41,13 +44,33 @@ export const DEMO_STATIONS: readonly DemoStation[] = [
     index: 0, key: "bess1", name: "BESS MV STATION #1",
     feeders: { A: range(1, 5), B: range(6, 4) }, units: range(1, 9),
     pcs: ["PCS-1", "PCS-2"], mvDeviceId: "DEMO-MV-1",
+    containerIds: ["container-1"],
   },
   {
     index: 1, key: "bess2", name: "BESS MV STATION #2",
     feeders: { A: range(10, 5), B: range(15, 4) }, units: range(10, 9),
     pcs: ["PCS-3", "PCS-4"], mvDeviceId: "DEMO-MV-2",
+    containerIds: ["container-2"],
   },
 ];
+
+/**
+ * EMS topolojisinden (web-service `GET /fields/:id/topology`) DemoStation
+ * modeline dönüşüm; endpoint yoksa statik DEMO_STATIONS'a düşer.
+ */
+export function stationsFromTopology(topology: FieldTopology | undefined): DemoStation[] {
+  if (topology === undefined || topology.stations.length === 0) return [...DEMO_STATIONS];
+  return topology.stations.map((station, index) => ({
+    index,
+    key: station.key,
+    name: station.name,
+    feeders: { A: [...station.feeders.A.units], B: [...station.feeders.B.units] },
+    units: [...station.units],
+    pcs: [station.pcs[0] ?? "PCS-1", station.pcs[1] ?? "PCS-2"] as [string, string],
+    mvDeviceId: station.mvDeviceId,
+    containerIds: [...station.containers],
+  }));
+}
 
 /** İstasyon key'i (bess1/bess2) → field PCS çifti; bilinmeyen key'de ilk istasyon. */
 export function pcsIdsForStation(key: string | undefined): readonly [string, string] {

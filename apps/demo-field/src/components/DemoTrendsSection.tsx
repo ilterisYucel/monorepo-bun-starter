@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DemoTrendChart } from "@gd-monorepo/ui";
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DEMO_TOPOLOGY } from "../features/demo-data/demo-topology";
-import { DEMO_STATIONS, pcsIdsForStation } from "../features/demo-data/demo-stations";
+import { pcsIdsForStation } from "../features/demo-data/demo-stations";
 import { buildTrendSeries, trendBands, BSC_TREND_NAMES } from "../features/demo-data/buildTrendSeries";
 import { demoApi } from "../features/demo-data/demoApi";
 
@@ -23,11 +23,11 @@ export const TREND_REFETCH_MS = 2_000;
 export const TREND_POWER_NAMES = ["Grid Active Power"];
 
 export const DemoTrendsSection: React.FC = () => {
-  const { fieldId, activeStation, stationSystems, restPhases } = useDemoProjectContext();
+  const { fieldId, activeStation, stationSystems, restPhases, stations } = useDemoProjectContext();
   const L = DEMO_TOPOLOGY.limits;
   // gdems `activate(pi, k)`: trendler AKTİF istasyonun konteyneri (SOC/SOH/
   // sıcaklık) + PCS çifti (güç) üzerinden çizilir; istasyon geçişi grafikleri değiştirir.
-  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0]!;
+  const station = stations[activeStation] ?? stations[0]!;
   const pcs = useMemo(() => [...pcsIdsForStation(station.key)], [station.key]);
   const containerId = stationSystems[station.key];
   const containerIds = useMemo(() => (containerId !== undefined ? [containerId] : []), [containerId]);

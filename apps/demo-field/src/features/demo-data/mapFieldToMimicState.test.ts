@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { FieldContainer } from "./demoApi";
 import { DEMO_TOPOLOGY } from "./demo-topology";
+import { DEMO_STATIONS } from "./demo-stations";
 import { fanOutUnits } from "./fanOutUnits";
 import { mapFieldToMimicState } from "./mapFieldToMimicState";
 import type { NovaUnitState } from "@gd-monorepo/ui";
@@ -109,10 +110,12 @@ describe("mapFieldToMimicState (FR-2.2..FR-2.6)", () => {
     expect(state.units[0].pcs[1].state).toBe("dis");
   });
 
-  it("saha toplam gücünü korur (POI işaretli)", () => {
-    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY);
-    // -600 kW şarj + 400 kW deşarj = -0.20 MW / grup; 2026-10-15: her grup kopyası
-    // gerçek PCS çiftinin gücünü taşır (bölme yok) → POI = grup sayısı × -0.20 MW
+  it("istasyon toplam gücünü korur (POI işaretli)", () => {
+    const state = mapFieldToMimicState([container(REAL_TELEMETRY)], DEMO_TOPOLOGY, {
+      stations: [DEMO_STATIONS[0]!],
+    });
+    // -600 kW şarj + 400 kW deşarj = -0.20 MW / grup; her grup kopyası
+    // gerçek PCS çiftinin gücünü taşır (bölme yok) → POI = 9 × -0.20 MW
     expect(state.poiMW).toBeCloseTo(-0.2 * state.units.length, 3);
   });
 
@@ -232,11 +235,13 @@ describe("UC-13 istasyon-bazlı fan-out", () => {
     ],
   });
 
-  it("iki konteyner iki istasyona bölünür; SOC istasyona göre ayrışır", () => {
+  it("iki konteyner topolojiye göre iki istasyona bölünür; SOC ayrışır", () => {
     const mv = REAL_TELEMETRY.filter((r) => r.deviceId === "DEMO-MV-1");
-    const state = mapFieldToMimicState([tagged("c1", "bess1", 60), tagged("c2", "bess2", 40)], DEMO_TOPOLOGY, {
-      extraTelemetry: mv,
-    });
+    const state = mapFieldToMimicState(
+      [tagged("container-1", "bess1", 60), tagged("container-2", "bess2", 40)],
+      DEMO_TOPOLOGY,
+      { extraTelemetry: mv },
+    );
     expect(state.units).toHaveLength(18);
     // station1 = BESS#1–9 (c1 → 60), station2 = BESS#10–18 (c2 → 40)
     expect(state.units.find((u) => u.n === 1)?.banks[0].soc).toBe(60);

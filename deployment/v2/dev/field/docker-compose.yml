@@ -272,6 +272,8 @@ services:
       FIELD_INTERNAL_API_TOKEN: ${FIELD_INTERNAL_API_TOKEN:-}
       HUB_CONSUMER_URL: ${HUB_CONSUMER_URL:-http://hub-servis:5003}
       HUB_CONSUMER_TOKEN: ${HUB_CONSUMER_TOKEN:-dev-hub-consumer-token}
+      # EMS domain: istasyon/fider/ünite topolojisi (hub'a sızmaz).
+      FIELD_TOPOLOGY_PATH: /app/config/topology.json
     ports:
       - "5002:5002"
     volumes:
@@ -280,6 +282,7 @@ services:
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-field:ro
       - ./maneuvers:/app/maneuver-config:ro
+      - ./topology.json:/app/config/topology.json:ro
       - ../../../../packages/core/src:/app/packages/core/src
       - ../../../../packages/shared-types/src:/app/packages/shared-types/src
       - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src

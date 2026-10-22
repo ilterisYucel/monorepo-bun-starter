@@ -1,0 +1,28 @@
+{
+  "stations": [
+    {
+      "key": "bess1",
+      "name": "BESS MV STATION #1",
+      "feeders": {
+        "A": { "cell": "H04", "units": [1, 2, 3, 4, 5] },
+        "B": { "cell": "H05", "units": [6, 7, 8, 9] }
+      },
+      "units": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "containers": ["container-1"],
+      "pcs": ["PCS-1", "PCS-2"],
+      "mvDeviceId": "DEMO-MV-1"
+    },
+    {
+      "key": "bess2",
+      "name": "BESS MV STATION #2",
+      "feeders": {
+        "A": { "cell": "H04", "units": [10, 11, 12, 13, 14] },
+        "B": { "cell": "H05", "units": [15, 16, 17, 18] }
+      },
+      "units": [10, 11, 12, 13, 14, 15, 16, 17, 18],
+      "containers": ["container-2"],
+      "pcs": ["PCS-3", "PCS-4"],
+      "mvDeviceId": "DEMO-MV-2"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { apiClient } from "../../lib/api-client";
+import type { FieldTopology } from "@gd-monorepo/shared-types";
 import type {
   TelemetryData,
   ManeuverRecord,
@@ -32,6 +33,19 @@ export interface ExecuteBody {
 }
 
 export const demoApi = {
+  /** EMS domain topolojisi (istasyon/fider/ünite + konteyner eşlemesi). */
+  topology: async (fieldId: string, signal?: AbortSignal): Promise<FieldTopology | undefined> => {
+    try {
+      const { data } = await apiClient.get<FieldTopology>(`/fields/${fieldId}/topology`, {
+        ...(signal ? { signal } : {}),
+      });
+      return data;
+    } catch {
+      // Endpoint yok (statik fallback) — 404 beklenen durum.
+      return undefined;
+    }
+  },
+
   containers: async (fieldId: string, signal?: AbortSignal): Promise<FieldContainer[]> => {
     const { data } = await apiClient.get<FieldContainer[]>(
       `/fields/${fieldId}/containers`,

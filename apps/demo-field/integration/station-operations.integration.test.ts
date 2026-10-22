@@ -4,7 +4,8 @@ import { FIELD_URL, api, assertHealthy, login, resolveFieldId } from "./helpers"
 /**
  * UC-13 — istasyon bazlı operasyon yürütme (2 konteyner, ayrı ws-tunnel).
  *
- * Ön koşul: `bun run start:demo-integration` + `bun run register:demo-integration`.
+ * Ön koşul: `bun run start:demo-integration` (hub peer bağlantısı otomatik).
+ * İstasyon→konteyner eşlemesi EMS topolojisinden (`/fields/:id/topology`).
  * İddia: uzak (`system`) adımlar, ön yüzün gönderdiği `systems` (container id)
  * ile **o istasyonun konteynerinde** yürür. bess1 → container-1, bess2 → container-2.
  * `standby` (yerel pcs_standby + uzak bsc_stop) hızlı/idempotent → hedef kanıtı.
@@ -17,7 +18,6 @@ interface Row {
 }
 interface ContainerRow {
   containerId: string;
-  station?: string | null;
   connectionStatus: string;
   latestTelemetry: Row[];
 }
@@ -38,9 +38,15 @@ beforeAll(async () => {
 });
 
 async function containersByStation(): Promise<Record<string, ContainerRow>> {
+  const topology = await api(FIELD_URL, token, `/api/fields/${fieldId}/topology`);
+  const stations = (topology.body as { stations: Array<{ key: string; containers: string[] }> }).stations;
   const { body } = await api(FIELD_URL, token, `/api/fields/${fieldId}/containers`);
+  const byId = new Map((body as ContainerRow[]).map((c) => [c.containerId, c]));
   const out: Record<string, ContainerRow> = {};
-  for (const c of body as ContainerRow[]) if (c.station) out[c.station] = c;
+  for (const s of stations) {
+    const row = byId.get(s.containers[0] ?? "");
+    if (row !== undefined) out[s.key] = row;
+  }
   return out;
 }
 

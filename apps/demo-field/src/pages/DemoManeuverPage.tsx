@@ -4,7 +4,7 @@ import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DemoReadySection } from "../components/DemoReadySection";
 import { DemoTrendsSection } from "../components/DemoTrendsSection";
 import { demoManeuverApi } from "../features/demo-data/demoManeuverApi";
-import { DEMO_STATIONS, pcsIdsForStation } from "../features/demo-data/demo-stations";
+import { pcsIdsForStation } from "../features/demo-data/demo-stations";
 import { derivePermissives, deriveStartupChecks } from "../features/demo-data/demo-permissives";
 import { socOf } from "../features/demo-data/useTargetSocWatcher";
 import { useTargetSocStore } from "../features/demo-data/stores/TargetSocStore";
@@ -114,7 +114,7 @@ function activeFromRun(run: OperationRunRecord | undefined): DemoActiveRun | und
 export const DemoManeuverPage: React.FC = () => {
   // UC-13: operasyonlar seçili istasyona göre — units/scope/permissives/startup
   // `stationState` + `stationTopology`'den (stBar seçimiyle senkron).
-  const { stationState: state, stationTopology, stationSystems, activeStation, runs, readyUnits } =
+  const { stationState: state, stationTopology, stationSystems, activeStation, runs, readyUnits, stations } =
     useDemoProjectContext();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -139,9 +139,9 @@ export const DemoManeuverPage: React.FC = () => {
 
   // Aktif istasyon (gdems `A.k`): komutlar o istasyonun konteyneri + PCS çifti
   // ile sürülür; kapsam aktif istasyonun üniteleridir.
-  const activeKey = DEMO_STATIONS[activeStation]?.key;
+  const activeKey = stations[activeStation]?.key;
   const feedersFor = (scope: number[]) =>
-    DEMO_STATIONS.filter((s) => scope.length === 0 || s.units.some((n) => scope.includes(n)));
+    stations.filter((s) => scope.length === 0 || s.units.some((n) => scope.includes(n)));
   const systemsOf = (key: string): string[] | undefined => {
     const id = stationSystems[key];
     return id ? [id] : undefined;
@@ -284,7 +284,7 @@ export const DemoManeuverPage: React.FC = () => {
     setBusy(true);
     setMessage("");
     try {
-      const key = DEMO_STATIONS[activeStation]?.key;
+      const key = stations[activeStation]?.key;
       await demoManeuverApi.stop(key ? systemsOf(key) : undefined);
       setMessage("Standby command sent.");
     } catch (e) {

@@ -16,7 +16,7 @@ import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DemoTrendsSection } from "../components/DemoTrendsSection";
 import { demoApi } from "../features/demo-data/demoApi";
 import { cellCommandName } from "../features/demo-data/demo-topology";
-import { DEMO_COLLECTOR, DEMO_SOURCE, DEMO_STATIONS, demoPlantTotals } from "../features/demo-data/demo-stations";
+import { DEMO_COLLECTOR, DEMO_SOURCE, demoPlantTotals } from "../features/demo-data/demo-stations";
 
 const OVERLAYS: Array<{ id: OverlayMode; label: string }> = [
   { id: "status", label: "Status" },
@@ -45,6 +45,7 @@ export const DemoFieldPage: React.FC = () => {
     stationState,
     stationTopology,
     stationAlerts,
+    stations,
   } = useDemoProjectContext();
   const [overlay, setOverlay] = useState<OverlayMode>("status");
   const [selected, setSelected] = useState<number | null>(null);
@@ -68,7 +69,7 @@ export const DemoFieldPage: React.FC = () => {
     [stationTopology, cellId],
   );
 
-  const station = DEMO_STATIONS[activeStation] ?? DEMO_STATIONS[0]!;
+  const station = stations[activeStation] ?? stations[0]!;
 
   const handleCellCommand = async (id: string, action: DemoCellAction): Promise<void> => {
     setCellBusy(true);
@@ -90,7 +91,7 @@ export const DemoFieldPage: React.FC = () => {
       <DemoPlantOverview
         topology={stationTopology}
         state={state}
-        stations={DEMO_STATIONS}
+        stations={stations}
         sources={DEMO_SOURCE.stations}
         collector={{
           name: PLANT.collector,
@@ -108,7 +109,7 @@ export const DemoFieldPage: React.FC = () => {
       {SHOW_PLANT_OVERVIEW && sourceStation ? (
         <>
           <div className="seg stnav" role="group" aria-label="MV station" style={{ margin: "10px 0 0" }}>
-            {DEMO_STATIONS.map((s) => (
+            {stations.map((s) => (
               <button key={s.key} type="button" onClick={() => setSourceStation(null)}>
                 {s.name.replace("BESS MV STATION", "BESS MV St.")}
               </button>

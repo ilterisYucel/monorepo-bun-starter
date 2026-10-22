@@ -11,7 +11,7 @@ import { listNovaUnits } from "@gd-monorepo/ui";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type { FieldContainer } from "./demoApi";
 import { BANK_DEVICE_MAP, DEMO_MV_DEVICE_ID, DEMO_UNIT_COUNT } from "./demo-topology";
-import { DEMO_STATIONS, stationsForContainers } from "./demo-stations";
+import { DEMO_STATIONS, type DemoStation } from "./demo-stations";
 import { fanOutUnits } from "./fanOutUnits";
 import {
   buildAux,
@@ -47,9 +47,6 @@ const PCS_STATE_BY_CODE: Record<number, NovaPcsState["state"]> = {
 };
 
 const SQRT3 = Math.sqrt(3);
-
-/** Legacy (stations'sız) kurulumun tarihsel PCS çifti. */
-const LEGACY_PCS: readonly [string, string] = ["PCS-1", "PCS-2"];
 
 // Fail-closed: pozisyon telemetrisi YOKSA "open" (kapalı varsaymak izinleri yanlışlıkla verirdi).
 function swPos(v: unknown, fallback: NovaSwitchPos = "open"): NovaSwitchPos {
@@ -268,10 +265,11 @@ function derivePower(
   units: NovaUnitState[],
   topo: NovaTopology,
   station: NovaStationState,
+  stationsConfig: readonly DemoStation[],
 ): { poiMW: number; feederMW: Record<string, number>; iA: Record<string, number> } {
   const meta = new Map<number, string>(listNovaUnits(topo).map((m) => [m.n, m.feeder]));
   // 2 istasyon × 9 ünite: ünite→fider eşlemesi istasyon config'inden (10–18 dahil).
-  for (const st of DEMO_STATIONS) {
+  for (const st of stationsConfig) {
     for (const n of st.feeders.A) meta.set(n, "A");
     for (const n of st.feeders.B) meta.set(n, "B");
   }
@@ -298,7 +296,8 @@ function derivePower(
   };
   // Fider CT akımı topolojideki fider→hücre eşlemesinden (A→H04, B→H05).
   // Eskiden sabit kodlu ve TERS idi (H04 ← B).
-  for (const [f, def] of Object.entries(topo.feeders)) {
+  const feeders = topo.feeders as Record<string, { cell: string }>;
+  for (const [f, def] of Object.entries(feeders)) {
     iA[def.cell] = amps(feederMW[f] ?? 0);
   }
 
@@ -325,6 +324,8 @@ export interface MapFieldOptions {
   unitCount?: number;
   /** Konteyner payload'ında olmayan field-tier cihaz satırları (PCS/MV). */
   extraTelemetry?: TelemetryData[];
+  /** EMS topolojisinden gelen istasyonlar (yoksa statik DEMO_STATIONS). */
+  stations?: readonly DemoStation[];
 }
 
 /** Tek konteynerin cihaz satırlarından sanal ünite prototipi (fan-out öncesi). */
@@ -373,49 +374,35 @@ export function mapFieldToMimicState(
   if (!hasAny) return emptyState(topo);
 
   const allRows = [...containers.flatMap((c) => c.latestTelemetry), ...extra];
-  const tagged = containers.some((c) => typeof c.station === "string" && c.station.length > 0);
+  const stationsConfig = opts.stations ?? DEMO_STATIONS;
+  const available = new Set(containers.map((c) => c.containerId));
   const units: NovaUnitState[] = [];
   /** İstasyon key → o istasyonun MV panosu (istasyon başına 1 MV simülatörü). */
   const stations: Record<string, NovaStationState> = {};
   const lastUnitByStation: number[] = [];
 
-  if (!tagged) {
-    // Legacy/eski kurulum (etiket yok): tarihsel field kablajı PCS-1/2 ile tek
-    // prototip → tüm ünitelere fan-out (güç korunumu ×N).
-    const proto = buildProto(indexByDevice(allRows), topo, LEGACY_PCS);
-    const count = opts.unitCount ?? DEMO_UNIT_COUNT;
-    const seq = stationsForContainers([]).flatMap((g) => [...g.station.units]);
-    const stUnits = fanOutUnits(proto, count);
-    stUnits.forEach((u, i) => {
-      u.n = seq[i] ?? i + 1;
+  for (const station of stationsConfig) {
+    // EMS topolojisi: istasyon→konteyner eşlemesi. Eşleşme yoksa (endpoint yok /
+    // tek konteynerli kurulum) tüm konteynerler o istasyonun prototipi olur.
+    const matched = station.containerIds.filter((id) => available.has(id));
+    const containerIds = matched.length > 0 ? matched : containers.map((c) => c.containerId);
+    const containerRows = containers
+      .filter((c) => containerIds.includes(c.containerId))
+      .flatMap((c) => c.latestTelemetry);
+    const rows = [...containerRows, ...extra];
+    if (rows.length === 0) continue;
+    const byDevice = indexByDevice(rows);
+    const proto = buildProto(byDevice, topo, station.pcs);
+    const stUnits = fanOutUnits(proto, station.units.length);
+    station.units.forEach((n, i) => {
+      if (stUnits[i]) stUnits[i].n = n;
     });
     units.push(...stUnits);
-    for (const g of stationsForContainers([])) {
-      stations[g.station.key] = buildStation(indexByDevice(allRows).get(g.station.mvDeviceId), topo);
-      const lastUnit = g.station.units.at(-1);
-      if (lastUnit !== undefined) lastUnitByStation.push(lastUnit);
-    }
-  } else {
-    // UC-13: konteyner `station` etiketine göre istasyon-bazlı fan-out.
-    for (const g of stationsForContainers(containers)) {
-      const containerRows = containers
-        .filter((c) => g.containerIds.includes(c.containerId))
-        .flatMap((c) => c.latestTelemetry);
-      const rows = [...containerRows, ...extra];
-      if (rows.length === 0) continue;
-      const byDevice = indexByDevice(rows);
-      const proto = buildProto(byDevice, topo, g.station.pcs);
-      const stUnits = fanOutUnits(proto, g.station.units.length);
-      g.station.units.forEach((n, i) => {
-        if (stUnits[i]) stUnits[i].n = n;
-      });
-      units.push(...stUnits);
-      stations[g.station.key] = buildStation(byDevice.get(g.station.mvDeviceId), topo);
-      const lastUnit = g.station.units.at(-1);
-      if (lastUnit !== undefined) lastUnitByStation.push(lastUnit);
-    }
-    units.sort((a, b) => a.n - b.n);
+    stations[station.key] = buildStation(byDevice.get(station.mvDeviceId), topo);
+    const lastUnit = station.units.at(-1);
+    if (lastUnit !== undefined) lastUnitByStation.push(lastUnit);
   }
+  units.sort((a, b) => a.n - b.n);
 
   // Son ünitede H03 (radyal hat sonu) yoktur — her istasyonun son ünitesi.
   const lastByN = new Set<number>(lastUnitByStation);
@@ -429,7 +416,7 @@ export function mapFieldToMimicState(
   if (Object.keys(stations).length === 0) {
     stations["bess1"] = station;
   }
-  const { poiMW, feederMW, iA } = derivePower(units, topo, station);
+  const { poiMW, feederMW, iA } = derivePower(units, topo, station, stationsConfig);
   station.iA = iA;
 
   const ambient = num(byName(byDeviceAll.get("HVAC-1"), "Outside Temp")?.value);
