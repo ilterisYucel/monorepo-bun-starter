@@ -1,0 +1,18 @@
+{
+  "name": "@gd-monorepo/ws-tunnel-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ws-tunnel peer agent — tek binary: run/setup/wizard/uninstall (config, bootstrap claim, setup UI).",
+  "scripts": {
+    "start": "bun run src/cli.ts run",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build:arm64": "bun build --compile --target=bun-linux-arm64 src/cli.ts --outfile dist/agent-arm64",
+    "build:x64": "bun build --compile --target=bun-linux-x64 src/cli.ts --outfile dist/agent-x64"
+  },
+  "dependencies": {
+    "@gd-monorepo/ws-tunnel": "*",
+    "jose": "^5.0.0"
+  }
+}

@@ -14,14 +14,14 @@ import {
 /**
  * Z katmanı (zincir entegrasyon) — UC-7/T-30, FR-7.4.
  *
- * Gerçek demo FL config'i (`deployment/v1/dev/field/maneuvers/maneuvers.json`)
+ * Gerçek demo FL config'i (`deployment/v2/dev/field/maneuvers/maneuvers.json`)
  * yüklenir; ManeuverRegistry → OperationExecutor → kanal zinciri uçtan uca
  * çalıştırılır. Kanal/hedef/depo test double'dır (harici IO yok); kanıt:
  * FL-01…FL-05 her biri beklenen komutu çözer ve run terminal duruma ulaşır.
  */
 
 const configUrl = new URL(
-  "../../../../../deployment/v1/dev/field/maneuvers/maneuvers.json",
+  "../../../../../deployment/v2/dev/field/maneuvers/maneuvers.json",
   import.meta.url,
 );
 const { maneuvers } = JSON.parse(readFileSync(configUrl, "utf8")) as {
@@ -60,14 +60,16 @@ function buildHarness() {
   return { executor, executed, finished };
 }
 
+// v2 config'i her manevrada önce `set_command_source` gönderir (hedef başına).
+const SCS = ["set_command_source", "set_command_source"];
 const FL_CASES: Array<{ name: string; commands: string[] }> = [
-  { name: "fl01_startup", commands: ["start", "start"] },
-  { name: "fl01_shutdown", commands: ["stop", "stop"] },
-  { name: "fl03_idle", commands: ["set_power_zero", "set_power_zero"] },
-  { name: "fl04_calibration", commands: ["standby", "standby"] },
+  { name: "fl01_startup", commands: [...SCS, "start", "start"] },
+  { name: "fl01_shutdown", commands: [...SCS, "stop", "stop"] },
+  { name: "fl03_idle", commands: [...SCS, "set_power_zero", "set_power_zero"] },
+  { name: "fl04_calibration", commands: [...SCS, "standby", "standby"] },
   {
     name: "fl05_emergency_stop",
-    commands: ["stop", "set_power_zero", "stop", "set_power_zero"],
+    commands: [...SCS, "stop", "set_power_zero", "stop", "set_power_zero"],
   },
 ];
 

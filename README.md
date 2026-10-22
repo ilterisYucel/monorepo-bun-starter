@@ -78,7 +78,7 @@ flowchart TB
 ```
 
 - Three-tier product model: **container** (single site terminal) → **field** (site) → **boss** (multi-site) — composed from the same capabilities via config (`SERVICE_TIER`).
-- Remote container UI access runs over the container→field outbound tunnel (session gateway + RBAC): `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.
+- Remote container UI access runs over the container→field outbound tunnel (session gateway + RBAC): `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.
 
 ---
 
@@ -149,7 +149,7 @@ Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` 
 | Telemetry tagging & canonical metrics (`tags.canonical`, TelemetryTagger) | AGENTS.md |
 | Plugin architecture (integration-service, EPIAŞ client) | `docs/architecture/PLUGIN-MIMARISI.md` |
 | Editor architecture (product-layer composer) | `docs/architecture/EDITOR-MIMARISI.md` |
-| Remote container UI access (tunnel, session, audit) | `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` |
+| Remote container UI access (tunnel, session, audit) | `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` |
 | Sprite pipeline (AI-generated PixiJS sprites) | `docs/process/SPRITE-URETIMI.md` + `docs/process/SPRITE-STYLE-KIT.md` |
 | Frontend data-source contracts (`ITelemetryTransport` etc.) | AGENTS.md |
 | Color & icon token system (104 colors, 35 icons) | AGENTS.md + Storybook |
@@ -175,27 +175,15 @@ All stacks are Docker Compose files under `deployment/<proje>/<tier>/<app>/` —
 
 | Stack | Compose file | Exposed ports |
 |-------|--------------|---------------|
-| Container (prod) | `v1/prod/container/docker-compose.yml` | timescaledb 5432, redis 6379, web-service 5001 |
-| Container (dev) | `v1/dev/container/docker-compose.yml` | same + hot-reload |
-| Field (prod) | `v1/prod/field/docker-compose.yml` | timescaledb 5434, redis 6381, web-service 5002 |
-| Field (dev) | `v1/dev/field/docker-compose.yml` | same + hot-reload |
-| Boss (prod) | `v1/prod/boss/docker-compose.yml` | timescaledb 5435, redis 6382, web-service 5003, superadmin 5175 |
-| Boss (dev) | `v1/dev/boss/docker-compose.yml` | same + hot-reload |
-| AWS edge (container+field) | `v1/aws/{container,field}/docker-compose.yml` | ortak edge-network |
-| AWS boss | `v1/aws/boss/docker-compose.yml` | boss stack |
-| Office | `v1/office/container/docker-compose.yml` | container stack |
-| Demo-field (v2, dev) | `v2/dev/{container,field}/docker-compose.yml` | demo-field SPA 8088 |
-| Demo-field (v2, aws) | `v2/aws/{container,field}/docker-compose.yml` | demo saha 88 |
+| Container-1 (v2, dev) | `v2/dev/container/docker-compose.yml` | web-service 5001 |
+| Container-2 (v2, dev) | `v2/dev/container2/docker-compose.yml` | web-service 5011 |
+| Field (v2, dev) | `v2/dev/field/docker-compose.yml` | demo-field SPA 8088, field API 5002, hub 5009 |
 | **Wiki (docs)** | `docker-compose.wiki.yml` | wiki 8090, postgres 5436 |
 
 ```bash
-bun run start:container       # container stack (prod)
-bun run dev:container         # container stack (dev)
-bun run dev:field-stack       # field stack
-bun run dev:boss-stack        # boss stack
-bun run start:aws-edge        # AWS edge (container+field)
-bun run start:demo-integration  # demo-field (v2) yerel stack
-bun run wiki:up               # documentation wiki (Wiki.js)
+bun run start:demo-integration  # v2 dev demo stack (container + container2 + field)
+bun run stop:demo-integration
+bun run wiki:up                 # documentation wiki (Wiki.js)
 ```
 
 ---

@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import type { EventMessage } from "@gd-monorepo/ws-tunnel";
+import type { EventMessage, IHubChannel } from "@gd-monorepo/ws-tunnel";
 import { FieldEventCollector } from "./field-event-collector";
-import type { FieldRegistry } from "./field-registry";
 
 /**
  * FieldEventCollector sözleşmesi (Boss Faz 5):
@@ -21,14 +20,18 @@ function makeSql(): ISqlDatabase {
   } as unknown as ISqlDatabase;
 }
 
-function makeRegistry(onControl?: (fieldId: string, message: unknown) => void) {
-  return {
-    addObserver: vi.fn((observer: { onControlMessage?: (fieldId: string, message: unknown) => void }) => {
-      if (onControl) onControl = (fieldId, message) => observer.onControlMessage?.(fieldId, message);
+function makeChannel(): {
+  channel: IHubChannel;
+  emit: (peerId: string, message: unknown) => void;
+} {
+  let handler: ((peerId: string, message: unknown) => void) | undefined;
+  const channel = {
+    onControlMessage: (cb: (peerId: string, message: unknown) => void) => {
+      handler = cb;
       return () => undefined;
-    }),
-    removeObserver: vi.fn(),
-  } as unknown as FieldRegistry;
+    },
+  } as unknown as IHubChannel;
+  return { channel, emit: (peerId, message) => handler?.(peerId, message) };
 }
 
 const EVENT: EventMessage = {
@@ -45,37 +48,23 @@ const EVENT: EventMessage = {
 describe("FieldEventCollector (Faz 5)", () => {
   it("event frame'i dedupe INSERT ile yazar (ON CONFLICT DO NOTHING)", async () => {
     const sql = makeSql();
-    let received: { fieldId: string; message: unknown } | undefined;
-    const registry = makeRegistry();
+    const { channel, emit } = makeChannel();
     const collector = new FieldEventCollector(sql, undefined);
-    // observer'ı elle tetikle
-    (registry.addObserver as ReturnType<typeof vi.fn>).mockImplementation(
-      (observer: { onControlMessage?: (fieldId: string, message: unknown) => void }) => {
-        received = { fieldId: "f-1", message: undefined };
-        observer.onControlMessage?.("f-1", EVENT);
-        return () => undefined;
-      },
-    );
-    collector.attach(registry);
+    collector.attachChannel(channel);
+    emit("f-1", EVENT);
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(sql.execute).toHaveBeenCalledWith(
       expect.stringContaining("ON CONFLICT (field_id, event_id) DO NOTHING"),
       expect.arrayContaining(["f-1", "f-1:42", "device_alarm"]),
     );
-    void received;
   });
 
   it("whitelist dışı olay yok sayılır", async () => {
     const sql = makeSql();
-    const registry = makeRegistry();
+    const { channel, emit } = makeChannel();
     const collector = new FieldEventCollector(sql, undefined);
-    (registry.addObserver as ReturnType<typeof vi.fn>).mockImplementation(
-      (observer: { onControlMessage?: (fieldId: string, message: unknown) => void }) => {
-        observer.onControlMessage?.("f-1", { ...EVENT, eventCode: "ws_connection_lost" });
-        return () => undefined;
-      },
-    );
-    collector.attach(registry);
+    collector.attachChannel(channel);
+    emit("f-1", { ...EVENT, eventCode: "ws_connection_lost" });
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(sql.execute).not.toHaveBeenCalled();
   });
@@ -135,5 +124,21 @@ describe("FieldEventCollector (Faz 5)", () => {
       ([sqlText]) => String(sqlText).includes("INSERT INTO field_events"),
     );
     expect(inserts).toHaveLength(0);
+  });
+
+  it("attachChannel: hub consumer kanalından event frame'i toplar (P3)", async () => {
+    const sql = makeSql();
+    const collector = new FieldEventCollector(sql, undefined);
+    let handler: ((peerId: string, message: unknown) => void) | undefined;
+    const channel = {
+      onControlMessage: (cb: (peerId: string, message: unknown) => void) => {
+        handler = cb;
+        return () => undefined;
+      },
+    } as unknown as IHubChannel;
+    collector.attachChannel(channel);
+    handler?.("f-1", EVENT);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(sql.execute).toHaveBeenCalledTimes(1);
   });
 });

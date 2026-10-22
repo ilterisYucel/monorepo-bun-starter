@@ -10,7 +10,7 @@ review_date: 2026-09-23
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
 > **Durum:** ✅ Approved (2026-09-23) — implementasyon tamamlandı; kapanış: [AUTH-REFRESH-KAPANIS.md](./AUTH-REFRESH-KAPANIS.md).
 > **Format:** [SPEC-SABLONU.md](./SPEC-SABLONU.md) (kanonik şablon).
-> **İlişkili:** [OWASP ASVS Level 2](../standards/owasp-asvs-level2.md) (V2/V3/V8), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (tünel oturum deseni — cookie altyapısı referansı).
+> **İlişkili:** [OWASP ASVS Level 2](../standards/owasp-asvs-level2.md) (V2/V3/V8), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (tünel oturum deseni — cookie altyapısı referansı).
 
 ---
 

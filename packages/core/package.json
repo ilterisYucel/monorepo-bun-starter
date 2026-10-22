@@ -33,15 +33,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@gd-monorepo/result": "*",
     "bullmq": "^5.76.8",
+    "bun-serialport": "0.2.0",
     "jsmodbus": "^4.0.10",
     "nodemailer": "^9.0.5",
     "p-limit": "^7.3.0",
     "pg": "^8.11.3",
     "redis": "^4.6.13",
-    "serialport": "^13.0.0",
-    "ws": "^8.0.0",
-    "@gd-monorepo/result": "*"
+    "ws": "^8.0.0"
   },
   "devDependencies": {
     "@types/nodemailer": "^8.0.1",

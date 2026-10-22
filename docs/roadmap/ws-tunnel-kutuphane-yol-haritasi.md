@@ -58,4 +58,4 @@ LICENSE/EULA kararı (§8, KUTUPHANE-CIKARMA-PLANI.md) → ESM+CJS dual build �
 
 ---
 
-**Referanslar:** [KUTUPHANE-CIKARMA-PLANI.md](../architecture/KUTUPHANE-CIKARMA-PLANI.md) (ayrım + Faz A/B), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (protokol), [test-envanteri.md](./test-envanteri.md) (bölüm 8 — ws-tunnel test dökümü), `packages/ws-tunnel/README.md` (paket dokümanı).
+**Referanslar:** [KUTUPHANE-CIKARMA-PLANI.md](../architecture/KUTUPHANE-CIKARMA-PLANI.md) (ayrım + Faz A/B), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (protokol), [test-envanteri.md](./test-envanteri.md) (bölüm 8 — ws-tunnel test dökümü), `packages/ws-tunnel/README.md` (paket dokümanı).

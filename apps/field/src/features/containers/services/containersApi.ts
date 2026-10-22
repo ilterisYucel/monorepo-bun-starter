@@ -24,16 +24,6 @@ export interface OpenSessionOutcome {
 }
 
 /**
- * Kayıt girdisi — POST /fields/:fieldId/containers/:containerId/register (T1.2).
- * 2026-08-30: containerUrl ALANI KALDIRILDI — field konteynere URL ile
- * bağlanmaz; bağlantı konteynerden field'a outbound WSS'tir (TunnelConnector).
- */
-export interface RegisterContainerPayload {
-  containerId: string;
-  token: string;
-}
-
-/**
  * containersApi — konteyner listeleme/telemetri/oturum uçları (Faz 5 T5.1/T5.3).
  * Tüm uçlar field web-service'te yaşar; telemetri snapshot'ları TunnelConnector
  * push'undan (RealtimeSnapshotSource) gelir.
@@ -153,20 +143,5 @@ export const containersApi = {
     return data;
   },
 
-  /**
-   * Konteyner kaydı (T1.2 + 2026-08-28 UI) — kurulum adımı:
-   * token'ın yalnızca SHA-256 hash'i field DB'sine yazılır (düz metin yok).
-   * Aynı (fieldId, containerId) yeniden gönderilirse hash güncellenir
-   * (UPSERT). Uç admin/boss yetkisi ister.
-   */
-  register: async (
-    fieldId: string,
-    payload: RegisterContainerPayload,
-  ): Promise<{ registered: boolean; containerId: string }> => {
-    const { data } = await apiClient.post(
-      `/fields/${fieldId}/containers/${payload.containerId}/register`,
-      { token: payload.token },
-    );
-    return data;
-  },
+
 };

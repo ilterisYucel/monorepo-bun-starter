@@ -2,7 +2,7 @@ import type { TunnelRole } from "../types";
 
 /** Oturum açılış kaydı — audit sink'ine verilir. */
 export interface SessionAuditOpenRecord {
-  fieldId: string;
+  hubId: string;
   peerId: string;
   sessionId: string;
   username: string;

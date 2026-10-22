@@ -3,14 +3,12 @@ import { TunnelConnector } from "./tunnel-connector";
 import type {
   ISocketClient,
   ISocketClientFactory,
-  ISnapshotSource,
 } from "../channel";
 import { ReconnectDelay } from "./reconnect-delay";
 
 
 import { TUNNEL_PROTOCOL_VERSION } from "../protocol";
-
-import type { TunnelTelemetryPoint } from "../types";
+import type { ServiceAnnouncement } from "../protocol";
 
 
 /**
@@ -23,15 +21,14 @@ import type { TunnelTelemetryPoint } from "../types";
  * - open → register {peerId, peerType, protocolVersion:2} gönderilir; registerTimeoutMs
  *   içinde ack gelmezse backoff.
  * - register-ack ok → İLK heartbeat gönderilir → connected; heartbeat her
- *   heartbeatIntervalMs'de bir; telemetri snapshot bağlantı anında + her
- *   telemetryIntervalMs'de bir push edilir (boş snapshot push edilmez).
+ *   heartbeatIntervalMs'de bir gönderilir. Telemetri pakette DEĞİLDİR.
  * - register-ack rejected / 401 pre-upgrade → backoff + security logu
  *   (ws_register_rejected); URL listesi sırayla denenir.
  * - Liveness: pong alınmazsa livenessTimeoutMs sonra bağlantı yarı-ölü sayılır
  *   (WS kopması/yarı-açık bağlantı) → kapat + backoff.
  * - stop(): kapatır, yeniden bağlanmaz; tekrar start() edilebilir.
  * - operational config (T2.5): register-ack.config / config-update ile aralıklar
- *   restart'sız değişir; geçersiz config reddedilir (field_config_rejected),
+ *   restart'sız değişir; geçersiz config reddedilir (configRejected kodu),
  *   eski config korunur.
  */
 
@@ -117,9 +114,15 @@ function makeConfig(overrides: Partial<TunnelConnectorTestConfig> = {}) {
     token: "service-token-abcdef",
     peerId: "container-1",
     heartbeatIntervalMs: 15000,
-    telemetryIntervalMs: 15000,
+    eventCodes: {
+      connected: "field_connected",
+      connectionLost: "ws_connection_lost",
+      registerRejected: "ws_register_rejected",
+      configRejected: "field_config_rejected",
+    },
     registerTimeoutMs: 10000,
     livenessTimeoutMs: 60000,
+    services: undefined as readonly ServiceAnnouncement[] | undefined,
     ...overrides,
   };
 }
@@ -131,22 +134,9 @@ function makeLogger() {
   return { logger: { log }, log };
 }
 
-function makeSnapshot(data: TunnelTelemetryPoint[] = [], error?: Error) {
-  const snapshot = vi.fn().mockImplementation(async () => {
-    if (error) throw error;
-    return data;
-  });
-  return snapshot;
-}
-
-const sampleTelemetry: TunnelTelemetryPoint[] = [
-  { deviceId: "bsc-1", name: "Voltage", value: 750 },
-];
-
 describe("TunnelConnector (T2.1b)", () => {
   let factory: FakeFactory;
   let logger: ReturnType<typeof makeLogger>;
-  let snapshot: ReturnType<typeof makeSnapshot>;
   let connector: TunnelConnector;
 
   // vitest fake timers Date.now'u da mock'lar — tick'ler gerçek saati görür.
@@ -156,11 +146,9 @@ describe("TunnelConnector (T2.1b)", () => {
     vi.useFakeTimers({ now: new Date(0) });
     factory = makeFactory();
     logger = makeLogger();
-    snapshot = makeSnapshot();
     connector = new TunnelConnector(
       makeConfig(),
       factory,
-      { snapshot },
       new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
       logger.logger,
       clock,
@@ -194,10 +182,38 @@ describe("TunnelConnector (T2.1b)", () => {
       });
     });
 
+    it("AK-1.5: services boş/undefined ise register gövdesinde alan YOK", () => {
+      void connector.start();
+      factory.created[0].socket.emitOpen();
+      const frame = JSON.parse(factory.created[0].socket.sent[0]);
+      expect("services" in frame).toBe(false);
+    });
+
+    it("AK-1.1: config.services doluysa register mesajına eklenir (opak duyuru)", () => {
+      const withServices = new TunnelConnector(
+        makeConfig({
+          peerType: "device",
+          services: [{ id: "local-admin", meta: { title: "RevPi Admin" } }],
+        }),
+        factory,
+        new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
+        logger.logger,
+        clock,
+      );
+      void withServices.start();
+      factory.created[0].socket.emitOpen();
+      expect(JSON.parse(factory.created[0].socket.sent[0])).toEqual({
+        type: "register",
+        peerId: "container-1",
+        peerType: "device",
+        services: [{ id: "local-admin", meta: { title: "RevPi Admin" } }],
+        protocolVersion: TUNNEL_PROTOCOL_VERSION,
+      });
+    });
+
     it("çift start() no-op — ikinci soket açılmaz", () => {
       void connector.start();
-      void connector.start();
-      expect(factory.created).toHaveLength(1);
+      void connector.start();      expect(factory.created).toHaveLength(1);
     });
   });
 
@@ -207,7 +223,7 @@ describe("TunnelConnector (T2.1b)", () => {
       factory.created[0].socket.emitOpen();
     });
 
-    it("ack ok → ilk heartbeat + connected + snapshot push", async () => {
+    it("ack ok → ilk heartbeat + connected", () => {
       factory.created[0].socket.emitMessage(
         JSON.stringify({ type: "register-ack", status: "ok", serverTime: "2026-08-25T10:00:00.000Z" }),
       );
@@ -215,8 +231,6 @@ describe("TunnelConnector (T2.1b)", () => {
       expect(connector.connected()).toBe(true);
       const sent = factory.created[0].socket.sent.map((s) => JSON.parse(s));
       expect(sent[1]).toMatchObject({ type: "heartbeat", ts: 0 });
-      await vi.advanceTimersByTimeAsync(0);
-      expect(snapshot).toHaveBeenCalled();
     });
 
     it("ack ok → field_connected bilgi logu", () => {
@@ -225,6 +239,25 @@ describe("TunnelConnector (T2.1b)", () => {
       );
       expect(logger.log).toHaveBeenCalledWith(
         expect.objectContaining({ eventCode: "field_connected" }),
+      );
+    });
+
+    it("eventCodes verilmezse nötr varsayılan kullanılır", () => {
+      const freshFactory = makeFactory();
+      const neutral = new TunnelConnector(
+        makeConfig({ eventCodes: undefined }),
+        freshFactory,
+        new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
+        logger.logger,
+        clock,
+      );
+      void neutral.start();
+      freshFactory.created[0].socket.emitOpen();
+      freshFactory.created[0].socket.emitMessage(
+        JSON.stringify({ type: "register-ack", status: "ok", serverTime: "now" }),
+      );
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.objectContaining({ eventCode: "tunnel_connected" }),
       );
     });
 
@@ -242,36 +275,6 @@ describe("TunnelConnector (T2.1b)", () => {
       expect(connector.lastHeartbeatAt()).toBe(15000);
     });
 
-    it("telemetri snapshot her 15 sn'de bir push edilir (boş veri push edilmez)", async () => {
-      snapshot.mockResolvedValue(sampleTelemetry);
-      factory.created[0].socket.emitMessage(
-        JSON.stringify({ type: "register-ack", status: "ok", serverTime: "now" }),
-      );
-      await vi.advanceTimersByTimeAsync(0);
-      const before = factory.created[0].socket.sent.length;
-      await vi.advanceTimersByTimeAsync(15000);
-      expect(factory.created[0].socket.sent.length).toBe(before + 2); // heartbeat + telemetry
-      const last = JSON.parse(factory.created[0].socket.sent[factory.created[0].socket.sent.length - 1]);
-      expect(last).toMatchObject({ type: "telemetry", data: sampleTelemetry });
-    });
-
-    it("boş snapshot telemetry frame'i üretmez", async () => {
-      factory.created[0].socket.emitMessage(
-        JSON.stringify({ type: "register-ack", status: "ok", serverTime: "now" }),
-      );
-      await vi.advanceTimersByTimeAsync(0);
-      const types = factory.created[0].socket.sent.map((s) => JSON.parse(s).type);
-      expect(types).not.toContain("telemetry");
-    });
-
-    it("snapshot hatası bağlantıyı etkilemez (kademeli bozulma)", async () => {
-      snapshot.mockRejectedValue(new Error("redis down"));
-      factory.created[0].socket.emitMessage(
-        JSON.stringify({ type: "register-ack", status: "ok", serverTime: "now" }),
-      );
-      await vi.advanceTimersByTimeAsync(0);
-      expect(connector.state()).toBe("connected");
-    });
   });
 
   describe("backoff / yeniden bağlanma", () => {
@@ -470,7 +473,7 @@ describe("TunnelConnector (T2.1b)", () => {
       factory.created[0].socket.emitMessage(
         JSON.stringify({
           type: "config-update",
-          config: { heartbeatIntervalMs: 3000, telemetryIntervalMs: 20000 },
+          config: { heartbeatIntervalMs: 3000 },
         }),
       );
       const before = factory.created[0].socket.sent.length;
@@ -502,7 +505,7 @@ describe("TunnelConnector (T2.1b)", () => {
           type: "register-ack",
           status: "ok",
           serverTime: "now",
-          config: { telemetryIntervalMs: 100 },
+          config: { heartbeatIntervalMs: 100 },
         }),
       );
       expect(connector.state()).toBe("connected");
@@ -641,7 +644,6 @@ describe("TunnelConnector (T2.1b)", () => {
       const single = new TunnelConnector(
         makeConfig({ wsUrls: ["ws://field-a:5002"] }),
         factory,
-        { snapshot },
         new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
         logger.logger,
         clock,
@@ -665,48 +667,11 @@ describe("TunnelConnector (T2.1b)", () => {
     });
   });
 
-  describe("snapshot yarışı ve hata biçimleri", () => {
-    it("snapshot beklerken bağlantı koparsa telemetri gönderilmez", async () => {
-      let resolveSnapshot!: (data: TunnelTelemetryPoint[]) => void;
-      snapshot.mockImplementation(
-        () => new Promise((resolve) => (resolveSnapshot = resolve)),
-      );
-      void connector.start();
-      factory.created[0].socket.emitOpen();
-      factory.created[0].socket.emitMessage(
-        JSON.stringify({ type: "register-ack", status: "ok", serverTime: "now" }),
-      );
-      await vi.advanceTimersByTimeAsync(0);
-      factory.created[0].socket.emitClose(); // backoff — snapshot hâlâ bekliyor
-      resolveSnapshot(sampleTelemetry);
-      await vi.advanceTimersByTimeAsync(0);
-      const types = factory.created[0].socket.sent.map((s) => JSON.parse(s).type);
-      expect(types).not.toContain("telemetry");
-    });
-
-    it("Error olmayan snapshot hatası da loglanır", async () => {
-      snapshot.mockRejectedValue("redis down");
-      void connector.start();
-      factory.created[0].socket.emitOpen();
-      factory.created[0].socket.emitMessage(
-        JSON.stringify({ type: "register-ack", status: "ok", serverTime: "now" }),
-      );
-      await vi.advanceTimersByTimeAsync(0);
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventCode: "telemetry_push_failed",
-          context: expect.objectContaining({ error: "redis down" }),
-        }),
-      );
-    });
-  });
-
   describe("logger'sız çalışma", () => {
     it("log çağrıları atlanır — çökme yok", () => {
       const bare = new TunnelConnector(
         makeConfig(),
         factory,
-        { snapshot },
         new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
         undefined,
         clock,
@@ -777,7 +742,6 @@ describe("TunnelConnector (T2.1b)", () => {
       const bare = new TunnelConnector(
         makeConfig(),
         fresh,
-        { snapshot },
         new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
         logger.logger,
         clock,
@@ -793,7 +757,6 @@ describe("TunnelConnector (T2.1b)", () => {
       new TunnelConnector(
         makeConfig(overrides),
         factory,
-        { snapshot },
         new ReconnectDelay({ baseMs: 1000, maxMs: 60000, jitterSpanMs: 0, jitter: () => 0 }),
         logger.logger,
         clock,
@@ -811,9 +774,8 @@ describe("TunnelConnector (T2.1b)", () => {
       expect(() => mk({ peerId: "" })).toThrow();
     });
 
-    it("pozitif olmayan aralıklar reddedilir", () => {
+    it("pozitif olmayan heartbeat aralığı reddedilir", () => {
       expect(() => mk({ heartbeatIntervalMs: 0 })).toThrow();
-      expect(() => mk({ telemetryIntervalMs: -1 })).toThrow();
     });
   });
 });

@@ -1,7 +1,7 @@
 # Refactor Planı — Roller Güncellemesi + Field UI
 
 > Durum: **TAMAMLANDI** (2026-08-30) — Faz 1-4 kapalı.
-> Doğrulama kaydı: `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md` §6-§7.
+> Doğrulama kaydı: `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md` §6-§7.
 > Kaynak kararlar kullanıcıyla netleştirilmiştir; her değişiklik TDD kurallarına tabidir
 > (bkz. AGENTS.md / TESTING.md — dokunulacak testsiz dosya önce karakterizasyon testi).
 >
@@ -145,7 +145,7 @@
 
 ## Faz 4 — Kapanış
 
-- `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye faz girişleri.
+- `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye faz girişleri.
 - Tüm testler + lint geçişi; SonarCloud kapıları (güvenlik-kritik dosyalarda ≥%90 branch).
 - `review_date` güncellemesi.
 

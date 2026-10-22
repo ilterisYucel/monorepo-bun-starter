@@ -114,15 +114,9 @@ describe("K1 — operasyon akışı uçtan uca (gerçek WS)", () => {
         token: "field-uplink-token",
         registerTimeoutMs: 5000,
         heartbeatIntervalMs: 15_000,
-        telemetryIntervalMs: 15_000,
         livenessTimeoutMs: 60_000,
       },
       new WsSocketClientFactory(),
-      {
-        async snapshot() {
-          return [];
-        },
-      },
       new ReconnectDelay({
         baseMs: 1000,
         maxMs: 60000,

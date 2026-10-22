@@ -111,4 +111,4 @@ review_date: 2026-09-01
 
 ---
 
-**Referanslar:** [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (protokol tasarımı), [KONTEYNER-FIELD-BAGLANTI-RAPORU.md](./KONTEYNER-FIELD-BAGLANTI-RAPORU.md) (kırılganlık analizi), [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) (faz kanıtları), AGENTS.md (DI/TDD kuralları), [ws-tunnel-kutuphane-yol-haritasi.md](../roadmap/ws-tunnel-kutuphane-yol-haritasi.md) (v1 kütüphane iddiası — jenerikleştirme iş planı: Faz G1-G3).
+**Referanslar:** [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (protokol tasarımı), [deprecated/KONTEYNER-FIELD-BAGLANTI-RAPORU.md](./deprecated/KONTEYNER-FIELD-BAGLANTI-RAPORU.md) (kırılganlık analizi), [deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md) (faz kanıtları), AGENTS.md (DI/TDD kuralları), [ws-tunnel-kutuphane-yol-haritasi.md](../roadmap/ws-tunnel-kutuphane-yol-haritasi.md) (v1 kütüphane iddiası — jenerikleştirme iş planı: Faz G1-G3).

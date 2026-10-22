@@ -44,7 +44,7 @@ Her ASVS kategorisi aşağıdaki mekanizmalardan biriyle doğrulanır. **Tek bir
 
 | ASVS | Kategori | Repo'daki karşılık | Otomatik check | Manuel check |
 |:-----|:---------|:-------------------|:---------------|:-------------|
-| **V1** | Mimari, Tasarım, Tehdit Modelleme | Hexagonal mimari; tünel/oturum tasarımı (`KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`) | — | Tehdit modellemesi (her yeni servis/özellik), tasarım incelemesi |
+| **V1** | Mimari, Tasarım, Tehdit Modelleme | Hexagonal mimari; tünel/oturum tasarımı (`deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`) | — | Tehdit modellemesi (her yeni servis/özellik), tasarım incelemesi |
 | **V2** | Kimlik Doğrulama | JWT (jose) + bcrypt; login/refresh/logout use-case'leri; WS token auth | Unit/integration: `LoginUseCase`, `TokenService`, `PasswordHasher`, `token-adapter` (≥%90 branch); SonarQube hard-coded secret | Parola politikası, hesap kilitleme, credential recovery akışı |
 | **V3** | Oturum Yönetimi | JWT refresh (RealtimeProvider), WS bağlantı ömrü + dead-socket sweep, `ContainerSessionStore` + `session_audit`, kısa ömürlü container-JWT | Unit + E2E: token refresh, oturum limitleri, path allowlist | Session fixation/replay senaryoları (pentest) |
 | **V4** | Erişim Kontrolü | RBAC middleware (admin/teknik/guest/boss), `fieldIds`, field→container rol eşlemesi, deny-by-default | Unit/integration: `rbac.ts` karakterizasyon testleri (Faz 1); Playwright yetkisiz erişim senaryoları | Erişim kontrol matrisi dokümanı + yıllık inceleme (iso-27001.md Adım 12) |
@@ -103,4 +103,4 @@ Bu liste yıllık pentest kapsamına (nis-2.md Adım 17) ve büyük sürüm önc
 - [nis-2.md](./nis-2.md) — SonarQube/CI/CD check adımları (ASVS eşlemesinin otomatik ayağı)
 - [iso-27001.md](./iso-27001.md) — Security headers, Docker hardening, erişim kontrol matrisi
 - [TESTING.md](../TESTING.md) — Test katmanları ve güvenlik testi kapsamı
-- [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) — Oturum/tünel güvenlik mimarisi (V1/V3 dayanağı)
+- [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) — Oturum/tünel güvenlik mimarisi (V1/V3 dayanağı)

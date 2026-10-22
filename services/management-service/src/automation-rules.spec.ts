@@ -25,7 +25,7 @@ import { ActionExecutor } from "./action-executor";
  */
 
 const RULES_PATH = fileURLToPath(
-  new URL("../../../deployment/v1/dev/container/rules/rules.json", import.meta.url),
+  new URL("../../../deployment/v2/dev/container/rules/rules.json", import.meta.url),
 );
 const DEVICE_CONFIG_DIR = fileURLToPath(
   new URL("../../../configs", import.meta.url),

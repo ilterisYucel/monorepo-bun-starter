@@ -8,11 +8,9 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import type { SessionGateway, TunnelProxy } from "@gd-monorepo/ws-tunnel";
-import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
+import type { HubConsumerClient } from "../../infrastructure/hub-consumer";
 import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type { User } from "@gd-monorepo/shared-types";
-import { CollectingStreamSink } from "../../infrastructure/container-session/collecting-stream-sink";
 
 const telemetryEntrySchema = z.object({
   name: z.string().min(1),
@@ -96,9 +94,8 @@ function authorize(
 export async function fieldContainerCommandRoutes(
   fastify: FastifyInstance,
   deps: {
-    containerProxy: IContainerProxy;
-    gateway: SessionGateway;
-    tunnelProxy: TunnelProxy;
+    /** Hub-servis REST programatik erişim (consumer). */
+    hubAccess: { client: HubConsumerClient; serviceId: string };
     logger: TamperLogger | undefined;
     /** Internal servis token'ı — env FIELD_INTERNAL_API_TOKEN. */
     internalToken?: string;
@@ -118,80 +115,37 @@ export async function fieldContainerCommandRoutes(
         return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
       }
 
-      const state = deps.containerProxy.connectionStatus().get(containerId);
-      if (state !== "connected") {
-        return reply
-          .status(503)
-          .send({ error: "container_not_connected", containerId });
-      }
-
-      const existing = deps.gateway.sessionForPeer(containerId);
-      let token: string;
-      if (existing) {
-        token = existing.token;
-      } else {
-        const result = await deps.gateway.openSession({
-          fieldId,
-          peerId: containerId,
-          user: SYSTEM_USER,
-          remoteIp: "127.0.0.1",
-        });
-        if (result.isErr()) {
-          return reply.status(503).send({
-            error: "session_open_failed",
-            kind: result.error().kind,
-          });
-        }
-        token = result.unwrap().token;
-      }
-
+      // Hub-servis REST programatik erişim (bağlantı/oturum hub'da).
       const traceId = traceFrom(request);
-      const sink = new CollectingStreamSink();
+      let hubResponse: Response;
       try {
-        await deps.tunnelProxy.startHttpStream({
-          session: {
-            ...(existing ?? {
-              sessionId: "programatic",
-              peerId: containerId,
-              user: SYSTEM_USER,
-              peerRole: "admin",
-              createdAt: 0,
-              lastActivityAt: 0,
-              bytesIn: 0,
-              bytesOut: 0,
-            }),
-            token,
-          },
-          method: "POST",
+        hubResponse = await deps.hubAccess.client.access({
+          peerId: containerId,
+          serviceId: deps.hubAccess.serviceId,
           path: "/api/commands/execute-multi",
+          method: "POST",
           headers: {
             "content-type": "application/json",
             "x-gd-trace-id": traceId,
-            cookie: `container_session=${token}`,
+            "x-tunnel-user-id": "system",
+            "x-tunnel-user-username": "system",
+            "x-tunnel-user-role": "admin",
           },
-          raw: sink,
-          requestBody: Buffer.from(JSON.stringify(body)),
+          body: JSON.stringify(body),
         });
-        const collected = await sink.completed();
-        const parsed = parseUpstreamBody(collected.body);
-
-        await audit(deps.logger, {
-          fieldId,
-          containerId,
-          deviceIds: body.commands.map((c) => c.deviceId),
-          traceId,
-          statusCode: collected.statusCode,
-          parsed,
-        });
-
-        return reply.status(collected.statusCode).send(parsed);
-      } catch (error) {
-        console.warn(
-          `[FieldContainerCommands] ${containerId} komut proxy basarisiz`,
-          error,
-        );
-        return reply.status(502).send({ error: "tunnel_stream_failed" });
+      } catch {
+        return reply.status(502).send({ error: "hub_stream_failed" });
       }
+      const parsed = parseUpstreamBody(Buffer.from(await hubResponse.arrayBuffer()));
+      await audit(deps.logger, {
+        fieldId,
+        containerId,
+        deviceIds: body.commands.map((c) => c.deviceId),
+        traceId,
+        statusCode: hubResponse.status,
+        parsed,
+      });
+      return reply.status(hubResponse.status).send(parsed);
     },
   );
 }

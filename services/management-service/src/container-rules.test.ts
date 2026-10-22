@@ -20,7 +20,7 @@ import type { AutomationRule, TelemetryData } from "@gd-monorepo/shared-types";
  */
 
 const RULES_PATH = fileURLToPath(
-  new URL("../../../deployment/v1/dev/container/rules/rules.json", import.meta.url),
+  new URL("../../../deployment/v2/dev/container/rules/rules.json", import.meta.url),
 );
 const DEVICE_CONFIG_DIR = fileURLToPath(
   new URL("../../../configs", import.meta.url),
@@ -62,9 +62,9 @@ function commandOf(
 }
 
 describe("konteyner rules.json — kural envanteri", () => {
-  it("zod-valid + fail-fast yüklenir; 43 kural", () => {
+  it("zod-valid + fail-fast yüklenir; 47 kural", () => {
     const file = loader().loadRules();
-    expect(file.rules.length).toBe(43);
+    expect(file.rules.length).toBe(47);
   });
 
   it("K-A4: FL-06/09/12 kural adı YOKTUR (fail-safe)", () => {
@@ -147,15 +147,15 @@ describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
       device: { types: ["bsc"] },
       telemetry: "Max Pack Temp",
       op: "gt",
-      threshold: 50,
-      debounceMs: 300000,
+      threshold: 49,
+      debounceMs: 5000,
     });
     expect(conds[2]).toMatchObject({
       device: { types: ["bsc"] },
       telemetry: "Max Pack Temp",
       op: "gt",
-      threshold: 75,
-      debounceMs: 45000,
+      threshold: 58,
+      debounceMs: 5000,
     });
     const forceCount = rule.then.filter(
       (a) => a.action === "command" && a.command === "force_cool",
@@ -175,14 +175,14 @@ describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
     expect(conds[1]).toMatchObject({
       telemetry: "Min Pack Temp",
       op: "lt",
-      threshold: 15,
-      debounceMs: 300000,
+      threshold: 0,
+      debounceMs: 5000,
     });
     expect(conds[2]).toMatchObject({
       telemetry: "Min Pack Temp",
       op: "lt",
-      threshold: 5,
-      debounceMs: 45000,
+      threshold: -10,
+      debounceMs: 5000,
     });
     expect(
       rule.then.filter(
@@ -191,13 +191,13 @@ describe("FL-05 korumalar (blok seti — K10: PCS YOK)", () => {
     ).toBe(8);
   });
 
-  it("tms_humidity_alarm: Return Humidity ≥ 85 → BSC emergency + log + notify", () => {
+  it("tms_humidity_alarm: Return Humidity ≥ 75 → BSC emergency + log + notify", () => {
     const rule = rules().find((r) => r.name === "tms_humidity_alarm")!;
     const cond = rule.when.any![0]!;
     expect(cond.device?.types).toEqual(["hvac"]);
     expect(cond.telemetry).toBe("Return Humidity");
     expect(cond.op).toBe("gte");
-    expect(cond.threshold).toBe(85);
+    expect(cond.threshold).toBe(75);
     expect(commandOf(rule, "BSC-1")).toEqual(["emergency"]);
     expect(commandOf(rule, "BSC-2")).toEqual(["emergency"]);
   });
@@ -278,13 +278,13 @@ describe("FL-08 DC kısa devre (DC-METER-1)", () => {
     });
     expect(conds[1]).toMatchObject({
       telemetry: "DC Current",
-      op: "gt",
+      op: "abs_gt",
       threshold: 1680,
       debounceMs: 1000,
     });
     expect(conds[2]).toMatchObject({
       telemetry: "DC Power",
-      op: "gt",
+      op: "abs_gt",
       threshold: 1784,
       debounceMs: 1000,
     });

@@ -6,10 +6,16 @@ import type { ISocketClientFactory, ISocketClient, ITunnelChannel } from "../cha
 
 /** TunnelClient yapılandırması — opsiyonel alanlar testlerde enjekte edilir. */
 export interface TunnelClientConfig {
-  /** `/api/*`, `/ws/*` upstream'i (container tier web-service). */
+  /** API upstream taban URL'i (varsayılan kural: `/api/*`, `/ws/*`). */
   webServiceUrl: string;
-  /** SPA + assets upstream'i (container nginx). */
+  /** Statik/SPA upstream taban URL'i (varsayılan kural: diğer yollar). */
   staticUrl: string;
+  /**
+   * Upstream yönlendirici — opsiyonel. Verilmezse varsayılan kural uygulanır
+   * (`/api/*`,`/ws/*` → webServiceUrl, diğer → staticUrl). Tüketici kendi
+   * yönlendirme politikasını enjekte edebilir.
+   */
+  routeUpstream?: (path: string) => string;
   /** Akış kredisi pencere boyutu (tasarım §5.2: 256 KiB). */
   windowSize?: number;
   /** Eşzamanlı akış tavanı (tasarım §5.6: 16). */
@@ -66,16 +72,17 @@ interface StreamState {
 }
 
 /**
- * TunnelClient — konteyner tarafı akış multiplexer'ı (tasarım §6 sorumluluk 3).
+ * TunnelClient — client/peer tarafı akış multiplexer'ı.
  *
- * - `stream-open` frame'lerini alır, stream'leri iki upstream'e dağıtır:
- *   `/api/*`, `/ws/*` → container web-service; diğer her şey → nginx (SPA).
+ * - `stream-open` frame'lerini alır, stream'leri upstream'e dağıtır:
+ *   varsayılan kural `/api/*`, `/ws/*` → API upstream; diğer her şey → statik
+ *   upstream. `routeUpstream` ile değiştirilebilir.
  * - Undici fetch stream'lerini ≤64 KiB binary frame'lere böler; `stream-window`
  *   kredisiyle backpressure uygular (kredi yoksa gövde DURUR — §5.2).
  * - `upgrade:"websocket"` → loopback WS köprüsü; mesaj sınırları ve opcode'lar
  *   WS_OP bayrağıyla korunur (§5.3).
- * - Limitler: eşzamanlı akış tavanı → 503; boşta kalma/max yaş sweep'i
- *   (kırılganlık #2); `stream-close` (field) → iptal.
+ * - Limitler: eşzamanlı akış tavanı → 503; boşta kalma/max yaş sweep'i;
+ *   `stream-close` → iptal.
  */
 export class TunnelClient {
   private readonly config: Required<
@@ -94,6 +101,7 @@ export class TunnelClient {
   >;
   private readonly codec = new FrameCodec();
   private readonly socketFactory: ISocketClientFactory;
+  private readonly routeUpstream: (path: string) => string;
   private readonly streams: Map<number, StreamState> = new Map();
   private sweepTimer?: ReturnType<typeof setInterval>;
   private channel?: ITunnelChannel;
@@ -113,6 +121,9 @@ export class TunnelClient {
       sweepIntervalMs: config.sweepIntervalMs ?? DEFAULT_SWEEP_INTERVAL_MS,
     };
     this.socketFactory = config.socketFactory ?? new WsSocketClientFactory();
+    this.routeUpstream =
+      config.routeUpstream ??
+      ((path) => upstreamUrl(path, config.webServiceUrl, config.staticUrl));
   }
 
   static create(config: TunnelClientConfig): TunnelClient {
@@ -248,11 +259,7 @@ export class TunnelClient {
     state: StreamState,
     body: Buffer | undefined,
   ): Promise<void> {
-    const target = upstreamUrl(
-      state.request.path,
-      this.config.webServiceUrl,
-      this.config.staticUrl,
-    );
+    const target = this.routeUpstream(state.request.path);
     let response: Response;
     try {
       response = await fetch(`${target}${state.request.path}`, {
@@ -348,13 +355,17 @@ export class TunnelClient {
   }
 
   private openWsBridge(state: StreamState): void {
-    const base = upstreamUrl(
-      state.request.path,
-      this.config.webServiceUrl,
-      this.config.staticUrl,
-    );
+    const base = this.routeUpstream(state.request.path);
     const wsUrl = base.replace(/^http/, "ws") + state.request.path;
-    const socket = this.socketFactory.create(wsUrl, {});
+    const headers = wsHandshakeHeaders(state.request.headers);
+    // Tarayıcının origin'i taşınmaz; upstream'in kendi origin'i gönderilir
+    // (Origin↔Host kontrolü yapan sunucular same-origin görsün).
+    headers.origin = wsOrigin(wsUrl);
+    const socket = this.socketFactory.create(
+      wsUrl,
+      headers,
+      requestedSubprotocols(state.request.headers?.["sec-websocket-protocol"]),
+    );
     state.upstreamWs = socket;
 
     socket.onOpen(() => {
@@ -396,6 +407,17 @@ export class TunnelClient {
     });
     socket.onError(() => {
       if (!state.closed) this.closeStream(state.streamId, "ws-error");
+    });
+    // Hızlı-fail: upstream el sıkışması reddedildi (4xx) → gerçek statusCode
+    // ile ack dön (hub 10s timeout beklemeden tarayıcıyı kapatır).
+    socket.onRejected((statusCode) => {
+      if (state.closed) return;
+      this.channel?.sendControl({
+        type: "stream-open-ack",
+        streamId: state.streamId,
+        statusCode: statusCode === 0 ? 502 : statusCode,
+      } satisfies StreamOpenAckMessage);
+      this.closeStream(state.streamId, "ws-rejected");
     });
   }
 
@@ -460,7 +482,7 @@ function needsBody(method: string): boolean {
   return method === "POST" || method === "PUT" || method === "PATCH";
 }
 
-/** Yönlendirme kuralı (tasarım §6/3): /api|/ws → web-service, diğer → nginx. */
+/** Varsayılan yönlendirme kuralı: `/api|/ws` → API upstream, diğer → statik. */
 export function upstreamUrl(path: string, webServiceUrl: string, staticUrl: string): string {
   return path.startsWith("/api/") || path.startsWith("/ws/")
     ? webServiceUrl
@@ -474,5 +496,61 @@ export function filterHeaders(headers: Headers): Record<string, string> {
     if (HOP_BY_HOP_HEADERS.has(key.toLowerCase())) return;
     out[key] = value;
   });
+  return out;
+}
+
+/**
+ * Upstream WS URL'inden tarayıcı-origin'i üretir (sorgu — saf):
+ * `wss://` → `https://`, `ws://` → `http://` (WHATWG origin ws için
+ * http-eşdeğerini bekler; tarayıcı da wss bağlantısında `https://` yollar).
+ * Upstream handshake'inde `Origin` olarak kullanılır — Host ile eşleşir.
+ */
+export function wsOrigin(url: string): string {
+  const parsed = new URL(url);
+  parsed.protocol = parsed.protocol === "wss:" ? "https:" : "http:";
+  return parsed.origin;
+}
+
+/**
+ * Tarayıcının önerdiği subprotocol listesini ayrıştırır (RFC 6455):
+ * `Sec-WebSocket-Protocol: a, b` → `["a","b"]`. Upstream handshake'ine
+ * `protocols` olarak verilir (app-bağımsız — cockpit1, graphql-ws, mqtt...).
+ */
+export function requestedSubprotocols(
+  header: string | undefined,
+): string[] {
+  if (header === undefined) return [];
+  return header
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+/** WS el sıkışmasına özgü / hop-by-hop başlıklar — upstream'de yeniden üretilir. */
+const WS_HANDSHAKE_HEADERS = new Set([
+  "sec-websocket-key",
+  "sec-websocket-version",
+  "sec-websocket-extensions",
+  "sec-websocket-protocol",
+  "upgrade",
+  "connection",
+  "origin",
+]);
+
+/**
+ * Upstream WS handshake'ine taşınacak başlıkları süzer: hop-by-hop ve el
+ * sıkışmasına özgü başlıklar çıkarılır (yeni handshake kendi anahtarını
+ * üretir); `cookie`/`authorization` gibi uygulama başlıkları geçer.
+ */
+export function wsHandshakeHeaders(
+  headers: Record<string, string> | undefined,
+): Record<string, string> {
+  if (headers === undefined) return {};
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    const lower = key.toLowerCase();
+    if (HOP_BY_HOP_HEADERS.has(lower) || WS_HANDSHAKE_HEADERS.has(lower)) continue;
+    out[lower] = value;
+  }
   return out;
 }

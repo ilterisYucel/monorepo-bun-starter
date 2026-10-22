@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import http from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
-import { TunnelClient } from "./tunnel-client";
+import { TunnelClient, wsOrigin } from "./tunnel-client";
 import type { ITunnelChannel } from "../channel";
 import { FrameCodec, FLAG_FIN, FLAG_RST, FLAG_WS_OP, WS_OPCODE } from "../codec";
 import type { TunnelFrame } from "../codec";
@@ -362,13 +362,23 @@ describe("TunnelClient (T3.2)", () => {
     let wss: WebSocketServer;
     let wsPort: number;
     const received: Array<{ data: Buffer; isBinary: boolean }> = [];
+    const handshakeHeaders: Array<Record<string, string | string[] | undefined>> = [];
+    const negotiatedProtocols: Array<string> = [];
 
     beforeEach(async () => {
       received.length = 0;
-      wss = new WebSocketServer({ port: 0, host: "127.0.0.1" });
+      handshakeHeaders.length = 0;
+      negotiatedProtocols.length = 0;
+      wss = new WebSocketServer({
+        port: 0,
+        host: "127.0.0.1",
+        handleProtocols: (protocols) => protocols.values().next().value ?? false,
+      });
       await new Promise<void>((resolve) => wss.on("listening", resolve));
       wsPort = (wss.address() as { port: number }).port;
-      wss.on("connection", (socket) => {
+      wss.on("connection", (socket, request) => {
+        handshakeHeaders.push(request.headers);
+        negotiatedProtocols.push(socket.protocol);
         socket.on("message", (data, isBinary) => {
           received.push({ data: Buffer.from(data as Buffer), isBinary });
           socket.send(data, { binary: isBinary });
@@ -432,6 +442,118 @@ describe("TunnelClient (T3.2)", () => {
       expect(frame.flags & FLAG_WS_OP).toBe(FLAG_WS_OP);
       expect(frame.opcode).toBe(WS_OPCODE.Text);
       expect(Buffer.from(frame.payload).toString()).toBe("subscribe");
+    });
+
+    it("stream-open headers upstream WS handshake'ine taşınır (handshake-özgü hariç)", async () => {
+      channel = makeChannel();
+      client = TunnelClient.create({
+        webServiceUrl: `http://127.0.0.1:${wsPort}`,
+        staticUrl: `http://127.0.0.1:${wsPort}`,
+      });
+      client.attach(channel);
+
+      channel.emit({
+        type: "stream-open",
+        streamId: 9,
+        sessionId: "s-1",
+        method: "GET",
+        path: "/ws/telemetry",
+        upgrade: "websocket",
+        headers: {
+          cookie: "cockpit=sess-1",
+          authorization: "Basic cGk6cHc=",
+          "sec-websocket-key": "browser-key",
+          origin: "https://127.0.0.1:5101",
+        },
+      });
+
+      await waitFor(() => handshakeHeaders.length === 1, 2000);
+      const headers = handshakeHeaders[0] ?? {};
+      expect(headers.cookie).toBe("cockpit=sess-1");
+      expect(headers.authorization).toBe("Basic cGk6cHc=");
+      // Handshake-özgü başlıklar taşınmaz — peer kendi anahtarını üretir.
+      expect(headers["sec-websocket-key"]).not.toBe("browser-key");
+      // Origin ezilir: tarayıcının origin'i değil, upstream'in kendi origin'i
+      // gider — Origin↔Host kontrolü yapan WS sunucuları (Python websockets,
+      // tornado, gorilla) same-origin görsün diye.
+      expect(headers.origin).toBe(`http://127.0.0.1:${wsPort}`);
+    });
+
+    it("wsOrigin: ws→http, wss→https origin üretir (tarayıcı davranışı)", () => {
+      expect(wsOrigin("ws://127.0.0.1:5003")).toBe("http://127.0.0.1:5003");
+      expect(wsOrigin("wss://127.0.0.1:41443")).toBe("https://127.0.0.1:41443");
+      expect(wsOrigin("wss://field.local/path/ws")).toBe("https://field.local");
+    });
+
+    it("subprotocol upstream ile pazarlanır (RFC 6455 relay)", async () => {
+      channel = makeChannel();
+      client = TunnelClient.create({
+        webServiceUrl: `http://127.0.0.1:${wsPort}`,
+        staticUrl: `http://127.0.0.1:${wsPort}`,
+      });
+      client.attach(channel);
+
+      channel.emit({
+        type: "stream-open",
+        streamId: 11,
+        sessionId: "s-1",
+        method: "GET",
+        path: "/ws/telemetry",
+        upgrade: "websocket",
+        headers: { "sec-websocket-protocol": "cockpit1, cockpit2" },
+      });
+
+      await waitFor(() => negotiatedProtocols.length === 1, 2000);
+      expect(negotiatedProtocols[0]).toBe("cockpit1");
+    });
+
+    it("upstream WS reddi (403) → ack gerçek statusCode + stream-close (hızlı-fail)", async () => {
+      const rejectServer = new WebSocketServer({
+        port: 0,
+        host: "127.0.0.1",
+        verifyClient: (_info, cb) => cb(false, 403, "Forbidden"),
+      });
+      await new Promise<void>((resolve) => rejectServer.on("listening", resolve));
+      const rejectPort = (rejectServer.address() as { port: number }).port;
+      try {
+        channel = makeChannel();
+        client = TunnelClient.create({
+          webServiceUrl: `http://127.0.0.1:${rejectPort}`,
+          staticUrl: `http://127.0.0.1:${rejectPort}`,
+        });
+        client.attach(channel);
+
+        channel.emit({
+          type: "stream-open",
+          streamId: 31,
+          sessionId: "s-1",
+          method: "GET",
+          path: "/ws/telemetry",
+          upgrade: "websocket",
+        });
+
+        await waitFor(
+          () =>
+            channel.sentControls.some(
+              (m) => (m as { type: string }).type === "stream-open-ack",
+            ),
+          4000,
+        );
+        const ack = channel.sentControls.find(
+          (m) => (m as { type: string }).type === "stream-open-ack",
+        ) as { statusCode: number };
+        expect(ack.statusCode).toBe(403);
+        await waitFor(
+          () =>
+            channel.sentControls.some(
+              (m) => (m as { type: string }).type === "stream-close",
+            ),
+          2000,
+        );
+      } finally {
+        for (const socket of rejectServer.clients) socket.terminate();
+        await new Promise<void>((resolve) => rejectServer.close(() => resolve()));
+      }
     });
 
     it("loopback WS kapanınca stream-close gönderilir", async () => {
@@ -770,7 +892,7 @@ describe("TunnelClient (T3.2)", () => {
       await closeServer(upstream.server);
     });
 
-    it("WS köprüsü: WS olmayan upstream → stream-close ws-error", async () => {
+    it("WS köprüsü: WS olmayan upstream → ack statusCode + stream-close ws-rejected (hızlı-fail)", async () => {
       const plain = await startHttp((_req, res) => {
         res.writeHead(400);
         res.end();
@@ -792,9 +914,20 @@ describe("TunnelClient (T3.2)", () => {
       await waitFor(
         () =>
           channel.sentControls.some(
+            (m) => (m as { type: string }).type === "stream-open-ack",
+          ),
+        4000,
+      );
+      const ack = channel.sentControls.find(
+        (m) => (m as { type: string }).type === "stream-open-ack",
+      ) as { statusCode: number };
+      expect(ack.statusCode).toBe(400);
+      await waitFor(
+        () =>
+          channel.sentControls.some(
             (m) =>
               (m as { type: string; reason: string }).type === "stream-close" &&
-              (m as { reason: string }).reason === "ws-error",
+              (m as { reason: string }).reason === "ws-rejected",
           ),
         2000,
       );

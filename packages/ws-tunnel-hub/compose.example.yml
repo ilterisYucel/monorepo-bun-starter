@@ -1,0 +1,21 @@
+# Hub-servis compose örneği (imajı önceden derleyin).
+#
+#   docker build -f packages/ws-tunnel-hub/Dockerfile -t ws-tunnel-hub .
+#   docker compose -f packages/ws-tunnel-hub/compose.example.yml up
+services:
+  hub:
+    image: ws-tunnel-hub
+    environment:
+      PORT: "5003"
+      PEER_TOKEN: "${PEER_TOKEN:-demo-peer-token}"
+      CONSUMER_TOKEN: "${CONSUMER_TOKEN:-demo-consumer-token}"
+      HUB_DB_PATH: "/data/hub.db"
+      HUB_ALLOWED_PREFIXES: "/assets/,/static/"
+    ports:
+      - "5003:5003"
+    volumes:
+      - hub-data:/data
+    restart: unless-stopped
+
+volumes:
+  hub-data:

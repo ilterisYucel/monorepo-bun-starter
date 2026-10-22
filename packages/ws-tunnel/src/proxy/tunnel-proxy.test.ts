@@ -14,7 +14,7 @@ import type { TunnelUser } from "../types";
 
 /**
  * T3.3 — TunnelProxy sözleşmesi (tasarım §5.2/§5.3/§5.6):
- * - Cookie çözümleme (`container_session`) + path allowlist (yasaklılar:
+ * - Cookie çözümleme (`tunnel_session`) + path allowlist (yasaklılar:
  *   login/refresh/users).
  * - HTTP akışı: stream-open → ack → writeHead(ack.status, headers) → gövde
  *   frame'leri → FIN → end(); RST → destroy; kredi: pencere tüketimi → 
@@ -99,7 +99,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 describe("sessionCookieValue", () => {
   it("cookie başlığından değeri çözer", () => {
     expect(
-      sessionCookieValue("a=1; container_session=xyz; b=2"),
+      sessionCookieValue("a=1; tunnel_session=xyz; b=2"),
     ).toBe("xyz");
   });
   it("yoksa undefined", () => {
@@ -107,7 +107,7 @@ describe("sessionCookieValue", () => {
     expect(sessionCookieValue(undefined)).toBeUndefined();
   });
   it("bozuk parçalar atlanır", () => {
-    expect(sessionCookieValue("bare; container_session=abc")).toBe("abc");
+    expect(sessionCookieValue("bare; tunnel_session=abc")).toBe("abc");
     expect(sessionCookieValue("bare")).toBeUndefined();
   });
 });
@@ -117,13 +117,16 @@ describe("isPathAllowed (§5.6)", () => {
     "izinli: %s",
     (path) => expect(isPathAllowed(path)).toBe(true),
   );
+  const domainBlocked = {
+    blockedPrefixes: ["/api/auth/login", "/api/auth/refresh", "/api/auth/users"],
+  };
   it.each([
     "/api/auth/login",
     "/api/auth/refresh",
     "/api/auth/users",
     "/etc/passwd",
     "/api/auth/users?x=1",
-  ])("yasaklı: %s", (path) => expect(isPathAllowed(path)).toBe(false));
+  ])("yasaklı: %s", (path) => expect(isPathAllowed(path, domainBlocked)).toBe(false));
 });
 
 describe("TunnelProxy HTTP akışı (T3.3)", () => {
@@ -289,10 +292,10 @@ describe("TunnelProxy HTTP akışı (T3.3)", () => {
   });
 
   it("authenticate: geçersiz cookie → undefined", () => {
-    expect(proxy.authenticate("container_session=yok", "c-1")).toBeUndefined();
+    expect(proxy.authenticate("tunnel_session=yok", "c-1")).toBeUndefined();
     expect(proxy.authenticate(undefined, "c-1")).toBeUndefined();
-    expect(proxy.authenticate("container_session=container-jwt", "c-1")).toBeDefined();
-    expect(proxy.authenticate("container_session=container-jwt", "c-2")).toBeUndefined();
+    expect(proxy.authenticate("tunnel_session=container-jwt", "c-1")).toBeDefined();
+    expect(proxy.authenticate("tunnel_session=container-jwt", "c-2")).toBeUndefined();
   });
 
   it("requestBody → BINARY frame'ler + FIN gönderilir", async () => {

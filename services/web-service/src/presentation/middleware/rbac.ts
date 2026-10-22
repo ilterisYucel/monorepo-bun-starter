@@ -38,10 +38,7 @@ const PUBLIC_PREFIXES = [
   "/api/auth/login",
   "/api/auth/refresh",
   "/ws/telemetry",
-  // /ws/container JWT ile korunmaz — service token doğrulaması route'un
-  // kendi onRequest'inde yapılır (Faz 1 T1.1)
-  "/ws/container",
-  // /ws/field da aynı model — field uplink service token'ı route'un kendi
+  // /ws/field JWT ile korunmaz — field uplink service token'ı route'un kendi
   // onRequest'inde doğrulanır (Boss Faz 3)
   "/ws/field",
   // Faz 3 T3.3: tünel yolları container_session cookie'siyle doğrulanır

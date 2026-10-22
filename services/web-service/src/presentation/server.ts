@@ -50,26 +50,24 @@ import type { OperationDefStore } from "../infrastructure/persistence/operation-
 import type { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
 import type { ManeuverRegistry, OperationExecutor } from "@gd-monorepo/platform-commands";
 import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
-import { containerWsRoutes } from "../infrastructure/container-proxy/container-ws-routes";
 import { fieldRoutes } from "./routes/field-routes";
-import { sessionOpenRoute, tunnelRoutes } from "./routes/session-routes";
 import { fieldContainerCommandRoutes } from "./routes/field-container-commands";
 import { adminRoutes } from "./routes/admin-routes";
 import { marketRoutes } from "./routes/market-routes";
 import type { MarketSeries } from "../infrastructure/market/market-series";
-import type { FieldRegistry } from "../infrastructure/field-uplink/field-registry";
-import { fieldUplinkWsRoutes } from "./routes/field-uplink-ws-routes";
-import { fieldSessionRoutes, fieldTunnelRoutes } from "./routes/field-session-routes";
+import type { HubFieldRegistry } from "../infrastructure/hub-consumer";
+import { hubSessionRoutes } from "./routes/hub-session-routes";
 import { wireGuardRoutes } from "./routes/wireguard-routes";
 import type { WireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
 import { notificationRoutes } from "./routes/notification-routes";
 import type { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
-import type { ContainerProxy } from "../infrastructure/container-proxy/container-proxy";
+import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
 import type { FieldPoller } from "../infrastructure/field-poller";
 import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
 import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
 import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
+import type { HubConsumerClient } from "../infrastructure/hub-consumer";
 import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
 import type { PathAllowlist } from "@gd-monorepo/ws-tunnel";
 import { sessionCookieValue } from "@gd-monorepo/ws-tunnel";
@@ -94,22 +92,17 @@ export interface ServerDependencies {
   mfaLoginUseCase?: MfaLoginUseCase;
   mfaEnrollUseCase?: MfaEnrollUseCase;
   realtime: RealtimeManager;
-  containerProxy?: ContainerProxy;
+  containerProxy?: IContainerProxy;
   fieldPoller?: FieldPoller;
   marketSeries?: MarketSeries;
-  fieldRegistry?: FieldRegistry;
-  fieldGateway?: SessionGateway;
-  fieldTunnelProxy?: TunnelProxy;
+  fieldRegistry?: HubFieldRegistry;
   wireGuard?: WireGuardConnection;
   fieldEventCollector?: FieldEventCollector;
-  fieldConnector?: TunnelConnector;
+  hubPeerConnector?: TunnelConnector;
   sessionStore?: ClientSessionStore;
   /** Field tier: boss uplink oturumları (field_session cookie'si). */
   uplinkSessionStore?: ClientSessionStore;
   /** Boss tier: field app tünel allowlist'i (deployment config). */
-  fieldTunnelPathAllowlist?: PathAllowlist;
-  sessionGateway?: SessionGateway;
-  tunnelProxy?: TunnelProxy;
   mvManager: MaterializedViewManager;
   mq: IMessageQueue;
   configDir: string;
@@ -117,6 +110,10 @@ export interface ServerDependencies {
   requestContext: RequestContext;
   /** Faz 6 T6.1 — MFA kaydı zorunlu roller (rbac enforcement). */
   mfaRequiredRoles: Role[];
+  /** P3: hub-servis consumer client (HUB_MODE=hub). */
+  hubConsumerClient?: HubConsumerClient;
+  /** P3: hub servis kimliği (oturum redirect'i için). */
+  hubConsumerServiceId?: string;
   /** KOMUT-MANEVRA-OPERASYON Faz B/C — awilix'te kurulan paylaşımlı bileşenler. */
   maneuverRegistry?: ManeuverRegistry;
   maneuverExecutor?: OperationExecutor;
@@ -210,8 +207,10 @@ export class WebServiceServer {
     const sessionRbacOptions = deps.sessionStore
       ? {
           sessionAuthenticator: async (cookie: string | undefined) => {
+            // P1: ws-tunnel cookie varsayılanı nötrleşti → container cookie
+            // adı AÇIKÇA geçilir (container_session).
             const sessionUser = await deps.sessionStore!.authenticate(
-              sessionCookieValue(cookie) ?? "",
+              sessionCookieValue(cookie, "container_session") ?? "",
             );
             return sessionUser ? toWebUser(sessionUser) : undefined;
           },
@@ -239,7 +238,7 @@ export class WebServiceServer {
     // T2.2: TunnelConnector PPC durumu — container UI "Field Bağlantısı" beslemesi
     this.app.get(
       "/api/status",
-      makeStatusRoute({ fieldConnector: deps.fieldConnector }),
+      makeStatusRoute({ hubPeerConnector: deps.hubPeerConnector }),
     );
 
     await this.app.register(
@@ -355,18 +354,13 @@ export class WebServiceServer {
     await this.app.register(
       async (fastify) => {
         await fieldRoutes(fastify, { db: deps.postgres, containerProxy: deps.containerProxy });
-        // Faz 3 T3.3: oturum açılışı (field tier)
-        if (deps.sessionGateway) {
-          await sessionOpenRoute(fastify, {
-            gateway: deps.sessionGateway,
-          });
-        }
-        // WS4 D3: field → konteyner komut proxy'si (ince — iş mantığı YOK)
-        if (deps.sessionGateway && deps.tunnelProxy && deps.containerProxy) {
+        // WS4 D3: field → konteyner komut proxy'si — hub-servis REST (consumer).
+        if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
           await fieldContainerCommandRoutes(fastify, {
-            containerProxy: deps.containerProxy,
-            gateway: deps.sessionGateway,
-            tunnelProxy: deps.tunnelProxy,
+            hubAccess: {
+              client: deps.hubConsumerClient,
+              serviceId: deps.hubConsumerServiceId,
+            },
             logger: deps.logger,
             // Programatik kanal (management-service) gizli token'ı —
             // env yoksa internal yol KAPALI (fail-closed).
@@ -376,13 +370,6 @@ export class WebServiceServer {
       },
       { prefix: "/api/fields" },
     );
-
-    // Faz 3 T3.3: tünel proxy yolları (field tier — cookie doğrulamalı)
-    if (deps.tunnelProxy) {
-      await this.app.register(async (fastify) => {
-        await tunnelRoutes(fastify, { tunnelProxy: deps.tunnelProxy! });
-      });
-    }
 
     const fieldPoller = deps.fieldPoller;
     if (fieldPoller) {
@@ -407,34 +394,18 @@ export class WebServiceServer {
       );
     }
 
-    // Boss tier: field uplink kabulü (Faz 3 — /ws/field, service token'lı)
-    if (deps.fieldRegistry) {
-      await this.app.register(async (fastify) => {
-        await fieldUplinkWsRoutes(fastify, { registry: deps.fieldRegistry! });
-      });
-    }
-
-    // Boss tier: field oturum açılışı (/api/fields/:fid/session)
-    if (deps.fieldGateway) {
+    // P3: kullanıcı adına hub-servis oturumu (cookie front-door).
+    if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
       await this.app.register(
         async (fastify) => {
-          await fieldSessionRoutes(fastify, {
-            gateway: deps.fieldGateway!,
-            tunnelProxy: deps.fieldTunnelProxy!,
+          await hubSessionRoutes(fastify, {
+            client: deps.hubConsumerClient!,
+            cookieName: "tunnel_session",
+            serviceId: deps.hubConsumerServiceId!,
           });
         },
-        { prefix: "/api/fields" },
+        { prefix: "/api/hub" },
       );
-    }
-
-    // Boss tier: field app tünel proxy'si (/fields/:fid/ui/* — cookie doğrulamalı)
-    if (deps.fieldTunnelProxy) {
-      await this.app.register(async (fastify) => {
-        await fieldTunnelRoutes(fastify, {
-          tunnelProxy: deps.fieldTunnelProxy!,
-          pathAllowlist: deps.fieldTunnelPathAllowlist,
-        });
-      });
     }
 
     // Boss tier: bildirim akışı (Faz 5 — alarm/audit aktarımı)
@@ -463,7 +434,7 @@ export class WebServiceServer {
     if (containerProxy) {
       await this.app.register(
         async (fastify) => {
-          await containerWsRoutes(fastify, { containerProxy });
+  
         },
       );
     }

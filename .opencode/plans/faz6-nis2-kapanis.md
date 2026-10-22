@@ -1,6 +1,6 @@
 # Faz 6 Planı — NIS-2 Kapanışı
 
-**Kaynak:** `docs/architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` §Faz 6 (T6.1-T6.9)
+**Kaynak:** `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` §Faz 6 (T6.1-T6.9)
 **Kullanıcı kararları:** MFA admin/teknik zorunlu, boss/guest opsiyonel; TOTP = otplib; WAF = yalnız dokümantasyon; bildirim = SMTP + genel HTTP SMS adapter.
 **Kurallar:** TDD (JSDoc kontratı → kırmızı → yeşil), güvenlik-kritik modüllerde ≥%90 branch, OWASP ASVS L2, DI (constructor + config objesi + I-interface), Result<T,E> beklenen hatalarda, DOGRULAMA girişi faz kapanışında zorunlu.
 
@@ -55,7 +55,7 @@
 
 - **T6.5** `docs/standards/olay-mudahale-proseduru.md`: olay sınıflandırma (Kritik/Yüksek/Orta), NIS-2 24/72 saat bildirim akışı (BTK/USOM/sektörel otorite — TR), eskalasyon matrisi, kanıt toplama (`tools/verify-log.mjs`), post-incident şablonu.
 - **T6.8** `docs/architecture/MINI-SIEM-PLANI.md`: log-service hedef mimarisi (log_events okuyucu, kural motoru, alert, dashboard), fazlandırma — plan yalnızca, kod yok.
-- **T6.9 + DOGRULAMA:** `MIMARISI.md` Faz 6 durum satırı + `review_date`; `TESTING.md` §8.5 Faz 6 satırı; **`KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md` Faz 6 matrisi (T6.1-T6.9 satır ref'li, test kanıtlı) + K6.x kabul kriterleri + genel durum özeti + kapanış kararı**.
+- **T6.9 + DOGRULAMA:** `MIMARISI.md` Faz 6 durum satırı + `review_date`; `TESTING.md` §8.5 Faz 6 satırı; **`deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md` Faz 6 matrisi (T6.1-T6.9 satır ref'li, test kanıtlı) + K6.x kabul kriterleri + genel durum özeti + kapanış kararı**.
 
 ## Kabul kriterleri (K6.x önerisi)
 - **K6.1** MFA kaydı olmayan admin/teknik veri uçlarında 403; yanlış TOTP → 401 + `mfa_login_failed`; recovery kodu tek kullanımlık.

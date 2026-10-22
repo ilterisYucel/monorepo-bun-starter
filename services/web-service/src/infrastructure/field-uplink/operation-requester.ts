@@ -4,7 +4,7 @@
 import type {
   OperationExecuteMessage,
   OperationResultMessage,
-} from "@gd-monorepo/ws-tunnel";
+} from "../tunnel-extensions";
 import type { IHubChannel } from "@gd-monorepo/ws-tunnel";
 
 /** OperationRequester yapılandırması — tek obje (DI kuralı 3). */

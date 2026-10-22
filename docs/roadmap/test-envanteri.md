@@ -2815,7 +2815,7 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 ## 11. Sanal IO Cihaz Ailesi · Field↔Konteyner Komut Kanalı (2026-09-16)
 
 > Kapsam dokümanı: [SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md](../architecture/SANAL-IO-CIHAZ-AILESI-TEST-KAPSAMI.md)
-> DOGRULAMA: [SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md](../architecture/SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md), [FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md](../architecture/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md)
+> DOGRULAMA: [SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md](../architecture/SANAL-IO-CIHAZ-AILESI-DOGRULAMA.md), [deprecated/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md](../architecture/deprecated/FIELD-KONTEYNER-KOMUT-KANALI-DOGRULAMA.md)
 
 ### `packages/simulators/src/aux-analyser/aux-analyser.test.ts` (`9 test`) — ❌ KALDIRILDI (2026-09-22, K3)
 **Hedef:** AUX enerji analizörüydü — aux-analyser kaldırıldı; AUX = PM5340 tek cihaz (FL-02 PM5340 `Voltage L-N Avg`'den).
