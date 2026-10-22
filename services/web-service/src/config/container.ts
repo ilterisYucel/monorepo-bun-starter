@@ -39,11 +39,6 @@ import {
   SessionGateway,
   TunnelProxy,
 } from "@gd-monorepo/ws-tunnel";
-import {
-  RealtimeSnapshotSource,
-  TelemetrySeriesSource,
-  TelemetryQueryResponder,
-} from "../infrastructure/field-connector";
 import { JoseTokenSigner } from "../infrastructure/auth/jose-token-signer";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
@@ -225,8 +220,9 @@ export function buildContainer() {
         }
         const view = new HubContainerView({
           peers: () => hubConsumerClient.peers(),
-          sendControl: (peerId, message) => hubConsumerChannel.sendControl(peerId, message),
-          onControlMessage: (subscriber) => hubConsumerChannel.onControlMessage(subscriber),
+          access: (request) => hubConsumerClient.access(request),
+          serviceId: config.get<string>("hub.containerServiceId"),
+          latestCacheTtlMs: config.get<number>("tunnel.latestCacheTtlMs"),
         });
         // PPC sinyal kaynağı (R-07/FL-07): durum geçişi → synthetic MANAGEMENT.
         view.addObserver(new ContainerConnectionTelemetryPublisher(mq));
@@ -293,21 +289,6 @@ export function buildContainer() {
       },
     ).singleton(),
 
-    // Faz 5.1 B2 (container tier): telemetry-query kontrol frame'lerini yanıtlar.
-    // Field grafik sayfası tarihsel seriyi AYNI outbound WS kanalından ister —
-    // konteynere inbound HTTP açılmaz (tasarım R4/R5).
-    telemetryQueryResponder: asFunction(
-      ({ config, hubPeerConnector, timescale, postgres, logger }) => {
-        const tier = serviceTier(config);
-        if (tier !== "container" || !hubPeerConnector) return undefined;
-        const source = new TelemetrySeriesSource(
-          new DeviceRegistry(postgres),
-          timescale,
-        );
-        return new TelemetryQueryResponder(hubPeerConnector, source, logger);
-      },
-    ).singleton(),
-
     // Log altyapısı (TamperLogger — Faz 0 T0.5/T0.6).
     // asValue ile KAYDEDİLMEZ: awilix v11 async factory'leri await'lemez.
     // Logger, main()'de `buildTamperLogger` ile kurulur ve
@@ -354,20 +335,14 @@ export function buildContainer() {
       },
     ).singleton(),
 
-    // Telemetri snapshot push — DOMAIN mesajı (paket dışında; jenerik kontrol kanalı).
+    // Telemetri snapshot push — YALNIZ field→boss uplink (K6 kapsam dışı).
+    // Container→field yolu HTTP relay'e taşındı (bkz. HubContainerView).
     telemetrySnapshotPusher: asFunction(
-      ({ config, postgres, realtime, hubPeerConnector, uplinkConnector, containerProxy }) => {
+      ({ config, uplinkConnector, containerProxy }) => {
         const tier = serviceTier(config);
         const intervalMs = resolveTelemetryIntervalMs(
           process.env.TUNNEL_TELEMETRY_INTERVAL_MS,
         );
-        if (tier === "container" && hubPeerConnector) {
-          return new TelemetrySnapshotPusher(
-            hubPeerConnector,
-            new RealtimeSnapshotSource(postgres, realtime),
-            { intervalMs, isConnected: () => hubPeerConnector.connected() },
-          );
-        }
         if (tier === "field" && uplinkConnector && containerProxy) {
           return new TelemetrySnapshotPusher(
             uplinkConnector,

@@ -839,6 +839,17 @@ export const hubContainerServiceId: ConfigDefinition<string> = {
     "Hub modunda container peer'ının duyurduğu servis kimliği (komut/manevra erişimi)",
 };
 
+/** Hub relay telemetri cache TTL'i (ms) — field container latest snapshot. */
+export const tunnelLatestCacheTtlMs: ConfigDefinition<number> = {
+  key: "tunnel.latestCacheTtlMs",
+  env: "TUNNEL_LATEST_CACHE_TTL_MS",
+  filePath: "tunnel.latestCacheTtlMs",
+  default: 2000,
+  validate: (v) => (v === undefined ? 2000 : Number(v)),
+  description:
+    "HubContainerView latest telemetri cache TTL'i (ms) — talep-üzeri HTTP sorgusunu seyreltir",
+};
+
 export const hubConsumerUrl: ConfigDefinition<string | undefined> = {
   key: "hub.consumerUrl",
   env: "HUB_CONSUMER_URL",
@@ -1139,6 +1150,7 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   fieldTunnelAllowedPrefixes,
   hubConsumerUrl,
   hubContainerServiceId,
+  tunnelLatestCacheTtlMs,
   hubConsumerToken,
 
   // WireGuard yedek yol (Boss Faz 4)

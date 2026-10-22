@@ -41,7 +41,7 @@ function mapResults(result: OperationRunResult): OperationStepResult[] {
  * - Yürütme `trigger = boss:<operationId>` + `createdBy = boss` ile çalışır;
  *   traceId boss frame'inden aktarılır.
  * - Sonuç her durumda gönderilir (rejected dahil); yürütme hatası kanalı
- *   KAPATMAZ (kademeli bozulma — telemetry-query deseni).
+ *   KAPATMAZ (kademeli bozulma).
  * - Audit: operation_boss_request / operation_result_sent (best-effort —
  *   yürütme akışını kesmez; WS-TUNNEL §8).
  */

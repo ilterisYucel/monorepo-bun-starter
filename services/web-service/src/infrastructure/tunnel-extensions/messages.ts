@@ -31,51 +31,6 @@ export interface TelemetryMessage {
   data: TunnelTelemetryPoint[];
 }
 
-/** Hub→Client: tarihsel (downsampled) telemetri serisi sorgusu. */
-export interface TelemetryQueryMessage {
-  type: "telemetry-query";
-  queryId: string;
-  from: string;
-  to: string;
-  points: number;
-  deviceIds?: string[];
-  names?: string[];
-  tag?: string;
-  mode?: "downsampled" | "latest";
-}
-
-/** Client→Hub: `telemetry-query` yanıtı — downsampled seri (boş olabilir). */
-export interface TelemetryResultMessage {
-  type: "telemetry-result";
-  queryId: string;
-  data: TunnelTelemetryPoint[];
-}
-
-/** Client→Hub: sorgu başarısız — hub boş seri gösterir (kademeli bozulma). */
-export interface TelemetryQueryErrorMessage {
-  type: "telemetry-query-error";
-  queryId: string;
-  message: string;
-}
-
-/** Telemetri sorgu mesajları — tünel kontrol kanalından taşınır. */
-export type TelemetryQueryControlMessage =
-  | TelemetryQueryMessage
-  | TelemetryResultMessage
-  | TelemetryQueryErrorMessage;
-
-/** `telemetry-query` alım zod şeması — güvenilmez hub girdisi doğrulanır. */
-export const telemetryQuerySchema = z.object({
-  queryId: z.string().min(1).max(128),
-  from: z.string().datetime({ offset: true }),
-  to: z.string().datetime({ offset: true }),
-  points: z.number().int().min(1).max(5000),
-  deviceIds: z.array(z.string().min(1)).max(200).optional(),
-  names: z.array(z.string().min(1)).max(500).optional(),
-  tag: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/).max(64).optional(),
-  mode: z.enum(["downsampled", "latest"]).optional(),
-});
-
 /** Hub→peer: operasyon tetikleme isteği. */
 export interface OperationExecuteMessage {
   type: "operation-execute";

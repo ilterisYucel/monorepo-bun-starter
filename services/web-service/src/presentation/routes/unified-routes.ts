@@ -77,6 +77,40 @@ export async function unifiedRoutes(
     }
   });
 
+  /**
+   * Her (deviceId,name) için en yeni satır — `getLatestPerName` (pencere bazlı).
+   * Hub relay telemetrisi bu ucu kullanır; `getLatestN` limit taramasından ucuzdur.
+   */
+  fastify.get("/telemetry/latest-per-name", async (request, reply) => {
+    await registry.refresh();
+    const { deviceIds, names, windowMs } = request.query as {
+      deviceIds?: string;
+      names?: string;
+      windowMs?: string;
+    };
+    const ids = deviceIds ? deviceIds.split(",") : [];
+    const nameFilter = names ? names.split(",") : undefined;
+    const parsedWindow = Number(windowMs);
+    const targetWindowMs =
+      Number.isFinite(parsedWindow) && parsedWindow > 0
+        ? Math.min(parsedWindow, 24 * 3600 * 1000)
+        : 5 * 60 * 1000;
+    const targets = registry.online().filter(
+      (d) => ids.length === 0 || ids.includes(d.id),
+    );
+    const results = await Promise.allSettled(
+      targets.map((d) =>
+        timescale.getLatestPerName(d.id, {
+          windowMs: targetWindowMs,
+          ...(nameFilter !== undefined ? { names: nameFilter } : {}),
+        }),
+      ),
+    );
+    return reply.send({
+      telemetries: results.flatMap((r) => (r.status === "fulfilled" ? r.value : [])),
+    });
+  });
+
   fastify.get("/telemetry/latest", async (request, reply) => {
     await registry.refresh();
 

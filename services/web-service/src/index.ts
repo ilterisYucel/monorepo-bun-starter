@@ -63,7 +63,6 @@ export async function main() {
   const sessionStore = c.containerSessionStore as any;
   const containerSessionServer = c.containerSessionServer as any;
   const tunnelClient = c.tunnelClient as any;
-  const telemetryQueryResponder = c.telemetryQueryResponder as any;
   const uplinkConnector = c.uplinkConnector as any;
   const uplinkSessionServer = c.uplinkSessionServer as any;
   const operationResponder = c.operationResponder as any;
@@ -150,7 +149,6 @@ export async function main() {
     await server.stop();
     if (containerSessionServer) containerSessionServer.stop();
     if (tunnelClient) tunnelClient.stop();
-    if (telemetryQueryResponder) telemetryQueryResponder.stop();
     if (telemetrySnapshotPusher) telemetrySnapshotPusher.stop();
     if (hubConsumerChannel) hubConsumerChannel.stop();
     if (deps.containerProxy) await deps.containerProxy.stop();
@@ -268,10 +266,6 @@ export async function main() {
     }
     if (containerSessionServer) {
       containerSessionServer.start();
-    }
-    // Faz 5.1 B2: telemetry-query yanıtlayıcısı
-    if (telemetryQueryResponder) {
-      telemetryQueryResponder.start();
     }
   }
 

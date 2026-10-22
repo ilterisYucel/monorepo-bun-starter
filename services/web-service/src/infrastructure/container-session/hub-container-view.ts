@@ -5,73 +5,76 @@ import type {
   IContainerProxy,
 } from "@gd-monorepo/platform-container-access";
 import type { DownsampleOptions } from "@gd-monorepo/core";
+import type { HubAccessRequest } from "../hub-consumer";
+import { HubTtlCache } from "./hub-ttl-cache";
 
 /** HubContainerView yapılandırması. */
 export interface HubContainerViewConfig {
-  /** Presence + sorgu için hub consumer client (field tier'da kendi hub'ı). */
+  /** Presence sorgusu (`GET /peers`). */
   peers: () => Promise<
     ReadonlyArray<{ peerId: string; peerType: string; status: string }>
   >;
-  /** Kontrol mesajı gönderimi (telemetry-query). */
-  sendControl: (peerId: string, message: unknown) => void;
-  /** Gelen kontrol mesajı aboneliği (telemetry + sorgu yanıtları). */
-  onControlMessage: (
-    subscriber: (peerId: string, message: unknown) => void,
-  ) => () => void;
+  /** Hub opak erişimi (consumer kimliğiyle) — container'ın kendi HTTP uçlarına. */
+  access: (request: HubAccessRequest) => Promise<Response>;
+  /** Container peer'ının duyduğu servis kimliği (ör. "container-api"). */
+  serviceId: string;
   /** Presence tazeleme aralığı (ms). */
   presenceRefreshMs?: number;
-  /** Sorgu zaman aşımı (ms). */
+  /** latestQuery sonucu TTL'i (ms) — varsayılan 2000. */
+  latestCacheTtlMs?: number;
+  /** HTTP sorgu zaman aşımı (ms) — varsayılan 10 000. */
   queryTimeoutMs?: number;
+  /** Relay çağrılarına eklenecek audit başlıkları (varsayılan: system). */
+  userHeaders?: Record<string, string>;
   now?: () => number;
 }
 
-interface PendingQuery {
-  resolve: (data: TelemetryData[]) => void;
-  timer: ReturnType<typeof setTimeout>;
-}
+const SYSTEM_USER_HEADERS = {
+  "x-tunnel-user-id": "system",
+  "x-tunnel-user-username": "system",
+  "x-tunnel-user-role": "admin",
+};
 
 /**
- * HubContainerView — field tier `ContainerProxy`'sinin hub-servis tüketicisi
- * karşılığı (P3 Faz 3).
+ * HubContainerView — field tier `ContainerProxy`'sinin hub-servis tüketicisi.
  *
- * Konteynerler artık field hub-servis'e bağlanır; bu view:
- * - **presence:** `GET /peers` polling → connectionStatus/lastSeenAt + geçiş
- *   olayları (PPC publisher için).
- * - **telemetri store:** relay'den gelen `telemetry` frame'leri → latest.
- * - **sorgu:** `telemetry-query` gönderir, `telemetry-result`'ı queryId ile eşler.
+ * Veri yolu: **hub opak relay → container'ın kendi generic HTTP uçları**
+ * (`/api/unified/telemetry/latest-per-name`; `/api/unified/telemetry/downsampled`).
+ * Kontrol-kanalı telemetri mesajları YOKTUR; latest sonucu kısa TTL cache'te
+ * tutulur, `latestTelemetry` son bilinen değeri (TTL'e bakmadan) döner.
  *
- * WS kabulü/token/stream hub-servis'te olduğundan `registerContainer`/
- * `authenticateContainerToken` gibi metotlar hub modunda DESTEKLENMEZ.
+ * - presence: `GET /peers` polling → connectionStatus/lastSeenAt + geçiş olayları.
+ * - relay açılamazsa boş dizi döner (fail-safe); cache varsa son değer kullanılır.
  */
 export class HubContainerView implements IContainerProxy {
   private readonly peersFn: HubContainerViewConfig["peers"];
-  private readonly sendControlFn: HubContainerViewConfig["sendControl"];
-  private readonly onControlMessageFn: HubContainerViewConfig["onControlMessage"];
+  private readonly accessFn: HubContainerViewConfig["access"];
+  private readonly serviceId: string;
   private readonly presenceRefreshMs: number;
   private readonly queryTimeoutMs: number;
+  private readonly userHeaders: Record<string, string>;
   private readonly now: () => number;
+  private readonly cache: HubTtlCache<TelemetryData[]>;
 
   private presence = new Map<string, { status: PeerConnectionState; lastSeenAt: number }>();
-  private telemetry = new Map<string, TelemetryData[]>();
   private readonly observers = new Set<ContainerObserver>();
-  private readonly pending = new Map<string, PendingQuery>();
   private presenceTimer?: ReturnType<typeof setInterval>;
-  private unsubscribe?: () => void;
-  private querySeq = 0;
 
   constructor(config: HubContainerViewConfig) {
     this.peersFn = config.peers;
-    this.sendControlFn = config.sendControl;
-    this.onControlMessageFn = config.onControlMessage;
+    this.accessFn = config.access;
+    this.serviceId = config.serviceId;
     this.presenceRefreshMs = config.presenceRefreshMs ?? 15_000;
     this.queryTimeoutMs = config.queryTimeoutMs ?? 10_000;
+    this.userHeaders = config.userHeaders ?? SYSTEM_USER_HEADERS;
     this.now = config.now ?? (() => Date.now());
+    this.cache = new HubTtlCache<TelemetryData[]>({
+      ttlMs: config.latestCacheTtlMs ?? 2_000,
+      now: this.now,
+    });
   }
 
   async start(): Promise<void> {
-    this.unsubscribe = this.onControlMessageFn((peerId, message) =>
-      this.onMessage(peerId, message),
-    );
     void this.refresh();
     this.presenceTimer = setInterval(() => void this.refresh(), this.presenceRefreshMs);
   }
@@ -79,10 +82,6 @@ export class HubContainerView implements IContainerProxy {
   async stop(): Promise<void> {
     if (this.presenceTimer) clearInterval(this.presenceTimer);
     this.presenceTimer = undefined;
-    this.unsubscribe?.();
-    this.unsubscribe = undefined;
-    for (const query of this.pending.values()) clearTimeout(query.timer);
-    this.pending.clear();
   }
 
   /** Presence'ı hub keşfinden tazeler + geçiş olaylarını yayar (komut). */
@@ -105,6 +104,8 @@ export class HubContainerView implements IContainerProxy {
         lastSeenAt: status === "connected" ? timestamp : (previous?.lastSeenAt ?? timestamp),
       });
       if (previous?.status !== status && previous !== undefined) {
+        // Yeniden bağlanan peer'ın bayat telemetrisi kullanılmasın.
+        if (status === "connected") this.cache.delete(peer.peerId);
         this.notifyConnectionChange(peer.peerId, status);
       }
     }
@@ -113,8 +114,9 @@ export class HubContainerView implements IContainerProxy {
 
   // --- IContainerProxy (tüketici tarafı) ---
 
+  /** Son bilinen telemetri (TTL'e bakmaz; hiç çekilmediyse boş). */
   latestTelemetry(containerId: string): TelemetryData[] {
-    return this.telemetry.get(containerId) ?? [];
+    return this.cache.peek(containerId) ?? [];
   }
 
   connectionStatus(): Map<string, PeerConnectionState> {
@@ -137,21 +139,46 @@ export class HubContainerView implements IContainerProxy {
     containerId: string,
     options?: { names?: string[]; windowMs?: number },
   ): Promise<TelemetryData[]> {
-    return this.query(containerId, "latest", {
-      names: options?.names,
-      windowMs: options?.windowMs,
+    if (!this.presence.has(containerId)) return [];
+    const cached = this.cache.get(containerId);
+    if (cached !== undefined) return cached;
+
+    const query = new URLSearchParams({
+      windowMs: String(options?.windowMs ?? 5 * 60 * 1000),
     });
+    if (options?.names !== undefined && options.names.length > 0) {
+      query.set("names", options.names.join(","));
+    }
+    const data = await this.fetchTelemetry(
+      containerId,
+      `/api/unified/telemetry/latest-per-name?${query.toString()}`,
+    );
+    if (data !== undefined) {
+      this.cache.set(containerId, data);
+      return data;
+    }
+    return this.cache.peek(containerId) ?? [];
   }
 
   async historical(
     containerId: string,
     params: Omit<DownsampleOptions, "deviceId">,
   ): Promise<TelemetryData[]> {
-    return this.query(containerId, "downsampled", {
-      from: params.from,
-      to: params.to,
-      points: params.points,
+    if (!this.presence.has(containerId)) return [];
+    const query = new URLSearchParams({
+      from: params.from.toISOString(),
+      to: params.to.toISOString(),
+      points: String(params.points ?? 120),
     });
+    if (params.names !== undefined && params.names.length > 0) {
+      query.set("names", params.names.join(","));
+    }
+    if (params.tag !== undefined) query.set("tag", params.tag);
+    const data = await this.fetchTelemetry(
+      containerId,
+      `/api/unified/telemetry/downsampled?${query.toString()}`,
+    );
+    return data ?? [];
   }
 
   addObserver(observer: ContainerObserver): void {
@@ -182,54 +209,37 @@ export class HubContainerView implements IContainerProxy {
 
   // --- iç ---
 
-  private onMessage(peerId: string, message: unknown): void {
-    const msg = message as { type?: string; queryId?: string; data?: unknown; message?: string };
-    if (msg.type === "telemetry") {
-      const data = Array.isArray(msg.data) ? (msg.data as TelemetryData[]) : [];
-      this.telemetry.set(peerId, data);
-      const entry = this.presence.get(peerId);
-      if (entry) entry.lastSeenAt = this.now();
-      for (const observer of this.observers) observer.onData(peerId, data);
-      return;
-    }
-    if (msg.type === "telemetry-result" || msg.type === "telemetry-query-error") {
-      const queryId = msg.queryId;
-      if (typeof queryId !== "string") return;
-      const pending = this.pending.get(queryId);
-      if (!pending) return;
-      clearTimeout(pending.timer);
-      this.pending.delete(queryId);
-      pending.resolve(msg.type === "telemetry-result" && Array.isArray(msg.data) ? (msg.data as TelemetryData[]) : []);
-    }
-  }
-
-  private query(
+  /**
+   * Container'ın generic telemetri ucundan veri çeker (hub opak relay).
+   * Erişim/zaman aşımı/parse hatasında `undefined` (çağıran cache'e düşer).
+   */
+  private async fetchTelemetry(
     containerId: string,
-    mode: "latest" | "downsampled",
-    extra: { names?: string[]; windowMs?: number; from?: Date; to?: Date; points?: number },
-  ): Promise<TelemetryData[]> {
-    if (!this.presence.has(containerId)) return Promise.resolve([]);
-    const queryId = `hubq-${++this.querySeq}-${this.now()}`;
-    const windowMs = extra.windowMs ?? 5 * 60 * 1000;
-    const to = extra.to ?? new Date(this.now());
-    const from = extra.from ?? new Date(this.now() - windowMs);
-    const frame = {
-      type: "telemetry-query",
-      queryId,
-      from: from.toISOString(),
-      to: to.toISOString(),
-      points: extra.points ?? 120,
-      mode,
-      ...(extra.names !== undefined ? { names: extra.names } : {}),
-    };
-    return new Promise<TelemetryData[]>((resolve) => {
-      const timer = setTimeout(() => {
-        this.pending.delete(queryId);
-        resolve([]);
-      }, this.queryTimeoutMs);
-      this.pending.set(queryId, { resolve, timer });
-      this.sendControlFn(containerId, frame);
+    path: string,
+  ): Promise<TelemetryData[] | undefined> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => reject(new Error("hub query timeout")), this.queryTimeoutMs);
     });
+    try {
+      const response = await Promise.race([
+        this.accessFn({
+          peerId: containerId,
+          serviceId: this.serviceId,
+          path,
+          method: "GET",
+          headers: this.userHeaders,
+        }),
+        timeout,
+      ]);
+      if (!response.ok) return undefined;
+      const body = (await response.json()) as { telemetries?: unknown };
+      return Array.isArray(body.telemetries) ? (body.telemetries as TelemetryData[]) : [];
+    } catch {
+      return undefined;
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
   }
 
   private notifyConnectionChange(containerId: string, state: PeerConnectionState): void {

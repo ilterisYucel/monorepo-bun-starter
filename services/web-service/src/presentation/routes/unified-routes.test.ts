@@ -347,3 +347,25 @@ describe("unified-routes (T0.6)", () => {
     }
   });
 });
+
+describe("unified-routes — latest-per-name", () => {
+  it("AK: getLatestPerName pencere + names filtresiyle çağrılır", async () => {
+    const timescale = makeTimescale({
+      getLatestPerName: vi.fn().mockResolvedValue([
+        { deviceId: "bsc-1", name: "SOC", value: 55, timestamp: "2026-10-22T09:00:00Z" },
+      ]),
+    } as Partial<ITimeseriesDatabase>);
+    const app = await buildApp({ timescale });
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/unified/telemetry/latest-per-name?deviceIds=bsc-1&names=SOC&windowMs=60000",
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { telemetries: Array<{ name: string }> };
+    expect(body.telemetries).toHaveLength(1);
+    const call = (timescale.getLatestPerName as unknown as { mock: { calls: unknown[][] } })
+      .mock.calls[0];
+    expect(call?.[0]).toBe("bsc-1");
+    expect(call?.[1]).toMatchObject({ windowMs: 60000, names: ["SOC"] });
+  });
+});
