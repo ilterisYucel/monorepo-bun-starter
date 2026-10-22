@@ -1,29 +1,17 @@
 /**
- * ws-tunnel jenerik alan tipleri — GD-PMS'ye özgü DEĞİLDİR.
+ * ws-tunnel jenerik alan tipleri — domain'e özgü DEĞİLDİR.
  *
- * Tünel bu tipleri YORUMLAMAZ: rolü field tarafı eşler, yetkiyi konteyner
- * RBAC'ı uygular; telemetri noktaları opak veridir (yalnızca kanaldan taşınır).
- * Tüketiciler kendi domain tiplerini bu şekillere eşler (monorepo örnekleri:
- * `session-user-map.ts`, `RealtimeSnapshotSource`).
+ * Tünel bu tipleri YORUMLAMAZ: rolü tüketici eşler, yetkiyi tüketici RBAC'ı
+ * uygular. Domain verisi kanaldan opak akar; tüketici kendi tiplerini bu
+ * şekillere eşler.
  */
 
 /** Tünel rolü — serbest string; eşleme/doğrulama tüketiciye aittir. */
 export type TunnelRole = string;
 
-/** Oturum kullanıcısı — field tarafında EŞLENMİŞ konteyner rolüyle. */
+/** Oturum kullanıcısı — tüketici tarafında EŞLENMİŞ rol ile taşınır. */
 export interface TunnelUser {
   id: string;
   username: string;
   role: TunnelRole;
-}
-
-/** Kanaldan taşınan en küçük telemetri noktası sözleşmesi. */
-export interface TunnelTelemetryPoint {
-  deviceId: string;
-  name: string;
-  value: number | boolean | string;
-  timestamp: string;
-  unit?: string;
-  description?: string;
-  tags?: Record<string, string>;
 }

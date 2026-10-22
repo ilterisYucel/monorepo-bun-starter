@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { Result, ConflictError, ForbiddenError, TransientError, FatalError } from "@gd-monorepo/result";
-import type { DomainError } from "@gd-monorepo/result";
+import { Result, ConflictError, ForbiddenError, TransientError, FatalError } from "../result";
+import type { DomainError } from "../result";
 import type { ILogger } from "../logger";
 import type { IHubChannel } from "../channel";
 import type { IAuditSink } from "../audit";
@@ -25,8 +25,8 @@ export interface SessionGatewayConfig {
 
 /** Oturum açma girdisi — route katmanından gelir. */
 export interface OpenSessionInput {
-  /** Hub site kimliği (deployment-bazlı anlam: container hub'da fieldId, boss hub'da fieldId). */
-  fieldId: string;
+  /** Hub site kimliği — audit korelasyonu (tüketici anlamı). */
+  hubId: string;
   peerId: string;
   user: TunnelUser;
   remoteIp?: string;
@@ -201,7 +201,7 @@ export class SessionGateway {
 
     try {
       await this.audit.open({
-        fieldId: input.fieldId,
+        hubId: input.hubId,
         peerId: input.peerId,
         sessionId,
         username: input.user.username,

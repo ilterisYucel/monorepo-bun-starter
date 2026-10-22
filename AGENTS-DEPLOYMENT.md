@@ -22,15 +22,14 @@ gerekmesini önlemek için kalıcıdır.
 
 ```text
 deployment/
-├── <proje>/                       # örn. v1 (klasik stack), v2 (demo-field)
-│   ├── common/                    # proje içi zorunlu paylaşım (nadir)
-│   ├── dev/{container,field,boss}/
-│   ├── prod/{container,field,boss}/
-│   ├── aws/{container,field,boss}/
-│   └── office/{container,field,boss}/
+├── <proje>/                       # bugün: v2 (demo-field)
+│   └── <tier>/                    # bugün: dev
+│       └── <app>/                 # container, container2, field
 ├── k6/                            # proje bağımsız araç — kökte kalır
 └── wiki/ + docker-compose.wiki.yml  # proje bağımsız araç — kökte kalır
 ```
+
+Bugünkü tek stack: `deployment/v2/dev/{container,container2,field}/` (v1/AWS/office kaldırıldı).
 
 - Ortam (tier) **proje klasörünün içinde** ayrılır: `deployment/<proje>/<tier>/<app>/`.
 - Her `<app>` klasörü kendi `docker-compose.yml`, `device-configs/`, `maneuvers/`, `rules/`,
@@ -44,7 +43,7 @@ deployment/
 2. **Kod klasörü örneklerinden referans YASAK.** App klasörleri servis/app kod klasörlerindeki örnek
    `docker-compose`, config ve `.env` dosyalarına referans veremez.
 3. **Paylaşım yalnızca `<proje>/common/` altından** yapılır ve yalnızca çok zaruri hallerde kullanılır
-   (örn. `v1/common/customer-plugins`). App klasörü kendi kardeşine değil, `common`'a referans verir.
+   (örn. `<proje>/common/customer-plugins`). App klasörü kendi kardeşine değil, `common`'a referans verir.
 4. **Device config / maneuvers / rules** repo kök `configs/` (source of truth) dizininden **kopyalanıp**
    projeye özgü değişkenler (`connection.host`, `port`, `slaveId`, instance adları) düzenlenir. Runtime'da
    kök `configs/`'e referans verilmez.
@@ -59,11 +58,6 @@ deployment/
 - Commit'lenen tek şablon ilgili klasördeki `.env.example`'dır (sır yok). Gerçek `.env` asla commit'lenmez.
 - Tier/app dosyasına ait olmayan alan YAZILMAZ (örn. `CONTAINER_TOKEN` yalnızca `container/.env`'de).
 
-## AWS edge topolojisi
-
-- Edge makinesinde container ve field **ayrı compose dosyalarıdır** ama aynı sunucuda çalışır; ortak
-  Docker ağını container compose tanımlar (`name:` sabit), field compose `external: true` ile katılır.
-
 ## Yeni deployment eklerken kontrol listesi
 
 - [ ] Dosya `deployment/<proje>/<tier>/<app>/` altında mı?
@@ -71,3 +65,29 @@ deployment/
 - [ ] Dockerfile dışında kod klasörüne referans var mı? (olmamalı)
 - [ ] Config'ler kök `configs/`'ten kopyalanıp düzenlendi mi?
 - [ ] `.env.example` commit'li, gerçek `.env` gitignore'lu mu?
+
+## Hub-servis (P3) — cutover runbook
+
+> SPEC: [WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md](docs/architecture/WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md)
+
+- **İmaj:** `docker build -f packages/ws-tunnel-hub/Dockerfile -t ws-tunnel-hub:<tag> .` (monorepo kök bağlamı). Compose'da `HUB_IMAGE` ile seçilir.
+- **Servis:** field stack'te `hub-servis` (port 5003 iç, dış 5009). Volume `/data` (sqlite modunda; env modunda gerekmez).
+- **Kimlik (tier-bazlı, HUB_MODE flag'i YOK):**
+  - `container` tier → hub **peer**'dır: `HUB_PEER_ENABLED=true`, `HUB_PEER_URL=ws://hub-servis:5003/ws/peer`, `HUB_PEER_TOKEN` (hub `PEER_TOKEN` ile aynı), `CONTAINER_ID`, `TUNNEL_SERVICE_ID` (duyurulan servis).
+  - `field`/`boss` tier → hub **consumer**'dır: `HUB_CONSUMER_URL` + `HUB_CONSUMER_TOKEN` **zorunlu** (eksikse açılış fail-fast — `config/default.ts#hubConsumerConfig`).
+- **Agent (opsiyonel peer):** `ws-tunnel-agent` imajı ile üçüncü parti/opak uygulama tünellenir; `PEER_TOKEN` hub ile aynı, `LOCAL_TARGET` tünellenen uygulama. İlk açılışta config yoksa setup UI (8080) açılır.
+- **Rollback:** peer URL'ini eski hedefe çevir + consumer env'lerini kaldır (tier-gating nedeniyle field/boss consumer zorunludur; geri dönüş için hub-servis servisini kaldırıp legacy hedefe dönülür).
+
+### P3 — nginx hub alias sözleşmesi
+
+Hub modunda tarayıcı erişimi hub-servis'ten geçer (aynı origin). Her stack'in web nginx'ine eklenir:
+
+| Yol (mevcut) | Hedef (hub-servis) |
+|:---|:---|
+| `/peers/*` | `http://hub-servis:5003` (opak peer/servis erişimi — WS upgrade başlıkları) |
+| `/fields/<fid>/ui/*` (boss stack) | `http://hub-servis:5003/peers/<fid>/services/field-api/$1` |
+| `/containers/<cid>/ui/*` (field stack) | `http://hub-servis:5003/peers/<cid>/services/container-api/$1` |
+
+- Alias servis kimliği, hub config `HUB_CONTAINER_SERVICE_ID` (ve container peer'ının duyurduğu `services[].id`) ile eşleşmelidir.
+- WS/SSE için `Upgrade`/`Connection` başlıkları açık; `proxy_read_timeout` yüksek (uzun oturum).
+- Örnek uygulama: `deployment/v2/dev/field/nginx/demo-field.conf` (app klasöründe, kapsülleme kuralına uygun).

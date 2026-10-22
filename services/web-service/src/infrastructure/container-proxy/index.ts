@@ -1,2 +1,1 @@
-export { ContainerProxy } from "./container-proxy";
-export { containerWsRoutes } from "./container-ws-routes";
+export { ContainerConnectionTelemetryPublisher } from "./container-connection-telemetry-publisher";

@@ -1,10 +1,11 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
 import {
   TUNNEL_PROTOCOL_VERSION,
+  TUNNEL_PEER_TYPES,
   DEFAULT_TUNNEL_OPERATIONAL_CONFIG,
   tunnelOperationalConfigSchema,
+  serviceAnnouncementSchema,
   isPeerConnectionState,
-  operationExecuteSchema,
 } from "./messages";
 import type {
   PeerConnectionState,
@@ -12,17 +13,13 @@ import type {
   TunnelOperationalConfig,
   RegisterMessage,
   RegisterAckMessage,
+  ServiceAnnouncement,
   HeartbeatMessage,
-  TelemetryMessage,
   ConfigUpdateMessage,
   ErrorMessage,
-  EventMessage,
   StreamOpenMessage,
   OpenSessionMessage,
   OpenSessionAckMessage,
-  OperationExecuteMessage,
-  OperationResultMessage,
-  OperationControlMessage,
 } from "./messages";
 
 /**
@@ -36,12 +33,10 @@ import type {
  *   backoff → connecting. "backoff" = yeniden bağlanma bekleniyor.
  * - Kontrol mesajları — JSON text frame'leri (§4.1): register (ilk mesaj,
  *   protocolVersion zorunlu), register-ack (status "ok"|"rejected" + opsiyonel
- *   operational config), heartbeat (ts = gönderen saati ms), telemetry (en güncel
- *   snapshot), config-update (canlı config push — restart yok), error (kod + mesaj).
+ *   operational config), heartbeat (ts = gönderen saati ms), config-update (canlı config push — restart yok), error (kod + mesaj).
  * - `TunnelOperationalConfig` — ZORUNLU alan YOK; bilinmeyen anahtarlar strip edilir
  *   (ileri uyumluluk); aralıklar 1000-300000 ms bandında tam sayı olmalı.
- * - `DEFAULT_TUNNEL_OPERATIONAL_CONFIG` — heartbeat 15 sn, telemetry 15 sn
- *   (tasarım §4.3: 15 sn heartbeat, 45 sn stale).
+ * - `DEFAULT_TUNNEL_OPERATIONAL_CONFIG` — heartbeat 15 sn.
  */
 
 describe("TunnelConnector sözleşmesi (T2.0)", () => {
@@ -55,19 +50,15 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
     it("tam config'i kabul eder", () => {
       const parsed = tunnelOperationalConfigSchema.parse({
         heartbeatIntervalMs: 10000,
-        telemetryIntervalMs: 20000,
       });
-      expect(parsed).toEqual({
-        heartbeatIntervalMs: 10000,
-        telemetryIntervalMs: 20000,
-      });
+      expect(parsed).toEqual({ heartbeatIntervalMs: 10000 });
     });
 
     it("kısmi config'i kabul eder (yalnızca heartbeat)", () => {
       const parsed = tunnelOperationalConfigSchema.parse({
         heartbeatIntervalMs: 5000,
       });
-      expect(parsed.telemetryIntervalMs).toBeUndefined();
+      expect(parsed).toEqual({ heartbeatIntervalMs: 5000 });
     });
 
     it("boş config'i kabul eder (tüm alanlar opsiyonel)", () => {
@@ -91,7 +82,7 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
 
     it("300000 ms üstünü reddeder", () => {
       expect(() =>
-        tunnelOperationalConfigSchema.parse({ telemetryIntervalMs: 300001 }),
+        tunnelOperationalConfigSchema.parse({ heartbeatIntervalMs: 300001 }),
       ).toThrow();
     });
 
@@ -111,10 +102,6 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
   describe("DEFAULT_TUNNEL_OPERATIONAL_CONFIG", () => {
     it("heartbeat 15 sn — tasarım §4.3", () => {
       expect(DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs).toBe(15000);
-    });
-
-    it("telemetry 15 sn", () => {
-      expect(DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs).toBe(15000);
     });
 
     it("dondurulmuştur (immutable)", () => {
@@ -142,7 +129,7 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
         type: "register",
         peerId: "container-1",
         peerType: "container",
-        containerUrl: "http://web:80",
+        peerUrl: "http://web:80",
         protocolVersion: TUNNEL_PROTOCOL_VERSION,
       };
       expectTypeOf(msg).toEqualTypeOf<RegisterMessage>();
@@ -167,17 +154,10 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
       expect(hb.ts).toBeGreaterThan(0);
     });
 
-    it("TelemetryMessage TelemetryData dizisi taşır", () => {
-      const tm: TelemetryMessage = { type: "telemetry", data: [] };
-      expectTypeOf(tm.data).toEqualTypeOf<
-        import("../types").TunnelTelemetryPoint[]
-      >();
-    });
-
     it("ConfigUpdateMessage tam config taşır", () => {
       const cu: ConfigUpdateMessage = {
         type: "config-update",
-        config: { telemetryIntervalMs: 30000 },
+        config: { heartbeatIntervalMs: 30000 },
       };
       expect(cu.type).toBe("config-update");
     });
@@ -189,21 +169,6 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
         message: "Bilinmeyen frame",
       };
       expect(err.code).toMatch(/^[a-z][a-z0-9-]*$/);
-    });
-
-    it("EventMessage jenerik olay bildirimi taşır (Boss Faz 5)", () => {
-      const event: EventMessage = {
-        type: "event",
-        eventId: "f-1:42",
-        timestamp: "2026-09-07T10:00:00.000Z",
-        level: "error",
-        category: "app",
-        eventCode: "device_alarm",
-        message: "Voltage alttan sigortayi atti",
-        context: { deviceId: "bsc-1" },
-      };
-      expect(event.eventCode).toBe("device_alarm");
-      expect(event.context?.deviceId).toBe("bsc-1");
     });
 
     it("StreamOpenMessage akış açılışını taşır (§5.2)", () => {
@@ -261,12 +226,9 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
       expect(states).toHaveLength(5);
     });
 
-    it("TunnelOperationalConfig yalnızca iki opsiyonel alan taşır", () => {
+    it("TunnelOperationalConfig yalnızca heartbeat alanı taşır", () => {
       const cfg: TunnelOperationalConfig = {};
-      expectTypeOf(cfg).toMatchTypeOf<{
-        heartbeatIntervalMs?: number;
-        telemetryIntervalMs?: number;
-      }>();
+      expectTypeOf(cfg).toMatchTypeOf<{ heartbeatIntervalMs?: number }>();
     });
 
     it("PeerConnectionState transport ConnectionState'ından ayrıdır", () => {
@@ -278,70 +240,5 @@ describe("TunnelConnector sözleşmesi (T2.0)", () => {
       ];
       expectTypeOf(states[0]).not.toEqualTypeOf<"connecting">();
     });
-  });
-});
-
-describe("operation-execute / operation-result (WS-TUNNEL-KAPASITE §6)", () => {
-  it("operationExecuteSchema: geçerli istek kabul edilir", () => {
-    const parsed = operationExecuteSchema.safeParse({
-      type: "operation-execute",
-      operationId: "op-1",
-      name: "field_charge",
-      params: { powerKw: 200 },
-      traceId: "auto:boss:1",
-    });
-    expect(parsed.success).toBe(true);
-  });
-
-  it("operationExecuteSchema: eksik/boş zorunlu alanlar RED", () => {
-    expect(
-      operationExecuteSchema.safeParse({
-        type: "operation-execute",
-        name: "field_charge",
-      }).success,
-    ).toBe(false);
-    expect(
-      operationExecuteSchema.safeParse({
-        type: "operation-execute",
-        operationId: "op-1",
-        name: "",
-      }).success,
-    ).toBe(false);
-    expect(
-      operationExecuteSchema.safeParse({
-        operationId: "op-1",
-        name: "x",
-      }).success,
-    ).toBe(false); // type zarfı zorunlu
-  });
-
-  it("operationExecuteSchema: bilinmeyen anahtar RED (strict güven sınırı)", () => {
-    // Güvenilmez boss girdisi — bilinmeyen anahtar kabul edilmez.
-    const parsed = operationExecuteSchema.safeParse({
-      type: "operation-execute",
-      operationId: "op-1",
-      name: "x",
-      extra: true,
-    });
-    expect(parsed.success).toBe(false);
-  });
-
-  it("OperationControlMessage union tipi iki yönü de kapsar", () => {
-    const execute: OperationExecuteMessage = {
-      type: "operation-execute",
-      operationId: "op-1",
-      name: "field_charge",
-    };
-    const result: OperationResultMessage = {
-      type: "operation-result",
-      operationId: "op-1",
-      status: "rolled_back",
-      results: [{ step: 0, system: "container-1", maneuver: "bsc_prepare", ok: true }],
-    };
-    expectTypeOf<OperationControlMessage>().toEqualTypeOf<
-      OperationExecuteMessage | OperationResultMessage
-    >();
-    expect(execute.type).toBe("operation-execute");
-    expect(result.status).toBe("rolled_back");
   });
 });

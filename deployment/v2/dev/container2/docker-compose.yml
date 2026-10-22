@@ -194,10 +194,11 @@ services:
       POSTGRES_DATABASE: battery
       DEVICE_CONFIG_DIR: /app/config-docker
       MANEUVER_CONFIG_DIR: /app/maneuver-config
-      FIELD_CONNECT_ENABLED: ${FIELD_CONNECT_ENABLED:-true}
-      FIELD_WS_URL: ${FIELD_WS_URL:-ws://field-web-service:5002/ws/container}
-      CONTAINER_TOKEN: ${CONTAINER2_TOKEN:-}
+      HUB_PEER_ENABLED: ${HUB_PEER_ENABLED:-true}
+      HUB_PEER_URL: ${HUB_PEER_URL:-ws://hub-servis:5003/ws/peer}
+      HUB_PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
       CONTAINER_ID: container-2
+      TUNNEL_SERVICE_ID: ${TUNNEL_SERVICE_ID:-container-api}
       # Field→konteyner tünel istekleri bu web-service'e yerel olarak çözülür
       # (servis adı container2-web-service; `container-web-service` bu ağda YOK).
       TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container2-web-service:5001}

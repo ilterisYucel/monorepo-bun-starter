@@ -2,8 +2,8 @@
 
 > Tarih: 2026-08-25 · Kapsam: Faz 5 teslimatı ve "bir konteyner field'a bağlanırken
 > hangi aşamalardan geçiyor" sorusunun uçtan uca anlatımı.
-> İlgili dokümanlar: [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md),
-> [KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md)
+> İlgili dokümanlar: [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md),
+> [deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md)
 
 ---
 

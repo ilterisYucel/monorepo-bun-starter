@@ -5,27 +5,27 @@ import type { TunnelConnectionStatus } from "@gd-monorepo/ws-tunnel";
 /**
  * GET /api/status — TunnelConnector PPC durumu (tasarım §6, T2.2).
  * Container UI "Field Bağlantısı" göstergesini besler.
- * fieldConnector yoksa (kapalı / field-boss tier) kapalı durum bildirilir —
+ * hubPeerConnector yoksa (kapalı / field-boss tier) kapalı durum bildirilir —
  * UI asla beyaz ekranda kalmaz.
  */
-export function makeStatusRoute(deps: { fieldConnector?: TunnelConnector }) {
-  const { fieldConnector } = deps;
+export function makeStatusRoute(deps: { hubPeerConnector?: TunnelConnector }) {
+  const { hubPeerConnector } = deps;
 
   return async function statusRoute(
     _request: FastifyRequest,
     reply: FastifyReply,
   ) {
-    if (!fieldConnector) {
+    if (!hubPeerConnector) {
       const body: TunnelConnectionStatus = {
         connected: false,
         state: "offline",
       };
       return reply.send(body);
     }
-    const lastHeartbeatAt = fieldConnector.lastHeartbeatAt();
+    const lastHeartbeatAt = hubPeerConnector.lastHeartbeatAt();
     const body: TunnelConnectionStatus = {
-      connected: fieldConnector.connected(),
-      state: fieldConnector.state(),
+      connected: hubPeerConnector.connected(),
+      state: hubPeerConnector.state(),
       ...(lastHeartbeatAt !== undefined
         ? { lastHeartbeatAt: new Date(lastHeartbeatAt).toISOString() }
         : {}),

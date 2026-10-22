@@ -83,12 +83,10 @@ const connector = new TunnelConnector(
     token: TOKEN,
     peerId: CONTAINER_ID,
     heartbeatIntervalMs: 500,
-    telemetryIntervalMs: 500,
     registerTimeoutMs: 2000,
     livenessTimeoutMs: 10000,
   },
   new WsSocketClientFactory(),
-  { snapshot: async () => [{ deviceId: "bsc-1", name: "Voltage", value: 750, description: "", unit: "V", timestamp: new Date().toISOString() }] },
   new ReconnectDelay({ baseMs: 500, maxMs: 2000, jitterSpanMs: 0, jitter: () => 0 }),
 );
 

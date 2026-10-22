@@ -35,7 +35,11 @@ export interface ISocketClient {
 
 /** Soket üretici sözleşmesi — URL + auth header'ları ile client oluşturur. */
 export interface ISocketClientFactory {
-  create(url: string, headers: Record<string, string>): ISocketClient;
+  create(
+    url: string,
+    headers: Record<string, string>,
+    protocols?: string[],
+  ): ISocketClient;
 }
 
 /**

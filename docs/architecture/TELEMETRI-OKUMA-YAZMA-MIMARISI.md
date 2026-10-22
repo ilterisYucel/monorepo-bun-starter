@@ -26,7 +26,7 @@ review_date: 2026-10-09
 > kalır — yoksa mevcut retry hiç tetiklenmez.
 > **İlişkili:** [TELEMETRI-SORGU-PERFORMANS-MIMARISI.md](./TELEMETRI-SORGU-PERFORMANS-MIMARISI.md)
 > (sorgu performansı; Faz-2 bu SPEC'e emilir), [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md)
-> (device-service orkestrasyonu; UC-2 poll akışı korunur), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)
+> (device-service orkestrasyonu; UC-2 poll akışı korunur), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)
 > (§Faz 0 "Telemetri ≠ log" kırmızı kuralı + T0.12 retry haritası), [AGENTS.md](../../AGENTS.md)
 > (cihaz alarm sözleşmesi, DI/Elegant Object/purity kuralları).
 > **Kaynak girdi:** `docs/analysis/telemetry-okuma-yazma-revizyon.md` (ön plan analiz dokümanı).

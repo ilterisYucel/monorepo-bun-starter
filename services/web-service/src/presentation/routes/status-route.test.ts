@@ -7,7 +7,7 @@ import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
  * T2.2 — GET /api/status sözleşmesi (tasarım §6):
  * - `{ connected, state, lastHeartbeatAt }` döner — container UI "Field
  *   Bağlantısı" göstergesinin kaynağı.
- * - fieldConnector yoksa (FIELD_CONNECT_ENABLED=false / field-boss tier):
+ * - hubPeerConnector yoksa (HUB_PEER_ENABLED=false / field-boss tier):
  *   `{ connected:false, state:"offline" }` — lastHeartbeatAt yok.
  * - lastHeartbeatAt ISO string'dir; hiç heartbeat yoksa alan yoktur.
  */
@@ -29,7 +29,7 @@ describe("status-route (T2.2)", () => {
     const app = Fastify();
     app.get(
       "/api/status",
-      makeStatusRoute({ fieldConnector: makeConnector({ lastHeartbeatAt: 1756116000000 }) }),
+      makeStatusRoute({ hubPeerConnector: makeConnector({ lastHeartbeatAt: 1756116000000 }) }),
     );
     const res = await app.inject({ method: "GET", url: "/api/status" });
     expect(res.statusCode).toBe(200);
@@ -44,7 +44,7 @@ describe("status-route (T2.2)", () => {
     const app = Fastify();
     app.get(
       "/api/status",
-      makeStatusRoute({ fieldConnector: makeConnector({ connected: false, state: "backoff" }) }),
+      makeStatusRoute({ hubPeerConnector: makeConnector({ connected: false, state: "backoff" }) }),
     );
     const res = await app.inject({ method: "GET", url: "/api/status" });
     const body = res.json();

@@ -7,7 +7,7 @@ review_date: 2026-08-24
 
 # v2.0 Gap Analizi — Low-Code/No-Code SCADA/EMS Platformu
 
-> **Not (2026-08-24):** Bu doküman eski README'nin v2.0 bölümünden (A–K gap tabloları) taşınmış ve durumları güncellenmiştir. **Güncel yol haritaları:** [ui-v2-plan.md](./ui-v2-plan.md), [EDITOR-MIMARISI.md](../architecture/EDITOR-MIMARISI.md), [KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (Faz 0–6), [field-superadmin-architecture.md](../architecture/field-superadmin-architecture.md).
+> **Not (2026-08-24):** Bu doküman eski README'nin v2.0 bölümünden (A–K gap tabloları) taşınmış ve durumları güncellenmiştir. **Güncel yol haritaları:** [ui-v2-plan.md](./ui-v2-plan.md), [EDITOR-MIMARISI.md](../architecture/EDITOR-MIMARISI.md), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (Faz 0–6), [field-superadmin-architecture.md](../architecture/field-superadmin-architecture.md).
 
 Hedef: Grafana benzeri, surukle-birak ile SCADA ekranlari ve tek hat semalari olusturulabilen, 2B/3B grafik destegi olan dusuk kodlu bir platform.
 

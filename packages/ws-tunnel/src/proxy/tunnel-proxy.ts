@@ -27,16 +27,13 @@ export interface PathAllowlist {
 }
 
 const DEFAULT_ALLOWED_PREFIXES = ["/", "/api/", "/ws/", "/assets/", "/favicon"];
-const DEFAULT_BLOCKED_PREFIXES = [
-  "/api/auth/login",
-  "/api/auth/refresh",
-  "/api/auth/users",
-];
+/** Paket domain yasaklısı BİLMEZ — tüketici kendi blocklist'ini enjekte eder. */
+const DEFAULT_BLOCKED_PREFIXES: string[] = [];
 
 /**
- * Varsayılan path allowlist/blocklist (tasarım §5.6).
- * Deployment katmanları kendi listelerini bu sabitin üzerine kurar
- * (field tünelinde Vite dev asset önekleri gibi).
+ * Varsayılan path allowlist (jenerik web yolları).
+ * Deployment katmanları kendi allowlist/blocklist'lerini bu sabitin üzerine
+ * kurar (domain yasaklıları tüketicide tanımlanır).
  */
 export const DEFAULT_PATH_ALLOWLIST: PathAllowlist = {
   allowedPrefixes: DEFAULT_ALLOWED_PREFIXES,
@@ -57,7 +54,7 @@ export interface TunnelProxyConfig {
   maxAgeMs?: number;
   /** Sweep aralığı (ms). */
   sweepIntervalMs?: number;
-  /** Oturum cookie adı — deployment-bazlı (varsayılan: `container_session`). */
+  /** Oturum cookie adı — tüketici enjekte eder (varsayılan nötr: `tunnel_session`). */
   cookieName?: string;
   /** Path allowlist/blocklist — varsayılanlar §5.6'dan. */
   pathAllowlist?: PathAllowlist;
@@ -65,7 +62,7 @@ export interface TunnelProxyConfig {
   now?: () => number;
 }
 
-const DEFAULT_COOKIE_NAME = "container_session";
+const DEFAULT_COOKIE_NAME = "tunnel_session";
 const DEFAULT_WINDOW_SIZE = 256 * 1024;
 const DEFAULT_MAX_STREAMS = 16;
 const DEFAULT_STREAM_TIMEOUT_MS = 10 * 1000;
@@ -276,16 +273,27 @@ export class TunnelProxy {
     session: HubSession;
     path: string;
     browserSocket: WsStreamState["browserSocket"];
+    /** Upstream WS handshake'ine taşınacak başlıklar (cookie/auth vb.). */
+    headers?: Record<string, string>;
   }): Promise<number | undefined> {
     const streamId = this.assignStreamId();
     const ackPromise = this.sendStreamOpen(streamId, input.session, {
       method: "GET",
       path: input.path,
       upgrade: "websocket",
+      ...(input.headers !== undefined ? { headers: input.headers } : {}),
     });
     if (!ackPromise) return undefined;
     const ack = await this.raceAck(streamId, ackPromise);
     if (!ack || ack.statusCode !== 101) {
+      // Hızlı-fail: upstream reddi (4xx/502) gerçek status ile loglanır.
+      this.logger?.log({
+        level: "warn",
+        category: "security",
+        eventCode: "stream_rejected",
+        message: "WS upstream reddedildi",
+        context: { streamId, statusCode: ack?.statusCode ?? 0 },
+      }).catch(() => {});
       input.browserSocket.close(1013);
       return undefined;
     }

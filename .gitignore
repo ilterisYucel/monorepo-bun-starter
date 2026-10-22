@@ -116,6 +116,8 @@ __pycache__/
 # tsc build artıkları (composite projelerde src içine yanlışlıkla emit olabilir)
 **/src/**/*.d.ts
 **/src/**/*.d.ts.map
+# istisna: bun-serialport 0.2.0 tip taşımıyor — el yazımı modül bildirimi (build çıktısı değil)
+!packages/core/src/modbus/bun-serialport.d.ts
 
 # ============================================
 # SECRETS — deployment/servis konfigürasyonları

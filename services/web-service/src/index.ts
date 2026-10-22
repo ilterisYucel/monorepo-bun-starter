@@ -63,17 +63,19 @@ export async function main() {
   const sessionStore = c.containerSessionStore as any;
   const containerSessionServer = c.containerSessionServer as any;
   const tunnelClient = c.tunnelClient as any;
-  const sessionGateway = c.sessionGateway as any;
-  const tunnelProxy = c.tunnelProxy as any;
-  const sessionAudit = c.sessionAudit as any;
   const telemetryQueryResponder = c.telemetryQueryResponder as any;
   const uplinkConnector = c.uplinkConnector as any;
   const uplinkSessionServer = c.uplinkSessionServer as any;
   const operationResponder = c.operationResponder as any;
   const uplinkTunnelClient = c.uplinkTunnelClient as any;
   const uplinkSessionStore = c.uplinkSessionStore as any;
-  const fieldTunnelPathAllowlist = c.fieldTunnelPathAllowlist as any;
-  const fieldSessionAudit = c.fieldSessionAudit as any;
+  const telemetrySnapshotPusher = c.telemetrySnapshotPusher as any;
+  const hubConsumerChannel = c.hubConsumerChannel as any;
+  const hubConsumerClient = c.hubConsumerClient as any;
+  const hubConsumerServiceId =
+    c.hubConsumerClient && typeof c.config?.get === "function"
+      ? (c.config as any).get("hub.containerServiceId")
+      : undefined;
 
   const deps: ServerDependencies = {
     serverConfig: serverCfg,
@@ -97,12 +99,10 @@ export async function main() {
     fieldPoller: c.fieldPoller as any,
     marketSeries: c.marketSeries as any,
     fieldRegistry: c.fieldRegistry as any,
-    fieldGateway: c.fieldGateway as any,
-    fieldTunnelProxy: c.fieldTunnelProxy as any,
     wireGuard: c.wireGuard as any,
     fieldEventCollector: c.fieldEventCollector as any,
     uplinkEventRelay: c.uplinkEventRelay as any,
-    fieldConnector: c.fieldConnector as any,
+    hubPeerConnector: c.hubPeerConnector as any,
     maneuverRegistry: c.maneuverRegistry as any,
     maneuverExecutor: c.maneuverExecutor as any,
     operationRunStore: c.operationRunStore as any,
@@ -110,14 +110,13 @@ export async function main() {
     operationRequester: c.operationRequester as any,
     sessionStore,
     uplinkSessionStore,
-    fieldTunnelPathAllowlist,
-    sessionGateway,
-    tunnelProxy,
     mvManager,
     mq,
     configDir: deviceConfigDir(config),
     logger,
     requestContext,
+    hubConsumerClient,
+    hubConsumerServiceId,
   };
 
   // Mevcut tüm cihazlar için retention, chunk ve compress ayarlarını uygula.
@@ -152,13 +151,11 @@ export async function main() {
     if (containerSessionServer) containerSessionServer.stop();
     if (tunnelClient) tunnelClient.stop();
     if (telemetryQueryResponder) telemetryQueryResponder.stop();
+    if (telemetrySnapshotPusher) telemetrySnapshotPusher.stop();
+    if (hubConsumerChannel) hubConsumerChannel.stop();
     if (deps.containerProxy) await deps.containerProxy.stop();
-    if (deps.sessionGateway) deps.sessionGateway.stop();
-    if (deps.tunnelProxy) deps.tunnelProxy.stop();
     if (deps.fieldPoller) deps.fieldPoller.stop();
-    if (deps.fieldConnector) await deps.fieldConnector.stop();
-    if (deps.fieldGateway) deps.fieldGateway.stop();
-    if (deps.fieldTunnelProxy) deps.fieldTunnelProxy.stop();
+    if (deps.hubPeerConnector) await deps.hubPeerConnector.stop();
     if (deps.fieldEventCollector) deps.fieldEventCollector.stop();
     if (deps.uplinkEventRelay) deps.uplinkEventRelay.stop();
     if (deps.fieldRegistry) await deps.fieldRegistry.stop();
@@ -214,16 +211,6 @@ export async function main() {
 
   if (deps.containerProxy) {
     await deps.containerProxy.start();
-    // Faz 3 (field tier): session_audit şeması + gateway/tunnel observer'ları
-    if (sessionAudit) {
-      await sessionAudit.ensureSchema();
-    }
-    if (deps.sessionGateway) {
-      deps.sessionGateway.initialize();
-    }
-    if (deps.tunnelProxy) {
-      deps.tunnelProxy.initialize();
-    }
   }
   if (deps.fieldPoller) {
     await deps.fieldPoller.start();
@@ -250,18 +237,9 @@ export async function main() {
     await deps.fieldRegistry.ensureSchema();
     if (deps.fieldEventCollector) {
       await deps.fieldEventCollector.ensureSchema();
-      deps.fieldEventCollector.attach(deps.fieldRegistry);
-    }
-    if (fieldSessionAudit) {
-      await fieldSessionAudit.ensureSchema();
+      deps.fieldEventCollector.attachChannel(hubConsumerChannel);
     }
     await deps.fieldRegistry.start();
-    if (deps.fieldGateway) {
-      deps.fieldGateway.initialize();
-    }
-    if (deps.fieldTunnelProxy) {
-      deps.fieldTunnelProxy.initialize();
-    }
   }
   // Field tier (Faz 3): boss cloud'a outbound uplink — tünel + oturum
   // katmanları aynı kanala abone olur.
@@ -282,11 +260,11 @@ export async function main() {
   }
   // Faz 2: TunnelConnector sunucu dinlemeye başladıktan sonra bağlanır —
   // register ack'i beklemez; kendi backoff döngüsünü yönetir.
-  if (deps.fieldConnector) {
-    await deps.fieldConnector.start();
+  if (deps.hubPeerConnector) {
+    await deps.hubPeerConnector.start();
     // Faz 3 (container tier): tünel + oturum katmanları kanala abone olur
     if (tunnelClient) {
-      tunnelClient.attach(deps.fieldConnector);
+      tunnelClient.attach(deps.hubPeerConnector);
     }
     if (containerSessionServer) {
       containerSessionServer.start();
@@ -295,6 +273,17 @@ export async function main() {
     if (telemetryQueryResponder) {
       telemetryQueryResponder.start();
     }
+  }
+
+  // Telemetri snapshot push (domain; paket dışında) — connector bağlanınca başlar.
+  if (telemetrySnapshotPusher) {
+    telemetrySnapshotPusher.start();
+  }
+
+  // P3: hub-servis consumer kanalı (field/boss tier) — relay + presence.
+  if (hubConsumerChannel) {
+    hubConsumerChannel.start();
+    console.log("[run] Hub consumer kanali etkin (field/boss tier).");
   }
 
   console.log(`[run] Hazir (tier: ${tier}).`);

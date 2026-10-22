@@ -15,6 +15,17 @@ import type { WireGuardConnectionConfig } from "../infrastructure/wireguard/wire
 
 export type { PostgresConfig };
 
+/**
+ * GD-PMS connector log kodları — paket nötr varsayılanlar kullanır; domain
+ * sözlüğü tüketicide enjekte edilir (mevcut audit/log sözleşmesi korunur).
+ */
+export const GD_PMS_TUNNEL_EVENT_CODES = {
+  connected: "field_connected",
+  connectionLost: "ws_connection_lost",
+  registerRejected: "ws_register_rejected",
+  configRejected: "field_config_rejected",
+} as const;
+
 // =============================================================================
 // Tip tanimlari (public API — container.ts tarafindan tuketilir)
 // =============================================================================
@@ -211,30 +222,30 @@ const LIVENESS_TIMEOUT_MS = 60000;
 /**
  * TunnelConnector bootstrap config (tasarım §6.1, T2.3):
  * - Kapalıysa undefined döner (TunnelConnector awilix'te kurulmaz).
- * - Etkinse FIELD_WS_URL (virgüllü liste), CONTAINER_TOKEN ve CONTAINER_ID
+ * - Etkinse HUB_PEER_URL (virgüllü liste), HUB_PEER_TOKEN ve CONTAINER_ID
  *   zorunludur — eksikse fail-fast fırlatır (yanlış yapılandırma sessizce
  *   "bağlı değil" görünmesin).
  * - Yalnızca container tier'da geçerlidir; başka tier'da etkin = hata.
  */
-export function fieldConnectorConfig(
+export function hubPeerConfig(
   loader: ConfigLoader,
   tier: ServiceTier,
 ): TunnelConnectorConfig | undefined {
-  const enabled = loader.get<boolean>("fieldConnect.enabled");
+  const enabled = loader.get<boolean>("hubPeer.enabled");
   if (!enabled) return undefined;
 
   if (tier !== "container") {
     throw new Error(
-      "[Config] FIELD_CONNECT_ENABLED yalnizca container tier'da gecerlidir",
+      "[Config] HUB_PEER_ENABLED yalnizca container tier'da gecerlidir",
     );
   }
 
-  const wsUrlRaw = loader.get<string | undefined>("fieldConnect.wsUrl");
-  const token = loader.get<string | undefined>("fieldConnect.token");
+  const wsUrlRaw = loader.get<string | undefined>("hubPeer.url");
+  const token = loader.get<string | undefined>("hubPeer.token");
   const containerId = loader.get<string | undefined>("site.containerId");
   if (!wsUrlRaw || !token || !containerId) {
     throw new Error(
-      "[Config] FIELD_CONNECT_ENABLED=true iken FIELD_WS_URL, CONTAINER_TOKEN ve CONTAINER_ID zorunludur",
+      "[Config] HUB_PEER_ENABLED=true iken HUB_PEER_URL, HUB_PEER_TOKEN ve CONTAINER_ID zorunludur",
     );
   }
 
@@ -243,12 +254,12 @@ export function fieldConnectorConfig(
     .map((url) => url.trim())
     .filter((url) => url.length > 0);
   if (wsUrls.length === 0) {
-    throw new Error("[Config] FIELD_WS_URL bos olamaz");
+    throw new Error("[Config] HUB_PEER_URL bos olamaz");
   }
   for (const url of wsUrls) {
     if (!url.startsWith("ws://") && !url.startsWith("wss://")) {
       throw new Error(
-        `[Config] Gecersiz FIELD_WS_URL adresi: ${url} (ws:// veya wss:// olmali)`,
+        `[Config] Gecersiz HUB_PEER_URL adresi: ${url} (ws:// veya wss:// olmali)`,
       );
     }
   }
@@ -258,10 +269,45 @@ export function fieldConnectorConfig(
     token,
     peerId: containerId,
     peerType: "container",
+    // Hub modu: container kendi servisini duyurur (opak yol için).
+    ...(serviceAnnouncement() !== undefined
+      ? { services: serviceAnnouncement()! }
+      : {}),
     heartbeatIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs,
-    telemetryIntervalMs: resolveTelemetryIntervalMs(process.env.TUNNEL_TELEMETRY_INTERVAL_MS),
+    eventCodes: GD_PMS_TUNNEL_EVENT_CODES,
     registerTimeoutMs: REGISTER_TIMEOUT_MS,
     livenessTimeoutMs: LIVENESS_TIMEOUT_MS,
+  };
+}
+
+/** Hub consumer bağlantı bilgisi (HUB_MODE=hub). */
+export interface HubConsumerConnection {
+  readonly baseUrl: string;
+  readonly token: string;
+  readonly wsUrl: string;
+}
+
+/**
+ * Hub consumer yapılandırması — field/boss tier'da zorunlu
+ * (`HUB_CONSUMER_URL` + `HUB_CONSUMER_TOKEN`); container tier peer-only → undefined.
+ */
+export function hubConsumerConfig(
+  loader: ConfigLoader,
+  tier: ServiceTier,
+): HubConsumerConnection | undefined {
+  if (tier === "container") return undefined;
+  const baseUrl = loader.get<string | undefined>("hub.consumerUrl");
+  const token = loader.get<string | undefined>("hub.consumerToken");
+  if (!baseUrl || !token) {
+    throw new Error(
+      "[Config] HUB_CONSUMER_URL ve HUB_CONSUMER_TOKEN zorunludur (field/boss tier)",
+    );
+  }
+  const normalized = baseUrl.replace(/\/+$/, "");
+  return {
+    baseUrl: normalized,
+    token,
+    wsUrl: `${normalized.replace(/^http/, "ws")}/ws/consumer`,
   };
 }
 
@@ -270,9 +316,15 @@ export function fieldConnectorConfig(
  * env'i ile ayarlanabilir (1000–300000 aralığına kırpılır); tanımsız/geçersizse
  * ws-tunnel varsayılanı (15000). Demo'da 2000 verilir → UI ~2 sn tazelenir.
  */
+/** Hub modu: peer'ın duyurduğu servis (env `TUNNEL_SERVICE_ID`); yoksa undefined. */
+function serviceAnnouncement(): { id: string }[] | undefined {
+  const id = process.env.TUNNEL_SERVICE_ID?.trim();
+  return id && id.length > 0 ? [{ id }] : undefined;
+}
+
 export function resolveTelemetryIntervalMs(raw: string | undefined): number {
   const n = raw !== undefined ? Number(raw) : Number.NaN;
-  if (!Number.isFinite(n)) return DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs;
+  if (!Number.isFinite(n)) return 15_000;
   return Math.min(300_000, Math.max(1_000, Math.trunc(n)));
 }
 
@@ -326,34 +378,45 @@ export function fieldUplinkConfig(
     token,
     peerId: fieldId,
     peerType: "field",
+    ...(serviceAnnouncement() !== undefined
+      ? { services: serviceAnnouncement()! }
+      : {}),
     heartbeatIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.heartbeatIntervalMs,
-    telemetryIntervalMs: DEFAULT_TUNNEL_OPERATIONAL_CONFIG.telemetryIntervalMs,
+    eventCodes: GD_PMS_TUNNEL_EVENT_CODES,
     registerTimeoutMs: REGISTER_TIMEOUT_MS,
     livenessTimeoutMs: LIVENESS_TIMEOUT_MS,
   };
 }
 
 /**
+ * GD-PMS tünel yasaklı uçları — domain listesi tüketicide tanımlanır (paket
+ * varsayılanı boştur).
+ */
+const FIELD_TUNNEL_BLOCKED_PREFIXES = [
+  "/api/auth/login",
+  "/api/auth/refresh",
+  "/api/auth/users",
+];
+
+/**
  * Boss field-app tünel allowlist'i (BOSS-UYGULAMA-MIMARISI.md §5.6 + dev eki):
- * `FIELD_TUNNEL_ALLOWED_PREFIXES` env'i §5.6 varsayılanlarına EKLENİR
- * (ör. field dev Vite asset yolları: /src/, /@vite/, /node_modules/).
- * Boşsa undefined döner — tünel route'u varsayılan listeyle çalışır.
+ * jenerik varsayılanlar + `FIELD_TUNNEL_ALLOWED_PREFIXES` env eklentileri;
+ * GD-PMS yasaklı uçları her zaman uygulanır.
  */
 export function fieldTunnelPathAllowlist(
   loader: ConfigLoader,
-): PathAllowlist | undefined {
+): PathAllowlist {
   const extras = loader
     .get<string>("fieldTunnel.allowedPrefixes")
     .split(",")
     .map((prefix) => prefix.trim())
     .filter((prefix) => prefix.length > 0);
-  if (extras.length === 0) return undefined;
   return {
     allowedPrefixes: [
       ...(DEFAULT_PATH_ALLOWLIST.allowedPrefixes ?? []),
       ...extras,
     ],
-    blockedPrefixes: DEFAULT_PATH_ALLOWLIST.blockedPrefixes,
+    blockedPrefixes: FIELD_TUNNEL_BLOCKED_PREFIXES,
   };
 }
 

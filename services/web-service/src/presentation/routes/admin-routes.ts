@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { User } from "@gd-monorepo/shared-types";
 import type { FieldPoller } from "../../infrastructure/field-poller";
-import type { FieldRegistry } from "../../infrastructure/field-uplink/field-registry";
+import type { HubFieldRegistry } from "../../infrastructure/hub-consumer";
 
 /**
  * Registry overlay (BOSS-UYGULAMA-DOGRULAMA.md S1 düzeltmesi):
@@ -24,7 +24,7 @@ const DEMO_SUMMARY = {
 
 function withRegistryState<T extends { id: string }>(
   field: T,
-  registry?: FieldRegistry,
+  registry?: HubFieldRegistry,
 ): T & { status?: string; last_seen_at?: string; container_count?: number } {
   if (!registry || !registry.isConnected(field.id)) return field;
   const lastSeen = registry.lastSeenAt(field.id);
@@ -42,7 +42,7 @@ function withRegistryState<T extends { id: string }>(
 
 export async function adminRoutes(
   fastify: FastifyInstance,
-  deps: { fieldPoller: FieldPoller; registry?: FieldRegistry },
+  deps: { fieldPoller: FieldPoller; registry?: HubFieldRegistry },
 ): Promise<void> {
   fastify.get("/", async (_request, reply) => {
     const fields = await deps.fieldPoller.fields();
@@ -83,8 +83,15 @@ export async function adminRoutes(
     });
     // Faz 3: field uplink token'ı hash olarak boss kayıt defterine girer
     // (düz metin SAKLANMAZ — field_uplinks.token_hash).
-    if (body.uplinkToken && deps.registry) {
-      await deps.registry.upsertToken(field.id, body.uplinkToken);
+    // Hub modu: bootstrap hub-servis tarafından üretilir (düz metin token
+    // yalnız yanıtta bir kez döner); eski uplinkToken parametresi yok sayılır.
+    if (deps.registry) {
+      const issued = await deps.registry.upsertToken(field.id, body.uplinkToken);
+      return reply.status(201).send({
+        ...field,
+        bootstrapToken: issued.bootstrapToken,
+        bootstrapExpiresAt: issued.expiresAt,
+      });
     }
     return reply.status(201).send(field);
   });
@@ -103,7 +110,7 @@ export async function adminRoutes(
     const existing = await deps.fieldPoller.field(id);
     if (!existing) return reply.status(404).send({ error: "Saha bulunamadi" });
 
-    if (body.uplinkToken && deps.registry) {
+    if (deps.registry) {
       await deps.registry.upsertToken(id, body.uplinkToken);
     }
 
