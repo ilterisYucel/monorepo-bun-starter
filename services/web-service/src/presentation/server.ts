@@ -54,27 +54,14 @@ import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
 import { fieldRoutes } from "./routes/field-routes";
 import { topologyRoutes } from "./routes/topology-routes";
 import { fieldContainerCommandRoutes } from "./routes/field-container-commands";
-import { adminRoutes } from "./routes/admin-routes";
-import { marketRoutes } from "./routes/market-routes";
-import type { MarketSeries } from "../infrastructure/market/market-series";
-import type { HubFieldRegistry } from "../infrastructure/hub-consumer";
 import { hubSessionRoutes } from "./routes/hub-session-routes";
-import { wireGuardRoutes } from "./routes/wireguard-routes";
-import type { WireGuardConnection } from "../infrastructure/wireguard/wireguard-connection";
 import { notificationRoutes } from "./routes/notification-routes";
 import type { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
-import type { FieldPoller } from "../infrastructure/field-poller";
-import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
-import type { ClientSessionStore } from "@gd-monorepo/ws-tunnel";
-import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
 import type { HubConsumerClient } from "../infrastructure/hub-consumer";
-import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
-import type { PathAllowlist } from "@gd-monorepo/ws-tunnel";
-import { sessionCookieValue } from "@gd-monorepo/ws-tunnel";
-import { toWebUser } from "../infrastructure/container-session/session-user-map";
 import { MaterializedViewManager, type IMessageQueue } from "@gd-monorepo/core";
+import type { ISessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
 
 
 export interface ServerDependencies {
@@ -95,15 +82,9 @@ export interface ServerDependencies {
   mfaEnrollUseCase?: MfaEnrollUseCase;
   realtime: RealtimeManager;
   containerProxy?: IContainerProxy;
-  fieldPoller?: FieldPoller;
-  marketSeries?: MarketSeries;
-  fieldRegistry?: HubFieldRegistry;
-  wireGuard?: WireGuardConnection;
   fieldEventCollector?: FieldEventCollector;
-  hubPeerConnector?: TunnelConnector;
-  sessionStore?: ClientSessionStore;
-  /** Field tier: boss uplink oturumları (field_session cookie'si). */
-  uplinkSessionStore?: ClientSessionStore;
+  /** Container tier: agent imzalı `container_session` doğrulayıcısı. */
+  containerSessionAuthenticator?: ISessionAuthenticator;
   /** Boss tier: field app tünel allowlist'i (deployment config). */
   mvManager: MaterializedViewManager;
   mq: IMessageQueue;
@@ -205,31 +186,14 @@ export class WebServiceServer {
 
     // correlationId bağlamı rbac'ten ÖNCE kurulur — tüm kancalar aynı id'yi görür.
     this.app.addHook("onRequest", createRequestIdHook(deps.requestContext));
-    // Faz 3 (container tier): container_session cookie'si Bearer yerine geçer.
-    // Boss Faz 3 (field tier): field_session cookie'si aynı model —
-    // boss'tan gelen saha uzaktan görünüm oturumu uplinkSessionStore'dan doğrulanır.
-    const sessionRbacOptions = deps.sessionStore
+    // Container tier: agent imzalı `container_session` cookie'si Bearer yerine geçer
+    // (stateless doğrulama — SPEC KONTEYNER-AGENT-KAYIT).
+    const sessionRbacOptions = deps.containerSessionAuthenticator
       ? {
-          sessionAuthenticator: async (cookie: string | undefined) => {
-            // P1: ws-tunnel cookie varsayılanı nötrleşti → container cookie
-            // adı AÇIKÇA geçilir (container_session).
-            const sessionUser = await deps.sessionStore!.authenticate(
-              sessionCookieValue(cookie, "container_session") ?? "",
-            );
-            return sessionUser ? toWebUser(sessionUser) : undefined;
-          },
+          sessionAuthenticator: (cookie: string | undefined) =>
+            deps.containerSessionAuthenticator!.authenticate(cookie),
         }
-      : deps.uplinkSessionStore
-        ? {
-            sessionCookieName: "field_session",
-            sessionAuthenticator: async (cookie: string | undefined) => {
-              const sessionUser = await deps.uplinkSessionStore!.authenticate(
-                sessionCookieValue(cookie, "field_session") ?? "",
-              );
-              return sessionUser ? toWebUser(sessionUser) : undefined;
-            },
-          }
-        : undefined;
+      : undefined;
     this.app.addHook(
       "onRequest",
       createRbacHook(deps.tokens, sessionRbacOptions, deps.mfaRequiredRoles),
@@ -242,7 +206,7 @@ export class WebServiceServer {
     // T2.2: TunnelConnector PPC durumu — container UI "Field Bağlantısı" beslemesi
     this.app.get(
       "/api/status",
-      makeStatusRoute({ hubPeerConnector: deps.hubPeerConnector }),
+      makeStatusRoute(),
     );
 
     await this.app.register(
@@ -350,7 +314,7 @@ export class WebServiceServer {
         await telemetryWsRoutes(fastify, {
           realtime: deps.realtime,
           tokens: deps.tokens,
-          sessionStore: deps.sessionStore,
+          sessionAuthenticator: deps.containerSessionAuthenticator,
         });
       },
     );
@@ -390,29 +354,6 @@ export class WebServiceServer {
       { prefix: "/api/fields" },
     );
 
-    const fieldPoller = deps.fieldPoller;
-    if (fieldPoller) {
-      await this.app.register(
-        async (fastify) => {
-          await adminRoutes(fastify, {
-            fieldPoller,
-            registry: deps.fieldRegistry,
-          });
-        },
-        { prefix: "/api/admin/fields" },
-      );
-    }
-
-    // Boss tier: EPİAŞ piyasa verileri (external_series — Faz 2)
-    if (deps.marketSeries) {
-      await this.app.register(
-        async (fastify) => {
-          await marketRoutes(fastify, { market: deps.marketSeries! });
-        },
-        { prefix: "/api/market" },
-      );
-    }
-
     // P3: kullanıcı adına hub-servis oturumu (cookie front-door).
     if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
       await this.app.register(
@@ -436,16 +377,6 @@ export class WebServiceServer {
           });
         },
         { prefix: "/api/notifications" },
-      );
-    }
-
-    // Boss tier: WireGuard yedek yol (Faz 4)
-    if (deps.wireGuard) {
-      await this.app.register(
-        async (fastify) => {
-          await wireGuardRoutes(fastify, { wireGuard: deps.wireGuard! });
-        },
-        { prefix: "/api/admin/wireguard" },
       );
     }
 

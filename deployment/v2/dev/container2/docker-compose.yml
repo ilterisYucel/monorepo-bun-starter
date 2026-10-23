@@ -195,16 +195,6 @@ services:
       POSTGRES_DATABASE: battery
       DEVICE_CONFIG_DIR: /app/config-docker
       MANEUVER_CONFIG_DIR: /app/maneuver-config
-      HUB_PEER_ENABLED: ${HUB_PEER_ENABLED:-true}
-      HUB_PEER_URL: ${HUB_PEER_URL:-ws://hub-servis:5003/ws/peer}
-      HUB_PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
-      CONTAINER_ID: container-2
-      TUNNEL_SERVICE_ID: ${TUNNEL_SERVICE_ID:-container-api}
-      # Field→konteyner tünel istekleri bu web-service'e yerel olarak çözülür
-      # (servis adı container2-web-service; `container-web-service` bu ağda YOK).
-      TUNNEL_API_UPSTREAM: ${TUNNEL_API_UPSTREAM:-http://container2-web-service:5001}
-      TUNNEL_TELEMETRY_INTERVAL_MS: ${TUNNEL_TELEMETRY_INTERVAL_MS:-5000}
-      TUNNEL_STATIC_UPSTREAM: ${TUNNEL_STATIC_UPSTREAM:-http://container2-web-service:5001}
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
       - ../../../../packages/ws-tunnel/src:/app/packages/ws-tunnel/src
@@ -225,6 +215,27 @@ services:
     networks:
       - container2-network
       - demo-bridge
+    logging: *logging
+
+  # Peer agent — konteyner kaydı YALNIZ agent üzerinden (SPEC KONTEYNER-AGENT-KAYIT).
+  container2-agent:
+    image: ${AGENT_IMAGE:-ws-tunnel-agent:local}
+    container_name: demo-container2-agent
+    environment:
+      HUB_URL: http://hub-servis:5003
+      PEER_ID: ${CONTAINER_ID:-container-2}
+      PEER_TYPE: container
+      SERVICE_ID: ${TUNNEL_SERVICE_ID:-container-api}
+      LOCAL_TARGET: http://container2-web-service:5001
+      PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
+      HUB_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu}
+    networks:
+      - container2-network
+      - demo-bridge
+    depends_on:
+      - container2-web-service
+    restart: unless-stopped
+    mem_limit: 64m
     logging: *logging
 
 volumes:

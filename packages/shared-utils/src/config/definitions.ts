@@ -746,90 +746,6 @@ export const siteFieldId: ConfigDefinition<string | undefined> = {
   description: "Field-level app kimligi — telemetry tag'lerine field_id olarak eklenir",
 };
 
-// =============================================================================
-// TunnelConnector (Faz 2 — container → field outbound WS)
-// =============================================================================
-
-export const hubPeerEnabled: ConfigDefinition<boolean> = {
-  key: "hubPeer.enabled",
-  env: "HUB_PEER_ENABLED",
-  filePath: "hubPeer.enabled",
-  default: false,
-  validate: (v) => v === true || v === "true" || v === "1",
-  description: "Hub peer connector'ı etkinlestirir (yalnizca container tier)",
-};
-
-export const hubPeerUrl: ConfigDefinition<string | undefined> = {
-  key: "hubPeer.url",
-  env: "HUB_PEER_URL",
-  filePath: "hubPeer.url",
-  default: undefined,
-  description:
-    "Hub peer WS URL listesi — virgulle ayrilmis, sirayla denenir (ana + yedek)",
-};
-
-export const hubPeerToken: ConfigDefinition<string | undefined> = {
-  key: "hubPeer.token",
-  env: "HUB_PEER_TOKEN",
-  filePath: "hubPeer.token",
-  default: undefined,
-  secret: true,
-  description:
-    "Hub peer token'ı — hub-servis PEER_TOKEN ile aynı değer (env modu)",
-};
-
-// =============================================================================
-// TunnelClient loopback upstream'leri (Faz 3 — container tier)
-// =============================================================================
-
-// Field uplink (BOSS-UYGULAMA-MIMARISI.md §7.4 — field → boss outbound WS)
-export const fieldUplinkEnabled: ConfigDefinition<boolean> = {
-  key: "fieldUplink.enabled",
-  env: "FIELD_UPLINK_ENABLED",
-  filePath: "fieldUplink.enabled",
-  default: false,
-  validate: (v) => v === true || v === "true" || v === "1",
-  description:
-    "Field→boss outbound WS uplink'i etkinlestirir (yalnizca field tier) — Boss Faz 3",
-};
-
-export const fieldUplinkWsUrl: ConfigDefinition<string | undefined> = {
-  key: "fieldUplink.wsUrl",
-  env: "FIELD_UPLINK_WS_URL",
-  filePath: "fieldUplink.wsUrl",
-  default: undefined,
-  description:
-    "Boss cloud WS URL listesi — virgulle ayrilmis, sirayla denenir (ana + yedek)",
-};
-
-export const fieldUplinkToken: ConfigDefinition<string | undefined> = {
-  key: "fieldUplink.token",
-  env: "FIELD_UPLINK_TOKEN",
-  filePath: "fieldUplink.token",
-  default: undefined,
-  secret: true,
-  description:
-    "Field uplink service token'i — boss field_uplinks token_hash'i ile eslesir",
-};
-
-export const uplinkApiUpstream: ConfigDefinition<string> = {
-  key: "uplink.apiUpstream",
-  env: "TUNNEL_FIELD_API_UPSTREAM",
-  filePath: "uplink.apiUpstream",
-  default: "http://web-service:5002",
-  description:
-    "Boss'tan gelen field-app tünel akışlarının /api/* upstream'i (field tier web-service loopback)",
-};
-
-export const uplinkStaticUpstream: ConfigDefinition<string> = {
-  key: "uplink.staticUpstream",
-  env: "TUNNEL_FIELD_STATIC_UPSTREAM",
-  filePath: "uplink.staticUpstream",
-  default: "http://web:5174",
-  description:
-    "Boss'tan gelen field-app tünel akışlarının SPA/asset upstream'i (field web nginx)",
-};
-
 export const hubContainerServiceId: ConfigDefinition<string> = {
   key: "hub.containerServiceId",
   env: "HUB_CONTAINER_SERVICE_ID",
@@ -880,44 +796,6 @@ export const hubConsumerToken: ConfigDefinition<string | undefined> = {
   description: "Hub-servis consumer token'i (peer token'indan AYRI)",
 };
 
-export const fieldTunnelAllowedPrefixes: ConfigDefinition<string> = {
-  key: "fieldTunnel.allowedPrefixes",
-  env: "FIELD_TUNNEL_ALLOWED_PREFIXES",
-  filePath: "fieldTunnel.allowedPrefixes",
-  default: "",
-  description:
-    "Boss field-app tünel allowlist'ine EKLENECEK yol önekleri (virgüllü — örn. field dev Vite asset yolları). Varsayılan §5.6 önekleri korunur",
-};
-
-// =============================================================================
-// WireGuard (BOSS Faz 4 — yedek yol)
-// =============================================================================
-
-export const wgConfigDir: ConfigDefinition<string> = {
-  key: "wg.configDir",
-  env: "WG_CONFIG_DIR",
-  filePath: "wg.configDir",
-  default: "/etc/wireguard",
-  description: "wg-quick .conf dosyalarinin yazilacagi dizin (boss tier)",
-};
-
-export const wgClientPrivateKey: ConfigDefinition<string | undefined> = {
-  key: "wg.clientPrivateKey",
-  env: "WG_CLIENT_PRIVATE_KEY",
-  filePath: "wg.clientPrivateKey",
-  default: undefined,
-  secret: true,
-  description: "Boss istemci WireGuard ozel anahtari (secret — loglanmaz)",
-};
-
-export const wgClientAddress: ConfigDefinition<string> = {
-  key: "wg.clientAddress",
-  env: "WG_CLIENT_ADDRESS",
-  filePath: "wg.clientAddress",
-  default: "10.99.0.2/32",
-  description: "Boss istemci tünel adresi (CIDR)",
-};
-
 export const fieldEventsDemoSeed: ConfigDefinition<boolean> = {
   key: "fieldEvents.demoSeed",
   env: "FIELD_EVENTS_DEMO_SEED",
@@ -925,31 +803,6 @@ export const fieldEventsDemoSeed: ConfigDefinition<boolean> = {
   default: false,
   validate: (v) => v === true || v === "true" || v === "1",
   description: "Lab gorselligi: boss'ta ornek demo bildirimler (uretide kapali)",
-};
-
-export const wgAllowedIps: ConfigDefinition<string> = {
-  key: "wg.allowedIps",
-  env: "WG_ALLOWED_IPS",
-  filePath: "wg.allowedIps",
-  default: "10.0.0.0/8",
-  description: "Tünel üzerinden yönlendirilecek ağlar",
-};
-
-export const tunnelApiUpstream: ConfigDefinition<string> = {
-  key: "tunnel.apiUpstream",
-  env: "TUNNEL_API_UPSTREAM",
-  filePath: "tunnel.apiUpstream",
-  default: "http://web-service:5001",
-  description:
-    "Tunel /api/* ve /ws/* upstream'i (container tier web-service loopback)",
-};
-
-export const tunnelStaticUpstream: ConfigDefinition<string> = {
-  key: "tunnel.staticUpstream",
-  env: "TUNNEL_STATIC_UPSTREAM",
-  filePath: "tunnel.staticUpstream",
-  default: "http://web:80",
-  description: "Tunel SPA/assets upstream'i (container nginx loopback)",
 };
 
 export const servicePollIntervalMs: ConfigDefinition<number> = {
@@ -1146,32 +999,14 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   siteFieldId,
 
   // Hub peer connector (container tier)
-  hubPeerEnabled,
-  hubPeerUrl,
-  hubPeerToken,
 
-  // TunnelClient upstream'leri (Faz 3)
-  tunnelApiUpstream,
-  tunnelStaticUpstream,
 
-  // Field uplink (Boss Faz 3 — field → boss outbound WS)
-  fieldUplinkEnabled,
-  fieldUplinkWsUrl,
-  fieldUplinkToken,
-  uplinkApiUpstream,
-  uplinkStaticUpstream,
-  fieldTunnelAllowedPrefixes,
   hubConsumerUrl,
   hubContainerServiceId,
   hubFieldServiceId,
   tunnelLatestCacheTtlMs,
   hubConsumerToken,
 
-  // WireGuard yedek yol (Boss Faz 4)
-  wgConfigDir,
-  wgClientPrivateKey,
-  wgClientAddress,
-  wgAllowedIps,
 
   // Boss bildirim demo seed'i (Faz 5 — lab görselliği)
   fieldEventsDemoSeed,

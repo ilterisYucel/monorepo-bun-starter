@@ -60,14 +60,7 @@ export async function main() {
   const logger = await buildTamperLogger(config, postgres);
   container.register({ logger: asValue(logger) });
 
-  const sessionStore = c.containerSessionStore as any;
-  const containerSessionServer = c.containerSessionServer as any;
-  const tunnelClient = c.tunnelClient as any;
-  const uplinkConnector = c.uplinkConnector as any;
-  const uplinkSessionServer = c.uplinkSessionServer as any;
-  const uplinkTunnelClient = c.uplinkTunnelClient as any;
-  const uplinkSessionStore = c.uplinkSessionStore as any;
-  const telemetrySnapshotPusher = c.telemetrySnapshotPusher as any;
+  const containerSessionAuthenticator = c.containerSessionAuthenticator as any;
   const hubConsumerClient = c.hubConsumerClient as any;
   const hubConsumerServiceId =
     c.hubConsumerClient && typeof c.config?.get === "function"
@@ -93,19 +86,13 @@ export async function main() {
     mfaRequiredRoles: authCfg.mfaRequiredRoles,
     realtime,
     containerProxy: c.containerProxy as any,
-    fieldPoller: c.fieldPoller as any,
-    marketSeries: c.marketSeries as any,
-    fieldRegistry: c.fieldRegistry as any,
-    wireGuard: c.wireGuard as any,
     fieldEventCollector: c.fieldEventCollector as any,
-    hubPeerConnector: c.hubPeerConnector as any,
     maneuverRegistry: c.maneuverRegistry as any,
     maneuverExecutor: c.maneuverExecutor as any,
     operationRunStore: c.operationRunStore as any,
     operationDefStore: c.operationDefStore as any,
     operationRequester: c.operationRequester as any,
-    sessionStore,
-    uplinkSessionStore,
+    containerSessionAuthenticator,
     mvManager,
     mq,
     configDir: deviceConfigDir(config),
@@ -145,17 +132,8 @@ export async function main() {
     stopping = true;
     console.log(`[run] ${signal} alindi, kapatiliyor...`);
     await server.stop();
-    if (containerSessionServer) containerSessionServer.stop();
-    if (tunnelClient) tunnelClient.stop();
-    if (telemetrySnapshotPusher) telemetrySnapshotPusher.stop();
     if (deps.containerProxy) await deps.containerProxy.stop();
-    if (deps.fieldPoller) deps.fieldPoller.stop();
-    if (deps.hubPeerConnector) await deps.hubPeerConnector.stop();
     if (deps.fieldEventCollector) deps.fieldEventCollector.stop();
-    if (deps.fieldRegistry) await deps.fieldRegistry.stop();
-    if (uplinkConnector) await uplinkConnector.stop();
-    if (uplinkSessionServer) uplinkSessionServer.stop();
-    if (uplinkTunnelClient) uplinkTunnelClient.stop();
     await mq.close();
     await timescale.close();
     await postgres.disconnect();
@@ -205,12 +183,6 @@ export async function main() {
   if (deps.containerProxy) {
     await deps.containerProxy.start();
   }
-  if (deps.fieldPoller) {
-    await deps.fieldPoller.start();
-  }
-  if (deps.wireGuard) {
-    await deps.wireGuard.ensureSchema();
-  }
   // KOMUT-MANEVRA-OPERASYON §5.1 — hedef çözümleme: devices önbelleği
   // açılışta + periyodik tazelenir (device-service cihaz kayıtları).
   const deviceRegistry = c.deviceRegistry as any;
@@ -224,45 +196,11 @@ export async function main() {
     const registryTimer = setInterval(refresh, 10_000);
     registryTimer.unref();
   }
-  // Boss tier (Faz 3): field uplink kabulü — registry şeması + start;
-  // gateway/tunnel proxy observer'ları kanala abone olur.
-  if (deps.fieldRegistry) {
-    await deps.fieldRegistry.ensureSchema();
-    if (deps.fieldEventCollector) {
-      await deps.fieldEventCollector.ensureSchema();
-      deps.fieldEventCollector.start();
-    }
-    await deps.fieldRegistry.start();
+  // Boss tier: field olay poller'ı (hub access pull — UC-5).
+  if (deps.fieldEventCollector) {
+    await deps.fieldEventCollector.ensureSchema();
+    deps.fieldEventCollector.start();
   }
-  // Field tier (Faz 3): boss cloud'a outbound uplink — tünel + oturum
-  // katmanları aynı kanala abone olur.
-  if (uplinkConnector) {
-    await uplinkConnector.start();
-    if (uplinkTunnelClient) {
-      uplinkTunnelClient.attach(uplinkConnector);
-    }
-    if (uplinkSessionServer) {
-      uplinkSessionServer.start();
-    }
-  }
-  // Faz 2: TunnelConnector sunucu dinlemeye başladıktan sonra bağlanır —
-  // register ack'i beklemez; kendi backoff döngüsünü yönetir.
-  if (deps.hubPeerConnector) {
-    await deps.hubPeerConnector.start();
-    // Faz 3 (container tier): tünel + oturum katmanları kanala abone olur
-    if (tunnelClient) {
-      tunnelClient.attach(deps.hubPeerConnector);
-    }
-    if (containerSessionServer) {
-      containerSessionServer.start();
-    }
-  }
-
-  // Telemetri snapshot push (domain; paket dışında) — connector bağlanınca başlar.
-  if (telemetrySnapshotPusher) {
-    telemetrySnapshotPusher.start();
-  }
-
   // P3: hub-servis consumer kanalı (field/boss tier) — relay + presence.
 
   console.log(`[run] Hazir (tier: ${tier}).`);

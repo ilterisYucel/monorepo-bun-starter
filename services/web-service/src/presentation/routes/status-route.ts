@@ -1,34 +1,27 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { TunnelConnector } from "@gd-monorepo/ws-tunnel";
-import type { TunnelConnectionStatus } from "@gd-monorepo/ws-tunnel";
+
+/** Yanıt şekli (sabit) — ws-tunnel tipine bağımlılık yok. */
+interface OfflineStatus {
+  readonly connected: false;
+  readonly state: "offline";
+}
 
 /**
- * GET /api/status — TunnelConnector PPC durumu (tasarım §6, T2.2).
- * Container UI "Field Bağlantısı" göstergesini besler.
- * hubPeerConnector yoksa (kapalı / field-boss tier) kapalı durum bildirilir —
- * UI asla beyaz ekranda kalmaz.
+ * GET /api/status — container-web "Field Bağlantısı" göstergesi.
+ *
+ * SPEC BOSS-FIELD-UPLINK-ARINDIRMA K4: Web-service artık hiçbir tier'da
+ * tunnel connector taşımaz (konteyner kaydı agent'tadır). Bu yüzden endpoint
+ * her zaman `offline` döner — UI beyaz ekranda kalmaz; gerçek bağlantı
+ * durumu hub `/peers` üzerinden izlenir.
  */
-export function makeStatusRoute(deps: { hubPeerConnector?: TunnelConnector }) {
-  const { hubPeerConnector } = deps;
-
+export function makeStatusRoute() {
   return async function statusRoute(
     _request: FastifyRequest,
     reply: FastifyReply,
   ) {
-    if (!hubPeerConnector) {
-      const body: TunnelConnectionStatus = {
-        connected: false,
-        state: "offline",
-      };
-      return reply.send(body);
-    }
-    const lastHeartbeatAt = hubPeerConnector.lastHeartbeatAt();
-    const body: TunnelConnectionStatus = {
-      connected: hubPeerConnector.connected(),
-      state: hubPeerConnector.state(),
-      ...(lastHeartbeatAt !== undefined
-        ? { lastHeartbeatAt: new Date(lastHeartbeatAt).toISOString() }
-        : {}),
+    const body: OfflineStatus = {
+      connected: false,
+      state: "offline",
     };
     return reply.send(body);
   };

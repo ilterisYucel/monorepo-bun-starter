@@ -547,10 +547,14 @@ export class BSCSimulator implements ISimulator, IBatteryPowerInput {
       this.inputRegisters.set(sBase + RS.HEARTBEAT, (this.tickCount * (rackId + 1)) % 65536);
 
       if (!state.status) {
-        // Offline rack — keep state at idle values
-        this.inputRegisters.set(sBase + RS.STATE, RACK_STATE.NORMAL);
+        // Offline rack — NORMAL görünümü YANLIŞ: kapanmış rack'in SOC'si ve
+        // durumu sıfırlanır (aksi hâlde son bilinen SOC bayat kalıp sistem
+        // SOC'si 0 iken rack %50 gösteriyordu). Sıcaklık/gerilim son bilinen
+        // değerde bırakılır (fiziksel olarak anlamlı).
+        this.inputRegisters.set(sBase + RS.STATE, RACK_STATE.INITIALIZATION);
         this.inputRegisters.set(sBase + RS.STATUS_FLAGS, 0);
         this.inputRegisters.set(sBase + RS.LIVE_UNIT_COUNT, 0);
+        this.inputRegisters.set(sBase + RS.SOC, 0);
         continue;
       }
 

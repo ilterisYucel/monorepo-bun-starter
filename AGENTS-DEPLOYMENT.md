@@ -73,9 +73,9 @@ Bugünkü tek stack: `deployment/v2/dev/{container,container2,field}/` (v1/AWS/o
 - **İmaj:** `docker build -f packages/ws-tunnel-hub/Dockerfile -t ws-tunnel-hub:<tag> .` (monorepo kök bağlamı). Compose'da `HUB_IMAGE` ile seçilir.
 - **Servis:** field stack'te `hub-servis` (port 5003 iç, dış 5009). Volume `/data` (sqlite modunda; env modunda gerekmez).
 - **Kimlik (tier-bazlı, HUB_MODE flag'i YOK):**
-  - `container` tier → hub **peer**'dır: `HUB_PEER_ENABLED=true`, `HUB_PEER_URL=ws://hub-servis:5003/ws/peer`, `HUB_PEER_TOKEN` (hub `PEER_TOKEN` ile aynı), `CONTAINER_ID`, `TUNNEL_SERVICE_ID` (duyurulan servis).
+  - `container` tier → hub **peer**'ıdır, ancak kayıt **agent üzerinden** yapılır (SPEC KONTEYNER-AGENT-KAYIT): `ws-tunnel-agent` (`PEER_TYPE=container`, `PEER_ID`, `SERVICE_ID=container-api`, `LOCAL_TARGET`, `HUB_PEER_TOKEN` hub `PEER_TOKEN` ile aynı, `HUB_SECRET`=web-service `JWT_SECRET`). Web-service peer bağlantısı/session server/tunnel client TAŞIMAZ; `container_session` JWT'sini stateless doğrular. Natif `HUB_PEER_ENABLED` modeli kaldırıldı.
   - `field`/`boss` tier → hub **consumer**'dır: `HUB_CONSUMER_URL` + `HUB_CONSUMER_TOKEN` **zorunlu** (eksikse açılış fail-fast — `config/default.ts#hubConsumerConfig`).
-- **Agent (opsiyonel peer):** `ws-tunnel-agent` imajı ile üçüncü parti/opak uygulama tünellenir; `PEER_TOKEN` hub ile aynı, `LOCAL_TARGET` tünellenen uygulama. İlk açılışta config yoksa setup UI (8080) açılır.
+- **Agent (peer):** `ws-tunnel-agent` imajı ile uygulama hub'a peer olarak kaydedilir; `PEER_TOKEN` hub ile aynı, `LOCAL_TARGET` tünellenen uygulama. Üretimde konteyner stack'lerinin kaydı YALNIZ agent iledir; demoda da `container-agent`/`container2-agent` kullanılır. İlk açılışta config yoksa setup UI (8080) açılır.
 - **Rollback:** peer URL'ini eski hedefe çevir + consumer env'lerini kaldır (tier-gating nedeniyle field/boss consumer zorunludur; geri dönüş için hub-servis servisini kaldırıp legacy hedefe dönülür).
 
 ### P3 — nginx hub alias sözleşmesi

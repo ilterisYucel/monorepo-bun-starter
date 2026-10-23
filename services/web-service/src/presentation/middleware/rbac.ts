@@ -24,10 +24,6 @@ const ROUTE_PERMISSIONS: RoutePermission[] = [
   // 2026-08-30: guest/developer saha verisini SALT-OKUNUR görür (dashboard).
   { path: "/api/fields", methods: ["GET"], roles: ["admin", "teknik", "boss", "guest", "developer"] },
   { path: "/api/data/", methods: ["*"], roles: ["admin", "teknik", "guest", "boss", "developer"] },
-  // Faz 2 (boss): EPİAŞ piyasa verileri salt-okunur — tüm roller görür.
-  { path: "/api/market", methods: ["GET"], roles: ["admin", "teknik", "boss", "guest", "developer"] },
-  // Faz 4 (boss): WireGuard yedek yol yönetimi — admin/boss.
-  { path: "/api/admin/wireguard", methods: ["*"], roles: ["admin", "boss"] },
   // Faz 5 (boss): bildirim akışı salt-okunur — admin/boss.
   { path: "/api/notifications", methods: ["GET"], roles: ["admin", "boss"] },
 ];

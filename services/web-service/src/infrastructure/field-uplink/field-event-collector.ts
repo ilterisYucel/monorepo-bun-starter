@@ -1,6 +1,7 @@
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { ILogger } from "@gd-monorepo/ws-tunnel";
 import type { HubConsumerClient } from "../hub-consumer";
+import { SYSTEM_USER_HEADERS } from "../hub-consumer/system-headers";
 import type { EventMessage } from "./event-message";
 
 const DDL = `
@@ -56,13 +57,6 @@ export interface FieldEventDto {
   context: Record<string, string>;
   occurredAt: string;
 }
-
-/** Programatik erişim kimliği — hub, oturumu bu kullanıcı adına açar. */
-const SYSTEM_USER_HEADERS = {
-  "x-tunnel-user-id": "system",
-  "x-tunnel-user-username": "system",
-  "x-tunnel-user-role": "admin",
-};
 
 /** FieldEventCollector yapılandırması. */
 export interface FieldEventCollectorConfig {
@@ -173,7 +167,9 @@ export class FieldEventCollector {
   private async pullField(fieldId: string): Promise<void> {
     const cursor = this.cursors.get(fieldId);
     const afterMs =
-      cursor === undefined ? this.now() - BACKLOG_WINDOW_MS : cursor - OVERLAP_MS;
+      cursor === undefined
+        ? this.now() - BACKLOG_WINDOW_MS
+        : cursor - OVERLAP_MS;
     const after = encodeURIComponent(new Date(afterMs).toISOString());
 
     try {
@@ -194,11 +190,16 @@ export class FieldEventCollector {
       if (!Array.isArray(body.events) || body.events.length === 0) return;
 
       const events = body.events as EventMessage[];
-      await Promise.allSettled(events.map((event) => this.collect(fieldId, event)));
+      await Promise.allSettled(
+        events.map((event) => this.collect(fieldId, event)),
+      );
 
-      const last = events[events.length - 1];
+      const last = events.at(-1);
       const lastMs = last ? new Date(last.timestamp).getTime() : Number.NaN;
-      if (Number.isFinite(lastMs) && (cursor === undefined || lastMs > cursor)) {
+      if (
+        Number.isFinite(lastMs) &&
+        (cursor === undefined || lastMs > cursor)
+      ) {
         this.cursors.set(fieldId, lastMs);
       }
     } catch (error) {
@@ -261,7 +262,10 @@ export class FieldEventCollector {
   }
 
   /** Son N olay (sorgu — en yeniden). `after` ISO ise o zamandan yenileri. */
-  async list(input: { limit?: number; after?: string }): Promise<FieldEventDto[]> {
+  async list(input: {
+    limit?: number;
+    after?: string;
+  }): Promise<FieldEventDto[]> {
     const limit = input.limit ?? 100;
     const rows = await this.sql.query<FieldEventRow>(
       `SELECT fe.*, f.name AS field_name

@@ -1,6 +1,7 @@
 import type { IRemoteCommandChannel } from "@gd-monorepo/platform-commands";
 import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type { HubConsumerClient } from "../hub-consumer";
+import { SYSTEM_USER_HEADERS } from "../hub-consumer/system-headers";
 
 /** HubManeuverChannel yapılandırması. */
 export interface HubManeuverChannelConfig {
@@ -9,12 +10,6 @@ export interface HubManeuverChannelConfig {
   serviceId: string;
   logger?: TamperLogger;
 }
-
-const SYSTEM_USER_HEADERS = {
-  "x-tunnel-user-id": "system",
-  "x-tunnel-user-username": "system",
-  "x-tunnel-user-role": "admin",
-};
 
 /**
  * HubManeuverChannel — `IRemoteCommandChannel`'ın hub-servis REST uyarlaması.

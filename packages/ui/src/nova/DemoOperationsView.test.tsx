@@ -35,7 +35,7 @@ const station: NovaStationState = {
   iA: {},
 };
 
-const topo = { limits: { tempMin: 19, tempMax: 25, socMin: 3.5, socMax: 97 }, unit: {}, station: { nominalKV: 34.5, cells: [] }, feeders: {} } as unknown as NovaTopology;
+const topo = { limits: { tempMin: 19, tempMax: 25, socMin: 3.5, socMax: 97 }, unit: {}, station: { name: "BESS MV STATION #1", nominalKV: 34.5, cells: [] }, feeders: {} } as unknown as NovaTopology;
 
 describe("parseRunSteps / runLabel (UC-5 — sequences veri modeli)", () => {
   it("steps.definition.steps dizisini okur ve run durumundan adım durumu türetir", () => {
@@ -89,6 +89,28 @@ describe("DemoOperationsView render (UC-5)", () => {
     expect(screen.getByRole("button", { name: "Active power" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "P/Q" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "PF" })).toBeTruthy();
+  });
+
+  it("MV Station başlığı aktif istasyon adını gösterir (station değişiminde değişir)", () => {
+    const { rerender } = render(<DemoOperationsView {...base} />);
+    expect(
+      screen.getByRole("heading", { name: /BESS MV STATION #1/ }),
+    ).toBeTruthy();
+
+    rerender(
+      <DemoOperationsView
+        {...base}
+        topology={
+          {
+            ...topo,
+            station: { ...topo.station, name: "BESS MV STATION #2" },
+          } as unknown as NovaTopology
+        }
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { name: /BESS MV STATION #2/ }),
+    ).toBeTruthy();
   });
 
   it("units mount'tan sonra gelirse varsayılan kapsam senkronlanır (Send etkin)", () => {
