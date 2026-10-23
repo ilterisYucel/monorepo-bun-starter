@@ -28,4 +28,6 @@ EXPOSE 8090
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
   CMD bun -e "fetch('http://127.0.0.1:8090/api/meta').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["sh", "-c", "exec bun run apps/sim-lab/src/main.ts --site \"$SIM_SITE\" --profile \"$SIM_PROFILE\" --speed \"$SIM_SPEED\" --http 8090 --bind 0.0.0.0 --ems-host \"$SIM_EMS_HOST\""]
+# Mount edilen site dosyası yoksa (örn. Docker Desktop'ın paylaşamadığı Google Drive / ağ sürücüsü)
+# imaja gömülü apps/sim-lab/sites kopyasına düşülür (register şablonları: imajdaki configs/).
+CMD ["sh", "-c", "if [ ! -f \"$SIM_SITE\" ]; then echo \"[sim-lab] UYARI: $SIM_SITE okunamadı (mount boş?) — imajdaki apps/sim-lab/sites kullanılıyor\"; SIM_SITE=\"/app/apps/sim-lab/sites/$(basename \"$SIM_SITE\")\"; fi; exec bun run apps/sim-lab/src/main.ts --site \"$SIM_SITE\" --profile \"$SIM_PROFILE\" --speed \"$SIM_SPEED\" --http 8090 --bind 0.0.0.0 --ems-host \"$SIM_EMS_HOST\""]
