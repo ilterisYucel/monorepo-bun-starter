@@ -1,0 +1,25 @@
+{
+  "name": "sim-lab",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/sim-lab/src",
+  "projectType": "application",
+  "targets": {
+    "start": {
+      "executor": "nx:run-commands",
+      "options": { "command": "bun run src/main.ts --site sites/gd1.site.json", "cwd": "apps/sim-lab" }
+    },
+    "export-config": {
+      "executor": "nx:run-commands",
+      "options": { "command": "bun run src/tools/export-ems-config.ts", "cwd": "apps/sim-lab" }
+    },
+    "smoke": {
+      "executor": "nx:run-commands",
+      "options": { "command": "bun run src/tools/smoke-test.ts", "cwd": "apps/sim-lab" }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": { "command": "tsc --noEmit", "cwd": "apps/sim-lab" }
+    }
+  },
+  "implicitDependencies": ["simulators"]
+}

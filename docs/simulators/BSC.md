@@ -1,7 +1,10 @@
 # BSC Simülatörü (Battery System Controller)
 
-> Cihaz: LG Energy Solution **BSC** — rak tabanlı batarya sistem kontrolcüsü.
-> Kaynak harita: `MAP_PLANNING_MC_090626_V1.xlsx` → JSON.
+> Cihaz: LG Energy Solution **Flex BSC** (JF1 1CP raf sistemi) — rak tabanlı batarya sistem kontrolcüsü.
+> Vendor kaynakları: *Flex BSC Modbus Map JF1 Rev AF* (2025-07-30), *Flex BSC SW User Manual RevAH*
+> (2026-01-19), *LGES Diagnosis v1.1.0* — `vendor-documentation/battery/`. Config denetimi:
+> [VENDOR-UYUM-DENETIMI.md](VENDOR-UYUM-DENETIMI.md) §2.1. Vendor'a birebir davranan fiziksel model:
+> `physical/models/bsc.ts` + `physical/models/battery/*` ([FIZIKSEL-SAHA-SIMULATORU.md](FIZIKSEL-SAHA-SIMULATORU.md)).
 > Kod: `bsc/bsc-simulator.ts#BSCSimulator`, register tanımları: `bsc/register-map.ts`,
 > dönüşüm tablosu: `bsc/bsc-math.ts`, parser: `bsc/bsc-config.ts`.
 
@@ -230,3 +233,23 @@ Warning `3N+n`, Fault `4N+n`, Non-Balancing `5N+n` (toplam `6N`).
 - **Charge/discharge komutu yoktur** (Rev AF, 0x000B kaldırıldı): güç PCS'ten gelir
   (konnektör ters kanalı); setpoint register'ları saklanır ama güç modelini sürmez
   (bkz. `docs/analysis/BSC-VERI-ANALIZI.md`).
+
+---
+
+## 8. Vendor davranışı ile karşılaştırma (Rev AF Sequence / Request Ack. Table + SW Manual RevAH)
+
+| Konu | Vendor | Bu simülatör (kolaylık modeli) |
+| :--- | :--- | :--- |
+| Ack yaşam döngüsü | Kabul → 30030 = 0x0001 In Progress (+ 30031 = komut) → işlem bitince 0x0002 Done → **3 s sonra 0x0000 None** (30031 de 0); red → ilgili kod (0x05…0x13, 0x30) | Ack hemen DONE (In Progress yok); EMS 40010'a 0 yazınca None — 3 s zamanlayıcısı yok |
+| Start | Not Initialized → **Initializing** (Done bu geçişle) → tüm RBMS hazır olunca Normal; kontaktörler AÇIK kalır, Close beklenir. 40020–40028 devre dışı raf bayrakları yalnız başlatmada okunur | tick 3/6'da otomatik Initializing/Normal; Start ile raflar hemen online |
+| Stop | Akım akarken (> 0.5 A × online raf) **0x0A Current Flows**; kontaktör kontrolü sürerken 0x10; aksi halde tüm RBMS reset → Not Initialized. RevAH geçiş #2: Initializing'de Stop kabul edilir | durum değişmez, ACK = DONE |
+| Close | Normal/Manual'de; bölüm warning/fault → 0x0F; online raf varsa 0x09; raflar **gerilim sapmasına göre seçilip sırayla** kapatılır (bazıları sapma/arıza nedeniyle kapanmayabilir); Manual'de seçili raflar ve sapma → 0x11 | tüm raflar anında online |
+| Emergency | Tüm kontaktörler hemen açılır; yalnız **Stop/Reset** ile çıkılır; Start → 0x06 | durum EMERGENCY; çıkış Reset ile |
+| Event Clear | 30 s soğuma (0x12); CER (PDVF/RDVF) yalnız LGES servis temizler | ACK = DONE |
+| NPS | Idle + raf akımı ≤ 3 A + maks. SOC < NPS eşiği + dengeleme yok → süre sonunda NPS; akım ≥ 3 A veya röle komutu ile çıkış | yok |
+| Heartbeat | 40000 her 1 s güncellenmeli; 10 s alarm, 20 s LOC fault (30043 b0/b2) → limitler 0, kontaktörler açılır | 5 tick sonra yalnız alarm biti |
+| Ölçümler | hücre/paket/raf ölçümleri, teşhis eşikleri (OVW 3.7 V, OVF1 3.8 V, UVW 2.4 V, OTW 49 °C, OTF1 58 °C, OCCW 210 A …) ve aksiyonları | sabit 3.5288 V / ~23 °C; teşhis yok |
+
+Bu farklar `demo-field` entegrasyon testlerinin "anında uygula" varsayımı nedeniyle bu
+sınıfta bilinçli olarak korunmuştur (README §10, K-2). Vendor zaman modeliyle test için
+Sim-Lab kullanılır.

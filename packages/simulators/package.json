@@ -12,6 +12,10 @@
     "./xrack": {
       "types": "./src/xrack/index.ts",
       "default": "./src/xrack/index.ts"
+    },
+    "./physical": {
+      "types": "./src/physical/index.ts",
+      "default": "./src/physical/index.ts"
     }
   },
   "scripts": {

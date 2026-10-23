@@ -142,6 +142,22 @@ Demo config (`transport` + `details`):
 
 ---
 
+## 8.1 Vendor protokolü ile karşılaştırma (Modbus V1.0 + Kontrol Felsefesi)
+
+> Ayrıntılı denetim: [VENDOR-UYUM-DENETIMI.md](VENDOR-UYUM-DENETIMI.md) §2.2. Vendor'a birebir davranan
+> fiziksel model: `physical/models/pcs-wattox.ts` + `physical/faces/wattox-face.ts`
+> ([FIZIKSEL-SAHA-SIMULATORU.md](FIZIKSEL-SAHA-SIMULATORU.md)).
+
+| Konu | Vendor | Bu simülatör |
+| :--- | :--- | :--- |
+| Fonksiyon kodları | Yalnız **FC03** (okuma) ve **FC06** (tek register yazma); exception 0x01–0x04 | Adaptör FC04 okumalarını da yanıtlar, FC16 kabul eder (kolaylık) |
+| Bloklar | A (0x2F00–0x30C0 iç parametreler), B (0x0300–0x0316 BMS), C (0x0A00–0x0B26 haberleşme, RO), D (0x2FB5–0x2FC6 fault/alarm word), S (0x0E00–0x120E ayar/komut, R/W) | C bloğu yanıtlanmaz (`settings` map'inde yoksa 0) |
+| Durum makinesi | Başlatma → self-check → **durdurma (key shutdown)** → (Start) **soft start** (DC/AC röle gerilim farkı + yapışma kontrolü, ön şarj) → çalışma; Standby = kesiciler kapalı, IGBT darbesiz; **Fault Reset → Stop**; fault giderilince gecikmeyle otomatik toparlanma (manuel kurtarma etkinse yalnız reset) | Start → anında Standby; **Fault Reset → Standby** (vendor'da Stop); soft start / self-check yok; otomatik toparlanma yok |
+| Fault davranışı | Dalga çıkışı durur, **AC ve DC kesiciler açılır** (A53/A55 = 1) | Durum 6 olur; kesici (açma rölesi) bitleri yalnız Stop durumunda açık görünür |
+| Güç | Negatif setpoint şarj, pozitif deşarj; S11 güç değişim hızı (varsayılan 10000 = %100 Pn/s); 45 °C üstü / 2000 m üstü derating | Setpoint anında güç; rampa ve derating yok |
+| Fault/alarm bitleri | Appendix 2 (fault word 1–9) / Appendix 3 (alarm word 1–8) — config bitfield'larında tam liste | `setFaultWord` / `setAlarmWord` ham word |
+| Kümülatif enerji | A81–A84 düşük/yüksek kelime çiftleri (config: UINT32 `BIG_ENDIAN_SWAP`) | `LOW/HIGH` ayrı register |
+
 ## 9. Testler
 
 `wattox-pcs/wattox-pcs.test.ts` (EMS komut/durum), `wattox-pcs/bms-face.test.ts`

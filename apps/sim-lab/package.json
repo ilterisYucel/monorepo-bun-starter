@@ -1,0 +1,27 @@
+{
+  "name": "@gd-monorepo/sim-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GD-PMS Sim-Lab — config'ten saha üreten fiziksel BESS simülatörü (N konteyner × BSC/HVAC/yardımcı + M Wattox PCS + OG köşk), her cihaz ayrı Modbus TCP sunucusu; register düzenleme, toplu işlem, zaman serisi, arıza ve senaryo konsolu.",
+  "main": "./src/main.ts",
+  "scripts": {
+    "start": "bun run src/main.ts --site sites/gd1.site.json",
+    "start:tek": "bun run src/main.ts --site sites/tek-konteyner.site.json",
+    "start:gercek": "bun run src/main.ts --site sites/gd1.site.json --profile gercek",
+    "dev": "bun --watch run src/main.ts --site sites/tek-konteyner.site.json",
+    "export-config": "bun run src/tools/export-ems-config.ts",
+    "ems-probe": "bun run src/tools/ems-probe.ts",
+    "smoke": "bun run src/tools/smoke-test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gd-monorepo/core": "*",
+    "@gd-monorepo/shared-types": "*",
+    "@gd-monorepo/simulators": "*",
+    "jsmodbus": "^4.0.10"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.14",
+    "typescript": "^5.4.0"
+  }
+}

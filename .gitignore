@@ -126,3 +126,6 @@ __pycache__/
 deployment/**/.env
 # EPİAŞ canlı kimlik bilgileri (example şablonu commit'lidir)
 deployment/**/plugins/epias-market-prices.json
+
+# Sim-Lab EMS config export çıktısı (apps/sim-lab export-ems-config ile yeniden üretilir)
+deployment/simlab/

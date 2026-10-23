@@ -1,0 +1,883 @@
+{
+  "deviceId": "PM5340-1",
+  "name": "Enerji Analizoru 1",
+  "manufacturer": "Schneider Electric",
+  "model": "PM5340",
+  "protocol": "MODBUS",
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 15504,
+    "slaveId": 1,
+    "timeout": 5000
+  },
+  "telemetry": [
+    {
+      "name": "Current A",
+      "description": "Akım Faz A",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 2999,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "current"
+      }
+    },
+    {
+      "name": "Current B",
+      "description": "Akım Faz B",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 3001,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "current"
+      }
+    },
+    {
+      "name": "Current C",
+      "description": "Akım Faz C",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 3003,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "current"
+      }
+    },
+    {
+      "name": "Current N",
+      "description": "Nötr Akımı",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 3005,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "N",
+        "group": "current"
+      }
+    },
+    {
+      "name": "Current Avg",
+      "description": "Ortalama Akım",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 3009,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "avg",
+        "group": "current"
+      }
+    },
+    {
+      "name": "Current Unbalance A",
+      "description": "Akım Dengesizliği Faz A",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 3011,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "unbalance"
+      }
+    },
+    {
+      "name": "Current Unbalance B",
+      "description": "Akım Dengesizliği Faz B",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 3013,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "unbalance"
+      }
+    },
+    {
+      "name": "Current Unbalance C",
+      "description": "Akım Dengesizliği Faz C",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 3015,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "unbalance"
+      }
+    },
+    {
+      "name": "Current Unbalance Worst",
+      "description": "Akım Dengesizliği En Kötü",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 3017,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "worst",
+        "group": "unbalance"
+      }
+    },
+    {
+      "name": "Voltage L-L AB",
+      "description": "Faz Arası Gerilim A-B",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3019,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "AB",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-L BC",
+      "description": "Faz Arası Gerilim B-C",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3021,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "BC",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-L CA",
+      "description": "Faz Arası Gerilim C-A",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3023,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "CA",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-L Avg",
+      "description": "Faz Arası Gerilim Ortalama",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3025,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "avg",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-N A",
+      "description": "Faz-Nötr Gerilimi A",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3027,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-N B",
+      "description": "Faz-Nötr Gerilimi B",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3029,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-N C",
+      "description": "Faz-Nötr Gerilimi C",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3031,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Voltage L-N Avg",
+      "description": "Faz-Nötr Gerilimi Ortalama",
+      "unit": "V",
+      "protocol": "MODBUS",
+      "registerAddress": 3035,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "avg",
+        "group": "voltage"
+      }
+    },
+    {
+      "name": "Active Power Total",
+      "description": "Aktif Güç Toplam",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3059,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "total",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Active Power A",
+      "description": "Aktif Güç Faz A",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3053,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Active Power B",
+      "description": "Aktif Güç Faz B",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3055,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Active Power C",
+      "description": "Aktif Güç Faz C",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3057,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Reactive Power Total",
+      "description": "Reaktif Güç Toplam",
+      "unit": "kVAR",
+      "protocol": "MODBUS",
+      "registerAddress": 3067,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "total",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Reactive Power A",
+      "description": "Reaktif Güç Faz A",
+      "unit": "kVAR",
+      "protocol": "MODBUS",
+      "registerAddress": 3061,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Reactive Power B",
+      "description": "Reaktif Güç Faz B",
+      "unit": "kVAR",
+      "protocol": "MODBUS",
+      "registerAddress": 3063,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Reactive Power C",
+      "description": "Reaktif Güç Faz C",
+      "unit": "kVAR",
+      "protocol": "MODBUS",
+      "registerAddress": 3065,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Apparent Power Total",
+      "description": "Görünür Güç Toplam",
+      "unit": "kVA",
+      "protocol": "MODBUS",
+      "registerAddress": 3075,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "total",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Apparent Power A",
+      "description": "Görünür Güç Faz A",
+      "unit": "kVA",
+      "protocol": "MODBUS",
+      "registerAddress": 3069,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Apparent Power B",
+      "description": "Görünür Güç Faz B",
+      "unit": "kVA",
+      "protocol": "MODBUS",
+      "registerAddress": 3071,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Apparent Power C",
+      "description": "Görünür Güç Faz C",
+      "unit": "kVA",
+      "protocol": "MODBUS",
+      "registerAddress": 3073,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "power"
+      }
+    },
+    {
+      "name": "Power Factor Total",
+      "description": "Güç Faktörü Toplam",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3083,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "4Q_FP_PF",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "total",
+        "group": "pf"
+      }
+    },
+    {
+      "name": "Power Factor A",
+      "description": "Güç Faktörü Faz A",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3077,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "4Q_FP_PF",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "pf"
+      }
+    },
+    {
+      "name": "Power Factor B",
+      "description": "Güç Faktörü Faz B",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3079,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "4Q_FP_PF",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "pf"
+      }
+    },
+    {
+      "name": "Power Factor C",
+      "description": "Güç Faktörü Faz C",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 3081,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "4Q_FP_PF",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "pf"
+      }
+    },
+    {
+      "name": "Frequency",
+      "description": "Frekans",
+      "unit": "Hz",
+      "protocol": "MODBUS",
+      "registerAddress": 3109,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "group": "frequency"
+      }
+    },
+    {
+      "name": "Active Energy Delivered",
+      "description": "Aktif Enerji (Tüketilen)",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 2699,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "direction": "delivered",
+        "group": "energy"
+      }
+    },
+    {
+      "name": "Active Energy Received",
+      "description": "Aktif Enerji (Üretilen)",
+      "unit": "kWh",
+      "protocol": "MODBUS",
+      "registerAddress": 2701,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "direction": "received",
+        "group": "energy"
+      }
+    },
+    {
+      "name": "Reactive Energy Delivered",
+      "description": "Reaktif Enerji (Endüktif)",
+      "unit": "kVARh",
+      "protocol": "MODBUS",
+      "registerAddress": 2707,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "direction": "delivered",
+        "group": "energy"
+      }
+    },
+    {
+      "name": "Reactive Energy Received",
+      "description": "Reaktif Enerji (Kapasitif)",
+      "unit": "kVARh",
+      "protocol": "MODBUS",
+      "registerAddress": 2709,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "direction": "received",
+        "group": "energy"
+      }
+    },
+    {
+      "name": "Apparent Energy",
+      "description": "Görünür Enerji",
+      "unit": "kVAh",
+      "protocol": "MODBUS",
+      "registerAddress": 2715,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "group": "energy"
+      }
+    },
+    {
+      "name": "THD Current A",
+      "description": "Toplam Harmonik Bozulma Akım A",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21299,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Current B",
+      "description": "Toplam Harmonik Bozulma Akım B",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21301,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Current C",
+      "description": "Toplam Harmonik Bozulma Akım C",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21303,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Voltage L-L AB",
+      "description": "Toplam Harmonik Bozulma Gerilim A-B",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21321,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "AB",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Voltage L-L BC",
+      "description": "Toplam Harmonik Bozulma Gerilim B-C",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21323,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "BC",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Voltage L-L CA",
+      "description": "Toplam Harmonik Bozulma Gerilim C-A",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21325,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "CA",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Voltage L-N A",
+      "description": "Toplam Harmonik Bozulma Gerilim A-N",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21329,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "A",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Voltage L-N B",
+      "description": "Toplam Harmonik Bozulma Gerilim B-N",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21331,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "B",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "THD Voltage L-N C",
+      "description": "Toplam Harmonik Bozulma Gerilim C-N",
+      "unit": "%",
+      "protocol": "MODBUS",
+      "registerAddress": 21333,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "phase": "C",
+        "group": "thd"
+      }
+    },
+    {
+      "name": "Present Demand Power",
+      "description": "Anlık Aktif Güç Talebi",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3765,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "type": "present",
+        "group": "demand_power"
+      }
+    },
+    {
+      "name": "Peak Demand Power",
+      "description": "Pik Aktif Güç Talebi",
+      "unit": "kW",
+      "protocol": "MODBUS",
+      "registerAddress": 3769,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "type": "peak",
+        "group": "demand_power"
+      }
+    },
+    {
+      "name": "Present Demand Current",
+      "description": "Anlık Akım Talebi",
+      "unit": "A",
+      "protocol": "MODBUS",
+      "registerAddress": 3877,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "FLOAT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN",
+      "tags": {
+        "type": "present",
+        "group": "demand_current"
+      }
+    }
+  ],
+  "pollIntervalMs": 2000,
+  "commands": {},
+  "type": "energy-analyzer"
+}

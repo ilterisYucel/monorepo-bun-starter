@@ -134,3 +134,25 @@ uygular ve **kendi izleme register'larını** yayınlayan bir self-host sunucu a
   erişilemeyen PCS katkısı 0'dır (kademeli bozulma).
 - Testler: `bsc-pcs-connector/connector.test.ts`, `source-reader.test.ts`,
   `tcp-target.test.ts`, `pcs-power-reader.test.ts`.
+
+---
+
+## Eşleme dosyası — vendor anlamları (2026-10-23 güncellemesi)
+
+Wattox BMS bloğu (Modbus V1.0 §4.2, B01–B23) ile Flex BSC Rev AF arasındaki eşleme
+`configs/mappings/bsc-2-pcs-mapping.json` (kök) ve deployment kopyalarındadır. Denetim:
+[VENDOR-UYUM-DENETIMI.md](VENDOR-UYUM-DENETIMI.md) §1.
+
+| Hedef | Wattox anlamı | Kaynak |
+| :--- | :--- | :--- |
+| 0x0306 / 0x0307 (B07/B08) | maks. şarj / deşarj **akım limiti** (0.1 A) | `computed`: güç limiti (30063/30065, kW) ÷ DC gerilim (30059, yoksa 30057) |
+| 0x0310 / 0x0311 (B17/B18) | batarya üst / alt **gerilim limiti** (0.1 V) | **sabit 14688 / 11016** = 408 × 3.6 V / 408 × 2.7 V (JF1 Cycle Test v1.0 işletme penceresi). Önceden ölçülen maks./min. cell-sum gerilimi (30118/30122) aktarılıyordu — limit değil ölçüm |
+| 0x0312 / 0x0313 (B19/B20) | şarj / deşarj edilebilir enerji (0.1 kWh) | `socEnergy`: (1−SOC) × anma / SOC × anma |
+| 0x0301 b0 | BMS no communication | `lossBit` (kaynak okunamazsa) + 30043 b0 |
+
+Kök `configs/mappings/bsc-pcs-mapping.json` artık deployment sürümüyle aynıdır (önceki
+kök sürümde B07/B08 ölçülen raf akımından, B19/B20 sabit 35000'den geliyordu).
+
+Fiziksel saha simülatöründe (`physical/link/bms-link.ts`) aynı dosya "mapping" modunda
+birebir uygulanır (`register` / `bit` / `constant` / `computed` / `socEnergy` + `lossBit`);
+"internal" modda B01–B23 doğrudan BSC modelinden doğru anlamlarıyla üretilir.

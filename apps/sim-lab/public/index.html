@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sim-Lab — Saha Simülatörü</title>
+<style>
+:root{
+  --bg:#0e1116;--panel:#151a21;--panel2:#1b212a;--line:#273040;--line2:#334054;
+  --tx:#dbe2ec;--mut:#8a97a9;--dim:#5d6b7e;
+  --run:#2fbf71;--stop:#8a97a9;--warn:#f0b429;--fault:#ef4c4c;--info:#4aa3ff;--chg:#4aa3ff;--dis:#f59e0b;--ovr:#c084fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:var(--info)}
+button.pri{background:#1d3b5c;border-color:#2c5d91}
+button.dng{background:#4a1d1d;border-color:#7a2c2c}
+button.sm{padding:1px 7px;font-size:12px}
+input,select,textarea{background:#0b0e13;border:1px solid var(--line2);border-radius:5px;padding:4px 6px}
+input[type=number]{width:90px}
+textarea{width:100%;font-family:var(--mono);font-size:12px}
+.mono{font-family:var(--mono)}
+.mut{color:var(--mut)}.dim{color:var(--dim)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:6px}
+.grow{flex:1}
+header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:20;flex-wrap:wrap}
+header .brand{font-weight:700;letter-spacing:.3px}
+header .brand small{font-weight:400;color:var(--mut);margin-left:6px}
+.chip{display:inline-flex;gap:6px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.chip b{font-family:var(--mono)}
+nav{display:flex;gap:2px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:45px;z-index:19}
+nav button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:8px 12px;color:var(--mut)}
+nav button.on{color:var(--tx);border-bottom-color:var(--info)}
+main{padding:12px 14px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+.card h3{margin:0 0 8px;font-size:13px;font-weight:600}
+.badge{display:inline-block;border-radius:4px;padding:0 6px;font-size:11px;font-weight:600;border:1px solid transparent}
+.b-run{background:#123826;color:#6ee7a6;border-color:#1f5a3c}
+.b-stop{background:#1f2630;color:#aab4c3;border-color:#334054}
+.b-warn{background:#3a2e10;color:#fcd34d;border-color:#5c4814}
+.b-fault{background:#3d1414;color:#fca5a5;border-color:#6b2020}
+.b-info{background:#102a44;color:#93c5fd;border-color:#1d4a75}
+.b-ovr{background:#2e1a45;color:#d8b4fe;border-color:#4b2b70}
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:500;font-size:12px;position:sticky;top:0;background:var(--panel)}
+td.num{text-align:right;font-family:var(--mono)}
+tr.ovr td{background:#24163a}
+tr:hover td{background:#18202b}
+/* saha */
+.mvbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.cell{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);padding:2px 8px;border-radius:5px;border:1px solid var(--line2);cursor:pointer}
+.cell.cl{background:#123826;border-color:#1f5a3c}.cell.op{background:#3d1414;border-color:#6b2020}
+.feeders{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:12px}
+.feeder>h3{display:flex;gap:8px;align-items:center}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.cont{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:7px}
+.cont .t{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-weight:600}
+.str{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:3px 0;padding:4px;border-radius:5px;background:#10151c;cursor:pointer}
+.str:hover{outline:1px solid var(--line2)}
+.str .k{font-size:11px;color:var(--mut)}
+.socbar{height:6px;background:#0b0e13;border-radius:3px;overflow:hidden;margin-top:2px}
+.socbar>i{display:block;height:100%;background:linear-gradient(90deg,#2fbf71,#4aa3ff)}
+.hv{display:flex;gap:2px;margin-top:4px}
+.hv span{flex:1;height:16px;border-radius:3px;font:10px/16px var(--mono);text-align:center;cursor:pointer;color:#0b0e13}
+/* cihazlar */
+.devlayout{display:grid;grid-template-columns:330px 1fr;gap:12px}
+.tree{max-height:calc(100vh - 170px);overflow:auto}
+.tree details{margin:2px 0}
+.tree summary{cursor:pointer;padding:2px 0}
+.tree .dv{display:flex;gap:6px;align-items:center;padding:1px 4px 1px 16px;border-radius:4px}
+.tree .dv:hover{background:#18202b}
+.tree .dv a{cursor:pointer;color:var(--tx);text-decoration:none;flex:1}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--dim)}
+.dot.ok{background:var(--run)}.dot.ems{background:var(--info)}.dot.bad{background:var(--fault)}.dot.f{background:var(--warn)}
+/* pencereler */
+#wins{position:fixed;inset:0;pointer-events:none;z-index:30}
+.win{position:absolute;pointer-events:auto;width:760px;max-width:96vw;height:520px;min-height:160px;min-width:380px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;box-shadow:0 10px 40px #000a;display:flex;flex-direction:column;resize:both;overflow:hidden}
+.win.min{height:36px!important;resize:none}
+.win .wh{display:flex;gap:8px;align-items:center;padding:6px 10px;background:var(--panel2);border-bottom:1px solid var(--line);cursor:move;user-select:none}
+.win .wh .tt{font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win .wtabs{display:flex;gap:2px;padding:0 8px;border-bottom:1px solid var(--line)}
+.win .wtabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:5px 9px;color:var(--mut);font-size:12px}
+.win .wtabs button.on{color:var(--tx);border-bottom-color:var(--info)}
+.win .wb{flex:1;overflow:auto;padding:8px}
+.win table td,.win table th{font-size:12px;padding:2px 5px}
+.edit{display:flex;gap:4px;align-items:center}
+.edit input{width:80px;padding:1px 4px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px}
+.kv div{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dotted var(--line);padding:1px 0}
+.kv div span:last-child{font-family:var(--mono)}
+.ev{font-family:var(--mono);font-size:12px;white-space:pre-wrap}
+.ev .warn{color:#fcd34d}.ev .fault{color:#fca5a5}.ev .cmd{color:#93c5fd}.ev .info{color:var(--tx)}
+.scroll{max-height:calc(100vh - 210px);overflow:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:1100px){.grid2,.devlayout{grid-template-columns:1fr}}
+.prog{height:8px;background:#0b0e13;border-radius:4px;overflow:hidden}.prog>i{display:block;height:100%;background:var(--info)}
+.toast{position:fixed;right:14px;bottom:14px;z-index:50;display:flex;flex-direction:column;gap:6px}
+.toast div{background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--info);padding:6px 10px;border-radius:6px;max-width:460px}
+.toast div.e{border-left-color:var(--fault)}
+small.help{color:var(--mut);display:block;margin-top:2px}
+.pill{border:1px solid var(--line2);border-radius:999px;padding:0 8px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Sim-Lab <small id="siteName">—</small></div>
+  <span class="chip">Sim <b id="clock">—</b></span>
+  <span class="chip">
+    <button class="sm" id="btnPause">⏸</button>
+    <select id="speed" title="Simülasyon hızı"><option>0.5</option><option selected>1</option><option>2</option><option>5</option><option>10</option><option>30</option><option>60</option><option>120</option></select>×
+  </span>
+  <span class="chip">Profil <select id="profile"><option value="uyumlu">uyumlu</option><option value="gercek">gerçek cihaz</option></select></span>
+  <span class="chip">P <b id="tP">—</b></span>
+  <span class="chip">Q <b id="tQ">—</b></span>
+  <span class="chip">SOC <b id="tSoc">—</b></span>
+  <span class="chip">Raf <b id="tRack">—</b></span>
+  <span class="chip">Dış <b id="tOut">—</b></span>
+  <span class="chip">Şebeke <b id="tGrid">—</b></span>
+  <span class="chip" id="emsChip" title="Modbus istemcisi bağlı cihaz sayısı">EMS <b id="tEms">—</b></span>
+  <span class="chip" id="seriesChip" style="display:none">Seri <b id="tSeries"></b></span>
+  <span class="chip" id="scChip" style="display:none">Senaryo <b id="tSc"></b></span>
+  <span class="chip dim">döngü <b id="tLoop">—</b></span>
+</header>
+<nav id="nav">
+  <button data-t="saha" class="on">Saha</button>
+  <button data-t="cihaz">Cihazlar</button>
+  <button data-t="toplu">Toplu işlem</button>
+  <button data-t="seri">Zaman serisi</button>
+  <button data-t="ariza">Arızalar</button>
+  <button data-t="senaryo">Senaryolar</button>
+  <button data-t="olay">Olaylar &amp; trafik</button>
+  <button data-t="ems">EMS bağlantısı</button>
+  <button data-t="ayar">Ayarlar</button>
+</nav>
+<main>
+  <!-- SAHA -->
+  <section class="tab on" id="t-saha">
+    <div class="mvbar" id="mvbar"></div>
+    <div class="feeders" id="feeders"></div>
+  </section>
+
+  <!-- CİHAZLAR -->
+  <section class="tab" id="t-cihaz">
+    <div class="devlayout">
+      <div class="card">
+        <div class="row" style="margin-bottom:6px">
+          <input id="treeFilter" placeholder="ara: BSC, C3, PCS-1…" class="grow">
+          <select id="treeType"><option value="">tüm tipler</option></select>
+        </div>
+        <div class="row" style="margin-bottom:6px">
+          <button class="sm" id="selAll">tümünü seç</button><button class="sm" id="selNone">seçimi temizle</button>
+          <span class="mut" id="selCount">0 seçili</span>
+        </div>
+        <div class="row" style="margin-bottom:6px">
+          <button class="sm pri" id="selOpen">pencere aç</button><button class="sm" id="selBulk">toplu işleme aktar</button>
+        </div>
+        <div class="tree" id="tree"></div>
+      </div>
+      <div class="card">
+        <h3>Modbus sunucuları <span class="mut" id="devSummary"></span></h3>
+        <div class="scroll"><table id="devTable"><thead><tr><th>Anahtar</th><th>deviceId</th><th>Tip</th><th>Port</th><th>Durum</th><th>EMS</th><th>Son istek</th><th>Üstyazım</th><th>Hata</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOPLU -->
+  <section class="tab" id="t-toplu">
+    <div class="grid2">
+      <div class="card col">
+        <h3>Register değiştir — tek / seçili / tüm cihazlar</h3>
+        <label>Hedef seçici <small class="help">Virgülle birden çok: tam anahtar (C3.BSC-1), glob (C*.HVAC-*, PCS-1?), type:hvac, container:4, BSC-1 (tüm konteynerlerdeki), all</small></label>
+        <div class="row"><input id="bSel" class="grow mono" value="C*.HVAC-*"><span class="mut" id="bSelN"></span></div>
+        <div class="row">
+          <button class="sm" data-sel="type:bsc">tüm BSC</button><button class="sm" data-sel="type:wattox-pcs">tüm PCS</button><button class="sm" data-sel="type:hvac">tüm HVAC</button><button class="sm" data-sel="C1.*">konteyner 1</button><button class="sm" data-sel="@selected">ağaçta seçili</button>
+        </div>
+        <label>Register <small class="help">İlk eşleşen cihazın kataloğundan; "holding:0x0E19" / "input:30055" ham adres de yazılabilir</small></label>
+        <div class="row"><input id="bPoint" class="grow mono" list="bPoints" placeholder="Current Temp"><datalist id="bPoints"></datalist></div>
+        <div class="row">
+          <label>Değer <input id="bVal" type="number" step="any"></label>
+          <label>Mod <select id="bMode"><option value="hold">hold — yanıta bas (cihaz raporluyor gibi)</option><option value="write">write — EMS gibi yaz (cihaz tepki verir)</option><option value="clear">clear — üstyazımı kaldır</option></select></label>
+          <label>Süre <input id="bDur" type="number" placeholder="kalıcı" title="saniye (sim saati)">s</label>
+        </div>
+        <div class="row"><button class="pri" id="bApply">Uygula</button><button id="bReleaseAll" class="dng">seçicideki tüm üstyazımları kaldır</button></div>
+        <div id="bRes" class="scroll" style="max-height:260px"></div>
+      </div>
+      <div class="col">
+        <div class="card col">
+          <h3>Haberleşme durumu (seçiciye)</h3>
+          <div class="row">
+            <select id="cMode"><option value="online">online (normal)</option><option value="offline">offline — TCP yok</option><option value="timeout">timeout — cevap yok</option><option value="delay">gecikme</option><option value="freeze">donmuş veri</option><option value="exception">exception 0x04</option><option value="lossy">paket kaybı %30</option></select>
+            <label>gecikme <input id="cDelay" type="number" value="1500">ms</label>
+            <button id="cApply">Uygula</button>
+          </div>
+        </div>
+        <div class="card col">
+          <h3>Toplu arıza enjeksiyonu (seçiciye)</h3>
+          <div class="row"><select id="fbDef" class="grow"></select></div>
+          <div id="fbParams" class="row"></div>
+          <small class="help">Raf arızalarında seçici "C*.BSC-1/R3" veya "C2.BSC-*/*" biçimindedir.</small>
+          <div class="row"><button id="fbApply" class="pri">Enjekte et</button></div>
+          <div id="fbRes" class="mut"></div>
+        </div>
+        <div class="card col">
+          <h3>Aktif üstyazımlar <span class="mut" id="ovrN"></span></h3>
+          <div class="scroll" style="max-height:300px"><table id="ovrTable"><thead><tr><th>Cihaz</th><th>Register</th><th>Değer</th><th>Kaynak</th><th>Kalan</th><th></th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERİ -->
+  <section class="tab" id="t-seri">
+    <div class="grid2">
+      <div class="card col">
+        <h3>Zaman damgalı register serisi</h3>
+        <small class="help">Sütunlar: <span class="mono">t, target, register, value[, mode]</span> · t = saniye | HH:MM:SS | ISO zaman damgası (ilk satıra göre göreli) · target = seçici (çoklu cihaz) · mode = hold | write | clear</small>
+        <textarea id="sCsv" rows="16" spellcheck="false"></textarea>
+        <div class="row">
+          <input type="file" id="sFile" accept=".csv,.txt">
+          <button class="sm" id="sTpl">örnek</button>
+          <label>Ad <input id="sName" value="seri-1"></label>
+        </div>
+        <div class="row">
+          <label>Zaman <select id="sBase"><option value="sim">sim saati (hızla ölçeklenir)</option><option value="wall">duvar saati</option></select></label>
+          <label>Ara değer <select id="sInterp"><option value="step">basamak</option><option value="linear">doğrusal (rampa)</option></select></label>
+          <label><input type="checkbox" id="sLoop"> döngü</label>
+        </div>
+        <div class="row"><button id="sParse">Önizle</button><button class="pri" id="sStart">Başlat</button><button class="dng" id="sStop">Durdur</button></div>
+        <div id="sInfo" class="mut"></div>
+        <div class="prog"><i id="sProg" style="width:0"></i></div>
+      </div>
+      <div class="card col">
+        <h3>Seri üreteci</h3>
+        <small class="help">Seçili hedef ve register için satırları üretir ve CSV'ye ekler.</small>
+        <label>Hedef <input id="gSel" class="mono" value="C*.HVAC-*"></label>
+        <label>Register <input id="gPoint" class="mono" list="bPoints" value="Current Temp"></label>
+        <div class="row">
+          <label>Biçim <select id="gFn"><option value="ramp">rampa</option><option value="step">basamak</option><option value="sine">sinüs</option><option value="walk">rastgele yürüyüş</option></select></label>
+          <label>baş <input id="gFrom" type="number" value="24"></label>
+          <label>son/genlik <input id="gTo" type="number" value="38"></label>
+        </div>
+        <div class="row">
+          <label>süre <input id="gDur" type="number" value="600">s</label>
+          <label>adım <input id="gStep" type="number" value="30">s</label>
+          <label>mod <select id="gMode"><option>hold</option><option>write</option></select></label>
+        </div>
+        <div class="row"><button id="gAdd">CSV'ye ekle</button><button id="gClearEnd" class="sm">sona "clear" ekle</button></div>
+        <h3 style="margin-top:10px">Önizleme</h3>
+        <div id="sPreview" class="scroll" style="max-height:340px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARIZA -->
+  <section class="tab" id="t-ariza">
+    <div class="grid2">
+      <div class="card col">
+        <h3>Arıza kataloğu</h3>
+        <div class="row"><select id="fGroup"></select><select id="fDef" class="grow"></select></div>
+        <div id="fExpect" class="mut"></div>
+        <label>Hedef <input id="fTarget" class="mono" list="fTargets"><datalist id="fTargets"></datalist></label>
+        <div id="fParams" class="row"></div>
+        <div class="row"><button class="pri" id="fApply">Enjekte et</button><button class="dng" id="fClearAll">tümünü temizle</button></div>
+      </div>
+      <div class="card col">
+        <h3>Aktif arızalar <span id="fN" class="mut"></span></h3>
+        <div class="scroll"><table id="fTable"><thead><tr><th>Arıza</th><th>Hedef</th><th>Parametre</th><th>Sim t</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SENARYO -->
+  <section class="tab" id="t-senaryo">
+    <div class="grid2">
+      <div class="card col">
+        <h3>Senaryolar</h3>
+        <div id="scList" class="scroll" style="max-height:360px"></div>
+        <h3>Yeni / düzenle (JSON)</h3>
+        <textarea id="scJson" rows="10" spellcheck="false"></textarea>
+        <div class="row"><button id="scSave">Kaydet</button></div>
+      </div>
+      <div class="card col">
+        <h3>Çalışan senaryo</h3>
+        <div id="scRun" class="mut">—</div>
+        <h3>Geçmiş</h3>
+        <div id="scHist" class="scroll" style="max-height:360px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OLAY -->
+  <section class="tab" id="t-olay">
+    <div class="grid2">
+      <div class="card col">
+        <div class="row"><h3 class="grow">Olay günlüğü</h3><input id="evFilter" placeholder="filtre"><select id="evLevel"><option value="">tümü</option><option>info</option><option>cmd</option><option>warn</option><option>fault</option></select><button class="sm" id="evClear">temizle</button></div>
+        <div id="evList" class="ev scroll"></div>
+      </div>
+      <div class="card col">
+        <div class="row"><h3 class="grow">Modbus trafiği (EMS istekleri)</h3><input id="trFilter" placeholder="cihaz: C1.BSC-1"><label><input type="checkbox" id="trPause"> durdur</label></div>
+        <div class="scroll"><table id="trTable"><thead><tr><th>Saat</th><th>Cihaz</th><th>İstemci</th><th>FC</th><th>Adres</th><th>Adet</th><th>Sonuç</th><th>Değerler</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMS -->
+  <section class="tab" id="t-ems">
+    <div class="grid2">
+      <div class="card col">
+        <h3>EMS config export</h3>
+        <div class="mut" id="emsInfo"></div>
+        <div class="row"><button class="pri" id="exBtn">deployment/simlab/&lt;saha&gt;/ üret</button></div>
+        <pre id="exOut" class="mono mut" style="white-space:pre-wrap;max-height:260px;overflow:auto"></pre>
+        <h3>EMS yardımcısı</h3>
+        <small class="help">EMS bağlı değilken EMS'in yapması gerekenleri taklit eder. Varsayılan kapalı — EMS'in eksikleri gizlenmesin.</small>
+        <label><input type="checkbox" id="asHb"> BSC controller heartbeat (40000) yaz</label>
+        <label><input type="checkbox" id="asHv"> klimalara batarya sıcaklığı (0x2000/0x2001) yaz</label>
+        <div class="row"><label>Otomatik devreye al <input id="asKw" type="number" value="1000"> kW / PCS</label><button id="asGo">çalıştır</button></div>
+      </div>
+      <div class="card col">
+        <h3>Uyumluluk uyarıları <span class="mut" id="cmpN"></span></h3>
+        <small class="help">EMS'in yaptığı bir şey gerçek cihazda farklı sonuç verirdi (yanlış FC, tanımsız adres, desteklenmeyen komut…).</small>
+        <div class="scroll"><table id="cmpTable"><thead><tr><th>Cihaz</th><th>EMS ne yaptı</th><th>Gerçek cihaz</th><th>#</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AYAR -->
+  <section class="tab" id="t-ayar">
+    <div class="grid2">
+      <div class="card col">
+        <h3>Gerçeklik ayarları</h3>
+        <div id="rlz" class="col"></div>
+      </div>
+      <div class="card col">
+        <h3>Ortam</h3>
+        <div class="row"><label>Saat <input id="wHour" type="number" min="0" max="23" step="0.5"></label><button id="wHourBtn">ayarla</button></div>
+        <div class="row"><label>Hava <select id="wMode"><option value="gunluk">günlük profil</option><option value="sabit">sabit</option></select></label><label>sabit <input id="wFixed" type="number"></label><label>min <input id="wMin" type="number"></label><label>maks <input id="wMax" type="number"></label><button id="wApply">uygula</button></div>
+        <div class="row"><label>İleri sar <input id="advS" type="number" value="600"> s</label><button id="advBtn">ileri</button></div>
+        <h3>Saha</h3>
+        <pre id="siteInfo" class="mono mut" style="white-space:pre-wrap"></pre>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="wins"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const fx = (v, d = 1) => (v === null || v === undefined || Number.isNaN(v) ? "—" : Number(v).toFixed(d));
+const api = async (path, body, method) => {
+  const r = await fetch(path, body === undefined && !method ? {} : { method: method || "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+};
+const toast = (m, err) => {
+  const d = document.createElement("div");
+  if (err) d.className = "e";
+  d.textContent = m;
+  $("#toast").appendChild(d);
+  setTimeout(() => d.remove(), err ? 7000 : 3500);
+};
+const BSC_ST = { 0: "None", 1: "Not Init", 2: "Initializing", 3: "Normal", 4: "NPS", 5: "Manual", 6: "Emergency" };
+const PCS_OP = { 0: "Stop", 1: "Standby", 2: "Şarj", 3: "Deşarj", 4: "Sıfır güç", 5: "Off-grid", 6: "Fault" };
+const HV_ST = { 1: "Standby", 2: "Çalışıyor", 3: "Arıza" };
+const hms = (s) => { s = Math.max(0, Math.round(s)); const d = Math.floor(s / 86400); s %= 86400; return `${d ? `G${d} ` : ""}${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+const tempColor = (t) => (t >= 45 ? "#ef4c4c" : t >= 35 ? "#f59e0b" : t >= 28 ? "#f0d34a" : t >= 18 ? "#2fbf71" : "#4aa3ff");
+
+let META = null, ST = null;
+const selected = new Set();
+const devInfo = new Map(); // key → meta device
+const devState = new Map(); // key → snapshot tuple
+const traffic = [];
+let events = [];
+
+// ───────────── nav ─────────────
+$$("#nav button").forEach((b) => (b.onclick = () => {
+  $$("#nav button").forEach((x) => x.classList.toggle("on", x === b));
+  $$(".tab").forEach((t) => t.classList.toggle("on", t.id === `t-${b.dataset.t}`));
+  if (b.dataset.t === "ems") loadCompat();
+}));
+
+// ───────────── header kontrolleri ─────────────
+$("#btnPause").onclick = () => api("/api/sim", { paused: !ST?.paused });
+$("#speed").onchange = (e) => api("/api/sim", { speed: Number(e.target.value) });
+$("#profile").onchange = (e) => api("/api/sim", { profile: e.target.value }).then(() => toast(`Profil: ${e.target.value}`));
+
+// ───────────── meta ─────────────
+async function loadMeta() {
+  META = await api("/api/meta");
+  $("#siteName").textContent = `${META.site.name} · ${META.devices.length} Modbus sunucusu`;
+  document.title = `Sim-Lab — ${META.site.name}`;
+  devInfo.clear();
+  for (const d of META.devices) devInfo.set(d.key, d);
+  const types = [...new Set(META.devices.map((d) => d.type))].sort();
+  $("#treeType").innerHTML = `<option value="">tüm tipler</option>` + types.map((t) => `<option>${t}</option>`).join("");
+  buildTree();
+  buildFaultUi();
+  buildScenarioList();
+  $("#siteInfo").textContent = JSON.stringify({ dosya: META.site.file, konteyner: META.site.containers, pcs: META.site.pcs, og: META.site.mv, ag: META.site.network }, null, 2);
+  $("#emsInfo").innerHTML = `EMS'in simülatöre ulaştığı adres: <b class="mono">${esc(META.site.network.emsHost)}</b> · konteyner port tabanı <b class="mono">${META.site.network.containerPortBase}</b> (+${META.site.network.containerPortStride}/konteyner) · saha <b class="mono">${META.site.network.fieldPortBase}</b>`;
+  buildRealism();
+  updateSelCount();
+  refreshBulkCount();
+}
+
+// ───────────── SSE ─────────────
+function connect() {
+  const es = new EventSource("/api/stream");
+  es.addEventListener("state", (e) => { ST = JSON.parse(e.data); render(); });
+  es.addEventListener("events", (e) => { events = events.concat(JSON.parse(e.data)).slice(-1500); renderEvents(); });
+  es.addEventListener("traffic", (e) => { if ($("#trPause").checked) return; traffic.push(...JSON.parse(e.data)); if (traffic.length > 1500) traffic.splice(0, traffic.length - 1500); renderTraffic(); });
+  es.onerror = () => { $("#clock").textContent = "bağlantı yok"; };
+}
+
+// ───────────── render: header + saha ─────────────
+function render() {
+  if (!ST || !META) return;
+  for (const t of ST.devices) devState.set(t[0], t);
+  $("#clock").textContent = `${hms(ST.simT)}${ST.paused ? " ⏸" : ""}`;
+  $("#btnPause").textContent = ST.paused ? "▶" : "⏸";
+  if (document.activeElement !== $("#speed")) {
+    const sp = String(ST.speed);
+    if (![...$("#speed").options].some((o) => o.value === sp)) $("#speed").insertAdjacentHTML("beforeend", `<option>${sp}</option>`);
+    $("#speed").value = sp;
+  }
+  if (document.activeElement !== $("#profile")) $("#profile").value = ST.profile;
+  const T = ST.totals;
+  $("#tP").textContent = `${fx(T.p / 1000, 2)} MW`;
+  $("#tP").style.color = T.p > 1 ? "var(--dis)" : T.p < -1 ? "var(--chg)" : "";
+  $("#tQ").textContent = `${fx(T.q / 1000, 2)} Mvar`;
+  $("#tSoc").textContent = `${fx(T.soc, 1)} % · ${fx(T.energyKwh / 1000, 2)}/${fx(T.capacityKwh / 1000, 2)} MWh`;
+  $("#tRack").textContent = `${T.onlineRacks}/${T.racks}`;
+  $("#tOut").textContent = `${fx(ST.outdoorC)} °C`;
+  $("#tGrid").textContent = `${fx(ST.grid.v, 0)} V · ${fx(ST.grid.hz, 2)} Hz`;
+  $("#tEms").textContent = `${ST.ems.devices} cihaz / ${ST.ems.clients} bağl.`;
+  $("#emsChip").style.borderColor = ST.ems.devices ? "var(--info)" : "";
+  $("#tLoop").textContent = `${fx(ST.loopMs, 0)} ms`;
+  $("#seriesChip").style.display = ST.series ? "" : "none";
+  if (ST.series) $("#tSeries").textContent = `${ST.series.name} ${Math.round(ST.series.elapsed)}/${Math.round(ST.series.duration)} s`;
+  $("#scChip").style.display = ST.scenario && !ST.scenario.done ? "" : "none";
+  if (ST.scenario) $("#tSc").textContent = `${ST.scenario.name.slice(0, 28)} ${ST.scenario.elapsed}s`;
+  renderSite();
+  if ($("#t-cihaz").classList.contains("on")) { renderDevTable(); renderTreeDots(); }
+  renderOverrides();
+  renderFaults();
+  renderScenarioRun();
+  renderSeries();
+  if (document.activeElement?.closest?.("#t-ems") == null) { $("#asHb").checked = ST.assist.heartbeat; $("#asHv").checked = ST.assist.hvacServerTemps; }
+  for (const w of WINS.values()) w.tick();
+}
+
+function stBadgeBsc(s) {
+  const c = s === 3 ? "b-run" : s === 6 ? "b-fault" : s === 2 ? "b-info" : s === 5 ? "b-warn" : "b-stop";
+  return `<span class="badge ${c}">${BSC_ST[s] ?? s}</span>`;
+}
+function stBadgePcs(p) {
+  if (!p) return `<span class="badge b-stop">PCS yok</span>`;
+  const c = p.op === 6 ? "b-fault" : p.op === 2 || p.op === 3 ? "b-run" : p.op === 1 ? "b-info" : "b-stop";
+  return `<span class="badge ${c}">${PCS_OP[p.op] ?? p.op}</span>`;
+}
+
+function renderSite() {
+  const mvs = ST.mv;
+  $("#mvbar").innerHTML = mvs.map((m) => `<span class="chip"><b>${esc(m.name)}</b></span>` + m.cells.map((c) => `<span class="cell ${c.closed ? "cl" : "op"}" data-open="${esc(m.id)}" title="${c.id} ${c.closed ? "kapalı" : "açık"} — tıkla: cihaz penceresi">${c.id} ${c.closed ? "■" : "□"}</span>`).join("")).join(" ") +
+    ` <span class="mut">Aktif arıza ${ST.faults.length} · üstyazım ${ST.overrides.length} · uyumluluk uyarısı ${ST.compatCount}</span>`;
+  // fider grupları
+  const groups = [];
+  const assigned = new Set();
+  for (const m of mvs) for (const [cell, units] of Object.entries(m.feeders)) { groups.push({ title: `${m.id} · ${cell}`, closed: m.cells.find((c) => c.id === cell)?.closed ?? true, units }); units.forEach((u) => assigned.add(u)); }
+  const rest = ST.containers.map((c) => c.c).filter((c) => !assigned.has(c));
+  if (rest.length) groups.push({ title: "fider atanmamış", closed: true, units: rest });
+  const html = groups.map((g) => `<div class="card feeder"><h3>${esc(g.title)} <span class="badge ${g.closed ? "b-run" : "b-fault"}">${g.closed ? "enerjili" : "açık"}</span><span class="mut">BESS#${g.units.join(", ")}</span></h3><div class="cgrid">${g.units.map((u) => contCard(ST.containers[u - 1])).join("")}</div></div>`).join("");
+  $("#feeders").innerHTML = html;
+}
+function contCard(c) {
+  if (!c) return "";
+  const strings = c.strings.map((s) => {
+    const b = s.bsc, p = s.pcs;
+    const flags = [b.info.fault ? `<span class="badge b-fault">F</span>` : "", b.info.warning ? `<span class="badge b-warn">W</span>` : "", b.info.alarm ? `<span class="badge b-info">A</span>` : "", s.cb && !s.cb.closed ? `<span class="badge b-fault">CB açık</span>` : "", s.link && !s.link.link ? `<span class="badge b-warn">BMS link</span>` : ""].join("");
+    const pflags = p ? [p.fault ? `<span class="badge b-fault">F</span>` : "", p.alarm ? `<span class="badge b-warn">A</span>` : "", !p.grid ? `<span class="badge b-fault">şebeke yok</span>` : "", p.derated ? `<span class="badge b-warn">derate</span>` : "", p.src !== 1 ? `<span class="badge b-warn">HMI</span>` : ""].join("") : "";
+    return `<div class="str">
+      <div data-open="${esc(s.key)}" title="BSC penceresi"><div class="k">${esc(s.key.split(".")[1])} ${stBadgeBsc(b.state)} ${flags}${devState.get(s.key)?.[5] ? `<span class="badge b-ovr">ü${devState.get(s.key)[5]}</span>` : ""}${devState.get(s.key)?.[2] ? `<span class="badge b-info" title="EMS bağlı">EMS</span>` : ""}</div>
+        <div class="mono">${fx(b.soc, 1)}% · ${b.online}/${b.racks} · ${fx(b.dcV, 0)} V</div>
+        <div class="socbar"><i style="width:${Math.max(0, Math.min(100, b.soc))}%"></i></div>
+        <div class="k mono">I ${fx(b.current, 0)} A · Tmax ${fx(b.tMax)} °C${b.diag ? ` · <span style="color:var(--warn)">diag ${b.diag}</span>` : ""}</div></div>
+      <div ${p ? `data-open="${esc(p.key)}" title="PCS penceresi"` : ""}><div class="k">${esc(p?.key ?? "")} ${stBadgePcs(p)} ${pflags}${p && devState.get(p.key)?.[5] ? `<span class="badge b-ovr">ü${devState.get(p.key)[5]}</span>` : ""}${p && devState.get(p.key)?.[2] ? `<span class="badge b-info" title="EMS bağlı">EMS</span>` : ""}</div>
+        <div class="mono" style="color:${p && p.p > 1 ? "var(--dis)" : p && p.p < -1 ? "var(--chg)" : "inherit"}">${p ? `${fx(p.p, 0)} kW` : "—"}</div>
+        <div class="k mono">${p ? `sp ${p.sp} · IGBT ${fx(p.igbt, 0)} °C` : ""}</div></div></div>`;
+  }).join("");
+  const hv = c.hvacs.map((h) => `<span data-open="${esc(h.key)}" title="${esc(h.key)} ${HV_ST[h.status] ?? h.status} · zon ${h.zoneT} °C${h.comp ? " · kompresör" : ""}${devState.get(h.key)?.[5] ? " · ÜSTYAZIM VAR" : ""}" style="${devState.get(h.key)?.[5] ? "outline:2px solid var(--ovr);outline-offset:-2px;" : ""}${devState.get(h.key)?.[4] || devState.get(h.key)?.[1] === 0 ? "opacity:.35;" : ""}background:${h.status === 3 || h.alarm ? "#ef4c4c" : !h.on ? "#55606f" : tempColor(h.zoneT)}">${Math.round(h.zoneT)}</span>`).join("");
+  const comm = ST.devices.filter((d) => d[0].startsWith(`C${c.c}.`));
+  const off = comm.filter((d) => !d[1] || d[4]).length;
+  const ems = comm.filter((d) => d[2] > 0).length;
+  return `<div class="cont"><div class="t"><span>BESS#${c.c}</span><span class="row" style="gap:4px">${c.imdAlarm ? `<span class="badge b-fault">IMD</span>` : ""}${c.doors && (c.doors.battery || c.doors.panel) ? `<span class="badge b-warn">kapı</span>` : ""}${off ? `<span class="badge b-fault">${off} hab.</span>` : ""}<span class="pill" title="EMS'in bağlı olduğu cihaz sayısı">EMS ${ems}/${comm.length}</span></span></div>${strings}<div class="hv">${hv}</div></div>`;
+}
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-open]");
+  if (!el || el.closest(".win")) return;
+  if (el.closest("#t-saha") || el.closest("#mvbar")) openWin(el.dataset.open);
+});
+
+// ───────────── cihaz ağacı ─────────────
+function buildTree() {
+  const f = $("#treeFilter").value.trim().toLowerCase();
+  const tf = $("#treeType").value;
+  const devs = META.devices.filter((d) => (!tf || d.type === tf) && (!f || d.key.toLowerCase().includes(f) || d.name.toLowerCase().includes(f) || d.type.includes(f)));
+  const byC = new Map();
+  for (const d of devs) { const k = d.container && !d.key.startsWith("PCS-") ? `BESS#${d.container}` : "Saha (PCS / OG)"; if (!byC.has(k)) byC.set(k, []); byC.get(k).push(d); }
+  const keys = [...byC.keys()].sort((a, b) => (a.startsWith("Saha") ? -1 : b.startsWith("Saha") ? 1 : Number(a.slice(5)) - Number(b.slice(5))));
+  $("#tree").innerHTML = keys.map((k) => `<details ${f || tf || keys.length < 4 ? "open" : ""}><summary><input type="checkbox" data-grp="${esc(k)}"> <b>${esc(k)}</b> <span class="mut">${byC.get(k).length}</span></summary>${byC.get(k).map((d) => `<div class="dv"><input type="checkbox" data-k="${esc(d.key)}" ${selected.has(d.key) ? "checked" : ""}><span class="dot" data-dot="${esc(d.key)}"></span><a data-win="${esc(d.key)}">${esc(d.key)}</a><span class="dim">${esc(d.type)} :${d.port}</span></div>`).join("")}</details>`).join("");
+  renderTreeDots();
+}
+function renderTreeDots() {
+  for (const el of $$("[data-dot]")) {
+    const t = devState.get(el.dataset.dot);
+    el.className = "dot " + (!t ? "" : !t[1] ? "bad" : t[4] ? "f" : t[2] > 0 ? "ems" : "ok");
+  }
+}
+$("#treeFilter").oninput = buildTree;
+$("#treeType").onchange = buildTree;
+$("#tree").addEventListener("click", (e) => {
+  const a = e.target.closest("[data-win]");
+  if (a) return openWin(a.dataset.win);
+});
+$("#tree").addEventListener("change", (e) => {
+  const k = e.target.dataset.k, g = e.target.dataset.grp;
+  if (k) e.target.checked ? selected.add(k) : selected.delete(k);
+  if (g) for (const cb of $$("input[data-k]", e.target.closest("details"))) { cb.checked = e.target.checked; cb.checked ? selected.add(cb.dataset.k) : selected.delete(cb.dataset.k); }
+  updateSelCount();
+});
+const updateSelCount = () => ($("#selCount").textContent = `${selected.size} seçili`);
+$("#selAll").onclick = () => { $$("input[data-k]").forEach((c) => { c.checked = true; selected.add(c.dataset.k); }); updateSelCount(); };
+$("#selNone").onclick = () => { selected.clear(); $$("input[data-k],input[data-grp]").forEach((c) => (c.checked = false)); updateSelCount(); };
+$("#selOpen").onclick = () => { const ks = [...selected].slice(0, 8); if (selected.size > 8) toast("En fazla 8 pencere açılır"); ks.forEach(openWin); };
+$("#selBulk").onclick = () => { if (!selected.size) return toast("Önce ağaçtan cihaz seçin", true); $("#bSel").value = [...selected].join(","); refreshBulkCount(); $('#nav button[data-t="toplu"]').click(); };
+
+function renderDevTable() {
+  const rows = ST.devices.map((t) => { const d = devInfo.get(t[0]) || {}; return `<tr><td><a data-win="${esc(t[0])}" style="cursor:pointer">${esc(t[0])}</a></td><td>${esc(d.deviceId)}</td><td>${esc(d.type)}</td><td class="num">${d.port ?? ""}</td><td>${!t[1] ? `<span class="badge b-fault">kapalı</span>` : t[4] ? `<span class="badge b-warn">${esc(t[4])}</span>` : `<span class="badge b-run">dinliyor</span>`}</td><td class="num">${t[2] || ""}</td><td class="num">${t[3] >= 0 ? `${t[3]} s` : "—"}</td><td class="num">${t[5] ? `<span class="badge b-ovr">${t[5]}</span>` : ""}</td><td class="num">${t[6] || ""}</td></tr>`; });
+  $("#devTable tbody").innerHTML = rows.join("");
+  const ems = ST.devices.filter((t) => t[2] > 0).length;
+  $("#devSummary").textContent = `${ST.devices.length} sunucu · EMS bağlı ${ems}`;
+}
+$("#devTable").addEventListener("click", (e) => { const a = e.target.closest("[data-win]"); if (a) openWin(a.dataset.win); });
+
+// ───────────── cihaz pencereleri ─────────────
+const WINS = new Map();
+let zTop = 31, winN = 0;
+function openWin(key) {
+  if (!key || !devInfo.has(key)) return;
+  if (WINS.has(key)) { const w = WINS.get(key); w.el.style.zIndex = ++zTop; w.el.classList.remove("min"); return; }
+  const d = devInfo.get(key);
+  const el = document.createElement("div");
+  el.className = "win";
+  const off = (winN++ % 8) * 28;
+  el.style.left = `${40 + off}px`; el.style.top = `${110 + off}px`; el.style.zIndex = ++zTop;
+  el.innerHTML = `<div class="wh"><span class="dot" data-wdot></span><span class="tt">${esc(key)} <span class="mut">${esc(d.deviceId)} · ${esc(d.type)} · :${d.port}</span></span><button class="sm" data-a="min">_</button><button class="sm" data-a="x">×</button></div>
+    <div class="wtabs"><button data-wt="reg" class="on">Register</button><button data-wt="model">Model</button><button data-wt="tr">Trafik</button><button data-wt="flt">Arıza</button></div>
+    <div class="wb" data-body></div>`;
+  $("#wins").appendChild(el);
+  const w = { key, el, tab: "reg", rows: [], filter: "", group: "", onlyOvr: false, editing: null, busy: false, lastLoad: 0, detail: null };
+  WINS.set(key, w);
+  // sürükleme
+  const wh = $(".wh", el);
+  wh.onmousedown = (e) => {
+    if (e.target.tagName === "BUTTON") return;
+    el.style.zIndex = ++zTop;
+    const sx = e.clientX - el.offsetLeft, sy = e.clientY - el.offsetTop;
+    const mv = (ev) => { el.style.left = `${Math.max(0, ev.clientX - sx)}px`; el.style.top = `${Math.max(0, ev.clientY - sy)}px`; };
+    const up = () => { document.removeEventListener("mousemove", mv); document.removeEventListener("mouseup", up); };
+    document.addEventListener("mousemove", mv); document.addEventListener("mouseup", up);
+  };
+  el.onmousedown = () => (el.style.zIndex = ++zTop);
+  $('[data-a="x"]', el).onclick = () => { el.remove(); WINS.delete(key); };
+  $('[data-a="min"]', el).onclick = () => el.classList.toggle("min");
+  $$("[data-wt]", el).forEach((b) => (b.onclick = () => { $$("[data-wt]", el).forEach((x) => x.classList.toggle("on", x === b)); w.tab = b.dataset.wt; w.lastLoad = 0; w.editing = null; drawWin(w, true); }));
+  w.tick = () => {
+    const t = devState.get(key);
+    const dot = $("[data-wdot]", el);
+    if (dot && t) dot.className = "dot " + (!t[1] ? "bad" : t[4] ? "f" : t[2] > 0 ? "ems" : "ok");
+    if (el.classList.contains("min") || w.editing) return;
+    if (Date.now() - w.lastLoad > (w.tab === "tr" ? 1000 : 1500)) drawWin(w);
+  };
+  drawWin(w, true);
+}
+
+async function drawWin(w, first) {
+  if (w.busy) return;
+  w.busy = true;
+  w.lastLoad = Date.now();
+  const body = $("[data-body]", w.el);
+  try {
+    if (w.tab === "reg") {
+      const r = await api(`/api/device/${encodeURIComponent(w.key)}/registers`);
+      w.rows = r.rows;
+      if (w.editing) return;
+      const groups = [...new Set(w.rows.map((x) => x.group))];
+      if (first || !$("[data-rf]", body)) {
+        body.innerHTML = `<div class="row" style="margin-bottom:6px"><input data-rf placeholder="ara (ad / adres)" class="grow"><select data-rg><option value="">tüm gruplar</option>${groups.map((g) => `<option>${esc(g)}</option>`).join("")}</select><label><input type="checkbox" data-ro> yalnız üstyazım</label><button class="sm dng" data-rall>tüm üstyazımları kaldır</button></div><table><thead><tr><th>Register</th><th>Adres</th><th>Ham</th><th>Değer</th><th>Birim</th><th></th></tr></thead><tbody data-rt></tbody></table>`;
+        $("[data-rf]", body).value = w.filter; $("[data-rg]", body).value = w.group; $("[data-ro]", body).checked = w.onlyOvr;
+        $("[data-rf]", body).oninput = (e) => { w.filter = e.target.value; paintRegs(w); };
+        $("[data-rg]", body).onchange = (e) => { w.group = e.target.value; paintRegs(w); };
+        $("[data-ro]", body).onchange = (e) => { w.onlyOvr = e.target.checked; paintRegs(w); };
+        $("[data-rall]", body).onclick = () => api("/api/release", { selector: w.key, point: "*" }).then(() => { toast(`${w.key}: üstyazımlar kaldırıldı`); w.lastLoad = 0; });
+        $("[data-rt]", body).onclick = (e) => regAction(w, e);
+      }
+      paintRegs(w);
+    } else if (w.tab === "model") {
+      w.detail = await api(`/api/device/${encodeURIComponent(w.key)}`);
+      body.innerHTML = modelHtml(w.detail);
+    } else if (w.tab === "tr") {
+      const items = traffic.filter((t) => t.device === w.key).slice(-150).reverse();
+      body.innerHTML = `<div class="mut" style="margin-bottom:4px">Son ${items.length} EMS isteği (canlı)</div><table><thead><tr><th>Saat</th><th>İstemci</th><th>FC</th><th>Adres</th><th>Adet</th><th>Sonuç</th><th>Değerler</th></tr></thead><tbody>${items.map(trRow).join("")}</tbody></table>`;
+    } else if (w.tab === "flt") {
+      if (first || !$("[data-ff]", body)) faultTab(w, body);
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="b-fault badge">${esc(e.message)}</div>`;
+  } finally {
+    w.busy = false;
+  }
+}
+const fmtVal = (r) => (r.value === null ? `<span class="badge b-fault">${esc(r.error || "hata")}</span>` : Number.isInteger(r.value) ? r.value : Math.abs(r.value) >= 100 ? r.value.toFixed(1) : r.value.toFixed(3).replace(/0+$/, "").replace(/\.$/, ""));
+function paintRegs(w) {
+  const tb = $("[data-rt]", w.el);
+  if (!tb) return;
+  const f = w.filter.toLowerCase();
+  const rows = w.rows.filter((r) => (!w.group || r.group === w.group) && (!w.onlyOvr || r.overridden) && (!f || r.name.toLowerCase().includes(f) || String(r.address).includes(f) || `0x${r.address.toString(16)}`.includes(f)));
+  tb.innerHTML = rows.slice(0, 900).map((r) => {
+    const sent = r.raw.length && (r.raw[0] === 0xffff || r.raw[0] === 0x7fff || r.raw[0] === 0x8000);
+    return `<tr class="${r.overridden ? "ovr" : ""}" data-n="${esc(r.name)}"><td title="${esc(r.group)}">${esc(r.name)}${r.bits ? ` <span class="dim">${r.bits}</span>` : ""}</td><td class="mono dim">${r.table[0]}:${r.address} <span class="dim">0x${r.address.toString(16).toUpperCase()}</span></td><td class="mono dim">${r.raw.map((x) => x.toString(16).toUpperCase().padStart(4, "0")).join(" ")}</td><td class="num">${fmtVal(r)}${sent ? ` <span class="badge b-stop" title="EMS bu değeri sentinel (veri yok) sayar">∅</span>` : ""}</td><td class="dim">${esc(r.unit)}</td><td><button class="sm" data-act="edit">✎</button>${r.overridden ? ` <button class="sm" data-act="rel" title="üstyazımı kaldır">×</button>` : ""}</td></tr>`;
+  }).join("") + (rows.length > 900 ? `<tr><td colspan="6" class="mut">… ${rows.length - 900} satır daha (filtreleyin)</td></tr>` : "");
+}
+function regAction(w, e) {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const tr = btn.closest("tr");
+  const name = tr?.dataset.n;
+  const r = w.rows.find((x) => x.name === name);
+  if (btn.dataset.act === "rel") return api("/api/release", { selector: w.key, point: name }).then(() => { w.lastLoad = 0; drawWin(w); });
+  if (btn.dataset.act === "edit") {
+    w.editing = name;
+    const td = tr.lastElementChild;
+    td.innerHTML = `<div class="edit"><input type="number" step="any" value="${r.value ?? 0}" data-ev><select data-em>${r.writable ? `<option value="write">write</option>` : ""}<option value="hold">hold</option></select><input type="number" placeholder="süre s" data-ed style="width:62px"><button class="sm pri" data-act="ok">✓</button><button class="sm" data-act="cancel">✕</button></div>`;
+    $("[data-ev]", td).focus();
+    $("[data-ev]", td).onkeydown = (ev) => { if (ev.key === "Enter") $('[data-act="ok"]', td).click(); if (ev.key === "Escape") $('[data-act="cancel"]', td).click(); };
+    return;
+  }
+  if (btn.dataset.act === "cancel") { w.editing = null; paintRegs(w); return; }
+  if (btn.dataset.act === "ok") {
+    const td = btn.closest("td");
+    const value = Number($("[data-ev]", td).value);
+    const mode = $("[data-em]", td).value;
+    const dur = $("[data-ed]", td).value;
+    api("/api/point", { selector: w.key, point: name, value, mode, durationS: dur === "" ? undefined : Number(dur) })
+      .then((res) => { const r0 = res[0]; if (r0 && !r0.ok) toast(`${w.key}/${name}: ${r0.error}`, true); else toast(`${w.key}: ${name} ← ${value} (${mode})`); })
+      .catch((er) => toast(er.message, true))
+      .finally(() => { w.editing = null; w.lastLoad = 0; drawWin(w); });
+  }
+}
+const kv = (o) => `<div class="kv">${Object.entries(o).map(([k, v]) => `<div><span class="mut">${esc(k)}</span><span>${esc(typeof v === "object" && v !== null ? JSON.stringify(v) : v)}</span></div>`).join("")}</div>`;
+function modelHtml(d) {
+  const c = d.comm;
+  let h = `<h3>Haberleşme</h3>${kv({ dinliyor: c.listening ? "evet" : `HAYIR ${c.bindError ?? ""}`, "EMS istemci": c.clients, istek: c.requests, okuma: c.reads, yazma: c.writes, hata: c.errors, "son istek (s)": c.lastRequestAgo ?? "—", "son yazma (s)": c.lastWriteAgo ?? "—", "hab. arızası": c.fault.mode })}`;
+  if (d.bsc) {
+    const b = d.bsc;
+    h += `<h3>BSC</h3>${kv({ durum: b.stateName, ack: b.ackName, "son kabul": b.lastAccepted, SOC: `${b.soc} %`, SOH: `${b.soh} %`, "DC V": b.dcV, "DC A": b.current, "güç kW": b.powerKw, "enerji kWh": `${b.energyKwh}/${b.capacityKwh}`, "şarj lim. kW": b.limits.chg, "deşarj lim. kW": b.limits.dis, "SPC/VPC/TPC": `${+b.limits.spc}/${+b.limits.vpc}/${+b.limits.tpc}`, "BSC hb": b.hb, "EMS hb": b.ctrlHb, "EMS hb yaşı": b.hbAgo ?? "yazılmadı" })}`;
+    if (b.diag.length) h += `<div style="margin:6px 0">${b.diag.map((x) => `<span class="badge ${x.level.startsWith("fault") ? "b-fault" : x.level === "warning" ? "b-warn" : "b-info"}">${x.code}</span>`).join(" ")}</div>`;
+    h += `<table><thead><tr><th>Raf</th><th>Durum</th><th>SOC</th><th>V</th><th>A</th><th>Vmax/min</th><th>ΔmV</th><th>Tmax/min</th><th>Hava</th><th>Lim c/d</th><th>Teşhis</th></tr></thead><tbody>${b.racks.map((r) => `<tr><td>R${r.id}${r.disabled ? " ⊘" : ""}</td><td>${r.online ? `<span class="badge b-run">online</span>` : r.closing ? `<span class="badge b-info">kapanıyor</span>` : r.rbmsUp ? `<span class="badge b-stop">0x${r.state.toString(16)}</span>` : `<span class="badge b-fault">LOC</span>`}${r.balancing ? ` <span class="badge b-info">bal</span>` : ""}</td><td class="num">${r.soc}</td><td class="num">${r.v}</td><td class="num">${r.i}</td><td class="num">${r.vMax}/${r.vMin}</td><td class="num">${r.dV}</td><td class="num" style="color:${tempColor(r.tMax)}">${r.tMax}/${r.tMin}</td><td class="num">${r.airT}</td><td class="num">${r.limChg}/${r.limDis}</td><td>${r.diag.map((x) => `<span class="badge ${x.level.startsWith("fault") ? "b-fault" : x.level === "warning" ? "b-warn" : "b-info"}">${x.code}</span>`).join(" ")}${r.inj.length ? ` <span class="badge b-ovr">${r.inj.join(",")}</span>` : ""}</td></tr>`).join("")}</tbody></table>`;
+  }
+  if (d.pcs) {
+    const p = d.pcs;
+    h += `<h3>Wattox PCS</h3>${kv({ faz: p.phase, durum: p.opName, "P kW": p.p, "Q kvar": p.q, "P DC kW": p.pDc, "DC V": p.dcV, "DC A": p.dcI, setpoint: p.setpoint, "komut kaynağı": p.cmdSource === 1 ? "EMS" : "HMI", "rampa %Pn/s": p.rate / 100, "maks kW": p.maxKw, "izin şarj/deşarj": `${p.allowChg}/${p.allowDis}`, derating: p.derate, "IGBT °C": Math.max(...p.igbt), "reaktör °C": Math.max(...p.reactor), "kabin °C": p.cavity, "ortam °C": p.ambient, "izolasyon kΩ": p.insulation, "AC/DC kesici": `${p.breakers.ac ? "K" : "A"}/${p.breakers.dc ? "K" : "A"}`, şebeke: p.grid.present ? `${p.grid.v} V ${p.grid.hz} Hz` : "YOK", "BMS link": p.bms.linkOk ? `ok (${p.bms.ago} s)` : "KOPUK", "EMS son istek s": p.emsAgo, "C24/C61": `${p.emsTimeoutS}/${p.bmsTimeoutS} s`, "kümülatif şarj/deşarj kWh": `${p.energy.accChg}/${p.energy.accDis}` })}`;
+    if (p.faults.length || p.alarms.length) h += `<div style="margin:6px 0">${p.faults.map((x) => `<div class="badge b-fault">${esc(x)}</div>`).join(" ")} ${p.alarms.map((x) => `<div class="badge b-warn">${esc(x)}</div>`).join(" ")}</div>`;
+    h += `<h3>BMS bloğu 0x0300–0x0316</h3><div class="mono dim">${p.bms.raw.map((v, i) => `B${String(i + 1).padStart(2, "0")}=${v}`).join("  ")}</div>`;
+  }
+  if (d.hvac) {
+    const v = d.hvac;
+    h += `<h3>MC90 klima</h3>${kv({ durum: HV_ST[v.status] ?? v.status, "uzaktan açık": v.on ? "evet" : "hayır", kompresör: v.comp ? "çalışıyor" : "duruyor", ısıtıcı: v.heater ? "açık" : "kapalı", "iç/dış fan": `${v.indoor}/${v.outdoor}`, "dönüş °C": v.returnT, "üfleme °C": v.supplyT, "kondenser °C": v.cond, "evaporatör °C": v.evap, "soğutma set": v.coolSet, "ısıtma set": v.heatSet, "kontrol modu (0x09)": v.mode, "sunucu maks/min": `${v.server.max ?? "—"}/${v.server.min ?? "—"}${v.server.fresh ? "" : " (bayat)"}`, "güç W": v.powerW, "soğutma W": v.coolW, "zon °C": v.zoneT, raflar: v.racks.join(" "), alarmlar: v.alarms.join(" ") || "—" })}`;
+  }
+  if (d.link) h += `<h3>BSC→PCS bağlantısı</h3>${kv({ link: d.link.link, kaynak: d.link.source, yazım: d.link.writeCount, hata: d.link.failCount, kopuk: d.link.broken })}<div class="mono dim">${d.link.block.join(" ")}</div>`;
+  if (d.overrides.length) h += `<h3>Üstyazımlar</h3>${d.overrides.map((o) => `<div class="badge b-ovr">${esc(o.point)} = ${o.value}</div>`).join(" ")}`;
+  return h;
+}
+
+// ───────────── arıza (katalog + pencere sekmesi) ─────────────
+const KIND_TO_TARGET = { bsc: ["bsc", "rack", "any"], "wattox-pcs": ["pcs", "any"], "wattox-bms": ["any"], hvac: ["hvac", "any"], cb: ["cb", "any"], imd: ["imd", "any"], "control-panel-io": ["io", "any"], "demo-mv-station": ["mv", "any"], "dc-meter": ["dcmeter", "any"], fss: ["fss", "any"], "bsc-pcs-connector": ["link", "any"] };
+function paramInputs(params, prefix) {
+  return params.map((p) => p.type === "select" ? `<label>${esc(p.label)} <select data-${prefix}="${p.key}">${p.options.map((o) => `<option value="${esc(o.value)}" ${o.value == p.default ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>` : `<label>${esc(p.label)} <input type="number" step="${p.step ?? "any"}" value="${p.default}" data-${prefix}="${p.key}">${esc(p.unit ?? "")}</label>`).join("");
+}
+const readParams = (root, prefix) => Object.fromEntries($$(`[data-${prefix}]`, root).map((i) => [i.dataset[prefix], i.tagName === "SELECT" ? i.value : Number(i.value)]));
+function faultTab(w, body) {
+  const d = devInfo.get(w.key);
+  const kinds = KIND_TO_TARGET[d.type] ?? ["any"];
+  const defs = META.faults.filter((f) => kinds.includes(f.target));
+  body.innerHTML = `<div class="col"><select data-ff>${defs.map((f) => `<option value="${f.id}">${esc(f.group)} — ${esc(f.label)}</option>`).join("")}</select><div data-fe class="mut"></div>${d.type === "bsc" ? `<label>Raf <select data-fr><option value="*">tüm raflar</option>${Array.from({ length: META.site.containers.racksPerBsc }, (_, i) => `<option>R${i + 1}</option>`).join("")}</select> <small class="help">yalnız raf arızalarında</small></label>` : ""}<div data-fp class="row"></div><div class="row"><button class="pri" data-fgo>Enjekte et</button></div><h3>Bu cihazdaki aktif arızalar</h3><div data-fa></div></div>`;
+  const upd = () => { const f = defs.find((x) => x.id === $("[data-ff]", body).value); $("[data-fe]", body).textContent = f?.expect ?? ""; $("[data-fp]", body).innerHTML = paramInputs(f?.params ?? [], "wp"); };
+  $("[data-ff]", body).onchange = upd; upd();
+  $("[data-fgo]", body).onclick = async () => {
+    const f = defs.find((x) => x.id === $("[data-ff]", body).value);
+    const target = f.target === "rack" ? `${w.key}/${$("[data-fr]", body)?.value ?? "R1"}` : w.key;
+    try { const r = await api("/api/fault", { id: f.id, selector: target, params: readParams(body, "wp") }); toast(`${f.label}: ${r.filter((x) => x.ok).length}/${r.length} hedef`); } catch (e) { toast(e.message, true); }
+  };
+  const paintActive = () => { const a = (ST?.faults ?? []).filter((x) => x.target === w.key || x.target.startsWith(`${w.key}/`)); const el = $("[data-fa]", body); if (el) el.innerHTML = a.map((x) => `<div class="row"><span class="badge b-fault">${esc(x.label)}</span><span class="mono">${esc(x.target)}</span><button class="sm" onclick="api('/api/fault/${x.uid}',{},'DELETE')">temizle</button></div>`).join("") || `<span class="mut">yok</span>`; };
+  paintActive();
+  w.paintFaults = paintActive;
+}
+function buildFaultUi() {
+  const groups = [...new Set(META.faults.map((f) => f.group))];
+  $("#fGroup").innerHTML = groups.map((g) => `<option>${esc(g)}</option>`).join("");
+  const fill = () => { const g = $("#fGroup").value; $("#fDef").innerHTML = META.faults.filter((f) => f.group === g).map((f) => `<option value="${f.id}">${esc(f.label)}</option>`).join(""); upd(); };
+  const upd = () => {
+    const f = META.faults.find((x) => x.id === $("#fDef").value);
+    if (!f) return;
+    $("#fExpect").textContent = `Beklenen saha davranışı: ${f.expect}`;
+    $("#fParams").innerHTML = paramInputs(f.params, "fp");
+    const opts = META.devices.filter((d) => (KIND_TO_TARGET[d.type] ?? ["any"]).includes(f.target)).map((d) => d.key);
+    const tg = f.target === "site" ? ["SITE"] : f.target === "rack" ? META.devices.filter((d) => d.type === "bsc").flatMap((d) => [`${d.key}/R1`, `${d.key}/*`]) : opts;
+    $("#fTargets").innerHTML = tg.slice(0, 400).map((x) => `<option value="${esc(x)}">`).join("");
+    if (!$("#fTarget").value || !tg.some((x) => $("#fTarget").value.startsWith(x.split("/")[0]))) $("#fTarget").value = tg[0] ?? "";
+  };
+  $("#fGroup").onchange = fill; $("#fDef").onchange = upd; fill();
+  $("#fApply").onclick = async () => {
+    try { const r = await api("/api/fault", { id: $("#fDef").value, selector: $("#fTarget").value, params: readParams($("#t-ariza"), "fp") }); const bad = r.filter((x) => !x.ok); toast(`${r.length - bad.length}/${r.length} hedefe enjekte edildi${bad.length ? ` — ${bad[0].error}` : ""}`, bad.length > 0); } catch (e) { toast(e.message, true); }
+  };
+  $("#fClearAll").onclick = () => api("/api/fault-clear-all").then(() => toast("Tüm arızalar temizlendi"));
+  // toplu sekmesi
+  $("#fbDef").innerHTML = META.faults.map((f) => `<option value="${f.id}">${esc(f.group)} — ${esc(f.label)}</option>`).join("");
+  const updB = () => { const f = META.faults.find((x) => x.id === $("#fbDef").value); $("#fbParams").innerHTML = paramInputs(f?.params ?? [], "fbp"); };
+  $("#fbDef").onchange = updB; updB();
+  $("#fbApply").onclick = async () => {
+    try { const r = await api("/api/fault", { id: $("#fbDef").value, selector: resolveSel($("#bSel").value), params: readParams($("#t-toplu"), "fbp") }); $("#fbRes").textContent = `${r.filter((x) => x.ok).length}/${r.length} hedef: ${r.slice(0, 12).map((x) => x.target).join(", ")}${r.length > 12 ? "…" : ""}`; } catch (e) { toast(e.message, true); }
+  };
+}
+function renderFaults() {
+  $("#fN").textContent = `(${ST.faults.length})`;
+  $("#fTable tbody").innerHTML = ST.faults.map((a) => `<tr><td>${esc(a.label)}</td><td class="mono">${esc(a.target)}</td><td class="mono dim">${esc(Object.entries(a.params).map(([k, v]) => `${k}=${v}`).join(" "))}</td><td class="num">${hms(a.simSince)}</td><td><button class="sm" onclick="api('/api/fault/${a.uid}',{},'DELETE')">temizle</button></td></tr>`).join("");
+  for (const w of WINS.values()) w.paintFaults?.();
+}
+
+// ───────────── toplu işlem ─────────────
+const resolveSel = (s) => s.split(",").map((x) => x.trim()).flatMap((x) => (x === "@selected" ? [...selected] : [x])).filter(Boolean).join(",");
+let bulkCatalogFor = "";
+async function refreshBulkCount() {
+  const sel = resolveSel($("#bSel").value);
+  if (!sel) { $("#bSelN").textContent = ""; return; }
+  try {
+    const keys = await api(`/api/select?q=${encodeURIComponent(sel)}`);
+    $("#bSelN").textContent = `${keys.length} cihaz`;
+    if (keys[0] && keys[0] !== bulkCatalogFor) {
+      bulkCatalogFor = keys[0];
+      const pts = await api(`/api/device/${encodeURIComponent(keys[0])}/catalog`);
+      $("#bPoints").innerHTML = pts.map((p) => `<option value="${esc(p.name)}">${p.table}:${p.address}${p.bits ? ` b${p.bits.start}` : ""} ${esc(p.unit)}${p.writable ? " ✎" : ""}</option>`).join("");
+    }
+  } catch (e) { $("#bSelN").textContent = e.message; }
+}
+let bt;
+$("#bSel").oninput = () => { clearTimeout(bt); bt = setTimeout(refreshBulkCount, 300); };
+$$("[data-sel]").forEach((b) => (b.onclick = () => { $("#bSel").value = b.dataset.sel; refreshBulkCount(); }));
+$("#bApply").onclick = async () => {
+  const mode = $("#bMode").value;
+  const v = $("#bVal").value;
+  if (mode !== "clear" && v === "") return toast("Değer girin", true);
+  try {
+    const res = await api("/api/point", { selector: resolveSel($("#bSel").value), point: $("#bPoint").value, value: v === "" ? null : Number(v), mode, durationS: $("#bDur").value === "" ? undefined : Number($("#bDur").value) });
+    const bad = res.filter((r) => !r.ok);
+    $("#bRes").innerHTML = `<div class="${bad.length ? "badge b-warn" : "badge b-run"}">${res.length - bad.length}/${res.length} cihaz</div><table><tbody>${res.map((r) => `<tr><td class="mono">${esc(r.key)}</td><td>${r.ok ? "✓" : `<span style="color:var(--fault)">${esc(r.error)}</span>`}</td></tr>`).join("")}</tbody></table>`;
+  } catch (e) { toast(e.message, true); }
+};
+$("#bReleaseAll").onclick = () => api("/api/release", { selector: resolveSel($("#bSel").value), point: "*" }).then((r) => toast(`${r.length} cihazda üstyazımlar kaldırıldı`));
+$("#cApply").onclick = () => api("/api/comm", { selector: resolveSel($("#bSel").value), mode: $("#cMode").value, delayMs: Number($("#cDelay").value) }).then((r) => toast(`Haberleşme ${$("#cMode").value} → ${r.devices} cihaz`)).catch((e) => toast(e.message, true));
+function renderOverrides() {
+  $("#ovrN").textContent = `(${ST.overrides.length})`;
+  if (!$("#t-toplu").classList.contains("on")) return;
+  $("#ovrTable tbody").innerHTML = ST.overrides.map((o) => `<tr><td class="mono">${esc(o.key)}</td><td>${esc(o.point)}</td><td class="num">${o.value}</td><td class="dim">${esc(o.source)}</td><td class="num">${o.untilSimT ? `${Math.max(0, Math.round(o.untilSimT - ST.simT))} s` : "∞"}</td><td><button class="sm" data-rel="${esc(o.key)}|${esc(o.point)}">×</button></td></tr>`).join("");
+}
+$("#ovrTable").onclick = (e) => { const b = e.target.closest("[data-rel]"); if (!b) return; const [k, p] = b.dataset.rel.split("|"); api("/api/release", { selector: k, point: p }); };
+
+// ───────────── zaman serisi ─────────────
+$("#sTpl").onclick = async () => { $("#sCsv").value = await (await fetch(`/api/series/template?selector=${encodeURIComponent("C1.HVAC-*")}&point=${encodeURIComponent("Current Temp")}`)).text(); };
+$("#sFile").onchange = async (e) => { const f = e.target.files[0]; if (f) { $("#sCsv").value = await f.text(); $("#sName").value = f.name.replace(/\.[^.]+$/, ""); } };
+$("#sParse").onclick = async () => {
+  try {
+    const r = await api("/api/series/parse", { csv: $("#sCsv").value });
+    $("#sInfo").innerHTML = `${r.rows} satır · ${Math.round(r.duration)} s · hedefler: ${r.targets.map((t) => `<span class="mono">${esc(t.selector)}</span>→${t.devices.length}${t.devices.length ? "" : " ⚠"}`).join(", ")}`;
+    $("#sPreview").innerHTML = `<table><thead><tr><th>t (s)</th><th>Hedef</th><th>Register</th><th>Değer</th><th>Mod</th></tr></thead><tbody>${r.preview.map((x) => `<tr><td class="num">${fx(x.t, 1)}</td><td class="mono">${esc(x.target)}</td><td>${esc(x.point)}</td><td class="num">${x.value ?? ""}</td><td>${x.mode}</td></tr>`).join("")}</tbody></table>`;
+  } catch (e) { toast(e.message, true); }
+};
+$("#sStart").onclick = () => api("/api/series/start", { csv: $("#sCsv").value, name: $("#sName").value, timeBase: $("#sBase").value, interp: $("#sInterp").value, loop: $("#sLoop").checked }).then((r) => toast(`Seri başladı: ${r.rows} satır, ${Math.round(r.duration)} s`)).catch((e) => toast(e.message, true));
+$("#sStop").onclick = () => api("/api/series/stop");
+$("#gAdd").onclick = () => {
+  const sel = $("#gSel").value, pt = $("#gPoint").value, fn = $("#gFn").value, a = Number($("#gFrom").value), b = Number($("#gTo").value), dur = Number($("#gDur").value), st = Math.max(1, Number($("#gStep").value)), mode = $("#gMode").value;
+  const lines = [];
+  let v = a;
+  const lastT = (() => { const ls = $("#sCsv").value.trim().split(/\n/).slice(1).map((l) => Number(l.split(",")[0])).filter(Number.isFinite); return ls.length ? Math.max(...ls) : 0; })();
+  const t0 = $("#sCsv").value.trim() ? lastT + st : 0;
+  for (let t = 0; t <= dur + 1e-9; t += st) {
+    if (fn === "ramp") v = a + ((b - a) * t) / Math.max(1, dur);
+    else if (fn === "step") v = t < dur / 2 ? a : b;
+    else if (fn === "sine") v = a + b * Math.sin((2 * Math.PI * t) / Math.max(1, dur));
+    else v = (v ?? a) + (Math.random() - 0.5) * Math.abs(b - a) * 0.1;
+    lines.push(`${(t0 + t).toFixed(1)},"${sel}",${pt},${v.toFixed(3)},${mode}`);
+  }
+  if (!$("#sCsv").value.trim()) $("#sCsv").value = "t,target,register,value,mode";
+  $("#sCsv").value = $("#sCsv").value.trimEnd() + "\n" + lines.join("\n");
+  toast(`${lines.length} satır eklendi`);
+};
+$("#gClearEnd").onclick = () => {
+  const ls = $("#sCsv").value.trim().split(/\n/).slice(1).map((l) => Number(l.split(",")[0])).filter(Number.isFinite);
+  const t = ls.length ? Math.max(...ls) + 1 : 0;
+  $("#sCsv").value = $("#sCsv").value.trimEnd() + `\n${t},"${$("#gSel").value}",${$("#gPoint").value},,clear`;
+};
+function renderSeries() {
+  const s = ST.series;
+  $("#sProg").style.width = s ? `${Math.min(100, (100 * s.elapsed) / Math.max(1, s.duration))}%` : "0";
+  if (s && $("#t-seri").classList.contains("on")) $("#sInfo").textContent = `▶ ${s.name}: ${Math.round(s.elapsed)}/${Math.round(s.duration)} s · ${s.fired}/${s.total} satır · tur ${s.loops}${s.errors ? ` · ${s.errors} hata (${s.lastError})` : ""}`;
+}
+
+// ───────────── senaryolar ─────────────
+function buildScenarioList() {
+  $("#scList").innerHTML = META.scenarios.map((s) => `<div class="card" style="margin-bottom:6px"><div class="row"><b class="grow">${esc(s.name)}</b>${s.builtin ? `<span class="pill">hazır</span>` : `<span class="pill">kullanıcı</span>`}${s.speed ? `<span class="pill">${s.speed}×</span>` : ""}<button class="sm pri" data-sc="${esc(s.id)}">başlat</button><button class="sm" data-scj="${esc(s.id)}">JSON</button></div><div class="mut">${esc(s.description)}</div></div>`).join("");
+}
+$("#scList").onclick = (e) => {
+  const b = e.target.closest("[data-sc]");
+  if (b) return api("/api/scenario/start", { id: b.dataset.sc }).then(() => toast("Senaryo başladı")).catch((er) => toast(er.message, true));
+  const j = e.target.closest("[data-scj]");
+  if (j) $("#scJson").value = JSON.stringify(META.scenarios.find((s) => s.id === j.dataset.scj), (k, v) => (k === "builtin" ? undefined : v), 2);
+};
+$("#scSave").onclick = async () => { try { await api("/api/scenario/save", { scenario: JSON.parse($("#scJson").value) }); await loadMeta(); toast("Kaydedildi"); } catch (e) { toast(e.message, true); } };
+function renderScenarioRun() {
+  const r = ST.scenario;
+  $("#scRun").innerHTML = r ? `<div class="row"><b class="grow">${esc(r.name)}</b><span class="mono">${r.elapsed}/${r.total} s</span>${r.done ? `<span class="badge b-stop">bitti</span>` : `<button class="sm dng" onclick="api('/api/scenario/stop')">durdur</button>`}</div>${r.expects.map((x) => `<div class="row"><span class="badge ${x.status === "geçti" ? "b-run" : x.status === "kaldı" ? "b-fault" : "b-info"}">${x.status}</span><span class="grow">${esc(x.label)}</span><span class="mono dim">${x.detail ?? ""}</span></div>`).join("")}` : "—";
+  $("#scHist").innerHTML = ST.scenarioHistory.map((h) => `<div style="margin-bottom:6px"><b>${esc(h.name)}</b> <span class="dim">${new Date(h.at).toLocaleTimeString()}</span>${h.results.map((x) => `<div class="row"><span class="badge ${x.status === "geçti" ? "b-run" : "b-fault"}">${x.status}</span>${esc(x.label)} <span class="dim mono">${x.detail ?? ""}</span></div>`).join("")}</div>`).join("") || `<span class="mut">—</span>`;
+}
+
+// ───────────── olaylar / trafik ─────────────
+function renderEvents() {
+  const f = $("#evFilter").value.toLowerCase(), lv = $("#evLevel").value;
+  const list = events.filter((e) => (!lv || e.level === lv) && (!f || e.device.toLowerCase().includes(f) || e.msg.toLowerCase().includes(f))).slice(-600).reverse();
+  $("#evList").innerHTML = list.map((e) => `<div class="${e.level}">${hms(e.simT)} <b>${esc(e.device)}</b> ${esc(e.msg)}</div>`).join("");
+}
+$("#evFilter").oninput = renderEvents; $("#evLevel").onchange = renderEvents;
+$("#evClear").onclick = () => api("/api/events-clear").then(() => { events = []; renderEvents(); });
+const trRow = (t) => `<tr><td class="mono dim">${new Date(t.t).toLocaleTimeString()}</td>${t.device !== undefined ? `<td class="mono">${esc(t.device)}</td>` : ""}<td class="mono dim">${esc(t.client)}</td><td class="mono">${t.fc}</td><td class="num">${t.addr}</td><td class="num">${t.count}</td><td>${t.ok ? "✓" : `<span style="color:var(--fault)">${esc(t.result)}</span>`}</td><td class="mono dim">${esc((t.values ?? []).slice(0, 10).join(" "))}${(t.values?.length ?? 0) > 10 ? "…" : ""}</td></tr>`;
+function renderTraffic() {
+  if (!$("#t-olay").classList.contains("on")) return;
+  const f = $("#trFilter").value.trim();
+  $("#trTable tbody").innerHTML = traffic.filter((t) => !f || t.device.includes(f)).slice(-300).reverse().map(trRow).join("");
+}
+
+// ───────────── EMS ─────────────
+$("#exBtn").onclick = async () => { try { const r = await api("/api/export", {}); $("#exOut").textContent = `${r.files.length} dosya → ${r.outDir}\n\n${r.files.slice(0, 60).join("\n")}${r.files.length > 60 ? "\n…" : ""}`; toast("EMS config'leri üretildi"); } catch (e) { toast(e.message, true); } };
+$("#asHb").onchange = (e) => api("/api/sim", { assist: { heartbeat: e.target.checked } });
+$("#asHv").onchange = (e) => api("/api/sim", { assist: { hvacServerTemps: e.target.checked } });
+$("#asGo").onclick = () => api("/api/autostart", { powerKw: Number($("#asKw").value) }).then(() => toast("Otomatik devreye alma başladı"));
+async function loadCompat() {
+  const c = await api("/api/compat");
+  $("#cmpN").textContent = `(${c.length})`;
+  $("#cmpTable tbody").innerHTML = c.map((x) => `<tr><td class="mono">${esc(x.device)}</td><td>${esc(x.msg)}</td><td class="mut">${esc(x.realBehavior)}</td><td class="num">${x.count}</td></tr>`).join("");
+}
+
+// ───────────── ayarlar ─────────────
+const RLZ_LABEL = { bscRackStride: "BSC raf blok adımı", fcStrict: "Desteklenmeyen FC → 0x01 (katı)", bscHeartbeatCheck: "BSC heartbeat denetimi (20 s LOC)", rejectInvalidValues: "Geçersiz değer yazımını reddet (0x03)", timing: "Zamanlama", bmsLink: "BSC→PCS BMS bağlantısı", pcsEnforceCommandSource: "PCS komut kaynağı (S01) zorunlu" };
+function buildRealism() {
+  const r = META.profiles.uyumlu;
+  $("#rlz").innerHTML = Object.keys(r).filter((k) => k !== "profile").map((k) => {
+    const v = r[k];
+    if (typeof v === "boolean") return `<label><input type="checkbox" data-rz="${k}"> ${RLZ_LABEL[k] ?? k}</label>`;
+    const opts = k === "bscRackStride" ? ["auto", 150, 200] : k === "timing" ? ["fast", "realistic"] : k === "bmsLink" ? ["internal", "mapping"] : [v];
+    return `<label>${RLZ_LABEL[k] ?? k} <select data-rz="${k}">${opts.map((o) => `<option value="${o}">${o}</option>`).join("")}</select></label>`;
+  }).join("");
+  $("#rlz").onchange = (e) => {
+    const k = e.target.dataset.rz;
+    let v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    if (k === "bscRackStride" && v !== "auto") v = Number(v);
+    api("/api/sim", { realism: { [k]: v } });
+  };
+  setInterval(() => { if (!ST || $("#rlz").contains(document.activeElement)) return; for (const el of $$("[data-rz]")) { const v = ST.realism[el.dataset.rz]; if (el.type === "checkbox") el.checked = !!v; else el.value = String(v); } }, 1500);
+}
+$("#wHourBtn").onclick = () => api("/api/sim", { hour: Number($("#wHour").value) });
+$("#wApply").onclick = () => api("/api/sim", { weather: { mode: $("#wMode").value, fixedC: Number($("#wFixed").value), minC: Number($("#wMin").value), maxC: Number($("#wMax").value) } });
+$("#advBtn").onclick = () => api("/api/sim", { advance: Number($("#advS").value) }).then(() => toast("İleri sarıldı"));
+setTimeout(() => { if (ST) { $("#wMode").value = ST.weather.mode; $("#wFixed").value = ST.weather.fixedC; $("#wMin").value = ST.weather.minC; $("#wMax").value = ST.weather.maxC; $("#wHour").value = Math.floor(ST.tod); } }, 1500);
+
+window.api = api;
+loadMeta().then(connect).catch((e) => toast(`meta: ${e.message}`, true));
+</script>
+</body>
+</html>
