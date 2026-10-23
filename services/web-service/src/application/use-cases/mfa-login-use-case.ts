@@ -6,7 +6,7 @@ import type { IUserRepository } from "../../domain/repositories/IUserRepository"
 import type { ITokenService } from "../../domain/services/ITokenService";
 import type { ITotpService } from "../../domain/services/ITotpService";
 import type { ITotpThrottle } from "../../domain/services/ITotpThrottle";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { IAuditLog } from "../../domain/services/IAuditLog";
 
 import { sha256Hex } from "../../infrastructure/auth/service-token";
 
@@ -32,7 +32,7 @@ export class MfaLoginUseCase {
     private readonly users: IUserRepository,
     private readonly tokens: ITokenService,
     private readonly totp: ITotpService,
-    private readonly logger?: TamperLogger,
+    private readonly logger?: IAuditLog,
     private readonly throttle?: ITotpThrottle,
   ) {}
 

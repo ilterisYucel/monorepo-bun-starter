@@ -8,7 +8,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import type { HubConsumerClient } from "../../infrastructure/hub-consumer";
+import type { HubConsumerClient } from "../../infrastructure/hub-tunnel";
 import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type { User } from "@gd-monorepo/shared-types";
 

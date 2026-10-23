@@ -1,28 +1,24 @@
 import type { FastifyInstance } from "fastify";
-import type { FieldEventCollector } from "../../infrastructure/field-uplink/field-event-collector";
+import type { NotificationsUseCase } from "../../application/notifications/notifications-use-case";
 
 /**
  * Bildirim rotaları (Boss Faz 5, §7.6) — boss tier.
- * Okundu durumu client-side'dır ("son görülme"); sunucu yalnızca
- * liste + o zamandan sonraki sayacı sunar.
+ * Sunum: sorgu doğrulama; limit/toplama iş mantığı use-case'te.
+ * Okundu durumu client-side'dır; sunucu liste + sayaç sunar.
  */
 export async function notificationRoutes(
   fastify: FastifyInstance,
-  deps: { collector: FieldEventCollector },
+  deps: { notifications?: NotificationsUseCase },
 ): Promise<void> {
   fastify.get("/", async (request, reply) => {
+    if (!deps.notifications) return reply.send([]);
     const { limit, after } = request.query as {
       limit?: string;
       after?: string;
     };
-    const parsedLimit = limit ? Number(limit) : 100;
-    const safeLimit =
-      Number.isFinite(parsedLimit) && parsedLimit > 0
-        ? Math.min(Math.floor(parsedLimit), 500)
-        : 100;
-    const events = await deps.collector.list({
-      limit: safeLimit,
-      after: after && after.length > 0 ? after : undefined,
+    const events = await deps.notifications.list({
+      ...(limit !== undefined ? { limit: Number(limit) } : {}),
+      ...(after !== undefined && after.length > 0 ? { after } : {}),
     });
     return reply.send(events);
   });
@@ -32,7 +28,10 @@ export async function notificationRoutes(
     if (!since || since.length === 0) {
       return reply.status(400).send({ error: "since sorgu parametresi gerekli" });
     }
-    const count = await deps.collector.countSince(since);
+    if (!deps.notifications) {
+      return reply.send({ count: 0 });
+    }
+    const count = await deps.notifications.countSince(since);
     return reply.send({ count });
   });
 }

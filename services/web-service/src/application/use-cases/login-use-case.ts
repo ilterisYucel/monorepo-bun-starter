@@ -4,7 +4,7 @@ import type { IUserRepository } from "../../domain/repositories/IUserRepository"
 import type { ITokenService } from "../../domain/services/ITokenService";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 import type { ILoginThrottle } from "../../domain/services/ILoginThrottle";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { IAuditLog } from "../../domain/services/IAuditLog";
 
 import { Result } from "@gd-monorepo/result";
 
@@ -16,7 +16,7 @@ export class LoginUseCase {
     private readonly users: IUserRepository,
     private readonly tokens: ITokenService,
     private readonly hasher: IPasswordHasher,
-    private readonly logger?: TamperLogger,
+    private readonly logger?: IAuditLog,
     /** Faz 6 T6.6 — hesap kilidi (opsiyonel: yoksa davranış değişmez). */
     private readonly throttle?: ILoginThrottle,
   ) {}

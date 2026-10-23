@@ -1,7 +1,8 @@
 import type { FastifyInstance } from "fastify";
-import type { User, TelemetryData } from "@gd-monorepo/shared-types";
-import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
+import type { User } from "@gd-monorepo/shared-types";
 import type { ISqlDatabase } from "@gd-monorepo/core";
+import type { GetFieldContainersUseCase } from "../../application/telemetry/get-field-containers-use-case";
+import type { GetContainerTelemetryUseCase } from "../../application/telemetry/get-container-telemetry-use-case";
 
 interface FieldRow {
   id: string;
@@ -42,7 +43,11 @@ function userCanAccessField(user: User, fieldId: string): boolean {
 
 export async function fieldRoutes(
   fastify: FastifyInstance,
-  deps: { db: ISqlDatabase; containerProxy?: IContainerProxy },
+  deps: {
+    db: ISqlDatabase;
+    containers?: GetFieldContainersUseCase;
+    telemetry?: GetContainerTelemetryUseCase;
+  },
 ): Promise<void> {
   await ensureSchema(deps.db);
 
@@ -65,35 +70,13 @@ export async function fieldRoutes(
     );
     if (!field) return reply.status(404).send({ error: "Saha bulunamadi" });
 
-    const containerIds = deps.containerProxy?.containerIds() ?? [];
-
-    const containerResults = await Promise.allSettled(
-      containerIds.map(async (containerId) => {
-        const latest = deps.containerProxy
-          ? deps.containerProxy.latestTelemetry(containerId)
-          : [];
-        const connected = deps.containerProxy
-          ? deps.containerProxy.connectionStatus().get(containerId) ===
-            "connected"
-          : false;
-        // Faz 2 T2.4: gerçek son-heartbeat zamanı (önceden sahte now()).
-        const lastSeenAtMs = deps.containerProxy
-          ? deps.containerProxy.lastSeenAt(containerId)
-          : undefined;
-
-        return {
-          containerId,
-          connected,
-          ...(lastSeenAtMs !== undefined
-            ? { lastSeenAt: new Date(lastSeenAtMs).toISOString() }
-            : {}),
-          latestTelemetry: latest,
-        };
-      }),
-    );
-    const containerList = containerResults.flatMap((r) =>
-      r.status === "fulfilled" ? [r.value] : [],
-    );
+    const rows = (await deps.containers?.executeCached()) ?? [];
+    const containerList = rows.map((row) => ({
+      containerId: row.containerId,
+      connected: row.connectionStatus === "connected",
+      ...(row.lastSeenAt !== undefined ? { lastSeenAt: row.lastSeenAt } : {}),
+      latestTelemetry: row.latestTelemetry,
+    }));
 
     return reply.send({ field, containers: containerList, telemetries: [] });
   });
@@ -105,37 +88,7 @@ export async function fieldRoutes(
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
     }
 
-    const containerIds = deps.containerProxy?.containerIds() ?? [];
-
-    const fieldResults = await Promise.allSettled(
-      containerIds.map(async (containerId) => {
-        const status =
-          deps.containerProxy?.connectionStatus().get(containerId) ?? "idle";
-        const lastSeenAtMs = deps.containerProxy?.lastSeenAt(containerId);
-        // K-21: talep-üzeri taze snapshot (DB'den) → hızlı tepki; erişilemezse
-        // push snapshot'a düşülür (kademeli bozulma).
-        const fresh = deps.containerProxy?.latestQuery
-          ? await deps.containerProxy.latestQuery(containerId)
-          : [];
-        const latestTelemetry =
-          fresh.length > 0
-            ? fresh
-            : (deps.containerProxy?.latestTelemetry(containerId) ?? []);
-        return {
-          containerId,
-          connectionStatus: status,
-          // Faz 2 T2.4: gerçek son-heartbeat zamanı
-          ...(lastSeenAtMs !== undefined
-            ? { lastSeenAt: new Date(lastSeenAtMs).toISOString() }
-            : {}),
-          latestTelemetry,
-        };
-      }),
-    );
-    const result = fieldResults.flatMap((r) =>
-      r.status === "fulfilled" ? [r.value] : [],
-    );
-
+    const result = (await deps.containers?.execute()) ?? [];
     return reply.send(result);
   });
 
@@ -146,16 +99,7 @@ export async function fieldRoutes(
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
     }
 
-    const containerIds = deps.containerProxy?.containerIds() ?? [];
-
-    const telemetry: Record<string, TelemetryData[]> = {};
-    for (const containerId of containerIds) {
-      if (deps.containerProxy) {
-        telemetry[containerId] = deps.containerProxy.latestTelemetry(containerId);
-      }
-    }
-
-    return reply.send(telemetry);
+    return reply.send(deps.telemetry?.latestSnapshot() ?? {});
   });
 
   fastify.get("/:fieldId/telemetry/downsampled", async (request, reply) => {
@@ -177,14 +121,12 @@ export async function fieldRoutes(
       return reply.status(400).send({ error: "geçersiz tag anahtarı" });
     }
 
-    const knownContainerIds = deps.containerProxy?.containerIds() ?? [];
-    const containerIds = query.containerIds
-      ? query.containerIds.split(",")
-      : knownContainerIds;
-
-    if (!deps.containerProxy) {
+    if (!deps.telemetry) {
       return reply.send({});
     }
+    const containerIds = query.containerIds
+      ? query.containerIds.split(",")
+      : deps.telemetry.knownContainerIds();
 
     const fromDate = query.from
       ? new Date(query.from)
@@ -201,10 +143,7 @@ export async function fieldRoutes(
         : {}),
       tag: query.tag,
     };
-    const results = await deps.containerProxy.allHistorical(
-      containerIds,
-      params,
-    );
+    const results = await deps.telemetry.downsampled(containerIds, params);
     return reply.send(results);
   });
 
@@ -224,7 +163,7 @@ export async function fieldRoutes(
       return reply.status(403).send({ error: "Bu sahaya erisim izniniz yok" });
     }
 
-    if (!deps.containerProxy) {
+    if (!deps.telemetry) {
       return reply.send([]);
     }
 
@@ -236,12 +175,12 @@ export async function fieldRoutes(
 
     // Tek doğruluk noktası: toplu sorgu yolu (allHistorical) — per-container
     // davranış aynı, dış şekil değişmez.
-    const results = await deps.containerProxy.allHistorical([containerId], {
+    const results = await deps.telemetry.historical(containerId, {
       from: fromDate,
       to: toDate,
       points,
     });
-    return reply.send(results[containerId] ?? []);
+    return reply.send(results);
   });
 
 

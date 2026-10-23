@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import Fastify from "fastify";
 import type { User } from "@gd-monorepo/shared-types";
-import type { OperationRequester } from "../../infrastructure/field-uplink/operation-requester";
+import type { OperationRequester } from "../../tiers/boss/infrastructure/operation-requester";
 import { operationBossRoutes } from "./operation-boss-routes";
 
 /**

@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { User } from "@gd-monorepo/shared-types";
-import type { HubConsumerClient } from "../../infrastructure/hub-consumer";
+import type { HubConsumerClient } from "../../infrastructure/hub-tunnel";
 
 export interface HubSessionRoutesDeps {
   readonly client: HubConsumerClient;

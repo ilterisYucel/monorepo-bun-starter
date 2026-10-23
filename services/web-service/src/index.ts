@@ -1,4 +1,5 @@
 import { buildContainer, buildTamperLogger } from "./config/container";
+import { buildTierLifecycles } from "./tiers/lifecycles";
 import type { ServerDependencies } from "./presentation/server";
 import { deviceConfigDir, serviceTier, siteFieldConfig } from "./config/default";
 import { ensureSiteField } from "./infrastructure/persistence/site-field-seed";
@@ -62,6 +63,15 @@ export async function main() {
 
   const containerSessionAuthenticator = c.containerSessionAuthenticator as any;
   const hubConsumerClient = c.hubConsumerClient as any;
+  const tierLifecycles = buildTierLifecycles(tier, {
+    ...(c.containerProxy ? { containerProxy: c.containerProxy as any } : {}),
+    ...(c.fieldEventCollector
+      ? { fieldEventCollector: c.fieldEventCollector as any }
+      : {}),
+  });
+  const hubTunnelConnection = c.hubConsumer
+    ? { baseUrl: (c.hubConsumer as any).baseUrl, token: (c.hubConsumer as any).token }
+    : undefined;
   const hubConsumerServiceId =
     c.hubConsumerClient && typeof c.config?.get === "function"
       ? (c.config as any).get("hub.containerServiceId")
@@ -85,13 +95,20 @@ export async function main() {
     mfaEnrollUseCase: c.mfaEnrollUseCase as any,
     mfaRequiredRoles: authCfg.mfaRequiredRoles,
     realtime,
-    containerProxy: c.containerProxy as any,
+    fieldContainers: c.fieldContainers as any,
+    containerTelemetry: c.containerTelemetry as any,
     fieldEventCollector: c.fieldEventCollector as any,
     maneuverRegistry: c.maneuverRegistry as any,
     maneuverExecutor: c.maneuverExecutor as any,
     operationRunStore: c.operationRunStore as any,
     operationDefStore: c.operationDefStore as any,
     operationRequester: c.operationRequester as any,
+    executeCommandUseCase: c.executeCommandUseCase as any,
+    catalogUseCase: c.catalogUseCase as any,
+    operationRunsUseCase: c.operationRunsUseCase as any,
+    operationDefinitionsUseCase: c.operationDefinitionsUseCase as any,
+    listFieldEvents: c.listFieldEvents as any,
+    notifications: c.notifications as any,
     containerSessionAuthenticator,
     mvManager,
     mq,
@@ -100,6 +117,7 @@ export async function main() {
     requestContext,
     hubConsumerClient,
     hubConsumerServiceId,
+    hubTunnelConnection,
     siteFieldId: siteField?.fieldId,
   };
 
@@ -132,8 +150,7 @@ export async function main() {
     stopping = true;
     console.log(`[run] ${signal} alindi, kapatiliyor...`);
     await server.stop();
-    if (deps.containerProxy) await deps.containerProxy.stop();
-    if (deps.fieldEventCollector) deps.fieldEventCollector.stop();
+    await Promise.allSettled(tierLifecycles.map((lifecycle) => lifecycle.stop()));
     await mq.close();
     await timescale.close();
     await postgres.disconnect();
@@ -180,9 +197,7 @@ export async function main() {
     console.error("[run] BullMQ worker kaydi basarisiz:", err);
   }
 
-  if (deps.containerProxy) {
-    await deps.containerProxy.start();
-  }
+  await Promise.all(tierLifecycles.map((lifecycle) => lifecycle.start()));
   // KOMUT-MANEVRA-OPERASYON §5.1 — hedef çözümleme: devices önbelleği
   // açılışta + periyodik tazelenir (device-service cihaz kayıtları).
   const deviceRegistry = c.deviceRegistry as any;
@@ -195,11 +210,6 @@ export async function main() {
     await refresh();
     const registryTimer = setInterval(refresh, 10_000);
     registryTimer.unref();
-  }
-  // Boss tier: field olay poller'ı (hub access pull — UC-5).
-  if (deps.fieldEventCollector) {
-    await deps.fieldEventCollector.ensureSchema();
-    deps.fieldEventCollector.start();
   }
   // P3: hub-servis consumer kanalı (field/boss tier) — relay + presence.
 

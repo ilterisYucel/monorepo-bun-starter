@@ -6,7 +6,7 @@ import type { IUserRepository } from "../../domain/repositories/IUserRepository"
 import type { ITotpService } from "../../domain/services/ITotpService";
 import type { ITokenService } from "../../domain/services/ITokenService";
 import type { ITotpThrottle } from "../../domain/services/ITotpThrottle";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { IAuditLog } from "../../domain/services/IAuditLog";
 
 import { sha256Hex } from "../../infrastructure/auth/service-token";
 import { MFA_LOCKED_MESSAGE } from "./mfa-login-use-case";
@@ -35,7 +35,7 @@ export class MfaEnrollUseCase {
     private readonly users: IUserRepository,
     private readonly totp: ITotpService,
     private readonly tokens: ITokenService,
-    private readonly logger?: TamperLogger,
+    private readonly logger?: IAuditLog,
     private readonly throttle?: ITotpThrottle,
   ) {}
 

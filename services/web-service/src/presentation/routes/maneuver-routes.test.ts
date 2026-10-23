@@ -8,6 +8,10 @@ import type {
   OperationRunResult,
 } from "@gd-monorepo/platform-commands";
 import { maneuverOperationRoutes } from "./maneuver-routes";
+import { ExecuteCommandUseCase } from "../../application/commands/execute-command-use-case";
+import { ListCatalogUseCase } from "../../application/commands/list-catalog-use-case";
+import { OperationRunsUseCase } from "../../application/commands/operation-runs-use-case";
+import { OperationDefinitionsUseCase } from "../../application/commands/operation-definitions-use-case";
 
 /**
  * Manevra/operasyon rotaları sözleşmesi (KOMUT §4, §8 — B3):
@@ -101,9 +105,9 @@ async function inject(
         });
       }
       await maneuverOperationRoutes(fastify, {
-        registry: deps.registry,
-        executor: deps.executor,
-        runStore: deps.runStore,
+        catalog: new ListCatalogUseCase(deps.registry),
+        executor: new ExecuteCommandUseCase(deps.executor),
+        runs: new OperationRunsUseCase(deps.runStore),
         internalToken: "secret-token",
       });
     },
@@ -410,11 +414,13 @@ describe("tanım YÖNETİMİ rotaları (yalnız admin — §11.2)", () => {
           });
         }
         await maneuverOperationRoutes(fastify, {
-          registry: deps.registry,
-          executor: deps.executor,
-          runStore: deps.runStore,
-          defs: deps.defs as never,
-          logger: { log: deps.log } as never,
+          catalog: new ListCatalogUseCase(deps.registry),
+          executor: new ExecuteCommandUseCase(deps.executor),
+          runs: new OperationRunsUseCase(deps.runStore),
+          definitions: new OperationDefinitionsUseCase(
+            deps.defs as never,
+            { log: deps.log },
+          ),
           internalToken: "secret-token",
         });
       },
@@ -578,9 +584,9 @@ describe("yürütme rotaları — 15 sn → 202 (KURAL-MOTORU-V2 §3.2)", () => 
             (request as unknown as { user?: User }).user = ADMIN;
           });
           await maneuverOperationRoutes(fastify, {
-            registry: deps.registry,
-            executor: deps.executor,
-            runStore: deps.runStore,
+            catalog: new ListCatalogUseCase(deps.registry),
+            executor: new ExecuteCommandUseCase(deps.executor),
+            runs: new OperationRunsUseCase(deps.runStore),
             internalToken: "secret-token",
           });
         },
@@ -610,9 +616,9 @@ describe("yürütme rotaları — 15 sn → 202 (KURAL-MOTORU-V2 §3.2)", () => 
           (request as unknown as { user?: User }).user = ADMIN;
         });
         await maneuverOperationRoutes(fastify, {
-          registry: deps.registry,
-          executor: deps.executor,
-          runStore: deps.runStore,
+          catalog: new ListCatalogUseCase(deps.registry),
+          executor: new ExecuteCommandUseCase(deps.executor),
+          runs: new OperationRunsUseCase(deps.runStore),
           internalToken: "secret-token",
         });
       },

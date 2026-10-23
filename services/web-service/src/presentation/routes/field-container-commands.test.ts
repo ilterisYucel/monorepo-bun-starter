@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import Fastify from "fastify";
 import type { TamperLogger } from "@gd-monorepo/tamper-logger";
-import type { HubConsumerClient } from "../../infrastructure/hub-consumer";
+import type { HubConsumerClient } from "../../infrastructure/hub-tunnel";
 import { fieldContainerCommandRoutes } from "./field-container-commands";
 
 /**

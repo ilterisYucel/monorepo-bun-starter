@@ -4,6 +4,8 @@ import { fieldRoutes } from "./field-routes";
 import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { User } from "@gd-monorepo/shared-types";
 import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
+import { GetFieldContainersUseCase } from "../../application/telemetry/get-field-containers-use-case";
+import { GetContainerTelemetryUseCase } from "../../application/telemetry/get-container-telemetry-use-case";
 
 /**
  * field-routes KARAKTERİZASYONU (TESTING.md §8.2) — Faz 1 T1.2/T1.3
@@ -57,6 +59,7 @@ function makeDb(overrides: Partial<ISqlDatabase> = {}): ISqlDatabase {
 function makeProxy(): IContainerProxy {
   return {
     latestTelemetry: vi.fn().mockReturnValue([]),
+    latestQuery: vi.fn().mockResolvedValue([]),
     connectionStatus: vi.fn().mockReturnValue(new Map([["c-1", "idle"]])),
     lastSeenAt: vi.fn().mockReturnValue(undefined),
     containerIds: vi.fn().mockReturnValue(["c-1"]),
@@ -84,7 +87,12 @@ async function buildApp(opts: {
     async (fastify) => {
       await fieldRoutes(fastify, {
         db: opts.db ?? makeDb(),
-        containerProxy: opts.proxy,
+        ...(opts.proxy
+          ? {
+              containers: new GetFieldContainersUseCase(opts.proxy),
+              telemetry: new GetContainerTelemetryUseCase(opts.proxy),
+            }
+          : {}),
       });
     },
     { prefix: "/api/fields" },

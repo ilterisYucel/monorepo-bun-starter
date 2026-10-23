@@ -1,15 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import Fastify from "fastify";
-import type { ISqlDatabase } from "@gd-monorepo/core";
 import type { User } from "@gd-monorepo/shared-types";
-import { eventRoutes, UPLINK_EVENT_WHITELIST } from "./event-routes";
+import type { FieldEventRow, IEventFeedPort } from "../../domain/ports/event-feed";
+import {
+  ListFieldEventsUseCase,
+  UPLINK_EVENT_WHITELIST,
+} from "../../application/events/list-field-events-use-case";
+import { eventRoutes } from "./event-routes";
 
 /**
- * eventRoutes sözleşmesi (SPEC UC-5):
+ * eventRoutes sözleşmesi (SPEC UC-4):
  * - Yetki: admin/teknik (Bearer) veya iç token; yoksa 403.
- * - `after` yoksa epoch; geçersizse 400; limit 1..1000 (varsayılan 200).
- * - Yalnız whitelist'li `log_events` satırları, `ts` ARTAN; yanıt
- *   `{ events }` + `eventId = <fieldId>:<corr|seq>`.
+ * - `after` geçersizse 400; limit kırpma + whitelist use-case'te.
+ * - Yanıt `{ events }` + `eventId = <fieldId>:<corr|seq>`.
  */
 
 const ADMIN: User = {
@@ -23,18 +26,33 @@ const ADMIN: User = {
   updatedAt: "",
 };
 
-function makeSql(rows: unknown[] = []): ISqlDatabase {
-  return {
-    execute: vi.fn().mockResolvedValue(undefined),
-    query: vi.fn().mockResolvedValue(rows),
-    queryOne: vi.fn().mockResolvedValue(undefined),
-    health: vi.fn().mockResolvedValue(true),
-    disconnect: vi.fn().mockResolvedValue(undefined),
-  } as unknown as ISqlDatabase;
+const ROW: FieldEventRow = {
+  ts: "2026-10-22T09:58:00.000Z",
+  level: "warn",
+  category: "security",
+  eventCode: "device_alarm",
+  message: "Voltage alarmi",
+  context: { deviceId: "bsc-1", retries: 2 },
+  seq: 42,
+  correlationId: "corr-9",
+};
+
+function makeFeed(rows: FieldEventRow[] = []): {
+  feed: IEventFeedPort;
+  calls: Array<Parameters<IEventFeedPort["listAfter"]>[0]>;
+} {
+  const calls: Array<Parameters<IEventFeedPort["listAfter"]>[0]> = [];
+  const feed = {
+    listAfter: vi.fn(async (query: Parameters<IEventFeedPort["listAfter"]>[0]) => {
+      calls.push(query);
+      return rows;
+    }),
+  };
+  return { feed, calls };
 }
 
 async function inject(
-  sql: ISqlDatabase,
+  feed: IEventFeedPort | undefined,
   query: Record<string, string> = {},
   options: { user?: User; internalToken?: string } = {},
 ) {
@@ -47,8 +65,7 @@ async function inject(
         });
       }
       await eventRoutes(fastify, {
-        sql,
-        fieldId: "f-1",
+        ...(feed ? { feed: new ListFieldEventsUseCase(feed, "f-1") } : {}),
         internalToken: "secret-token",
       });
     },
@@ -69,26 +86,16 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("eventRoutes (UC-5)", () => {
+describe("eventRoutes (UC-4)", () => {
   it("yetkisiz istek → 403", async () => {
-    const res = await inject(makeSql());
+    const { feed } = makeFeed();
+    const res = await inject(feed);
     expect(res.statusCode).toBe(403);
   });
 
-  it("whitelist + after + limit ile sorgular; eventId/level/category eşler", async () => {
-    const sql = makeSql([
-      {
-        ts: "2026-10-22T09:58:00.000Z",
-        level: "warn",
-        category: "security",
-        event_code: "device_alarm",
-        message: "Voltage alarmi",
-        context: { deviceId: "bsc-1", retries: 2, nested: { x: 1 } },
-        seq: 42,
-        correlation_id: "corr-9",
-      },
-    ]);
-    const res = await inject(sql, { after: "2026-10-22T09:50:00.000Z", limit: "50" }, {
+  it("after+limit geçirir; eventId/level/category bağlam eşlenir", async () => {
+    const { feed, calls } = makeFeed([ROW]);
+    const res = await inject(feed, { after: "2026-10-22T09:50:00.000Z", limit: "50" }, {
       user: ADMIN,
     });
 
@@ -106,59 +113,50 @@ describe("eventRoutes (UC-5)", () => {
         },
       ],
     });
-
-    const [sqlText, params] = (sql.query as ReturnType<typeof vi.fn>).mock
-      .calls[0] as [string, unknown[]];
-    expect(sqlText).toContain("event_code = ANY($2::text[])");
-    expect(sqlText).toContain("ORDER BY ts ASC");
-    expect(params[0]).toBe("2026-10-22T09:50:00.000Z");
-    expect(params[1]).toEqual([...UPLINK_EVENT_WHITELIST]);
-    expect(params[2]).toBe(50);
+    expect(calls[0]).toEqual({
+      after: "2026-10-22T09:50:00.000Z",
+      limit: 50,
+      eventCodes: [...UPLINK_EVENT_WHITELIST],
+    });
   });
 
   it("after yoksa epoch; correlation yoksa seq kullanılır", async () => {
-    const sql = makeSql([
-      {
-        ts: "2026-10-22T09:58:00.000Z",
-        level: "info",
-        category: "app",
-        event_code: "session_open",
-        message: "oturum",
-        context: {},
-        seq: 7,
-        correlation_id: null,
-      },
+    const { feed, calls } = makeFeed([
+      { ...ROW, correlationId: null, seq: 7, context: {} },
     ]);
-    const res = await inject(sql, {}, { user: ADMIN });
+    const res = await inject(feed, {}, { user: ADMIN });
 
     expect(res.statusCode).toBe(200);
     expect(res.json().events[0].eventId).toBe("f-1:7");
-    const params = (sql.query as ReturnType<typeof vi.fn>).mock.calls[0]?.[1] as unknown[];
-    expect(params[0]).toBe("1970-01-01T00:00:00.000Z");
-    expect(params[2]).toBe(200);
+    expect(calls[0]?.after).toBe("1970-01-01T00:00:00.000Z");
+    expect(calls[0]?.limit).toBe(200);
   });
 
   it("geçersiz after → 400", async () => {
-    const res = await inject(makeSql(), { after: "dun" }, { user: ADMIN });
+    const { feed } = makeFeed();
+    const res = await inject(feed, { after: "dun" }, { user: ADMIN });
     expect(res.statusCode).toBe(400);
   });
 
   it("limit 1..1000 aralığına kırpılır", async () => {
-    const sql = makeSql();
-    await inject(sql, { limit: "5000" }, { user: ADMIN });
-    expect(
-      (sql.query as ReturnType<typeof vi.fn>).mock.calls[0]?.[1]?.[2],
-    ).toBe(1000);
+    const high = makeFeed();
+    await inject(high.feed, { limit: "5000" }, { user: ADMIN });
+    expect(high.calls[0]?.limit).toBe(1000);
 
-    const sql2 = makeSql();
-    await inject(sql2, { limit: "0" }, { user: ADMIN });
-    expect(
-      (sql2.query as ReturnType<typeof vi.fn>).mock.calls[0]?.[1]?.[2],
-    ).toBe(1);
+    const low = makeFeed();
+    await inject(low.feed, { limit: "0" }, { user: ADMIN });
+    expect(low.calls[0]?.limit).toBe(1);
   });
 
   it("iç token ile erişir (hub programatik yolu)", async () => {
-    const res = await inject(makeSql(), {}, { internalToken: "secret-token" });
+    const { feed } = makeFeed();
+    const res = await inject(feed, {}, { internalToken: "secret-token" });
     expect(res.statusCode).toBe(200);
+  });
+
+  it("feed yoksa boş liste döner (kademeli)", async () => {
+    const res = await inject(undefined, {}, { user: ADMIN });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ events: [] });
   });
 });

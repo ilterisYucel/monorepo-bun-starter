@@ -42,6 +42,7 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 | `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
 | `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
+| `AGENTS-WEB-SERVICE.md` | Web-service katman / port / tier / Fastify plugin kuralları | `services/web-service/**`; katman/port/use-case/plugin/tier işleri; `serviceTier`; `IHubTunnelPort` | `AGENTS-INFRA.md`, `AGENTS-WS-TUNNEL.md` |
 | `AGENTS-DEPLOYMENT.md` | Deployment klasör yapısı & kapsülleme | `deployment/**`; docker-compose; `device-configs`/`maneuvers`/`rules`; `.env` konumu; cross-ref/kapsülleme kuralı; yeni tier/app ekleme | `AGENTS-DEVICE-CONFIG.md` |
 
 ## Testing

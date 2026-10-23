@@ -48,7 +48,7 @@ import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { CommandWriteStore } from "../infrastructure/persistence/command-write-store";
 import type { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import type { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
-import type { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
+import type { OperationRequester } from "../tiers/boss/infrastructure/operation-requester";
 import type { ManeuverRegistry, OperationExecutor } from "@gd-monorepo/platform-commands";
 import { telemetryWsRoutes } from "../infrastructure/realtime/ws-routes";
 import { fieldRoutes } from "./routes/field-routes";
@@ -56,12 +56,20 @@ import { topologyRoutes } from "./routes/topology-routes";
 import { fieldContainerCommandRoutes } from "./routes/field-container-commands";
 import { hubSessionRoutes } from "./routes/hub-session-routes";
 import { notificationRoutes } from "./routes/notification-routes";
-import type { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
+import type { FieldEventCollector } from "../tiers/boss/infrastructure/field-event-collector";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
-import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
-import type { HubConsumerClient } from "../infrastructure/hub-consumer";
+import type { GetFieldContainersUseCase } from "../application/telemetry/get-field-containers-use-case";
+import type { GetContainerTelemetryUseCase } from "../application/telemetry/get-container-telemetry-use-case";
+import type { ExecuteCommandUseCase } from "../application/commands/execute-command-use-case";
+import type { ListCatalogUseCase } from "../application/commands/list-catalog-use-case";
+import type { OperationRunsUseCase } from "../application/commands/operation-runs-use-case";
+import type { OperationDefinitionsUseCase } from "../application/commands/operation-definitions-use-case";
+import type { ListFieldEventsUseCase } from "../application/events/list-field-events-use-case";
+import type { NotificationsUseCase } from "../application/notifications/notifications-use-case";
+import type { HubConsumerClient } from "../infrastructure/hub-tunnel";
+import { hubTunnelPlugin } from "../infrastructure/hub-tunnel";
 import { MaterializedViewManager, type IMessageQueue } from "@gd-monorepo/core";
-import type { ISessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
+import type { ISessionAuthenticator } from "../domain/ports/session";
 
 
 export interface ServerDependencies {
@@ -81,7 +89,9 @@ export interface ServerDependencies {
   mfaLoginUseCase?: MfaLoginUseCase;
   mfaEnrollUseCase?: MfaEnrollUseCase;
   realtime: RealtimeManager;
-  containerProxy?: IContainerProxy;
+  /** Field tier (UC-2): konteyner listesi + telemetri use-case'leri. */
+  fieldContainers?: GetFieldContainersUseCase;
+  containerTelemetry?: GetContainerTelemetryUseCase;
   fieldEventCollector?: FieldEventCollector;
   /** Container tier: agent imzalı `container_session` doğrulayıcısı. */
   containerSessionAuthenticator?: ISessionAuthenticator;
@@ -95,6 +105,8 @@ export interface ServerDependencies {
   mfaRequiredRoles: Role[];
   /** P3: hub-servis consumer client (HUB_MODE=hub). */
   hubConsumerClient?: HubConsumerClient;
+  /** UC-7: hubTunnelPlugin için minimal bağlantı config'i. */
+  hubTunnelConnection?: { baseUrl: string; token: string };
   /** P3: hub servis kimliği (oturum redirect'i için). */
   hubConsumerServiceId?: string;
   /** KOMUT-MANEVRA-OPERASYON Faz B/C — awilix'te kurulan paylaşımlı bileşenler. */
@@ -102,6 +114,14 @@ export interface ServerDependencies {
   maneuverExecutor?: OperationExecutor;
   operationRunStore?: OperationRunStore;
   operationDefStore?: OperationDefStore;
+  /** UC-3: manevra/operasyon use-case'leri (route'lar yalnız bunları çağırır). */
+  executeCommandUseCase?: ExecuteCommandUseCase;
+  catalogUseCase?: ListCatalogUseCase;
+  operationRunsUseCase?: OperationRunsUseCase;
+  operationDefinitionsUseCase?: OperationDefinitionsUseCase;
+  /** UC-4: olay feed'i (field) + bildirim okuma (boss). */
+  listFieldEvents?: ListFieldEventsUseCase;
+  notifications?: NotificationsUseCase;
   operationRequester?: OperationRequester;
   /** Field tier: saha kimliği — olay ucu (`GET /api/events`) eventId öneki. */
   siteFieldId?: string;
@@ -201,6 +221,11 @@ export class WebServiceServer {
   }
 
   private async registerRoutes(deps: ServerDependencies): Promise<void> {
+    // UC-7/K15: hub tünel istemcisi plugin olarak takılır (decorator: hubTunnel).
+    if (deps.hubTunnelConnection) {
+      await this.app.register(hubTunnelPlugin, deps.hubTunnelConnection);
+    }
+
     this.app.get("/health", makeHealthRoute({ logger: deps.logger }));
 
     // T2.2: TunnelConnector PPC durumu — container UI "Field Bağlantısı" beslemesi
@@ -209,54 +234,41 @@ export class WebServiceServer {
       makeStatusRoute(),
     );
 
-    await this.app.register(
-      async (fastify) => {
-        await makeAuthRoutes(fastify, deps);
-      },
-      { prefix: "/api/auth" },
-    );
+    await this.app.register(makeAuthRoutes, { prefix: "/api/auth", ...deps });
 
-    await this.app.register(
-      async (fastify) => {
-        await dataRoutes(fastify, { timescale: deps.timescale });
-      },
-      { prefix: "/api/data" },
-    );
+    await this.app.register(dataRoutes, {
+      prefix: "/api/data",
+      timescale: deps.timescale,
+    });
 
     const registry = new DeviceRegistry(deps.postgres);
     const logRepo = new LogRepository(deps.postgres);
     await logRepo.initialize();
 
-    await this.app.register(
-      async (fastify) => {
-        await unifiedRoutes(fastify, {
-          registry,
-          timescale: deps.timescale,
-          mvManager: deps.mvManager,
-          postgres: deps.postgres,
-        });
-        await deviceRoutes(fastify, { postgres: deps.postgres });
-        await alarmRoutes(fastify, {
-          postgres: deps.postgres,
-          logger: deps.logger,
-        });
-      },
-      { prefix: "/api/unified" },
-    );
+    await this.app.register(unifiedRoutes, {
+      prefix: "/api/unified",
+      registry,
+      timescale: deps.timescale,
+      mvManager: deps.mvManager,
+      postgres: deps.postgres,
+    });
+    await this.app.register(deviceRoutes, {
+      prefix: "/api/unified",
+      postgres: deps.postgres,
+    });
+    await this.app.register(alarmRoutes, {
+      prefix: "/api/unified",
+      postgres: deps.postgres,
+      logger: deps.logger,
+    });
 
-    await this.app.register(
-      async (fastify) => {
-        await logRoutes(fastify, {
-          logRepo,
-          rateLimiter: new LogRateLimiter(),
-        });
-      },
-      { prefix: "/api/logs" },
-    );
+    await this.app.register(logRoutes, {
+      prefix: "/api/logs",
+      logRepo,
+      rateLimiter: new LogRateLimiter(),
+    });
 
     // KOMUT-MANEVRA-OPERASYON §4 — manevra/operasyon yürütme + kayıt rotaları.
-    // Bileşenler awilix container'da kurulur (server ile index arasında
-    // paylaşılır — responder/executor aynı örnektir); DDL'ler burada açılır.
     if (deps.operationDefStore) {
       await deps.operationDefStore.initialize();
     }
@@ -265,128 +277,92 @@ export class WebServiceServer {
     }
 
     if (deps.maneuverRegistry && deps.maneuverExecutor && deps.operationRunStore) {
-      await this.app.register(
-        async (fastify) => {
-          await maneuverOperationRoutes(fastify, {
-            registry: deps.maneuverRegistry,
-            executor: deps.maneuverExecutor,
-            runStore: deps.operationRunStore,
-            ...(deps.operationDefStore
-              ? { defs: deps.operationDefStore }
-              : {}),
-            logger: deps.logger,
-            internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
-          });
-        },
-        { prefix: "/api" },
-      );
+      await this.app.register(maneuverOperationRoutes, {
+        prefix: "/api",
+        ...(deps.catalogUseCase ? { catalog: deps.catalogUseCase } : {}),
+        ...(deps.executeCommandUseCase
+          ? { executor: deps.executeCommandUseCase }
+          : {}),
+        ...(deps.operationRunsUseCase
+          ? { runs: deps.operationRunsUseCase }
+          : {}),
+        ...(deps.operationDefinitionsUseCase
+          ? { definitions: deps.operationDefinitionsUseCase }
+          : {}),
+        internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+      });
     }
 
-    // Field tier: boss olay toplama ucu (SPEC UC-5 — HTTP pull).
+    // Field tier: boss olay toplama ucu (SPEC UC-4/UC-5 — HTTP pull).
     if (deps.siteFieldId) {
-      await this.app.register(
-        async (fastify) => {
-          await eventRoutes(fastify, {
-            sql: deps.postgres,
-            fieldId: deps.siteFieldId!,
-            internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
-          });
-        },
-        { prefix: "/api" },
-      );
+      await this.app.register(eventRoutes, {
+        prefix: "/api",
+        ...(deps.listFieldEvents ? { feed: deps.listFieldEvents } : {}),
+        internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+      });
     }
 
     // Boss tier: field'da operasyon tetikleme (SPEC UC-4 — HTTP relay).
-    await this.app.register(
-      async (fastify) => {
-        await operationBossRoutes(fastify, {
-          ...(deps.operationRequester
-            ? { requester: deps.operationRequester }
-            : {}),
-          internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
-        });
-      },
-      { prefix: "/api" },
-    );
+    await this.app.register(operationBossRoutes, {
+      prefix: "/api",
+      ...(deps.operationRequester
+        ? { requester: deps.operationRequester }
+        : {}),
+      internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+    });
 
-    await this.app.register(
-      async (fastify) => {
-        await telemetryWsRoutes(fastify, {
-          realtime: deps.realtime,
-          tokens: deps.tokens,
-          sessionAuthenticator: deps.containerSessionAuthenticator,
-        });
-      },
-    );
+    await this.app.register(telemetryWsRoutes, {
+      realtime: deps.realtime,
+      tokens: deps.tokens,
+      sessionAuthenticator: deps.containerSessionAuthenticator,
+    });
 
-    await this.app.register(
-      async (fastify) => {
-        const writes = new CommandWriteStore(deps.postgres);
-        await writes.initialize();
-        await makeCommandRoutes(fastify, {
-          mq: deps.mq,
-          configDir: deps.configDir,
-          logger: deps.logger,
-          writes,
-        });
-      },
-      { prefix: "/api/commands" },
-    );
+    const writes = new CommandWriteStore(deps.postgres);
+    await writes.initialize();
+    await this.app.register(makeCommandRoutes, {
+      prefix: "/api/commands",
+      mq: deps.mq,
+      configDir: deps.configDir,
+      logger: deps.logger,
+      writes,
+    });
 
-    await this.app.register(
-      async (fastify) => {
-        await fieldRoutes(fastify, { db: deps.postgres, containerProxy: deps.containerProxy });
-        await topologyRoutes(fastify);
-        // WS4 D3: field → konteyner komut proxy'si — hub-servis REST (consumer).
-        if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
-          await fieldContainerCommandRoutes(fastify, {
-            hubAccess: {
-              client: deps.hubConsumerClient,
-              serviceId: deps.hubConsumerServiceId,
-            },
-            logger: deps.logger,
-            // Programatik kanal (management-service) gizli token'ı —
-            // env yoksa internal yol KAPALI (fail-closed).
-            internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
-          });
-        }
-      },
-      { prefix: "/api/fields" },
-    );
+    await this.app.register(fieldRoutes, {
+      prefix: "/api/fields",
+      db: deps.postgres,
+      ...(deps.fieldContainers ? { containers: deps.fieldContainers } : {}),
+      ...(deps.containerTelemetry ? { telemetry: deps.containerTelemetry } : {}),
+    });
+    await this.app.register(topologyRoutes, { prefix: "/api/fields" });
+    // WS4 D3: field → konteyner komut proxy'si — hub-servis REST (consumer).
+    if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
+      await this.app.register(fieldContainerCommandRoutes, {
+        prefix: "/api/fields",
+        hubAccess: {
+          client: deps.hubConsumerClient,
+          serviceId: deps.hubConsumerServiceId,
+        },
+        logger: deps.logger,
+        internalToken: process.env.FIELD_INTERNAL_API_TOKEN,
+      });
+    }
 
     // P3: kullanıcı adına hub-servis oturumu (cookie front-door).
     if (deps.hubConsumerClient && deps.hubConsumerServiceId) {
-      await this.app.register(
-        async (fastify) => {
-          await hubSessionRoutes(fastify, {
-            client: deps.hubConsumerClient!,
-            cookieName: "tunnel_session",
-            serviceId: deps.hubConsumerServiceId!,
-          });
-        },
-        { prefix: "/api/hub" },
-      );
+      await this.app.register(hubSessionRoutes, {
+        prefix: "/api/hub",
+        client: deps.hubConsumerClient,
+        cookieName: "tunnel_session",
+        serviceId: deps.hubConsumerServiceId,
+      });
     }
 
     // Boss tier: bildirim akışı (Faz 5 — alarm/audit aktarımı)
     if (deps.fieldEventCollector) {
-      await this.app.register(
-        async (fastify) => {
-          await notificationRoutes(fastify, {
-            collector: deps.fieldEventCollector!,
-          });
-        },
-        { prefix: "/api/notifications" },
-      );
-    }
-
-    const containerProxy = deps.containerProxy;
-    if (containerProxy) {
-      await this.app.register(
-        async (fastify) => {
-  
-        },
-      );
+      await this.app.register(notificationRoutes, {
+        prefix: "/api/notifications",
+        ...(deps.notifications ? { notifications: deps.notifications } : {}),
+      });
     }
   }
 }

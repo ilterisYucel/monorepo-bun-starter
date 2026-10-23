@@ -24,13 +24,17 @@ import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
 import { isLogEventCode } from "@gd-monorepo/platform-logging";
 import type { LogEventCode } from "@gd-monorepo/platform-logging";
 
-import { JoseTokenSigner } from "../infrastructure/auth/jose-token-signer";
-import { StatelessSessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
+import { TamperLoggerAdapter } from "../infrastructure/logging/tamper-logger-adapter";
+import { registerContainerTier } from "../tiers/container/registrations";
+import { registerFieldTier } from "../tiers/field/registrations";
+import { registerBossTier } from "../tiers/boss/registrations";
+import { ExecuteCommandUseCase } from "../application/commands/execute-command-use-case";
+import { ListCatalogUseCase } from "../application/commands/list-catalog-use-case";
+import { OperationRunsUseCase } from "../application/commands/operation-runs-use-case";
+import { OperationDefinitionsUseCase } from "../application/commands/operation-definitions-use-case";
 import { DeviceRegistry } from "../infrastructure/persistence/device-registry";
 import { OperationRunStore } from "../infrastructure/persistence/operation-run-store";
 import { OperationDefStore } from "../infrastructure/persistence/operation-def-store";
-import { DemoEarthingInterlock } from "../infrastructure/interlock/demo-earthing-interlock";
-import { OperationRequester } from "../infrastructure/field-uplink/operation-requester";
 import { loadTierManeuverRecords } from "../infrastructure/commands/load-maneuver-records";
 import { CommandChannel } from "../infrastructure/commands/command-channel";
 import { DeviceRegistryTargets } from "../infrastructure/commands/device-registry-targets";
@@ -69,11 +73,7 @@ import { TokenAdapter } from "../infrastructure/auth/token-adapter";
 import { UserRepository } from "../infrastructure/persistence/user-repository";
 import { BunPasswordHasher } from "../infrastructure/auth/bun-password-hasher";
 import { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
-import { ContainerConnectionTelemetryPublisher } from "../infrastructure/container-proxy/container-connection-telemetry-publisher";
-import { HubManeuverChannel } from "../infrastructure/container-session/hub-maneuver-channel";
-import { HubContainerView } from "../infrastructure/container-session/hub-container-view";
-import { HubConsumerClient } from "../infrastructure/hub-consumer";
-import { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
+import { HubConsumerClient } from "../infrastructure/hub-tunnel";
 import { RequestContext } from "../presentation/middleware/request-context";
 import { WebServiceServer } from "../presentation/server";
 import type { ConfigLoader } from "@gd-monorepo/shared-utils";
@@ -183,36 +183,6 @@ export function buildContainer() {
       ({ redis }) => new RealtimeManager(redis),
     ).singleton(),
 
-    // Tier-aware servisler
-    // P3: field tier konteyner görünümü hub-servis tüketicisinden (ContainerProxy
-    // WS hub görevi hub-servis'e taşındı).
-    containerProxy: asFunction(({ config, mq, hubConsumerClient }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field" || !hubConsumerClient) {
-          return undefined;
-        }
-        const view = new HubContainerView({
-          peers: () => hubConsumerClient.peers(),
-          access: (request) => hubConsumerClient.access(request),
-          serviceId: config.get<string>("hub.containerServiceId"),
-          latestCacheTtlMs: config.get<number>("tunnel.latestCacheTtlMs"),
-        });
-        // PPC sinyal kaynağı (R-07/FL-07): durum geçişi → synthetic MANAGEMENT.
-        view.addObserver(new ContainerConnectionTelemetryPublisher(mq));
-        return view;
-      },
-    ).singleton(),
-
-    // Container tier: agent imzalı `container_session` JWT'sini STATELESS doğrular
-    // (SPEC KONTEYNER-AGENT-KAYIT K2/K3 — yerel oturum kaydı yoktur).
-    containerSessionAuthenticator: asFunction(({ config, authCfg }) => {
-      const tier = serviceTier(config);
-      if (tier !== "container") return undefined;
-      return new StatelessSessionAuthenticator(
-        new JoseTokenSigner(authCfg.jwtSecret),
-      );
-    }).singleton(),
-
     // Log altyapısı (TamperLogger — Faz 0 T0.5/T0.6).
     // asValue ile KAYDEDİLMEZ: awilix v11 async factory'leri await'lemez.
     // Logger, main()'de `buildTamperLogger` ile kurulur ve
@@ -220,18 +190,8 @@ export function buildContainer() {
 
     requestContext: asFunction(() => new RequestContext()).singleton(),
 
-    // Boss tier: field olay toplayıcı (Faz 5) — REV.02: HTTP pull (UC-5).
-    fieldEventCollector: asFunction(
-      ({ config, postgres, logger, hubConsumerClient }) => {
-        const tier = serviceTier(config);
-        if (tier !== "boss") return undefined;
-        return new FieldEventCollector(postgres, logger, {
-          ...(hubConsumerClient ? { client: hubConsumerClient } : {}),
-          serviceId: config.get<string>("hub.fieldServiceId"),
-          demoSeed: config.get<boolean>("fieldEvents.demoSeed"),
-        });
-      },
-    ).singleton(),
+    // K12: use-case'ler somut TamperLogger yerine IAuditLog portunu tüketir.
+    auditLog: asFunction(({ logger }) => new TamperLoggerAdapter(logger)).singleton(),
 
     // ── KOMUT-MANEVRA-OPERASYON Faz B/C — kayıt/yürütme/tünel kanalları ──
 
@@ -260,21 +220,6 @@ export function buildContainer() {
       ({ postgres }) => new OperationRunStore(postgres),
     ).singleton(),
 
-    // Field tier: uzak adım kanalı — tünel proxy üzerinden konteynerin KENDİ
-    // manevra yürütme rotasına gider (Faz C1; katman sızmaz).
-    tunnelManeuverChannel: asFunction(
-      ({ config, hubConsumerClient, logger }) => {
-        const tier = serviceTier(config);
-        if (tier !== "field") return undefined;
-        if (!hubConsumerClient) return undefined;
-        return new HubManeuverChannel({
-          client: hubConsumerClient,
-          serviceId: config.get<string>("hub.containerServiceId"),
-          logger,
-        });
-      },
-    ).singleton(),
-
     maneuverExecutor: asFunction(
       ({
         config,
@@ -283,7 +228,7 @@ export function buildContainer() {
         mq,
         deviceRegistry,
         tunnelManeuverChannel,
-        timescale,
+        fieldInterlock,
         logger,
       }) => {
         const targets = new DeviceRegistryTargets(deviceRegistry);
@@ -293,15 +238,6 @@ export function buildContainer() {
           }),
           mq,
         });
-        // Field tier: I-1 toprak interlock (SPEC UC-10) — boss/diğer tier'da
-        // hook YOK → davranış birebir (Open-Closed).
-        const preconditions =
-          serviceTier(config) === "field"
-            ? new DemoEarthingInterlock(timescale, {
-                mvDeviceId: "DEMO-MV-1",
-                earthingTelemetry: ["H04 Earth", "H05 Earth"],
-              }).hook()
-            : undefined;
         return new OperationExecutor({
           registry: maneuverRegistry,
           targets,
@@ -310,22 +246,24 @@ export function buildContainer() {
           ...(tunnelManeuverChannel
             ? { remoteChannel: tunnelManeuverChannel }
             : {}),
-          ...(preconditions ? { preconditions } : {}),
+          ...(fieldInterlock ? { preconditions: fieldInterlock } : {}),
           logger,
         });
       },
     ).singleton(),
 
-    // Boss tier: field'da operasyonu hub access HTTP ile tetikler (REV.02 — UC-4).
-    operationRequester: asFunction(
-      ({ config, hubConsumerClient }) => {
-        const tier = serviceTier(config);
-        if (tier !== "boss" || !hubConsumerClient) return undefined;
-        return new OperationRequester({
-          client: hubConsumerClient,
-          serviceId: config.get<string>("hub.fieldServiceId"),
-        });
-      },
+    // UC-3: manevra/operasyon use-case'leri — route'lar yalnız bunları çağırır.
+    executeCommandUseCase: asFunction(({ maneuverExecutor }) =>
+      maneuverExecutor ? new ExecuteCommandUseCase(maneuverExecutor) : undefined,
+    ).singleton(),
+    catalogUseCase: asFunction(({ maneuverRegistry }) =>
+      new ListCatalogUseCase(maneuverRegistry),
+    ).singleton(),
+    operationRunsUseCase: asFunction(({ operationRunStore }) =>
+      new OperationRunsUseCase(operationRunStore),
+    ).singleton(),
+    operationDefinitionsUseCase: asFunction(({ operationDefStore, auditLog }) =>
+      new OperationDefinitionsUseCase(operationDefStore, auditLog),
     ).singleton(),
 
     // P3: hub-servis consumer (HUB_MODE=hub iken kurulur).
@@ -368,16 +306,16 @@ export function buildContainer() {
     ).singleton(),
 
     loginUseCase: asFunction(
-      ({ userRepo, tokens, hasher, logger, loginThrottle }) =>
-        new LoginUseCase(userRepo, tokens, hasher, logger, loginThrottle),
+      ({ userRepo, tokens, hasher, auditLog, loginThrottle }) =>
+        new LoginUseCase(userRepo, tokens, hasher, auditLog, loginThrottle),
     ).singleton(),
     mfaLoginUseCase: asFunction(
-      ({ userRepo, tokens, totp, logger, totpThrottle }) =>
-        new MfaLoginUseCase(userRepo, tokens, totp, logger, totpThrottle),
+      ({ userRepo, tokens, totp, auditLog, totpThrottle }) =>
+        new MfaLoginUseCase(userRepo, tokens, totp, auditLog, totpThrottle),
     ).singleton(),
     mfaEnrollUseCase: asFunction(
-      ({ userRepo, totp, tokens, logger, totpThrottle }) =>
-        new MfaEnrollUseCase(userRepo, totp, tokens, logger, totpThrottle),
+      ({ userRepo, totp, tokens, auditLog, totpThrottle }) =>
+        new MfaEnrollUseCase(userRepo, totp, tokens, auditLog, totpThrottle),
     ).singleton(),
     refreshTokenUseCase: asFunction(
       ({ userRepo, tokens }) =>
@@ -407,6 +345,11 @@ export function buildContainer() {
       ({ serverCfg }) => new WebServiceServer(serverCfg),
     ).singleton(),
   });
+
+  // K5/K14: core kayıtlarının ardından tier kompozisyonları eklenir.
+  registerContainerTier(container);
+  registerFieldTier(container);
+  registerBossTier(container);
 
   return container;
 }

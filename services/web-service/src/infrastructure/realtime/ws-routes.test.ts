@@ -6,7 +6,7 @@ import type { AddressInfo } from "node:net";
 import { telemetryWsRoutes } from "./ws-routes";
 import type { RealtimeManager } from "./realtime-manager";
 import type { ITokenService } from "../../domain/services/ITokenService";
-import type { ISessionAuthenticator } from "../container-session/stateless-session-authenticator";
+import type { ISessionAuthenticator } from "../../domain/ports/session";
 import type { User } from "@gd-monorepo/shared-types";
 
 /**

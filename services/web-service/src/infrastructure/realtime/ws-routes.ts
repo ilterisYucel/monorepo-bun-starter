@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { RealtimeManager } from "./realtime-manager";
 import type { ITokenService } from "../../domain/services/ITokenService";
-import type { ISessionAuthenticator } from "../container-session/stateless-session-authenticator";
+import type { ISessionAuthenticator } from "../domain/ports/session";
 
 export async function telemetryWsRoutes(
   fastify: FastifyInstance,

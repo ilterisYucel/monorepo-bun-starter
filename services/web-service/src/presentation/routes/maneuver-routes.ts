@@ -1,29 +1,21 @@
 // Manevra/operasyon REST rotaları — yürütme + listeleme + koşu okuma.
 // Kaynak tasarım: KOMUT-MANEVRA-OPERASYON-MIMARISI.md §4, §8.
+// Sunum katmanı: yalnız doğrulama/yetki + HTTP eşlemesi; iş mantığı use-case'lerde.
 
 import { z } from "zod";
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type { User } from "@gd-monorepo/shared-types";
-import {
-  maneuverRecordSchema,
-  operationRecordSchema,
-} from "@gd-monorepo/shared-types";
-import type { ManeuverRegistry } from "@gd-monorepo/platform-commands";
-import type {
-  IOperationDefinitionStore,
-  IOperationRunStore,
-  OperationExecutor,
-  OperationRunResult,
-} from "@gd-monorepo/platform-commands";
+import type { ExecuteCommandUseCase } from "../../application/commands/execute-command-use-case";
+import type { ListCatalogUseCase } from "../../application/commands/list-catalog-use-case";
+import type { OperationDefinitionsUseCase } from "../../application/commands/operation-definitions-use-case";
+import type { OperationRunsUseCase } from "../../application/commands/operation-runs-use-case";
 import { authorizeCommand } from "./internal-authorize";
 
 const executeBodySchema = z
   .object({
     params: z.record(z.unknown()).default({}),
     deviceIds: z.array(z.string().min(1)).optional(),
-    // UC-13: uzak (`system`) adımlar bu konteynerlere yönlendirilir (ön yüz
-    // seçili istasyonun container id'sini gönderir; station çözümü backend'de YOK).
+    // UC-13: uzak (`system`) adımlar bu konteynerlere yönlendirilir.
     systems: z.array(z.string().min(1)).optional(),
     // §10 — UI "Zamanlı" kutusu: tüm yerel ana adımlara uygulanır.
     timer: z
@@ -43,44 +35,20 @@ function traceFrom(request: FastifyRequest): string | undefined {
 /**
  * Boss kökenli operasyon kimliği (SPEC UC-4) — hub relay'den gelen istekler
  * `x-gd-operation-id` taşır; koşu `boss:<id>` + `createdBy=boss` ile işaretlenir.
- * Manuel/UI çağrılarında başlık yoktur → mevcut davranış korunur.
  */
 function bossOperationId(request: FastifyRequest): string | undefined {
   const value = request.headers["x-gd-operation-id"];
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-/** Senkron bekleme üst sınırı (KURAL-MOTORU-V2 §3.2) — aşarsa 202 dönülür. */
-const EXECUTE_TIMEOUT_MS = 15_000;
-
-/**
- * Yürütmeyi senkron bekler; 15 sn aşılırsa `"timeout"` döner — yürütme ARKA
- * PLANDA devam eder (executor kendi kalıcılığını/audit'ini yönetir; terminal
- * durum operation_runs'tan okunur). Kural kanalı 202'yi "başlatıldı" sayar.
- */
-async function executeWithTimeout(
-  executor: OperationExecutor,
-  kind: "maneuver" | "operation",
-  name: string,
-  params: Record<string, unknown>,
-  options: Record<string, unknown>,
-): Promise<OperationRunResult | "timeout"> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<"timeout">((resolve) => {
-    timer = setTimeout(() => resolve("timeout"), EXECUTE_TIMEOUT_MS);
-  });
-  try {
-    return await Promise.race([
-      executor.execute(kind, name, params, options as never),
-      timeout,
-    ]);
-  } finally {
-    if (timer !== undefined) clearTimeout(timer);
-  }
-}
-
 /** Yürütme sonucunu HTTP durumuna eşler (§8 + WS-TUNNEL rejected sözleşmesi). */
-function replyFor(reply: { status: (code: number) => { send: (b: unknown) => unknown } }, result: OperationRunResult) {
+function replyFor(
+  reply: { status: (code: number) => { send: (b: unknown) => unknown } },
+  result: Awaited<ReturnType<ExecuteCommandUseCase["execute"]>>,
+) {
+  if (result === "timeout") {
+    return reply.status(202).send({ status: "running" });
+  }
   if (result.status === "rejected") {
     const code =
       result.reason === "not_found"
@@ -105,25 +73,12 @@ function authorizeAdmin(request: FastifyRequest): User | undefined {
   return user;
 }
 
-/** Fail-closed audit — yazılamazsa THROW (tanım işlemi reddedilir §11.2). */
-async function auditFailClosed(
-  logger: TamperLogger | undefined,
-  eventCode:
-    | "operation_definition_created"
-    | "operation_definition_updated"
-    | "operation_definition_deleted",
-  context: Record<string, unknown>,
-): Promise<void> {
-  if (!logger) {
-    throw new Error("audit_logger_unavailable");
-  }
-  await logger.log({
-    level: "info",
-    category: "audit",
-    eventCode,
-    message: eventCode,
-    context,
-  });
+export interface ManeuverRoutesDeps {
+  catalog?: ListCatalogUseCase;
+  executor?: ExecuteCommandUseCase;
+  runs?: OperationRunsUseCase;
+  definitions?: OperationDefinitionsUseCase;
+  internalToken?: string;
 }
 
 /**
@@ -134,25 +89,19 @@ async function auditFailClosed(
  * Sözleşme (test: maneuver-routes.test.ts):
  * - Yetki: admin/teknik (Bearer) VEYA geçerli x-internal-token — fail-closed.
  * - execute: rejected (not_found → 404; missing_param → 400; run_persist_failed
- *   → 503); failed → 422; completed/rolled_back → 200 (status alanıyla).
+ *   → 503); failed → 422; completed/rolled_back → 200; timeout → 202.
  * - runs: son N listesi + tek koşu (yok → 404).
+ * - CRUD: yalnız admin; audit fail-closed (use-case'te).
  */
 export async function maneuverOperationRoutes(
   fastify: FastifyInstance,
-  deps: {
-    registry: ManeuverRegistry;
-    executor: OperationExecutor;
-    runStore: IOperationRunStore;
-    defs?: IOperationDefinitionStore;
-    logger?: TamperLogger;
-    internalToken?: string;
-  },
+  deps: ManeuverRoutesDeps,
 ): Promise<void> {
   fastify.get("/maneuvers", async (request, reply) => {
     if (!authorizeCommand(request, deps.internalToken)) {
       return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
     }
-    return reply.send({ maneuvers: await deps.registry.list("maneuver") });
+    return reply.send({ maneuvers: (await deps.catalog?.list("maneuver")) ?? [] });
   });
 
   fastify.post("/maneuvers/:name/execute", async (request, reply) => {
@@ -160,27 +109,24 @@ export async function maneuverOperationRoutes(
     if (!user) {
       return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
     }
+    if (!deps.executor) {
+      return reply.status(503).send({ error: "executor_unavailable" });
+    }
     const { name } = request.params as { name: string };
     const body = executeBodySchema.parse(request.body);
-    const result = await executeWithTimeout(
-      deps.executor,
-      "maneuver",
+    const result = await deps.executor.execute({
+      kind: "maneuver",
       name,
-      body.params,
-      {
-        ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
-        ...(body.timer !== undefined ? { timer: body.timer } : {}),
-        ...(body.systems !== undefined && body.systems.length > 0 ? { remoteSystem: body.systems[0] } : {}),
-        trigger: "manual",
-        createdBy: user.username,
-        ...(traceFrom(request) !== undefined
-          ? { traceId: traceFrom(request) }
-          : {}),
-      },
-    );
-    if (result === "timeout") {
-      return reply.status(202).send({ status: "running" });
-    }
+      params: body.params,
+      ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
+      ...(body.systems !== undefined ? { systems: body.systems } : {}),
+      ...(body.timer !== undefined ? { timer: body.timer } : {}),
+      trigger: "manual",
+      createdBy: user.username,
+      ...(traceFrom(request) !== undefined
+        ? { traceId: traceFrom(request) }
+        : {}),
+    });
     return replyFor(reply, result);
   });
 
@@ -188,7 +134,7 @@ export async function maneuverOperationRoutes(
     if (!authorizeCommand(request, deps.internalToken)) {
       return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
     }
-    return reply.send({ operations: await deps.registry.list("operation") });
+    return reply.send({ operations: (await deps.catalog?.list("operation")) ?? [] });
   });
 
   fastify.post("/operations/:name/execute", async (request, reply) => {
@@ -196,28 +142,25 @@ export async function maneuverOperationRoutes(
     if (!user) {
       return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
     }
+    if (!deps.executor) {
+      return reply.status(503).send({ error: "executor_unavailable" });
+    }
     const { name } = request.params as { name: string };
     const body = executeBodySchema.parse(request.body);
     const bossOpId = bossOperationId(request);
-    const result = await executeWithTimeout(
-      deps.executor,
-      "operation",
+    const result = await deps.executor.execute({
+      kind: "operation",
       name,
-      body.params,
-      {
-        ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
-        ...(body.timer !== undefined ? { timer: body.timer } : {}),
-        ...(body.systems !== undefined && body.systems.length > 0 ? { remoteSystem: body.systems[0] } : {}),
-        trigger: bossOpId ? `boss:${bossOpId}` : "manual",
-        createdBy: bossOpId ? "boss" : user.username,
-        ...(traceFrom(request) !== undefined
-          ? { traceId: traceFrom(request) }
-          : {}),
-      },
-    );
-    if (result === "timeout") {
-      return reply.status(202).send({ status: "running" });
-    }
+      params: body.params,
+      ...(body.deviceIds !== undefined ? { deviceIds: body.deviceIds } : {}),
+      ...(body.systems !== undefined ? { systems: body.systems } : {}),
+      ...(body.timer !== undefined ? { timer: body.timer } : {}),
+      trigger: bossOpId ? `boss:${bossOpId}` : "manual",
+      createdBy: bossOpId ? "boss" : user.username,
+      ...(traceFrom(request) !== undefined
+        ? { traceId: traceFrom(request) }
+        : {}),
+    });
     return replyFor(reply, result);
   });
 
@@ -226,7 +169,7 @@ export async function maneuverOperationRoutes(
       return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
     }
     const limit = 20;
-    const runs = await deps.runStore.listRecent(limit);
+    const runs = (await deps.runs?.listRecent(limit)) ?? [];
     return reply.send({ runs });
   });
 
@@ -235,7 +178,7 @@ export async function maneuverOperationRoutes(
       return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
     }
     const { id } = request.params as { id: string };
-    const run = await deps.runStore.findById(id);
+    const run = await deps.runs?.find(id);
     if (!run) {
       return reply.status(404).send({ error: "run_not_found" });
     }
@@ -243,47 +186,27 @@ export async function maneuverOperationRoutes(
   });
 
   // ── Tanım YÖNETİMİ (yalnız admin — §11.2) ────────────────────────────────
-  // Kayıtlar persist anında strict zod şemalarıyla doğrulanır (bozuk tanım →
-  // 400); audit fail-closed: audit yazılamazsa tanım işlemi REDDEDİLİR.
-
-  const registerDefinitionCrud = (
-    kind: "maneuver" | "operation",
-    schema: typeof maneuverRecordSchema | typeof operationRecordSchema,
-  ): void => {
+  const registerDefinitionCrud = (kind: "maneuver" | "operation"): void => {
     const prefix = kind === "maneuver" ? "maneuvers" : "operations";
 
     fastify.post(`/${prefix}`, async (request, reply) => {
-      if (!deps.defs) {
+      if (!deps.definitions) {
         return reply.status(503).send({ error: "definition_store_unavailable" });
       }
       const user = authorizeAdmin(request);
       if (!user) {
         return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
       }
-      const parsed = schema.safeParse(request.body);
-      if (!parsed.success) {
-        return reply.status(400).send({ error: "invalid_definition" });
-      }
-      const definition = parsed.data;
-      try {
-        await auditFailClosed(deps.logger, "operation_definition_created", {
-          kind,
-          name: (definition as { name: string }).name,
-          updatedBy: user.username,
-        });
-        await deps.defs.create(kind, definition, user.username);
-      } catch (err) {
-        const reason = String(err);
-        if (reason.includes("already_exists")) {
-          return reply.status(409).send({ error: "already_exists" });
-        }
-        return reply.status(500).send({ error: "definition_persist_failed" });
-      }
-      return reply.status(201).send({ name: (definition as { name: string }).name });
+      const outcome = await deps.definitions.create(
+        kind,
+        request.body,
+        user.username,
+      );
+      return replyForDefinition(reply, outcome);
     });
 
     fastify.put(`/${prefix}/:name`, async (request, reply) => {
-      if (!deps.defs) {
+      if (!deps.definitions) {
         return reply.status(503).send({ error: "definition_store_unavailable" });
       }
       const user = authorizeAdmin(request);
@@ -291,25 +214,17 @@ export async function maneuverOperationRoutes(
         return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
       }
       const { name } = request.params as { name: string };
-      const parsed = schema.safeParse(request.body);
-      if (!parsed.success || (parsed.data as { name: string }).name !== name) {
-        return reply.status(400).send({ error: "invalid_definition" });
-      }
-      try {
-        await auditFailClosed(deps.logger, "operation_definition_updated", {
-          kind,
-          name,
-          updatedBy: user.username,
-        });
-        await deps.defs.update(kind, name, parsed.data, user.username);
-      } catch {
-        return reply.status(500).send({ error: "definition_persist_failed" });
-      }
-      return reply.status(200).send({ name });
+      const outcome = await deps.definitions.update(
+        kind,
+        name,
+        request.body,
+        user.username,
+      );
+      return replyForDefinition(reply, outcome);
     });
 
     fastify.delete(`/${prefix}/:name`, async (request, reply) => {
-      if (!deps.defs) {
+      if (!deps.definitions) {
         return reply.status(503).send({ error: "definition_store_unavailable" });
       }
       const user = authorizeAdmin(request);
@@ -317,23 +232,41 @@ export async function maneuverOperationRoutes(
         return reply.status(403).send({ error: "Bu islem icin yetkiniz yok" });
       }
       const { name } = request.params as { name: string };
-      try {
-        await auditFailClosed(deps.logger, "operation_definition_deleted", {
-          kind,
-          name,
-          updatedBy: user.username,
-        });
-        await deps.defs.setEnabled(kind, name, false, user.username);
-      } catch (err) {
-        if (String(err).includes("not_found")) {
-          return reply.status(404).send({ error: "not_found" });
-        }
-        return reply.status(500).send({ error: "definition_persist_failed" });
-      }
-      return reply.status(200).send({ name });
+      const outcome = await deps.definitions.disable(kind, name, user.username);
+      return replyForDefinition(reply, outcome);
     });
   };
 
-  registerDefinitionCrud("maneuver", maneuverRecordSchema);
-  registerDefinitionCrud("operation", operationRecordSchema);
+  registerDefinitionCrud("maneuver");
+  registerDefinitionCrud("operation");
+}
+
+type DefinitionOutcome = Awaited<
+  ReturnType<OperationDefinitionsUseCase["create"]>
+>;
+
+/** Tanım CRUD sonucu → HTTP. */
+function replyForDefinition(
+  reply: {
+    status: (code: number) => { send: (b: unknown) => unknown };
+  },
+  outcome: DefinitionOutcome,
+): unknown {
+  switch (outcome.status) {
+    case "created":
+      return reply.status(201).send({ name: outcome.name });
+    case "updated":
+    case "deleted":
+      return reply.status(200).send({ name: outcome.name });
+    case "invalid":
+      return reply.status(400).send({ error: "invalid_definition" });
+    case "already_exists":
+      return reply.status(409).send({ error: "already_exists" });
+    case "not_found":
+      return reply.status(404).send({ error: "not_found" });
+    case "unavailable":
+      return reply.status(503).send({ error: "definition_store_unavailable" });
+    case "persist_failed":
+      return reply.status(500).send({ error: "definition_persist_failed" });
+  }
 }

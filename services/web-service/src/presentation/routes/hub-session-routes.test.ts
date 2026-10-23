@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import Fastify from "fastify";
-import type { HubConsumerClient } from "../../infrastructure/hub-consumer";
+import type { HubConsumerClient } from "../../infrastructure/hub-tunnel";
 import { hubSessionRoutes } from "./hub-session-routes";
 
 function makeClient(session = { sessionId: "s-1", token: "jwt-1", expiresInSec: 3600 }) {

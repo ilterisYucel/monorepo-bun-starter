@@ -4,7 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import type { OperationRequester } from "../../infrastructure/field-uplink/operation-requester";
+import type { OperationRequester } from "../../tiers/boss/infrastructure/operation-requester";
 import { authorizeCommand } from "./internal-authorize";
 
 const executeBodySchema = z
