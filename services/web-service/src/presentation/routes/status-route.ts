@@ -1,5 +1,10 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { TunnelConnectionStatus } from "@gd-monorepo/ws-tunnel";
+
+/** Yanıt şekli (sabit) — ws-tunnel tipine bağımlılık yok. */
+interface OfflineStatus {
+  readonly connected: false;
+  readonly state: "offline";
+}
 
 /**
  * GET /api/status — container-web "Field Bağlantısı" göstergesi.
@@ -14,7 +19,7 @@ export function makeStatusRoute() {
     _request: FastifyRequest,
     reply: FastifyReply,
   ) {
-    const body: TunnelConnectionStatus = {
+    const body: OfflineStatus = {
       connected: false,
       state: "offline",
     };

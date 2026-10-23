@@ -14,6 +14,7 @@ import {
   SYSTEM_SUMMARY,
   RACK_NAMEPLATE,
   RACK_NAMEPLATE_BASE,
+  RACK_STATE,
 } from "./register-map";
 
 /**
@@ -130,6 +131,24 @@ describe("BSCSimulator (T4)", () => {
     sim.tick(1);
 
     expect(sim.readInputRegister(ESSENTIAL.BSC_STATE)).toBe(BSC_STATE.EMERGENCY);
+  });
+
+  it("EMERGENCY sonrası offline rack'ler SOC 0 + STATE 0 gösterir (bayat değer yok)", () => {
+    const sim = makeReadySim(50);
+    sim.tick(1);
+    const firstBase = RACK_SUMMARY_BASE + RACK_SUMMARY.SOC;
+    expect(sim.readInputRegister(firstBase)).toBeGreaterThan(0);
+
+    sim.writeHoldingRegister(CONTROLLER.COMMAND_REQUEST, COMMAND.EMERGENCY);
+    sim.tick(1);
+
+    for (const rackId of [1, 2]) {
+      const base = RACK_SUMMARY_BASE + (rackId - 1) * RACK_STRIDE;
+      expect(sim.readInputRegister(base + RACK_SUMMARY.SOC)).toBe(0);
+      expect(sim.readInputRegister(base + RACK_SUMMARY.STATE)).toBe(
+        RACK_STATE.INITIALIZATION,
+      );
+    }
   });
 
   it("deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)", () => {

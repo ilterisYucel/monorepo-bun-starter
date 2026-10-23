@@ -59,10 +59,7 @@ import { notificationRoutes } from "./routes/notification-routes";
 import type { FieldEventCollector } from "../infrastructure/field-uplink/field-event-collector";
 import type { RealtimeManager } from "../infrastructure/realtime/realtime-manager";
 import type { IContainerProxy } from "@gd-monorepo/platform-container-access";
-import type { SessionGateway } from "@gd-monorepo/ws-tunnel";
 import type { HubConsumerClient } from "../infrastructure/hub-consumer";
-import type { TunnelProxy } from "@gd-monorepo/ws-tunnel";
-import type { PathAllowlist } from "@gd-monorepo/ws-tunnel";
 import { MaterializedViewManager, type IMessageQueue } from "@gd-monorepo/core";
 import type { ISessionAuthenticator } from "../infrastructure/container-session/stateless-session-authenticator";
 

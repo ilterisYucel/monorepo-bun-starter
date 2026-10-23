@@ -7,6 +7,7 @@ import type {
 import type { DownsampleOptions } from "@gd-monorepo/core";
 import type { HubAccessRequest } from "../hub-consumer";
 import { HubTtlCache } from "./hub-ttl-cache";
+import { SYSTEM_USER_HEADERS } from "../hub-consumer/system-headers";
 
 /** HubContainerView yapılandırması. */
 export interface HubContainerViewConfig {
@@ -28,12 +29,6 @@ export interface HubContainerViewConfig {
   userHeaders?: Record<string, string>;
   now?: () => number;
 }
-
-const SYSTEM_USER_HEADERS = {
-  "x-tunnel-user-id": "system",
-  "x-tunnel-user-username": "system",
-  "x-tunnel-user-role": "admin",
-};
 
 /**
  * HubContainerView — field tier `ContainerProxy`'sinin hub-servis tüketicisi.
@@ -179,6 +174,28 @@ export class HubContainerView implements IContainerProxy {
       `/api/unified/telemetry/downsampled?${query.toString()}`,
     );
     return data ?? [];
+  }
+
+  /**
+   * Toplu tarihsel sorgu — `field-routes#/telemetry/downsampled` tüketicisi.
+   * Konteyner başına `historical` çağrılır; hata alan konteyner sonuçtan
+   * düşer (kademeli bozulma, throw yok).
+   */
+  async allHistorical(
+    containerIds: string[],
+    params: Omit<DownsampleOptions, "deviceId">,
+  ): Promise<Record<string, TelemetryData[]>> {
+    const results = await Promise.allSettled(
+      containerIds.map(async (containerId) => {
+        const rows = await this.historical(containerId, params);
+        return [containerId, rows] as const;
+      }),
+    );
+    const out: Record<string, TelemetryData[]> = {};
+    for (const result of results) {
+      if (result.status === "fulfilled") out[result.value[0]] = result.value[1];
+    }
+    return out;
   }
 
   addObserver(observer: ContainerObserver): void {

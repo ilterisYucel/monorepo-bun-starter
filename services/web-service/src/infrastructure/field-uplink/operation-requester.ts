@@ -5,6 +5,7 @@
 // params, traceId)`) — `operation-boss-routes` sözleşmesi değişmez.
 
 import type { HubConsumerClient } from "../hub-consumer";
+import { SYSTEM_USER_HEADERS } from "../hub-consumer/system-headers";
 
 /** Operasyon adımı sonucu — makine-okunur özet. */
 export interface OperationStepResult {
@@ -36,13 +37,6 @@ export interface OperationRequesterConfig {
   /** Terminal yanıt bekleme üst sınırı (ms) — varsayılan 30 sn. */
   timeoutMs?: number;
 }
-
-/** Programatik erişim kimliği — hub, oturumu bu kullanıcı adına açar. */
-const SYSTEM_USER_HEADERS = {
-  "x-tunnel-user-id": "system",
-  "x-tunnel-user-username": "system",
-  "x-tunnel-user-role": "admin",
-};
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 

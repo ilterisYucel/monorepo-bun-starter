@@ -107,7 +107,7 @@ telemetrisi ve bir controller'ın gönderdiği komutlara verilen yanıtlar.
 
 `bsc/bsc-simulator.ts#BSCSimulator.updatePerRackRegisters`. Rack `n` için:
 
-- Nameplate tabanı = `RACK_NAMEPLATE_BASE (30170) + (n-1) × RACK_STRIDE (200)`
+- Nameplate tabanı = `RACK_NAMEPLATE_BASE (30170) + (n-1) × RACK_STRIDE (150)`
 - Summary tabanı = nameplate + `RACK_SUMMARY_BASE_OFFSET (50)` → rack 1 için **30220**
 
 Yazılanlar (online rack): `HEARTBEAT`, `STATE = NORMAL (0x09)`, `STATUS_FLAGS`
@@ -188,7 +188,7 @@ Tam liste: `bsc/register-map.ts`. Önemli bloklar:
 - `DIAGNOSTICS` 30043–30050: `CONTROLLER_LOC`, bitfield'lar
 - `SYSTEM_SUMMARY` 30055–30066: SOC/SOH/DC gerilim/akım/güç limitleri
 - `SUMMARY_STATS` 30100–30157: MAX/AVG/MIN SOC, SOH, cell-sum, akım, sıcaklık + konumlar
-- Rack blokları: nameplate tabanı `RACK_NAMEPLATE_BASE = 30170`, blok boyu `RACK_STRIDE = 200`;
+- Rack blokları: nameplate tabanı `RACK_NAMEPLATE_BASE = 30170`, blok boyu `RACK_STRIDE = 150`;
   özet başlangıcı +50 → rack 1 özeti **30220**
 
 **HOLDING REGISTERS (4x) — oku/yaz**
@@ -225,6 +225,8 @@ Warning `3N+n`, Fault `4N+n`, Non-Balancing `5N+n` (toplam `6N`).
 - **Kalibrasyon tetiklenemez:** `CALIBRATION_INFO` ve `RECALIBRATION_NO` her tick 0.
 - **Sıcaklık/cell gerilimi sabit:** gerçek ölçüm yerine sabit değerler (3.5288 V,
   ~23 °C) yazılır; `inject` ile 80 °C / 15 °C fark override edilebilir.
+- **Offline rack:** SOC/state sıfırlanır (bayat gösterim yok); sıcaklık/gerilim son
+  bilinen değerde kalır — tam "idle register tablosu" değildir.
 - **Charge/discharge komutu yoktur** (Rev AF, 0x000B kaldırıldı): güç PCS'ten gelir
   (konnektör ters kanalı); setpoint register'ları saklanır ama güç modelini sürmez
   (bkz. `docs/analysis/BSC-VERI-ANALIZI.md`).

@@ -102,6 +102,48 @@ describe("HubContainerView — hub relay HTTP", () => {
     await view.stop();
   });
 
+  it("allHistorical: konteyner başına downsampled toplar (Record)", async () => {
+    const { view, accessFn } = setup(
+      [...connected("c-1"), { peerId: "c-2", peerType: "container", status: "connected" }],
+      async () => jsonResponse({ telemetries: TELEMETRY }),
+    );
+    await view.start();
+    const result = await view.allHistorical(["c-1", "c-2"], {
+      from: new Date("2026-10-22T00:00:00.000Z"),
+      to: new Date("2026-10-22T01:00:00.000Z"),
+      points: 60,
+      names: ["BSC SOC"],
+    });
+    expect(Object.keys(result).sort()).toEqual(["c-1", "c-2"]);
+    expect(result["c-1"]).toEqual(TELEMETRY);
+    expect(accessFn).toHaveBeenCalledTimes(2);
+    const req = accessFn.mock.calls[0]?.[0] as HubAccessRequest;
+    expect(req.path).toContain("/api/unified/telemetry/downsampled");
+    expect(req.path).toContain("names=BSC+SOC");
+    await view.stop();
+  });
+
+  it("allHistorical: hata alan konteyner sonuçtan düşer (kısmi başarı)", async () => {
+    const { view } = setup(
+      [...connected("c-1"), { peerId: "c-2", peerType: "container", status: "connected" }],
+      async (request) => {
+        if (request.peerId === "c-2") {
+          return jsonResponse({ error: "boom" }, 500);
+        }
+        return jsonResponse({ telemetries: TELEMETRY });
+      },
+    );
+    await view.start();
+    const result = await view.allHistorical(["c-1", "c-2"], {
+      from: new Date("2026-10-22T00:00:00.000Z"),
+      to: new Date("2026-10-22T01:00:00.000Z"),
+      points: 60,
+    });
+    expect(result["c-1"]).toEqual(TELEMETRY);
+    expect(result["c-2"]).toEqual([]); // historical 5xx → []
+    await view.stop();
+  });
+
   it("AK-1.4: erişim hatasında boş dizi; son cache değeri fallback", async () => {
     const { view, accessFn, advance } = setup(connected(), async () => {
       throw new Error("hub down");

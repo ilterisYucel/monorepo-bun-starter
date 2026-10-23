@@ -734,7 +734,7 @@ export const DemoOperationsView: React.FC<DemoOperationsViewProps> = ({
         <section className="card">
           <header>
             <h2>
-              MV Station #1<small>breakers, earthing, metering</small>
+              {topology.station.name}<small>breakers, earthing, metering</small>
             </h2>
           </header>
           <div className="station">

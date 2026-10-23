@@ -234,12 +234,14 @@ export async function fieldRoutes(
     const toDate = query.to ? new Date(query.to) : new Date();
     const points = query.points ? Number.parseInt(query.points, 10) : 120;
 
-    const results = await deps.containerProxy.historical(containerId, {
+    // Tek doğruluk noktası: toplu sorgu yolu (allHistorical) — per-container
+    // davranış aynı, dış şekil değişmez.
+    const results = await deps.containerProxy.allHistorical([containerId], {
       from: fromDate,
       to: toDate,
       points,
     });
-    return reply.send(results);
+    return reply.send(results[containerId] ?? []);
   });
 
 

@@ -13,7 +13,10 @@ export interface HubPeerSummary {
   readonly peerId: string;
   readonly peerType: string;
   readonly status: string;
-  readonly services: ReadonlyArray<{ readonly id: string; readonly meta?: unknown }>;
+  readonly services: ReadonlyArray<{
+    readonly id: string;
+    readonly meta?: unknown;
+  }>;
 }
 
 /** Hub tarafından açılan oturum. */
@@ -30,7 +33,8 @@ export interface HubAccessRequest {
   readonly path: string;
   readonly method?: string;
   readonly headers?: Record<string, string>;
-  readonly body?: BodyInit | null;
+  /** Gövde — tüm çağıranlar JSON string geçer (global `BodyInit` bu tsconfig'de yok). */
+  readonly body?: string | null;
 }
 
 /** Hub REST hatası. */
@@ -60,42 +64,9 @@ export class HubConsumerClient {
     this.fetchImpl = config.fetchImpl ?? fetch;
   }
 
-  peers(): Promise<HubPeerSummary[]> {
-    return this.json<{ peers: HubPeerSummary[] }>("/peers").then(
-      (data) => data.peers,
-    );
-  }
-
-  servicesOf(peerId: string): Promise<HubPeerSummary["services"]> {
-    return this.json<{ services: HubPeerSummary["services"] }>(
-      `/peers/${encodeURIComponent(peerId)}/services`,
-    ).then((data) => data.services);
-  }
-
-  async sendControl(peerId: string, message: unknown): Promise<void> {
-    await this.json(`/control/${encodeURIComponent(peerId)}`, {
-      method: "POST",
-      body: JSON.stringify(message),
-    });
-  }
-
-  /** Admin: peer oluşturur + tek kullanımlık bootstrap üretir. */
-  createPeer(peerId: string): Promise<{
-    peerId: string;
-    bootstrapToken: string;
-    expiresAt: string;
-  }> {
-    return this.json(`/admin/peers`, {
-      method: "POST",
-      body: JSON.stringify({ peerId }),
-    });
-  }
-
-  /** Admin: peer kimliğini iptal eder + aktif bağlantıyı düşürür. */
-  async revokePeer(peerId: string): Promise<void> {
-    await this.json(`/admin/peers/${encodeURIComponent(peerId)}`, {
-      method: "DELETE",
-    });
+  async peers(): Promise<HubPeerSummary[]> {
+    const data = await this.json<{ peers: HubPeerSummary[] }>("/peers");
+    return data.peers;
   }
 
   openSession(input: {
@@ -111,7 +82,9 @@ export class HubConsumerClient {
 
   /** Opak programatik erişim — ham Response (stream/JSON çağıran çözümler). */
   access(request: HubAccessRequest): Promise<Response> {
-    const path = request.path.startsWith("/") ? request.path : `/${request.path}`;
+    const path = request.path.startsWith("/")
+      ? request.path
+      : `/${request.path}`;
     const url = `${this.baseUrl}/peers/${encodeURIComponent(request.peerId)}/services/${encodeURIComponent(request.serviceId)}${path}`;
     return this.fetchImpl(url, {
       method: request.method ?? "GET",
