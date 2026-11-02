@@ -18,10 +18,7 @@
 - `reviewer` subagent — `.claude/agents/reviewer.md` (KAPANIŞ dokümanı üretimi;
   AGENTS.md "Geliştirme İş Akışı" aşama 5).
 - `/kapanis` komutu — `.claude/commands/kapanis.md`.
-- `graphify` skill — `.claude/skills/graphify/`; `graphify-out/` varsa kod
-  sorularında önce `graphify query "<soru>"` kullanın (AGENTS.md "graphify").
-- opencode'a özgü JS plugin'leri (graphify bash hatırlatması, sonar-watch) burada
-  yoktur; graphify hatırlatması bu dosyadaki satırla karşılanır.
+- opencode'a özgü JS plugin'leri (sonar-watch) burada yoktur.
 
 ### Ponytail (opsiyonel)
 - Bu repo opencode'da ponytail (lazy senior dev modu) kullanır; Claude Code için

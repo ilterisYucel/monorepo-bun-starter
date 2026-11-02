@@ -1,8 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    ".opencode/plugins/graphify.js"
-  ],
   "agent": {
     "plan": {
       "model": "opencode-go/deepseek-v4-pro",

@@ -1,7 +1,9 @@
-// OpenCode plugin: surfaces SonarCloud quality-gate status after each session.
+// OpenCode V2 plugin: surfaces SonarCloud quality-gate status after each session.
 // Requires SONAR_TOKEN and SONARCLOUD_ORG environment variables.
 
-async function fetchQualityGate(component) {
+import { Plugin } from "@opencode/plugin"
+
+async function fetchQualityGate(component: string) {
   const token = process.env.SONAR_TOKEN
   const org = process.env.SONARCLOUD_ORG
   if (!token || !org) return null
@@ -16,28 +18,42 @@ async function fetchQualityGate(component) {
   return resp.json()
 }
 
-export const SonarWatch = async ({ client }) => {
-  return {
-    "session.idle": async () => {
-      const component = "gd-pms-monorepo"
-      const status = await fetchQualityGate(component)
+export default Plugin.define({
+  id: "sonar-watch",
+  setup(ctx) {
+    const controller = new AbortController()
 
-      if (!status?.projectStatus) return
+    void (async () => {
+      for await (const event of ctx.event.subscribe({
+        types: ["session.idle"],
+        signal: controller.signal,
+      })) {
+        if (event.type !== "session.idle") continue
 
-      const ps = status.projectStatus
-      const gate = ps.status === "OK" ? "PASSED" : `FAILED (${ps.status})`
+        try {
+          const status = await fetchQualityGate("gd-pms-monorepo")
+          if (!status?.projectStatus) continue
 
-      try {
-        await client.app.log({
-          body: {
-            service: "sonar-watch",
-            level: gate === "PASSED" ? "debug" : "warn",
-            message: `SonarCloud quality gate: ${gate}`,
-          },
-        })
-      } catch (_) {
-        // ponytail: logging is best-effort; silent drop is fine
+          const ps = status.projectStatus
+          const gate = ps.status === "OK" ? "PASSED" : `FAILED (${ps.status})`
+
+          try {
+            await ctx.app.log({
+              body: {
+                service: "sonar-watch",
+                level: gate === "PASSED" ? "debug" : "warn",
+                message: `SonarCloud quality gate: ${gate}`,
+              },
+            })
+          } catch (_) {
+            // ponytail: logging is best-effort; silent drop is fine
+          }
+        } catch (_) {
+          // ponytail: quality-gate lookup is best-effort; silent drop is fine
+        }
       }
-    },
-  }
-}
+    })()
+
+    return () => controller.abort()
+  },
+})
