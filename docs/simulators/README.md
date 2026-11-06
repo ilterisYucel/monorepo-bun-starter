@@ -136,6 +136,23 @@ modelini sürmez (BSC'de charge/discharge komutu yoktur).
 
 ---
 
+## 6.1 Fiziksel saha simülatörü (Sim-Lab) — vendor davranışlı, config'ten saha
+
+Bu dizindeki sınıflar **kolaylık modelidir** (§5, §10 K-2). Vendor dokümanlarına birebir
+davranan, site dosyasından N konteynerlik sahayı (ör. GD-1: 9 konteyner, 18 BSC, 18 PCS,
+72 HVAC → 226 Modbus sunucusu) üreten ve register'ları tek/çok cihazda değiştirmeye,
+zaman serisi oynatmaya izin veren modül:
+
+- Kod: `packages/simulators/src/physical/` (import: `@gd-monorepo/simulators/physical`)
+- Uygulama + arayüz: `apps/sim-lab/` (`bun run apps/sim-lab/src/main.ts --site apps/sim-lab/sites/gd1.site.json` → http://localhost:8090)
+- Doküman: [FIZIKSEL-SAHA-SIMULATORU.md](FIZIKSEL-SAHA-SIMULATORU.md)
+- Config ↔ vendor denetimi: [VENDOR-UYUM-DENETIMI.md](VENDOR-UYUM-DENETIMI.md)
+
+`SimulatorHost` ve `deployment/v2` akışı değişmedi; Sim-Lab EMS'e export edilen
+config'lerle (`transport` alanı olmadan, gerçek cihaz gibi TCP) bağlanır.
+
+---
+
 ## 7. Tip → doküman → kapsam haritası
 
 | `type` | Doküman | Cihaz / rol | Ana dosya |

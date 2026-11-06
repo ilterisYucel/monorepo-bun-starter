@@ -1,0 +1,337 @@
+{
+  "target": {
+    "host": "127.0.0.1",
+    "port": 15503
+  },
+  "intervalMs": 5000,
+  "lossBit": {
+    "to": 769,
+    "bit": 0
+  },
+  "mappings": [
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30036
+      },
+      "to": 768,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30037,
+        "bit": 2
+      },
+      "to": 769,
+      "bit": 1
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30037,
+        "bit": 0
+      },
+      "to": 769,
+      "bit": 7
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30059,
+        "size": 2,
+        "fallbackAddress": 30057
+      },
+      "to": 770,
+      "ratio": 0.001,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30061,
+        "size": 2,
+        "signed": true
+      },
+      "to": 771,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30055
+      },
+      "to": 772,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30056
+      },
+      "to": 773,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "computed",
+      "numerator": {
+        "from": {
+          "deviceId": "BSC-2",
+          "table": "input",
+          "address": 30063,
+          "size": 2
+        },
+        "scale": 0.001
+      },
+      "denominator": {
+        "from": {
+          "deviceId": "BSC-2",
+          "table": "input",
+          "address": 30059,
+          "size": 2,
+          "fallbackAddress": 30057
+        },
+        "scale": 0.0001
+      },
+      "to": 774,
+      "ratio": 10000,
+      "offset": 0
+    },
+    {
+      "kind": "computed",
+      "numerator": {
+        "from": {
+          "deviceId": "BSC-2",
+          "table": "input",
+          "address": 30065,
+          "size": 2
+        },
+        "scale": 0.001
+      },
+      "denominator": {
+        "from": {
+          "deviceId": "BSC-2",
+          "table": "input",
+          "address": 30059,
+          "size": 2,
+          "fallbackAddress": 30057
+        },
+        "scale": 0.0001
+      },
+      "to": 775,
+      "ratio": 10000,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30063,
+        "size": 2
+      },
+      "to": 776,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30065,
+        "size": 2
+      },
+      "to": 777,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30100
+      },
+      "to": 778,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30102
+      },
+      "to": 779,
+      "ratio": 0.1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30149
+      },
+      "to": 780,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30151
+      },
+      "to": 781,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30138
+      },
+      "to": 782,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30140
+      },
+      "to": 783,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "constant",
+      "to": 784,
+      "value": 14688
+    },
+    {
+      "kind": "constant",
+      "to": 785,
+      "value": 11016
+    },
+    {
+      "kind": "socEnergy",
+      "soc": {
+        "from": {
+          "deviceId": "BSC-2",
+          "table": "input",
+          "address": 30055
+        },
+        "scale": 0.0001
+      },
+      "ratedKwh": 5018,
+      "mode": "charge",
+      "to": 786,
+      "ratio": 10,
+      "offset": 0
+    },
+    {
+      "kind": "socEnergy",
+      "soc": {
+        "from": {
+          "deviceId": "BSC-2",
+          "table": "input",
+          "address": 30055
+        },
+        "scale": 0.0001
+      },
+      "ratedKwh": 5018,
+      "mode": "discharge",
+      "to": 787,
+      "ratio": 10,
+      "offset": 0
+    },
+    {
+      "kind": "constant",
+      "to": 788,
+      "value": 5018
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30063,
+        "size": 2
+      },
+      "to": 789,
+      "ratio": 0.01,
+      "offset": 0
+    },
+    {
+      "kind": "register",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30036
+      },
+      "to": 790,
+      "ratio": 1,
+      "offset": 0
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30043,
+        "bit": 0
+      },
+      "to": 769,
+      "bit": 0
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30037,
+        "bit": 2
+      },
+      "to": 769,
+      "bit": 4
+    },
+    {
+      "kind": "bit",
+      "from": {
+        "deviceId": "BSC-2",
+        "table": "input",
+        "address": 30037,
+        "bit": 2
+      },
+      "to": 769,
+      "bit": 5
+    }
+  ]
+}

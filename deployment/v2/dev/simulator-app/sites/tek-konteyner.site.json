@@ -1,0 +1,47 @@
+{
+  "name": "Tek konteyner (demo)",
+  "description": "1 konteyner, 2 BSC × 8 raf, 8 HVAC, 2 PCS — hızlı deneme ve birim testleri için.",
+  "templatesDir": "../device-configs",
+  "network": {
+    "bindHost": "0.0.0.0",
+    "emsHost": "host.docker.internal",
+    "containerPortBase": 20000,
+    "containerPortStride": 100,
+    "fieldPortBase": 30000
+  },
+  "containers": {
+    "count": 1,
+    "bscPerContainer": 2,
+    "racksPerBsc": 8,
+    "hvacPerContainer": 8,
+    "hvacZoneMap": "per-bus"
+  },
+  "pcs": {
+    "perContainer": 2
+  },
+  "mv": {
+    "stations": [
+      {
+        "id": "DEMO-MV-1",
+        "name": "BESS MV STATION #1",
+        "incomer": [
+          "H01"
+        ],
+        "feeders": {
+          "H04": [
+            1
+          ]
+        }
+      }
+    ]
+  },
+  "initial": {
+    "soc": 55,
+    "tempC": 24
+  },
+  "sim": {
+    "profile": "uyumlu",
+    "speed": 1,
+    "startHour": 10
+  }
+}

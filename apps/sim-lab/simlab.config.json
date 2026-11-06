@@ -1,0 +1,21 @@
+{
+  "configDirs": [
+    "../../deployment/dev/container/device-configs",
+    "../../deployment/dev/field/device-configs"
+  ],
+  "bindHost": "0.0.0.0",
+  "http": { "host": "0.0.0.0", "port": 8090 },
+  "profile": "uyumlu",
+  "speed": 1,
+  "startHour": 10,
+  "initial": { "soc": 55, "tempC": 24 },
+  "pcs": { "altitudeM": 900 },
+  "hvac": { "coolingKw": 9, "heaterKw": 2 },
+  "weather": { "mode": "gunluk", "fixedC": 25, "minC": 14, "maxC": 31, "solarW": 600 },
+  "bscCloseDeviationV": 10,
+  "strings": [
+    { "bsc": "BSC-1", "pcs": "PCS-1", "cb": "CB-1", "dcMeter": "DC-METER-1" },
+    { "bsc": "BSC-2", "pcs": "PCS-2", "cb": "CB-2" }
+  ],
+  "mv": { "device": "DEMO-MV-1", "incomer": ["H01"], "feeders": { "PCS-1": ["H04"], "PCS-2": ["H05"] } }
+}

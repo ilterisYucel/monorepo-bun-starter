@@ -1,0 +1,2059 @@
+diff --git a/configs/acrel-dc-meter.json b/configs/acrel-dc-meter.json
+index d219fe8..156c2d0 100644
+--- a/configs/acrel-dc-meter.json
++++ b/configs/acrel-dc-meter.json
+@@ -80,5 +80,85 @@
+         "component": "dc-meter"
+       }
+     }
++  ],
++  "bitfieldConfigs": [
++    {
++      "registerAddress": 19,
++      "registerType": "HOLDING_REGISTER",
++      "fields": [
++        {
++          "bitStart": 0,
++          "bitEnd": 0,
++          "name": "Alarm Over Voltage",
++          "description": "DJSF1352-RN alarm word bit0: Over Voltage",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 1,
++          "bitEnd": 1,
++          "name": "Alarm Under Voltage",
++          "description": "DJSF1352-RN alarm word bit1: Under Voltage",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 2,
++          "bitEnd": 2,
++          "name": "Alarm Over Current",
++          "description": "DJSF1352-RN alarm word bit2: Over Current",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 3,
++          "bitEnd": 3,
++          "name": "Alarm Under Current",
++          "description": "DJSF1352-RN alarm word bit3: Under Current",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 4,
++          "bitEnd": 4,
++          "name": "Alarm Over Power",
++          "description": "DJSF1352-RN alarm word bit4: Over Power",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 5,
++          "bitEnd": 5,
++          "name": "Alarm Under Power",
++          "description": "DJSF1352-RN alarm word bit5: Under Power",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 6,
++          "bitEnd": 6,
++          "name": "DI1 State",
++          "description": "DJSF1352-RN alarm word bit6: DI1",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        },
++        {
++          "bitStart": 7,
++          "bitEnd": 7,
++          "name": "DI2 State",
++          "description": "DJSF1352-RN alarm word bit7: DI2",
++          "unit": "-",
++          "scale": 1,
++          "offset": 0
++        }
++      ]
++    }
+   ]
+ }
+diff --git a/configs/bender-imd.json b/configs/bender-imd.json
+index e468e10..a766545 100644
+--- a/configs/bender-imd.json
++++ b/configs/bender-imd.json
+@@ -8,7 +8,7 @@
+   "connection": {
+     "host": "127.0.0.1",
+     "port": 15536,
+-    "slaveId": 1
++    "slaveId": 2
+   },
+   "pollIntervalMs": 2000,
+   "transport": {
+@@ -55,6 +55,19 @@
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN"
+     },
++    {
++      "name": "Earth Connection",
++      "description": "0x200D connection earth E/KE — 0 OK, 2 error",
++      "unit": "-",
++      "protocol": "MODBUS",
++      "registerAddress": 8205,
++      "registerTableType": "HOLDING_REGISTER",
++      "registerDataType": "UINT16",
++      "scale": 1,
++      "offset": 0,
++      "priority": 0,
++      "byteOrder": "BIG_ENDIAN"
++    },
+     {
+       "name": "Device Error",
+       "description": "Cihaz hatası (0 yok / >0 kod)",
+@@ -67,6 +80,19 @@
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN"
++    },
++    {
++      "name": "Test Status",
++      "description": "0x200F self-test status 0/1/2",
++      "unit": "-",
++      "protocol": "MODBUS",
++      "registerAddress": 8207,
++      "registerTableType": "HOLDING_REGISTER",
++      "registerDataType": "UINT16",
++      "scale": 1,
++      "offset": 0,
++      "priority": 0,
++      "byteOrder": "BIG_ENDIAN"
+     }
+   ],
+   "alarms": [
+diff --git a/configs/control-panel-io.json b/configs/control-panel-io.json
+index cd3c048..9d13bd4 100644
+--- a/configs/control-panel-io.json
++++ b/configs/control-panel-io.json
+@@ -114,6 +114,32 @@
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN"
++    },
++    {
++      "name": "Fire",
++      "description": "EP203 fire relay — fire in any zone (DI6)",
++      "unit": "-",
++      "protocol": "MODBUS",
++      "registerAddress": 6,
++      "registerTableType": "DISCRETE_INPUT",
++      "registerDataType": "BOOLEAN",
++      "scale": 1,
++      "offset": 0,
++      "priority": 0,
++      "byteOrder": "BIG_ENDIAN"
++    },
++    {
++      "name": "First Stage",
++      "description": "EP203 1st stage — evacuation / remote manual release (DI7)",
++      "unit": "-",
++      "protocol": "MODBUS",
++      "registerAddress": 7,
++      "registerTableType": "DISCRETE_INPUT",
++      "registerDataType": "BOOLEAN",
++      "scale": 1,
++      "offset": 0,
++      "priority": 0,
++      "byteOrder": "BIG_ENDIAN"
+     }
+   ],
+   "commands": {
+diff --git a/configs/dc-output.json b/configs/dc-output.json
+index 0e37b7b..347c6cd 100644
+--- a/configs/dc-output.json
++++ b/configs/dc-output.json
+@@ -109,32 +109,14 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Energy Counter H",
+-      "description": "Energy counter high word",
++      "name": "Energy Counter",
++      "description": "Energy counter UINT32 (regs 4-5, high word first), ×0.01 kWh",
+       "unit": "kWh",
+       "protocol": "MODBUS",
+       "registerAddress": 4,
+       "registerTableType": "INPUT_REGISTER",
+-      "registerDataType": "UINT16",
+-      "scale": 1,
+-      "offset": 0,
+-      "priority": 0,
+-      "byteOrder": "BIG_ENDIAN",
+-      "tags": {
+-        "deviceId": "DC-1"
+-      },
+-      "deadband": "auto",
+-      "maxStaleMs": 60000
+-    },
+-    {
+-      "name": "Energy Counter L",
+-      "description": "Energy counter low word",
+-      "unit": "kWh",
+-      "protocol": "MODBUS",
+-      "registerAddress": 5,
+-      "registerTableType": "INPUT_REGISTER",
+-      "registerDataType": "UINT16",
+-      "scale": 1,
++      "registerDataType": "UINT32",
++      "scale": 0.01,
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN",
+diff --git a/configs/emu.json b/configs/emu.json
+index dfc2cb2..f51157b 100644
+--- a/configs/emu.json
++++ b/configs/emu.json
+@@ -7,7 +7,7 @@
+   "type": "emu",
+   "connection": {
+     "host": "127.0.0.1",
+-    "port": 5030,
++    "port": 5031,
+     "slaveId": 1
+   },
+   "pollIntervalMs": 1000,
+@@ -1793,5 +1793,9 @@
+         ]
+       }
+     }
++  },
++  "details": {
++    "legacy": true,
++    "note": "Legacy EMU config — no simulator type \"emu\" exists in packages/simulators; not used by GD-1."
+   }
+ }
+diff --git a/configs/flex-bsc.json b/configs/flex-bsc.json
+index b5d4c23..ba68e74 100644
+--- a/configs/flex-bsc.json
++++ b/configs/flex-bsc.json
+@@ -275,9 +275,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Max SOC",
+-      "description": "Rack Max SOC",
+-      "unit": "ea",
++      "name": "Max SOC Rack No.",
++      "description": "Rack location of max SOC (among online racks) — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30103,
+       "registerTableType": "INPUT_REGISTER",
+@@ -289,9 +289,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Min SOC",
+-      "description": "Rack Min SOC",
+-      "unit": "ea",
++      "name": "Min SOC Rack No.",
++      "description": "Rack location of min SOC (among online racks) — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30105,
+       "registerTableType": "INPUT_REGISTER",
+@@ -304,7 +304,7 @@
+     },
+     {
+       "name": "Recalibration Racks",
+-      "description": "Recalibration Racks",
++      "description": "Number of racks under recalibration — location ID, not a measurement (LGES BSC Data)",
+       "unit": "ea",
+       "protocol": "MODBUS",
+       "registerAddress": 30107,
+@@ -367,9 +367,9 @@
+       "maxStaleMs": 60000
+     },
+     {
+-      "name": "Rack Max SOH",
+-      "description": "Rack Max SOH",
+-      "unit": "ea",
++      "name": "Max SOH Rack No.",
++      "description": "Rack location of max SOH — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30112,
+       "registerTableType": "INPUT_REGISTER",
+@@ -383,9 +383,9 @@
+       "maxStaleMs": 60000
+     },
+     {
+-      "name": "Rack Min SOH",
+-      "description": "Rack Min SOH",
+-      "unit": "ea",
++      "name": "Min SOH Rack No.",
++      "description": "Rack location of min SOH — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30114,
+       "registerTableType": "INPUT_REGISTER",
+@@ -441,9 +441,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Max Voltage",
+-      "description": "Rack Max Voltage",
+-      "unit": "ea",
++      "name": "Max Cell Sum V Rack No.",
++      "description": "Rack location of max cell sum voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30124,
+       "registerTableType": "INPUT_REGISTER",
+@@ -455,9 +455,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Min Voltage",
+-      "description": "Rack Min Voltage",
+-      "unit": "ea",
++      "name": "Min Cell Sum V Rack No.",
++      "description": "Rack location of min cell sum voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30125,
+       "registerTableType": "INPUT_REGISTER",
+@@ -511,9 +511,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Max Current",
+-      "description": "Rack Max Current",
+-      "unit": "ea",
++      "name": "Max Current Rack No.",
++      "description": "Rack location of max current — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30134,
+       "registerTableType": "INPUT_REGISTER",
+@@ -525,9 +525,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Min Current",
+-      "description": "Rack Min Current",
+-      "unit": "ea",
++      "name": "Min Current Rack No.",
++      "description": "Rack location of min current — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30135,
+       "registerTableType": "INPUT_REGISTER",
+@@ -581,9 +581,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Max Cell V",
+-      "description": "Rack Max Cell V",
+-      "unit": "ea",
++      "name": "Max Cell V Rack No.",
++      "description": "Rack location of max cell voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30141,
+       "registerTableType": "INPUT_REGISTER",
+@@ -595,9 +595,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Pack Max Cell V",
+-      "description": "Pack Max Cell V",
+-      "unit": "ea",
++      "name": "Max Cell V Pack No.",
++      "description": "Pack location of max cell voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30142,
+       "registerTableType": "INPUT_REGISTER",
+@@ -609,9 +609,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Cell Max Cell V",
+-      "description": "Cell Max Cell V",
+-      "unit": "ea",
++      "name": "Max Cell V Cell No.",
++      "description": "Cell location of max cell voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30143,
+       "registerTableType": "INPUT_REGISTER",
+@@ -623,9 +623,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Rack Min Cell V",
+-      "description": "Rack Min Cell V",
+-      "unit": "ea",
++      "name": "Min Cell V Rack No.",
++      "description": "Rack location of min cell voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30144,
+       "registerTableType": "INPUT_REGISTER",
+@@ -637,9 +637,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Pack Min Cell V",
+-      "description": "Pack Min Cell V",
+-      "unit": "ea",
++      "name": "Min Cell V Pack No.",
++      "description": "Pack location of min cell voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30145,
+       "registerTableType": "INPUT_REGISTER",
+@@ -651,9 +651,9 @@
+       "tags": {}
+     },
+     {
+-      "name": "Cell Min Cell V",
+-      "description": "Cell Min Cell V",
+-      "unit": "ea",
++      "name": "Min Cell V Cell No.",
++      "description": "Cell location of min cell voltage — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30146,
+       "registerTableType": "INPUT_REGISTER",
+@@ -713,9 +713,9 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Rack Max Temp",
+-      "description": "Rack Max Temp",
+-      "unit": "ea",
++      "name": "Max Temp Rack No.",
++      "description": "Rack location of max pack temperature — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30152,
+       "registerTableType": "INPUT_REGISTER",
+@@ -729,9 +729,9 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Pack Max Temp",
+-      "description": "Pack Max Temp",
+-      "unit": "ea",
++      "name": "Max Temp Pack No.",
++      "description": "Pack location of max pack temperature — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30153,
+       "registerTableType": "INPUT_REGISTER",
+@@ -745,9 +745,9 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Sensor Max Temp",
+-      "description": "Sensor Max Temp",
+-      "unit": "ea",
++      "name": "Max Temp Sensor No.",
++      "description": "Sensor location of max pack temperature — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30154,
+       "registerTableType": "INPUT_REGISTER",
+@@ -761,9 +761,9 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Rack Min Temp",
+-      "description": "Rack Min Temp",
+-      "unit": "ea",
++      "name": "Min Temp Rack No.",
++      "description": "Rack location of min pack temperature — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30155,
+       "registerTableType": "INPUT_REGISTER",
+@@ -777,9 +777,9 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Pack Min Temp",
+-      "description": "Pack Min Temp",
+-      "unit": "ea",
++      "name": "Min Temp Pack No.",
++      "description": "Pack location of min pack temperature — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30156,
+       "registerTableType": "INPUT_REGISTER",
+@@ -793,9 +793,9 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Sensor Min Temp",
+-      "description": "Sensor Min Temp",
+-      "unit": "ea",
++      "name": "Min Temp Sensor No.",
++      "description": "Sensor location of min pack temperature — location ID, not a measurement (LGES BSC Data)",
++      "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 30157,
+       "registerTableType": "INPUT_REGISTER",
+diff --git a/configs/fss.json b/configs/fss.json
+index fc3e6d7..1eb72c3 100644
+--- a/configs/fss.json
++++ b/configs/fss.json
+@@ -373,5 +373,9 @@
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN"
+     }
+-  ]
++  ],
++  "details": {
++    "simOnly": true,
++    "note": "Sigma XT has no published Modbus map; this register layout is simulator-only. Real FSS signals reach the PMS via control-panel-io DIs 2-7 (EP203 dry contacts)."
++  }
+ }
+diff --git a/configs/hvac.json b/configs/hvac.json
+index bebff5a..04c1bb5 100644
+--- a/configs/hvac.json
++++ b/configs/hvac.json
+@@ -1,7 +1,7 @@
+ {
+   "deviceId": "HVAC-1",
+   "name": "HVAC Unit 1",
+-  "manufacturer": "HVAC",
++  "manufacturer": "Envicool",
+   "model": "MC90HDNC1R-L",
+   "protocol": "MODBUS",
+   "connection": {
+@@ -691,13 +691,13 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Cooling Hysteresis",
+-      "description": "Cooling hysteresis band",
++      "name": "Humidity Control Mode",
++      "description": "0x0B humidity control mode (enum 0-4)",
+       "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 11,
+       "registerTableType": "HOLDING_REGISTER",
+-      "registerDataType": "UINT16",
++      "registerDataType": "INT16",
+       "scale": 1,
+       "offset": 0,
+       "priority": 0,
+@@ -709,14 +709,14 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Compressor Start Delay",
+-      "description": "Delay before compressor start",
+-      "unit": "s",
++      "name": "Cooling Sensitivity",
++      "description": "0x0C cooling setting sensitivity, ×0.1 °C (1.0-15.0, default 0.5)",
++      "unit": "°C",
+       "protocol": "MODBUS",
+       "registerAddress": 12,
+       "registerTableType": "HOLDING_REGISTER",
+-      "registerDataType": "UINT16",
+-      "scale": 1,
++      "registerDataType": "INT16",
++      "scale": 0.1,
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN",
+@@ -727,14 +727,14 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Restart Delay",
+-      "description": "Restart delay after stop",
+-      "unit": "s",
++      "name": "Dehumidification Setpoint",
++      "description": "0x0D dehumidification set point, ×0.1 %RH (10-90, default 60)",
++      "unit": "%RH",
+       "protocol": "MODBUS",
+       "registerAddress": 13,
+       "registerTableType": "HOLDING_REGISTER",
+-      "registerDataType": "UINT16",
+-      "scale": 1,
++      "registerDataType": "INT16",
++      "scale": 0.1,
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN",
+@@ -763,14 +763,14 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "High Temp Hysteresis",
+-      "description": "High temp alarm hysteresis",
+-      "unit": "-",
++      "name": "Dehumidification Sensitivity",
++      "description": "0x0F dehumidification sensitivity, ×0.1 % (3-20, default 15)",
++      "unit": "%RH",
+       "protocol": "MODBUS",
+       "registerAddress": 15,
+       "registerTableType": "HOLDING_REGISTER",
+-      "registerDataType": "UINT16",
+-      "scale": 1,
++      "registerDataType": "INT16",
++      "scale": 0.1,
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN",
+@@ -799,14 +799,14 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Low Temp Hysteresis",
+-      "description": "Low temp alarm hysteresis",
+-      "unit": "-",
++      "name": "Return Air High Humidity Setpoint",
++      "description": "0x11 return air high humidity set point, ×0.1 % (50-95, default 90)",
++      "unit": "%RH",
+       "protocol": "MODBUS",
+       "registerAddress": 17,
+       "registerTableType": "HOLDING_REGISTER",
+-      "registerDataType": "UINT16",
+-      "scale": 1,
++      "registerDataType": "INT16",
++      "scale": 0.1,
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN",
+@@ -835,14 +835,14 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Heating Hysteresis",
+-      "description": "Heating hysteresis band",
+-      "unit": "-",
++      "name": "Heating Sensitivity",
++      "description": "0x1E heating setting sensitivity, ×0.1 °C (1-15, default 5)",
++      "unit": "°C",
+       "protocol": "MODBUS",
+       "registerAddress": 30,
+       "registerTableType": "HOLDING_REGISTER",
+       "registerDataType": "UINT16",
+-      "scale": 1,
++      "scale": 0.1,
+       "offset": 0,
+       "priority": 0,
+       "byteOrder": "BIG_ENDIAN",
+@@ -886,7 +886,7 @@
+     },
+     {
+       "name": "Server Temp Max",
+-      "description": "Maximum server temperature setting",
++      "description": "0x2000 server temp max — value the master must keep writing when monitor temp mode (0x09)=4; 32767 = sensor fault",
+       "unit": "°C",
+       "protocol": "MODBUS",
+       "registerAddress": 8192,
+@@ -904,7 +904,7 @@
+     },
+     {
+       "name": "Server Temp Min",
+-      "description": "Minimum server temperature setting",
++      "description": "0x2001 server temp min — value the master must keep writing when monitor temp mode (0x09)=4; 32767 = sensor fault",
+       "unit": "°C",
+       "protocol": "MODBUS",
+       "registerAddress": 8193,
+@@ -921,13 +921,13 @@
+       "maxStaleMs": 10000
+     },
+     {
+-      "name": "Server Temp Avg",
+-      "description": "Average server temperature setting",
+-      "unit": "°C",
++      "name": "Server Humidity",
++      "description": "0x2003 server humidity written by master (×0.1 %RH)",
++      "unit": "%RH",
+       "protocol": "MODBUS",
+-      "registerAddress": 8194,
++      "registerAddress": 8195,
+       "registerTableType": "HOLDING_REGISTER",
+-      "registerDataType": "INT16",
++      "registerDataType": "UINT16",
+       "scale": 0.1,
+       "offset": 0,
+       "priority": 0,
+diff --git a/configs/mappings/bsc-pcs-mapping.json b/configs/mappings/bsc-pcs-mapping.json
+index 448b01b..2f8b54c 100644
+--- a/configs/mappings/bsc-pcs-mapping.json
++++ b/configs/mappings/bsc-pcs-mapping.json
+@@ -4,6 +4,10 @@
+     "port": 15502
+   },
+   "intervalMs": 5000,
++  "lossBit": {
++    "to": 769,
++    "bit": 0
++  },
+   "mappings": [
+     {
+       "kind": "register",
+@@ -87,29 +91,53 @@
+       "offset": 0
+     },
+     {
+-      "kind": "register",
+-      "from": {
+-        "deviceId": "BSC-1",
+-        "table": "input",
+-        "address": 30128,
+-        "size": 2,
+-        "signed": true
++      "kind": "computed",
++      "numerator": {
++        "from": {
++          "deviceId": "BSC-1",
++          "table": "input",
++          "address": 30063,
++          "size": 2
++        },
++        "scale": 0.001
++      },
++      "denominator": {
++        "from": {
++          "deviceId": "BSC-1",
++          "table": "input",
++          "address": 30059,
++          "size": 2,
++          "fallbackAddress": 30057
++        },
++        "scale": 0.0001
+       },
+       "to": 774,
+-      "ratio": 0.01,
++      "ratio": 10000,
+       "offset": 0
+     },
+     {
+-      "kind": "register",
+-      "from": {
+-        "deviceId": "BSC-1",
+-        "table": "input",
+-        "address": 30128,
+-        "size": 2,
+-        "signed": true
++      "kind": "computed",
++      "numerator": {
++        "from": {
++          "deviceId": "BSC-1",
++          "table": "input",
++          "address": 30065,
++          "size": 2
++        },
++        "scale": 0.001
++      },
++      "denominator": {
++        "from": {
++          "deviceId": "BSC-1",
++          "table": "input",
++          "address": 30059,
++          "size": 2,
++          "fallbackAddress": 30057
++        },
++        "scale": 0.0001
+       },
+       "to": 775,
+-      "ratio": 0.01,
++      "ratio": 10000,
+       "offset": 0
+     },
+     {
+@@ -203,50 +231,59 @@
+       "offset": 0
+     },
+     {
+-      "kind": "register",
+-      "from": {
+-        "deviceId": "BSC-1",
+-        "table": "input",
+-        "address": 30118,
+-        "size": 2
+-      },
++      "kind": "constant",
+       "to": 784,
+-      "ratio": 0.001,
+-      "offset": 0
++      "value": 14688
+     },
+     {
+-      "kind": "register",
+-      "from": {
+-        "deviceId": "BSC-1",
+-        "table": "input",
+-        "address": 30122,
+-        "size": 2
+-      },
++      "kind": "constant",
+       "to": 785,
+-      "ratio": 0.001,
+-      "offset": 0
++      "value": 11016
+     },
+     {
+-      "kind": "constant",
++      "kind": "socEnergy",
++      "soc": {
++        "from": {
++          "deviceId": "BSC-1",
++          "table": "input",
++          "address": 30055
++        },
++        "scale": 0.0001
++      },
++      "ratedKwh": 3568,
++      "mode": "charge",
+       "to": 786,
+-      "value": 35000
++      "ratio": 10,
++      "offset": 0
+     },
+     {
+-      "kind": "constant",
++      "kind": "socEnergy",
++      "soc": {
++        "from": {
++          "deviceId": "BSC-1",
++          "table": "input",
++          "address": 30055
++        },
++        "scale": 0.0001
++      },
++      "ratedKwh": 3568,
++      "mode": "discharge",
+       "to": 787,
+-      "value": 35000
++      "ratio": 10,
++      "offset": 0
+     },
+     {
+       "kind": "constant",
+       "to": 788,
+-      "value": 5018
++      "value": 3568
+     },
+     {
+       "kind": "register",
+       "from": {
+         "deviceId": "BSC-1",
+         "table": "input",
+-        "address": 30063
++        "address": 30063,
++        "size": 2
+       },
+       "to": 789,
+       "ratio": 0.01,
+diff --git a/configs/pm5340.json b/configs/pm5340.json
+index d3c7787..b918cc2 100644
+--- a/configs/pm5340.json
++++ b/configs/pm5340.json
+@@ -506,7 +506,7 @@
+     },
+     {
+       "name": "Power Factor Total",
+-      "description": "Güç Faktörü Toplam",
++      "description": "Güç Faktörü Toplam (PM5340 4-quadrant kodlu; core decoder 4Q_FP_PF ile çözer)",
+       "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 3083,
+@@ -523,7 +523,7 @@
+     },
+     {
+       "name": "Power Factor A",
+-      "description": "Güç Faktörü Faz A",
++      "description": "Güç Faktörü Faz A (PM5340 4-quadrant kodlu; core decoder 4Q_FP_PF ile çözer)",
+       "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 3077,
+@@ -540,7 +540,7 @@
+     },
+     {
+       "name": "Power Factor B",
+-      "description": "Güç Faktörü Faz B",
++      "description": "Güç Faktörü Faz B (PM5340 4-quadrant kodlu; core decoder 4Q_FP_PF ile çözer)",
+       "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 3079,
+@@ -557,7 +557,7 @@
+     },
+     {
+       "name": "Power Factor C",
+-      "description": "Güç Faktörü Faz C",
++      "description": "Güç Faktörü Faz C (PM5340 4-quadrant kodlu; core decoder 4Q_FP_PF ile çözer)",
+       "unit": "-",
+       "protocol": "MODBUS",
+       "registerAddress": 3081,
+diff --git a/configs/wattox-pcs.json b/configs/wattox-pcs.json
+index 0a22f85..2420994 100644
+--- a/configs/wattox-pcs.json
++++ b/configs/wattox-pcs.json
+@@ -8,7 +8,7 @@
+   "connection": {
+     "host": "127.0.0.1",
+     "port": 502,
+-    "unitId": 1
++    "slaveId": 1
+   },
+   "pollIntervalMs": 1000,
+   "transport": {
+diff --git a/docs/architecture/GD1-SIMULATOR-CONFIG-UYUM-MIMARISI.md b/docs/architecture/GD1-SIMULATOR-CONFIG-UYUM-MIMARISI.md
+new file mode 100644
+index 0000000..873aa8d
+--- /dev/null
++++ b/docs/architecture/GD1-SIMULATOR-CONFIG-UYUM-MIMARISI.md
+@@ -0,0 +1,425 @@
++---
++status: active
++space: architecture
++tags: [mimari, gd-1, simulator, device-config, uyum, spec]
++review_date: 2026-10-31
++---
++
++# GD1-SIMULATOR-CONFIG-UYUM — Mimarisi (SPEC)
++
++> **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
++> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
++> **İlişkili:** [SPEC-SABLONU.md](./SPEC-SABLONU.md), [DEMO-KONSOL-UI-UYUM-MIMARISI.md](./DEMO-KONSOL-UI-UYUM-MIMARISI.md), [docs/simulators/README.md](../simulators/README.md), `AGENTS-DEVICE-CONFIG.md`
++
++## 1. Amaç ve Bağlam
++
++Kök `configs/` ve `packages/simulators` üretici haritalarına (LGES Flex BSC Rev AF, Wattox MPCS,
++Envicool MC90HDNC1R-L, Bender isoPV1685RTU, Acrel DJSF1352-RN, Schneider PM5340, EP203) göre
++düzeltildi (bkz. §3 B1–B14). Bu düzeltmelerin bir kısmı, kök `configs/` dışındaki tüketicilerde
++(frontend, deployment kopyaları, manevralar, mapping kopyaları) değişiklik gerektirir. Bu SPEC
++yalnızca **o dış değişiklikleri** tanımlar; simülatör/config değişikliklerinin kendisi bu paketin
++girdisidir ve tamamlanmıştır.
++
++| Katman | Bu SPEC'te |
++|:-------|:-----------|
++| `configs/`, `packages/simulators/`, `docs/simulators/` | **Hariç** — değişiklikler yapıldı (girdi) |
++| `apps/container-web`, `apps/field` canonical tüketicileri | Dahil (UC-1) |
++| `deployment/v2/**/device-configs` + `mappings` | Dahil (UC-2) |
++| Konteyner manevraları / kurallar (HVAC, BSC) | Dahil (UC-3) |
++| BSC→PCS durum enum çevirisi | Dahil (UC-4) |
++| `apps/demo-field` / `packages/ui/nova` gösterim kuralları | Dahil (UC-5) |
++| Simülatör davranışının LGES sequence'ine uydurulması | **Hariç** — ileri iş (UC-6 ⛔ Defer) |
++| GD-2 / v1 deployment'ları | **Hariç** |
++
++## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
++
++| Kod | Karar | Sonuç |
++|:----|:------|:------|
++| K1 | 2026-10-17 — Simülatör ve config değişiklikleri yalnız `packages/simulators` ve `configs/` altında yapılır; kodun diğer kısımları SPEC ile tanımlanır | Bu doküman |
++| K2 | 2026-10-17 — Gerçek register'da olmayan değer UI'da gösterilmez; PMS hesabı olan değer "PMS hesabı" etiketiyle gösterilir | UC-1, UC-5 |
++| K3 | 2026-10-17 — Yalnız GD-1 kapsamı | v2 deployment'ları; v1/GD-2 hariç |
++| K4 | `AGENTS-DEVICE-CONFIG.md`: kök `configs/` source of truth; projede yalnız host/port/slaveId/deviceId/name/transport değişir | UC-2 kopyaları kökten yeniden üretilir |
++| K5 | 30063/30065 **güç limitidir**, güç akışı değildir (LGES BSC Data) | Canonical `charge_power_limit` / `discharge_power_limit` (UC-1) |
++
++## 3. Mevcut Durum / Kök Nedenler
++
++| Kod | Bulgu | Kanıt |
++|:----|:------|:------|
++| B1 | BSC 30063/30065 canonical `charge_power`/`discharge_power` idi; frontend bunları işaretli `power_kw` olarak topluyor → limit (500 kW) güç gibi görünüyor | `apps/container-web/src/features/racks/utils/bscHelpers.ts#bscHelpers`, `apps/field/src/features/dashboard/deriveDashboard.ts#deriveDashboard` |
++| B2 | Kök config canonical artık `*_limit`; deployment kopyaları eski canonical'ı taşıyor | `configs/flex-bsc.json` ↔ `deployment/v2/*/container*/device-configs/bsc-*.json` |
++| B3 | BSC→PCS mapping: 789 ← 30063 `size` eksik, 774/775 ölçülen akımdan, 784/785 ölçülen gerilimden, 786/787 sabit 35000 idi | `configs/mappings/bsc-pcs-mapping.json` (düzeltildi) |
++| B4 | Mapping anma enerjisi 5018 kWh; simülatör ve proje grubu 3568 kWh (32,112 MWh / 9) | `packages/simulators/src/bsc/bsc-math.ts#SYSTEM_CAPACITY_KWH`, `deployment/v2/dev/container/device-configs/mappings/bsc-pcs-mapping.json` |
++| B5 | Rack/pack/cell konum register'ları (30103…30157) "Rack Max Voltage" gibi ölçüm adlarıyla tanımlıydı | `configs/flex-bsc.json` (düzeltildi) |
++| B6 | HVAC holding 0x0B/0x0C/0x0D/0x0F/0x11/0x1E yanlış ad/ölçek; 0x2002 dokümanda geçersiz | `configs/hvac.json` (düzeltildi); `deployment/v2/**/hvac-*.json` hâlâ eski + FC04 okuma |
++| B7 | HVAC 0x200 "Reset" = fabrika ayarlarına dönüş (alarm silme değil) | Envicool §7.3 #1 |
++| B8 | PCS deployment config'leri `connection.unitId` kullanıyor; core yalnız `slaveId` okur → tüm PCS'ler unit 1 ile sorgulanır | `packages/core/src/modbus/device.ts#ModbusDevice`, `deployment/v2/*/field/device-configs/pcs-*.json` |
++| B9 | Bender slave ID aralığı 2–17; config 1 idi | Bender D00007 §3 |
++| B10 | CP-IO DI6 Fire / DI7 First Stage simülatörde vardı, config'te yoktu | `packages/simulators/src/control-panel-io/register-map.ts#DISCRETE` |
++| B11 | Acrel alarm word bit çözümü yoktu; `emu.json` Acrel ile aynı port (5030) | `configs/acrel-dc-meter.json`, `configs/emu.json` |
++| B12 | DC output enerji sayacı H/L iki ayrı ×1 kWh telemetri idi | `configs/dc-output.json` (tek UINT32 ×0.01) |
++| B13 | PCS B01 (768) / B23 (790) ← BSC State (30036) ham kopyalanıyor; iki tarafın enum anlamı farklı | `configs/mappings/bsc-pcs-mapping.json` |
++| B14 | Simülatör BSC'yi Start beklemeden 6 tick'te Normal'e alıyor; Stop durumu değiştirmiyor | `packages/simulators/src/bsc/bsc-simulator.ts#BSCSimulator.tick`, `#BSCSimulator.handleCommand` |
++
++## 4. Mimari
++
++### 4.1 Veri yolu (değişmeyen)
++
++```
++configs/*.json ──(kopya + proje değişkenleri)──▶ deployment/v2/<tier>/<app>/device-configs/*.json
++        │                                                     │
++        ▼                                                     ▼
++packages/simulators (SimulatorHost) ◀── Modbus TCP ── device-service ──▶ tags.canonical ──▶ container-web / field / demo-field
++```
++
++### 4.2 BSC güç gösterimi (UC-1 sonrası)
++
++```
++30059 DC Voltage (×0.0001 V) ─┐
++                              ├─▶ P_dc = V × I  [PMS hesabı] ──▶ işaretli power_kw
++30061 DC Current (×0.001 A) ──┘
++30063 / 30065 (×0.001 kW) ─────▶ charge_power_limit / discharge_power_limit ──▶ "Limit" alanları
++```
++
++## 5. Purity Kuralları (ZORUNLU)
++
++1. Register listesi, bitfield, alarm ve canonical **yalnız** kök `configs/`'te değişir; deployment kopyası elle düzenlenmez, yeniden üretilir.
++2. Frontend bir değeri ya register'dan (config telemetrisi) ya da açıkça "PMS hesabı" etiketli türetimden gösterir; simülatöre özel adresler (BSC 49000/49001) UI'da telemetri olarak gösterilmez.
++3. Konum register'ları (birim `-`) sayısal ölçüm grafiğine/gauge'una bağlanmaz.
++
++## 6. Use Case'ler
++
++### 6.1 UC-1 — BSC güç ve güç limiti canonical'larının ayrılması
++
++**Status:** ✏️ Specified (onay bekliyor)
++
++**Kapsam:**
++- dahil: `charge_power`/`discharge_power` tüketicilerinin `*_limit` ve V×I türetimine geçmesi; `AGENTS-DEVICE-CONFIG.md` istisna cümlesinin güncellenmesi
++- hariç: PCS tarafı güç gösterimi (PCS kendi ölçümünü taşır), GD-2
++
++**Akış:**
++1. Tüketiciler `charge_power_limit`/`discharge_power_limit` canonical'larını limit alanlarına bağlar.
++2. BSC DC gücü 30059 × 30061'den hesaplanır ve "PMS hesabı" etiketiyle gösterilir.
++
++**Gereksinimler (FR-x):**
++| Kod | Gereksinim | Eşleşme |
++|:----|:-----------|:--------|
++| FR-1.1 | System MUST NOT map `charge_power_limit`/`discharge_power_limit` to signed `power_kw` | AK-1.1 |
++| FR-1.2 | System MUST derive BSC DC power as V(30059) × I(30061) and label it as a PMS calculation | AK-1.2 |
++
++**Kabul Senaryoları (GWT):**
++1. **AK-1.1 — GIVEN** BSC limitleri 500 kW ve DC akım 0 **WHEN** container-web rack/BSC kartı ve field dashboard çizilir **THEN** güç 0 kW, limitler 500 kW ayrı alanda görünür
++2. **AK-1.2 — GIVEN** 30059 = 1300 V, 30061 = 100 A **WHEN** BSC gücü hesaplanır **THEN** 130 kW gösterilir ve etiket "PMS hesabı" içerir
++
++**Kabul Kriterleri:**
++| Kod | Kriter | Kanıt | Durum |
++|:----|:-------|:------|:------|
++| AK-1.1 | Limit canonical'ı güç toplamına girmez | unit | ⬜ |
++| AK-1.2 | DC güç V×I ile hesaplanır ve etiketlenir | unit | ⬜ |
++
++**T Görev Listesi:**
++- [ ] T-1: `bscHelpers`, `rackHelpers`, `useDashboardData` (container-web) limit/güç ayrımı
++- [ ] T-2: `containerGaugeBlocks`, `useContainerData`, `deriveDashboard` (field) limit/güç ayrımı
++- [ ] T-3: `AGENTS-DEVICE-CONFIG.md` canonical istisna cümlesi güncellemesi
++
++**Edge Cases:**
++| Durum | Davranış |
++|:------|:---------|
++| Online rack yok (30038 = 0) | Güç "—", limitler gösterilir |
++| 30059 = 0 | 30057 (anticipated) kullanılmaz; güç "—" |
++
++**Involved Files:**
++| Dosya | Rol / Değişiklik |
++|:------|:----------------|
++| `apps/container-web/src/features/racks/utils/bscHelpers.ts` | canonical eşleme |
++| `apps/container-web/src/features/racks/utils/rackHelpers.ts` | canonical eşleme |
++| `apps/container-web/src/features/dashboard/hooks/useDashboardData.ts` | toplam güç |
++| `apps/field/src/features/containers/hooks/containerGaugeBlocks.ts` | gauge |
++| `apps/field/src/features/containers/hooks/useContainerData.ts` | konteyner verisi |
++| `apps/field/src/features/dashboard/deriveDashboard.ts` | dashboard toplamı |
++| `AGENTS-DEVICE-CONFIG.md` | konvansiyon metni |
++
++### 6.2 UC-2 — GD-1 deployment config ve mapping kopyalarının yeniden üretilmesi
++
++**Status:** ✏️ Specified (onay bekliyor)
++
++**Kapsam:**
++- dahil: `deployment/v2/{dev,aws}/{container,container2,field}/device-configs/*.json` ve `mappings/bsc-pcs-mapping.json` dosyalarının kök `configs/`'ten, yalnız proje değişkenleri korunarak yeniden üretilmesi
++- hariç: v1 deployment'ları, `service.json`, demo-mv-station
++
++**Akış:**
++1. Her deployment dosyası için eşleşen kök config seçilir (bsc → flex-bsc, hvac → hvac, pcs → wattox-pcs, imd → bender-imd, dc-meter → acrel-dc-meter, pm5340 → pm5340, cb → dc-switch, dc-output, control-panel-io, fss).
++2. `deviceId`, `name`, `connection.host/port/slaveId`, `transport`, `connector`, rack/instance tag'leri korunur; geri kalan kökten alınır.
++3. PCS dosyalarında `connection.unitId` → `connection.slaveId`.
++4. Mapping kopyalarında `target`, `intervalMs` ve `deviceId` korunur; anma enerjisi proje grubuna göre (3568 kWh).
++
++**Gereksinimler (FR-x):**
++| Kod | Gereksinim | Eşleşme |
++|:----|:-----------|:--------|
++| FR-2.1 | System MUST keep register list, bitfields, alarms and canonical identical to root `configs/` | AK-2.1 |
++| FR-2.2 | System MUST address each PCS with its own `slaveId` | AK-2.2 |
++| FR-2.3 | System MUST use rated energy 3568 kWh in GD-1 BSC→PCS mappings | AK-2.3 |
++
++**Kabul Senaryoları (GWT):**
++1. **AK-2.1 — GIVEN** kök config ve deployment kopyası **WHEN** `device-config-drift` kontrolü çalışır **THEN** proje değişkenleri dışında fark yoktur
++2. **AK-2.2 — GIVEN** `pcs-2.json` **WHEN** device-service bağlanır **THEN** Modbus unit ID 2 kullanılır
++3. **AK-2.3 — GIVEN** SOC %50 **WHEN** konnektör çalışır **THEN** PCS 786 = 17840, 787 = 17840, 788 = 3568
++
++**Kabul Kriterleri:**
++| Kod | Kriter | Kanıt | Durum |
++|:----|:-------|:------|:------|
++| AK-2.1 | Drift yok | unit | ⬜ |
++| AK-2.2 | PCS slaveId okunur | unit | ⬜ |
++| AK-2.3 | Enerji alanları 3568 kWh tabanlı | unit | ⬜ |
++
++**T Görev Listesi:**
++- [ ] T-4: kopya üretim betiği (proje değişkenlerini koruyan) + v2 dosyalarının yeniden üretimi
++- [ ] T-5: PCS `unitId` → `slaveId`
++- [ ] T-6: mapping kopyalarında 3568 kWh ve kök mapping ile hizalama
++- [ ] T-7: `apps/demo-field/integration/*.integration.test.ts` beklentilerinin yeni adlara göre güncellenmesi
++
++**Edge Cases:**
++| Durum | Davranış |
++|:------|:---------|
++| Deployment'ta kökte olmayan ek telemetri | Kaldırılmaz; drift raporunda listelenir, karar developer'a |
++| İsim değişikliği (ör. "Rack Max Voltage" → "Max Cell Sum V Rack No.") | Ada bağlı tüketiciler (UI, kural, manevra) aynı PR'da güncellenir |
++
++**Involved Files:**
++| Dosya | Rol / Değişiklik |
++|:------|:----------------|
++| `deployment/v2/**/device-configs/*.json` | yeniden üretim |
++| `deployment/v2/**/device-configs/mappings/bsc-pcs-mapping.json` | hizalama |
++| `packages/shared-utils/src/config/device-config-drift.ts` | drift kontrolü (mevcut) |
++| `apps/demo-field/integration/device-telemetry.integration.test.ts` | beklentiler |
++
++### 6.3 UC-3 — HVAC ve BSC komut semantiğinin manevra/kurallara yansıması
++
++**Status:** ✏️ Specified (onay bekliyor)
++
++**Kapsam:**
++- dahil: HVAC off = 2, HVAC 0x200'ün alarm reset olarak kullanılmaması, zorlama modu (0x2100–0x2104) ile soğutma/ısıtma; BSC komutlarında ack sonrası 40010 = 0 ve 1 s heartbeat
++- hariç: HVAC sıcaklık eşiklerinin değiştirilmesi (LGES C4 değerleri geçerli)
++
++**Akış:**
++1. Konteyner kuralları HVAC soğutma/ısıtma zorlamasını setpoint yazarak değil 0x2100 + 0x2101/0x2104 ile yapar.
++2. "Alarm reset" eylemi HVAC için kaldırılır (cihazda alarm silme komutu yok); fabrika ayarı ayrı, onaylı admin eylemi olur.
++
++**Gereksinimler (FR-x):**
++| Kod | Gereksinim | Eşleşme |
++|:----|:-----------|:--------|
++| FR-3.1 | System MUST switch HVAC off by writing 2 to 0x202 | AK-3.1 |
++| FR-3.2 | System MUST NOT write 0x200 as part of any alarm reset flow | AK-3.2 |
++| FR-3.3 | System MUST use forced-mode registers for force cool/heat | AK-3.3 |
++
++**Kabul Senaryoları (GWT):**
++1. **AK-3.1 — GIVEN** HVAC açık **WHEN** yangın kuralı HVAC kapatır **THEN** 0x202'ye 2 yazılır ve okuma 2 döner
++2. **AK-3.2 — GIVEN** admin "arızaları temizle" **WHEN** HVAC hedeflenir **THEN** 0x200 yazılmaz
++3. **AK-3.3 — GIVEN** sıcaklık ≥ 25 °C **WHEN** kural tetiklenir **THEN** 0x2100 = 1 ve 0x2101 = 1 yazılır, setpoint değişmez
++
++**Kabul Kriterleri:**
++| Kod | Kriter | Kanıt | Durum |
++|:----|:-------|:------|:------|
++| AK-3.1 | Off = 2 | unit | ⬜ |
++| AK-3.2 | Reset akışında 0x200 yok | unit | ⬜ |
++| AK-3.3 | Zorlama register'ları kullanılır | unit | ⬜ |
++
++**T Görev Listesi:**
++- [ ] T-8: `deployment/v2/**/rules` ve `maneuvers` HVAC eylemlerinin güncellenmesi
++- [ ] T-9: Admin "Faults · clear" kartında HVAC reset hedefinin çıkarılması
++
++**Edge Cases:**
++| Durum | Davranış |
++|:------|:---------|
++| Zorlama açıkken remote off | Önce 0x2100 = 0, sonra 0x202 = 2 |
++
++**Involved Files:**
++| Dosya | Rol / Değişiklik |
++|:------|:----------------|
++| `deployment/v2/dev/container/rules/*.json` | HVAC kuralları |
++| `deployment/v2/dev/container/maneuvers/*.json` | HVAC manevraları |
++| `apps/demo-field/src/pages/DemoAdminPage.tsx` | reset hedefi |
++
++### 6.4 UC-4 — BSC durumunun PCS BMS bloğuna çevrilmesi
++
++**Status:** ✏️ Specified (onay bekliyor)
++
++**Kapsam:**
++- dahil: 768 (B01 BMS çalışma durumu) ve 790 (B23 DC sistem durumu) için BSC State (30036) → Wattox enum çeviri tablosu; konnektörde `enum` eşleme türü
++- hariç: Wattox enum değerlerinin kendisi (Wattox dokümanından alınır — A1)
++
++**Akış:**
++1. Mapping'e `{ kind: "enum", from, to, table: { "3": x, "6": y, ... }, default }` eklenir.
++2. Konnektör tabloda olmayan değerde `default` yazar.
++
++**Gereksinimler (FR-x):**
++| Kod | Gereksinim | Eşleşme |
++|:----|:-----------|:--------|
++| FR-4.1 | System MUST translate BSC State to the PCS BMS running-status enum instead of copying the raw value | AK-4.1 |
++
++**Kabul Senaryoları (GWT):**
++1. **AK-4.1 — GIVEN** 30036 = 6 (Emergency) **WHEN** konnektör tick'i **THEN** 768'e Wattox'un arıza/durma kodu yazılır, 6 yazılmaz
++
++**Kabul Kriterleri:**
++| Kod | Kriter | Kanıt | Durum |
++|:----|:-------|:------|:------|
++| AK-4.1 | Enum çevirisi uygulanır | unit | ⬜ |
++
++**T Görev Listesi:**
++- [ ] T-10: `packages/simulators/src/bsc-pcs-connector/mapping.ts#parseBscPcsMapping` enum türü + test
++- [ ] T-11: kök ve deployment mapping'lerinde 768/790 satırlarının enum'a çevrilmesi
++
++**Edge Cases:**
++| Durum | Davranış |
++|:------|:---------|
++| Kaynak okunamaz | `lossBit` (769 b0) set edilir, 768 son değerde kalır |
++
++**Involved Files:**
++| Dosya | Rol / Değişiklik |
++|:------|:----------------|
++| `packages/simulators/src/bsc-pcs-connector/mapping.ts` | yeni eşleme türü |
++| `packages/simulators/src/bsc-pcs-connector/connector.ts` | uygulama |
++| `configs/mappings/bsc-pcs-mapping.json` | 768/790 |
++
++### 6.5 UC-5 — Demo konsolda yalnız gerçek register'ların gösterilmesi
++
++**Status:** ✏️ Specified (onay bekliyor)
++
++**Kapsam:**
++- dahil: `apps/demo-field` ve `packages/ui/src/nova` cihaz/gauge/grafik alanlarının config telemetrisine bağlanması; BSC "bağlı değil" durumu; konum register'larının metin olarak gösterimi; sim-only alanların gizlenmesi
++- hariç: buton/grafik yerleşimi (makro düzen değişmez), tasarım
++
++**Akış:**
++1. BSC State = 1 (Not Initialized) veya online rack = 0 iken SOC/SOH/V/I "—" ve "Bağlı değil" rozeti.
++2. Konum register'ları "Rack 3 · Pack 2 · Cell 7" biçiminde metin.
++3. Register'ı olmayan alan (ör. IMD gerilimleri, BSC 49000/49001, FSS haritası) gösterilmez veya "harita yok" ile işaretlenir.
++4. PMS hesapları (POI = ΣPCS − AUX, BSC P = V×I) "PMS hesabı" etiketiyle.
++
++**Gereksinimler (FR-x):**
++| Kod | Gereksinim | Eşleşme |
++|:----|:-----------|:--------|
++| FR-5.1 | System MUST show "—" for BSC SOC/SOH/V/I while no rack is online | AK-5.1 |
++| FR-5.2 | System MUST NOT render location registers as numeric measurements | AK-5.2 |
++| FR-5.3 | System MUST NOT render values without a backing register unless labelled as PMS calculation | AK-5.3 |
++
++**Kabul Senaryoları (GWT):**
++1. **AK-5.1 — GIVEN** 30036 = 1, 30038 = 0 **WHEN** cihaz sayfası açılır **THEN** SOC "—" ve "Bağlı değil" görünür
++2. **AK-5.2 — GIVEN** 30152 = 3, 30153 = 2 **WHEN** sıcaklık kartı çizilir **THEN** "Rack 3 · Pack 2" metni görünür, gauge yoktur
++3. **AK-5.3 — GIVEN** IMD config'inde 8198 yok **WHEN** IMD kartı çizilir **THEN** net gerilim alanı görünmez
++
++**Kabul Kriterleri:**
++| Kod | Kriter | Kanıt | Durum |
++|:----|:-------|:------|:------|
++| AK-5.1 | Bağlı değil durumu | unit | ⬜ |
++| AK-5.2 | Konum metni | unit | ⬜ |
++| AK-5.3 | Register'sız alan yok | unit | ⬜ |
++
++**T Görev Listesi:**
++- [ ] T-12: `mapFieldToMimicState` ve `DemoDevicesPage` alan eşlemelerinin config adlarına göre güncellenmesi (ör. `Rack Max Temp Location` → `Max Temp Rack No.`)
++- [ ] T-13: `packages/ui/src/nova/demo-bess-data.ts` alan listesinin register kataloğuyla hizalanması
++
++**Edge Cases:**
++| Durum | Davranış |
++|:------|:---------|
++| Telemetri bayat (`maxStaleMs` aşıldı) | Değer gri + zaman damgası |
++
++**Involved Files:**
++| Dosya | Rol / Değişiklik |
++|:------|:----------------|
++| `apps/demo-field/src/pages/DemoDevicesPage.tsx` | alan eşleme |
++| `apps/demo-field/src/features/demo-data/mapFieldToMimicState.ts` | durum türetimi |
++| `packages/ui/src/nova/demo-bess-data.ts` | alan kataloğu |
++
++### 6.6 UC-6 — Simülatörün LGES sequence'ine uydurulması
++
++**Status:** ⛔ Defer
++
++**Kapsam:**
++- dahil: Start'sız otomatik Normal geçişinin kaldırılması, Stop sonrası 0x0001 + online 0, rack gücünün rack sayısına bölünmesi, enerji entegrasyonunda gerçek zaman tabanı
++- hariç: bu paket — kullanıcı kararı "simülasyonlara daha sonra detaylıca gireceğiz" (A2)
++
++**Akış:**
++1. Ayrı SPEC ile ele alınır.
++
++**Gereksinimler (FR-x):**
++| Kod | Gereksinim | Eşleşme |
++|:----|:-----------|:--------|
++| FR-6.1 | Simulator SHOULD stay Not Initialized until the controller sends Start | AK-6.1 |
++
++**Kabul Senaryoları (GWT):**
++1. **AK-6.1 — GIVEN** yeni açılmış BSC simülatörü **WHEN** 10 tick geçer ve Start yazılmaz **THEN** 30036 = 1 kalır
++
++**Kabul Kriterleri:**
++| Kod | Kriter | Kanıt | Durum |
++|:----|:-------|:------|:------|
++| AK-6.1 | Start'sız başlatma yok | unit | ⬜ |
++
++**T Görev Listesi:**
++- [ ] T-14: ayrı simülasyon SPEC'i
++
++**Edge Cases:**
++| Durum | Davranış |
++|:------|:---------|
++| Demo akışı Start'a bağımlı hale gelir | Demo başlatma betiği Start manevrasını tetikler |
++
++**Involved Files:**
++| Dosya | Rol / Değişiklik |
++|:------|:----------------|
++| `packages/simulators/src/bsc/bsc-simulator.ts` | davranış |
++
++## 7. Yaşam Döngüsü ve Hata Kategorileri
++
++| Durum | Davranış |
++|:------|:---------|
++| Kök config değişti, kopya güncellenmedi | Drift kontrolü uyarır; deployment PR'ı reddedilir |
++| Ada bağlı tüketici eski adı arıyor | Değer "—" görünür; entegrasyon testi kırılır (beklenen) |
++| Mapping kaynağı okunamıyor | `lossBit`; PCS BMS bloğu son değerde |
++
++## 8. Başarı Kriterleri (SC-x)
++
++| Kod | Kriter | Ölçüm |
++|:----|:-------|:------|
++| SC-1 | UI'da register karşılığı olmayan veya etiketsiz türetilmiş değer sayısı 0 | UC-5 testleri + gözle kontrol |
++| SC-2 | v2 deployment kopyaları kökle drift'siz | drift kontrolü |
++| SC-3 | BSC limitleri güç olarak görünmez | UC-1 testleri |
++
++## 9. Aşama Eşlemesi (iş akışı)
++
++| Aşama | Ürün |
++|:------|:-----|
++| 1. SPEC | Bu doküman |
++| 2. JSDoc | T-4 betik sözleşmesi, T-10 enum eşleme sözleşmesi |
++| 3. TEST | AK-1.x … AK-5.x unit testleri |
++| 4. IMPL | T-1 … T-13 |
++| 5. KAPANIŞ | `GD1-SIMULATOR-CONFIG-UYUM-KAPANIS.md` |
++
++## 10. Açık Kararlar
++
++| # | Konu | Durum |
++|:--|:-----|:------|
++| A1 | Wattox B01/B23 enum değerleri (UC-4 tablosu) | Wattox BMS arayüz dokümanından alınacak |
++| A2 | Simülatör LGES sequence uyumu | UC-6, ayrı paket |
++| A3 | Simülatör branch'i | `simulators` branch'i önce `origin/demo-konsol-ui-uyum`'u merge etmeli (temiz merge doğrulandı) |
++| A4 | Acrel enerji register'ları | Simülatör desteklemiyor; eklenince config'e girer |
++
++## 11. İleri İş (bu pakette YAPILMAZ — referans)
++
++1. Simülatör davranış revizyonu (UC-6).
++2. FSS için gerçek Modbus haritası gelirse `configs/fss.json` `simOnly` kaldırılır.
++
++## 12. T Görev Özeti
++
++| Kod | Görev | UC |
++|:----|:------|:---|
++| T-1 | `bscHelpers`, `rackHelpers`, `useDashboardData` (container-web) limit/güç ayrımı | UC-1 |
++| T-2 | `containerGaugeBlocks`, `useContainerData`, `deriveDashboard` (field) limit/güç ayrımı | UC-1 |
++| T-3 | `AGENTS-DEVICE-CONFIG.md` canonical istisna cümlesi güncellemesi | UC-1 |
++| T-4 | kopya üretim betiği (proje değişkenlerini koruyan) + v2 dosyalarının yeniden üretimi | UC-2 |
++| T-5 | PCS `unitId` → `slaveId` | UC-2 |
++| T-6 | mapping kopyalarında 3568 kWh ve kök mapping ile hizalama | UC-2 |
++| T-7 | `apps/demo-field/integration/*.integration.test.ts` beklentilerinin yeni adlara göre güncellenmesi | UC-2 |
++| T-8 | `deployment/v2/**/rules` ve `maneuvers` HVAC eylemlerinin güncellenmesi | UC-3 |
++| T-9 | Admin "Faults · clear" kartında HVAC reset hedefinin çıkarılması | UC-3 |
++| T-10 | `packages/simulators/src/bsc-pcs-connector/mapping.ts#parseBscPcsMapping` enum türü + test | UC-4 |
++| T-11 | kök ve deployment mapping'lerinde 768/790 satırlarının enum'a çevrilmesi | UC-4 |
++| T-12 | `mapFieldToMimicState` ve `DemoDevicesPage` alan eşlemelerinin config adlarına göre güncellenmesi (ör. `Rack Max Temp Location` → `Max Temp Rack No.`) | UC-5 |
++| T-13 | `packages/ui/src/nova/demo-bess-data.ts` alan listesinin register kataloğuyla hizalanması | UC-5 |
++| T-14 | ayrı simülasyon SPEC'i | UC-6 |
+diff --git a/docs/simulators/BSC-PCS-CONNECTOR.md b/docs/simulators/BSC-PCS-CONNECTOR.md
+index 6553db2..a71a31f 100644
+--- a/docs/simulators/BSC-PCS-CONNECTOR.md
++++ b/docs/simulators/BSC-PCS-CONNECTOR.md
+@@ -32,6 +32,10 @@ uygular ve **kendi izleme register'larını** yayınlayan bir self-host sunucu a
+    - `constant` eşleme → sabit değer aynaya yazılır.
+    - `register` eşleme → `raw × ratio + offset` (yuvarlanır) aynaya yazılır.
+    - `bit` eşleme → kaynak bit hedef register'ın ilgili bitine yansıtılır (diğer bitler korunur).
++   - `computed` eşleme → `round((pay × payÖlçek) / (payda × paydaÖlçek) × ratio + offset)`;
++     payda 0 ise `fallbackAddress` denenir, o da 0 ise 0 yazılır.
++   - `socEnergy` eşleme → `ratedKwh × SOC` (şarj modunda `ratedKwh × (1 − SOC)`) × ratio + offset.
++   - `lossBit` tanımlıysa kaynak tamamen okunamadığında (`sourceStatus = 2`) hedef kelimenin o biti 1 yapılır (BMS haberleşme kaybı).
+    - Bir eşleme okunamazsa sayaç artar, **diğer eşlemeler devam eder**.
+    - `sourceStatus`: 0 = ok, 1 = kısmi, 2 = kaynak yok.
+ 2. **Değişen (dirty) adresler toplanır** — son yazılan değerden farklı olanlar.
+@@ -59,8 +63,12 @@ uygular ve **kendi izleme register'larını** yayınlayan bir self-host sunucu a
+ - **`register`:** `raw_pcs = round(raw_bsc × ratio + offset)` — hedef `to` adresi **BMS
+   bloğunda** olmalı (`BMS_BASE`…`BMS_BASE+BMS_SIZE`).
+ - **`bit`:** kaynak register'ın N. biti → hedef register'ın M. biti.
+-- **`constant`:** sabit değer (ör. anma enerji).
+-- Kaynak referansı: `{ deviceId, table: "input"|"holding", address, size?, signed? }`;
++- **`constant`:** sabit değer (ör. anma enerji, pack gerilim üst/alt sınırı).
++- **`computed`:** `{ numerator: {from, scale}, denominator: {from, scale}, to, ratio, offset }` —
++  ör. akım limiti = güç limiti / DC gerilim.
++- **`socEnergy`:** `{ soc: {from, scale}, ratedKwh, mode: "charge"|"discharge", to, ratio, offset }`.
++- **`lossBit`** (üst seviye, opsiyonel): `{ to, bit }`.
++- Kaynak referansı: `{ deviceId, table: "input"|"holding", address, size?, signed?, fallbackAddress? }`;
+   `size > 1` → big-endian kelime birleştirme (uint32/sint32).
+ - `parseBscPcsMapping` **STRICT** parse eder; geçersiz yapı `ValidationError` fırlatır (fail-fast).
+ 
+@@ -97,3 +105,26 @@ uygular ve **kendi izleme register'larını** yayınlayan bir self-host sunucu a
+ - Bit eşlemeleri hedef register'ın **MIRROR'ı** üzerinde çalışır: hedef kelimenin diğer
+   bitleri bozulmaz, bilinmeyen bitler 0'dır.
+ - Testler: `bsc-pcs-connector/connector.test.ts`, `source-reader.test.ts`, `tcp-target.test.ts`.
++
++---
++
++## 7. GD-1 eşleme tablosu (`configs/mappings/bsc-pcs-mapping.json`)
++
++LGES Flex BSC Rev AF (kaynak) → Wattox BMS bloğu B01–B23 (hedef, 0x0300–0x0316):
++
++| PCS | Anlam (birim) | Kaynak | Dönüşüm |
++| :--- | :--- | :--- | :--- |
++| 768 / 790 | Çalışma durumu / DC sistem durumu | 30036 BSC State | ham (enum anlamları farklı — SPEC'e bakınız) |
++| 769 | Durum sözcüğü | 30043 b0 → b0 (LOC), 30037 b2 → b1/b4/b5 (fault), 30037 b0 → b7 (alarm); `lossBit` b0 | bit |
++| 770 | Toplam gerilim (0.1 V) | 30059 U32 ×0.0001 V (yedek 30057) | ×0.001 |
++| 771 | Toplam akım (0.1 A) | 30061 S32 ×0.001 A | ×0.01 |
++| 772 / 773 | SOC / SOH (0.1 %) | 30055 / 30056 ×0.01 % | ×0.1 |
++| 774 / 775 | Maks. şarj / deşarj akımı (0.1 A) | 30063 / 30065 (kW) ÷ 30059 (V) | computed, ratio 10000 |
++| 776 / 777 | Maks. şarj / deşarj gücü (0.1 kW) | 30063 / 30065 U32 ×0.001 kW | ×0.01 |
++| 778 / 779 | Maks. / min. SOC (0.1 %) | 30100 / 30102 | ×0.1 |
++| 780 / 781 | Maks. / min. hücre sıcaklığı (0.1 °C) | 30149 / 30151 **pack** sıcaklığı | ×1 |
++| 782 / 783 | Maks. / min. hücre gerilimi (0.001 V) | 30138 / 30140 ×0.001 V | ×1 |
++| 784 / 785 | Pack gerilim üst / alt sınırı (0.1 V) | sabit 14688 / 11016 | 1468.8 V / 1101.6 V |
++| 786 / 787 | Şarj / deşarj edilebilir enerji (0.1 kWh) | 30055 SOC, `ratedKwh` 3568 | socEnergy |
++| 788 | Anma enerjisi (0.001 MWh) | sabit 3568 | 3.568 MWh |
++| 789 | SOP (0.1 kW) | 30063 U32 | ×0.01 |
+diff --git a/docs/simulators/BSC.md b/docs/simulators/BSC.md
+index 25de97f..bc9cdb0 100644
+--- a/docs/simulators/BSC.md
++++ b/docs/simulators/BSC.md
+@@ -1,7 +1,7 @@
+ # BSC Simülatörü (Battery System Controller)
+ 
+ > Cihaz: LG Energy Solution **BSC** — rak tabanlı batarya sistem kontrolcüsü.
+-> Kaynak harita: `MAP_PLANNING_MC_090626_V1.xlsx` → JSON.
++> Kaynak harita: LGES **Flex BSC Modbus Map Rev AF** (`docs/devices`) — BSC Data 30000–30169, Rack Data 30170 + 150·(N−1), Controller Data 40000–40028, Discrete Inputs (FC02).
+ > Kod: `bsc/bsc-simulator.ts#BSCSimulator`, register tanımları: `bsc/register-map.ts`,
+ > dönüşüm tablosu: `bsc/bsc-math.ts`, parser: `bsc/bsc-config.ts`.
+ 
+@@ -61,150 +61,120 @@ telemetrisi ve bir controller'ın gönderdiği komutlara verilen yanıtlar.
+ 
+ ### 3.1 `updateRackStates` — güç modeli
+ 
+-`bsc/bsc-simulator.ts#BSCSimulator.updateRackStates`:
++- Rev AF'de **BSC'ye güç komutu yoktur**; güç PCS tarafından belirlenir. Simülatör, demo için
++  güç bilgisini haritada OLMAYAN iki sim-only holding register'dan alır
++  (`register-map.ts#SIM_ONLY`): **49000** `CHARGE_POWER_SETPOINT`, **49001**
++  `DISCHARGE_POWER_SETPOINT` (uint16, ×0.1 kW). Bu adresler gerçek cihazda yoktur; UI/config
++  bunları telemetri olarak göstermemelidir.
++- Net güç: aktif komut `START` ise `powerKw = (charge − discharge) × 0.1` (pozitif = şarj); aksi 0.
++- Yalnız online rack'ler ve `bscState ∈ {NORMAL, MANUAL}` iken:
++  `deltaEnergy = powerKw × (elapsedSeconds × simSpeedMultiplier / 60)` → `storedCapacityKwh`.
++  (Bölen 60: demo hızlandırması — gerçek zamanda bölen 3600 olmalıdır.)
++- Clamp: %3,5 (MIN_SOC) – %97 (MAX_SOC).
++- Her online rack **sistem gücünün tamamını** alır (rack'lere bölünmez) — bkz. §7.
+ 
+-- Holding'ten okunur: `COMMAND_REQUEST` (40010), `CHARGE_POWER_SETPOINT` (40030),
+-  `DISCHARGE_POWER_SETPOINT` (40031).
+-- Rack gücü (`powerKw`):
+-  - `cmd === START (0x02)` → `chargeSetpoint × 0.01` (pozitif = şarj)
+-  - `cmd === DISCHARGE (0x0B)` → `-(dischargeSetpoint × 0.01)` (negatif = deşarj)
+-  - aksi → 0
+-- **Yalnızca `status === true` (online) rack'ler** için:
+-  `deltaEnergy = powerKw × (elapsedSeconds / 60)` → `storedCapacityKwh += deltaEnergy`.
+-- **Clamp:** enerji entegrasyonu %3,5 (MIN_SOC) ile %97 (MAX_SOC) arasında tutulur
+-  (`socToCapacity(MIN_SOC)` ≤ capacity ≤ `socToCapacity(MAX_SOC)`).
+-- Enerji entegrasyonu yalnızca `bscState === NORMAL || MANUAL` iken yapılır.
+-
+-### 3.2 `updateSystemRegisters` — sistem okuma register'ları
++### 3.2 `updateSystemRegisters` — sistem okuma register'ları (FC04)
+ 
+ | Adres | Ad | Değer |
+ | :--- | :--- | :--- |
+-| 30035 | `ESSENTIAL.HEARTBEAT` | `tickCount % 65536` (+1/tick) |
+-| 30036 | `ESSENTIAL.BSC_STATE` | Aktif BSC durumu |
++| 30030 | `REQUEST_ACKNOWLEDGE` | Son komutun ack kodu |
++| 30031 | `LAST_ACCEPTED_REQ` | Kabul edilen son komut |
++| 30035 | `ESSENTIAL.HEARTBEAT` | `tickCount % 65536` |
++| 30036 | `ESSENTIAL.BSC_STATE` | 0 None, 1 Not Initialized, 2 Initializing, 3 Normal, 4 NPS, 5 Manual, 6 Emergency |
+ | 30037 | `ESSENTIAL.BSC_INFO` | Bitfield (aşağıda) |
+-| 30038 | `ESSENTIAL.ONLINE_RACK_NO` | Online rack sayısı |
+-| 30043 | `DIAGNOSTICS.CONTROLLER_LOC` | LOC alarm bitleri |
+-| 30055 | `SYSTEM_SUMMARY.BSC_SOC` | Ortalama SOC ×100 |
+-| 30056 | `SYSTEM_SUMMARY.BSC_SOH` | Ortalama SOH ×100 (hep **99 %**) |
+-| 30057–58 | `DC_VOLTAGE_ANTICIPATED` | Online yoksa ortalama gerilim ×10000, varsa 0 |
+-| 30059–60 | `SYSTEM_SUMMARY.DC_VOLTAGE` | Ortalama DC gerilim ×10000 (uint32) |
+-| 30061–62 | `SYSTEM_SUMMARY.DC_CURRENT` | `powerKw×1000 / avgVoltage` (sint32) |
+-| 30063–64 | `CHARGE_POWER_LIMIT` | Şarjda `chargeSp×10`; deşarjda 0; komut yokken nominal **500 kW** |
+-| 30065–66 | `DISCHARGE_POWER_LIMIT` | Deşarjda `dischargeSp×10`; şarjda 0; komut yokken nominal 500 kW |
+-| 30100–30157 | `SUMMARY_STATS.*` | MAX/AVG/MIN SOC, SOH, cell-sum gerilimi, akım, sıcaklık, konumlar |
+-
+-- **`BSC_INFO` (30037) bitleri** (`register-map.ts#BSC_INFO_BITS`):
+-  - b4:b5 `CHARGE_STATUS`: START → `0b01` (şarj), DISCHARGE → `0b10` (deşarj), aksi `0b11` (idle)
+-  - b10 `PRE_VPC` (avgSoc > %95), b11 `VPC` (> %90), b12 `SPC` (> %85)
+-- **Not:** ortalama gerilim, online rack'lerin gerilimlerinin ortalamasıdır;
+-  online rack yoksa fallback 1300 V kullanılır.
++| 30038 | `ONLINE_RACK_NO` | Online rack sayısı |
++| 30043 | `CONTROLLER_LOC` | b0 = 5 tick'ten uzun heartbeat yok |
++| 30055 / 30056 | SOC / SOH | ×0.01 %; **online rack yoksa SOC = 0** (LGES: online rack'ler arasından hesaplanır) |
++| 30057–58 | `DC_VOLTAGE_ANTICIPATED` | Online rack yokken ortalama gerilim (×0.0001 V), varsa 0 |
++| 30059–60 | `DC_VOLTAGE` | Online ortalama gerilim ×0.0001 V (uint32) |
++| 30061–62 | `DC_CURRENT` | `powerKw×1000 / V`, ×0.001 A (sint32) |
++| 30063–64 / 30065–66 | Şarj / deşarj **güç limiti** | uint32 ×0.001 kW; nominal 500 kW, SOC %100'de şarj, %0'da deşarj limiti 0. Setpoint'ten türetilmez. |
++| 30100–30157 | `SUMMARY_STATS` | MAX/AVG/MIN SOC, SOH, cell-sum V, akım, hücre V (×0.001 V → 3528 = 3.528 V), sıcaklık ve **konum (rack/pack/cell no.)** register'ları |
++
++- **30037 bitleri:** b0 Alarm, b1 Warning, b2 Fault (enjeksiyonla); b4–5 şarj durumu
++  `01` şarj / `10` deşarj / `11` idle — net setpoint işaretinden; b10 PreVPC (>%95), b11 VPC (>%90), b12 SPC (>%85).
++- Konum register'ları (30103, 30105, 30124, 30125, 30134, 30135, 30141–30146, 30152–30157)
++  **ölçüm değil**, rack/pack/cell numarasıdır; simülatör online iken 1, değilse 0 yazar.
+ 
+ ### 3.3 `updatePerRackRegisters` — rack başına
+ 
+-`bsc/bsc-simulator.ts#BSCSimulator.updatePerRackRegisters`. Rack `n` için:
+-
+-- Nameplate tabanı = `RACK_NAMEPLATE_BASE (30170) + (n-1) × RACK_STRIDE (200)`
+-- Summary tabanı = nameplate + `RACK_SUMMARY_BASE_OFFSET (50)` → rack 1 için **30220**
+-
+-Yazılanlar (online rack): `HEARTBEAT`, `STATE = NORMAL (0x09)`, `STATUS_FLAGS`
+-(b8 Battery Ready, b7 DC Line Closed, b3/b4 şarj/deşarj), `COMPONENT_STATUS`
+-(MC+/MC-/CB kapalı, fan), `COMPONENT_FEEDBACK`, `LIVE_UNIT_COUNT = 200`,
+-`SOC` (×100), `SOH` (99×100), güç limitleri, `CELL_SUM_VOLTAGE` (V×10000),
+-`CURRENT` (sint32), hücre gerilimleri, `MAX/MIN/AVG_PACK_TEMPERATURE`,
+-`CALIBRATION_INFO = 0`, diyagnostikler = 0.
+-Offline rack'ler idle değerlerde bırakılır.
++- Rack `n` tabanı = `30170 + (n−1) × 150` (`RACK_STRIDE = 150`, Rev AF); özet tabanı +50
++  → rack 1 özeti **30220**.
++- Online rack: `STATE = NORMAL`, `+51 STATUS_FLAGS` (b8 Battery Ready, b7 DC Line Closed,
++  **b4–3: 00 idle, 01 deşarj, 10 şarj** — 30037'nin tersi), `+52/+53 COMPONENT_STATUS/FEEDBACK`
++  (2 bit: 11 kapalı/çalışıyor, 10 açık/boşta), `LIVE_UNIT_COUNT = 200`, SOC/SOH (×0.01 %),
++  rack güç limitleri 500 kW, cell-sum V (×0.0001 V), akım (×0.001 A), rack hücre gerilimi
++  **35288 (×0.0001 V = 3.5288 V)**, pack sıcaklıkları 21–23 °C, diyagnoz sözcükleri 0.
++- Offline rack: `STATE = NORMAL`, `STATUS_FLAGS = 0`, `LIVE_UNIT_COUNT = 0`; diğer alanlar son değerde kalır.
+ 
+-### 3.4 `updateRackFlags` — discrete input bayrakları
++### 3.4 `updateRackFlags` — discrete input bayrakları (FC02)
+ 
+-`bsc/bsc-simulator.ts#BSCSimulator.updateRackFlags`. `N = rackCount`, `i = 1..N` için:
+-`i` = Disabled, `N+i` = Online (`state.status`), `2N+i` = Alarm, `3N+i` = Warning,
+-`4N+i` = Fault, `5N+i` = Non-Balancing. Alarm/Warning/Fault **hep `false`** (sağlıklı).
++`N = rackCount`, `i = 1..N`: `i` Disabled, `N+i` Online, `2N+i` Alarm, `3N+i` Warning,
++`4N+i` Fault, `5N+i` Non-Balancing (LGES Discrete Inputs sayfasıyla aynı). Alarm/Warning/Fault hep `false`.
+ 
+ ---
+ 
+-## 4. Yazma davranışı — hangi register'a yazınca ne olur?
++## 4. Yazma davranışı
+ 
+-`bsc/bsc-simulator.ts#BSCSimulator.writeHoldingRegister`: değer her zaman holding
+-tablosuna yazılır; ayrıca:
++`writeHoldingRegister`: değer holding tablosuna yazılır; ayrıca:
+ 
+ | Adres | Sembol | Etki |
+ | :--- | :--- | :--- |
+-| **40000** | `CONTROLLER.HEARTBEAT` | `lastControllerHeartbeat = tickCount` → LOC alarmı sıfırlanır |
+-| **40010** | `CONTROLLER.COMMAND_REQUEST` | `handleCommand(value)` **anında** çalışır |
+-| **40030** | `CHARGE_POWER_SETPOINT` | Saklanır; **sonraki tick'te** güç modeline girer (scale 0.01 kW) |
+-| **40031** | `DISCHARGE_POWER_SETPOINT` | Saklanır; sonraki tick'te güç modeline girer |
++| **40000** | `CONTROLLER.HEARTBEAT` | LOC sayacı sıfırlanır. Config `heartbeat` bloğu bunu **1 s** aralıkla yazar. |
++| **40010** | `COMMAND_REQUEST` | `handleCommand(value)` anında; config komutları ack sonrası `finalize` ile 40010 = 0 yazar. |
++| 40011–40017 / 40020–40026 | Manual / Disabled racks | Saklanır, davranışa bağlı değil |
++| **49000 / 49001** | `SIM_ONLY` güç setpoint'leri | Sonraki tick'te güç modeline girer (yalnız simülatör) |
+ 
+-### Komut tablosu (`handleCommand` → 40010)
+-
+-`bsc/bsc-simulator.ts#BSCSimulator.handleCommand`:
++### Komut tablosu (40010)
+ 
+ | Komut | Değer | Tepki |
+ | :--- | :--- | :--- |
+-| `EMERGENCY` | 0x0001 | Durum `EMERGENCY`; tüm rack'ler offline; ACK = DONE |
+-| `START` | 0x0002 | Durum `NORMAL`; `!disabled` rack'ler online; register'lar anında güncellenir |
+-| `STOP` | 0x0003 | ACK = DONE; register'lar güncellenir (rack durumu değişmez) |
+-| `OPEN_ALL_CONTACTORS` | 0x0004 | Tüm rack'ler offline |
+-| `CLOSE_CONTACTORS` | 0x0005 | `!disabled` rack'ler online |
+-| `ENTER_MANUAL` | 0x0006 | Durum `MANUAL`; tüm rack'ler offline |
+-| `EXIT_MANUAL` | 0x0007 | `MANUAL` ise `NORMAL`; rack'ler online |
+-| `EVENT_CLEAR` | 0x0009 | ACK = DONE |
+-| `RESET` | 0x000A | `resetSimulator()` — register/rack state sıfırlanır, durum `NOT_INITIALIZED` |
+-| `DISCHARGE` | 0x000B | Durum `NORMAL`; rack'ler online (resmi haritada **kaldırılmış**, geçici — `register-map.ts#COMMAND` ELEGANT-EXCEPTION) |
+-| Bilinmeyen | — | ACK = `INVALID_REQUEST` (0x0030) |
+-
+-**Kabul kuralları:**
+-- `NOT_INITIALIZED` iken `START` dışındaki komut → ACK = `UNDER_INITIALIZING` (0x0007), reddedilir.
+-- `EMERGENCY` iken `RESET`/`EMERGENCY` dışındaki komut → ACK = `BSC_EMERGENCY_MODE` (0x000C).
+-- ACK, `NAMEPLATE.REQUEST_ACKNOWLEDGE` (**30030**) register'ına yazılır; DONE/IN_PROGRESS
+-  ise `NAMEPLATE.LAST_ACCEPTED_REQ` (**30031**) = komut kodu.
++| `EMERGENCY` | 0x0001 | Her durumda kabul; durum `EMERGENCY`, tüm rack'ler offline |
++| `START` | 0x0002 | Yalnız `NOT_INITIALIZED`'dan; `NORMAL`, rack'ler online. Diğer durumlarda ack `BMS_ALREADY_CONNECTED` |
++| `STOP` | 0x0003 | `EMERGENCY`'den çıkış → `NOT_INITIALIZED`; aksi halde aktif komut STOP (durum değişmez) |
++| `OPEN_ALL_CONTACTORS` | 0x0004 | Tüm rack'ler offline; zaten açıksa `CONTACTORS_ALREADY_OPEN` |
++| `CLOSE_CONTACTORS` | 0x0005 | Etkin rack'ler online; zaten online ise `BSC_ALREADY_ONLINE` |
++| `ENTER_MANUAL` / `EXIT_MANUAL` | 0x0006 / 0x0007 | `MANUAL` ↔ `NORMAL` |
++| `EVENT_CLEAR` | 0x0009 | 30 tick cooldown; içinde `WITHIN_COOLDOWN` (0x12) |
++| `RESET` | 0x000A | Simülatör sıfırlanır → `NOT_INITIALIZED` |
++| 0x000B | — | Rev AF'de **kaldırıldı** → `INVALID_REQUEST` (0x30) |
++| Bilinmeyen | — | `INVALID_REQUEST` (0x30) |
++
++**Kabul kuralları:** `INITIALIZING` iken Emergency dışı her komut `UNDER_INITIALIZING`;
++`NOT_INITIALIZED` iken Start dışı komutlar `UNDER_INITIALIZING`; `EMERGENCY` iken yalnız
++Stop/Event Clear/Reset; akım akarken Stop/Open All/Reset → `CURRENT_FLOWS`.
++Ack 30030'a, kabul edilen komut 30031'e yazılır.
+ 
+ ---
+ 
+ ## 5. Register grupları (özet)
+ 
+-Tam liste: `bsc/register-map.ts`. Önemli bloklar:
+-
+-**INPUT REGISTERS (3x) — salt okunur**
+-- `NAMEPLATE` 30000–30031: `SW_VERSION`, `TOTAL_RACK_NO`, `REQUEST_ACKNOWLEDGE` (30030), `LAST_ACCEPTED_REQ` (30031)
+-- `ESSENTIAL` 30035–30038: `HEARTBEAT`, `BSC_STATE`, `BSC_INFO`, `ONLINE_RACK_NO`
+-- `DIAGNOSTICS` 30043–30050: `CONTROLLER_LOC`, bitfield'lar
+-- `SYSTEM_SUMMARY` 30055–30066: SOC/SOH/DC gerilim/akım/güç limitleri
+-- `SUMMARY_STATS` 30100–30157: MAX/AVG/MIN SOC, SOH, cell-sum, akım, sıcaklık + konumlar
+-- Rack blokları: nameplate tabanı `RACK_NAMEPLATE_BASE = 30170`, blok boyu `RACK_STRIDE = 200`;
+-  özet başlangıcı +50 → rack 1 özeti **30220**
+-
+-**HOLDING REGISTERS (4x) — oku/yaz**
+-- `CONTROLLER.HEARTBEAT` 40000, `CONTROLLER.COMMAND_REQUEST` 40010
+-- `MANUAL_RACKS_*` 40011–40017, `DISABLED_RACKS_*` 40020–40026 + reserved 40027–40028
+-- `CHARGE_POWER_SETPOINT` 40030, `DISCHARGE_POWER_SETPOINT` 40031 (geçici, ELEGANT-EXCEPTION)
+-
+-**DISCRETE INPUTS (1x)** — rack bayrakları: Disabled `n`, Online `N+n`, Alarm `2N+n`,
+-Warning `3N+n`, Fault `4N+n`, Non-Balancing `5N+n` (toplam `6N`).
+-
+-**Enum'lar (aynı dosyada):** `BSC_STATE`, `COMMAND`, `ACKNOWLEDGE`, `BSC_INFO_BITS`,
+-`RACK_STATE`, `RACK_STATUS_BITS`.
++- **Input (FC04):** NAMEPLATE 30000–30031, ESSENTIAL 30035–30038, DIAGNOSTICS 30043–30050,
++  SYSTEM_SUMMARY 30055–30066, SUMMARY_STATS 30100–30157, rack blokları 30170 + 150·(N−1).
++- **Holding (FC03/06/16):** 40000 heartbeat, 40010 komut, 40011–40017 manual racks,
++  40020–40026 disabled racks, 40027–40028 reserved. **49000/49001 yalnız simülatör.**
++- **Discrete (FC02):** 6N rack bayrağı.
++- Enum'lar: `BSC_STATE`, `COMMAND`, `ACKNOWLEDGE` (0x00–0x13, 0x30, 0x31), `BSC_INFO_BITS`, `RACK_STATE`, `RACK_STATUS_BITS`.
+ 
+ ---
+ 
+ ## 6. Yardımcı dosyalar
+ 
+-- `bsc/bsc-math.ts` — SOC ↔ gerilim ↔ kapasite dönüşüm tablosu (21 nokta, doğrusal
+-  interpolasyon). Sabitler: `SYSTEM_CAPACITY_KWH = 3568`, `MAX_SOC_PERCENT = 97`,
+-  `MIN_SOC_PERCENT = 3.5`; fonksiyonlar `capacityToSocVoltage(capacityKwh)` ve
+-  `socToCapacity(socPercent)`.
+-- `bsc/bsc-config.ts` — Excel türevi JSON map'ini parse eder: `parseBSCMap(raw)` →
+-  `{ registers }`. Çok satırlı bitfield açıklamalarını birleştirir (`mergeRows`),
+-  `b0 ~ b1` kalıbını ayrıştırır (`parseBitFields`).
++- `bsc/bsc-math.ts` — SOC ↔ gerilim ↔ kapasite tablosu (21 nokta). `SYSTEM_CAPACITY_KWH = 3568`,
++  `MAX_SOC_PERCENT = 97`, `MIN_SOC_PERCENT = 3.5`.
++- `bsc/bsc-config.ts` — harita JSON'unu parse eder (`parseBSCMap`).
+ 
+ ---
+ 
+-## 7. Bilinen davranış boşlukları
+-
+-- **Disable/manual rack register'ları kablolu değil:** `DISABLED_RACKS_*` (40020–40026)
+-  ve `MANUAL_RACKS_*` (40011–40017) holding'e yazılır ama hiçbir kod yolu okumaz;
+-  `RackState.disabled` pratikte hep `false` kalır.
+-- **Kalibrasyon tetiklenemez:** `CALIBRATION_INFO` ve `RECALIBRATION_NO` her tick 0.
+-- **Sıcaklık/cell gerilimi sabit:** gerçek ölçüm yerine sabit değerler (3.5288 V,
+-  ~23 °C) yazılır.
+-- **DISCHARGE komutu** resmi Rev AF haritasında yoktur; güç normalde PCS tarafından
+-  kontrol edilir (bkz. `docs/analysis/BSC-VERI-ANALIZI.md`).
++## 7. LGES'e göre bilinen sapmalar (simülasyon detayına sonra girilecek)
++
++- **Otomatik başlatma:** simülatör `NOT_INITIALIZED → INITIALIZING → NORMAL` geçişini 6 tick'te
++  kendiliğinden yapar ve rack'leri online eder. Gerçek BSC'de bu geçiş controller'ın `START`
++  komutuyla olur (Sequence sayfası).
++- **STOP:** LGES'te Stop sonrası durum 0x0001 ve online rack = 0 olur; simülatör (Emergency dışı)
++  durumu ve rack'leri değiştirmez.
++- **Rack gücü:** her online rack sistem gücünün tamamını alır; rack akımlarının toplamı sistem
++  akımına eşit değildir.
++- **Enerji entegrasyonu** 60'a bölünür (demo hızlandırması).
++- Disable/manual rack register'ları, kalibrasyon ve diyagnoz bitleri davranışa bağlı değil;
++  hücre gerilimi/sıcaklık sabit.
+diff --git a/docs/simulators/CONTROL-PANEL-IO.md b/docs/simulators/CONTROL-PANEL-IO.md
+index 5502c42..cef3e59 100644
+--- a/docs/simulators/CONTROL-PANEL-IO.md
++++ b/docs/simulators/CONTROL-PANEL-IO.md
+@@ -70,6 +70,8 @@ Bilinmeyen COIL yazımı yok sayılır.
+ | 3 | `DISCRETE.FSS_FAULT` | FSS arıza |
+ | 4 | `DISCRETE.FSS_DISCHARGED` | Söndürme aktive edildi |
+ | 5 | `DISCRETE.FSS_2ND_STAGE` | 2. aşama aktive |
++| 6 | `DISCRETE.FIRE` | EP203: herhangi bir bölgede yangın (Fire rölesi) |
++| 7 | `DISCRETE.FIRST_STAGE` | EP203: 1. aşama (tahliye / uzaktan manuel release) |
+ 
+ Bilinmeyen DI adresi → `false`.
+ 
+@@ -84,7 +86,8 @@ Bilinmeyen DI adresi → `false`.
+ `control-panel-io/register-map.ts` (dışa `IO_COILS`, `IO_DISCRETE` olarak da açılır):
+ - **COILS:** `BATTERY_LIGHT: 0`, `PANEL_LIGHT: 1`
+ - **DISCRETE INPUTS:** `BATTERY_DOOR_OPEN: 0`, `PANEL_DOOR_OPEN: 1`,
+-  `FSS_SYSTEM_OK: 2`, `FSS_FAULT: 3`, `FSS_DISCHARGED: 4`, `FSS_2ND_STAGE: 5`
++  `FSS_SYSTEM_OK: 2`, `FSS_FAULT: 3`, `FSS_DISCHARGED: 4`, `FSS_2ND_STAGE: 5`, `FIRE: 6`, `FIRST_STAGE: 7`
++  (config'te DI6 "Fire" ve DI7 "First Stage" olarak okunur)
+ 
+ > Gerçek IO adresleri geldiğinde **yalnızca `register-map.ts` + config** güncellenir
+ > (demo sözleşme).
+diff --git a/docs/simulators/DC-METER.md b/docs/simulators/DC-METER.md
+index 7b41c63..adc21b5 100644
+--- a/docs/simulators/DC-METER.md
++++ b/docs/simulators/DC-METER.md
+@@ -51,13 +51,13 @@ setMeasurements({ voltage?, current?, power?, alarmWord? })
+ 
+ ---
+ 
+-## 5. Okuma davranışı (INPUT REGISTER)
++## 5. Okuma davranışı (FC03 — DJSF1352-RN yalnız 0x03 okuma tanımlar; simülatör input olarak da sunar)
+ 
+ `dc-meter/dc-meter-simulator.ts#DcMeterSimulator.readInputRegister`:
+ 
+ | Adres | Sembol | Format | Açıklama |
+ | :--- | :--- | :--- | :--- |
+-| 19 | `INPUT.ALARM_WORD` | UINT16 | Alarm word (normalde 0; v1 ham değer) |
++| 19 | `INPUT.ALARM_WORD` | UINT16 | Alarm word — bit0 aşırı gerilim, bit1 düşük gerilim, bit2 aşırı akım, bit3 düşük akım, bit4 aşırı güç, bit5 düşük güç, bit6 DI1, bit7 DI2 (config bitfield). Normalde 0. |
+ | 50–51 | `INPUT.DC_VOLTAGE` | FLOAT32 BE | DC gerilim (V) |
+ | 52–53 | `INPUT.DC_CURRENT` | FLOAT32 BE | DC akım (A) |
+ | 54–55 | `INPUT.DC_POWER` | FLOAT32 BE | DC güç (kW) |
+@@ -72,8 +72,8 @@ setMeasurements({ voltage?, current?, power?, alarmWord? })
+ `dc-meter/register-map.ts#INPUT`: `ALARM_WORD: 19`, `DC_VOLTAGE: 50`,
+ `DC_CURRENT: 52`, `DC_POWER: 54`.
+ 
+-> **Holding/coil/discrete YOKTUR.** Tüm okumalar input register üzerindendir
+-> (FC03 olarak da sunulur).
++> **Coil/discrete YOKTUR.** Config tüm okumaları FC03 ile yapar. Gerçek cihazdaki enerji
++> register'ları (pozitif/negatif aktif enerji) simüle edilmez; config'e eklenmedi.
+ 
+ ---
+ 
+diff --git a/docs/simulators/DC-OUTPUT.md b/docs/simulators/DC-OUTPUT.md
+index d46edec..b5f731f 100644
+--- a/docs/simulators/DC-OUTPUT.md
++++ b/docs/simulators/DC-OUTPUT.md
+@@ -98,8 +98,7 @@ Standart `SelfHostedSimulator` deseni; `tick: (s) => this.tick(s)` bağlanır.
+ | 1 | `ACTUAL_CURRENT` | 0.1 | A |
+ | 2 | `ACTUAL_POWER` | 1 | W → `(V×I)/100` |
+ | 3 | `TEMP` | 0.1 | °C |
+-| 4 | `ENERGY_COUNTER_H` | 0.01 | kWh (uint32 yüksek kelime) |
+-| 5 | `ENERGY_COUNTER_L` | 0.01 | kWh (uint32 düşük kelime) |
++| 4–5 | `ENERGY_COUNTER_H/L` | 0.01 | kWh — **tek UINT32** (yüksek kelime önce); config'te tek telemetri "Energy Counter" |
+ 
+ ---
+ 
+diff --git a/docs/simulators/ENERGY-ANALYZER.md b/docs/simulators/ENERGY-ANALYZER.md
+index 14a444c..e6865d4 100644
+--- a/docs/simulators/ENERGY-ANALYZER.md
++++ b/docs/simulators/ENERGY-ANALYZER.md
+@@ -63,7 +63,10 @@ Standart `SelfHostedSimulator` deseni; `tick: (s) => this.tick(s)` bağlanır.
+ 
+ ## 5. Register grupları
+ 
+-`energy-analyzer/register-map.ts` — tümü **INPUT_REGISTER, FLOAT32 BE (2 register)**:
++`energy-analyzer/register-map.ts` — FLOAT32 BE (2 register). Adresler PM5340 register listesinin
++**1 eksiği** (doküman 1-tabanlı, Modbus PDU 0-tabanlı); aşağıdaki tablo doküman numaralarını verir,
++kodda/config'te `doküman − 1` kullanılır (ör. Current A 3000 → 2999). `configs/pm5340.json`
++okumaları **FC03** ile yapar; PF register'ları `4Q_FP_PF` tipiyle çözülür:
+ 
+ | Grup | Adresler | Adlar |
+ | :--- | :--- | :--- |
+diff --git a/docs/simulators/HVAC.md b/docs/simulators/HVAC.md
+index 43e9072..8cccf32 100644
+--- a/docs/simulators/HVAC.md
++++ b/docs/simulators/HVAC.md
+@@ -70,22 +70,35 @@ Standart `SelfHostedSimulator` deseni; `tick: (s) => this.tick(s)` bağlanır.
+ 
+ ---
+ 
+-## 4. Yazma davranışı (HOLDING)
++## 4. Okuma ve yazma davranışı (HOLDING, FC03)
++
++Doküman §5.2: cihaz **yalnız 0x03 (Read Holding)** ile okunur. Simülatör bu yüzden bilgi
++bloğunu (0x1000–0x1030) ve alarm bloğunu (0x300–0x327) **holding** okumasında da sunar
++(`readHoldingRegister` → `readInputRegister`). `configs/hvac.json` tüm okumaları FC03 ile yapar.
+ 
+ `hvac/hvac-simulator.ts#HvacSimulator.writeHoldingRegister`:
+ 
+ | Adres | Ad | Etki |
+ | :--- | :--- | :--- |
+-| `0x202` | `REMOTE_ON_OFF` | Değer **tam 1** ise `remoteOn = true`; diğer tüm değerlerde `false`. Ana on/off komutu. |
+-| `0x0A` | `COOLING_SETPOINT` | `coolingSetpoint` güncellenir (ham 0.1 °C) — sonraki tick kararını etkiler |
+-| `0x1C` | `HEATING_SETPOINT` | `heatingSetpoint` güncellenir (ham 0.1 °C) |
+-| `0x0E` | `HIGH_TEMP_ALARM` | `0x300` alarm eşiği değişir |
+-| `0x10` | `LOW_TEMP_ALARM` | `0x306` alarm eşiği değişir |
+-| `0x200` | `RESET` | **Yalnız `0x0001`** ise tüm state fabrika ayarına döner (`Object.assign(state, defaultState())`) — `remoteOn` dahil kapanır |
+-| `0x2000/0x2001/0x2002` | `SERVER_TEMP_MAX/MIN/AVG` | Saklanır (davranışsal etkisi yok) |
++| `0x202` | `REMOTE_ON_OFF` | **1 = on, 2 = off** (doküman §7.3); diğer değerler yok sayılır. Okuma 1/2 döner. |
++| `0x0A` | `COOLING_SETPOINT` | `coolingSetpoint` (×0.1 °C) — sonraki tick kararını etkiler |
++| `0x1C` | `HEATING_SETPOINT` | `heatingSetpoint` (×0.1 °C) |
++| `0x0E` | `HIGH_TEMP_ALARM` | `0x300` alarm eşiği |
++| `0x10` | `LOW_TEMP_ALARM` | `0x306` alarm eşiği |
++| `0x200` | `RESET` | Doküman: **"Reset (restore factory parameters)"** — yalnız `0x0001`; tüm state fabrika varsayılanına döner. Alarm silme komutu **değildir**. |
++| `0x2000/0x2001` | `SERVER_TEMP_MAX/MIN` | Master'ın sürekli yazması gereken hücre max/min sıcaklığı (×0.1 °C; 32767 = sensör arızası). Saklanır, tick'te kullanılmaz. |
++| `0x2002` | `SERVER_TEMP_AVG` | Doküman: **geçersiz ("Delete")**. Okuma 0 döner; config'te yoktur. |
++| `0x2003` | `SERVER_RH` | Sunucu nemi (×0.1 %RH) — saklanır |
++| `0x2100` | `FORCED_ENABLE` | 1 → zorlama modu açık; 0 → zorlama kapanır, standby'a dönülür |
++| `0x2101/0x2102/0x2103/0x2104` | `FORCED_COOLING/AIR_SUPPLY/STANDBY/HEATING` | `FORCED_ENABLE = 1` iken ilgili modu anında uygular |
+ | Diğer | — | Sessiz no-op |
+ 
+ - Coil ve discrete **yoktur**: `readCoil` / `readDiscreteInput` → `false`; `writeCoil` → no-op.
++- 0x0B/0x0C/0x0D/0x0F/0x11/0x1E sabit değer döner (yazma yok sayılır). Anlamları dokümana göre
++  (§7.2): 0x0B nem kontrol modu, 0x0C soğutma hassasiyeti (×0.1 °C), 0x0D nem alma setpoint'i
++  (×0.1 %RH), 0x0F nem alma hassasiyeti (×0.1 %), 0x11 dönüş havası yüksek nem setpoint'i
++  (×0.1 %), 0x1E ısıtma hassasiyeti (×0.1 °C). `register-map.ts` sembol adları geriye uyum için
++  eskisi gibi kalır; config adları dokümana göre düzeltildi.
+ 
+ ---
+ 
+@@ -93,31 +106,32 @@ Standart `SelfHostedSimulator` deseni; `tick: (s) => this.tick(s)` bağlanır.
+ 
+ `hvac/register-map.ts`:
+ 
+-**HOLDING (4x) — oku/yaz:** `SLAVE_ADDRESS` 0x07, `BAUD_RATE` 0x08, `MONITOR_TEMP_MODE` 0x09,
+-`COOLING_SETPOINT` 0x0A, `COOLING_HYSTERESIS` 0x0B, `COMPRESSOR_START_DELAY` 0x0C, `RESTART_DELAY` 0x0D,
+-`HIGH_TEMP_ALARM` 0x0E, `HIGH_TEMP_HYSTERESIS` 0x0F, `LOW_TEMP_ALARM` 0x10, `LOW_TEMP_HYSTERESIS` 0x11,
+-`HEATING_SETPOINT` 0x1C, `HEATING_HYSTERESIS` 0x1E, `REMOTE_ON_OFF` 0x202, `RESET` 0x200,
+-`SERVER_TEMP_MAX/MIN/AVG` 0x2000–0x2002
++**HOLDING ayar/komut:** `SLAVE_ADDRESS` 0x07, `BAUD_RATE` 0x08, `MONITOR_TEMP_MODE` 0x09,
++`COOLING_SETPOINT` 0x0A, 0x0B–0x0D, `HIGH_TEMP_ALARM` 0x0E, 0x0F, `LOW_TEMP_ALARM` 0x10, 0x11,
++`HEATING_SETPOINT` 0x1C, 0x1E, `RESET` 0x200, `REMOTE_ON_OFF` 0x202, `SERVER_TEMP_MAX/MIN` 0x2000–0x2001,
++`SERVER_RH` 0x2003, zorlama bloğu 0x2100–0x2104.
+ 
+-**INPUT (3x) — salt okuma:** `EQUIPMENT_STATUS` 0x1000, `ELECTRIC_HEATING_ON` 0x1001,
++**Bilgi bloğu (FC03 ile okunur):** `EQUIPMENT_STATUS` 0x1000, `ELECTRIC_HEATING_ON` 0x1001,
+ `INDOOR_FAN_STATUS` 0x1002, `SUPPLY_TEMP` 0x1003, `OUTDOOR_FAN_STATUS` 0x1004,
+ `RETURN_HUMIDITY` 0x1005, `COMPRESSOR_STATUS` 0x1006, `CURRENT_TEMP` 0x1008, `OUTSIDE_TEMP` 0x100C,
+ `CONDENSER_TEMP` 0x100E, `EVAPORATOR_TEMP` 0x1010, `INTERNAL_FAN_SPEED` 0x1012, `EXTERNAL_FAN_SPEED` 0x1014,
+-`AC_INPUT_VOLTAGE` 0x1016, çalışma saati çiftleri 0x101C–0x1025
++`AC_INPUT_VOLTAGE` 0x1016, çalışma saati çiftleri 0x101C–0x1025, kompresör çalıştırma sayısı 0x1028–0x1029.
+ 
+-**ALARMS (input, 1 = aktif):** `HIGH_TEMP` 0x300–0x305, `LOW_TEMP` 0x306–0x308,
+-`OVER_VOLTAGE` 0x309/0x30B, `UNDER_VOLTAGE` 0x30A/0x30C, `COMPRESSOR_FAULT` 0x30D, `FAN_FAULT` 0x30E,
+-`HEATER_FAULT` 0x30F, `SENSOR_FAULT` 0x310, `HIGH_PRESSURE` 0x312, `LOW_PRESSURE` 0x313,
+-`CONDENSER_FAULT` 0x316, `EVAPORATOR_FAULT` 0x317
++**Alarm bloğu (FC03, 1 = aktif)** — doküman §7.4 adlarıyla: 0x300 yüksek sıcaklık, 0x301 iç fan
++arızası, 0x302 dış fan arızası, 0x303 kompresör arızası, 0x304 kabin dönüş havası sondası,
++0x305 sistem yüksek basınç, 0x306 düşük sıcaklık, 0x309 AC aşırı gerilim, 0x30A AC düşük gerilim,
++0x30B AC enerji kesintisi, 0x30C evaporatör sensörü, 0x30D kondenser sensörü, 0x30E ortam sensörü,
++0x30F evaporatör donma, 0x310 sık yüksek basınç, 0x312 sistem düşük basınç, 0x313 sık düşük basınç,
++0x316/0x317 harici genişleme T/H (kullanılmıyor), 0x31C yüksek nem, 0x31E nem sensörü,
++0x325–0x327 egzoz sıcaklığı alarmları.
+ 
+ ---
+ 
+ ## 6. Bilinen davranış boşlukları
+ 
+-- `equipmentStatus = 3` (Fault) **hiçbir yerde set edilmez**; tick'teki `!== 3` kontrolü
+-  fiilen ölü dallanmadır.
+-- `returnHumidity` (0x1005) ve `acInputVoltage` (0x1016) tick'te **güncellenmez**; dolayısıyla
+-  aşırı/eksik gerilim alarmları pratikte tetiklenemez.
+-- Hysteresis register'ları **kullanılmaz** (deadband kodda sabit).
+-- `SERVER_TEMP_*` yalnız saklanır, okuma/tick'te kullanılmaz.
+-- Testte bazı adresler haritayla uyuşmuyor (`hvac.test.ts`) — trivial assertion'lar oluşabilir.
++- `equipmentStatus = 3` (Fault) yalnız senaryo enjeksiyonuyla oluşur; tick içinde set edilmez.
++- `returnHumidity` (0x1005) ve `acInputVoltage` (0x1016) tick'te güncellenmez; aşırı/düşük gerilim
++  alarmları ancak enjeksiyonla tetiklenir.
++- Ölü bant kodda sabittir (±1.0 °C); 0x0C/0x1E hassasiyet register'ları davranışa girmez.
++- Zorlama modunda sıcaklık rampası normal dalla aynı işler; zorlama yalnız durum/fan alanlarını sabitler.
++- Simülatör başlangıçta `remoteOn = false` (okuma 2 = off) gelir; PMS `on` (1) yazana kadar ünite standby'dadır.
+diff --git a/docs/simulators/IMD.md b/docs/simulators/IMD.md
+index 10bf9c4..a051bf4 100644
+--- a/docs/simulators/IMD.md
++++ b/docs/simulators/IMD.md
+@@ -52,7 +52,7 @@ Modbus üzerinden IMD'ye **yazma yoktur**; salt-okunur izleme cihazıdır.
+ 
+ ---
+ 
+-## 5. Okuma davranışı (INPUT REGISTER)
++## 5. Okuma davranışı (FC03 holding — Bender D00007 yalnız 0x03 okuma tanımlar; simülatör input olarak da sunar)
+ 
+ `imd/imd-simulator.ts#ImdSimulator.readInputRegister`:
+ 
+@@ -62,7 +62,9 @@ Modbus üzerinden IMD'ye **yazma yoktur**; salt-okunur izleme cihazıdır.
+ | 8193 | 0x2001 | İzolasyon direnci **düşük kelime** |
+ | 8196 | 0x2004 | Prewarning: 0 = OK, 4 = Warning |
+ | 8197 | 0x2005 | Alarm: 0 = OK, 4 = Warning |
++| 8205 | 0x200D | Earth connection (E/KE): simülatör **0 = OK** döner |
+ | 8206 | 0x200E | Device Error: 0 yok, >0 kod |
++| 8207 | 0x200F | Test durumu: simülatör **0** döner |
+ | Diğer | — | 0 |
+ 
+ - Direnç okuma: `hi × 0x10000 + lo` (big-endian iki kelime).
+@@ -77,7 +79,10 @@ Modbus üzerinden IMD'ye **yazma yoktur**; salt-okunur izleme cihazıdır.
+ 
+ > Gerçek Bender haritasında başka alanlar da vardır (kaçak kapasitesi, net gerilim,
+ > U+/U- toprak gerilimleri, kuplaj sıcaklıkları, aşırı sıcaklık alarmları, toprak
+-> bağlantı/test durumu) ancak **simüle edilmez** ve 0 döner.
++> bağlantı/test durumu) ancak **simüle edilmez** ve 0 döner. Config bunlardan yalnız 0'ın gerçek
++> bir anlamı olan 8205 (OK) ve 8207'yi okur; gerilim/sıcaklık register'ları 0 V / 0 °C gibi sahte
++> değer göstereceği için config'e eklenmedi.
++> Bender slave ID aralığı **2–17**'dir; `configs/bender-imd.json` slaveId = 2.
+ 
+ ---
+ 
+diff --git a/docs/simulators/README.md b/docs/simulators/README.md
+index c1224a1..b180dea 100644
+--- a/docs/simulators/README.md
++++ b/docs/simulators/README.md
+@@ -108,7 +108,9 @@ sarmalar. Köprü (`ModbusServerBridge`) gerçek Modbus TCP sunucusu olarak yay
+ - `host.ts#SimulatorHost.registerDefaults` → `type` string'ini builder fonksiyonuna
+   eşleyen `builders` haritası. **Yeni simülatör tipi = 1 satır kayıt.**
+ - Kayıtlı tipler: `bsc`, `hvac`, `cb`, `dc-output`, `dc-meter`, `energy-analyzer`,
+-  `control-panel-io`, `imd`, `demo-mv-station`, `wattox-pcs`.
++  `control-panel-io`, `imd`, `fss`, `demo-mv-station`, `wattox-pcs`.
++- **Kayıtlı olmayanlar:** `xrack` (kod var, host'a bağlı değil), `emu` (yalnız eski config;
++  `configs/emu.json` legacy olarak işaretlendi, simülatörü yoktur).
+ - `host.ts#SimulatorHost.start` fail-fast çalışır: bilinmeyen tip veya **port
+   çakışması** → hata; hata hâlinde kısmen açılan sunucular kapatılır.
+ - `host.ts#SimulatorHost.plan` ayrıca `connector.sim` tanımlı BSC config'lerinden
+@@ -132,11 +134,32 @@ sarmalar. Köprü (`ModbusServerBridge`) gerçek Modbus TCP sunucusu olarak yay
+ | `hvac` | [HVAC.md](HVAC.md) | Sunucu odası klima ünitesi (MC90HDNC1R-L) | `hvac/hvac-simulator.ts` |
+ | `imd` | [IMD.md](IMD.md) | Bender isoPV1685RTU izolasyon monitörü | `imd/imd-simulator.ts` |
+ | `control-panel-io` | [CONTROL-PANEL-IO.md](CONTROL-PANEL-IO.md) | Kontrol paneli dijital I/O (kapı/ışık/FSS) | `control-panel-io/control-panel-io-simulator.ts` |
++| `fss` | — | Söndürme paneli (Sigma XT) — **yalnız simülatör** haritası, gerçek cihaz Modbus haritası yok | `fss/` |
+ | `demo-mv-station` | [DEMO-MV-STATION.md](DEMO-MV-STATION.md) | Demo OG köşk (34,5 kV hücreler) | `demo-mv-station/demo-mv-simulator.ts` |
+ | — | [BSC-PCS-CONNECTOR.md](BSC-PCS-CONNECTOR.md) | BSC→PCS register köprüsü (simülatör değil, konnektör) | `bsc-pcs-connector/connector.ts` |
+ 
+ ---
+ 
++## 7.1 Config ↔ simülatör ↔ okuma kodu (GD-1, `configs/`)
++
++| Config | Simülatör | Okuma | Not |
++| :--- | :--- | :--- | :--- |
++| `flex-bsc.json` | `bsc` | FC04 input, FC02 discrete, FC03/06/16 holding | Rack stride 150; heartbeat 40000 / 1 s; komutlarda ack sonrası 40010 = 0 |
++| `wattox-pcs.json` | `wattox-pcs` | FC03 | `connection.slaveId`; komutlar S01 = 1 gerektirir |
++| `mappings/bsc-pcs-mapping.json` | BSC→PCS konnektör | — | Bkz. BSC-PCS-CONNECTOR §7 |
++| `hvac.json` | `hvac` | FC03 | on = 1, off = 2; 0x200 fabrika ayarına döner |
++| `bender-imd.json` | `imd` | FC03 | slaveId 2 (Bender aralığı 2–17) |
++| `acrel-dc-meter.json` | `dc-meter` | FC03 | Alarm word bitfield |
++| `pm5340.json` | `energy-analyzer` | FC03 | Adres = doküman − 1; PF `4Q_FP_PF` |
++| `dc-switch.json` | `cb` | FC02 / coil | Darbe komutları |
++| `dc-output.json` | `dc-output` | FC04 / FC02 / coil | Enerji sayacı tek UINT32 ×0.01 kWh |
++| `control-panel-io.json` | `control-panel-io` | FC02 / coil | DI0–DI7 (DI6 Fire, DI7 First Stage) |
++| `fss.json` | `fss` | FC04 | `details.simOnly = true` |
++| `demo-mv-station.json` | `demo-mv-station` | — | Demo |
++| `emu.json` | — | — | Legacy; port 5031 (5030 Acrel ile çakışıyordu) |
++
++---
++
+ ## 8. Hızlı referans — davranış özeti
+ 
+ | Simülatör | Yazılabilir | tick fizik modeli | Alarm/arıza kaynağı |
+diff --git a/docs/simulators/WATTOX-PCS.md b/docs/simulators/WATTOX-PCS.md
+index 5ab3d06..aa8403f 100644
+--- a/docs/simulators/WATTOX-PCS.md
++++ b/docs/simulators/WATTOX-PCS.md
+@@ -64,13 +64,17 @@ PCS'nin iki ayrı Modbus kölesi vardır (gerçek donanımın EMS/BMS link ayrı
+ 
+ `wattox-pcs/simulator.ts#WattoxPcsSimulator.writeSetting`:
+ 
++> **Komut kaynağı kapısı (S01, 0x0E00):** varsayılan 0 = HMI. Aktif güç / start / stop /
++> standby / fault reset komutları yalnız **S01 = 1 (EMS)** iken uygulanır; aksi halde değer
++> saklanır ama etkisizdir. PMS manevrası önce S01 = 1 yazmalıdır.
++
+ | Register | Adres | Yazılan | Tepki |
+ | :--- | :--- | :--- | :--- |
+ | `SET_ACTIVE_POWER` | 0x0e19 (3609) | S16 kW | setpoint = yazılan; grid aktif güç = DC güç = DC akım = setpoint; PF = ±0.990. STANDBY/CHARGE/DISCHARGE iken: **neg → şarj, poz → deşarj, 0 → standby** |
+ | `SET_START` | 0x0e14 (3604) | 1 | `OP_STOP` ise → `OP_STANDBY` |
+ | `SET_STOP` | 0x0e15 (3605) | 1 | `OP_STOP`; setpoint/güç/akım/PF sıfırlanır |
+ | `SET_STANDBY` | 0x0e17 (3607) | 1 | `OP_FAULT` değilse → `OP_STANDBY` + tüm ölçümler sıfır |
+-| `SET_FAULT_RESET` | 0x0e16 (3606) | 1 | fault + alarm word'leri sıfırlanır; `OP_FAULT` ise → `OP_STANDBY` |
++| `SET_FAULT_RESET` | 0x0e16 (3606) | 1 | fault + alarm word'leri sıfırlanır; `OP_FAULT` ise → **`OP_STOP`** (CtrlPhil: reset Stop'a döndürür) |
+ | BMS bloğu (0x0300–0x0316) | — | herhangi | **Yok sayılır (RO)** — EMS yüzü BMS'i yazamaz |
+ | Diğer adresler | — | herhangi | `settings` map'ine kaydedilir (`readSetting` ile okunur) |
+ 
+@@ -98,7 +102,11 @@ PCS'nin iki ayrı Modbus kölesi vardır (gerçek donanımın EMS/BMS link ayrı
+ 
+ ## 7. Okuma davranışı
+ 
+-**Input register** (`wattox-pcs/simulator.ts#WattoxPcsSimulator.readRegister`): büyük `switch`.
++**Okuma fonksiyon kodu:** Wattox haritası yalnız **FC03** tanımlar. `modbus-adapter.ts` holding okumasını
++`readHolding` ile sunar: S-ayar aralıkları (0x0E00–0x0E3F, 0x1200–0x120F) `settings`'ten, kalan tüm
++adresler (A/B/C/D blokları) `readRegister`'dan gelir. `configs/wattox-pcs.json` tüm okumaları FC03 ile yapar.
++
++**Sorgu blokları** (`wattox-pcs/simulator.ts#WattoxPcsSimulator.readRegister`): büyük `switch`.
+ - BMS bloğu → BMS dizisi; fault/alarm word aralıkları → ilgili diziler.
+ - Sabit ölçümler: batarya 1500.0 V, grid 50.00 Hz, grid/inverter 400.0 V, IGBT 45.0 °C,
+   reaktör 50.0 °C, filtre kondansatörü 40.0 °C, ortam 25.0 °C / %45 RH, izolasyon 1000 kΩ.
+@@ -108,15 +116,15 @@ PCS'nin iki ayrı Modbus kölesi vardır (gerçek donanımın EMS/BMS link ayrı
+ 
+ **Holding register** (`readSetting`): `settings` map'inden okunur.
+ 
+-> **Basitleştirme:** faz akımları aktif gücün mutlak değeri olarak döner; reaktif güç ve
+-> derated her zaman 0'dır.
++> **Basitleştirme:** faz akımları aktif gücün mutlak değeri olarak döner; DC akım = setpoint
++> (1 kW ≈ 1 A varsayımı, gerçekte I = P / V_bat); reaktif güç ve derated her zaman 0'dır.
+ 
+ ---
+ 
+ ## 8. Register grupları (özet)
+ 
+ `wattox-pcs/register-map.ts`:
+-- **A — PCS ölçüm/parametre (input):** nominal 0x2f08–0x2f0a; limitler 0x0123–0x0128;
++- **A — PCS ölçüm/parametre (FC03 sorgu):** nominal 0x2f08–0x2f0a; limitler 0x0123–0x0128;
+   durum 0x2f7d/0x2f5a/0x2f43/0x2f45; DC ölçüm 0x2f48/0x2f49/0x2f4d; AC ölçüm 0x2f4e/0x2f53/0x2f7e/0x2f7f;
+   sıcaklık/nem 0x2f54–0x2f58, 0x2027–0x202f; enerji 0x2f64–0x2f69
+ - **B — BMS bloğu (0x0300, 23 kayıt):** `BMS_RUNNING_STATUS` 0x0300 … `BMS_DC_SYSTEM_STATUS` 0x0316
+diff --git a/packages/simulators/src/hvac/hvac-simulator.ts b/packages/simulators/src/hvac/hvac-simulator.ts
+index a9e82e7..7222fd9 100644
+--- a/packages/simulators/src/hvac/hvac-simulator.ts
++++ b/packages/simulators/src/hvac/hvac-simulator.ts
+@@ -270,13 +270,14 @@ export class HvacSimulator {
+     // FC03 (holding) ile okunur; ayar/komut blokları aşağıdaki switch'te.
+     if (
+       (address >= 0x1000 && address <= 0x1030) ||
+-      (address >= 0x300 && address <= 0x31f)
++      (address >= 0x300 && address <= 0x327)
+     ) {
+       return this.readInputRegister(address);
+     }
+ 
+     switch (address) {
+       case HOLDING.SLAVE_ADDRESS:      return 1;
++      case HOLDING.REMOTE_ON_OFF:      return s.remoteOn ? 1 : 2;
+       case HOLDING.BAUD_RATE:          return 9600;
+       case HOLDING.MONITOR_TEMP_MODE:  return s.monitorTempMode;
+       case HOLDING.COOLING_SETPOINT:   return s.coolingSetpoint;
+@@ -291,7 +292,6 @@ export class HvacSimulator {
+       case HOLDING.HEATING_HYSTERESIS: return 5;
+       case HOLDING.SERVER_TEMP_MAX:    return s.serverTempMax;
+       case HOLDING.SERVER_TEMP_MIN:    return s.serverTempMin;
+-      case HOLDING.SERVER_TEMP_AVG:    return s.serverTempAvg;
+       case HOLDING.SERVER_RH:          return s.serverRH;
+       case HOLDING.FORCED_ENABLE:      return s.forcedEnable;
+       case HOLDING.FORCED_COOLING:     return s.forcedCooling;
+@@ -306,7 +306,11 @@ export class HvacSimulator {
+     const s = this.state;
+ 
+     switch (address) {
+-      case HOLDING.REMOTE_ON_OFF:  s.remoteOn = (value === 1); break;
++      // Doküman §7.3 0x202: 0x0001 = on, 0x0002 = off, diğer değerler geçersiz (yok sayılır).
++      case HOLDING.REMOTE_ON_OFF:
++        if (value === 1) s.remoteOn = true;
++        else if (value === 2) s.remoteOn = false;
++        break;
+       case HOLDING.MONITOR_TEMP_MODE: s.monitorTempMode = value; break;
+       case HOLDING.COOLING_SETPOINT:  s.coolingSetpoint = value; break;
+       case HOLDING.HIGH_TEMP_ALARM:   s.highTempAlarm = value; break;
+diff --git a/packages/simulators/src/hvac/hvac.test.ts b/packages/simulators/src/hvac/hvac.test.ts
+index bfae99e..5bffa0b 100644
+--- a/packages/simulators/src/hvac/hvac.test.ts
++++ b/packages/simulators/src/hvac/hvac.test.ts
+@@ -31,7 +31,7 @@ describe("HvacSimulator", () => {
+     it("turns off when remoteOn is cleared", () => {
+       sim.writeHoldingRegister(0x202, 1);
+       sim.tick(1);
+-      sim.writeHoldingRegister(0x202, 0);
++      sim.writeHoldingRegister(0x202, 2); // doküman: 2 = off
+       sim.tick(1);
+       const status = sim.readInputRegister(0x1000);
+       expect(status).toBe(1); // STANDBY
+diff --git a/packages/simulators/src/hvac/register-map.ts b/packages/simulators/src/hvac/register-map.ts
+index 7670bd8..1e5b48e 100644
+--- a/packages/simulators/src/hvac/register-map.ts
++++ b/packages/simulators/src/hvac/register-map.ts
+@@ -10,7 +10,7 @@ export const HOLDING = {
+   BAUD_RATE:              0x08,   // uint16
+   MONITOR_TEMP_MODE:      0x09,   // uint16 — 4=server temp
+   COOLING_SETPOINT:       0x0A,   // uint16, scale 0.1 (°C)
+-  COOLING_HYSTERESIS:     0x0B,   // uint16
++  COOLING_HYSTERESIS:     0x0B,   // doküman: Humidity control mode (enum 0-4) — isim geriye uyum için
+   COMPRESSOR_START_DELAY: 0x0C,   // uint16, scale 1 (s)
+   RESTART_DELAY:          0x0D,   // uint16, scale 1 (s)
+   HIGH_TEMP_ALARM:        0x0E,   // uint16, scale 0.1 (°C)
+@@ -21,13 +21,13 @@ export const HOLDING = {
+   HEATING_HYSTERESIS:     0x1E,   // uint16
+ 
+   // Remote control
+-  REMOTE_ON_OFF:          0x202,  // uint16 — 0=Off, 1=On
++  REMOTE_ON_OFF:          0x202,  // uint16 — 1=On, 2=Off (diğerleri geçersiz)
+   RESET:                  0x200,  // uint16 — Write 0x0001 to reset all alarms
+ 
+   // Server temperature settings
+   SERVER_TEMP_MAX:        0x2000, // uint16, scale 0.1 (°C)
+   SERVER_TEMP_MIN:        0x2001, // uint16, scale 0.1 (°C)
+-  SERVER_TEMP_AVG:        0x2002, // uint16, scale 0.1 (°C)
++  SERVER_TEMP_AVG:        0x2002, // doküman: "invalid… Delete" — okunmaz, yazma yok sayılır
+   SERVER_RH:              0x2003, // uint16, scale 0.1 (%RH) — server nem kontrolü
+ 
+   // Forced (manual) mode — doküman §7.3

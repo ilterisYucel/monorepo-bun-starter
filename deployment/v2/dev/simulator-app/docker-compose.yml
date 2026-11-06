@@ -1,0 +1,53 @@
+# Sim-Lab (simulator-app) — GD-PMS saha simülatörü.
+# Tek konteynerde: her saha cihazı ayrı bir Modbus TCP sunucusu + REST API + arayüz (8090).
+#
+# Kullanım (repo kökünden):
+#   cp deployment/v2/dev/simulator-app/.env.example deployment/v2/dev/simulator-app/.env
+#   docker compose --env-file deployment/v2/dev/simulator-app/.env \
+#     -f deployment/v2/dev/simulator-app/docker-compose.yml up -d --build
+#   arayüz: http://localhost:8090
+#
+# EMS stack'leri (v2 container/field) simülatöre host.docker.internal üzerinden, aşağıda
+# yayınlanan portlardan bağlanır. Bağlantı config'leri arayüzdeki "EMS bağlantısı → Export"
+# ile deployment/simlab/<saha>/ altına üretilir (README).
+name: gd-simulator-app
+
+services:
+  sim-lab:
+    build:
+      context: ../../../..
+      dockerfile: apps/sim-lab/deployment/Dockerfile
+    image: gd-sim-lab:dev
+    container_name: gd-sim-lab
+    restart: unless-stopped
+    environment:
+      SIM_SITE: /sim/sites/${SIM_SITE_FILE:-gd1.site.json}
+      SIM_PROFILE: ${SIM_PROFILE:-uyumlu}
+      SIM_SPEED: ${SIM_SPEED:-1}
+      SIM_EMS_HOST: ${SIM_EMS_HOST:-host.docker.internal}
+      TZ: ${TZ:-Europe/Istanbul}
+    volumes:
+      # Saha tanımları ve register şablonları (kök configs/'ten kopya — AGENTS-DEPLOYMENT kural 4)
+      - ./sites:/sim/sites:ro
+      - ./device-configs:/sim/device-configs:ro
+      # Arayüzden kaydedilen senaryolar kalıcı olsun
+      - ./scenarios:/app/apps/sim-lab/scenarios
+      # Export çıktısı: EMS overlay'leri repo içindeki aynı yola (deployment/simlab/) düşer
+      - ../../../simlab:/app/deployment/simlab
+    ports:
+      - "${SIM_HTTP_PORT:-8090}:8090"
+      # Konteyner N cihazları: 20000 + (N-1)×100 + {1-2 BSC, 5-7 konnektör, 11-18 HVAC,
+      #   31-32 DC şalter, 41-43 DC metre/çıkış, 51 PM5340, 52 IMD, 53 FSS, 54 kontrol paneli IO}
+      - "20001-20054:20001-20054"   # C1
+      - "20101-20154:20101-20154"   # C2
+      - "20201-20254:20201-20254"   # C3
+      - "20301-20354:20301-20354"   # C4
+      - "20401-20454:20401-20454"   # C5
+      - "20501-20554:20501-20554"   # C6
+      - "20601-20654:20601-20654"   # C7
+      - "20701-20754:20701-20754"   # C8
+      - "20801-20854:20801-20854"   # C9
+      # Saha: PCS-n EMS yüzü 30000+n, PCS-n BMS yüzü 30100+n, OG köşk 30201
+      - "30001-30018:30001-30018"
+      - "30101-30118:30101-30118"
+      - "30201:30201"

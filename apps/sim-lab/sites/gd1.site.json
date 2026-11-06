@@ -1,0 +1,38 @@
+{
+  "name": "GD-1",
+  "description": "GD-1 30 MWe BESS — 9 konteyner (BESS#1–9), konteyner başına 2 BSC × 8 raf (JF1 1CP), 8 × MC90 HVAC, 2 × Wattox MPCS-1725-S (toplam 18 PCS). OG köşk: H04 → BESS#1–5, H05 → BESS#6–9.",
+  "templatesDir": "../../../configs",
+  "network": {
+    "bindHost": "0.0.0.0",
+    "emsHost": "host.docker.internal",
+    "containerPortBase": 20000,
+    "containerPortStride": 100,
+    "fieldPortBase": 30000
+  },
+  "containers": {
+    "count": 9,
+    "bscPerContainer": 2,
+    "racksPerBsc": 8,
+    "hvacPerContainer": 8,
+    "hvacZoneMap": "per-bus",
+    "aux": { "cb": true, "dcMeter": true, "dcOutput": 2, "pm5340": true, "imd": true, "fss": true, "controlPanelIo": true }
+  },
+  "pcs": { "perContainer": 2 },
+  "mv": {
+    "stations": [
+      { "id": "DEMO-MV-1", "name": "BESS MV STATION #1", "incomer": ["H01"], "feeders": { "H04": [1, 2, 3, 4, 5], "H05": [6, 7, 8, 9] } }
+    ]
+  },
+  "initial": { "soc": 55, "tempC": 24 },
+  "sim": {
+    "profile": "uyumlu",
+    "speed": 1,
+    "startHour": 10,
+    "http": { "host": "0.0.0.0", "port": 8090 },
+    "hvac": { "coolingKw": 9, "heaterKw": 2 },
+    "pcs": { "altitudeM": 900 },
+    "weather": { "mode": "gunluk", "fixedC": 25, "minC": 14, "maxC": 31, "solarW": 1500 },
+    "bscCloseDeviationV": 10,
+    "physicsStepS": 0.5
+  }
+}

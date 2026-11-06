@@ -238,12 +238,12 @@
     },
     {
       "name": "AC Input Voltage",
-      "description": "AC Input Voltage",
+      "description": "AC giriş gerilimi (MC A3 §7.1: 2-byte unsigned, ×10)",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 4118,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "INT16",
+      "registerDataType": "UINT16",
       "scale": 0.1,
       "offset": 0,
       "priority": 0,
@@ -691,8 +691,8 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "Cooling Hysteresis",
-      "description": "Cooling hysteresis band",
+      "name": "Humidity Control Mode",
+      "description": "Humidity Control Mode",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 11,
@@ -709,14 +709,14 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "Compressor Start Delay",
-      "description": "Delay before compressor start",
-      "unit": "s",
+      "name": "Cooling Sensitivity",
+      "description": "Cooling Sensitivity",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 12,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
+      "registerDataType": "INT16",
+      "scale": 0.1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
@@ -727,14 +727,14 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "Restart Delay",
-      "description": "Restart delay after stop",
-      "unit": "s",
+      "name": "Dehumidification Setpoint",
+      "description": "Dehumidification Setpoint",
+      "unit": "%RH",
       "protocol": "MODBUS",
       "registerAddress": 13,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
+      "registerDataType": "INT16",
+      "scale": 0.1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
@@ -763,14 +763,14 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "High Temp Hysteresis",
-      "description": "High temp alarm hysteresis",
-      "unit": "-",
+      "name": "Dehumidification Sensitivity",
+      "description": "Dehumidification Sensitivity",
+      "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 15,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
+      "registerDataType": "INT16",
+      "scale": 0.1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
@@ -799,14 +799,14 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "Low Temp Hysteresis",
-      "description": "Low temp alarm hysteresis",
-      "unit": "-",
+      "name": "Return Air High Humidity Setpoint",
+      "description": "Return Air High Humidity Setpoint",
+      "unit": "%RH",
       "protocol": "MODBUS",
       "registerAddress": 17,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
+      "registerDataType": "INT16",
+      "scale": 0.1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
@@ -835,14 +835,14 @@
       "maxStaleMs": 10000
     },
     {
-      "name": "Heating Hysteresis",
-      "description": "Heating hysteresis band",
-      "unit": "-",
+      "name": "Heating Sensitivity",
+      "description": "Heating Sensitivity",
+      "unit": "°C",
       "protocol": "MODBUS",
       "registerAddress": 30,
       "registerTableType": "HOLDING_REGISTER",
-      "registerDataType": "UINT16",
-      "scale": 1,
+      "registerDataType": "INT16",
+      "scale": 0.1,
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN",
@@ -950,9 +950,7 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "room": "room1"
-      },
+      "tags": {},
       "deadband": "auto",
       "maxStaleMs": 10000
     },
@@ -968,9 +966,7 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "room": "room1"
-      },
+      "tags": {},
       "deadband": "auto",
       "maxStaleMs": 10000
     },
@@ -986,9 +982,7 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "room": "room1"
-      },
+      "tags": {},
       "deadband": "auto",
       "maxStaleMs": 10000
     },
@@ -1004,9 +998,7 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "room": "room1"
-      },
+      "tags": {},
       "deadband": "auto",
       "maxStaleMs": 10000
     },
@@ -1022,9 +1014,7 @@
       "offset": 0,
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
-      "tags": {
-        "room": "room1"
-      },
+      "tags": {},
       "deadband": "auto",
       "maxStaleMs": 10000
     },
@@ -1044,7 +1034,7 @@
     },
     {
       "name": "Forced Cooling",
-      "description": "Zorunlu soğutma (1=aç)",
+      "description": "Zorunlu soğutma (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8449,
@@ -1058,7 +1048,7 @@
     },
     {
       "name": "Forced Air Supply",
-      "description": "Zorunlu üfleme (1=aç)",
+      "description": "Zorunlu üfleme (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8450,
@@ -1072,7 +1062,7 @@
     },
     {
       "name": "Forced Standby",
-      "description": "Zorunlu standby (1=aç)",
+      "description": "Zorunlu standby (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8451,
@@ -1086,7 +1076,7 @@
     },
     {
       "name": "Forced Heating",
-      "description": "Zorunlu ısıtma (1=aç)",
+      "description": "Zorunlu ısıtma (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8452,
@@ -1097,6 +1087,36 @@
       "priority": 1,
       "byteOrder": "BIG_ENDIAN",
       "tags": {}
+    },
+    {
+      "name": "Compressor Action Count",
+      "description": "Kompresör devreye girme sayısı (MC A3 §7.1 #23; cihaz yalnız FC03 destekler)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 4136,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT32",
+      "scale": 1,
+      "offset": 0,
+      "priority": 2,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
+    },
+    {
+      "name": "Server Humidity",
+      "description": "Server nem setpointi",
+      "unit": "%RH",
+      "protocol": "MODBUS",
+      "registerAddress": 8195,
+      "registerTableType": "HOLDING_REGISTER",
+      "registerDataType": "UINT16",
+      "scale": 0.1,
+      "offset": 0,
+      "priority": 3,
+      "byteOrder": "BIG_ENDIAN",
+      "deadband": "auto",
+      "maxStaleMs": 60000
     }
   ],
   "commands": {
@@ -1187,6 +1207,6 @@
       "timeoutMs": 3000
     }
   },
-  "pollIntervalMs": 2000,
+  "pollIntervalMs": 1000,
   "type": "hvac"
 }
