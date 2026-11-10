@@ -37,7 +37,7 @@
       "@gd-monorepo/editor": ["./apps/editor/src"],
       "@gd-monorepo/simulators": ["./packages/simulators/src"],
       "@gd-monorepo/ui": ["./packages/ui/src"],
-      "@gd-monorepo/field": ["./apps/field/src"],
+      "@gd-monorepo/site": ["./apps/site/src"],
       "@gd-monorepo/superadmin": ["./apps/superadmin/src"],
       "@gd-monorepo/plugin-sdk": ["./packages/plugin-sdk/src"],
       "@gd-monorepo/epias-market-prices": ["./packages/plugins/epias-market-prices/src"],
@@ -46,7 +46,7 @@
       "@gd-monorepo/platform-logging": ["./packages/platform/logging/src"],
       "@gd-monorepo/tamper-logger": ["./packages/tamper-logger/src"],
       "@gd-monorepo/logger": ["./packages/logger/src"],
-      "@gd-monorepo/ws-tunnel": ["./packages/ws-tunnel/src"]
+      "@gd-monorepo/ws-tunnel": ["./zero-trust-application-tunnel/ws-tunnel/src"]
     }
   },
   "exclude": ["node_modules", "dist", "out", "release", "**/dist", "**/out"]

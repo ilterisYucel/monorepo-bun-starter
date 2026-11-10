@@ -39,6 +39,18 @@ export const noRawConsoleLog = createRule({
 
     const logMethods = ["log", "error", "warn", "info", "debug"]
 
+    const firstArgText = (node: { arguments: unknown[] }): string => {
+      const first = node.arguments[0] as
+        | { type: string; value?: unknown; quasis?: Array<{ value: { cooked?: string | null } }> }
+        | undefined
+      if (!first) return ""
+      if (first.type === "Literal" && typeof first.value === "string") return first.value
+      if (first.type === "TemplateLiteral" && first.quasis?.length) {
+        return first.quasis[0].value.cooked ?? ""
+      }
+      return ""
+    }
+
     return {
       CallExpression(node) {
         if (
@@ -48,6 +60,9 @@ export const noRawConsoleLog = createRule({
           node.callee.property.type === "Identifier" &&
           logMethods.includes(node.callee.property.name)
         ) {
+          // allowPrefixes: "[ModuleName] ..." konvansiyonunu kabul et (AGENTS.md logging kuralı)
+          const text = firstArgText(node as unknown as { arguments: unknown[] })
+          if (options.allowPrefixes.some((prefix) => text.startsWith(prefix))) return
           context.report({
             node,
             messageId: "avoidConsoleLog",

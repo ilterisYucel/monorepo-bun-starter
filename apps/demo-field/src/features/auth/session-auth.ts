@@ -1,4 +1,4 @@
-// apps/field/src/features/auth/session-auth.ts
+// apps/site/src/features/auth/session-auth.ts
 import { apiBaseUrl, isTunnelMode } from "../../lib/api-base";
 import { useAuthStore } from "./stores/AuthStore";
 import type { User } from "@gd-monorepo/shared-types";

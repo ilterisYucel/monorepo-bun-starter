@@ -97,7 +97,7 @@ export class CommandJobBuilder {
 
     if (command.params) {
       for (const [key, paramConfig] of Object.entries(command.params)) {
-        if (paramConfig.required && (!params || params[key] === undefined)) {
+        if (paramConfig.required && params?.[key] === undefined) {
           return Result.err(
             new CommandResolutionError(
               "missing_param",
@@ -154,7 +154,7 @@ export class CommandJobBuilder {
       let resolvedValue: unknown = t.value;
 
       if (typeof resolvedValue === "string") {
-        const match = resolvedValue.match(/^([+-]?)\{\{(\w+)\}\}$/);
+        const match = new RegExp(/^([+-]?)\{\{(\w+)\}\}$/).exec(resolvedValue);
         if (match) {
           const paramName = match[2]!;
           const param = params?.[paramName];

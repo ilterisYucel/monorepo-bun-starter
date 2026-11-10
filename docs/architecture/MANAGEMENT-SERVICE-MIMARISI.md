@@ -1,276 +1,257 @@
 ---
 status: active
 space: architecture
-tags: [mimari, otomasyon, kural-motoru, management, manevra, spec]
-review_date: 2026-09-15
+tags: [mimari, management-service, kural-motoru, spec]
+review_date: 2026-11-10
 ---
 
-# Management Service — Mimari Tasarım (SPEC)
+# Management Service — Mimarisi (SPEC)
 
-> **İş akışı aşaması:** 1/6 — SPEC (AGENTS.md "Geliştirme İş Akışı — 6 aşama").
-> **Hedef Kitle:** Geliştirici + saha mühendisi.
-> **Amaç:** "Şu koşul sağlandığında şu komutu otomatik çalıştır, sonucu imzalı log'a bas, gerekirse alarm bildirimi gönder" otomasyonunu konfigüre edilebilir bir servisle sağlamak. Bugün kuralları biz (geliştirici) yazıyoruz; yarın aynı şema son kullanıcı arayüzünden (editör) üretilecek — mevcut manevra/komut konfigürasyon felsefesiyle aynı evrim.
+> **İş akışı aşaması:** 1/4 — SPEC (Plan aşaması, DeepSeek V4 Pro).
+> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
+> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `SHARED-TYPES-MIMARISI.md` (AutomationRule şeması), `PLATFORM-MIMARISI.md` (kanallar), `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`.
 
----
+## 1. Amaç ve Bağlam
 
-## İçindekiler
+`services/management-service` sözleşmesi: kural motoru — `MANAGEMENT` job'larından snapshot toplar, `rules.json` kurallarını kenar-tetikli değerlendirir ve aksiyonları yürütür (komut, container-command, manevra/operasyon, log, notify). Kural motoru bu servisin bölümüdür (ayrı SPEC açılmaz).
 
-1. [Kapsam ve Hedef](#1-kapsam-ve-hedef)
-2. [Mevcut Altyapı ile İlişki](#2-mevcut-altyapı-ile-ilişki)
-3. [Bileşenler](#3-bileşenler)
-4. [Cycle Veri Toplama](#4-cycle-veri-toplama)
-5. [Kural Modeli (Konfigürasyon Sözleşmesi)](#5-kural-modeli-konfigürasyon-sözleşmesi)
-6. [Değerlendirme Semantiği (Davranış Sözleşmesi)](#6-değerlendirme-semantiği-davranış-sözleşmesi)
-7. [Aksiyonlar](#7-aksiyonlar)
-8. [Hata Kategorileri](#8-hata-kategorileri)
-9. [Dağıtım ve Tier Wiring](#9-dağıtım-ve-tier-wiring)
-10. [Kabul Kriterleri](#10-kabul-kriterleri)
-11. [Görev Listesi (T1-T9)](#11-görev-listesi-t1-t9)
-12. [Aşama Eşlemesi (6 aşamalı iş akışı)](#12-aşama-eşlemesi-6-aşamalı-iş-akışı)
+| Katman | Kapsam |
+|:-------|:-------|
+| dahil | Snapshot, değerlendirme semantiği, aksiyon kanalları, kural kataloğu |
+| hariç | Kural şeması (SHARED-TYPES), komut yürütme (PLATFORM), manevra semantiği (KOMUT-MANEVRA) |
 
----
+## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
 
-## 1. Kapsam ve Hedef
+| Kod | Karar | Sonuç |
+|:----|:------|:------|
+| K1 | `MANAGEMENT` job → snapshot; TTL bayat girişler çıkarılır (sessiz cihaz değerlendirmede yok sayılır) | Taze veri |
+| K2 | Kenar-tetikli: yalnız inactive→active; aktifken tekrarlamaz; koşul başına debounce; `cooldownMs` bastırır; `armAfterFalse` açılışta TRUE ise ateşlemez | Sel yok, kurtarma kuralı |
+| K3 | `canonical` etiketi ile ikincil indeks (ör. `soc` → `BSC SOC`) | Semantik eşleme |
+| K4 | `rules.json` strict şema; geçersizse açılış REDDEDİLİR (fail-fast) | Bozuk kural yüklenmez |
+| K5 | Aksiyon tipleri: `command` (COMMAND_DEVICE), `container-command` (field proxy), `maneuver`/`operation` (web-service internal token), `log`, `notify`; aksiyonlar SIRALI, biri başarısızsa devam (kademeli bozulma) | Tek kural çoklu aksiyon |
+| K6 | `202` → `ok + started`; terminal durum `operation_*` audit'inden izlenir | Uzun işlem ayrımı |
+| K7 | Kanal yoksa aksiyon fail; internal token yoksa web-service yolu 403 (fail-closed) | Güvenlik sınırı |
+| K8 | `notify` logger yoksa atlanır | Kademeli bozulma |
+| K9 | Kural kataloğu VERİDİR; deployment config'leri testle sabitlenir (regresyon kapısı) | Kural regresyonu |
 
-**Problem:** Sistemde komutlar (tek cihaz, register yazma) ve manevralar (çok cihazlı komut zincirleri) mevcuttur ama hepsi **insan tetikli** çalışır. "BSC SoC %95'i geçerse şarjı durdur" gibi **veri tetikli** otomasyon yoktur.
+## 3. Mevcut Durum / Kök Nedenler
 
-**Kapsam (MVP):**
-- Cihaz telemetrisi üzerinde **kural tabanlı** koşul değerlendirme.
-- Koşul sağlandığında **aksiiyonlar**: cihaz komutu çalıştırma, imzalı log, alarm bildirimi.
-- Kurallar **JSON konfigürasyon dosyasından** okunur (bugün biz yazarız).
-- `queue_management` kuyruğunun **ilk tüketicisi** olma.
+| Kod | Bulgu | Kanıt |
+|:----|:------|:------|
+| B1 | Kural kataloğu 5 ayrı test dosyasıyla deployment config'lerine bağlı | `services/management-service/src/*-rules*.test.ts` |
 
-**Kapsam dışı (Faz 1 — bilinçli erteleme):**
-- Tam manevra zinciri aksiyonu (manevra kataloğu backend'e taşınınca).
-- Kuralların DB + CRUD API + editör UI ile yönetimi.
-- Expression engine (hesaplanmış metrikler, formül — v2-gap F1).
-- Otomatik zaman senkronizasyonu (TEİAŞ #19) — management job'ına planlı, ayrı görev.
+## 4. Mimari
 
-## 2. Mevcut Altyapı ile İlişki
-
-| Mevcut yapı | Kullanım |
-|:------------|:---------|
-| `MANAGEMENT` job tipi + `queue_management` (`shared-types/src/job.ts:60`, `platform/messaging`) | Veri kaynağı — device-service her okuma cycle'ında cihaz başına `MANAGEMENT` job yayınlar (`device-scheduler.ts:44-82`). Tüketici bugüne kadar yoktu. |
-| `AlarmTransitionDetector` (device-service) | Desen kaynağı — kenar-tetikli dedup, yalnızca geçişlerde log. RuleEvaluator aynı felsefeyi kullanır. |
-| `AlertNotifier` (`tamper-logger/src/sinks/alert-notifier.ts`) | Bildirim aksiyonu — eventCode başına cooldown (5 dk varsayılan). |
-| `TamperLogger` | Aksiyon sonuç logları — imzalı zincir (`auto_rule_*` eventCode'ları). |
-| `command-routes.ts` komut çözümleme (`web-service`, satır 32-85) | `CommandJobBuilder` olarak `packages/platform/commands`'a çıkarılır; iki servis paylaşır. |
-| `ISnapshotSource` deseni (`ws-tunnel/src/snapshot/interface.ts`) | CycleSnapshotStore aynı "en güncel değer" desenini kullanır. |
-| Device config `type` alanı (üst seviye, zorunlu) | `deviceTypes` koşul filtresinin çözümlenmesi. |
-
-## 3. Bileşenler
-
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                    services/management-service                     │
-│                                                                    │
-│  queue_management (BullMQ) ──► CycleSnapshotStore                  │
-│        (MANAGEMENT job)        │ (deviceId,name) → en yeni değer   │
-│                                │ + TTL bayatlama                   │
-│                                ▼                                   │
-│  tick (evaluationIntervalMs) → RuleEvaluator                       │
-│                                │ kenar-tetik + debounce + cooldown │
-│                                │ aktifleşen kural listesi          │
-│                                ▼                                   │
-│                              ActionExecutor                        │
-│                                ├─► command → CommandJobBuilder     │
-│                                │      → COMMAND_DEVICE job         │
-│                                │      → sonuç → TamperLogger        │
-│                                ├─► log → TamperLogger               │
-│                                └─► notify → AlertNotifier           │
-│                                                                    │
-│  RuleConfigLoader (rules.json + device kataloğu) ──► kurallar      │
-└────────────────────────────────────────────────────────────────────┘
-
-packages/platform/commands
-  ├── IDeviceConfigSource      (device config okuma sözleşmesi)
-  ├── DeviceConfigFileSource   (dosya tabanlı implementasyon)
-  └── CommandJobBuilder        (config komutu → COMMAND_DEVICE job; Result)
+```text
+MANAGEMENT job ──► CycleSnapshotStore ──► RuleEvaluator ──► ActionExecutor
+                                               │                 ├ command
+                                               │                 ├ container-command
+                                               │                 ├ maneuver/operation
+                                               │                 ├ log
+                                               │                 └ notify
+                                               └ rules.json (strict)
 ```
 
-| Bileşen | Sorumluluk | Bağımlılık (constructor) |
-|:--------|:-----------|:-------------------------|
-| `CycleSnapshotStore` | `MANAGEMENT` job'larını kaydet; (deviceId, name) başına en yeni değeri tut; TTL geçmişi bayat say | `maxAgeMs`, `now()` |
-| `RuleEvaluator` | Snapshot üzerinde kuralları değerlendir; kenar-tetik + debounce + cooldown dedup; yalnızca aktifleşen kuralları döner | `now()` |
-| `ActionExecutor` | Aksiyonları sırayla çalıştır; her aksiyon sonucunu logla; hata kademeli bozulma (aksiyon hatası kuralı değil, sonraki aksiyonları etkilemez — `allSettled` benzeri) | `CommandJobBuilder`, `IMessageQueue`, `TamperLogger`?, `AlertNotifier`? |
-| `RuleConfigLoader` | `rules.json` yükle + zod doğrula + device katalogu kur (deviceId → type) | `configDir` |
-| `DeviceCatalog` | Device config dosyalarından (deviceId → type) haritası; `types` filtresini cihaz setine çözümler | `IDeviceConfigSource` |
-| `ManagementService` | Wiring + yaşam döngüsü: worker kaydı, tick zamanlayıcı, start/stop/health | tüm yukarıdakiler + `ManagementServiceConfig` |
-| `CommandJobBuilder` (platform/commands) | `{deviceId, command, params}` → `Result<CommandDeviceJob, CommandResolutionError>` — `{{param}}` çözümü + zorunlu param kontrolü + validate/atomic eşleme | `IDeviceConfigSource` |
+### 4.1 Sözleşmeler
 
-**DI kuralları:** Tamamı constructor injection; config obje (`ManagementServiceConfig`, `AlertNotifierConfig`); arayüz `I` ön ekli; logger/notifier opsiyonel (yoksa console fallback + notify atlanır — device-service deseni).
+| Sembol | Rol |
+|:-------|:----|
+| `services/management-service/src/cycle-snapshot-store.ts#CycleSnapshotStore` | Snapshot |
+| `services/management-service/src/rule-evaluator.ts#RuleEvaluator` | Değerlendirme |
+| `services/management-service/src/action-executor.ts#ActionExecutor` | Aksiyon |
+| `services/management-service/src/rule-config-loader.ts#RuleConfigLoader` | Config |
+| `services/management-service/src/device-catalog.ts#DeviceCatalog` | Hedef çözümü |
 
-## 4. Cycle Veri Toplama
+## 5. Purity Kuralları (ZORUNLU)
 
-**Sorun:** Cihazlar farklı poll aralıklarında okunur (1 sn / 5 sn, saniye ızgarasına hizalı — `device-service.ts:204-209`). Tek cycle'da tüm cihazların verisi **aynı an** üretilmez.
+1. Değerlendirme saf mantık + config; I/O executor'da (K2).
+2. Kural kataloğu veridir; kod değil (K9).
+3. Kanal yoksa fail-closed (K7).
+4. Kod referansı `#sembol`; satır numarası YASAKTIR.
 
-**Çözüm — snapshot birleştirme (kontrat değişikliği YOK):**
-1. device-service her okumada zaten cihaz başına `MANAGEMENT` job yayınlar (değişmez).
-2. `CycleSnapshotStore.record(deviceId, telemetries)` her job'ı kaydeder — (deviceId, name) → `{ value, recordedAt }`.
-3. Değerlendirme tick'inde `snapshot()` **tüm cihazların en güncel değerlerini** döner; `recordedAt > now - maxAgeMs` olmayan girişler bayat sayılır ve döndürülmez (kademeli bozulma — cihaz sessizse kural onu yok sayar, değerlendirmeyi durdurmaz).
-4. `maxAgeMs` varsayılanı: `evaluationIntervalMs`'in 3 katı (5 sn poll'lu cihaz 10 sn tick'te en fazla 1 tick bayat kalır; 3x tolerans).
+## 6. Use Case'ler
 
-**Neden yeni kuyruk/kontrat yok:** `queue_management` + mevcut job akışı yeterli; snapshot deseni `RealtimeSnapshotSource` ile aynı mantık.
+### 6.1 UC-1 — Kural Değerlendirme
 
-## 5. Kural Modeli (Konfigürasyon Sözleşmesi)
+**Status:** ✏️ Specified (onay bekliyor)
 
-Dosya: `deployment/v1/dev/container/rules/rules.json` (mount: `/app/config/rules.json`).
+**Kapsam:**
+- dahil: snapshot, kenar-tetik, debounce, cooldown, armAfterFalse, canonical indeks
+- hariç: aksiyon yürütme (UC-2)
 
-```json
-{
-  "rules": [
-    {
-      "name": "high-soc-stop",
-      "enabled": true,
-      "cooldownMs": 300000,
-      "when": {
-        "all": [
-          {
-            "device": { "types": ["bsc"] },
-            "telemetry": "soc",
-            "op": "gte",
-            "threshold": 95,
-            "debounceMs": 10000
-          }
-        ]
-      },
-      "then": [
-        { "action": "command", "deviceId": "bsc-1", "command": "stop" },
-        { "action": "log", "level": "warning", "eventCode": "auto_rule_high_soc", "message": "BSC yüksek SoC — otomatik durdurma" },
-        { "action": "notify" }
-      ]
-    }
-  ]
-}
-```
+**Akış:**
+1. Snapshot tazelenir; bayat girişler çıkarılır.
+2. Koşullar değerlendirilir; kenar geçişi tespit edilir.
+3. Geçişte aksiyon listesi üretilir.
 
-### Tipler (`packages/shared-types/src/automation-rule.ts`)
+**Gereksinimler (FR-x):**
 
-```ts
-export type RuleOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-1.1 | Yalnız inactive→active geçişinde aksiyon üretilir | AK-1.1 |
+| FR-1.2 | `armAfterFalse` açılışta TRUE ise ateşlemez | AK-1.2 |
+| FR-1.3 | Bayat cihaz değerlendirmede yok sayılır | AK-1.3 |
 
-export interface RuleDeviceSelector {
-  ids?: string[];    // doğrudan cihaz kimlikleri
-  types?: string[];  // cihaz tipleri (device config "type" alanından çözümlenir)
-}
+**Kabul Senaryoları (GWT):**
 
-export interface RuleCondition {
-  device?: RuleDeviceSelector;  // verilmezse: tüm cihazlar
-  telemetry: string;            // değer adı (ör. "soc")
-  op: RuleOperator;
-  threshold: number;
-  debounceMs?: number;          // koşulun kesintisiz sağlanması gereken süre (varsayılan 0)
-}
+1. **AK-1.1 — GIVEN** koşul aktif **WHEN** sonraki cycle **THEN** yeni aksiyon üretilmez
+2. **AK-1.2 — GIVEN** açılışta koşul TRUE **WHEN** ilk cycle **THEN** aksiyon yok
+3. **AK-1.3 — GIVEN** TTL aşmış cihaz **WHEN** cycle **THEN** o cihaz değerlendirilmez
 
-export interface AutomationRuleWhen {
-  all?: RuleCondition[];        // tümü aynı anda (en az 1 koşul — all veya any zorunlu)
-  any?: RuleCondition[];        // en az biri
-}
+**Kabul Kriterleri:**
 
-export type RuleAction =
-  | { action: "command"; deviceId: string; command: string; params?: Record<string, unknown> }
-  | { action: "log"; level: "info" | "warn" | "error"; eventCode?: string; message?: string }
-  | { action: "notify" };
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-1.1 | Kenar-tetik | unit (`rule-evaluator.test.ts`) | ⬜ |
+| AK-1.2 | armAfterFalse | unit | ⬜ |
+| AK-1.3 | TTL | unit (`cycle-snapshot-store.test.ts`) | ⬜ |
 
-export interface AutomationRule {
-  name: string;                 // benzersiz; loglarda kural kimliği
-  enabled?: boolean;            // varsayılan true
-  cooldownMs?: number;          // aksiyon seti sonrası bastırma süresi (varsayılan 0)
-  when: AutomationRuleWhen;
-  then: RuleAction[];           // en az 1
-}
+**T Görev Listesi:**
+- [ ] T-1: UC-1 kanıt testlerini eşleştir
 
-export interface AutomationRulesFile {
-  rules: AutomationRule[];
-}
-```
+**Edge Cases:**
 
-Zod: `automationRulesSchema` — bilinmeyen anahtarlar **strip** edilmez, reddedilir mi? Karar: tunnel operational config strip ediyordu; ama kural dosyası operatör hatası yakalamalı → **bilinmeyen anahtar hata** (`strict()`); geçersiz dosya = açılış reddi (fail-fast, §8).
+| Durum | Davranış |
+|:------|:---------|
+| Boş snapshot | Değerlendirme yok |
 
-## 6. Değerlendirme Semantiği (Davranış Sözleşmesi)
+**Involved Files:**
 
-Her tick'te, her kural için:
+| Dosya | Rol / Değişiklik |
+|:------|:-----------------|
+| `services/management-service/src/{rule-evaluator,cycle-snapshot-store}.ts` | Değerlendirme |
 
-1. **Hedef set çözümle:** koşul başına hedef cihazlar = `ids` ∪ `types` çözümlenmiş set (`DeviceCatalog`); selector verilmemişse snapshot'taki tüm cihazlar.
-2. **Koşul doğruluğu:** Bir koşul, hedef setteki **en az bir** cihazın ilgili `telemetry` değeri snapshot'ta mevcut + bayat değil + `op`'u sağlıyorsa TRUE. (Çok cihazda AND isteniyorsa iki ayrı koşul `when.all` altına yazılır — kompozisyon yeterli.)
-3. **when birleşimi:** `all` → tüm koşullar TRUE; `any` → en az biri TRUE.
-4. **Debounce:** Koşul `debounceMs` boyunca **kesintisiz** TRUE kalmalı — state: KOŞUL BAŞINA `heldSince` zamanı (2026-09-22 REV03 K-A1 güncellemesi: eski "kural başına max-debounce" yerine per-condition; 3 kademeli koruma kurallarında hızlı kademe yavaş kademeyi beklemez). `heldSince` set edildikten sonra her tick'te TRUE kalırsa, `now - heldSince >= debounceMs` olduğu anda koşul "aktif" sayılır.
-5. **Kenar-tetik:** Kural yalnızca **inactive → active** geçişinde aksiyonları çalıştırır; aktif kaldığı sürece her tick'te TEKRARLAMAZ (AlarmTransitionDetector deseni — `device_alarm` yalnızca yükselen kenarda).
-6. **Düşen kenar:** Koşul FALSE'a düşünce kural inactive'a döner ve `heldSince` sıfırlanır; yeniden yükselirse yeni oluşum sayılır.
-7. **Cooldown:** Aksiyonlar çalıştıktan sonra `cooldownMs` dolmadan yeni yükselen kenar aksiyon tetiklemez. Cooldown `now()` enjeksiyonuyla deterministik test edilir.
-8. **Tekrarlı tick güvenliği:** Değerlendirme saf sorgudur (state dışında yan etki yok); aynı snapshot ile iki kez çağrılırsa ikinci çağrı boş döner.
+### 6.2 UC-2 — Aksiyon Yürütme + Kanallar
 
-## 7. Aksiyonlar
+**Status:** ✏️ Specified (onay bekliyor)
 
-| Aksiyon | Davranış | Başarı logu | Başarısızlık logu |
-|:--------|:---------|:------------|:------------------|
-| `command` | `CommandJobBuilder.build()` → hata = `Result.err` → aksiyon başarısız; job → `mq.executeAndWait(job, commandTimeoutMs)` (timeout = komut timeoutMs + 2000 — command-routes deseni) | `auto_rule_action_ok` (info, context: rule/deviceId/command/jobId) | `auto_rule_action_failed` (error, context: rule/deviceId/command/reason) |
-| `log` | `TamperLogger.log(level, eventCode ?? "auto_rule_fired", message, context)` — kategori `app` | — | log hatası yutulmaz mı? Karar: app kategorisi fail-closed değildir; hata konsola düşer, aksiyon akışı durmaz |
-| `notify` | `AlertNotifier.consider({ eventCode: "auto_rule_<name>", ... })` — notify sink hatası **yukarı fırlar** (AlertNotifier sözleşmesi) → aksiyon başarısız sayılır, `auto_rule_action_failed` basılır | `auto_rule_action_ok` | `auto_rule_action_failed` |
+**Kapsam:**
+- dahil: 5 aksiyon tipi, sıralı yürütme, kademeli bozulma, 202 semantiği, fail-closed
+- hariç: kanal implementasyonları (PLATFORM/WEB-SERVICE)
 
-- Aksiyonlar sırayla çalışır; biri başarısız olursa **sonrakiler çalışmaya devam eder** (kademeli bozulma — tüm sonuçlar loglanır).
-- `command` aksiyonunun hedefi koşuldaki cihazdan **bağımsız** yazılabilir (ör. bsc-1 koşulu → cb-1'e komut); mantıksal bağ kural yazarının sorumluluğu.
-- Logger/notifier enjekte edilmemişse: log aksiyonu console.warn'a düşer, notify aksiyonu atlanır (sonuç yine loglanır).
+**Akış:**
+1. Aksiyonlar sırayla yürütülür.
+2. Biri başarısızsa sonuç fail olur, diğerleri denenir.
+3. `202` → `ok + started`.
 
-## 8. Hata Kategorileri
+**Gereksinimler (FR-x):**
 
-| Durum | Kategori | Davranış |
-|:------|:---------|:---------|
-| `rules.json` okunamaz/geçersiz (zod) | Beklenen — açılış | **Fail-fast**: `start()` reddedilir (servis yanlış kural dosyasıyla çalışmaz). |
-| Cihaz config'i yok / komut tanımsız / zorunlu param eksik | Beklenen — çalışma zamanı | `CommandResolutionError` (`Result.err`) → aksiyon başarısız logu; kural akışı durmaz. |
-| `executeAndWait` timeout / job başarısız | Beklenen — çalışma zamanı | `JobResult.success=false` → `auto_rule_action_failed`. |
-| Snapshot'ta veri yok / bayat | Beklenen — veri durumu | Koşul FALSE sayılır (bayat veriyle komut ÇALIŞTIRILMAZ — güvenlik). |
-| Aksiyon listesi boş / when boş | Beklenen — config | zod reddeder (açılış fail-fast). |
-| TamperLogger/AlertNotifier hatası | Kademeli | Aksiyon sonucu `auto_rule_action_failed`; sonraki aksiyonlar devam eder. |
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-2.1 | Aksiyonlar sıralıdır; biri başarısızsa akış devam eder | AK-2.1 |
+| FR-2.2 | Kanal/token yoksa aksiyon fail-closed döner | AK-2.2 |
 
-## 9. Dağıtım ve Tier Wiring
+**Kabul Senaryoları (GWT):**
 
-- **Tier:** yalnızca **container** (cihazların poll edildiği stack). Field/boss MVP dışı.
-- **Compose:** `dev/container/docker-compose.yml` + `prod/container/docker-compose.yml`'e `management-service` eklenir.
-- **Env (`deployment/v1/dev/container/.env.example`):**
-  - `REDIS_HOST` / `REDIS_PORT` (ortak)
-  - `DEVICE_CONFIG_DIR=/app/config-docker` (device-service ile aynı mount, `:ro`)
-  - `MANAGEMENT_RULES_PATH=/app/config/rules.json` (kendi config mount'u, `:ro`)
-  - `MANAGEMENT_EVALUATION_INTERVAL_MS` (varsayılan 10000)
-- **Dockerfile:** `services/management-service/deployment/Dockerfile` + `Dockerfile.dev` (device-service deseni).
-- **Nx:** `services/management-service/project.json` — `dev`/`test`/`typecheck`; implicitDependencies: core, shared-types, platform-messaging, platform-commands, tamper-logger.
-- **Kuyruk kontratı:** `MANAGEMENT` job'ları **üretim tarafında değişmez** — device-service'a dokunulmaz.
+1. **AK-2.1 — GIVEN** 2 aksiyon, ilki hata **WHEN** execute **THEN** ikincisi denenir, sonuç fail
+2. **AK-2.2 — GIVEN** internal token yok **WHEN** manevra aksiyonu **THEN** fail (403)
 
-## 10. Kabul Kriterleri
+**Kabul Kriterleri:**
 
-| Kod | Kriter | Kanıt türü |
-|:----|:-------|:-----------|
-| K1 | `MANAGEMENT` job'ları snapshot'a kaydedilir; TTL bayat girişler değerlendirmeye girmez | unit (CycleSnapshotStore) |
-| K2 | Koşul inactive→active kenarında (debounce sonrası) aksiyonlar BİR kez çalışır; aktifken tekrarlanmaz | unit (RuleEvaluator, fake timers) |
-| K3 | Cooldown içinde yeni yükselen kenar aksiyon tetiklemez; cooldown sonrası tetikler | unit (RuleEvaluator) |
-| K4 | `command` aksiyonu `COMMAND_DEVICE` job üretir (config çözümleme + `{{param}}` + zorunlu param kontrolü) ve başarı/başarısızlığı ayrı eventCode'la loglar | unit (CommandJobBuilder + ActionExecutor) |
-| K5 | `notify` aksiyonu `AlertNotifier` üzerinden kural bazlı eventCode ile bildirim üretir | unit (ActionExecutor) |
-| K6 | Geçersiz `rules.json` → açılış reddi (fail-fast); bilinmeyen anahtar reddedilir | unit (RuleConfigLoader) |
-| K7 | Örnek kural (bsc `soc >= 95` → `stop` + log + notify) container dev stack'te gözle çalışır | gözle (compose) |
-| K8 | Kapılar: yeni kod ≥%70 satır; `RuleEvaluator`/`ActionExecutor`/`CommandJobBuilder` ≥%90 branch | coverage raporu |
-| K9 | web-service komut akışı refactor sonrası mevcut testlerle yeşil kalır (davranış değişmez) | `nx run web-service:test` |
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-2.1 | Kademeli | unit (`action-executor.test.ts`) | ⬜ |
+| AK-2.2 | Fail-closed | unit | ⬜ |
 
-## 11. Görev Listesi (T1-T9)
+**T Görev Listesi:**
+- [ ] T-2: UC-2 kanıt testlerini eşleştir
 
-| Görev | İçerik |
-|:------|:-------|
-| T1 | `packages/shared-types/src/automation-rule.ts` — tipler + zod `automationRulesSchema` + JSDoc kontratı (Aşama 2) |
-| T2 | `packages/platform/commands` — `IDeviceConfigSource`, `DeviceConfigFileSource`, `CommandJobBuilder`, `CommandResolutionError`; `command-routes.ts` refactor (Aşama 2-4) |
-| T3 | `services/management-service/src/cycle-snapshot-store.ts` |
-| T4 | `services/management-service/src/rule-evaluator.ts` |
-| T5 | `services/management-service/src/action-executor.ts` |
-| T6 | `services/management-service/src/rule-config-loader.ts` + `device-catalog.ts` |
-| T7 | `management-service.ts` (wiring/yaşam döngüsü) + `run.ts` + `package.json`/`project.json`/`vitest.config.ts` + Dockerfile'lar |
-| T8 | Compose (container dev+prod) + `.env.container.example` + `config/rules.example.json` |
-| T9 | Aşama 5-6 dokümanları: `MANAGEMENT-SERVICE-DOGRULAMA.md`, `MANAGEMENT-SERVICE-TEST-KAPSAMI.md` + `test-envanteri.md` güncelleme |
+**Edge Cases:**
 
-## 12. Aşama Eşlemesi (6 aşamalı iş akışı)
+| Durum | Davranış |
+|:------|:---------|
+| Notify logger yok | Atlanır |
+
+**Involved Files:**
+
+| Dosya | Rol / Değişiklik |
+|:------|:-----------------|
+| `services/management-service/src/action-executor.ts` | Executor |
+| `services/management-service/src/{container-command,maneuver-operation}-channel.ts` | Kanallar |
+
+### 6.3 UC-3 — Kural Kataloğu (veri sözleşmesi)
+
+**Status:** ✏️ Specified (onay bekliyor)
+
+**Kapsam:**
+- dahil: kural setleri (FL-05 hysteresis, PPC zinciri, R-06/SOC), tier yerelliği, strict yükleme
+- hariç: şema (SHARED-TYPES)
+
+**Akış:**
+1. `rules.json` strict şemadan geçer.
+2. Geçersizse açılış reddedilir.
+
+**Gereksinimler (FR-x):**
+
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-3.1 | Geçersiz kural dosyası açılışı reddeder | AK-3.1 |
+
+**Kabul Senaryoları (GWT):**
+
+1. **AK-3.1 — GIVEN** bilinmeyen anahtarlı kural **WHEN** açılış **THEN** servis başlamaz
+
+**Kabul Kriterleri:**
+
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-3.1 | Fail-fast | unit (`rule-config-loader.test.ts`) | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-3: UC-3 kanıt testini eşleştir
+
+**Edge Cases:**
+
+| Durum | Davranış |
+|:------|:---------|
+| Tier'a özgü kural | Yalnız o tier'da yüklenir |
+
+**Involved Files:**
+
+| Dosya | Rol / Değişiklik |
+|:------|:-----------------|
+| `services/management-service/src/rule-config-loader.ts` | Yükleyici |
+| `deployment/v2/dev/*/rules/*.json` | Katalog |
+
+## 7. Yaşam Döngüsü ve Hata Kategorileri
+
+| Durum | Davranış |
+|:------|:---------|
+| Koşul aktif | Tekrar ateşlemez |
+| Aksiyon hatası | Kademeli devam |
+| Kanal yok | Fail-closed |
+| Bozuk kural | Açılış reddi |
+
+## 8. Başarı Kriterleri (SC-x)
+
+| Kod | Kriter | Ölçüm |
+|:----|:-------|:------|
+| SC-1 | Değerlendirme semantiği testli | komut |
+| SC-2 | Aksiyon kanalları fail-closed | komut |
+| SC-3 | Kural kataloğu regresyon kapısı | komut |
+
+## 9. Aşama Eşlemesi (iş akışı)
 
 | Aşama | Ürün |
 |:------|:-----|
-| 1. SPEC | Bu doküman |
-| 2. JSDoc | `automation-rule.ts`, `commands` paketi, servis sınıfları (her T görevinde) |
-| 3. TEST (kırmızı) | `cycle-snapshot-store.test.ts`, `rule-evaluator.test.ts`, `action-executor.test.ts`, `rule-config-loader.test.ts`, `device-catalog.test.ts`, `command-job-builder.test.ts` + web-service karakterizasyon koruması |
-| 4. IMPL (yeşil) | T1-T8 |
-| 5. SONUÇ | `MANAGEMENT-SERVICE-DOGRULAMA.md` |
-| 6. KAPSAM | `MANAGEMENT-SERVICE-TEST-KAPSAMI.md` + `test-envanteri.md` |
+| 1. SPEC (Plan — V4 Pro) | Bu doküman |
+| 2. SÖZLEŞME + TEST (Build — V4.1 Flash) | Yapısal modül — mevcut 11 test dosyası |
+| 3. IMPL + MUTASYON (Build — V4.1 Flash) | T-1..T-3 (kanıt eşleştirme) |
+| 4. REVIEW (GLM-5.3) | `MANAGEMENT-SERVICE-KAPANIS.md` |
+
+## 10. Açık Kararlar
+
+| # | Konu | Durum |
+|:--|:-----|:------|
+| A1 | Kural kataloğunun tier-bazlı otomatik doğrulanması | İleri İş |
+
+## 11. İleri İş (bu pakette YAPILMAZ — referans)
+
+1. Kural kataloğu doğrulamasının CI'a bağlanması.
+2. Yeni aksiyon tipleri.
+
+## 12. T Görev Özeti
+
+| T-1 | UC-1 (değerlendirme) kanıt testlerinin eşleştirilmesi |
+| T-2 | UC-2 (aksiyon) kanıt testlerinin eşleştirilmesi |
+| T-3 | UC-3 (katalog) kanıt testinin eşleştirilmesi |

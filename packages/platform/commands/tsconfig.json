@@ -9,5 +9,10 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
-  "references": [{ "path": "../../core" }, { "path": "../../shared-types" }, { "path": "../../result" }]
+  "references": [
+    { "path": "../../core" },
+    { "path": "../../shared-types" },
+    { "path": "../../result" },
+    { "path": "../../tamper-logger" }
+  ]
 }

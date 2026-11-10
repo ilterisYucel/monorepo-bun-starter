@@ -30,7 +30,7 @@ review_date: 2026-12-01
 ## Tünel sözleşmesi (MANDATORY — Faz 3)
 
 - **Tek kanal:** Tünel stream'leri TunnelConnector'ın AYNI WS kanalından geçer; ayrı bağlantı YOKTUR. Text frame = kontrol mesajı, binary frame = akış verisi.
-- **Binary frame (§4.2):** 9 bayt başlık (streamId u32 BE + seq u32 BE + flags); flags `FIN 0x01 | RST 0x02 | WS_OP 0x04`; WS*OP varken yüksek 4 bit opcode. Codec `packages/ws-tunnel/src/codec/frame-codec.ts` (2026-09-01'de ayrı jenerik pakete taşındı) — `decode` **asla throw etmez** (yerel `Result<*,FrameDecodeError>`); encode programcı hatasında throw eder. `seq` her iki tarafça AYRI sayaçtır.
+- **Binary frame (§4.2):** 9 bayt başlık (streamId u32 BE + seq u32 BE + flags); flags `FIN 0x01 | RST 0x02 | WS_OP 0x04`; WS*OP varken yüksek 4 bit opcode. Codec `zero-trust-application-tunnel/ws-tunnel/src/codec/frame-codec.ts` (2026-09-01'de ayrı jenerik pakete taşındı) — `decode` **asla throw etmez** (yerel `Result<*,FrameDecodeError>`); encode programcı hatasında throw eder. `seq` her iki tarafça AYRI sayaçtır.
 - **Stream yaşam döngüsü:** streamId'yi HUB atar (monoton). Akış: `stream-open` → `stream-open-ack {statusCode, headers}` → BINARY gövde (≤64 KiB parça) → `FIN`; hata → `RST`; iki taraf da `stream-close` gönderebilir. HTTP akışlarında `stream-window` kredisi zorunludur (kredi yoksa gövde DURUR — deadlock yok: idle sweep kapatır).
 - **Yönlendirme (client):** varsayılan `/api/*` + `/ws/*` → `TUNNEL_API_UPSTREAM`; diğer her şey → `TUNNEL_STATIC_UPSTREAM`. Tüketici `routeUpstream` ile kendi kuralını enjekte edebilir. WS köprüsü aynı upstream'in `ws://` türevine bağlanır.
 - **Oturum (§5.4-§5.7):** `open-session` → client KENDİ secret'iyle JWT üretir (`ITokenSigner` sözleşmesi; monorepo `JoseTokenSigner` implementasyonu `type:"container-session"` etiketi basar — access token'la karışmaz) → `open-session-ack`; cookie adı tüketici enjekte eder (paket varsayılanı nötr `tunnel_session`); tüketici **Path-scoped** `/containers/<cid>/ui`, HttpOnly uygular. Hub tarafı cookie'yi `HubSessionStore`'a eşler; client tarafı `ClientSessionStore`'a. Kullanıcı client DB'sine ASLA yazılmaz. Rol eşlemesi hub'da: admin/teknik→admin, boss→guest, guest→oturum YOK.
@@ -44,7 +44,7 @@ review_date: 2026-12-01
 
 > Kaynak: [WS-TUNNEL-DOMAIN-KALINTI-ARINDIRMA-MIMARISI.md](docs/architecture/WS-TUNNEL-DOMAIN-KALINTI-ARINDIRMA-MIMARISI.md).
 
-- **Bağımlılık:** `packages/ws-tunnel` yalnız `ws` + `zod` kullanır (test yardımcısı `jose` devDep). `@gd-monorepo/*` importu **YASAK** — paket monorepo'dan bağımsız/ayrı ürün olarak import edilir.
+- **Bağımlılık:** `zero-trust-application-tunnel/ws-tunnel` yalnız `ws` + `zod` kullanır (test yardımcısı `jose` devDep). `@gd-monorepo/*` importu **YASAK** — paket monorepo'dan bağımsız/ayrı ürün olarak import edilir.
 - **Result:** yerel `src/result/` (monorepo result paketi DEĞİL); `Result` + `DomainError` taksonomisi birebir API.
 - **Telemetri/operation/event:** pakette YOKTUR; `tunnel-extensions` (tüketici) modülünde yaşar. Wire JSON şekilleri değişmez (eski peer'lar uyumlu).
 - **Enjeksiyon:** cookie adı, allowlist blocklist, connector log kodları (`eventCodes`), upstream kuralı (`routeUpstream`) tüketicide tanımlanır; paket varsayılanları nötr.
@@ -55,7 +55,7 @@ review_date: 2026-12-01
 
 > Kaynak: [WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md](docs/architecture/WS-TUNNEL-OPAK-SERVIS-ERISIMI-MIMARISI.md). Bu bölüm, AI ajanlarının pakete domain/telemetri/endpoint sızdırmasını engeller.
 
-- **Pakete girmez:** `packages/ws-tunnel` core'una **TelemetryData/telemetri tipi, HTTP route/web-endpoint kodu, domain kelimesi (BESS/konteyner/field/revpi)** EKLENEMEZ. Keşif + erişim tüketicide (web-service) yaşar.
+- **Pakete girmez:** `zero-trust-application-tunnel/ws-tunnel` core'una **TelemetryData/telemetri tipi, HTTP route/web-endpoint kodu, domain kelimesi (BESS/konteyner/field/revpi)** EKLENEMEZ. Keşif + erişim tüketicide (web-service) yaşar.
 - **Duyuru opaktır:** `register.services[]` yalnız `id` + kozmetik `meta{title?,icon?}` taşır. Hedef adres / `protocol` / `health` / `endpoint` alanı **YASAK** — `serviceAnnouncementSchema` STRICT reddeder. Hedef adres peer'ın lokal config'inde kalır (SSRF ilkesi).
 - **Erişim ≠ keşif:** Erişim (`/peers/:peerId/services/:serviceId/*` → opak proxy) ile keşif (`GET /peers`, `GET /peers/:id/services` — hub'ın kendi REST API'si) ayrıdır. Yabancı peer uygulamasından hiçbir API beklenmez; yalnız yanında peer agent çalışır.
 - **Peer tipleri enum'da:** `TunnelPeerType = "container" | "field" | "device"` — serbest string DEĞİL. Yeni tip yalnız kayıtlı ihtiyaçla eklenir; domain anlamı `meta`'da yaşar.
@@ -67,11 +67,11 @@ review_date: 2026-12-01
 
 > Kaynak: [WS-TUNNEL-HUB-SERVIS-MIMARISI.md](docs/architecture/WS-TUNNEL-HUB-SERVIS-MIMARISI.md).
 
-- **Hexagonal zorunlu:** `packages/ws-tunnel-hub/src/{domain,application}` altında **Fastify/ws/bun:sqlite/env importu YASAK**. Dış bağımlılık yalnız portlardan (`IHubChannel`, `IPeerCredentialsStore`, `IConsumerCredentials`, `IConsumerRelay`, `IAuditSink`, `ILogger`).
+- **Hexagonal zorunlu:** `zero-trust-application-tunnel/ws-tunnel-hub/src/{domain,application}` altında **Fastify/ws/bun:sqlite/env importu YASAK**. Dış bağımlılık yalnız portlardan (`IHubChannel`, `IPeerCredentialsStore`, `IConsumerCredentials`, `IConsumerRelay`, `IAuditSink`, `ILogger`).
 - **Use-case önce:** Yeni davranış eklenirken önce use-case + port sözleşmesi yazılır; adapter yalnız taşıma/çeviri yapar.
 - **Wire uyumu:** `/ws/peer` register/ack/heartbeat/session/stream frame'leri paketle birebir; hub domain mesajlarını yorumlamaz (opak relay).
 - **Kanal izolasyonu:** Peer token'ı `/ws/peer`; consumer token'ı `/control` + `/ws/consumer`. Ayrı env değerleri, kesişemez.
-- **Docker:** İmaj monorepo kök bağlamından derlenir (`-f packages/ws-tunnel-hub/Dockerfile .`); runtime `oven/bun:slim`, `HEALTHCHECK /health`, volume `/data`.
+- **Docker:** İmaj monorepo kök bağlamından derlenir (`-f zero-trust-application-tunnel/ws-tunnel-hub/Dockerfile .`); runtime `oven/bun:slim`, `HEALTHCHECK /health`, volume `/data`.
 
 ## Bootstrap ve peer kimliği sözleşmesi (MANDATORY — hub-servis)
 

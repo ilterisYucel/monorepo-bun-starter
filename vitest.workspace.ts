@@ -7,9 +7,9 @@ export default defineWorkspace([
   "packages/core",
   "packages/tamper-logger",
   "packages/logger",
-  "packages/ws-tunnel",
-  "packages/ws-tunnel-hub",
-  "packages/ws-tunnel-agent",
+  "zero-trust-application-tunnel/ws-tunnel",
+  "zero-trust-application-tunnel/ws-tunnel-hub",
+  "zero-trust-application-tunnel/ws-tunnel-agent",
   "packages/platform/messaging",
   "packages/platform/commands",
   "packages/platform/container-access",
@@ -30,7 +30,7 @@ export default defineWorkspace([
   "apps/editor",
   // 2026-08-30 (T6): saha uygulaması workspace'e eklendi — root test
   // script'leri artık field/superadmin'i de koşar (önceden nx ile ayrı).
-  "apps/field",
+  "apps/site",
   "apps/superadmin",
   "apps/demo-field",
 ]);

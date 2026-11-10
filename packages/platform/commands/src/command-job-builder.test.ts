@@ -11,7 +11,10 @@ import type {
 } from "./command-job-builder";
 import { DeviceConfigFileSource } from "./device-config-source";
 import type { IDeviceConfigSource } from "./device-config-source";
-import type { DeviceConfigFile, CommandConfig } from "@gd-monorepo/shared-types";
+import type {
+  DeviceConfigFile,
+  CommandConfig,
+} from "@gd-monorepo/shared-types";
 
 /** Kök configs/ (source of truth) dizinini tarayıp deviceId'ye göre in-memory
  *  kaynak kurar — dosya adından bağımsız (kanonik adlar alet adıdır). */
@@ -106,25 +109,25 @@ describe("CommandJobBuilder.build", () => {
   it("config yok → err device_not_found", () => {
     const r = builder().build("demo-99", "stop");
     expect(r.isErr()).toBe(true);
-    expect((r.error() as CommandResolutionError).reason).toBe<
-      CommandResolutionCode
-    >("device_not_found");
+    expect(
+      (r.error() as CommandResolutionError).reason,
+    ).toBe<CommandResolutionCode>("device_not_found");
   });
 
   it("komut tanımsız → err command_not_found", () => {
     const r = builder().build("demo-1", "turbo");
     expect(r.isErr()).toBe(true);
-    expect((r.error() as CommandResolutionError).reason).toBe<
-      CommandResolutionCode
-    >("command_not_found");
+    expect(
+      (r.error() as CommandResolutionError).reason,
+    ).toBe<CommandResolutionCode>("command_not_found");
   });
 
   it("zorunlu param eksik → err missing_param (context.paramName taşır)", () => {
     const r = builder().build("demo-1", "charge", {});
     expect(r.isErr()).toBe(true);
-    expect((r.error() as CommandResolutionError).reason).toBe<
-      CommandResolutionCode
-    >("missing_param");
+    expect(
+      (r.error() as CommandResolutionError).reason,
+    ).toBe<CommandResolutionCode>("missing_param");
     expect((r.error() as CommandResolutionError).context.paramName).toBe(
       "powerKw",
     );
@@ -139,7 +142,9 @@ describe("CommandJobBuilder.build", () => {
     const r = builder().build("demo-1", "charge", { powerKw: 50 });
     expect(r.isOk()).toBe(true);
     const job = r.unwrap();
-    const byName = Object.fromEntries(job.telemetries.map((t) => [t.name, t.value]));
+    const byName = Object.fromEntries(
+      job.telemetries.map((t) => [t.name, t.value]),
+    );
     expect(byName["Command Request"]).toBe(2);
     expect(byName["Charge Power Setpoint"]).toBe(50);
     expect(byName["Mode Signed"]).toBe(-50);
@@ -159,8 +164,12 @@ describe("CommandJobBuilder.build", () => {
     );
 
     const bsc = source.load("BSC-1")!;
-    const globalRack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp R1");
-    const globalPack = bsc.telemetry.find((t) => t.name === "Rack Max Diff Temp Pack R1");
+    const globalRack = bsc.telemetry.find(
+      (t) => t.name === "Rack Max Diff Temp R1",
+    );
+    const globalPack = bsc.telemetry.find(
+      (t) => t.name === "Rack Max Diff Temp Pack R1",
+    );
     expect(globalRack?.registerAddress).toBe(30264);
     expect(globalPack?.registerAddress).toBe(30265);
 
@@ -227,7 +236,10 @@ describe("DeviceConfigFileSource", () => {
 
   it("büyük/küçük harf uyumlu arama: önce lowercase, sonra orijinal", () => {
     const dir = mkdtempSync(join(tmpdir(), "cmd-src-XXXXXX"));
-    writeFileSync(join(dir, "DEMO-1.json"), JSON.stringify({ ...demoConfig, deviceId: "DEMO-1" }));
+    writeFileSync(
+      join(dir, "DEMO-1.json"),
+      JSON.stringify({ ...demoConfig, deviceId: "DEMO-1" }),
+    );
     const source = new DeviceConfigFileSource(dir);
     expect(source.load("DEMO-1")?.deviceId).toBe("DEMO-1");
   });

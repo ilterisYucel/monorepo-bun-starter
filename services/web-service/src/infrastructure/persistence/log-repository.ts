@@ -64,6 +64,7 @@ export class LogRepository {
    */
   async deleteOlderThan(days: number): Promise<void> {
     try {
+      // eslint-disable-next-line energy/require-parameterized-query -- days: number parametre (identifier değil); tip düzeyinde sayı
       await this.db.execute(
         `DELETE FROM system_logs WHERE timestamp < NOW() - INTERVAL '${days} days'`,
       );

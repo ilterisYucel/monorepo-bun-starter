@@ -71,6 +71,7 @@ export class ExternalSeriesWriter {
       JSON.stringify(p.tags ?? {}),
     ]);
 
+    // eslint-disable-next-line energy/require-parameterized-query -- yalnız VALUES tuple listesi dinamik; tüm değerler $n parametreli
     await this.sql.execute(
       `INSERT INTO external_series (source, series, timestamp, value, unit, tags)
        VALUES ${values}

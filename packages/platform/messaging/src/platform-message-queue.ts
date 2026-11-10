@@ -5,12 +5,11 @@ import {
   BullMQAdapter,
   type BullMQQueue,
   type RedisConnection,
+  type IMessageQueue,
+  type QueueStatus,
+  type WorkerOptions,
 } from "@gd-monorepo/core";
-import type {
-  IMessageQueue,
-  QueueStatus,
-  WorkerOptions,
-} from "@gd-monorepo/core";
+
 import type { DeviceJob, JobType, JobResult } from "@gd-monorepo/shared-types";
 
 /**
@@ -77,15 +76,8 @@ export const QUEUE_NAMES: Record<JobType, string> = {
   FETCH_EXTERNAL: "queue_fetch_external",
 };
 
-/** Bilinen JobType listesi — override whitelist'i ve registerWorker döngüsü için. */
-const JOB_TYPES: JobType[] = [
-  "READ_DEVICE",
-  "WRITE_TELEMETRY",
-  "COMMAND_DEVICE",
-  "MANAGEMENT",
-  "WS_BROADCAST",
-  "FETCH_EXTERNAL",
-];
+/** Bilinen JobType listesi — retry haritasının anahtarlarından türetilir (tek kaynak). */
+const JOB_TYPES: ReadonlySet<JobType> = new Set(Object.keys(JOB_RETRY_OPTIONS) as JobType[]);
 
 /**
  * PlatformMessageQueue dışarıdan verilebilir yapılandırması.
@@ -153,7 +145,7 @@ export class PlatformMessageQueue implements IMessageQueue {
   ): Record<JobType, T> {
     const resolved = { ...defaults };
     for (const key of Object.keys(overrides ?? {}) as JobType[]) {
-      if (JOB_TYPES.includes(key) && overrides?.[key] !== undefined) {
+      if (JOB_TYPES.has(key) && overrides?.[key] !== undefined) {
         resolved[key] = overrides[key]!;
       }
     }
@@ -252,13 +244,24 @@ export class PlatformMessageQueue implements IMessageQueue {
     processor: (job: DeviceJob) => Promise<unknown>,
     options?: WorkerOptions,
   ): Promise<void> {
+    // Tipimiz artık fonksiyon dizisi değil, çalışan işlerin (Promise) dizisi
+    const promises: Promise<void>[] = [];
+
     for (const type of JOB_TYPES) {
-      const queue = await this.queueFor(type);
-      await queue.registerWorker(
-        (data) => processor(data as DeviceJob),
-        this.adaptWorkerOptions(options),
-      );
+      // Fonksiyonu yaratıp () ile anında tetikliyoruz
+      const task = (async () => {
+        const queue = await this.queueFor(type);
+        await queue.registerWorker(
+          (data) => processor(data as DeviceJob),
+          this.adaptWorkerOptions(options),
+        );
+      })();
+
+      promises.push(task);
     }
+
+    // Set içindeki tüm tipler paralel olarak kaydedilir
+    await Promise.allSettled(promises);
   }
 
   /** IMessageQueue WorkerOptions → jenerik QueueWorkerOptions uyarlaması. */
@@ -270,7 +273,10 @@ export class PlatformMessageQueue implements IMessageQueue {
         ? { stalledInterval: options.stalledInterval }
         : undefined),
       ...(options.onCompleted
-        ? { onCompleted: (data: unknown) => options.onCompleted!(data as DeviceJob) }
+        ? {
+            onCompleted: (data: unknown) =>
+              options.onCompleted!(data as DeviceJob),
+          }
         : undefined),
       ...(options.onFailed
         ? {

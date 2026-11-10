@@ -1,4 +1,4 @@
-// apps/field/src/lib/api-base.ts
+// apps/site/src/lib/api-base.ts
 /**
  * Boss Faz 3 — çalışma zamanı URL türetimi (container-web api-base deseni).
  *

@@ -20,10 +20,10 @@ import {
   TunnelClient,
   TunnelConnector,
   WsSocketClientFactory,
-} from "../packages/ws-tunnel/src/index.ts";
-import { createHub } from "../packages/ws-tunnel-hub/src/main.ts";
-import { BunSqliteDatabase } from "../packages/ws-tunnel-hub/src/infrastructure/outbound/bun-sqlite-database.ts";
-import { JoseSignerForTests } from "../packages/ws-tunnel/src/session/__test-helpers__/jose-signer.ts";
+} from "../zero-trust-application-tunnel/ws-tunnel/src/index.ts";
+import { createHub } from "../zero-trust-application-tunnel/ws-tunnel-hub/src/main.ts";
+import { BunSqliteDatabase } from "../zero-trust-application-tunnel/ws-tunnel-hub/src/infrastructure/outbound/bun-sqlite-database.ts";
+import { JoseSignerForTests } from "../zero-trust-application-tunnel/ws-tunnel/src/session/__test-helpers__/jose-signer.ts";
 
 const CONSUMER_TOKEN = "demo-consumer-token";
 const PEER_ID = "revpi-1";

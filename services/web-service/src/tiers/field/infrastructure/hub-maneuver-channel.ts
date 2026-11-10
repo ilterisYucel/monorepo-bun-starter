@@ -77,6 +77,6 @@ export class HubManeuverChannel implements IRemoteCommandChannel {
         .catch(() => undefined);
       return;
     }
-    console.warn(message, err);
+    console.warn(`[HubManeuverChannel] ${message}`, err);
   }
 }

@@ -8,7 +8,7 @@
     "dev:container-web": "nx run container-web:dev",
     "dev:container-desktop": "nx run container-desktop:dev",
     "dev:editor": "nx run editor:dev",
-    "dev:field": "nx run field:dev",
+    "dev:site": "nx run site:dev",
     "dev:demo-field": "nx run demo-field:dev",
     "test:demo-integration": "nx run demo-field:test-integration",
     "dev:superadmin": "nx run superadmin:dev",
@@ -22,6 +22,9 @@
     "test": "vitest",
     "test:unit": "vitest --workspace vitest.workspace.ts",
     "test:coverage": "vitest --workspace vitest.workspace.ts --coverage",
+    "test:mutation": "bun tools/mutation-changed.mjs",
+    "lint": "bun build packages/eslint-plugin-energy/src/index.ts --outdir packages/eslint-plugin-energy/dist --target node --external @typescript-eslint/utils && eslint services packages zero-trust-application-tunnel",
+    "arch:check": "bun tools/arch-checks.mjs",
     "test:e2e": "playwright test",
     "test:perf": "k6 run deployment/k6/*.js",
     "spec:check": "bun tools/spec-check.mjs",
@@ -43,16 +46,22 @@
     "@nx/react": "^22.7.1",
     "@nx/vite": "^22.7.1",
     "@playwright/test": "1.62.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@types/bun": "latest",
     "@vitest/coverage-v8": "3.2.7",
     "bun-serialport": "0.2.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "nx": "^22.7.1",
     "typescript": "^5.4.0",
+    "typescript-eslint": "^8.58.2",
     "vitest": "^3.0.0"
   },
   "workspaces": [
     "apps/*",
     "packages/**",
-    "services/*"
+    "services/*",
+    "zero-trust-application-tunnel/*"
   ]
 }

@@ -70,6 +70,7 @@ export class CommandWriteStore {
       );
       return `($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6}, $${b + 7}, $${b + 8})`;
     });
+    // eslint-disable-next-line energy/require-parameterized-query -- yalnız VALUES tuple listesi dinamik; tüm değerler $n parametreli
     await this.db.execute(
       `INSERT INTO command_writes
          (device_id, command, label, name, register_address, register_table_type, value, success)

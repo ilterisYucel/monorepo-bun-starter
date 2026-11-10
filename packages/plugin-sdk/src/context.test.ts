@@ -85,4 +85,36 @@ describe("JsonFilePluginConfigSource + PluginContextFactory", () => {
     const context = await factory.create("bilinmeyen-plugin", dir);
     expect(context.config).toEqual({});
   });
+
+  it("{env:VAR} referanslarini ortam degiskeninden okur (sir repo'da tutulmaz)", async () => {
+    const dir = await makeTempDir();
+    const configDir = join(dir, "config");
+    await mkdir(configDir, { recursive: true });
+    await writeFile(
+      join(configDir, "epias-market-prices.json"),
+      JSON.stringify({
+        username: "{env:TEST_EPIAS_USER}",
+        password: "{env:TEST_EPIAS_PASSWORD}",
+        nested: { token: "{env:TEST_EPIAS_TOKEN}" },
+      }),
+    );
+    process.env.TEST_EPIAS_USER = "user@example.com";
+    process.env.TEST_EPIAS_PASSWORD = "secret";
+    process.env.TEST_EPIAS_TOKEN = "tok";
+
+    const factory = new PluginContextFactory(
+      new JsonFilePluginConfigSource(configDir),
+      join(dir, "state"),
+    );
+    const context = await factory.create("epias-market-prices", dir);
+
+    expect(context.config).toEqual({
+      username: "user@example.com",
+      password: "secret",
+      nested: { token: "tok" },
+    });
+    delete process.env.TEST_EPIAS_USER;
+    delete process.env.TEST_EPIAS_PASSWORD;
+    delete process.env.TEST_EPIAS_TOKEN;
+  });
 });

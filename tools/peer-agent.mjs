@@ -2,7 +2,7 @@
 /**
  * peer-agent.mjs — ince wrapper (geriye dönük).
  *
- * Asıl agent `packages/ws-tunnel-agent` modülüdür; bu script yalnız env ile
+ * Asıl agent `zero-trust-application-tunnel/ws-tunnel-agent` modülüdür; bu script yalnız env ile
  * çalıştırır (revpi-agent-check ve eski kullanım uyumu). Üretim kurulumu:
  *   agent run --config /etc/<ad>/agent.env   (ya da wizard/setup)
  *
@@ -11,9 +11,9 @@
  */
 
 import { hostname } from "node:os";
-import { parseAgentConfig } from "../packages/ws-tunnel-agent/src/config.ts";
-import { generateSecret } from "../packages/ws-tunnel-agent/src/hmac-signer.ts";
-import { startAgent } from "../packages/ws-tunnel-agent/src/run.ts";
+import { parseAgentConfig } from "../zero-trust-application-tunnel/ws-tunnel-agent/src/config.ts";
+import { generateSecret } from "../zero-trust-application-tunnel/ws-tunnel-agent/src/hmac-signer.ts";
+import { startAgent } from "../zero-trust-application-tunnel/ws-tunnel-agent/src/run.ts";
 
 const parsed = parseAgentConfig(process.env, { hostname: hostname() });
 if (parsed.isErr()) {

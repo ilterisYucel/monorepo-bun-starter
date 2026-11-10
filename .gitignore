@@ -25,6 +25,13 @@ storybook-static/
 nx-cache/
 
 # ============================================
+# MUTATION TESTING (StrykerJS)
+# ============================================
+**/.stryker-tmp/
+**/reports/stryker-incremental.json
+**/reports/mutation/
+
+# ============================================
 # BUN
 # ============================================
 # bun.lockb

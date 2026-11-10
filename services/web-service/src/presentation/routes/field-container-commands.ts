@@ -39,6 +39,7 @@ const bodySchema = z.object({
 function traceFrom(request: FastifyRequest): string {
   const value = request.headers["x-gd-trace-id"];
   if (typeof value === "string" && value.length > 0) return value;
+  // eslint-disable-next-line energy/no-math-random -- trace id (güvenlik değeri değil)
   return `field-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 

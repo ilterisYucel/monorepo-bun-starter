@@ -1,5 +1,6 @@
 // services/device-service/src/ops-log.ts
 //
+/* eslint-disable energy/no-raw-console-log -- ops-log: logger yoksa [Module] prefix'li console fallback bilinçli (AGENTS.md logging kuralı) */
 // Operasyonel log kanalı (DEVICE-SERVICE-MIMARISI UC-6) — imzasız
 // `@gd-monorepo/logger`. Logger yoksa (K4) eski console davranışı BİREBİR korunur.
 // Audit/alarm/security geçişleri bu kanaldan GEÇMEZ (TamperLogger'da kalır).

@@ -19,7 +19,7 @@ const SERVICE_ID = "local-admin";
 const CONTAINER = `hub-parity-${Date.now()}`;
 const examplesDir = resolve(
   import.meta.dir,
-  "../packages/ws-tunnel-hub/examples",
+  "../zero-trust-application-tunnel/ws-tunnel-hub/examples",
 );
 
 let failures = 0;
@@ -49,7 +49,7 @@ if (inspect.code !== 0) {
     "docker",
     "build",
     "-f",
-    "packages/ws-tunnel-hub/Dockerfile",
+    "zero-trust-application-tunnel/ws-tunnel-hub/Dockerfile",
     "-t",
     IMAGE,
     ".",

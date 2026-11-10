@@ -70,7 +70,7 @@ Bugünkü tek stack: `deployment/v2/dev/{container,container2,field}/` (v1/AWS/o
 
 > SPEC: [WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md](docs/architecture/WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md)
 
-- **İmaj:** `docker build -f packages/ws-tunnel-hub/Dockerfile -t ws-tunnel-hub:<tag> .` (monorepo kök bağlamı). Compose'da `HUB_IMAGE` ile seçilir.
+- **İmaj:** `docker build -f zero-trust-application-tunnel/ws-tunnel-hub/Dockerfile -t ws-tunnel-hub:<tag> .` (monorepo kök bağlamı). Compose'da `HUB_IMAGE` ile seçilir.
 - **Servis:** field stack'te `hub-servis` (port 5003 iç, dış 5009). Volume `/data` (sqlite modunda; env modunda gerekmez).
 - **Kimlik (tier-bazlı, HUB_MODE flag'i YOK):**
   - `container` tier → hub **peer**'ıdır, ancak kayıt **agent üzerinden** yapılır (SPEC KONTEYNER-AGENT-KAYIT): `ws-tunnel-agent` (`PEER_TYPE=container`, `PEER_ID`, `SERVICE_ID=container-api`, `LOCAL_TARGET`, `HUB_PEER_TOKEN` hub `PEER_TOKEN` ile aynı, `HUB_SECRET`=web-service `JWT_SECRET`). Web-service peer bağlantısı/session server/tunnel client TAŞIMAZ; `container_session` JWT'sini stateless doğrular. Natif `HUB_PEER_ENABLED` modeli kaldırıldı.

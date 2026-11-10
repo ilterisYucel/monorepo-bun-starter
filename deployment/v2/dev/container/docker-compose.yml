@@ -235,7 +235,7 @@ services:
       - "5001:5001"
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
-      - ../../../../packages/ws-tunnel/src:/app/packages/ws-tunnel/src
+      - ../../../../zero-trust-application-tunnel/ws-tunnel/src:/app/zero-trust-application-tunnel/ws-tunnel/src
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-docker:ro
       - ./maneuvers:/app/maneuver-config:ro

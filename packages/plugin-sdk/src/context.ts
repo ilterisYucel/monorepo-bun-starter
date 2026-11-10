@@ -92,6 +92,9 @@ export interface PluginConfigSource {
 
 /**
  * JSON dosya bazli konfigürasyon kaynagi: `<configDir>/<pluginName>.json`.
+ *
+ * `{env:VAR}` formundaki string degerler yuklenirken ortam degiskeninden okunur
+ * (sirlar repo'da tutulmaz; T-18).
  */
 export class JsonFilePluginConfigSource implements PluginConfigSource {
   constructor(private readonly configDir: string) {}
@@ -106,11 +109,28 @@ export class JsonFilePluginConfigSource implements PluginConfigSource {
         );
         return {};
       }
-      return parsed as Record<string, unknown>;
+      return substituteEnvRefs(parsed) as Record<string, unknown>;
     } catch {
       return {};
     }
   }
+}
+
+const ENV_REF = /^\{env:([A-Z_][A-Z0-9_]*)\}$/;
+
+/** `{env:VAR}` referanslarini (ic ice) ortam degiskeniyle degistirir. */
+function substituteEnvRefs(value: unknown): unknown {
+  if (typeof value === "string") {
+    const match = value.match(ENV_REF);
+    return match ? (process.env[match[1]] ?? "") : value;
+  }
+  if (Array.isArray(value)) return value.map(substituteEnvRefs);
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, inner]) => [key, substituteEnvRefs(inner)]),
+    );
+  }
+  return value;
 }
 
 /**

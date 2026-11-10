@@ -82,6 +82,7 @@ export class OperationDefStore implements IOperationDefinitionStore {
 
   /** Sorgu — türdeki tüm kayıtlar. */
   async listByKind(kind: "maneuver" | "operation"): Promise<OperationDefinition[]> {
+    // eslint-disable-next-line energy/require-parameterized-query -- SELECT_COLUMNS statik sabit; değerler parametreli
     const rows = await this.db.query<DefRow>(
       `${SELECT_COLUMNS} WHERE kind = $1 ORDER BY created_at ASC`,
       [kind],

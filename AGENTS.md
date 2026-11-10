@@ -15,6 +15,7 @@ nx run data-service:dev         # Data Service (BullMQ consumer)
 bun run build                   # Build all (Nx orders by ^build deps)
 bun run test                    # All unit/component/integration tests (vitest workspace)
 bun run test:coverage           # With coverage report
+bun run test:mutation           # StrykerJS — yalnız değişen dosyalarda mutasyon testi (eşik %80)
 bun run test:e2e                # Playwright (requires docker stack)
 bun run test:perf               # k6 smoke tests
 bun run spec:check <dosya...>   # SPEC/KAPANIŞ doküman lint'i (şablon + ID + GWT + referans kapısı)
@@ -35,44 +36,56 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 
 | Dosya | Konu | Tetik (yol / sembol / görev) | Birlikte oku |
 | :--- | :--- | :--- | :--- |
-| `AGENTS-INFRA.md` | Monorepo, paket tablosu, DI, desenler, sürümler, SIGILL | Yeni paket/workspace; `nx.json`; tsconfig build; DI arayüzü; framework sürümü | — |
-| `AGENTS-DEVICE-CONFIG.md` | Telemetry tagging & canonical metrics | `deployment/**/device-configs/*.json`; `services/device-service/deployment/sample-config/`; kök `configs/`; `canonical`; `TelemetryTagger` akışı; telemetri/tag/bitfield alanı | `AGENTS-DEVICE-SERVICE.md` |
-| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `packages/ws-tunnel/**`; `packages/ws-tunnel-hub/**`; `packages/ws-tunnel-agent/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; hub-servis; agent CLI/setup; frame/stream/session işi | `AGENTS-KOMUT-MANEVRA.md` (boss→field kanalı) |
-| `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorHost` | `AGENTS-DEVICE-CONFIG.md` |
-| `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
-| `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
-| `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
-| `AGENTS-WEB-SERVICE.md` | Web-service katman / port / tier / Fastify plugin kuralları | `services/web-service/**`; katman/port/use-case/plugin/tier işleri; `serviceTier`; `IHubTunnelPort` | `AGENTS-INFRA.md`, `AGENTS-WS-TUNNEL.md` |
-| `AGENTS-DEPLOYMENT.md` | Deployment klasör yapısı & kapsülleme | `deployment/**`; docker-compose; `device-configs`/`maneuvers`/`rules`; `.env` konumu; cross-ref/kapsülleme kuralı; yeni tier/app ekleme | `AGENTS-DEVICE-CONFIG.md` |
+| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `zero-trust-application-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; hub-servis; agent CLI/setup; frame/stream/session işi | `docs/architecture/AUTH-MIMARISI.md` (bootstrap/oturum) |
+| `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `docs/architecture/UI-MIMARISI.md` (varlık/grafik) |
+| `AGENTS-TAMPER-LOGGER.md` | İmzalı log (tamper-evident) sözleşmesi | `packages/tamper-logger/**`; `tools/verify-log.mjs`; `log_events`; `eventCode`; HMAC zinciri | `packages/tamper-logger/docs/TAMPER-LOGGER-MIMARISI.md` |
+| `AGENTS-DEPLOYMENT.md` | Deployment klasör yapısı & kapsülleme | `deployment/**`; docker-compose; `device-configs`/`maneuvers`/`rules`; `.env` konumu; yeni tier/app ekleme | `docs/architecture/DEPLOYMENT-MIMARISI.md` |
+
+> **Diğer alanlar docs SPEC'lerindedir (AGENTS dosyası yok):** monorepo/paket tablosu → `docs/architecture/PACKAGES-MIMARISI.md`; servisler → `SERVICES-MIMARISI.md`; app'ler → `APPS-MIMARISI.md`; cihaz/telemetri → `TELEMETRI-ZINCIRI-MIMARISI.md`; komut/manevra → `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`; web-service katmanları → `WEB-SERVICE-MIMARISI.md`; UI varlıkları → `UI-MIMARISI.md`; AUTH → `AUTH-MIMARISI.md`.
 
 ## Testing
 
-- **`TESTING.md` is the authoritative testing reference** — layers, file naming, mocking rules, coverage targets, and commands. Read it before writing or running any test.
-- Unit/component/integration: Vitest workspace (`vitest.workspace.ts`).
-- E2E: Playwright (`e2e/`). Perf: k6 (`deployment/k6/`). Both via root scripts.
-- Mocking rules: external deps (redis, pg, bullmq) via `vi.mock()` + root-level `__mocks__/`; `@gd-monorepo/*` internal packages are never mocked.
+Test kanıtları SPEC GWT/AK ve KAPANIŞ §A.2/§B'de yaşar (TESTING.md kaldırıldı — 2026-11-10).
+
+- **Katmanlar:** Unit (Vitest, co-located `*.test.ts`) · Component (Vitest + Testing Library) · Integration (`*.spec.ts`) · E2E (Playwright, `e2e/`) · Perf (k6, `deployment/k6/`).
+- **Komutlar:** `bun run test` (workspace) · `bun run test:coverage` · `bun run test:e2e` · `bun run test:perf` · `nx run <proj>:test`.
+- **Dosya adlandırma:** `*.test.ts` unit · `*.spec.ts` integration · `__mocks__/` harici mock'lar.
+- **Mocking:** Harici bağımlılıklar (redis, pg, bullmq) `vi.mock()` + kök `__mocks__/`; `@gd-monorepo/*` ASLA mock'lanmaz. Fastify testlerinde `app.inject()`; React `@testing-library/react` + jsdom; frontend HTTP `msw`.
+- **Kapsam:** Yeni kodda ≥%70 satır (SonarCloud); güvenlik-kritik modüllerde ≥%90 branch (rbac, token-adapter, ws/auth, session-gateway, frame codec, komut validasyonu).
+- **NIS-2 kanıtı:** `@nis2-security` etiketli testler `nx run <proj>:test-nis2` ile ayrı koşar.
+- **Envanter:** `bun run test:inventory` → `docs/roadmap/test-envanteri.otomatik.md` (otomatik).
 
 ### Geliştirme İş Akışı (MANDATORY for new code)
 
-**Yeni modüller** (her yeni sınıf/modül/fonksiyon) katı TDD ile, **5 aşamalı iş akışıyla** geliştirilir — **2 doküman/modül** (SPEC + KAPANIŞ):
+**Yeni modüller** (her yeni sınıf/modül/fonksiyon) **4 aşamalı iş akışıyla** geliştirilir — **2 doküman/modül** (SPEC + KAPANIŞ):
 
 ```
-1. SPEC     docs/architecture/<MODUL>-MIMARISI.md      — kapsam, bileşenler, kontratlar, FR-x gereksinimler,
-                                                         GWT kabul senaryoları, AK kabul kriterleri, T görev listesi
-                                                         (kanonik format: `docs/architecture/SPEC-SABLONU.md`)
-2. JSDoc    interface/tip + davranış sözleşmesi        — state'ler, edge-case'ler, hata kategorisi, yan etkiler, limitler
-3. TEST     *.test.ts (KIRMIZI)                        — sözleşmeyi sabitler; implementasyon yokken kırmızı verir
-4. IMPL     minimal implementasyon (YEŞİL) + refactor  — yalnızca testi yeşile çeviren kod; Elegant Object + DI kuralları
-5. KAPANIŞ  docs/architecture/<MODUL>-KAPANIS.md       — §A DOĞRULAMA (değişiklik matrisi, test kanıtları, AK kanıtları,
-                                                         sapmalar, gözle kontrol) + §B TEST KAPSAMI (senaryo matrisi +
-                                                         KAPSANMAYAN boşluklar) — TEK dokümanda, review_date ile
+1. SPEC            <plan-konumu>/<MODUL>-MIMARISI.md   — Plan aşaması (DeepSeek V4 Pro): kapsam, bileşenler, kontratlar,
+                                                        FR-x gereksinimler, GWT kabul senaryoları, AK kabul kriterleri,
+                                                        T görev listesi (kanonik format: `docs/architecture/SPEC-SABLONU.md`).
+                                                        Konum: `~/.opencode/plan/` (plan modu yalnız buraya yazar).
+                                                        → Developer ONAY KAPISI
+2. SÖZLEŞME + TEST Build aşaması (DeepSeek V4.1 Flash)  — Onaylı SPEC'i yeniden okur; JSDoc/tip sözleşmeleri +
+                                                        unit/integration/e2e testleri (KIRMIZI; GWT'den türetilir).
+                                                        → Developer ONAY KAPISI
+3. IMPL + MUTASYON Build aşaması (DeepSeek V4.1 Flash)  — Minimal implementasyon (YEŞİL) + refactor + testler +
+                                                        mutasyon testi (StrykerJS; yalnız değişen dosyalar; eşik ≥%80,
+                                                        güvenlik-kritik modüllerde ≥%90). → GEÇME KAPISI
+4. REVIEW           Reviewer (GLM-5.3, mode: all)      — Tab geçişiyle aynı bağlamda çalışır; `docs/architecture/<MODUL>-KAPANIS.md`
+                                                        üretir (§A DOĞRULAMA + §B TEST KAPSAMI + Revizyon Geçmişi);
+                                                        sapmaları raporlar, karar vermez. Review geçince SPEC
+                                                        `docs/architecture/`'a taşınır.
 ```
+
+- **SPEC konumu ve taşıma (MANDATORY):** SPEC önce plan-modu yazılabilir konuma yazılır (`~/.opencode/plan/<MODUL>-MIMARISI.md` veya repo içi `.opencode/plans/`); review geçtikten sonra `docs/architecture/<MODUL>-MIMARISI.md`'ye taşınır, plan konumunda kopya bırakılmaz.
 
 - **Kapılar (gözlemlenebilir):** SPEC yoksa test yazılmaz; test yoksa implementasyon başlamaz; KAPANIŞ güncel değilse modül kapanmaz (PR merge edilmez). Geriye dönük zorunluluk YOK — kural yeni modüller ve dokunulan modüller için geçerlidir.
 - **SPEC onay kapısı (MANDATORY):** SPEC dokümanı yazıldıktan/revize edildikten sonra implementasyon **developer onayı BEKLER** — onay alınmadan test/implementasyon başlamaz. SPEC'i yazan ajan, developer'ı dokümanı incelemesi için **açıkça uyarır** (doküman yolu + "onay bekliyor" durumuyla); iş ancak developer onayı sonrası sürer.
 - **SPEC revizyon kapısı (MANDATORY):** Build modunda (flash) SPEC içerik kararları (K-x, FR-x, AK-x, GWT) yeniden yazılmaz — flash SPEC'i yalnızca tüketir. Implementasyon sırasında revize ihtiyacı doğarsa iş durur; developer plan moduna (pro) döner, SPEC orada revize edilir ve **SPEC onay kapısı** yeniden işletilir.
 - **SPEC formatı (kanonik):** Tüm yeni/revize SPEC'ler `docs/architecture/SPEC-SABLONU.md` şablonunu kullanır — doküman iskeleti (metadata, kararlar K-x, purity, yaşam döngüsü, başarı kriterleri SC-x, aşama eşlemesi, açık kararlar A-x) + use-case blokları (Status, Kapsam dahil/hariç, Akış, **FR-x gereksinim tablosu**, **GWT kabul senaryoları** — her AK için en az 1 Given/When/Then —, AK tablosu Kanıt+Durum sütunlu, T görevleri, Edge Cases, Involved Files). **Status değerleri:** `✏️ Specified` (onay bekliyor) → `✅ Approved` → `🟡 Geliştirmede` → `🟢 Doğrulanmış` → `⛔ Defer`. Geriye dönük dönüşüm YOKTUR — yalnızca yeni/dokunulan SPEC'ler.
-- **KAPANIŞ otomasyonu:** Aşama 5 (KAPANIŞ) başladığında ana agent, `@reviewer` subagent'ını otomatik çağırır. Reviewer, diff'i analiz eder ve `<MODUL>-KAPANIS.md` dosyasını §A DOĞRULAMA + §B TEST KAPSAMI formatında üretir. Ana agent reviewer çıktısını doğrudan kullanır.
+- **KAPANIŞ otomasyonu:** Review ayrı bir adımdır — build tamamlandığında ana agent **durur** ve developer'ı **Tab ile reviewer'a geçmeye** davet eder (`mode: all`, aynı bağlam). Reviewer subagent olarak otomatik çağrılmaz; `/kapanis` komutu yalnızca manuel subagent-varyantı olarak kalır. Reviewer yalnızca `docs/architecture/<MODUL>-KAPANIS.md` yazar (draft → `spec:check` → final); SPEC'i ve build dosyalarını değiştirmez, düzeltme yapmaz — sapmaları raporlar, düzeltme kararını developer verir.
+- **Mutasyon kapısı (MANDATORY):** `bun run test:mutation` (StrykerJS vitest-runner) yalnız değişen dosyalarda (git diff + untracked) koşar. Değişen dosyalarda öldürme oranı ≥%80; güvenlik-kritik modüllerde ≥%90 (`bun run test:mutation --break 90`). Eşik altındaysa review başlamaz — test güçlendirme turu açılır; hayatta kalan mutantlar KAPANIŞ §B.2'ye yazılır.
+- **Revizyon akışı:** SPEC sözleşmedir, KAPANIŞ changelog'dur. Davranış değişiyorsa SPEC revize edilir (plan modu + onay kapısı) ve KAPANIŞ'a "hangi AK değişti" notu düşülür; yalnızca implementasyon detayı değişiyorsa SPEC'e dokunulmaz, KAPANIŞ'a madde eklenir. Revizyon geçmişi KAPANIŞ içindeki `## Revizyon Geçmişi` bölümünde tutulur (ayrı CHANGELOG dosyası açılmaz).
 - **Kod referansı (MANDATORY):** Dokümanlarda kod `#sembol` çapasıyla referanslanır — `path/file.ts#fonksiyonAdı` (+ denetim için opsiyonel `@<git-short-hash>`). **Satır numarası referansı (`file.ts:123`) YASAKTIR** — edit sonrası bayatlar (yalnızca aynı PR içi geçici analiz notlarında serbest).
 - **Lint kapısı (MANDATORY):** SPEC/KAPANIŞ kapanmadan `bun run spec:check <dosya...>` temiz olmalıdır — şablon bölümleri, ID benzersizliği (K/B/FR/SC/AK/T/A/UC), AK↔GWT eşleşmesi, FR→AK eşleşmesi, T özet kapsaması, status enum'u, satır-referans yasağı.
 - **JSDoc önce:** Test yazılmadan önce davranış sözleşmesi JSDoc ile yazılır: state'ler, edge-case'ler, hata kategorisi (beklenen → `Result<T,E>`, beklenmeyen → `DomainError`), yan etkiler, limitler.
@@ -82,8 +95,8 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 - **Test dokümantasyonu:** KAPANIŞ §B **yaşayan çalışma dokümanıdır** — test genişletileceği zaman üzerinde çalışılır (KAPSANMAYAN boşluk listesi birincil girdidir). Test envanteri **otomatiktir**: `bun run test:inventory` test dosyalarından `docs/roadmap/test-envanteri.otomatik.md`'yi üretir — elle it-by-it kopya YAPILMAZ; `test-envanteri.md` elle yazılan indeks/bağlam notları için kalır. Test değişince envanter komutu tekrar koşulur.
 - **Güvenlik hedef standardı:** OWASP ASVS **Level 2** — kategori → check eşleme matrisi, SAST'in doğrulayamadıkları ve release kontrol listesi: `docs/standards/owasp-asvs-level2.md`.
 - **Kural: testsiz PR merge edilmez.**
-- **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. TESTING.md mevcut durum envanteri).
-- **Faz kapanışı doğrulaması (MANDATORY):** `deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur (legacy özel kural — geriye dönük). KONTEYNER fazları dışındaki yeni modüller yukarıdaki 5 aşamalı akışı kullanır ve kendi `<MODUL>-KAPANIS.md` dosyalarını üretir.
+- **Test borcu:** Dokunulacak testsiz dosya → önce testi yazılır. Sıra: dokunulacaklar > güvenlik/altyapı kritik > geri kalan (bkz. docs/roadmap/test-envanteri.otomatik.md).
+- **Faz kapanışı doğrulaması (MANDATORY):** `deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` Faz 0-6 görevlerinde her faz kapanışında `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md`'ye giriş zorunludur (legacy özel kural — geriye dönük). KONTEYNER fazları dışındaki yeni modüller yukarıdaki 4 aşamalı akışı kullanır ve kendi `<MODUL>-KAPANIS.md` dosyalarını üretir.
 
 ## Dependency injection rules (MANDATORY)
 
@@ -92,7 +105,7 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 1. **Plain constructor injection only.** All dependencies are passed via `constructor(private dep: Type)`. No `@Injectable()`, no decorators, no service locator globals.
 2. **No default exports.** Every file uses named exports exclusively.
 3. **Config objects, not primitives.** When a class needs >2 primitive config values, define a `*Config` interface (e.g. `TimescaleDBConfig`, `ModbusClientConfig`) and pass that single object.
-4. **Interfaces for swappable backends.** Use `I`-prefixed interface contracts (e.g. `IMessageQueue`, `ITimeseriesDatabase`). Concrete adapters implement them. Interfaces live in `domain/` (services) or `shared-types` (cross-package). Mevcut liste + örnekler: `AGENTS-INFRA.md`.
+4. **Interfaces for swappable backends.** Use `I`-prefixed interface contracts (e.g. `IMessageQueue`, `ITimeseriesDatabase`). Concrete adapters implement them. Interfaces live in `domain/` (services) or `shared-types` (cross-package). Mevcut liste + örnekler: `docs/architecture/PACKAGES-MIMARISI.md`.
 5. **Inject constructed instances, not raw configs, when the resource may be shared.** Example: `BullMQAdapter` receives a `RedisConnection` instance (not `RedisConfig`) — so one Redis connection can be reused across queues.
 6. **Wiring happens in `main()` or DI container.** In `web-service`, awilix `asFunction` registers all dependencies (see `src/config/container.ts`). In other packages, all `new X(...)` calls happen in a single bootstrap function.
 7. **Lifecycle methods.** Classes that manage external resources must expose `connect()`/`disconnect()` or `close()` + `health()` patterns. All startup/shutdown sequences go in `main()`.

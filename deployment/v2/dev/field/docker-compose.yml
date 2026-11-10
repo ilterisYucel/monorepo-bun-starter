@@ -275,7 +275,7 @@ services:
       - "5002:5002"
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
-      - ../../../../packages/ws-tunnel/src:/app/packages/ws-tunnel/src
+      - ../../../../zero-trust-application-tunnel/ws-tunnel/src:/app/zero-trust-application-tunnel/ws-tunnel/src
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-field:ro
       - ./maneuvers:/app/maneuver-config:ro
@@ -327,6 +327,8 @@ services:
       INTEGRATION_PLUGIN_DIR: /app/customer-plugins
       INTEGRATION_CONFIG_DIR: /app/config/plugins
       INTEGRATION_STATE_DIR: /app/data/plugins
+      EPIAS_USERNAME: ${EPIAS_USERNAME:-}
+      EPIAS_PASSWORD: ${EPIAS_PASSWORD:-}
     volumes:
       - ./plugins:/app/config/plugins:ro
       - demo-integration-state-data:/app/data

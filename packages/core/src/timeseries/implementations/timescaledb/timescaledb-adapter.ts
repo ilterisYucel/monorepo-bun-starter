@@ -119,6 +119,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
       // Zaten sikistirilmis tabloya ALTER atmak hata uretir (her restart'ta uyari
       // olarak loglaniyordu) — once catalog'dan kontrol et.
       if (!(await this.isCompressionEnabled(tableName))) {
+        // eslint-disable-next-line energy/require-parameterized-query -- tableName getTableName() ile üretilen identifier; değerler parametreli
         await this.pool.query(`
           ALTER TABLE ${tableName} SET (
             timescaledb.compress,
@@ -127,6 +128,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
         `);
       }
       const compressAfter = this.config.compressAfter;
+      // eslint-disable-next-line energy/require-parameterized-query -- tableName identifier; compressAfter yapılandırma değeri
       await this.pool.query(`
         SELECT add_compression_policy('${tableName}', INTERVAL '${compressAfter}', if_not_exists => true);
       `);
@@ -140,6 +142,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
     const after = retainAfter || this.config.retentionAfter;
     if (!after) return;
     try {
+      // eslint-disable-next-line energy/require-parameterized-query -- tableName identifier; after yapılandırma değeri
       await this.pool.query(`
         SELECT add_retention_policy('${tableName}', INTERVAL '${after}', if_not_exists => true);
       `);
@@ -240,6 +243,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
         new Date(telemetry.timestamp),
       ]);
 
+      // eslint-disable-next-line energy/require-parameterized-query -- tableName identifier; tüm değerler $n parametreli
       await client.query(
         `INSERT INTO ${tableName} (name, value, unit, description, quality, tags, timestamp)
          VALUES ${values}`,
@@ -436,6 +440,7 @@ export class TimescaleDBAdapter implements ITimeseriesDatabase {
 
   async deleteDevice(deviceId: string): Promise<void> {
     const tableName = this.getTableName(deviceId);
+    // eslint-disable-next-line energy/require-parameterized-query -- tableName identifier (identifier parametrelenemez)
     await this.pool.query(`DROP TABLE IF EXISTS ${tableName}`);
     this.tableCache.delete(tableName);
     for (const key of [...this.seriesCache.keys()]) {

@@ -1,13 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "agent": {
+  "agents": {
     "plan": {
       "model": "opencode-go/deepseek-v4-pro",
-      "description": "Planlama ve analiz modu - güçlü model ile SPEC/JSDoc çıkarır"
+      "description": "Planlama ve analiz modu - güçlü model ile SPEC tasarımı yapar"
     },
     "build": {
       "model": "opencode-go/deepseek-v4.1-flash",
-      "description": "Uygulama modu - hızlı model ile implementasyon yapar"
+      "description": "Uygulama modu - SPEC'i tüketip JSDoc, test ve implementasyonu yazar"
     },
     "general": {
       "model": "opencode-go/deepseek-v4.1-flash"
@@ -16,10 +16,10 @@
       "model": "opencode-go/deepseek-v4.1-flash"
     }
   },
-  "command": {
+  "commands": {
     "kapanis": {
       "description": "KAPANIŞ dokümanı üret",
-      "template": "@reviewer Şu değişiklikleri incele ve KAPANIŞ.md üret: {{input}}"
+      "template": "@reviewer Şu değişiklikleri incele ve KAPANIŞ.md üret. Diff: {{input}} — SPEC'i kendin bul (glob: .opencode/plans/*-MIMARISI.md, ~/.opencode/plan/*-MIMARISI.md, docs/architecture/*-MIMARISI.md)."
     }
   }
 }

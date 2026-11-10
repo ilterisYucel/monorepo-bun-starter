@@ -1,7 +1,7 @@
 // OperationExecutor sözleşmeleri — manevra/operasyon yürütücüsü bağımlılıkları.
 // Kaynak tasarım: KOMUT-MANEVRA-OPERASYON-MIMARISI.md §3-§8.
 
-import type { CommandStep, CommandTimer } from "@gd-monorepo/shared-types";
+import type { CommandStep, CommandTimer, ManeuverRecord, OperationRecord } from "@gd-monorepo/shared-types";
 
 /** Çözümlenmiş komut adımı — seçiciler somut deviceId'lere inmiştir (§5.1). */
 export interface ResolvedCommandStep {
@@ -127,7 +127,7 @@ export interface OperationDefinition {
   name: string;
   kind: "maneuver" | "operation";
   /** Kayıt gövdesi — ManeuverRecord/OperationRecord şemasıyla birebir. */
-  definition: unknown;
+  definition: ManeuverRecord | OperationRecord;
   enabled: boolean;
   updatedBy: string;
   updatedAt: string;

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { JobsOptions } from "bullmq";
 import type { RedisConnection } from "@gd-monorepo/core";
 import type { JobType, DeviceJob } from "@gd-monorepo/shared-types";
 
@@ -27,7 +28,7 @@ type Handler = (...args: unknown[]) => void;
 
 type QueueMock = {
   name: string;
-  options: Record<string, unknown>;
+  options: { defaultJobOptions?: JobsOptions };
   add: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
   getWaitingCount: ReturnType<typeof vi.fn>;
@@ -69,7 +70,7 @@ vi.mock("bullmq", () => {
   return {
     Queue: class {
       name: string;
-      options: Record<string, unknown>;
+      options: { defaultJobOptions?: JobsOptions };
       add = vi.fn().mockResolvedValue({ id: "j-1" });
       close = vi.fn().mockResolvedValue(undefined);
       getWaitingCount = vi.fn().mockResolvedValue(0);
@@ -78,7 +79,7 @@ vi.mock("bullmq", () => {
       getFailedCount = vi.fn().mockResolvedValue(0);
       getDelayedCount = vi.fn().mockResolvedValue(0);
       getJobCounts = vi.fn().mockResolvedValue({});
-      constructor(name: string, options: Record<string, unknown>) {
+      constructor(name: string, options: { defaultJobOptions?: JobsOptions }) {
         this.name = name;
         this.options = options;
         queueMocks.push(this as unknown as QueueMock);
@@ -136,14 +137,7 @@ function makeConnection(overrides: Partial<RedisConnection> = {}): RedisConnecti
   } as unknown as RedisConnection;
 }
 
-const ALL_TYPES: JobType[] = [
-  "READ_DEVICE",
-  "WRITE_TELEMETRY",
-  "COMMAND_DEVICE",
-  "MANAGEMENT",
-  "WS_BROADCAST",
-  "FETCH_EXTERNAL",
-];
+const ALL_TYPES = Object.keys(QUEUE_NAMES) as JobType[];
 
 function job(type: JobType, overrides: Partial<DeviceJob> = {}): DeviceJob {
   return {
@@ -157,7 +151,7 @@ function job(type: JobType, overrides: Partial<DeviceJob> = {}): DeviceJob {
 
 function attemptsFor(name: string): number | undefined {
   const creation = queueMocks.find((q) => q.name === name);
-  return creation?.options.defaultJobOptions?.attempts as number | undefined;
+  return creation?.options.defaultJobOptions?.attempts;
 }
 
 function queueNamed(name: string): QueueMock {

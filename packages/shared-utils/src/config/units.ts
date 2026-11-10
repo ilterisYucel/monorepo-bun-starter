@@ -23,7 +23,8 @@ function assertPgDuration(value: string): string {
     throw new Error(`Gecersiz duration: bos deger`);
   }
   const lowered = trimmed.toLowerCase();
-  const pattern = /^(\d+(?:\.\d+)?)\s+(microseconds?|milliseconds?|seconds?|minutes?|hours?|days?|weeks?|months?|years?)$/;
+  const pattern =
+    /^(\d+(?:\.\d+)?)\s+(microseconds?|milliseconds?|seconds?|minutes?|hours?|days?|weeks?|months?|years?)$/;
   const match = pattern.exec(lowered);
   if (!match) {
     throw new Error(
@@ -48,7 +49,7 @@ function parseDurationToMs(value: string): number {
       `Gecersiz duration: "${value}". Beklenen format: "<sayi><birim>" (ornegin: "30s", "5m", "2h", "30000ms")`,
     );
   }
-  const num = parseFloat(match[1]!);
+  const num = Number.parseFloat(match[1]!);
   const unit = match[2]!;
 
   switch (unit) {
@@ -82,7 +83,7 @@ function parseBytes(value: string): number {
       `Gecersiz byte: "${value}". Beklenen format: "<sayi><birim>" (ornegin: "256MB", "1GB")`,
     );
   }
-  const num = parseFloat(match[1]!);
+  const num = Number.parseFloat(match[1]!);
   const unit = match[2]!;
 
   const multipliers: Record<string, number> = {

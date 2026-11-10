@@ -1,128 +1,198 @@
 ---
 status: active
 space: architecture
-tags: [mimari, editor, low-code]
-review_date: 2026-08-24
+tags: [mimari, app, editor, low-code, spec]
+review_date: 2026-11-10
 ---
 
-# Editör Mimarisi (Editor — Product Layer Composer)
+# Editor — Mimarisi (SPEC)
 
-Tarih: 2026-08-19
-Durum: Aktif yol haritası — P1 tamamlandı (device-library migrasyonu), P2+ planlı
-İlişkili: [AGENTS.md](../../AGENTS.md) (üç katman modeli), [field-superadmin-architecture.md](./field-superadmin-architecture.md), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md)
-Superseded: `editor-phase-2-config-engine.md`, `editor-phase-3-runtime.md`, `editor-phase-4-builder.md` (bu üç dokümanın önerdiği `config-engine`/`runtime-engine`/`app-builder` platform paketleri iptal edildi)
+> **İş akışı aşaması:** 1/4 — SPEC (Plan aşaması, DeepSeek V4 Pro).
+> **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
+> **İlişkili:** `APPS-MIMARISI.md` (indeks), `SHARED-TYPES-MIMARISI.md` (config şeması), `DEVICE-SERVICE-MIMARISI.md` (ConfigLoader).
 
-## 1. Rol ve Amaç
+## 1. Amaç ve Bağlam
 
-Editör, üç katman modelinin (AGENTS.md) **ürün katmanı bestecisidir**:
+`apps/editor`: ürün katmanı bestecisi (low-code). Cihaz kataloğu + proje/konfigürasyon düzenleme + manevra editörü (P2+). P1 kapsamı: cihaz kataloğu (device-library buraya taşındı). Yeni platform paketi üretilmez.
 
-> "The editor generates the product layer (compose compositions + configs); capabilities stay generic; customer-specific behavior belongs in product configs/plugins — never in the platform."
+| Katman | Kapsam |
+|:-------|:-------|
+| dahil | Cihaz kataloğu (P1), editör store (undo/redo), proje API, şema tekilliği |
+| hariç | Runtime motoru (iptal), manevra editörü (P2+, Specified) |
 
-Kullanıcı hikayeleri:
+## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
 
-| # | Kullanıcı hikayesi |
-|---|--------------------|
-| H1 | Operatör, kendi cihazının config'ini editörde tanımlar (register haritası, protokol, alarmlar) — kod yazmadan |
-| H2 | Tanımlanan config'ler device-service'in okuyacağı **aynı formatta** JSON olarak üretilir |
-| H3 | Operatör manevralarını (komut zincirleri) tanımlar |
-| H4 | Operatör tek hat şeması çizer; kart, gauge, chart ve ikonları dashboard'a yerleştirir |
-| H5 | Ürün (config'ler + şema + manevralar) deployment/product katmanına export edilir |
+| Kod | Karar | Sonuç |
+|:----|:------|:------|
+| K1 | Editör ürün katmanını üretir; yeni platform paketi YOK (`config-engine`/`runtime-engine`/`app-builder` iptal) | Mevcut paketler kullanılır |
+| K2 | Katalog VERİDİR: built-in seed + kullanıcı cihazları + görsel meta; `packages/device-library` migrate edildi (paket kaldırıldı) | Tek katalog yeri |
+| K3 | Tek kaynak şema: `shared-types/schemas/device-config.ts` zod; device-service `ConfigLoader` ile AYNI ("editörde geçen sahada da geçer") | Şema drift yok |
+| K4 | Alarm koşulu string'i ASLA `eval` edilmez; küçük ifade alt kümesi + zod | Güvenlik |
+| K5 | Beklenen hata → `Result<T,E>`; beklenmeyen → `DomainError` | Hata sözleşmesi |
 
-**Editör ne DEĞİLDİR:** runtime motoru değildir (runtime = `core` + device/data/web-service'lerin mevcut bileşimi); platform paketi üreticisi değildir (yeni `packages/*` çıkarmaz).
+## 3. Mevcut Durum / Kök Nedenler
 
-## 2. Mevcut Durum (2026-08-19)
+| Kod | Bulgu | Kanıt |
+|:----|:------|:------|
+| B1 | Yalnız P1 testli (`catalog.test.ts` 5 test); P2+ (config validator, manevra editörü, dashboard tasarımcısı) yok | `apps/editor/src/features/editor/device-catalog/catalog.test.ts` |
 
-- ReactFlow tabanlı tek hat şeması çizim aracı (~1.500 LOC): palet (drag&drop), canvas, property panel (isim/protokol/bağlantı), proje kaydetme (backend `/projects` API + localStorage + JSON download).
-- `packages/device-library` **migre edildi** → `apps/editor/src/features/editor/device-catalog/` (P1, aşağıda). Paket monorepo'dan kaldırıldı.
-- Config üretimi, manevra editörü ve dashboard tasarımcısı **henüz yok** — bu dokümanın P2-P5 yol haritasıdır.
+## 4. Mimari
 
-### 2.1 Katalog dosya yapısı (P1 sonrası)
-
-```
-apps/editor/src/features/editor/device-catalog/
-├── index.ts            # barrel + getDeviceDefinition
-├── types.ts            # DeviceType, DeviceDefinition, DefaultRegister, ...
-├── registry.ts         # DEVICE_LIBRARY (built-in seed'ler) + DEVICE_TYPES
-├── catalog.test.ts     # registry invariant testleri
-└── definitions/        # battery-bank, pcs, breaker, solar-panel, hvac
-```
-
-## 3. Katalog Modeli: Config-Driven (tek kaynak kuralı)
-
-**İlke:** Katalog **veridir, kod değildir** — kullanıcılar runtime'da cihaz eklediği için hardcoded TS registry'si mimari olarak yanlıştır.
-
-### 3.1 Üç katmanlı katalog
-
-| Katman | İçerik | Kaynak |
-|--------|--------|--------|
-| **Built-in seed'ler** | BSC/HVAC/CB/DC-Output/PCS/EMU gibi bilinen cihazların register-accurate tanımları | `services/device-service/deployment/sample-config/*.json` (mevcut gerçek config'lerden üretilir — placeholder değil) |
-| **Kullanıcı cihazları** | Operatörün tanımladığı cihazlar (H1) | Editör içi `DeviceCatalogStore` (Zustand, persist); CRUD |
-| **Görsel meta** | icon, defaultSize, connectionPoints | Editor-local eşleme tablosu; kullanıcı cihazlarında kategori bazlı **fallback ikon** (ikon upload P6+) |
-
-### 3.2 Tek kaynak: shared-types şemaları
-
-Kullanıcının girdiği cihaz config'i **`shared-types/src/schemas/device-config.ts`** zod şemalarıyla doğrulanır — device-service `ConfigLoader`'ın tükettiği şemanın aynısı. Sonuç: "editörde geçen config sahada da geçer" garantisi; çift kaynak (TS registry vs JSON config) yoktur.
-
-```mermaid
-flowchart LR
-  U[Operatör] --> E[Editor form: register/protokol/alarm]
-  E --> Z{zod: device-config şeması}
-  Z -->|geçerli| J[DeviceConfig JSON'ları]
-  Z -->|geçersiz| E
-  J --> D[deployment/ product config dir]
-  D --> DS[device-service ConfigLoader — aynı şema]
+```text
+apps/editor
+├ features/editor/device-catalog (DEVICE_LIBRARY, DEVICE_TYPES, getDeviceDefinition)
+├ features/editor/stores (useEditorStore: undo/redo/snapshot)
+├ features/editor/services (projectApi)
+└ features/editor/types
 ```
 
-### 3.3 Alarm kuralları
+### 4.1 Sözleşmeler
 
-- `AlarmRuleDefinition.condition` string'i (`"SOC < 20"`) **sürüm 1'dir**: küçük, güvenli bir ifade alt kümesi (karşılaştırma + min/max) yazılır; zod ile doğrulanır; **asla `eval` edilmez**.
-- Değerlendirme motoru editörde değil, alarmların tüketildiği serviste/konfigürasyonda çalışır (README E1 ile uyumlu).
+| Sembol | Rol |
+|:-------|:----|
+| `apps/editor/src/features/editor/device-catalog/registry.ts#DEVICE_LIBRARY` | Katalog |
+| `apps/editor/src/features/editor/device-catalog/index.ts#getDeviceDefinition` | Tanım çözümü |
+| `apps/editor/src/features/editor/stores/editorStore.ts#useEditorStore` | Editör state |
+| `apps/editor/src/features/editor/services/projectApi.ts#projectApi` | Proje API |
+| `packages/shared-types/src/schemas/device-config.ts#deviceConfigFileSchema` | Tek şema |
 
-## 4. Cihaz Config Üretimi (P2)
+## 5. Purity Kuralları (ZORUNLU)
 
-- Canvas'taki her node → bir `DeviceConfig` JSON'u: `type, name, connection (transport), telemetry[] (register haritası: address, table type, byte order, scale, offset, canonical), bitfields[], commands[], alarms[]`.
-- **ConfigValidator** (editör feature'ı): register çakışması, geçersiz byte order, aynı isim, IP/port çakışması, dead-end bağlantı, zorunlu alan eksikleri. Tümü `Result<T, DomainError>` döner (Faz 0 ek 2 hibrit modeli — editör beklenen hataları throw ile değil Result ile taşır).
-- Export: proje → `deployment/` product katmanındaki config dizinine yazılabilir JSON dosyaları (sürümlü `ProjectFile`).
+1. Katalog veridir; kod değil (K2).
+2. Tek şema kaynağı `shared-types` (K3).
+3. `eval` yok (K4).
+4. Kod referansı `#sembol`; satır numarası YASAKTIR.
 
-## 5. Manevra Editörü (P3)
+## 6. Use Case'ler
 
-- `shared-types`'taki mevcut `ManeuverConfig` kontratı kullanılır: `name, label, mode (parallel|sequential), onFailure (stop|continue), steps (deviceId+command/telemetries/params), rollbackSteps`.
-- UI: adım listesi editörü (cihaz seçimi katalogdan, komut seçimi o cihazın `commands[]` tanımından), transform/param önizleme.
-- Çıktı: product config'teki maneuver dosyası — container-web/field `MANEUVERS` kalıbının config-driven karşılığı.
+### 6.1 UC-1 — Cihaz Kataloğu (P1)
 
-## 6. Dashboard Tasarımcısı (P4)
+**Status:** ✏️ Specified (onay bekliyor)
 
-- Tek hat şeması (mevcut canvas) + widget yerleşimi: kart (`RackCard`/`ContainerCard` kalıpları), gauge (`DeviceGauges`), chart (`TelemetryChart`), ikon (`SCADA_ICONS`), log terminali (`LogTerminal`) — hepsi `@gd-monorepo/ui`'dan reuse, yeni paket yok.
-- Veri bağlama: widget → `deviceId + telemetry name` (canonical etiketleme kuralları geçerlidir — AGENTS.md "Telemetry tagging & canonical metrics").
-- Çıktı: `ScreenConfig` benzeri render config'i (README'nin öngördüğü `ScreenConfig/WidgetDefinition` tipleri `shared-types`'ta doğar) → container-web/field uygulamaları config-driven render eder.
+**Kapsam:**
+- dahil: built-in tipler, kullanıcı cihazları, görsel meta, tanım çözümü
+- hariç: P2+ editörler
 
-## 7. Mimari Kararlar
+**Akış:**
+1. Katalog yüklenir (seed + kullanıcı).
+2. `getDeviceDefinition` tip çözer.
+3. Şema doğrulaması aynı zod ile yapılır.
 
-| Konu | Karar |
-|------|-------|
-| Editör mantığının yeri | `apps/editor/src/features/` — **yeni platform paketi yok** (`config-engine`/`runtime-engine`/`app-builder` iptal) |
-| Cihaz kataloğu | `apps/editor` içi config-driven veri (seed + kullanıcı + görsel meta) |
-| Validasyon | `shared-types` zod şemaları — device-service ile aynı |
-| Runtime | Mevcut `core` + `device-service`/`data-service`/`web-service`; editörde yeniden icat edilmez |
-| Depolama | Backend `/projects` (Postgres, mevcut) + JSON export; localStorage yalnızca taslak katmanı |
-| Hata taşıma | Beklenen → `Result<T,E>`; beklenmeyen → `DomainError` (Faz 0 ek 2) |
-| TDD | Tüm yeni editör modülleri test-önce (AGENTS.md TDD); katalog testleri mevcut (`catalog.test.ts`) |
+**Gereksinimler (FR-x):**
 
-## 8. Yol Haritası
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-1.1 | Built-in tipler + kullanıcı cihazları tek katalogda temsil edilir | AK-1.1 |
+| FR-1.2 | Tanım çözümü bilinmeyen tipi reddeder | AK-1.2 |
 
-| Faz | İçerik | Kapsam |
-|-----|--------|--------|
-| **P1** ✅ | device-library → `device-catalog` migrasyonu; paket kaldırıldı; registry invariant testleri; import/alias/workspace temizliği | Bu dokümanla birlikte tamamlandı |
-| **P2** | Cihaz config editörü: `DeviceCatalogStore` (kullanıcı CRUD), register haritası formu, zod validasyonu, `ConfigValidator` (Result tabanlı), seed'lerin gerçek config JSON'larından üretimi | TDD: şema + validator testleri önce |
-| **P3** | Manevra editörü (`ManeuverConfig` kontratıyla) | TDD |
-| **P4** | Dashboard tasarımcısı: widget yerleşimi + veri bağlama + `ScreenConfig` tipleri (shared-types) | TDD |
-| **P5** | Export/builder: `ProjectFile` → deployment product config'lerine sürümlü üretim; `/editor/:projectId` load UI tamamlanır | Entegrasyon testi: editör çıktısı device-service `ConfigLoader`'dan geçer |
-| **P6** | i18n (ASCII Türkçe temizliği), ikon upload/fallback politikası, alarm ifade alt kümesi genişletme, editor e2e | — |
+**Kabul Senaryoları (GWT):**
 
-**P5 kabul kriteri:** Editörden export edilen bir `DeviceConfig` seti, hiçbir elle düzeltme olmadan device-service tarafından yüklenip poll edilir (tek kaynak garantisi).
+1. **AK-1.1 — GIVEN** katalog **WHEN** liste okunur **THEN** built-in + kullanıcı cihazları görünür
+2. **AK-1.2 — GIVEN** bilinmeyen tip **WHEN** `getDeviceDefinition` çağrılır **THEN** reddedilir
 
-## 9. Test Stratejisi
+**Kabul Kriterleri:**
 
-- P1: `catalog.test.ts` — registry invariant'leri (tip sayısı, key/type eşleşmesi, ikon/protokol varlığı).
-- P2+: AGENTS.md TDD döngüsü — `DeviceCatalogStore` CRUD, `ConfigValidator` kuralları, schema doğrulama (kırmızı → yeşil). `shared-types` device-config şemasının testleri mevcut; editör onları genişletmez, tüketir.
-- TESTING.md §8.5 eşlemesi: editor satırı — "JSON schema validation, graph node operations, device-catalog registry".
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-1.1 | Katalog | unit (`catalog.test.ts`) | ⬜ |
+| AK-1.2 | Tanım | unit | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-1: UC-1 kanıt testlerini eşleştir
+
+**Edge Cases:**
+
+| Durum | Davranış |
+|:------|:---------|
+| Eksik ikon/protokol | Tanım reddedilir |
+
+**Involved Files:**
+
+| Dosya | Rol / Değişiklik |
+|:------|:-----------------|
+| `apps/editor/src/features/editor/device-catalog/**` | Katalog |
+
+### 6.2 UC-2 — Proje/Konfigürasyon Düzenleme (P1)
+
+**Status:** ✏️ Specified (onay bekliyor)
+
+**Kapsam:**
+- dahil: store undo/redo, proje kaydetme, şema doğrulama
+- hariç: P2+ manevra/dashboard editörleri
+
+**Akış:**
+1. Kullanıcı düzenler; store snapshot tutar.
+2. Kaydetmede zod doğrulaması yapılır.
+3. `projectApi` ile yazılır.
+
+**Gereksinimler (FR-x):**
+
+| Kod | Gereksinim | Eşleşme |
+|:----|:-----------|:--------|
+| FR-2.1 | Kaydetme öncesi şema doğrulaması zorunludur | AK-2.1 |
+
+**Kabul Senaryoları (GWT):**
+
+1. **AK-2.1 — GIVEN** geçersiz config **WHEN** kaydedilir **THEN** reddedilir
+
+**Kabul Kriterleri:**
+
+| Kod | Kriter | Kanıt | Durum |
+|:----|:-------|:------|:------|
+| AK-2.1 | Şema kapısı | kod inceleme | ⬜ |
+
+**T Görev Listesi:**
+- [ ] T-2: UC-2 kanıtını eşleştir
+
+**Edge Cases:**
+
+| Durum | Davranış |
+|:------|:---------|
+| Undo sınırı | Snapshot limiti |
+
+**Involved Files:**
+
+| Dosya | Rol / Değişiklik |
+|:------|:-----------------|
+| `apps/editor/src/features/editor/stores/editorStore.ts` | Store |
+
+## 7. Yaşam Döngüsü ve Hata Kategorileri
+
+| Durum | Davranış |
+|:------|:---------|
+| Geçersiz config | Reddedilir |
+| Bilinmeyen tip | Reddedilir |
+| P2+ | Specified |
+
+## 8. Başarı Kriterleri (SC-x)
+
+| Kod | Kriter | Ölçüm |
+|:----|:-------|:------|
+| SC-1 | Katalog testli | komut |
+| SC-2 | Tek şema kaynağı | kod inceleme |
+| SC-3 | `eval` yok | kod inceleme |
+
+## 9. Aşama Eşlemesi (iş akışı)
+
+| Aşama | Ürün |
+|:------|:-----|
+| 1. SPEC (Plan — V4 Pro) | Bu doküman |
+| 2. SÖZLEŞME + TEST (Build — V4.1 Flash) | P1 mevcut 5 test |
+| 3. IMPL + MUTASYON (Build — V4.1 Flash) | T-1..T-2 (kanıt eşleştirme) |
+| 4. REVIEW (GLM-5.3) | `EDITOR-KAPANIS.md` |
+
+## 10. Açık Kararlar
+
+| # | Konu | Durum |
+|:--|:-----|:------|
+| A1 | P2+ (config validator, manevra editörü, dashboard tasarımcısı) | İleri İş (ayrı SPEC) |
+
+## 11. İleri İş (bu pakette YAPILMAZ — referans)
+
+1. P2+ editör yetenekleri (A1).
+2. Editör E2E kapsamı.
+
+## 12. T Görev Özeti
+
+| T-1 | UC-1 (katalog) kanıt testlerinin eşleştirilmesi |
+| T-2 | UC-2 (proje düzenleme) kanıtının eşleştirilmesi |

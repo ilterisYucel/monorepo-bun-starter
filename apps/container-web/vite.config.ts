@@ -49,7 +49,7 @@ export default defineConfig({
       "@gd-monorepo/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@gd-monorepo/ws-tunnel": path.resolve(
         __dirname,
-        "../../packages/ws-tunnel/src",
+        "../../zero-trust-application-tunnel/ws-tunnel/src",
       ),
     },
   },

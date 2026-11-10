@@ -1,6 +1,6 @@
 {
-  "username": "ilteris.yucel@gdenerji.com",
-  "password": "*Iy-1994",
+  "username": "{env:EPIAS_USERNAME}",
+  "password": "{env:EPIAS_PASSWORD}",
   "casUrl": "https://giris.epias.com.tr/cas/v1/tickets",
   "baseUrl": "https://seffaflik.epias.com.tr/electricity-service",
   "intervalMs": 3600000,

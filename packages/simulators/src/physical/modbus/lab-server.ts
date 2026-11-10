@@ -287,6 +287,7 @@ export class LabModbusServer {
       log(false, "timeout");
       return; // yanıt yok → istemci zaman aşımına düşer
     }
+    // eslint-disable-next-line energy/no-math-random -- simülatör paket kaybı (test iskelesi, güvenlik değeri değil)
     if (f.mode === "lossy" && Math.random() < (f.dropRatio ?? 0.3)) {
       log(false, "drop");
       return;

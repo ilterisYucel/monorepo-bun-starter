@@ -19,8 +19,8 @@ import { WebSocket } from "ws";
 // Self-signed mount TLS'i fetch için kabul et (Bun NODE_TLS_REJECT_UNAUTHORIZED'ı onurlandırır).
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-import { attachExtraPorts, createHub } from "../packages/ws-tunnel-hub/src/main.ts";
-import { loadTlsMaterial } from "../packages/ws-tunnel-hub/src/infrastructure/outbound/tls-material.ts";
+import { attachExtraPorts, createHub } from "../zero-trust-application-tunnel/ws-tunnel-hub/src/main.ts";
+import { loadTlsMaterial } from "../zero-trust-application-tunnel/ws-tunnel-hub/src/infrastructure/outbound/tls-material.ts";
 
 const PEER_ID = "revpi-1";
 const SERVICE_ID = "revpi-dashboard";

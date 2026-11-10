@@ -123,7 +123,7 @@ function harness(config: {
       execute: channelExecute,
       schedule: channelSchedule,
     } as ICommandChannel,
-    runs: { begin, finish } as unknown as IOperationRunStore,
+    runs: runStore({ begin, finish }),
     logger: { log } as never,
     ...(config.preconditions !== undefined ? { preconditions: config.preconditions } : {}),
     now: () => new Date("2026-09-22T10:00:00.000Z"),
@@ -138,6 +138,18 @@ function harness(config: {
     log,
     begun: begun.run,
     finished,
+  };
+}
+
+
+/** Test yardımcısı — eksik metotları no-op ile tamamlayan run store (DRY). */
+function runStore(overrides: Partial<IOperationRunStore> = {}): IOperationRunStore {
+  return {
+    begin: async () => undefined,
+    finish: async () => undefined,
+    findById: async () => undefined,
+    listRecent: async () => [],
+    ...overrides,
   };
 }
 
@@ -565,10 +577,7 @@ describe("OperationExecutor — uzak adım kanalı (Faz C)", () => {
         }),
         schedule: async () => undefined,
       } as ICommandChannel,
-      runs: {
-        begin: async () => undefined,
-        finish: async () => undefined,
-      } as unknown as IOperationRunStore,
+      runs: runStore(),
       remoteChannel: { execute: remoteExecute } as never,
       now: () => new Date("2026-09-22T10:00:00.000Z"),
       generateId: () => "run-1",
@@ -634,7 +643,7 @@ describe("OperationExecutor — uzak adım kanalı (Faz C)", () => {
       registry,
       targets: { resolveAvailable: async () => ["PCS-1"], filterAvailable: async (ids) => ids },
       channel: { execute: async () => ({ deviceId: "x", success: true }), schedule: async () => undefined } as ICommandChannel,
-      runs: { begin, finish: async () => undefined } as unknown as IOperationRunStore,
+      runs: runStore({ begin }),
       remoteChannel: { execute: async () => ({ ok: true }) } as never,
       now: () => new Date("2026-09-22T10:00:00.000Z"),
       generateId: () => "run-1",
@@ -655,7 +664,7 @@ describe("OperationExecutor — uzak adım kanalı (Faz C)", () => {
         registry,
         targets: { resolveAvailable: async () => ["PCS-1"], filterAvailable: async (ids) => ids },
         channel: { execute: async () => ({ deviceId: "x", success: true }), schedule: async () => undefined } as ICommandChannel,
-        runs: { begin: async () => undefined, finish: async () => undefined } as unknown as IOperationRunStore,
+        runs: runStore(),
         remoteChannel: { execute: () => new Promise<{ ok: boolean }>(() => undefined) } as never,
         now: () => new Date("2026-09-22T10:00:00.000Z"),
         generateId: () => "run-1",
@@ -693,7 +702,7 @@ describe("OperationExecutor — uzak adım kanalı (Faz C)", () => {
       registry,
       targets: { resolveAvailable: async () => [], filterAvailable: async (ids: string[]) => ids },
       channel: { execute: async () => ({ deviceId: "x", success: true }), schedule: async () => undefined } as ICommandChannel,
-      runs: { begin: async () => undefined, finish: async () => undefined } as unknown as IOperationRunStore,
+      runs: runStore(),
       remoteChannel: { execute: remoteExecute } as never,
       logger: { log } as never,
       now: () => new Date("2026-09-22T10:00:00.000Z"),
@@ -738,7 +747,7 @@ describe("OperationExecutor — UI zamanlı çalıştırma (§10)", () => {
         },
         schedule: async () => undefined,
       } as ICommandChannel,
-      runs: { begin: async () => undefined, finish: async () => undefined } as unknown as IOperationRunStore,
+      runs: runStore(),
       now: () => new Date("2026-09-22T10:00:00.000Z"),
       generateId: () => "run-1",
     });
@@ -771,7 +780,7 @@ describe("OperationExecutor — UI zamanlı çalıştırma (§10)", () => {
         },
         schedule: async () => undefined,
       } as ICommandChannel,
-      runs: { begin: async () => undefined, finish: async () => undefined } as unknown as IOperationRunStore,
+      runs: runStore(),
       now: () => new Date("2026-09-22T10:00:00.000Z"),
       generateId: () => "run-1",
     });

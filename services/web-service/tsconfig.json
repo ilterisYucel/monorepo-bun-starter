@@ -20,6 +20,6 @@
     { "path": "../../packages/platform/logging" },
     { "path": "../../packages/tamper-logger" },
     { "path": "../../packages/platform/container-access" },
-    { "path": "../../packages/ws-tunnel" }
+    { "path": "../../zero-trust-application-tunnel/ws-tunnel" }
   ]
 }

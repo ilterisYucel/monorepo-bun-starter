@@ -32,7 +32,7 @@ Her ASVS kategorisi aşağıdaki mekanizmalardan biriyle doğrulanır. **Tek bir
 | Mekanizma | Ne doğrular | Ne zaman | Kanıt nerede |
 |:----------|:------------|:---------|:-------------|
 | **SAST — SonarQube/SonarCloud** ("NIS2 Compliance - TypeScript" profili) | Hard-coded secret, injection pattern'leri, zayıf kripto, güvensiz log çağrıları | Her PR + release | SonarCloud UI, `sonar-project.properties`, `.github/workflows/sonar.yml` |
-| **Birim/entegrasyon testleri (Vitest)** | Auth use-case'leri, RBAC, token yaşam döngüsü, zod şema doğrulama, komut validasyonu, log zinciri | Her PR (Nx test) | `*.test.ts`, TESTING.md §8.3 kapıları |
+| **Birim/entegrasyon testleri (Vitest)** | Auth use-case'leri, RBAC, token yaşam döngüsü, zod şema doğrulama, komut validasyonu, log zinciri | Her PR (Nx test) | `*.test.ts`, AGENTS.md Testing kapıları |
 | **E2E güvenlik testleri (Playwright)** | Yetkisiz erişim girişimleri, audit log üretimi, security headers, health check | CI | `e2e/security/` (nis-2.md Adım 14) |
 | **SBOM + bağımlılık taraması** | Tedarik zinciri (CVE) | Her build | CycloneDX + Trivy (nis-2.md Adım 13) |
 | **Manuel kod/ tasarım incelemesi** | Tehdit modelleme, yetkilendirme matrisi, kripto kullanımı, iş mantığı | Yeni servis/özellik | SSDF (nis-2.md Adım 16) |
@@ -77,7 +77,7 @@ Bu liste yıllık pentest kapsamına (nis-2.md Adım 17) ve büyük sürüm önc
 
 | Kapı | Kaynak |
 |:-----|:-------|
-| Güvenlik-kritik modüllerde ≥%90 branch (rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu) | AGENTS.md TDD + TESTING.md §8.3 |
+| Güvenlik-kritik modüllerde ≥%90 branch (rbac, token-adapter, ws/auth doğrulama, session-gateway, tunnel frame codec, field-connector, komut validasyonu) | AGENTS.md TDD + Testing |
 | Yeni kodda ≥%70 satır | SonarCloud Quality Gate |
 | Quality Gate: Blocker > 0, Critical > 0, Security Rating < A → build FAIL | nis-2.md Adım 4 |
 | Hard-coded secret / ham `console.*` log → Blocker | nis-2.md Adım 2–3 |
@@ -102,5 +102,5 @@ Bu liste yıllık pentest kapsamına (nis-2.md Adım 17) ve büyük sürüm önc
 
 - [nis-2.md](./nis-2.md) — SonarQube/CI/CD check adımları (ASVS eşlemesinin otomatik ayağı)
 - [iso-27001.md](./iso-27001.md) — Security headers, Docker hardening, erişim kontrol matrisi
-- [TESTING.md](../TESTING.md) — Test katmanları ve güvenlik testi kapsamı
+- [AGENTS.md](../AGENTS.md) — Test katmanları ve güvenlik kapıları
 - [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](../architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) — Oturum/tünel güvenlik mimarisi (V1/V3 dayanağı)
