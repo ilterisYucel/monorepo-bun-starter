@@ -1,4 +1,7 @@
-import type { DeviceAlarmRule, DeviceAlarmSample } from "@gd-monorepo/shared-types";
+import type {
+  DeviceAlarmRule,
+  DeviceAlarmSample,
+} from "@gd-monorepo/shared-types";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 
 /** Geçiş türü — yükselen kenar "set", düşen kenar "clear". */
@@ -87,7 +90,7 @@ export class AlarmTransitionDetector {
   /** Cihazın tüm alarm izlerini unutur — restart sonrası yeni gözlem dönemi. */
   reset(deviceId: string): void {
     const prefix = `${deviceId}:`;
-    for (const key of [...this.lastActive.keys()]) {
+    for (const key of this.lastActive.keys()) {
       if (key.startsWith(prefix)) this.lastActive.delete(key);
     }
   }
