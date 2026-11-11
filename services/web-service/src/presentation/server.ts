@@ -25,7 +25,7 @@ import type { ITokenService } from "../domain/services/ITokenService";
 import type { ITimeseriesDatabase } from "@gd-monorepo/core";
 
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import { createRbacHook } from "./middleware/rbac";
 import { createRequestIdHook, RequestContext } from "./middleware/request-context";

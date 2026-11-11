@@ -19,8 +19,8 @@ review_date: 2026-11-10
 
 | # | Dosya | Değişiklik | Neden (SPEC ref) |
 |:--|:------|:-----------|:-----------------|
-| 1 | `docs/architecture/PACKAGES-MIMARISI.md#4.1` | (doğrulama) 12 modül satrı ↔ 12 dizin birebir eşleşti (`core, shared-types, shared-utils, result, logger, ui, simulators, epias-client, plugin-sdk, platform, plugins, eslint-plugin-energy`) | K1/FR-1.1 |
-| 2 | `docs/architecture/PACKAGES-MIMARISI.md#4.2` | (doğrulama) `tamper-logger` kendi docs'unda (`packages/tamper-logger/docs/TAMPER-LOGGER-MIMARISI.md` mevcut ✓); `zero-trust-application-tunnel/docs/` mevcut ✓ — K2 ayrımı korunuyor | K2 |
+| 1 | `docs/architecture/PACKAGES-MIMARISI.md#4.1` | (doğrulama) 12 modül satrı ↔ 12 dizin birebir eşleşti (`core, shared-types, shared-utils, result, logger, ui, simulators, epias-client, plugin-sdk, platform, plugins, eslint-plugin-energy`) — 2026-11-11: `eslint-plugin-energy` `tools/`'a taşındı | K1/FR-1.1 |
+| 2 | `docs/architecture/PACKAGES-MIMARISI.md#4.2` | (doğrulama) `tamper-logger` kendi docs'unda (`tamper-logger/docs/TAMPER-LOGGER-MIMARISI.md` mevcut ✓); `zero-trust-application-tunnel/docs/` mevcut ✓ — K2 ayrımı korunuyor | K2 |
 | 3 | `docs/architecture/PACKAGES-MIMARISI.md#4.2` | (bulgu) `device-library` dizini diskte YOK (migrate + silinmiş) ama satır hâlâ "silinecek" duruyor | Purity 3 — S1 |
 
 ### A.2 Test Kanıtları

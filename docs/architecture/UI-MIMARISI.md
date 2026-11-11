@@ -1,7 +1,7 @@
 ---
 status: active
 space: architecture
-tags: [mimari, ui, frontend, sprite, pixi, spec]
+tags: [mimari, ui, frontend, pixi, spec]
 review_date: 2026-11-10
 ---
 
@@ -13,11 +13,11 @@ review_date: 2026-11-10
 
 ## 1. Amaç ve Bağlam
 
-`packages/ui` paketinin sözleşmesi: frontend veri kontratları (transport/provider/hooks), renk/ikon/sprite pipeline, Pixi grafik katmanı, paylaşılan React bileşenleri + i18n ve Nova demo konsolu. Paket state kütüphanesinden bağımsızdır; app'ler veriyi props/Context ile taşır.
+`packages/ui` paketinin sözleşmesi: frontend veri kontratları (transport/provider/hooks), renk/ikon sistemi, paylaşılan React bileşenleri + i18n ve Nova demo konsolu. Paket state kütüphanesinden bağımsızdır; app'ler veriyi props/Context ile taşır.
 
 | Katman | Kapsam |
 |:-------|:-------|
-| dahil | Transport stratejileri, provider kontratları, renk token'ları, ikon sistemi, sprite üretim hattı, Pixi SCADA grafikleri, paylaşılan bileşenler, i18n, nova |
+| dahil | Transport stratejileri, provider kontratları, renk token'ları, ikon sistemi, paylaşılan bileşenler, i18n, nova |
 | hariç | App'lerin kendi sayfa/route'ları (APPS), backend kontratları (SERVICES), demo app akışı (DEMO) |
 
 ## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
@@ -30,14 +30,14 @@ review_date: 2026-11-10
 | K4 | Strateji deseni: WS/HTTP/Mock aynı arayüzü uygular; transport değişimi sıfır bileşen değişikliği | Test/demo için Mock transport |
 | K5 | Crash izolasyonu: her `DeviceTelemetryProvider` kendi stream'ini kurar (`useSyncExternalStore`, rAF batching, buffer 200) | Bir panel çökmesi diğerlerini etkilemez |
 | K6 | İstemci log sözleşmesi: batch + retry + offline-drop; `ClientLogger` fail-open | Log hatası UI'ı düşürmez |
-| K7 | Ham hex YASAK: tüm renkler token'dan; çift format (`COLORS` hex string, `COLOR` 0x sayı — PixiJS) | Tema tutarlılığı |
+| K7 | Ham hex YASAK: tüm renkler token'dan (`COLORS` hex string; `COLOR` 0x sayı formatı Pixi katmanıyla 2026-11-11'de kaldırıldı) | Tema tutarlılığı |
 | K8 | Koyu set dokunulmaz: nova için `COLORS_LIGHT`/`COLORS_DARK` eklenir, mevcut `tokens.ts` değişmez | Geriye uyum |
 | K9 | İkon Open-Closed: nova ikonları `nova*` önekiyle `ScadaIconName`'e eklenir; Tabler anahtarları korunur | Kırılmasız genişleme |
-| K10 | Sprite hibrit katman: sprite yalnız nötr gövdeyi değiştirir; durum rengi/glow/etiket kodda çizilir; texture yüklenemezse `drawX`'e fallback | Boş ekran yok |
-| K11 | Nötr baz kuralı: AI çıktısında success/warning/error rengi ve metin bulunamaz; `check-sprite.mjs` piksel bazlı kalite kapısı | Tema takası bozulmaz |
-| K12 | Ölçülen meta: AI her üretimde ±10-30px kaydırır; `*-meta.ts` (`measured` bayrağı) yuvaları emer; `measured=false` ise tasarım geometrisi | Görsel hizalama |
-| K13 | Varyant sprite (`close`/`open`) + tema takası (sprite + meta birlikte taşınır); cable tek segment texture'ı path boyunca döndürülüp uzatılır | Durum sprite'a gömülür |
-| K14 | BESS yerleşim matematiği: `step = width/28`, PAD=2; `BSCUnitRow` rack satırının (rack'ler + cable bus/feeder + kesici + DC çıkışı) TEK çizim kaynağıdır; yeni ham kablo çizimi YASAK | Tek kaynak, tutarlı diagram |
+| K10 | ⛔ Kaldırıldı (2026-11-11): sprite hibrit katman — tüm grafikler saf vektör (`drawX`) çizimine döndü | Sprite üretim hattı silindi |
+| K11 | ⛔ Kaldırıldı (2026-11-11): `check-sprite.mjs` piksel kapısı — sprite üretimi yok | — |
+| K12 | ⛔ Kaldırıldı (2026-11-11): `*-meta.ts` ölçüm katmanı — tasarım geometrisi tek kaynak | — |
+| K13 | ⛔ Kaldırıldı (2026-11-11): varyant sprite + tema takası — durum/renk tamamen kodda çizilir | — |
+| K14 | ⛔ Kaldırıldı (2026-11-11): `packages/ui/src/graphics` silindi — BESS yerleşim matematiği/BSCUnitRow kuralı artık yok | — |
 | K15 | Grafik katmanı props-only'dir; veri çekmez (presentational) | Test/storybook kolaylığı |
 | K16 | Nova `packages/ui/src/nova`'da yaşar, app ince tüketicidir; `createNovaMimic(svg, topo, opts)` framework'suz saf çekirdek; `Demo` prefix + barrel zorunlu | Demo mantığı app'e sızmaz |
 | K17 | Nova CSS kök barrel'dan import edilir → ürün app'leri demo CSS'ini de yükler (açık karar A1) | Bilinen kuplaj |
@@ -46,10 +46,10 @@ review_date: 2026-11-10
 
 | Kod | Bulgu | Kanıt |
 |:----|:------|:------|
-| B1 | `graphics/deprecated/*` hâlâ public export; hiçbir app kullanmıyor | `packages/ui/src/graphics/deprecated/` |
+| B1 | ✅ Kapandı (2026-11-11): `graphics/deprecated/*` dahil tüm `graphics/` silindi | — |
 | B2 | `PlayCanvasViewer` export edilir ama hiçbir app import etmiyor (yalnız story) | `packages/ui/src/components/PlayCanvasViewer/` |
 | B3 | Nova CSS sızıntısı (K17) | `packages/ui/src/index.ts` + `nova/index.ts` |
-| B4 | Sprite'ın vitest testi yok — kapı `tools/check-sprite.mjs` + storybook | `tools/check-sprite.mjs` |
+
 
 ## 4. Mimari
 
@@ -58,8 +58,7 @@ App'ler (props/Context) ──► packages/ui
                              ├ transports (WS/HTTP/Mock) ──► ITelemetryTransport
                              ├ providers (Telemetry/Log/Annotations/DeviceDetail)
                              ├ hooks (useTelemetryStream, useRealtimeTelemetry)
-                             ├ assets (COLORS, SCADA_ICONS, SPRITE_ASSETS)
-                             ├ graphics (BESSDiagram, BSCUnitRow, elementler)
+                             ├ assets (COLORS, SCADA_ICONS)
                              ├ components (TelemetryChart, FieldMap, ...)
                              └ nova (createNovaMimic + Demo* bileşenleri)
 ```
@@ -74,8 +73,6 @@ App'ler (props/Context) ──► packages/ui
 | `packages/ui/src/core/DeviceTelemetryProvider/DeviceTelemetryProvider.tsx#DeviceTelemetryProvider` | İzole stream |
 | `packages/ui/src/colors/tokens.ts#COLORS` | Renk token'ları |
 | `packages/ui/src/icons/nav-icons.tsx#SCADA_ICONS` | İkon seti |
-| `packages/ui/src/graphics/textures.ts#SPRITE_ASSETS` | Sprite kataloğu |
-| `packages/ui/src/graphics/system/BESSDiagram/BESSDiagram.tsx#BESSDiagram` | SCADA diagram |
 | `packages/ui/src/nova/nova-mimic.ts#createNovaMimic` | Demo çekirdek |
 | `packages/ui/src/logging/client-logger.ts#ClientLogger` | İstemci log |
 
@@ -91,7 +88,7 @@ App'ler (props/Context) ──► packages/ui
 
 ### 6.1 UC-1 — Frontend Veri Kontratları
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ⛔ Defer (2026-11-11: grafik katmanı kaldırıldı)
 
 **Kapsam:**
 - dahil: transport stratejileri, multipleks/refcount, isim filtresi, provider/hook kontratları, istemci log
@@ -142,40 +139,33 @@ App'ler (props/Context) ──► packages/ui
 | `packages/ui/src/hooks/**` | Hook'lar |
 | `packages/ui/src/logging/**` | İstemci log |
 
-### 6.2 UC-2 — UI Varlıkları (Renk / İkon / Sprite)
+### 6.2 UC-2 — UI Varlıkları (Renk / İkon)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ⛔ Defer (2026-11-11: grafik katmanı kaldırıldı)
 
 **Kapsam:**
-- dahil: renk token'ları, ikon Open-Closed, sprite pipeline (üretim + meta + tema takası + piksel kapısı)
-- hariç: AI görsel üretimi operasyonu (docs/process)
+- dahil: renk token'ları, ikon Open-Closed
+- hariç: sprite üretimi (2026-11-11'de kaldırıldı)
 
 **Akış:**
 1. Renkler token'dan seçilir.
 2. İkonlar `ScadaIconName` üzerinden kullanılır.
-3. Sprite'lar `SPRITE_ASSETS` + `*_META` ile çizilir; fallback `drawX`.
 
 **Gereksinimler (FR-x):**
 
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
 | FR-2.1 | Yeni ikonlar mevcut anahtarları bozmadan eklenir | AK-2.1 |
-| FR-2.2 | Sprite üretimi nötr baz kuralına uyar (piksel kapısı) | AK-2.2 |
-| FR-2.3 | Texture yüklenemezse fallback çizim devreye girer | AK-2.3 |
 
 **Kabul Senaryoları (GWT):**
 
 1. **AK-2.1 — GIVEN** yeni nova ikonu **WHEN** `SCADA_ICONS` kontrol edilir **THEN** eski Tabler anahtarları korunur
-2. **AK-2.2 — GIVEN** üretilmiş sprite **WHEN** `check-sprite.mjs` koşar **THEN** yasak renk/boyut ihlali yoktur
-3. **AK-2.3 — GIVEN** texture 404 **WHEN** bileşen çizilir **THEN** `drawX` fallback çalışır
 
 **Kabul Kriterleri:**
 
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
 | AK-2.1 | İkon parity | unit (`demo-icons.test.tsx`) | ⬜ |
-| AK-2.2 | Piksel kapısı | komut (`check-sprite`) | ⬜ |
-| AK-2.3 | Fallback | kod inceleme | ⬜ |
 
 **T Görev Listesi:**
 - [ ] T-2: UC-2 kanıtlarını eşleştir
@@ -184,8 +174,6 @@ App'ler (props/Context) ──► packages/ui
 
 | Durum | Davranış |
 |:------|:---------|
-| Meta `measured=false` | Tasarım geometrisi kullanılır |
-| Tema takası | Sprite + meta birlikte |
 
 **Involved Files:**
 
@@ -193,15 +181,13 @@ App'ler (props/Context) ──► packages/ui
 |:------|:-----------------|
 | `packages/ui/src/colors/**` | Token'lar |
 | `packages/ui/src/icons/**` | İkonlar |
-| `packages/ui/src/graphics/textures.ts` | Sprite kataloğu |
-| `tools/sprites-*.mjs` | Pipeline |
 
-### 6.3 UC-3 — Pixi Grafik Katmanı
+### 6.3 UC-3 — Pixi Grafik Katmanı (⛔ Kaldırıldı)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ⛔ Defer (2026-11-11: grafik katmanı kaldırıldı)
 
 **Kapsam:**
-- dahil: BESSDiagram yerleşimi, BSCUnitRow tek kaynak kuralı, elementler, storybook kapısı
+- kaldırıldı: `packages/ui/src/graphics/**` (BESSDiagram, BSCUnitRow, elementler) 2026-11-11'de silindi — tüketici yoktu
 - hariç: veri akışı (UC-1)
 
 **Akış:**
@@ -245,7 +231,7 @@ App'ler (props/Context) ──► packages/ui
 
 ### 6.4 UC-4 — Nova Demo Konsolu
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ⛔ Defer (2026-11-11: grafik katmanı kaldırıldı)
 
 **Kapsam:**
 - dahil: saf çekirdek (`createNovaMimic`), fan-out, Demo* bileşen seti, tema değişkenleri
@@ -292,7 +278,7 @@ App'ler (props/Context) ──► packages/ui
 
 ### 6.5 UC-5 — Paylaşılan Bileşenler + i18n (referans)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ⛔ Defer (2026-11-11: grafik katmanı kaldırıldı)
 
 **Kapsam:**
 - dahil: kart/chart/atom koleksiyonu, `TranslationProvider` enjeksiyonu
@@ -339,7 +325,6 @@ App'ler (props/Context) ──► packages/ui
 | Durum | Davranış |
 |:------|:---------|
 | Soket kopması | Backoff + resubscribe |
-| Texture yok | Fallback çizim |
 | Log hatası | Fail-open |
 | Provider unmount | Refcount azalır |
 
@@ -349,7 +334,6 @@ App'ler (props/Context) ──► packages/ui
 |:----|:-------|:------|
 | SC-1 | Transport/provider kontratları testli | komut |
 | SC-2 | Ham hex/state kütüphanesi ihlali yok | kod inceleme + lint |
-| SC-3 | Sprite piksel kapısı temiz | komut |
 
 ## 9. Aşama Eşlemesi (iş akışı)
 
@@ -372,12 +356,11 @@ App'ler (props/Context) ──► packages/ui
 
 1. Nova CSS izolasyonu (A1).
 2. Deprecated grafik ve PlayCanvas temizliği (A2/A3).
-3. Sprite'ın vitest kapsamına alınması (B4).
 
 ## 12. T Görev Özeti
 
 | T-1 | UC-1 (veri kontratları) kanıt testlerinin eşleştirilmesi |
 | T-2 | UC-2 (varlıklar) kanıtlarının eşleştirilmesi |
-| T-3 | UC-3 (grafik) kanıtlarının eşleştirilmesi |
+| T-3 | ⛔ UC-3 kaldırıldı (2026-11-11) |
 | T-4 | UC-4 (nova) kanıtlarının eşleştirilmesi |
 | T-5 | UC-5 (bileşen/i18n) kanıtlarının eşleştirilmesi |

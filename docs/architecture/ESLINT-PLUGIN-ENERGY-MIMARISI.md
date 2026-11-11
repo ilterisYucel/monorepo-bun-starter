@@ -13,7 +13,7 @@ review_date: 2026-11-10
 
 ## 1. Amaç ve Bağlam
 
-`packages/eslint-plugin-energy` paketinin sözleşmesi: 4 güvenlik lint kuralı (`no-math-random`, `no-raw-console-log`, `require-parameterized-query`, `require-timeout`) ve bunların kök lint'te bağlanması. Üretim tool'u — OWASP ASVS Level 2 hizası.
+`tools/eslint-plugin-energy` tool'unun sözleşmesi: 4 güvenlik lint kuralı (`no-math-random`, `no-raw-console-log`, `require-parameterized-query`, `require-timeout`) ve bunların kök lint'te bağlanması. Üretim tool'u — OWASP ASVS Level 2 hizası.
 
 | Katman | Kapsam |
 |:-------|:-------|
@@ -34,7 +34,7 @@ review_date: 2026-11-10
 
 | Kod | Bulgu | Kanıt |
 |:----|:------|:------|
-| B1 | Önceden 0 test + 0 tüketiciydi (kök lint yoktu); `allowPrefixes` seçeneği tanımlı ama uygulanmıyordu | `packages/eslint-plugin-energy/src/rules/no-raw-console-log.ts` — T-7 ile düzeltildi |
+| B1 | Önceden 0 test + 0 tüketiciydi (kök lint yoktu); `allowPrefixes` seçeneği tanımlı ama uygulanmıyordu | `tools/eslint-plugin-energy/src/rules/no-raw-console-log.ts` — T-7 ile düzeltildi |
 
 ## 4. Mimari
 
@@ -50,11 +50,11 @@ eslint.config.mjs (kök) ──► eslint-plugin-energy (dist) ──► service
 
 | Sembol | Rol |
 |:-------|:----|
-| `packages/eslint-plugin-energy/src/index.ts#rules` | Kural kaydı |
-| `packages/eslint-plugin-energy/src/rules/no-math-random.ts#noMathRandom` | CSPRNG kuralı |
-| `packages/eslint-plugin-energy/src/rules/no-raw-console-log.ts#noRawConsoleLog` | Log kuralı |
-| `packages/eslint-plugin-energy/src/rules/require-parameterized-query.ts#requireParameterizedQuery` | SQL kuralı |
-| `packages/eslint-plugin-energy/src/rules/require-timeout.ts#requireTimeout` | Döngü kuralı |
+| `tools/eslint-plugin-energy/src/index.ts#rules` | Kural kaydı |
+| `tools/eslint-plugin-energy/src/rules/no-math-random.ts#noMathRandom` | CSPRNG kuralı |
+| `tools/eslint-plugin-energy/src/rules/no-raw-console-log.ts#noRawConsoleLog` | Log kuralı |
+| `tools/eslint-plugin-energy/src/rules/require-parameterized-query.ts#requireParameterizedQuery` | SQL kuralı |
+| `tools/eslint-plugin-energy/src/rules/require-timeout.ts#requireTimeout` | Döngü kuralı |
 | `eslint.config.mjs` | Kök bağlama |
 
 ## 5. Purity Kuralları (ZORUNLU)
@@ -115,8 +115,8 @@ eslint.config.mjs (kök) ──► eslint-plugin-energy (dist) ──► service
 | Dosya | Rol / Değişiklik |
 |:------|:-----------------|
 | `eslint.config.mjs` | Kök config |
-| `packages/eslint-plugin-energy/src/rules/*.ts` | Kurallar |
-| `packages/eslint-plugin-energy/src/rules/rules.test.ts` | Testler |
+| `tools/eslint-plugin-energy/src/rules/*.ts` | Kurallar |
+| `tools/eslint-plugin-energy/src/rules/rules.test.ts` | Testler |
 
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 
@@ -149,7 +149,7 @@ eslint.config.mjs (kök) ──► eslint-plugin-energy (dist) ──► service
 |:--|:-----|:------|
 | A1 | CI'da lint kapısı | İleri İş |
 
-## 11. İleri İş (bu pakette YAPILMAZ — referans)
+## 11. İleri İş (bu tool'da YAPILMAZ — referans)
 
 1. CI pipeline'a `bun run lint` kapısı.
 2. Yeni ASVS kuralları (ihtiyaç doğunca).

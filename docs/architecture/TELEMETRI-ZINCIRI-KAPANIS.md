@@ -21,10 +21,10 @@ review_date: 2026-11-10
 | 2 | İndirgeme | `telemetry-write-filter` + `write-policy` (fail-fast deadband/maxStaleMs) | K3/FR-2 |
 | 3 | Kalıcılık | TIMESERIES-KAPANIŞ AK-1.x (reject/rollback/200-lık dilim) + DATA-SERVICE-KAPANIŞ (aptal yazıcı, K4 telemetri≠log) | K4/FR-2 |
 | 4 | Sorgu | TIMESERIES AK-2.x (origin/TAG_KEY_RE/uzun-format/limit) + `unified-routes.ts` `Math.min(20000, …)` clamp'i | K5/FR-3 |
-| 5 | Konteyner görünümü | `tiers/field/infrastructure/container-telemetry/**` TTL cache + allSettled (WEB-SERVICE AK-2.x) | K6/FR-4 |
+| 5 | Konteyner görünümü | `tiers/site/infrastructure/container-telemetry/**` TTL cache + allSettled (WEB-SERVICE AK-2.x) | K6/FR-4 |
 | 6 | Alarm üretim | detector + device-service dedup üçlüsü (DEVICE-SERVICE AK-6.1) | K7/FR-5.1 |
 | 7 | Alarm çözme | `alarm-routes.ts`: fail-closed 500, 409, not→audit-context, guest 403 | K8/FR-5.2–5.3 |
-| 8 | Yol adı | (SAPMA) SPEC §6.4 `tiers/site/…`; kod `tiers/field/…` — SITE-MIMARISI K5 domain-adı koruması; WEB-SERVICE-KAPANIŞ S5 ile aynı | S1 |
+| 8 | Yol adı | ✅ KAPANDI — SPEC §6.4 `tiers/site/…` = kod `tiers/site/…` (tam rename) | S1 |
 
 ### A.2 Test Kanıtları
 
@@ -58,7 +58,7 @@ review_date: 2026-11-10
 
 | # | Sapma | Açıklama |
 |:--|:------|:---------|
-| S1 | SPEC yol adları `tiers/site/`, kod `tiers/field/` | WEB-SERVICE-KAPANIŞ S5 ile tek karar: SPEC yolları `field`'a güncellenir (K5 bilinçli) — developer |
+| S1 | ✅ KAPANDI — SPEC yol adları `tiers/site/`, kod `tiers/site/` (tam rename) | — |
 | S2 | AK-3.1 limit testi eksik | `Math.min(20000, …)` koda gömülü ama "30000 satır → 20000 dönecek mi?" vakası unified-routes.test'te bulunamadı → G1 |
 | S3 | B2 "tek sözleşme iki implementasyon" | Hâlâ geçerli (üretim detector'da, çözme route'ta); AGENTS cihaz-alarm sözleşmesi iki tarafı da bağlıyor — İleri İş #3 ile izleniyor |
 | S4 | B3 = WEB-SERVICE B2 | Sorgu port'suzluk borcu artık arch:check ile otomatik ölçülüyor (WEB-SERVICE S2) — referans, kopya değil |

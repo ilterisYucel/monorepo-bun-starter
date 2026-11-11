@@ -2,7 +2,7 @@
  * Field app-specific English translation keys.
  */
 
-export const FIELD_EN_DICT = {
+export const DEMO_EN_DICT = {
   "common.role.admin": "Admin",
   "common.role.teknik": "Technical",
   "common.role.guest": "Guest",

@@ -1,9 +1,9 @@
 import { createContainer, asFunction, asValue } from "awilix";
 import { PostgresAdapter, TimescaleDBAdapter, RedisConnection, MaterializedViewManager } from "@gd-monorepo/core";
-import { TamperLogger, ConsoleSink, FileSink, TimescaleSink, LOG_EVENTS_DDL } from "@gd-monorepo/tamper-logger";
+import { TamperLogger, ConsoleSink, FileSink, TimescaleSink } from "tamper-logger";
 
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import type { ILogSink } from "@gd-monorepo/tamper-logger";
+import type { ILogSink } from "tamper-logger";
 
 import {
   createConfigLoader,
@@ -18,15 +18,15 @@ import {
   logConfig,
   hubConsumerConfig,
 } from "./default";
-import { resolveSigningKey } from "@gd-monorepo/tamper-logger";
+import { resolveSigningKey } from "tamper-logger";
 
 import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
-import { isLogEventCode } from "@gd-monorepo/platform-logging";
+import { isLogEventCode, LOG_EVENTS_DDL } from "@gd-monorepo/platform-logging";
 import type { LogEventCode } from "@gd-monorepo/platform-logging";
 
 import { TamperLoggerAdapter } from "../infrastructure/logging/tamper-logger-adapter";
 import { registerContainerTier } from "../tiers/container/registrations";
-import { registerFieldTier } from "../tiers/field/registrations";
+import { registerSiteTier } from "../tiers/site/registrations";
 import { registerBossTier } from "../tiers/boss/registrations";
 import { ExecuteCommandUseCase } from "../application/commands/execute-command-use-case";
 import { ListCatalogUseCase } from "../application/commands/list-catalog-use-case";
@@ -44,7 +44,7 @@ import { RedisLoginThrottle } from "../infrastructure/auth/redis-login-throttle"
 import { RedisTotpThrottle } from "../infrastructure/auth/redis-totp-throttle";
 import { MfaLoginUseCase } from "../application/use-cases/mfa-login-use-case";
 import { MfaEnrollUseCase } from "../application/use-cases/mfa-enroll-use-case";
-import { SyslogSink, HttpWebhookSink, SmtpNotifier, HttpSmsNotifier } from "@gd-monorepo/tamper-logger";
+import { SyslogSink, HttpWebhookSink, SmtpNotifier, HttpSmsNotifier } from "tamper-logger";
 
 import { alertSinkConfigs } from "./default";
 
@@ -348,7 +348,7 @@ export function buildContainer() {
 
   // K5/K14: core kayıtlarının ardından tier kompozisyonları eklenir.
   registerContainerTier(container);
-  registerFieldTier(container);
+  registerSiteTier(container);
   registerBossTier(container);
 
   return container;

@@ -1,7 +1,6 @@
 // OperationExecutor — manevra/operasyon yürütücüsü (yerel adımlar, Faz B1).
 // Kaynak tasarım: KOMUT-MANEVRA-OPERASYON-MIMARISI.md §3-§8.
 
-import type { TamperLogger } from "@gd-monorepo/tamper-logger";
 import type {
   CommandStep,
   ManeuverRecord,
@@ -37,6 +36,21 @@ export type OperationPrecondition = (
   params: Record<string, unknown>,
 ) => Promise<OperationPreconditionVerdict> | OperationPreconditionVerdict;
 
+/**
+ * Yürütücünün audit'e bakan EN DAR yüzeyi.
+ * Generic imzalı-log paketi yapısal olarak karşılar; platform/commands dış
+ * pakete tip düzeyinde bağımlı DEĞİLDİR (paket ayrıştırma turu).
+ */
+export interface OperationAuditLogger {
+  log(input: {
+    level: "info" | "warn" | "error";
+    category: "audit";
+    eventCode: string;
+    message: string;
+    context?: Record<string, unknown>;
+  }): Promise<void>;
+}
+
 /** OperationExecutor yapılandırması — tek obje (DI kuralı 3). */
 export interface OperationExecutorConfig {
   registry: ManeuverRegistry;
@@ -47,7 +61,7 @@ export interface OperationExecutorConfig {
   remoteChannel?: IRemoteCommandChannel;
   /** Eklemeli ön koşul hook'u (interlock) — yoksa davranış birebir (K10). */
   preconditions?: OperationPrecondition;
-  logger?: TamperLogger;
+  logger?: OperationAuditLogger;
   /** Zaman kaynağı — deterministik test için enjekte edilir. */
   now?: () => Date;
   /** Koşu kimliği üretici — deterministik test için enjekte edilir. */
@@ -127,7 +141,7 @@ export class OperationExecutor {
   private readonly runs: IOperationRunStore;
   private readonly remoteChannel: IRemoteCommandChannel | undefined;
   private readonly preconditions: OperationPrecondition | undefined;
-  private readonly logger: TamperLogger | undefined;
+  private readonly logger: OperationAuditLogger | undefined;
   private readonly now: () => Date;
   private readonly generateId: () => string;
 

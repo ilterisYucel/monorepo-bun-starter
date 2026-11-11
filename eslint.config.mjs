@@ -1,9 +1,9 @@
 // Kök ESLint yapılandırması — güvenlik kuralları (OWASP ASVS Level 2 hizası).
 // Kapsam: backend servisleri + paylaşılan paketler (frontend app'ler kendi lint'lerini korur).
-// Kural kaynağı: packages/eslint-plugin-energy (üretim tool'u).
+// Kural kaynağı: tools/eslint-plugin-energy (üretim tool'u).
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
-import { rules as energyRules } from "./packages/eslint-plugin-energy/dist/index.js";
+import { rules as energyRules } from "./tools/eslint-plugin-energy/dist/index.js";
 
 export default [
   {
@@ -24,7 +24,6 @@ export default [
     files: [
       "services/**/*.{ts,tsx,mts,cts}",
       "packages/**/*.{ts,tsx,mts,cts}",
-      "zero-trust-application-tunnel/**/*.{ts,tsx,mts,cts}",
     ],
     languageOptions: {
       parser: tseslint.parser,

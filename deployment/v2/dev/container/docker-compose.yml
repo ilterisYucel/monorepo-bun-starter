@@ -2,7 +2,7 @@ name: v2-dev-demo-container
 
 # DEMO-FIELD (v2) — yerel demo/entegrasyon stack'i, CONTAINER yarısı.
 #
-# Field yarısı ayrı compose projesidir (deployment/v2/dev/field/docker-compose.yml)
+# Field yarısı ayrı compose projesidir (deployment/v2/dev/site/docker-compose.yml)
 # ama aynı makinede çalışır ve ORTAK `demo-bridge` ağını paylaşır. Bu compose
 # hem `container-network` hem `demo-bridge` ağını TANIMLAR; field yarısı
 # `demo-bridge`'e external olarak katılır.
@@ -86,8 +86,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
-      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-field-device-service}
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-site-device-service}
+      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-site-device-service}
       # Station 1 (BESS#1-5) → PCS-3'ün BMS yüzü (PCS-1:15502, PCS-2:15503, PCS-3:15504, PCS-4:15505)
       PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15504}
       DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
@@ -194,7 +194,6 @@ services:
       - ../../../../packages/platform/messaging/src:/app/packages/platform/messaging/src
       - ../../../../packages/platform/commands/src:/app/packages/platform/commands/src
       - ../../../../packages/platform/logging/src:/app/packages/platform/logging/src
-      - ../../../../packages/tamper-logger/src:/app/packages/tamper-logger/src
     depends_on:
       container-redis:
         condition: service_healthy
@@ -235,7 +234,6 @@ services:
       - "5001:5001"
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
-      - ../../../../zero-trust-application-tunnel/ws-tunnel/src:/app/zero-trust-application-tunnel/ws-tunnel/src
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-docker:ro
       - ./maneuvers:/app/maneuver-config:ro
@@ -266,7 +264,7 @@ services:
   # Hub erişiminde `container_session` cookie'si agent'ın HUB_SECRET'ı ile imzalanır;
   # web-service aynı secret (=JWT_SECRET) ile stateless doğrular.
   container-agent:
-    image: ${AGENT_IMAGE:-ws-tunnel-agent:local}
+    image: ${AGENT_IMAGE:-ilterisyucel/zero-trust-application-channel-agent:1.0.0}
     container_name: demo-container-agent
     environment:
       HUB_URL: http://hub-servis:5003

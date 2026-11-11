@@ -3,7 +3,7 @@ import type { TelemetryData } from "@gd-monorepo/shared-types";
 import type {
   PeerConnectionState,
   TunnelOperationalConfig,
-} from "@gd-monorepo/ws-tunnel";
+} from "zero-trust-application-channel";
 import type { DownsampleOptions } from "@gd-monorepo/core";
 
 export interface ContainerObserver {

@@ -23,7 +23,7 @@ review_date: 2026-11-10
 | 4 | `packages/platform/commands/package.json#scripts.build` | (değişiklik) `tsc --emitDeclarationOnly` eklendi (dist + tip çıktısı) | build hijyeni |
 | 5 | `maneuver-registry.ts` | (doğrulama) DB>dosya gölgeleme; disabled düşmez; ad uzayı ayrımı; mükerrer dosyada throw | K6/FR-2 |
 | 6 | `operation-executor.ts` | (doğrulama) begin FAIL-CLOSED; rollback yalnız başarılı adımlar ters sıra best-effort; timer delay; divideTotal; remoteTimeoutMs | K7/K8/FR-3 |
-| 7 | `tiers/boss/infrastructure/operation-requester.ts` + `tiers/field/infrastructure/hub-maneuver-channel.ts` | (doğrulama) 202→`still_running` terminal-only; `system_unreachable`; channel bu turda yalnız log-prefix hijyeni | K9/K10/FR-4 |
+| 7 | `tiers/boss/infrastructure/operation-requester.ts` + `tiers/site/infrastructure/hub-maneuver-channel.ts` | (doğrulama) 202→`still_running` terminal-only; `system_unreachable`; channel bu turda yalnız log-prefix hijyeni | K9/K10/FR-4 |
 | 8 | `deployment/v2/dev/*/maneuvers/*.json` + `maneuver-migration.test.ts` | (doğrulama) eklemeli demo katalogları; K12 güç yasağı iki vaka ile sabit | K12/FR-5 — S2 |
 
 ### A.2 Test Kanıtları
@@ -54,7 +54,7 @@ review_date: 2026-11-10
 | S1 | Diff'te davranış değişikliği YOK iddiası doğrulandı | `params?.[key]` ve `new RegExp` eşdeğer; `definition` tipi yalnız derleme zamanını sıkılaştırır (runtime aynı). K12 kapıları testte sabit kaldı |
 | S2 | **B2 yaşıyor:** migration testi deployment dosyalarına SERT bağlı (12 kayıt sayısı hardcoded) | Üretim kataloğuna eklenecek her manevra `platform/commands` testini kırar (ilgisiz PR'da kırmızı) — A1 fixture işi bekliyor; kapanış riski ORTA olarak notluyor |
 | S3 | K11 interlock **fail-open** (telemetri okunamazsa "nötr, izin ver") | SPEC'te bilinçli yazılı — ancak NIS-2/ASVS bakışı: fiziksel topraklama kontrolünde fail-open, "demo interlock" olduğu için kabul edilebilir; GERÇEK interlock gelmeden fail-open kararı yeniden açılmalı (SPEC K11'e uyarı satırı önerisi) |
-| S4 | SPEC §4.1/§6.4 yolu `tiers/site/…`; kod `tiers/field/…` | WEB-SERVICE S5 / TELEMETRI S1 ile aynı tek karar |
+| S4 | ✅ KAPANDI — SPEC §4.1/§6.4 yolu `tiers/site/…` = kod `tiers/site/…` (tam rename) | — |
 
 ### A.5 Gözle Kontrol Maddeleri
 

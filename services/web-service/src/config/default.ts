@@ -1,5 +1,5 @@
 import type { Role, PostgresConfig } from "@gd-monorepo/shared-types";
-import type { LogLevel } from "@gd-monorepo/tamper-logger";
+import type { LogLevel } from "@gd-monorepo/platform-logging";
 
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { loggerConfigForTier } from "@gd-monorepo/platform-logging";
@@ -41,7 +41,7 @@ export interface ServerConfig {
   host: string;
 }
 
-export type ServiceTier = "container" | "field" | "boss";
+export type ServiceTier = "container" | "site" | "boss";
 
 export interface SeedUser {
   username: string;
@@ -78,14 +78,14 @@ export function createConfigLoader(): ConfigLoader {
 export function authConfig(loader: ConfigLoader): AuthConfig {
   const jwtSecret = loader.get<string>("auth.jwtSecret");
   const tier = serviceTier(loader);
-  // Faz 1 T1.6: field/boss tier'da dev/default secret ile çalışmak YASAK —
+  // Faz 1 T1.6: site/boss tier'da dev/default secret ile çalışmak YASAK —
   // açılış fail-fast reddedilir.
   if (
-    (tier === "field" || tier === "boss") &&
+    (tier === "site" || tier === "boss") &&
     (jwtSecret === "dev-secret-change-in-production" || jwtSecret.length < 32)
   ) {
     throw new Error(
-      "[Config] JWT_SECRET field/boss tier'da zorunludur — en az 32 karakterli, dev disi bir deger gerekli",
+      "[Config] JWT_SECRET site/boss tier'da zorunludur — en az 32 karakterli, dev disi bir deger gerekli",
     );
   }
   return {
@@ -93,7 +93,7 @@ export function authConfig(loader: ConfigLoader): AuthConfig {
     accessTokenExpirySeconds: loader.get<number>("auth.accessTokenExpirySeconds"),
     refreshTokenExpirySeconds: loader.get<number>("auth.refreshTokenExpirySeconds"),
     mfaTokenExpirySeconds: loader.get<number>("auth.mfaTokenExpirySeconds"),
-    // Faz 6 T6.1: MFA zorunluluğu field/boss tier'da (uzak erişim).
+    // Faz 6 T6.1: MFA zorunluluğu site/boss tier'da (uzak erişim).
     // Konteyner tier yerel UI'dır — zorunluluk kapalı (rollere bağlı MFA
     // konteyner kullanıcısını saha ziyareti olmadan kilitleyebilirdi).
     // MFA_ENABLED=false → enforcement tamamen kapanır (debug/geçici kurulum).
@@ -242,12 +242,12 @@ export function siteFieldConfig(
   loader: ConfigLoader,
   tier: ServiceTier,
 ): SiteFieldConfig | undefined {
-  if (tier !== "field") return undefined;
+  if (tier !== "site") return undefined;
 
   const fieldId = loader.get<string | undefined>("site.fieldId");
   if (!fieldId) {
     throw new Error(
-      "[Config] FIELD_ID field tier'da zorunludur (UUID — openssl rand yerine uuidgen)",
+      "[Config] FIELD_ID site tier'da zorunludur (UUID — openssl rand yerine uuidgen)",
     );
   }
   const uuidPattern =
@@ -377,9 +377,9 @@ export function redisConfig(loader: ConfigLoader): {
 
 export function seedUsers(): SeedUser[] {
   const tier = String(process.env.SERVICE_TIER ?? "container").toLowerCase();
-  const productionTier = tier === "field" || tier === "boss";
+  const productionTier = tier === "site" || tier === "boss";
 
-  // Faz 1 T1.6: field/boss tier'da seed şifreleri env'den zorunludur;
+  // Faz 1 T1.6: site/boss tier'da seed şifreleri env'den zorunludur;
   // eksikse açılış fail-fast reddedilir. Container tier dev default'ları korur.
   const resolveSeedPassword = (envName: string, devDefault: string): string => {
     const value = process.env[envName];

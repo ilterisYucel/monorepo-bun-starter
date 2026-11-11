@@ -1,8 +1,8 @@
 import type { User } from "@gd-monorepo/shared-types";
-import type { ClientSessionUser, TunnelUser } from "@gd-monorepo/ws-tunnel";
+import type { ClientSessionUser, TunnelUser } from "zero-trust-application-channel";
 
 /**
- * SessionUserMap — GD-PMS `User` ↔ ws-tunnel `TunnelUser` sınır eşlemesi.
+ * SessionUserMap — GD-PMS `User` ↔ channel `TunnelUser` sınır eşlemesi.
  *
  * - `toTunnelUser`: field kullanıcısını tünele taşır — YALNIZCA tünelin
  *   bildiği alanlar (id/username/role) gider; fieldIds/mustChangePassword

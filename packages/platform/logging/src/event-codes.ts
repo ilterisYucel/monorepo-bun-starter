@@ -2,7 +2,7 @@
 
 /**
  * GD-PMS olay sözlüğü — TamperLogger'ın bilmediği, platforma özgü eventCode
- * kümesi. Generic `@gd-monorepo/tamper-logger` eventCode'u serbest string
+ * kümesi. Generic `tamper-logger` eventCode'u serbest string
  * kabul eder; servis bootstrap'ları bu doğrulayıcıyı
  * `TamperLoggerConfig.eventCodeValidator` olarak ENJEKTE eder (fail-closed).
  *

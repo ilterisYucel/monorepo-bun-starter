@@ -5,7 +5,7 @@ COPY . .
 ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN bun install --ignore-scripts
 
-WORKDIR /app/apps/field
+WORKDIR /app/apps/site
 # Tek saha kimliği build sırasında SPA'ya gömülür (compose build args).
 ARG VITE_FIELD_ID
 ENV VITE_FIELD_ID=$VITE_FIELD_ID
@@ -22,7 +22,7 @@ RUN bun run build
 
 FROM nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
 
-COPY --from=builder /app/apps/field/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/site/dist /usr/share/nginx/html
 
 RUN echo 'server { \
   listen 80; \
@@ -39,7 +39,7 @@ RUN echo 'server { \
   } \
   \
   location /api { \
-    set $backend http://web-service:5002; \
+    set $backend http://field-web-service:5002; \
     proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \
@@ -54,7 +54,7 @@ RUN echo 'server { \
   } \
   \
   location /containers/ { \
-    set $backend http://web-service:5002; \
+    set $backend http://field-web-service:5002; \
     proxy_pass $backend; \
     proxy_http_version 1.1; \
     proxy_set_header Upgrade $http_upgrade; \

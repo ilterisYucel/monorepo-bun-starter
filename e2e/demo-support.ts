@@ -3,8 +3,8 @@ import { resolve } from "node:path";
 import type { APIRequestContext } from "@playwright/test";
 
 /**
- * demo-field e2e paylaşımlı yardımcıları (test DEĞİL).
- * - `resolveDemoFieldId`: FIELD_ID env yoksa v2/dev/field/.env'den okur.
+ * demo-site e2e paylaşımlı yardımcıları (test DEĞİL).
+ * - `resolveDemoFieldId`: FIELD_ID env yoksa v2/dev/site/.env'den okur.
  * - `waitOperationTerminal`: execute 202 "running" dönerse run terminal duruma
  *   gelene kadar `/api/operations/runs` üzerinden bekler.
  */
@@ -12,8 +12,8 @@ import type { APIRequestContext } from "@playwright/test";
 export function resolveDemoFieldId(): string {
   if (process.env.FIELD_ID) return process.env.FIELD_ID;
   const candidates = [
-    resolve(process.cwd(), "deployment/v2/dev/field/.env"),
-    resolve(process.cwd(), "../deployment/v2/dev/field/.env"),
+    resolve(process.cwd(), "deployment/v2/dev/site/.env"),
+    resolve(process.cwd(), "../deployment/v2/dev/site/.env"),
   ];
   for (const path of candidates) {
     try {

@@ -23,7 +23,7 @@ export interface TierCradle {
 }
 
 /**
- * Tier'a göre yaşam döngüsü listesi (field: konteyner görünümü; boss: olay poller'ı).
+ * Tier'a göre yaşam döngüsü listesi (site: konteyner görünümü; boss: olay poller'ı).
  * `serviceTier` yalnız burada ve config'de kullanılır.
  */
 export function buildTierLifecycles(
@@ -32,7 +32,7 @@ export function buildTierLifecycles(
 ): TierLifecycle[] {
   const lifecycles: TierLifecycle[] = [];
 
-  if (tier === "field" && cradle.containerProxy) {
+  if (tier === "site" && cradle.containerProxy) {
     const proxy = cradle.containerProxy;
     lifecycles.push({
       start: () => proxy.start(),

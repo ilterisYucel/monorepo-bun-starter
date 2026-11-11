@@ -18,8 +18,6 @@
     { "path": "../../packages/platform/messaging" },
     { "path": "../../packages/platform/commands" },
     { "path": "../../packages/platform/logging" },
-    { "path": "../../packages/tamper-logger" },
     { "path": "../../packages/platform/container-access" },
-    { "path": "../../zero-trust-application-tunnel/ws-tunnel" }
   ]
 }

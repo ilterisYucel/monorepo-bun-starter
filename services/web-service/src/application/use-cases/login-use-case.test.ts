@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
 import type { ITokenService } from "../../domain/services/ITokenService";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import { LoginUseCase } from "./login-use-case";
 

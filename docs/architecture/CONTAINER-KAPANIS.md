@@ -4,6 +4,8 @@ space: architecture
 tags: [kapanis, dogrulama, test-kapsami, container, electron, app]
 review_date: 2026-11-10
 ---
+> **Not (2026-11-11):** İlgili UI app'i kaldırıldı (`apps/superadmin` / `apps/container-web` / `apps/container-desktop`). Bu SPEC/KAPANIŞ tarihsel kayıttır; backend tier servisleri yaşamaya devam eder.
+
 
 # Container — Kapanış (Doğrulama + Test Kapsamı)
 

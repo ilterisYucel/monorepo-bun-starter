@@ -19,7 +19,7 @@ Hedef: Grafana benzeri, surukle-birak ile SCADA ekranlari ve tek hat semalari ol
 | **Protokol Destegi** | 🟡 | Modbus TCP/RTU (production) + simülatör transport'u; CANbus/MQTT stub |
 | **Cihaz Simulatorleri** | ✅ | BSC, HVAC, XRack, CB, DC-Output, PCS — register-accurate, `SimulatorRegistry` |
 | **Veri Pipeline** | ✅ | device-service → BullMQ → data-service (TimescaleDB) + WebSocket broadcast + `TelemetryTagger` (canonical tags) |
-| **2B Grafikler (PixiJS)** | ✅ | BSC/TMS sistemleri + element komponentleri (RackCell, CircuitBreaker, DCOutput, HvacUnit, RoomCard, PanelCard, Cable...) + **sprite pipeline** (AI üretimi) |
+| ~~**2B Grafikler (PixiJS)**~~ | ⛔ Kaldırıldı (2026-11-11) | `packages/ui/src/graphics` silindi — kullanıcısı yoktu |
 | **UI Komponentleri** | ✅ | TelemetryGauge, TelemetryChart, TelemetryInput, LogTerminal, ManeuverCard, MultiLineChart... |
 | **Gercek Zamanli Transport** | ✅ | Strategy — WebSocketTransport, HttpPollingTransport, MockTransport (`ITelemetryTransport`) |
 | **Manevra Sistemi** | ✅ | 18 tanimli manevra — parallel/sequential, rollback, read-back validasyonu |
@@ -29,7 +29,7 @@ Hedef: Grafana benzeri, surukle-birak ile SCADA ekranlari ve tek hat semalari ol
 | **Desktop** | ✅ | Electron v39 + crash handler'lar |
 | **CI/CD** | 🟡 | 4 workflow var (`e2e`, `perf`, `sonar`, `storybook`); **PR-level unit-test workflow eksik** |
 | **Test** | 🟡 | Vitest workspace + yüzlerce test; kapsam borçlari `TESTING.md` §2 envanterinde |
-| **Doküman sistemi** | ✅ | Wiki.js (self-hosted) + `docs/` tasnifi |
+| **Doküman sistemi** | ✅ | `docs/` tasnifi (markdown) |
 
 ## Gap Tablolari
 

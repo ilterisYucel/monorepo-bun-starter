@@ -23,10 +23,6 @@ export default defineConfig({
         workspaceRoot,
         "packages/platform/logging/src",
       ),
-      "@gd-monorepo/tamper-logger": resolve(
-        workspaceRoot,
-        "packages/tamper-logger/src",
-      ),
     },
   },
   test: {

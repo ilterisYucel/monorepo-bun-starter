@@ -7,7 +7,7 @@ import { bscSource, calcSource, nomapSource, pcsSource, rackSource, type Registe
  * (`nm{instance}_3At1` gibi). Bu modül, referans `app.js#srcForId` portu olarak
  * o id'yi bir `RegisterSource`'a çözer; `DemoMimic` regmodda `data-rsk` yazar.
  *
- * Cihaz etiketleri demo-field gerçeğine göre verilir: tek konteyner 9 gruba
+ * Cihaz etiketleri demo-site gerçeğine göre verilir: tek konteyner 9 gruba
  * fan-out edildiğinden fiziksel cihazlar `BSC-1/BSC-2`, `PCS-1/PCS-2`'dir;
  * grup numarası yalnızca kart bağlamı olarak taşınır.
  *

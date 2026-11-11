@@ -17,11 +17,11 @@ review_date: 2026-11-10
 
 | # | Dosya | Değişiklik | Neden (SPEC ref) |
 |:--|:------|:-----------|:-----------------|
-| 1 | `packages/eslint-plugin-energy/src/rules/no-raw-console-log.ts#noRawConsoleLog` | (değişiklik) `firstArgText` yardımcı fonksiyonu (Literal + TemplateLiteral ilk argüman metni) + `options.allowPrefixes.some(prefix → startsWith) → return` — seçenek artık GERÇEKTEN uygulanıyor | K2/FR-1.2, B1 düzeltmesi (T-7) |
-| 2 | `packages/eslint-plugin-energy/src/rules/rules.test.ts` | (yeni dosya) `RuleTester` 4 kural × valid/invalid — toplam 10 üretilen vaka (2+3+2+3); prefix istisnası ve frontend-dışı dizin vakaları dahil | K5, FR-1.2 |
+| 1 | `tools/eslint-plugin-energy/src/rules/no-raw-console-log.ts#noRawConsoleLog` | (değişiklik) `firstArgText` yardımcı fonksiyonu (Literal + TemplateLiteral ilk argüman metni) + `options.allowPrefixes.some(prefix → startsWith) → return` — seçenek artık GERÇEKTEN uygulanıyor | K2/FR-1.2, B1 düzeltmesi (T-7) |
+| 2 | `tools/eslint-plugin-energy/src/rules/rules.test.ts` | (yeni dosya) `RuleTester` 4 kural × valid/invalid — toplam 10 üretilen vaka (2+3+2+3); prefix istisnası ve frontend-dışı dizin vakaları dahil | K5, FR-1.2 |
 | 3 | `package.json#scripts.lint` | (değişiklik) kök `lint` script'i eklendi: plugin'i dist'e build + `eslint services packages zero-trust-application-tunnel` | K3/FR-1.1 |
 | 4 | `eslint.config.mjs` | (yeni dosya) 4 kural `error`; `no-raw-console-log` options `allowPrefixes: ["["]`; test dosyası override'ında `no-math-random`/`require-timeout` `off` | K1–K4 |
-| 5 | `packages/eslint-plugin-energy/src/rules/no-raw-console-log.ts#BACKEND_SERVICE_DIRS` | (doğrulama) kural `web-service, data-service, device-service, core` dizin dosya yollarında etkin (frontend serbest) | K2 |
+| 5 | `tools/eslint-plugin-energy/src/rules/no-raw-console-log.ts#BACKEND_SERVICE_DIRS` | (doğrulama) kural `web-service, data-service, device-service, core` dizin dosya yollarında etkin (frontend serbest) | K2 |
 
 ### A.2 Test Kanıtları
 

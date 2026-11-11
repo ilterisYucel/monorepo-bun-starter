@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import type { ITokenSigner, SessionTokenPayload } from "@gd-monorepo/ws-tunnel";
+import type { ITokenSigner, SessionTokenPayload } from "zero-trust-application-channel";
 import { StatelessSessionAuthenticator } from "./stateless-session-authenticator";
 
 /**

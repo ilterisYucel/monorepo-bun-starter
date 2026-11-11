@@ -222,7 +222,7 @@ export class WattoxPcsSimulator implements ISimulator {
   }
 
   /**
-   * Senaryo enjeksiyonu (dev/debug komut) — demo-field fault/alarm testleri.
+   * Senaryo enjeksiyonu (dev/debug komut) — demo-site fault/alarm testleri.
    * - `fault`: fault word 1 bit0 (BMS system fault) → "PCS Fault Status" alarmı
    * - `door_open`: kabin kapısı DI → "Cabinet Door Open" alarmı
    * - `nominal`: fault/alarm temizle, kapı kapat

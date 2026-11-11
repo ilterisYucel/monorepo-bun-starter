@@ -9,7 +9,7 @@ review_date: 2026-11-10
 
 > **İş akışı aşaması:** 1/4 — SPEC (Plan aşaması, DeepSeek V4 Pro).
 > **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
-> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `WEB-SERVICE-MIMARISI.md`, `WS-TUNNEL-HUB` (bootstrap kimlik), `docs/standards/owasp-asvs-level2.md`.
+> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `WEB-SERVICE-MIMARISI.md`, `zero-trust-application-channel` (repo-dışı, bootstrap kimlik), `docs/standards/owasp-asvs-level2.md`.
 
 ## 1. Amaç ve Bağlam
 
@@ -41,7 +41,7 @@ Kimlik doğrulama zinciri (multi-modül): web-service login/MFA/refresh/throttle
 
 | Kod | Bulgu | Kanıt |
 |:----|:------|:------|
-| B1 | Guest oturum kuralı doküman↔kod çelişkisi: `AGENTS-WS-TUNNEL.md` "guest→oturum YOK" ↔ kod/test "guest oturum AÇABİLİR (2026-08-30 kararı)" | `zero-trust-application-tunnel/ws-tunnel/src/proxy/session-gateway.ts#mapSessionRole` |
+| B1 | Guest oturum kuralı doküman↔kod çelişkisi: `AGENTS-APPLICATION-TUNNEL.md` "guest→oturum YOK" ↔ kod/test "guest oturum AÇABİLİR (2026-08-30 kararı)" | `zero-trust-application-channel#SessionGateway` (upstream) |
 | B2 | `update-user`/`list-users`/`logout` use-case'leri doğrudan unit testi yok (route üzerinden dolaylı) | test envanteri |
 | B3 | Agent setup: bootstrap TEK kullanımlık — `/test` bir kez claim eder, `/save` aynı token'ı yeniden claim ETMEZ; eşzamanlı kaydetme 409 | `zero-trust-application-tunnel/ws-tunnel-agent/src/setup-server.ts` |
 

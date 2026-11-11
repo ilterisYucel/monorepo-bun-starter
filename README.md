@@ -1,6 +1,6 @@
 # GD-PMS — Battery EMS (Energy Management System)
 
-Bun + Nx monorepo for a BESS/EMS platform: three-tier frontend (container / field / boss), four backend services, shared packages, and a self-hosted documentation wiki. TimescaleDB + Redis + BullMQ telemetry pipeline, config-driven devices, maneuver system, and a low-code SCADA editor.
+Bun + Nx monorepo for a BESS/EMS platform: site frontend, four backend services, shared packages. TimescaleDB + Redis + BullMQ telemetry pipeline, config-driven devices, maneuver system, and a low-code SCADA editor.
 
 ---
 
@@ -9,11 +9,9 @@ Bun + Nx monorepo for a BESS/EMS platform: three-tier frontend (container / fiel
 ```bash
 bun install                       # Install deps (Bun only, no npm/pnpm/yarn)
 bun run dev                       # All apps in parallel (max 5)
-bun run dev:container-web         # Web only (Vite, port 5173)
-bun run dev:container-desktop     # Electron only
-bun run dev:container             # Full stack (Docker dev mode)
-bun run start:container           # Full stack (Docker prod mode)
-bun run stop:container            # Stop container stack
+bun run dev:site                  # Site UI (Vite)
+bun run dev:stack:up    # Full dev stack (container + container2 + site)
+bun run dev:stack:down     # Stop dev stack
 nx run web-service:dev            # Web Service (Fastify, port 5001)
 nx run device-service:dev         # Device Service (Modbus poller)
 nx run data-service:dev           # Data Service (BullMQ consumer)
@@ -35,9 +33,7 @@ Full command reference and development rules: **[AGENTS.md](./AGENTS.md)**.
 ```mermaid
 flowchart TB
     subgraph FRONTEND["Frontend (React 19)"]
-        CW["container-web / container-desktop\n(site terminal)"]
-        FLD["field\n(multi-container site app)"]
-        SUP["superadmin\n(multi-site boss app)"]
+        SITE["site\n(saha operatör UI — tek uygulama)"]
         ED["editor\n(low-code SCADA composer)"]
     end
 
@@ -62,9 +58,7 @@ flowchart TB
         FP["Fire panel (EP203)"]
     end
 
-    CW --> WS
-    FLD --> WS
-    SUP --> WS
+    SITE --> WS
     ED --> WS
     DEV -->|READ_DEVICE jobs| REDIS
     REDIS -->|WRITE_TELEMETRY jobs| DATA
@@ -77,7 +71,7 @@ flowchart TB
     REDIS -->|command execution| DEV
 ```
 
-- Three-tier product model: **container** (single site terminal) → **field** (site) → **boss** (multi-site) — composed from the same capabilities via config (`SERVICE_TIER`).
+- Product model: capabilities are composed via config (`SERVICE_TIER`: container / site / boss). Backend servisleri tier'ları taşır; UI tarafında **site** tek uygulamadır (`apps/site`).
 - Remote container UI access runs over the container→field outbound tunnel (session gateway + RBAC): `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md`.
 
 ---
@@ -86,12 +80,9 @@ flowchart TB
 
 ```
 apps/
-  container-web/          React 19 SPA — site terminal UI
-  container-desktop/      Electron 39 wrapper of container-web
-  field/                  React app — multi-container site management
-  superadmin/             React app — multi-site (boss) management
+  site/                   React 19 SPA — saha operatör UI (tek uygulama)
   editor/                 Low-code SCADA editor (ReactFlow)
-  desktop/                Electron app (legacy wrapper)
+  sim-lab/                Simülatör konsolu
 packages/
   shared-types/           Pure TS types (telemetry, jobs, auth, transport contracts)
   shared-utils/           ConfigLoader, env sources (currently empty — see TESTING.md)
@@ -100,16 +91,15 @@ packages/
   epias-client/           EPIAŞ HTTP client (CAS TGT lifecycle)
   plugins/                Built-in plugin packages (epias-market-prices)
   simulators/             Register-accurate device simulators (BSC, HVAC, ...)
-  ui/                     Shared React components, PixiJS graphics, transports, tokens
-  eslint-plugin-energy/   Custom ESLint security rules (e.g. no-math-random)
+  ui/                     Shared React components, transports, tokens
 services/
   web-service/            Hexagonal Fastify 5 API — auth/JWT, RBAC, TimescaleDB queries
   device-service/         Modbus poller — device configs, TelemetryTagger, BullMQ producer
   data-service/           BullMQ consumer — telemetry writer
   integration-service/    Plugin host — periodic data collection (BullMQ repeatable)
-deployment/               Docker Compose stacks (product layer) + wiki/ + k6/
+deployment/               Docker Compose stacks (product layer) + k6/
 docs/                     Classified documentation (see docs/README.md)
-tools/                    Build/import/measurement scripts (import-wiki, sprites, docx)
+tools/                    Build/spec/arch/RTU check scripts + docx üretimi + eslint-plugin-energy (güvenlik lint kuralları)
 ```
 
 Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` — see AGENTS.md.
@@ -127,14 +117,13 @@ Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` 
 | `epias-client` | Library | EPIAŞ HTTP client (TGT lifecycle, typed helpers) |
 | `plugins/*` | Library | Built-in plugins (epias-market-prices) |
 | `simulators` | Library | Device simulators (BSC, HVAC, XRack, CB, DC-Output) |
-| `ui` | Library | PixiJS graphics, Recharts, Emotion, transports, color/icon tokens |
+| `ui` | Library | Recharts, Emotion, transports, color/icon tokens |
 | `web-service` | Service | Auth/JWT + RBAC + REST/WS API (hexagonal) |
 | `device-service` | Service | Modbus poller, TelemetryTagger, command execution |
 | `data-service` | Service | BullMQ consumer, telemetry persistence |
 | `integration-service` | Service | Plugin host (EPIAŞ collection) |
-| `container-web` / `field` / `superadmin` | Apps | Three-tier frontend |
+| `site` | App | Saha operatör UI (tek uygulama) |
 | `editor` | App | Low-code SCADA composer |
-| `container-desktop` / `desktop` | Apps | Electron builds |
 
 ---
 
@@ -150,7 +139,6 @@ Dependency graph: `bun run graph` (Nx). Build order is implicit via Nx `^build` 
 | Plugin architecture (integration-service, EPIAŞ client) | `docs/architecture/PLUGIN-MIMARISI.md` |
 | Editor architecture (product-layer composer) | `docs/architecture/EDITOR-MIMARISI.md` |
 | Remote container UI access (tunnel, session, audit) | `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md` |
-| Sprite pipeline (AI-generated PixiJS sprites) | `docs/process/SPRITE-URETIMI.md` + `docs/process/SPRITE-STYLE-KIT.md` |
 | Frontend data-source contracts (`ITelemetryTransport` etc.) | AGENTS.md |
 | Color & icon token system (104 colors, 35 icons) | AGENTS.md + Storybook |
 
@@ -177,28 +165,12 @@ All stacks are Docker Compose files under `deployment/<proje>/<tier>/<app>/` —
 |-------|--------------|---------------|
 | Container-1 (v2, dev) | `v2/dev/container/docker-compose.yml` | web-service 5001 |
 | Container-2 (v2, dev) | `v2/dev/container2/docker-compose.yml` | web-service 5011 |
-| Field (v2, dev) | `v2/dev/field/docker-compose.yml` | demo-field SPA 8088, field API 5002, hub 5009 |
-| **Wiki (docs)** | `docker-compose.wiki.yml` | wiki 8090, postgres 5436 |
+| Site (v2, dev) | `v2/dev/site/docker-compose.yml` | site SPA 8088, site API 5002, hub 5009 |
 
 ```bash
-bun run start:demo-integration  # v2 dev demo stack (container + container2 + field)
-bun run stop:demo-integration
-bun run wiki:up                 # documentation wiki (Wiki.js)
+bun run dev:stack:up  # v2 dev stack (container + container2 + site)
+bun run dev:stack:down
 ```
-
----
-
-## Documentation Wiki (Wiki.js)
-
-Self-hosted, open-source documentation platform (markdown + mermaid, search, tags, permissions). Mirrors the `docs/` classification; import via `tools/import-wiki.ts`.
-
-```bash
-bun run wiki:up
-WIKI_URL=http://localhost:8090 WIKI_API_KEY=<key> bun run wiki:import
-bun run wiki:backup           # pg_dump + data volume tar
-```
-
-Details: `deployment/wiki/README.md`.
 
 ---
 
@@ -218,10 +190,8 @@ Details: `deployment/wiki/README.md`.
 | Language | TypeScript 5.x |
 | Backend | Fastify 5, awilix (DI), zod (validation) |
 | Frontend | React 19, Vite 8, TanStack Query 5, Zustand 5, React Router 7 |
-| Desktop | Electron 39, electron-vite 5 |
 | Database | TimescaleDB (PostgreSQL) |
 | Message Queue | BullMQ + Redis |
 | Auth | JWT (jose), Argon2id (Bun.password) |
-| Graphics | PixiJS 8, Recharts 3, Emotion CSS-in-JS, Mermaid |
-| Docs | Wiki.js (markdown + mermaid, self-hosted) |
+| Charts/UI | Recharts 3, Emotion CSS-in-JS, Mermaid |
 | CI/CD | GitHub Actions + SonarCloud quality gates |

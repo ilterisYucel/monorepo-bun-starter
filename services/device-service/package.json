@@ -21,7 +21,7 @@
     "@gd-monorepo/core": "*",
     "@gd-monorepo/simulators": "*",
     "@gd-monorepo/logger": "*",
-    "@gd-monorepo/tamper-logger": "*",
+    "tamper-logger": "^1.0.0",
     "smol-toml": "^1.1.0",
     "yaml": "^2.4.0"
   },

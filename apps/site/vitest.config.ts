@@ -11,6 +11,9 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // Entegrasyon testleri stack gerektirir → default koşumdan HARİÇ
+    // (ayrı `vitest.integration.config.ts` + `test:integration`).
+    exclude: ["**/node_modules/**", "**/dist/**", "integration/**"],
     // @pixi/react (packages/ui barrel'ı) uzantısız derin import kullanır
     // (react-reconciler/constants) — externalized modüllerde node ESM çözümü
     // exports map'siz bunu reddeder. Inline edilince Vite çözer.

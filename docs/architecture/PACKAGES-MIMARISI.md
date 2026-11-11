@@ -25,7 +25,7 @@ review_date: 2026-11-10
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
 | K1 | Her paket dizini için 1 SPEC + 1 KAPANIŞ (`<MODUL>-MIMARISI.md` / `-KAPANIS.md`) | Bu indeksin satırları birebir o dosyalara bağlanır |
-| K2 | Ayrı projeler bu indekse girmez: `packages/tamper-logger/docs/`, `zero-trust-application-tunnel/docs/` | İndekste yalnız referans satırı |
+| K2 | Ayrı projeler bu indekse girmez: `tamper-logger` ve `zero-trust-application-channel` (repo-dışı npm/Docker) | İndekste yalnız referans satırı |
 | K3 | İndeks "durum" kolonu yaşar: `yazılacak` → `✅ Approved` → `🟢 Doğrulanmış` | Kapanış takibi indeksten görünür |
 
 ## 3. Mevcut Durum / Kök Nedenler
@@ -46,20 +46,19 @@ review_date: 2026-11-10
 | `packages/shared-utils` | ConfigLoader + kaynaklar + birim normalizasyonu + config kataloğu | `SHARED-UTILS-MIMARISI.md` | ✅ yazıldı |
 | `packages/result` | Result/DomainError ailesi (hata sözleşmesi) | `RESULT-MIMARISI.md` | ✅ yazıldı |
 | `packages/logger` | pino ince sarmalayıcı + sink'ler | `LOGGER-MIMARISI.md` | mevcut (🟢 Doğrulanmış) |
-| `packages/ui` | Transport/provider kontratları, renk/ikon/sprite pipeline, Pixi grafik, paylaşılan bileşenler | `UI-MIMARISI.md` | ✅ yazıldı |
+| `packages/ui` | Transport/provider kontratları, renk/ikon sistemi, paylaşılan bileşenler | `UI-MIMARISI.md` | ✅ yazıldı |
 | `packages/simulators` | Kolaylık simülatörleri + fiziksel saha simülatörü + sim-lab | `SIMULATORS-MIMARISI.md` | ✅ yazıldı |
 | `packages/epias-client` | EPİAŞ istemcisi + TGT yaşam döngüsü | `EPIAS-CLIENT-MIMARISI.md` | ✅ yazıldı |
 | `packages/plugin-sdk` | Plugin framework (manifest/registry/loader/context/http) | `PLUGIN-SDK-MIMARISI.md` | ✅ yazıldı |
 | `packages/platform` | commands (komut/manevra yürütücü), messaging (JobType sahibi), logging (sözlük/tier), container-access (port) | `PLATFORM-MIMARISI.md` | ✅ yazıldı |
 | `packages/plugins` | Örnek entegrasyon plugin'i (epias-market-prices) | `PLUGINS-MIMARISI.md` | ✅ yazıldı |
-| `packages/eslint-plugin-energy` | Güvenlik lint kuralları (kök lint'te bağlı) | `ESLINT-PLUGIN-ENERGY-MIMARISI.md` | ✅ yazıldı |
 
 ### 4.2 Ayrı proje referansları
 
 | Proje | Doküman konumu |
 |:------|:---------------|
-| Tamper Logger | `packages/tamper-logger/docs/TAMPER-LOGGER-MIMARISI.md` |
-| Zero-Trust Application Tunnel | `zero-trust-application-tunnel/docs/WS-TUNNEL-{CEKIRDEK,HUB,AGENT}-MIMARISI.md` |
+| Tamper Logger | **Repo-dışı npm paketi** (`tamper-logger@^1.0.0`, ayrı GitHub repo); SPEC: https://github.com/ilterisYucel/tamper-logger/blob/main/docs/TAMPER-LOGGER-MIMARISI.md |
+| Zero-Trust Application Channel | **Repo-dışı:** npm `zero-trust-application-channel` (lib) + Docker Hub hub/agent; SPEC: https://github.com/ilterisYucel/zero-trust-application-channel/tree/main/docs |
 | Ölü dizin (silinecek) | `packages/device-library` |
 
 ### 4.3 Çalışma zamanı ve yapı notları (AGENTS-INFRA'dan taşındı)
@@ -71,12 +70,12 @@ review_date: 2026-11-10
 | Products | Capability + config birleşimi | `deployment/` |
 
 - `packages/core` JENERİKTİR; GD-PMS'ye özgü kod (`JobType`, tier defaults, kontenaj sözleşmeleri) `packages/platform/*`'da yaşar. Bağımlılık yönü: `core → platform` YASAK; `platform → core` serbest.
-- Servisler ürün DEĞİLDİR; ürün = configured composition (örn. site ürünü = device-service + data-service + web-service + site app + compose + device configs + `SERVICE_TIER=field`).
+- Servisler ürün DEĞİLDİR; ürün = configured composition (örn. site ürünü = device-service + data-service + web-service + site app + compose + device configs + `SERVICE_TIER=site`).
 - `packages/` = import-only. `run.ts`/Dockerfile taşıyan ve deploy edilen şey `services/` veya `apps/`'e aittir.
 
 **Build sırası (Nx `^build`):** `shared-types, result` → `logger, shared-utils, core, tamper-logger, simulators, plugin-sdk, ws-tunnel` → `platform/*` → `epias-client` → `plugins/*, ui` → servisler/app'ler.
 
-**Sürümler:** Bun **1.4.3** (Docker digest-pinli) · Fastify v5 · React 19 / Vite 8 / TanStack Query 5 / Zustand 5 / Router 7 / Recharts 3 · Electron 39 / electron-vite 5 · PixiJS 8 / Emotion · TimescaleDB + Redis/BullMQ · jose 5 / awilix 11 / zod 3.
+**Sürümler:** Bun **1.4.3** (Docker digest-pinli) · Fastify v5 · React 19 / Vite 8 / TanStack Query 5 / Zustand 5 / Router 7 / Recharts 3 · Emotion · TimescaleDB + Redis/BullMQ · jose 5 / awilix 11 / zod 3.
 
 **Bun 1.4.3 / RTU:** RTU backend `bun-serialport` (bun:ffi) + `SerialSocketAdapter`; `bun:ffi` yalnız `connect()` anında dinamik import edilir; Bun-only'dir, `parity: mark|space` desteklenmez; donanımsız doğrulama `bun tools/rtu-loopback-check.mjs`. AVX2'siz eski x64 CPU'larda Bun >1.3.8 çöker (ARM/RevPi etkilenmez).
 

@@ -20,7 +20,7 @@
 | `timeseries/` (ITimeseriesDatabase + adaptörler) | tier defaults → ✅ `platform/logging` |
 | `canbus/`, `mqtt/` (stub) | olay sözlüğü (LOG_EVENT_CODES) → ✅ `platform/logging` |
 | `messaging/redis.ts` + generic BullMQ katmanı | `shared-types` platform tipleri (Aşama 4 — ayrı plan) |
-| `logging/` → ✅ AYRI JENERİK paket `packages/tamper-logger` (TamperLogger, pipeline, sink'ler, verifyChain, signing key — eventCode serbest string + validator enjeksiyonu) | |
+| `logging/` → ✅ AYRI JENERİK paket `tamper-logger` (TamperLogger, pipeline, sink'ler, verifyChain, signing key — eventCode serbest string + validator enjeksiyonu) | |
 
 Notlar:
 - `container-proxy` core'da yalnızca **interface** içeriyordu; implementasyon web-service'te. Sözleşme platform paketine taşınır.
@@ -56,7 +56,7 @@ core → platform  YASAK
 | 0 | Generic `BullMQAdapter` + `BullMQQueue` (core) + `platform/messaging` (`PlatformMessageQueue`) + bootstrap geçişi | ✅ tamam (2026-08-31) |
 | 1 | `platform/container-access`: container-proxy + tunnel taşıma | ✅ tamam (2026-08-31) |
 | 2 | `platform/logging`: tier defaults taşıma | ✅ tamam (2026-08-31) |
-| 2.5 | `packages/tamper-logger`: TamperLogger + pipeline + sink'ler + verify-chain core'dan AYRI JENERİK pakete çıkarıldı; eventCode serbest string + `eventCodeValidator` enjeksiyonu; GD-PMS olay sözlüğü (`LOG_EVENT_CODES`/`isLogEventCode`) platform/logging'e taşındı | ✅ tamam (2026-08-31) |
+| 2.5 | `tamper-logger`: TamperLogger + pipeline + sink'ler + verify-chain core'dan AYRI JENERİK pakete çıkarıldı; eventCode serbest string + `eventCodeValidator` enjeksiyonu; GD-PMS olay sözlüğü (`LOG_EVENT_CODES`/`isLogEventCode`) platform/logging'e taşındı | ✅ tamam (2026-08-31) |
 | 3 | (ileride) tunnel → ayrı ürün paketi | ayrı plan |
 | 4 | shared-types generic/platform ayrımı | ayrı plan |
 | 5 | Nx tags + enforce-module-boundaries | ayrı plan |

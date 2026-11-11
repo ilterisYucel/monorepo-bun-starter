@@ -50,7 +50,7 @@ review_date: 2026-10-12
 | Kapsam | Komut | Sonuç |
 |:-------|:------|:------|
 | SPEC lint | `bun run spec:check docs/architecture/deprecated/DEPLOYMENT-KLASOR-YAPISI-MIMARISI.md` | 0 hata, 0 uyarı |
-| Compose geçerliliği (SC-2) | `docker compose --env-file <dummy> -f <compose> config -q` (tümü) | 15/15 geçerli (1 wiki + 10 v1 + 4 v2) |
+| Compose geçerliliği (SC-2) | `docker compose --env-file <dummy> -f <compose> config -q` (tümü) | 15/15 geçerli (10 v1 + 4 v2 + k6) |
 | Cross-ref denetimi (SC-1) | `deployment/` altında izin dışı `../` grep'i | 0 izinsiz referans (yalnızca `../../../../` repo-kök Dockerfile + `../../common/`) |
 | demo-backend denetimi (SC-4) | aktif kod/config/yaşayan dokümanlarda `demo-backend` grep'i | 0 aktif referans (yalnızca `docs/archived/`, `docs/decisions/` ve SPEC kanıtı kaldı) |
 | gitignore davranışı (AK-5.4) | `git check-ignore` | `deployment/**/.env` ignore ediliyor; `.env.example` izleniyor |
@@ -104,7 +104,7 @@ review_date: 2026-10-12
 - [x] Purity 3: Proje-içi paylaşım yalnızca `deployment/v1/common/` (customer-plugins) üzerinden.
 - [x] Purity 4: Device config/maneuvers/rules kök `configs/`'ten kopyalanmış; runtime'da kök `configs/` referansı yok (K-5).
 - [x] Purity 5: Gerçek `.env` gitignore'lu, `.env.example` commit'li (K-7).
-- [x] Purity 6: Proje bağımsız araçlar (`k6/`, `wiki/`, `docker-compose.wiki.yml`) kökte kaldı.
+- [x] Purity 6: Proje bağımsız araçlar (`k6/`) kökte kaldı. (Not: wiki aracı 2026-11-11'de kaldırıldı.)
 - [x] Purity 7: Kaynak kod/yaşayan dokümanlarda `demo-backend` referansı kalmadı (SC-4).
 - [x] `git mv` kullanımıyla tarihçe korundu (`git status` rename `R` olarak gösteriyor).
 - [x] `bun install` → `bun.lock` yenilendi; `bun run test:inventory` → envanter güncellendi.

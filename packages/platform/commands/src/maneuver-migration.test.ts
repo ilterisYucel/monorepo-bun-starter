@@ -11,7 +11,7 @@ import { ManeuverRegistry } from "./maneuver-registry";
  * A3 migrasyon sözleşmesi (KOMUT-MANEVRA-OPERASYON §5, A3):
  *
  * - Tier config dosyaları (deployment/v2/dev/container/maneuvers ve
- *   deployment/v2/dev/field/maneuvers) fail-fast yüklenir (bozuk kayıt → THROW;
+ *   deployment/v2/dev/site/maneuvers) fail-fast yüklenir (bozuk kayıt → THROW;
  *   servis açılmaz).
  * - Konteyner kataloğu İP-1/İP-2 temizliğinin birebir yansımasıdır:
  *   BSC charge/discharge YOK (K12); koruma kartları kurallara taşındı (K-A5);
@@ -28,13 +28,13 @@ const CONTAINER_MANEUVERS_PATH = fileURLToPath(
 );
 const FIELD_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/v2/dev/field/maneuvers/maneuvers.json",
+    "../../../../deployment/v2/dev/site/maneuvers/maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_OPERATIONS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/v2/dev/field/maneuvers/operations.json",
+    "../../../../deployment/v2/dev/site/maneuvers/operations.json",
     import.meta.url,
   ),
 );

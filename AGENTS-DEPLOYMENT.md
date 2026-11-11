@@ -22,14 +22,13 @@ gerekmesini önlemek için kalıcıdır.
 
 ```text
 deployment/
-├── <proje>/                       # bugün: v2 (demo-field)
+├── <proje>/                       # bugün: v2 (site)
 │   └── <tier>/                    # bugün: dev
 │       └── <app>/                 # container, container2, field
 ├── k6/                            # proje bağımsız araç — kökte kalır
-└── wiki/ + docker-compose.wiki.yml  # proje bağımsız araç — kökte kalır
 ```
 
-Bugünkü tek stack: `deployment/v2/dev/{container,container2,field}/` (v1/AWS/office kaldırıldı).
+Bugünkü tek stack: `deployment/v2/dev/{container,container2,site}/` (v1/AWS/office kaldırıldı).
 
 - Ortam (tier) **proje klasörünün içinde** ayrılır: `deployment/<proje>/<tier>/<app>/`.
 - Her `<app>` klasörü kendi `docker-compose.yml`, `device-configs/`, `maneuvers/`, `rules/`,
@@ -68,15 +67,15 @@ Bugünkü tek stack: `deployment/v2/dev/{container,container2,field}/` (v1/AWS/o
 
 ## Hub-servis (P3) — cutover runbook
 
-> SPEC: [WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md](docs/architecture/WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md)
+> SPEC: [WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md](docs/architecture/deprecated/WS-TUNNEL-HUB-CONSUMER-P3-MIMARISI.md)
 
-- **İmaj:** `docker build -f zero-trust-application-tunnel/ws-tunnel-hub/Dockerfile -t ws-tunnel-hub:<tag> .` (monorepo kök bağlamı). Compose'da `HUB_IMAGE` ile seçilir.
-- **Servis:** field stack'te `hub-servis` (port 5003 iç, dış 5009). Volume `/data` (sqlite modunda; env modunda gerekmez).
+- **İmaj:** repo-dışı ürün — Docker Hub `ilterisyucel/zero-trust-application-channel-hub:<tag>` (kaynak: `zero-trust-application-channel/hub`). Compose'da `HUB_IMAGE` ile seçilir; monorepo bu imajı derlemez.
+- **Servis:** site stack'te `hub-servis` (port 5003 iç, dış 5009). Volume `/data` (sqlite modunda; env modunda gerekmez).
 - **Kimlik (tier-bazlı, HUB_MODE flag'i YOK):**
-  - `container` tier → hub **peer**'ıdır, ancak kayıt **agent üzerinden** yapılır (SPEC KONTEYNER-AGENT-KAYIT): `ws-tunnel-agent` (`PEER_TYPE=container`, `PEER_ID`, `SERVICE_ID=container-api`, `LOCAL_TARGET`, `HUB_PEER_TOKEN` hub `PEER_TOKEN` ile aynı, `HUB_SECRET`=web-service `JWT_SECRET`). Web-service peer bağlantısı/session server/tunnel client TAŞIMAZ; `container_session` JWT'sini stateless doğrular. Natif `HUB_PEER_ENABLED` modeli kaldırıldı.
-  - `field`/`boss` tier → hub **consumer**'dır: `HUB_CONSUMER_URL` + `HUB_CONSUMER_TOKEN` **zorunlu** (eksikse açılış fail-fast — `config/default.ts#hubConsumerConfig`).
-- **Agent (peer):** `ws-tunnel-agent` imajı ile uygulama hub'a peer olarak kaydedilir; `PEER_TOKEN` hub ile aynı, `LOCAL_TARGET` tünellenen uygulama. Üretimde konteyner stack'lerinin kaydı YALNIZ agent iledir; demoda da `container-agent`/`container2-agent` kullanılır. İlk açılışta config yoksa setup UI (8080) açılır.
-- **Rollback:** peer URL'ini eski hedefe çevir + consumer env'lerini kaldır (tier-gating nedeniyle field/boss consumer zorunludur; geri dönüş için hub-servis servisini kaldırıp legacy hedefe dönülür).
+  - `container` tier → hub **peer**'ıdır, ancak kayıt **agent üzerinden** yapılır (SPEC KONTEYNER-AGENT-KAYIT): `zero-trust-application-channel` agent (`PEER_TYPE=container`, `PEER_ID`, `SERVICE_ID=container-api`, `LOCAL_TARGET`, `HUB_PEER_TOKEN` hub `PEER_TOKEN` ile aynı, `HUB_SECRET`=web-service `JWT_SECRET`). Web-service peer bağlantısı/session server/tunnel client TAŞIMAZ; `container_session` JWT'sini stateless doğrular. Natif `HUB_PEER_ENABLED` modeli kaldırıldı.
+  - `site`/`boss` tier → hub **consumer**'dır: `HUB_CONSUMER_URL` + `HUB_CONSUMER_TOKEN` **zorunlu** (eksikse açılış fail-fast — `config/default.ts#hubConsumerConfig`).
+- **Agent (peer):** Docker Hub `ilterisyucel/zero-trust-application-channel-agent:<tag>` imajı ile uygulama hub'a peer olarak kaydedilir; `PEER_TOKEN` hub ile aynı, `LOCAL_TARGET` tünellenen uygulama. Üretimde konteyner stack'lerinin kaydı YALNIZ agent iledir; demoda da `container-agent`/`container2-agent` kullanılır. İlk açılışta config yoksa setup UI (8080) açılır.
+- **Rollback:** peer URL'ini eski hedefe çevir + consumer env'lerini kaldır (tier-gating nedeniyle site/boss consumer zorunludur; geri dönüş için hub-servis servisini kaldırıp legacy hedefe dönülür).
 
 ### P3 — nginx hub alias sözleşmesi
 
@@ -86,8 +85,8 @@ Hub modunda tarayıcı erişimi hub-servis'ten geçer (aynı origin). Her stack'
 |:---|:---|
 | `/peers/*` | `http://hub-servis:5003` (opak peer/servis erişimi — WS upgrade başlıkları) |
 | `/fields/<fid>/ui/*` (boss stack) | `http://hub-servis:5003/peers/<fid>/services/field-api/$1` |
-| `/containers/<cid>/ui/*` (field stack) | `http://hub-servis:5003/peers/<cid>/services/container-api/$1` |
+| `/containers/<cid>/ui/*` (site stack) | `http://hub-servis:5003/peers/<cid>/services/container-api/$1` |
 
 - Alias servis kimliği, hub config `HUB_CONTAINER_SERVICE_ID` (ve container peer'ının duyurduğu `services[].id`) ile eşleşmelidir.
 - WS/SSE için `Upgrade`/`Connection` başlıkları açık; `proxy_read_timeout` yüksek (uzun oturum).
-- Örnek uygulama: `deployment/v2/dev/field/nginx/demo-field.conf` (app klasöründe, kapsülleme kuralına uygun).
+- Örnek uygulama: `deployment/v2/dev/site/nginx/site.conf` (app klasöründe, kapsülleme kuralına uygun).

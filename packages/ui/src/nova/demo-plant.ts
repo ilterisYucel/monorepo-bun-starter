@@ -261,7 +261,7 @@ export interface PeakSeries {
 
 /**
  * "Solar production & peak shaving · today" serisi (SPEC FR-11.11) — referans
- * `plant-view.js#peakChartFor` portu. demo-field'te gerçek solar telemetrisi
+ * `plant-view.js#peakChartFor` portu. demo-site'te gerçek solar telemetrisi
  * yok → **sentetik/illüstratif** clear-sky eğrisi (deterministik; `nowMs`
  * parametre). BESS statik 0 (Manual) → release bandı boş.
  */

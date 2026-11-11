@@ -75,8 +75,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-field-device-service}
-      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-field-device-service}
+      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-site-device-service}
+      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-site-device-service}
       # Station 2 (BESS#6-9) → PCS-1'in BMS yüzü
       PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
       DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
@@ -161,7 +161,6 @@ services:
       - ../../../../packages/platform/messaging/src:/app/packages/platform/messaging/src
       - ../../../../packages/platform/commands/src:/app/packages/platform/commands/src
       - ../../../../packages/platform/logging/src:/app/packages/platform/logging/src
-      - ../../../../packages/tamper-logger/src:/app/packages/tamper-logger/src
     depends_on:
       container2-redis:
         condition: service_healthy
@@ -197,7 +196,6 @@ services:
       MANEUVER_CONFIG_DIR: /app/maneuver-config
     volumes:
       - ../../../../services/web-service/src:/app/services/web-service/src
-      - ../../../../zero-trust-application-tunnel/ws-tunnel/src:/app/zero-trust-application-tunnel/ws-tunnel/src
       - ../../../../services/web-service/run.ts:/app/services/web-service/run.ts
       - ./device-configs:/app/config-docker:ro
       - ./maneuvers:/app/maneuver-config:ro
@@ -219,7 +217,7 @@ services:
 
   # Peer agent — konteyner kaydı YALNIZ agent üzerinden (SPEC KONTEYNER-AGENT-KAYIT).
   container2-agent:
-    image: ${AGENT_IMAGE:-ws-tunnel-agent:local}
+    image: ${AGENT_IMAGE:-ilterisyucel/zero-trust-application-channel-agent:1.0.0}
     container_name: demo-container2-agent
     environment:
       HUB_URL: http://hub-servis:5003

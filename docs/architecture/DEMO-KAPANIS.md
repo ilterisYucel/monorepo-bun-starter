@@ -18,22 +18,22 @@ review_date: 2026-11-10
 | # | Dosya | Değişiklik | Neden (SPEC ref) |
 |:--|:------|:-----------|:-----------------|
 | 1 | `packages/ui/src/nova/nova-mimic.ts#createNovaMimic` | (doğrulama) framework'süz çekirdek; `destroy()`; iki örnek izole | K2/FR-1 |
-| 2 | `apps/demo-field/src/features/demo-data/mapFieldToMimicState.ts#fanOutUnits` | (doğrulama) 1→9 fan-out; PCS MW÷9, PCS başına MW÷18 — toplam korunumu testli | K3/FR-2.1 |
+| 2 | `apps/site/src/features/demo-data/mapFieldToMimicState.ts#fanOutUnits` | (doğrulama) 1→9 fan-out; PCS MW÷9, PCS başına MW÷18 — toplam korunumu testli | K3/FR-2.1 |
 | 3 | İstasyon modeli katmanı | (doğrulama) hub payload'ında istasyon yok; topoloji `GET /api/fields/:fieldId/topology`'de (demo-topology.test) | K4/FR-2.2 |
-| 4 | `apps/demo-field/src/features/demo-data/demoManeuverApi.ts` + katalog dosyaları | (doğrulama) demo katalogları eklemeli; üretim kayıtlarına dokunmuyor | K5/FR-4.1 |
-| 5 | `apps/demo-field/src/lib/api-base.ts` + `features/auth/session-auth.ts` (diff'li) | (değişiklik) yalnız başlık YOL YORUMLARI `apps/field → apps/site` — davranış yok; ikiz-kopya borcu devam (SITE B1 ile aynı) | B1 — S2 |
+| 4 | `apps/site/src/features/demo-data/demoManeuverApi.ts` + katalog dosyaları | (doğrulama) demo katalogları eklemeli; üretim kayıtlarına dokunmuyor | K5/FR-4.1 |
+| 5 | `apps/site/src/lib/api-base.ts` + `features/auth/session-auth.ts` (diff'li) | (değişiklik) yalnız başlık YOL YORUMLARI `apps/field → apps/site` — davranış yok; ikiz-kopya borcu devam (SITE B1 ile aynı) | B1 — S2 |
 | 6 | Tema/register modları | (doğrulama) `applyNovaVars` light/dark; `register-sources.test` + `DemoRegMode` localStorage persist | K7/K8/FR-3 |
 
 ### A.2 Test Kanıtları
 
 | Kapsam | Komut | Sonuç |
 |:-------|:------|:------|
-| Test envanteri | glob | **23 nova dosyası + 27 demo-field dosyası = 50** (SPEC "51 test dosyası" — ±1; envanter komutuyla netleşir, S1) |
+| Test envanteri | glob | **23 nova dosyası + 27 site dosyası = 50** (SPEC "51 test dosyası" — ±1; envanter komutuyla netleşir, S1) |
 | UC-1 | nova-mimic.test (izolasyon+destroy), apply-nova-vars, mimic-source-map | |
 | UC-2 | mapFieldToMimicState.test (fan-out/total), demo-stations, demo-topology, deriveKpis, buildTrendSeries | |
 | UC-3 | nova-components.test.tsx, DemoRegMode, register-sources, demo-theme, Demo*View testleri | |
 | UC-4 | demoManeuverApi.test + demo-maneuver.integration + demo-permissives/demo-teias (eklemeli kanıtlar) | |
-| Entegrasyon | `apps/demo-field/integration/*.integration.test.ts` 11 dosya (docker stack gerekir) | Koşu dışı bu tur |
+| Entegrasyon | `apps/site/integration/*.integration.test.ts` 11 dosya (docker stack gerekir) | Koşu dışı bu tur |
 | Taze koşu / mutasyon | komutlar | **İLETİLMEDİ / verisi yok** — demo .ts diff'leri yalnız yorum başlığı; davranış değişmedi |
 
 ### A.3 Kabul Kriteri Kanıtları

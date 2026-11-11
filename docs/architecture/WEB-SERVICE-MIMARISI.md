@@ -9,7 +9,7 @@ review_date: 2026-11-10
 
 > **İş akışı aşaması:** 1/4 — SPEC (Plan aşaması, DeepSeek V4 Pro).
 > **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
-> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `AUTH-MIMARISI.md`, `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`, `TELEMETRI-ZINCIRI-MIMARISI.md`, `WS-TUNNEL-HUB` (zero-trust docs).
+> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `AUTH-MIMARISI.md`, `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`, `TELEMETRI-ZINCIRI-MIMARISI.md`, `zero-trust-application-channel` (repo-dışı).
 
 ## 1. Amaç ve Bağlam
 
@@ -314,7 +314,7 @@ presentation/routes ──► application/use-cases ──► domain/ports ◄�
 
 **Kapsam:**
 - dahil: `IHubTunnelPort`, opak path, session cookie akışı, system header'ları
-- hariç: hub çekirdeği (WS-TUNNEL-HUB)
+- hariç: hub çekirdeği (`zero-trust-application-channel`, repo-dışı)
 
 **Akış:**
 1. Port üzerinden hub'a istek yapılır.

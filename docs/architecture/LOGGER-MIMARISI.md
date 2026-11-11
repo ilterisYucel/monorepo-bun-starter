@@ -10,7 +10,7 @@ review_date: 2026-12-01
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
 > **Durum:** 🟢 Doğrulanmış (2026-10-05) — T-1…T-5 tamam; doğrulama [LOGGER-KAPANIS.md](./LOGGER-KAPANIS.md)'de.
 > **İlişkili:** [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) (ilk tüketici — UC-6 bilgi logları), [deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md](./deprecated/KONTEYNER-UZAKTAN-ERISIM-MIMARISI.md) (§522 log kategorileri — TamperLogger'da kalır).
-> **TamperLogger ile ilişki:** Bu paket `@gd-monorepo/tamper-logger`'ın YERİNE GEÇMEZ — imzasız, hafif, sink-pluggable genel logger'dır. Önemli/denetlenebilir loglar (alarm, audit, security, hata geçişleri) TamperLogger'da kalır; operasyonel/bilgi logları bu pakete taşınır.
+> **TamperLogger ile ilişki:** Bu paket `tamper-logger`'ın YERİNE GEÇMEZ — imzasız, hafif, sink-pluggable genel logger'dır. Önemli/denetlenebilir loglar (alarm, audit, security, hata geçişleri) TamperLogger'da kalır; operasyonel/bilgi logları bu pakete taşınır.
 
 ---
 
@@ -109,7 +109,7 @@ class Logger {
 
 ## 5. Purity Kuralları (ZORUNLU)
 
-1. `@gd-monorepo/tamper-logger` import YOK — iki paket birbirini tanımaz (K2).
+1. `tamper-logger` import YOK — iki paket birbirini tanımaz (K2).
 2. GD-PMS'ye özgü kavram (eventCode, tier, service adları) pakete GİRMEZ — `service`/`component` serbest string (K6).
 3. Fail-open: loglama asla throw ETMEZ — sink hataları yutulur, diğer sink'ler sürer (K5).
 4. `packages/core`/`@gd-monorepo/*` paketlerine bağımlılık YOK — izinli dış bağımlılıklar yalnızca `pino` + `pino-multi-stream`; file/console stream'leri Bun stdlib ile sağlanır.
@@ -286,7 +286,7 @@ class Logger {
 | Kod | Kriter | Ölçüm |
 |:----|:-------|:------|
 | SC-1 | Bağımlılıklar yalnız `pino` + `pino-multi-stream`; `nx run logger:test` Bun'da yeşil | package.json + test |
-| SC-2 | `@gd-monorepo/tamper-logger` referansı YOK (grep 0) | kod inceleme |
+| SC-2 | `tamper-logger` referansı YOK (grep 0) | kod inceleme |
 | SC-3 | Test süiti yeşil + coverage ≥%90 (küçük paket — tam kapsam makul) | `nx run logger:test` + coverage |
 | SC-4 | `spec:check` temiz | `bun run spec:check` |
 | SC-5 | Workspace'e bağlı ve import edilebilir (`@gd-monorepo/logger`) | `bun run build` |

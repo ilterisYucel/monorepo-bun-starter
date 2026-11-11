@@ -4,6 +4,8 @@ space: decisions
 tags: [analiz, karar, backend, go]
 review_date: 2026-08-24
 ---
+> **Not (2026-11-11):** `apps/container-web`, `apps/container-desktop` ve `apps/superadmin` kaldırıldı; `demo-field` → `apps/site` oldu. Bu doküman tarihsel kayıttır.
+
 
 # Backend Mimari Analizi, Optimizasyonlar ve Go Geçiş Değerlendirmesi
 

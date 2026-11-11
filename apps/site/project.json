@@ -33,6 +33,13 @@
         "cwd": "apps/site"
       }
     },
+    "test-integration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.integration.config.ts",
+        "cwd": "apps/site"
+      }
+    },
     "clean": {
       "executor": "nx:run-commands",
       "options": {

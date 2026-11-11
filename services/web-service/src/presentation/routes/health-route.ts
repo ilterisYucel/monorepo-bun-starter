@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 
 /**

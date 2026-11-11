@@ -76,8 +76,6 @@ deployment/
 │   ├── dev/{container,field}/  # dev/demo-edge bölünmüş (B-1 cross-ref giderildi)
 │   └── aws/{container,field}/  # aws/demo-edge bölünmüş
 ├── k6/                         # proje bağımsız araç — kökte kalır
-├── wiki/                       # proje bağımsız araç — kökte kalır
-└── docker-compose.wiki.yml     # wiki ile birlikte kökte kalır
 ```
 
 ### 4.2 Kapsülleme kuralı (K-3 / K-4 / K-6)
@@ -105,7 +103,7 @@ v1/aws/field/docker-compose.yml       →  networks.edge-network.external: true 
 3. Proje-içi zorunlu paylaşım yalnızca `deployment/<proje>/common/` altından yapılır (K-4).
 4. Device config, maneuvers ve rules `configs/` kökünden kopyalanıp düzenlenir; runtime'da kök `configs/`'e referans verilmez (K-5).
 5. Env dosyası `.env` compose ile aynı klasörde; `.env.example` commit'lenir, gerçek `.env` gitignore'lu kalır (K-7).
-6. Proje bağımsız araçlar (`k6/`, `wiki/`, `docker-compose.wiki.yml`) `deployment/` kökünde kalır.
+6. Proje bağımsız araçlar (`k6/`) `deployment/` kökünde kalır.
 7. Kaynak kodda ve dokümanlarda `demo-backend` referansı kalmaz (K-10).
 
 ## 6. Use Case'ler

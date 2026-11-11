@@ -28,13 +28,13 @@ Tier 2 saha operatörü uygulaması — eski `apps/field`, yeni adı **SITE** (`
 | K2 | Uzak UI tüneli: aynı outbound WS duplex; SPA `/fields/:fid/ui` altında iframe'de yaşar; login rotası da önekli | Tek tünel |
 | K3 | Auth refresh: kuyruk + tünel guard; auto-guest kaldırıldı; tam state temizliği | Oturum sürekliliği |
 | K4 | Site manevra kataloğu sunucudan (`GET /api/maneuvers`) | Tek kaynak |
-| K5 | Rename `apps/field` → `apps/site` (klasör/package/nx/compose/env/import). Domain adları korunur: `VITE_FIELD_ID`, `SERVICE_TIER=field`, `peerType:"field"` | Davranış değişmez (A1) |
+| K5 | Rename `apps/field` → `apps/site` + tier rename: klasör/package/nx/compose/env/import + `SERVICE_TIER=site` + `tiers/site` + servis/compose adları `site-*`. Kimlik/wire adları korunur: `VITE_FIELD_ID`, `FIELD_ID`, `peerType:"field"`, `/fields/:fid/ui`. **2026-11-11:** `apps/demo-field` → `apps/site` (tek uygulama); eski site sürümü (`site-v1.1`) inceleme sonrası kaldırıldı | Davranış değişmez (A1) |
 
 ## 3. Mevcut Durum / Kök Nedenler
 
 | Kod | Bulgu | Kanıt |
 |:----|:------|:------|
-| B1 | `api-base.ts` demo-field ile birebir kopya — ortak frontend lib borcu | `apps/site/src/lib/api-base.ts` ↔ `apps/demo-field/src/lib/api-base.ts` |
+| B1 | `api-base.ts` site ile birebir kopya — ortak frontend lib borcu | `apps/site/src/lib/api-base.ts` ↔ `apps/site/src/lib/api-base.ts` |
 | B2 | `deriveDevicesFromSnapshot` cihaz türetimi testli ama sözleşme dokümanda değil | `apps/site/src/features/field-devices/hooks/useFieldDevices.ts` |
 
 ## 4. Mimari
@@ -236,7 +236,7 @@ apps/site
 
 | # | Konu | Durum |
 |:--|:-----|:------|
-| A1 | Domain env adlarının (`VITE_FIELD_ID` vb.) korunması — kod rename app ile sınırlı | Kabul edildi (K5) |
+| A1 | Domain/wire adlarının (`VITE_FIELD_ID`, `FIELD_ID`, `peerType:"field"`, tünel öneki `/fields/:fid/ui`) korunması — rename uygulama/tier/compose katmanında | Kabul edildi (K5) |
 | A2 | `api-base` kopyasının ortak lib'e taşınması (B1) | İleri İş |
 
 ## 11. İleri İş (bu pakette YAPILMAZ — referans)

@@ -1,7 +1,7 @@
 name: Unit & Component Tests
 
 # PR-level unit/component test CI (2026-08-30 T6.21 — önceden YOKTU).
-# Vitest workspace: packages/* + services/* + apps/* (field/superadmin dahil).
+# Vitest workspace: packages/* + services/* + apps/* (site dahil).
 # NIS-2 güvenlik testleri ayrı adımda `test-nis2` hedefiyle koşar (nis-2.md
 # Adım 11 — CI logunda ayrı kanıt bölümü).
 
@@ -38,7 +38,7 @@ jobs:
         run: bun nx run-many --target=build --projects=shared-types,shared-utils,core,ui,plugin-sdk,simulators
 
       - name: Run unit & component tests
-        run: bun run test:unit
+        run: bun run test
 
       - name: Upload JUnit reports (on failure)
         if: failure()

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { IMessageQueue, ITimeseriesDatabase, ISqlDatabase } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import { DataService } from "./data-service";
 

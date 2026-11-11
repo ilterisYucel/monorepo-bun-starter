@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [["html"], ["junit", { outputFile: "test-results/e2e-junit.xml" }]],
   use: {
-    baseURL: process.env.BASE_URL || "http://localhost:5173",
+    baseURL: process.env.BASE_URL || "http://localhost:8088",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -36,12 +36,6 @@ export default defineConfig({
   webServer: process.env.CI
     ? undefined
     : [
-        {
-          command: "bun nx run container-web:dev",
-          url: "http://localhost:5173",
-          reuseExistingServer: !process.env.CI,
-          timeout: 30_000,
-        },
         {
           command: "bun nx run web-service:dev",
           url: "http://localhost:5001/health",

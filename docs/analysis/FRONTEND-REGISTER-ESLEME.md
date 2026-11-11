@@ -1,9 +1,9 @@
-# Ön-yüz Register Kataloğu → demo-field Backend Eşlemesi
+# Ön-yüz Register Kataloğu → site Backend Eşlemesi
 
-> **Kaynak:** `gdems/dist/registers.json` (gdems demo-field ön-yüz register kataloğu:
+> **Kaynak:** `gdems/dist/registers.json` (gdems site ön-yüz register kataloğu:
 > BSC 49, rack 48 offset, PCS 81, HVAC 36, 49 UI-mapping anahtarı, 54 cihaz).
-> **Hedef:** `deployment/v2/dev` config'leri + simülatörler (demo-field backend).
-> **Kapsam:** register/komut/sim katmanı. Ön-yüz (`apps/demo-field/src`) **bu paketin
+> **Hedef:** `deployment/v2/dev` config'leri + simülatörler (site backend).
+> **Kapsam:** register/komut/sim katmanı. Ön-yüz (`apps/site/src`) **bu paketin
 > dışında** — ayrı bir ön-yüz güncellemesiyle bağlanacak.
 > **Yöntem:** Her register (cihaz, adres, FC) için config telemetri/bitfield lookup.
 
@@ -48,7 +48,7 @@ telemetrisi mevcuttur:
 | **F2.4** | `Rack Calibration Info` b15-8 count / b7-0 request flag bitfield (M11); `BMS SW Name` 4×UINT32 = 128-bit (L1) | config schema |
 | **F2.5** | Rack nameplate değerleri: 17 pack, 2 BMIC, 4 sıcaklık sensörü, 2 PCB, 24 hücre, 210 A relay, akım sensör tipi | `bsc-simulator.test.ts`, `device-telemetry` |
 
-## 4. Tur 2'ye ertelenen (demo-field backend)
+## 4. Tur 2'ye ertelenen (site backend)
 
 ### Tur 2 (tamamlandı)
 
@@ -69,6 +69,6 @@ tasarımla (çapraz-tier köprü + operatör onayı) ele alınır; aceleyle ekle
 | FL-01 PCS pre-charge | Wattox pre-charge register'ı (RFI cevabı bekleniyor) |
 | EMS-BSC LOC 10 s zinciri | Kural motoruna staleness (heartbeat yaşı) operatörü |
 | Rest 2 h / 8 h kapıları | Operasyon durumu izleme mekanizması |
-| Ön-yüz bağlama | `apps/demo-field/src` ön-yüz güncellemesiyle |
+| Ön-yüz bağlama | `apps/site/src` ön-yüz güncellemesiyle |
 
 **review_date:** 2026-10-13

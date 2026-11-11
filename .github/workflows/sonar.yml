@@ -49,7 +49,7 @@ jobs:
         run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Build all
-        run: bun nx run-many --target=build --all --exclude=container-desktop
+        run: bun nx run-many --target=build --all
 
       - name: Run tests with coverage
         run: bun vitest --config vitest.workspace.ts --coverage --reporter=junit --outputFile.junit=test-results/junit.xml --reporter=default

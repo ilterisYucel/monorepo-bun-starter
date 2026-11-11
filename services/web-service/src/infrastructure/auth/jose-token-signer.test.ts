@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { JoseTokenSigner } from "./jose-token-signer";
 
 /**
- * JoseTokenSigner sözleşmesi — ws-tunnel ITokenSigner implementasyonu:
+ * JoseTokenSigner sözleşmesi — channel ITokenSigner implementasyonu:
  * - sign → verify round-trip (payload korunur)
  * - farklı secret ile doğrulama → undefined (tahrif tespiti)
  * - bozuk token → undefined (throw yok — sorgu)

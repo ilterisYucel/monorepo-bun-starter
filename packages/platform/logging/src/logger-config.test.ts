@@ -10,7 +10,7 @@ import type { ServiceTier } from "@gd-monorepo/shared-types";
  *
  * - `TIER_LOGGER_DEFAULTS`:
  *   - container: console + file (timescale YOK)
- *   - field: console + file + timescale
+ *   - site: console + file + timescale
  *   - boss: console + file + timescale
  * - `loggerConfigForTier(tier, overrides)`: tier varsayılanı + override
  *   birleşimi — yeni obje döner, varsayılanı DEĞİŞTİRMEZ.
@@ -19,7 +19,7 @@ import type { ServiceTier } from "@gd-monorepo/shared-types";
 describe("LoggerConfig tier varsayılanları (T0.5)", () => {
   describe("TIER_LOGGER_DEFAULTS", () => {
     it("üç tier için de tanımlıdır", () => {
-      const tiers: ServiceTier[] = ["container", "field", "boss"];
+      const tiers: ServiceTier[] = ["container", "site", "boss"];
       for (const tier of tiers) {
         expect(TIER_LOGGER_DEFAULTS[tier]).toBeDefined();
       }
@@ -32,8 +32,8 @@ describe("LoggerConfig tier varsayılanları (T0.5)", () => {
       expect(c.sinks).not.toContain("timescale");
     });
 
-    it("field: console + file + timescale", () => {
-      const c = TIER_LOGGER_DEFAULTS.field;
+    it("site: console + file + timescale", () => {
+      const c = TIER_LOGGER_DEFAULTS.site;
       expect(c.sinks).toEqual(
         expect.arrayContaining(["console", "file", "timescale"]),
       );
@@ -47,7 +47,7 @@ describe("LoggerConfig tier varsayılanları (T0.5)", () => {
     });
 
     it("tüm tier'ların signingKeyPath'i doludur", () => {
-      for (const tier of ["container", "field", "boss"] as ServiceTier[]) {
+      for (const tier of ["container", "site", "boss"] as ServiceTier[]) {
         expect(
           TIER_LOGGER_DEFAULTS[tier].signingKeyPath.trim().length,
         ).toBeGreaterThan(0);
@@ -63,13 +63,13 @@ describe("LoggerConfig tier varsayılanları (T0.5)", () => {
     });
 
     it("override alanları tier varsayılanını ezer", () => {
-      const out = loggerConfigForTier("field", {
+      const out = loggerConfigForTier("site", {
         level: "error",
         batchSize: 10,
       });
       expect(out.level).toBe("error");
       expect(out.batchSize).toBe(10);
-      expect(out.sinks).toEqual(TIER_LOGGER_DEFAULTS.field.sinks);
+      expect(out.sinks).toEqual(TIER_LOGGER_DEFAULTS.site.sinks);
     });
 
     it("sink listesi override edilebilir", () => {

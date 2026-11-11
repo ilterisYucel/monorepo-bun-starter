@@ -27473,7 +27473,7 @@
         }
       ],
       "target": {
-        "host": "field-device-service",
+        "host": "site-device-service",
         "port": 15502
       },
       "powerScale": 9

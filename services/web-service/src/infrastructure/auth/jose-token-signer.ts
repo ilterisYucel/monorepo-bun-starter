@@ -1,8 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
-import type { ITokenSigner, SessionTokenPayload } from "@gd-monorepo/ws-tunnel";
+import type { ITokenSigner, SessionTokenPayload } from "zero-trust-application-channel";
 
 /**
- * JoseTokenSigner — ws-tunnel `ITokenSigner` sözleşmesinin jose implementasyonu
+ * JoseTokenSigner — channel `ITokenSigner` sözleşmesinin jose implementasyonu
  * (web-service). Client'ın KENDİ JWT_SECRET'iyle imzalanır — hub içeriğini
  * görmez, secret paylaşımı yoktur. `type` etiketi (varsayılan
  * `container-session`; boss uplink için `field-session`) access token'larla

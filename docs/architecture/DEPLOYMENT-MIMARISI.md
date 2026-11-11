@@ -24,7 +24,7 @@ Deployment katmanı: proje/tier/app bazlı klasör yapısı, compose dosyaları,
 
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
-| K1 | Compose = ürün katmanı: `deployment/<proje>/<tier>/<app>/docker-compose.yml` (bugün `deployment/v2/dev/{container,container2,field}`) | Tier/app başına tek compose |
+| K1 | Compose = ürün katmanı: `deployment/<proje>/<tier>/<app>/docker-compose.yml` (bugün `deployment/v2/dev/{container,container2,site}`) | Tier/app başına tek compose |
 | K2 | Site config'leri compose'un YANINDA: `device-configs/`, `maneuvers/`, `rules/`, `plugins/` | Config ile compose aynı kapsülde |
 | K3 | Env dosyası ilgili app klasöründe compose'un yanında yaşar (`deployment/<proje>/<tier>/<app>/.env`, gitignore'lu); her `docker compose` çağrısı `--env-file` ile geçer; commit'lenen tek şablon `.env.example` (sır yok) | Sır repo'ya girmez |
 | K4 | Servis `deployment/` dizinleri yalnız ÖRNEK taşır (ör. `services/device-service/deployment/sample-config/`) | Ürün config'i deployment'ta |
@@ -50,7 +50,7 @@ deployment/
 ├── v2/dev/
 │   ├── container/   (compose + .env + device-configs/ + maneuvers/ + rules/)
 │   ├── container2/  (aynı düzen)
-│   └── field/       (compose + .env + device-configs/ + maneuvers/ + rules/ + plugins?)
+│   └── site/        (compose + .env + device-configs/ + maneuvers/ + rules/ + plugins?)
 ├── v2/common/customer-plugins/     ← integration-service mount
 └── simlab/<site>/                  ← sim-lab export (config + overlay)
 

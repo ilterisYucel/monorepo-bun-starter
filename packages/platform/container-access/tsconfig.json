@@ -12,6 +12,5 @@
   "references": [
     { "path": "../../core" },
     { "path": "../../shared-types" },
-    { "path": "../../../zero-trust-application-tunnel/ws-tunnel" }
   ]
 }

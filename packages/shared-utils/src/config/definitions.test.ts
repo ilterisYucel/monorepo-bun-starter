@@ -42,7 +42,8 @@ describe("log config definitions (T0.5/T0.6)", () => {
 
   it("serviceTier geçersiz değerde fırlatır", () => {
     expect(() => serviceTier.validate?.("edge")).toThrow();
-    expect(serviceTier.validate?.("FIELD")).toBe("field");
+    expect(serviceTier.validate?.("SITE")).toBe("site");
+    expect(() => serviceTier.validate?.("field")).toThrow();
   });
 
   it("tüm tanımlar benzersiz anahtara sahiptir", () => {
@@ -51,7 +52,7 @@ describe("log config definitions (T0.5/T0.6)", () => {
   });
 
   it("bmsTarget tanımları: varsayılan undefined; env ile okunur; port sayıya dönüşür", () => {
-    process.env.PCS_BMS_TARGET_HOST = "field-device-service";
+    process.env.PCS_BMS_TARGET_HOST = "site-device-service";
     process.env.PCS_BMS_TARGET_PORT = "15502";
     try {
       const loader = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [
@@ -59,7 +60,7 @@ describe("log config definitions (T0.5/T0.6)", () => {
       ]);
       loader.load();
       expect(loader.get<string | undefined>("device.bmsTargetHost")).toBe(
-        "field-device-service",
+        "site-device-service",
       );
       expect(loader.get<number | undefined>("device.bmsTargetPort")).toBe(15502);
     } finally {

@@ -5,7 +5,7 @@ import { nomapSource } from "./register-sources";
 
 /**
  * Ana-kaynak (PV) MV istasyonu tek-hat çizimi — referans `plant-view.js#srcStationSvg`
- * + `#renderSrc` portu (SPEC UC-11, FR-11.10). demo-field'te gerçek inverter
+ * + `#renderSrc` portu (SPEC UC-11, FR-11.10). demo-site'te gerçek inverter
  * telemetrisi yok → değerler İLLÜSTRATİF/statik (tooltip nomap M7). BESS kartı
  * seçildiğinde site layout geri gelir.
  */

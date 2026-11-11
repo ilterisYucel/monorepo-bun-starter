@@ -13,7 +13,6 @@ export default defineConfig({
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
       "@gd-monorepo/platform-messaging": resolve(workspaceRoot, "packages/platform/messaging/src"),
       "@gd-monorepo/platform-logging": resolve(workspaceRoot, "packages/platform/logging/src"),
-      "@gd-monorepo/tamper-logger": resolve(workspaceRoot, "packages/tamper-logger/src"),
     },
   },
   test: {

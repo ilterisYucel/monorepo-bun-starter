@@ -27467,7 +27467,7 @@
     "sim": {
       "registerMap": "mappings/bsc-pcs-mapping.json",
       "target": {
-        "host": "field-device-service",
+        "host": "site-device-service",
         "port": 15504
       },
       "pcsSources": [

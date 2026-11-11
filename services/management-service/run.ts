@@ -5,8 +5,8 @@ import {
   TamperLogger,
   ConsoleSink,
   resolveSigningKey,
-} from "@gd-monorepo/tamper-logger";
-import type { ILogSink } from "@gd-monorepo/tamper-logger";
+} from "tamper-logger";
+import type { ILogSink } from "tamper-logger";
 import { isLogEventCode } from "@gd-monorepo/platform-logging";
 import { loggerConfigForTier } from "@gd-monorepo/platform-logging";
 import { CommandJobBuilder, DeviceConfigFileSource } from "@gd-monorepo/platform-commands";

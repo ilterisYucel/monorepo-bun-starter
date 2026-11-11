@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { ActionExecutor } from "./action-executor";
 import type { IMessageQueue } from "@gd-monorepo/core";
-import type { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { TamperLogger } from "tamper-logger";
 import type { IDeviceConfigSource } from "@gd-monorepo/platform-commands";
 import { CommandJobBuilder } from "@gd-monorepo/platform-commands";
 import type { AutomationRule, DeviceConfigFile } from "@gd-monorepo/shared-types";

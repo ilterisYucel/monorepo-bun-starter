@@ -3,13 +3,13 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * demo-field CİHAZ VERİSİ e2e (v2/dev stack) — `DENETIM-ESLEME-v2.md`.
+ * demo-site CİHAZ VERİSİ e2e (v2/dev stack) — `DENETIM-ESLEME-v2.md`.
  *
- * Amaç: demo-field SPA canlı cihaz verisini gösterir; BSC (konteyner) ve PCS
- * (saha) telemetrisi gerçekten AKAR. Ön koşul: `bun run start:demo-integration`.
+ * Amaç: demo-site SPA canlı cihaz verisini gösterir; BSC (konteyner) ve PCS
+ * (saha) telemetrisi gerçekten AKAR. Ön koşul: `bun run dev:stack:up`.
  *
  * Env: FIELD_UI_URL (default http://localhost:8088), FIELD_ID (yoksa
- * deployment/v2/dev/field/.env), E2E_ADMIN_USER, E2E_ADMIN_PASSWORD.
+ * deployment/v2/dev/site/.env), E2E_ADMIN_USER, E2E_ADMIN_PASSWORD.
  */
 
 const FIELD_UI = process.env.FIELD_UI_URL || "http://localhost:8088";
@@ -20,7 +20,7 @@ function resolveFieldId(): string {
   if (process.env.FIELD_ID) return process.env.FIELD_ID;
   try {
     const env = readFileSync(
-      resolve(process.cwd(), "deployment/v2/dev/field/.env"),
+      resolve(process.cwd(), "deployment/v2/dev/site/.env"),
       "utf-8",
     );
     const line = env.split("\n").find((l) => l.startsWith("FIELD_ID="));
@@ -56,7 +56,7 @@ interface Row {
 
 test.describe.configure({ mode: "serial" });
 
-test("demo-field SPA yüklenir ve giriş ekranı auth kapısı çalışır", async ({ page }) => {
+test("demo-site SPA yüklenir ve giriş ekranı auth kapısı çalışır", async ({ page }) => {
   test.skip(!FIELD_ID, "FIELD_ID yok");
   await page.goto(`${FIELD_UI}/`);
   await expect(page.getByTestId("login-username")).toBeVisible();

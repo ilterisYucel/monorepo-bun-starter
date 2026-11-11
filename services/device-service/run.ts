@@ -5,15 +5,14 @@ import {
   FileSink,
   TimescaleSink,
   resolveSigningKey,
-  LOG_EVENTS_DDL,
-} from "@gd-monorepo/tamper-logger";
+} from "tamper-logger";
 
 import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
-import { loggerConfigForTier, isLogEventCode } from "@gd-monorepo/platform-logging";
+import { loggerConfigForTier, isLogEventCode, LOG_EVENTS_DDL } from "@gd-monorepo/platform-logging";
 import { ServiceTier } from "@gd-monorepo/core";
-import type { ILogSink } from "@gd-monorepo/tamper-logger";
+import type { ILogSink } from "tamper-logger";
 
-import type { LogLevel } from "@gd-monorepo/tamper-logger";
+import type { LogLevel } from "@gd-monorepo/platform-logging";
 
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { Logger } from "@gd-monorepo/logger";
@@ -115,7 +114,7 @@ async function main() {
   };
 
   // BSC→PCS connector BMS hedef override (deployment-bazlı — aws-edge:
-  // field-device-service, standalone: host.docker.internal). Verilmezse
+  // site-device-service, standalone: host.docker.internal). Verilmezse
   // mapping dosyasındaki sabit hedef kullanılır.
   const bmsTargetHost = config.get<string | undefined>("device.bmsTargetHost");
   const bmsTargetPort = config.get<number | undefined>("device.bmsTargetPort");

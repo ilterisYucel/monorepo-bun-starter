@@ -28,7 +28,7 @@ jobs:
         run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Build required projects
-        run: bun nx run-many --target=build --projects=container-web,web-service
+        run: bun nx run-many --target=build --projects=web-service
 
       - name: Start services
         run: |

@@ -1,11 +1,4 @@
 import type { Rack } from "../../types/rack";
-import type { RackCellConfig } from "../../graphics/elements/RackCell/RackCell.types";
-import type {
-  HvacData,
-  RectPosition,
-  OutputPosition,
-  RoomTemperature,
-} from "../../graphics/types";
 import type { LogEntry, TelemetryData, ManeuverConfig } from "@gd-monorepo/shared-types";
 import type { LogProvider } from "../../interfaces/log-provider";
 import type { TelemetryProvider } from "../../interfaces/telemetry-provider";
@@ -80,65 +73,6 @@ export function createMockChartData(
     }
     return point;
   });
-}
-
-export function createMockRackCellConfig(s = 100): RackCellConfig {
-  return { step: s, rackWidth: 120, rackHeight: 380 };
-}
-
-export function createMockHvacData(
-  status: HvacData["status"],
-  mode: HvacData["mode"],
-): HvacData {
-  return { status, mode };
-}
-
-export function createMockRectPosition(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-): RectPosition {
-  return { x, y, width, height };
-}
-
-export function createMockOutputPosition(
-  x: number,
-  y: number,
-  radius: number,
-): OutputPosition {
-  return { x, y, radius };
-}
-
-export function createMockRoomData(temp: number): RoomTemperature {
-  return { temp };
-}
-
-import type { BSCUnit } from "../../graphics/deprecated/BSCGraphic/BSCGraphic.types";
-import type { RoomData } from "../../graphics/deprecated/TMSGraphic/TMSGraphic.types";
-
-export function createMockBSCUnit(overrides?: Partial<BSCUnit>): BSCUnit {
-  return {
-    deviceId: "BSC-1",
-    racks: [],
-    breakerStatus: "online",
-    breakerPosition: "close",
-    dcOutput: { status: "online", voltage: 48, current: 12 },
-    ...overrides,
-  };
-}
-
-export function createMockTMSSystemRoom(
-  overrides?: Partial<RoomData>,
-): RoomData {
-  return {
-    temp: 22,
-    hvacs: [
-      { status: "online", mode: "cooling" },
-      { status: "online", mode: "cooling" },
-    ],
-    ...overrides,
-  } as RoomData;
 }
 
 export function createMockTelemetryData(

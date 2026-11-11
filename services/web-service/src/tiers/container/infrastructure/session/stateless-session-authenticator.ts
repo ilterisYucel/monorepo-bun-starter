@@ -1,5 +1,5 @@
-import type { ITokenSigner } from "@gd-monorepo/ws-tunnel";
-import { sessionCookieValue } from "@gd-monorepo/ws-tunnel";
+import type { ITokenSigner } from "zero-trust-application-channel";
+import { sessionCookieValue } from "zero-trust-application-channel";
 import { toWebUser } from "./session-user-map";
 import type { ISessionAuthenticator } from "../../../../domain/ports/session";
 
@@ -7,7 +7,7 @@ import type { ISessionAuthenticator } from "../../../../domain/ports/session";
  * StatelessSessionAuthenticator — agent imzalı oturum JWT'sini doğrular.
  *
  * SPEC KONTEYNER-AGENT-KAYIT K2/K3: Üretimde konteyner peer'ı
- * `ws-tunnel-agent`'tır; oturum token'ını agent `HUB_SECRET` ile imzalar.
+ * peer **agent**'tır; oturum token'ını agent `HUB_SECRET` ile imzalar.
  * Uygulama bu token'ı **yerel oturum kaydı olmadan** doğrular (agent'ın
  * oturumu uygulamada yaşamaz). Bu yüzden `ClientSessionStore` KULLANILMAZ.
  *

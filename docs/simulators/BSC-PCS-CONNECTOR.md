@@ -84,7 +84,7 @@ uygular ve **kendi izleme register'larını** yayınlayan bir self-host sunucu a
 {
   "registerMap": "mappings/bsc-pcs-mapping.json",
   "pcsSources": [{ "deviceId": "PCS-1", "host": "127.0.0.1", "port": 502 }],
-  "target": { "host": "field-device-service", "port": 15502 },
+  "target": { "host": "site-device-service", "port": 15502 },
   "powerScale": 9
 }
 ```

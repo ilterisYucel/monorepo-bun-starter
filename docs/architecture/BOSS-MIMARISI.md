@@ -4,6 +4,8 @@ space: architecture
 tags: [mimari, app, boss, superadmin, spec]
 review_date: 2026-11-10
 ---
+> **Not (2026-11-11):** İlgili UI app'i kaldırıldı (`apps/superadmin` / `apps/container-web` / `apps/container-desktop`). Bu SPEC/KAPANIŞ tarihsel kayıttır; backend tier servisleri yaşamaya devam eder.
+
 
 # Boss — Mimarisi (SPEC)
 

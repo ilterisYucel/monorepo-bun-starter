@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import Fastify from "fastify";
 import { alarmRoutes } from "./alarm-routes";
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import type { User } from "@gd-monorepo/shared-types";
 

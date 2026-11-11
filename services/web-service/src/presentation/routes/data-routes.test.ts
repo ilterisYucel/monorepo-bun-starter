@@ -5,7 +5,7 @@ import { RequestContext, createRequestIdHook } from "../middleware/request-conte
 import { createErrorHandler } from "../middleware/error-handler";
 import type { ITimeseriesDatabase } from "@gd-monorepo/core";
 
-import type { LogEventInput } from "@gd-monorepo/tamper-logger";
+import type { LogEventInput } from "@gd-monorepo/platform-logging";
 
 
 /**

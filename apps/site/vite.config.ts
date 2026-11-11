@@ -45,7 +45,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5174,
+    port: 5175,
     strictPort: true,
     host: true,
     // Boss Faz 3: uplink tünelinden gelen isteklerin Host başlığı stack-içi
@@ -82,7 +82,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-router-dom", "@tanstack/react-query", "@playcanvas/react"],
+    include: ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
     exclude: ["@gd-monorepo/ui"],
     force: true,
   },

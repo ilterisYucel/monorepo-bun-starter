@@ -1,14 +1,14 @@
 # V2/Dev Kapsam Genişletme — Kapanış (Integration/E2E)
 
-**review_date:** 2026-10-13 · **Kapsam:** demo-field (v2/dev stack)
+**review_date:** 2026-10-13 · **Kapsam:** site (v2/dev stack)
 
 ## A. DOĞRULAMA
 
 ### A.1 Yeni test dosyaları
 | Dosya | Kapsam |
 | :--- | :--- |
-| `apps/demo-field/integration/commands-operations-edge.integration.test.ts` | B1 komut edge (404/400/raw/benign-ack/pulse/execute-multi), B2 operasyon edge (404/divideTotal floor/timer/rollback/MV kilit), B3 manevra edge (`bsc_recovery`, `bsc_stop` idempotent) |
-| `apps/demo-field/integration/data-pipeline.integration.test.ts` | C1 dedup · C2 TTL üretimi · C3 latest pencere · C4 downsampled · C5 fire-and-forget P95 · C6 satır bütünlüğü (gerçek Timescale, psql) |
+| `apps/site/integration/commands-operations-edge.integration.test.ts` | B1 komut edge (404/400/raw/benign-ack/pulse/execute-multi), B2 operasyon edge (404/divideTotal floor/timer/rollback/MV kilit), B3 manevra edge (`bsc_recovery`, `bsc_stop` idempotent) |
+| `apps/site/integration/data-pipeline.integration.test.ts` | C1 dedup · C2 TTL üretimi · C3 latest pencere · C4 downsampled · C5 fire-and-forget P95 · C6 satır bütünlüğü (gerçek Timescale, psql) |
 | `e2e/demo-faults.spec.ts` | E1 gerçek arıza (PCS fault enjeksiyonu) → Faults UI listesi → notlu çözme |
 | `e2e/demo-operations-edge.spec.ts` | E3 power input sınırları + gizli manevra render edilmemesi |
 | `e2e/demo-support.ts` | Paylaşımlı: FIELD_ID `.env` fallback + operasyon terminal-status polling |
@@ -28,7 +28,7 @@
 ### A.4 Kapı sonuçları
 | Paket | Sonuç |
 | :--- | :--- |
-| demo-field entegrasyon (8 dosya) | ✅ yeşil |
+| site entegrasyon (8 dosya) | ✅ yeşil |
 | demo e2e (23 test) | ✅ 23/23 |
 | `test:demo-integration` (nx) | ✅ |
 | simülatör 195 · core 121 · device-service 96 · data-service 13 · management 129 · shared-types 127 | ✅ |

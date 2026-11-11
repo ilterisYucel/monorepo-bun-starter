@@ -2,7 +2,7 @@ import { test, expect, type APIRequestContext, type Page } from "@playwright/tes
 import { resolveDemoFieldId } from "./demo-support";
 
 /**
- * demo-field HEDEF SOC (frontend) e2e — SPEC UC-5.
+ * demo-site HEDEF SOC (frontend) e2e — SPEC UC-5.
  *
  * Backend hedef SOC'yi desteklemez; hedef ön yüzde saklanır ve
  * `useTargetSocWatcher` SOC hedefe ulaşınca **standby** çalıştırır. Bu spec

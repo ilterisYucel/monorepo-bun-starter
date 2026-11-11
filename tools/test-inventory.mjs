@@ -71,7 +71,10 @@ if (outIdx !== -1) {
   args.splice(outIdx, 2);
 }
 
-const paths = args.length > 0 ? args : ["apps", "services", "packages"];
+const paths =
+  args.length > 0
+    ? args
+    : ["apps", "services", "packages", "tools"];
 const files = collectFiles(paths);
 
 const lines = [];

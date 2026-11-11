@@ -1,6 +1,6 @@
 // packages/platform/logging/src/logger-config.ts
 
-import type { LogLevel } from "@gd-monorepo/tamper-logger";
+import type { LogLevel } from "./log-types";
 import type { ServiceTier } from "@gd-monorepo/shared-types";
 
 /** Sink türleri — operational config'te ad tabanlı seçilir. */
@@ -35,7 +35,7 @@ export interface LoggerConfig {
 
 /**
  * Tier bazlı varsayılan log yapılandırması (GD-PMS platformu).
- * container/field/boss tier'ları platform katmanının bilgisidir — core'a
+ * container/site/boss tier'ları platform katmanının bilgisidir — core'a
  * konmaz (bkz. docs/roadmap/platform-paket-yapisi.md).
  */
 export const TIER_LOGGER_DEFAULTS: Record<ServiceTier, LoggerConfig> = {
@@ -48,7 +48,7 @@ export const TIER_LOGGER_DEFAULTS: Record<ServiceTier, LoggerConfig> = {
     ringBufferSize: 1024,
     signingKeyPath: "/etc/gd-pms/log-signing.key",
   },
-  field: {
+  site: {
     level: "info",
     sinks: ["console", "file", "timescale"],
     filePath: "/var/log/gd-pms/app.log",

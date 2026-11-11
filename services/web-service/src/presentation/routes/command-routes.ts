@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { IMessageQueue } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import type { CommandConfig, CommandDeviceJob, TelemetryData } from "@gd-monorepo/shared-types";
 

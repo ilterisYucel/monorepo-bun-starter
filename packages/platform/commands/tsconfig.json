@@ -12,7 +12,6 @@
   "references": [
     { "path": "../../core" },
     { "path": "../../shared-types" },
-    { "path": "../../result" },
-    { "path": "../../tamper-logger" }
+    { "path": "../../result" }
   ]
 }

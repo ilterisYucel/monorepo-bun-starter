@@ -1,4 +1,4 @@
-import type { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { TamperLogger } from "tamper-logger";
 import type { AuditLogEntry, IAuditLog } from "../../domain/services/IAuditLog";
 
 /**

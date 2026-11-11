@@ -18,7 +18,7 @@
  */
 
 import { WebSocketServer, WebSocket } from "ws";
-import { TunnelConnector, WsSocketClientFactory, ReconnectDelay } from "../zero-trust-application-tunnel/ws-tunnel/src/index.ts";
+import { TunnelConnector, WsSocketClientFactory, ReconnectDelay } from "zero-trust-application-channel";
 import { ContainerProxy } from "../services/web-service/src/infrastructure/container-proxy/container-proxy.ts";
 import { sha256Hex } from "../services/web-service/src/infrastructure/auth/service-token.ts";
 

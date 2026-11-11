@@ -1,5 +1,7 @@
 # Refactor Planı — Roller Güncellemesi + Field UI
 
+> **Not (2026-11-11):** `apps/container-web`, `apps/container-desktop` ve `apps/superadmin` kaldırıldı; `demo-field` → `apps/site` oldu. Bu doküman tarihsel kayıttır.
+
 > Durum: **TAMAMLANDI** (2026-08-30) — Faz 1-4 kapalı.
 > Doğrulama kaydı: `docs/architecture/deprecated/KONTEYNER-UZAKTAN-ERISIM-DOGRULAMA.md` §6-§7.
 > Kaynak kararlar kullanıcıyla netleştirilmiştir; her değişiklik TDD kurallarına tabidir

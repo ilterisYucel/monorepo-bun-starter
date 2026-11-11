@@ -5,10 +5,9 @@
 ```
 bun install                     # Install deps (Bun only, no npm/pnpm/yarn)
 bun run dev                     # All apps in parallel (max 5)
-bun run dev:container-web                 # Web only (Vite, port 5173)
-bun run dev:container-desktop             # Electron only
-bun run start:demo-integration    # v2 dev demo stack (container + container2 + field)
-bun run stop:demo-integration
+bun run dev:site                # Site UI (Vite)
+bun run dev:stack:up           # v2 dev stack (container + container2 + site)
+bun run dev:stack:down
 nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
 nx run data-service:dev         # Data Service (BullMQ consumer)
@@ -36,9 +35,9 @@ Eşleşme belirsizse referans dosyası okunur (küçük dosya, maliyet düşük)
 
 | Dosya | Konu | Tetik (yol / sembol / görev) | Birlikte oku |
 | :--- | :--- | :--- | :--- |
-| `AGENTS-WS-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | `zero-trust-application-tunnel/**`; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; hub-servis; agent CLI/setup; frame/stream/session işi | `docs/architecture/AUTH-MIMARISI.md` (bootstrap/oturum) |
+| `AGENTS-APPLICATION-TUNNEL.md` | Tunnel / TunnelConnector sözleşmeleri | **repo-dışı ürün** `zero-trust-application-channel` (npm lib + Docker hub/agent); montaj noktaları; `TunnelConnector`; `FrameCodec`; `SessionGateway`; `TunnelProxy`; frame/stream/session işi | `docs/architecture/AUTH-MIMARISI.md` (bootstrap/oturum) |
 | `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `docs/architecture/UI-MIMARISI.md` (varlık/grafik) |
-| `AGENTS-TAMPER-LOGGER.md` | İmzalı log (tamper-evident) sözleşmesi | `packages/tamper-logger/**`; `tools/verify-log.mjs`; `log_events`; `eventCode`; HMAC zinciri | `packages/tamper-logger/docs/TAMPER-LOGGER-MIMARISI.md` |
+| `AGENTS-TAMPER-LOGGER.md` | İmzalı log (tamper-evident) sözleşmesi | **npm paketi:** `tamper-logger` (repo-dışı; ayrı GitHub repo); montaj noktaları; `log_events`; `eventCode`; HMAC zinciri; `npx verify-log` | https://github.com/ilterisYucel/tamper-logger/blob/main/docs/TAMPER-LOGGER-MIMARISI.md |
 | `AGENTS-DEPLOYMENT.md` | Deployment klasör yapısı & kapsülleme | `deployment/**`; docker-compose; `device-configs`/`maneuvers`/`rules`; `.env` konumu; yeni tier/app ekleme | `docs/architecture/DEPLOYMENT-MIMARISI.md` |
 
 > **Diğer alanlar docs SPEC'lerindedir (AGENTS dosyası yok):** monorepo/paket tablosu → `docs/architecture/PACKAGES-MIMARISI.md`; servisler → `SERVICES-MIMARISI.md`; app'ler → `APPS-MIMARISI.md`; cihaz/telemetri → `TELEMETRI-ZINCIRI-MIMARISI.md`; komut/manevra → `KOMUT-MANEVRA-OPERASYON-MIMARISI.md`; web-service katmanları → `WEB-SERVICE-MIMARISI.md`; UI varlıkları → `UI-MIMARISI.md`; AUTH → `AUTH-MIMARISI.md`.
@@ -146,11 +145,11 @@ Test kanıtları SPEC GWT/AK ve KAPANIŞ §A.2/§B'de yaşar (TESTING.md kaldır
 
 ## Docker / deployment
 
-- Compose files: proje/tier/app bazlı — `deployment/<proje>/<tier>/<app>/docker-compose.yml` (bugün: `deployment/v2/dev/{container,container2,field}/`) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır. Detay + kapsülleme kuralları: `AGENTS-DEPLOYMENT.md`.
+- Compose files: proje/tier/app bazlı — `deployment/<proje>/<tier>/<app>/docker-compose.yml` (bugün: `deployment/v2/dev/{container,container2,site}/`) — the **product layer**. Site config'leri compose'un yanındaki `device-configs/`, `maneuvers/`, `rules/`, `plugins/` dizinlerinde; servis `deployment/` dizinleri yalnızca örnek taşır. Detay + kapsülleme kuralları: `AGENTS-DEPLOYMENT.md`.
 - Stack: TimescaleDB + Redis + web-service + device-service + data-service (+ integration-service in boss) + web frontend.
 - **Env convention (MANDATORY):** env dosyası ilgili app klasöründe compose'un yanında yaşar — `deployment/<proje>/<tier>/<app>/.env` (gitignore'lu). Her `docker compose` çağrısı ilgili dosyayı `--env-file deployment/<proje>/<tier>/<app>/.env` ile geçer (script'ler `package.json`'da hazır). Commit'lenen tek şablon ilgili klasördeki `.env.example`'dır (sır yok). Tier/app dosyasına ait olmayan alan YAZILMAZ (örn. hub peer token'ı `HUB_PEER_TOKEN` her iki tarafta aynı değerle yaşar).
 - Backend Dockerfiles: `services/*/deployment/` (prod) + `Dockerfile.dev` (hot-reload).
-- Web Dockerfiles: `apps/container-web/deployment/`.
+- Web Dockerfiles: `apps/site/deployment/`.
 - Customer plugins: `deployment/<proje>/common/customer-plugins/` (mounted into integration-service at runtime).
 
 ## Package manager lock-in

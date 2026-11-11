@@ -4,6 +4,8 @@ space: architecture
 tags: [kapanis, dogrulama, test-kapsami, site, app]
 review_date: 2026-11-10
 ---
+> **Not (2026-11-11):** `apps/demo-field` → `apps/site` oldu; eski site sürümü (`site-v1.1`) 2026-11-11'de kaldırıldı. Aşağıdaki dosya yolları kaldırılan sürüme aittir.
+
 
 # Site — Kapanış (Doğrulama + Test Kapsamı)
 
@@ -17,7 +19,7 @@ review_date: 2026-11-10
 
 | # | Dosya | Değişiklik | Neden (SPEC ref) |
 |:--|:------|:-----------|:-----------------|
-| 1 | `apps/field/** → apps/site/**` | (değişiklik) tam rename: klasör/package/nx/compose-adları; domain adları KORUNDU (`VITE_FIELD_ID`, `SERVICE_TIER=field`, `peerType:"field"`) | K5/K2 |
+| 1 | `apps/field/** → apps/site/**` | (değişiklik) tam rename: klasör/package/nx/compose-adları; kimlik/wire adları KORUNDU (`VITE_FIELD_ID`, `FIELD_ID`, `peerType:"field"`) | K5/K2 |
 | 2 | `apps/site/src/lib/api-base.ts#isTunnelMode` | (doğrulama) tünel subpath tespiti + `fieldRootPath` önek üretimi; testli | K2/FR-2.1 |
 | 3 | `apps/site/src/lib/api-client.ts` | (doğrulama) refresh kuyruğu + tünel-guard (401'de İNERT), tam state temizliği — AK etiketli testlerle (AK-1.1..1.4) | K3 |
 | 4 | `apps/site/src/features/field-devices/hooks/useFieldDevices.ts#deriveDevicesFromSnapshot` | (doğrulama) snapshot'tan cihaz türetimi (benzersiz deviceId, tip önek, en-yeni birleştirme) — 7 test | K1/FR-1.2 |
@@ -33,7 +35,7 @@ review_date: 2026-11-10
 | Türetim | useFieldDevices (7), useContainerDevices (4, tünel+fallback), derivePcsSummaries (2), deriveDashboard (11) | |
 | Tünel/auth | api-base (7: önek + trailing-slash + alt-route), api-client (8: refresh kuyruğu AK-1.1..1.4 etiketli), App.test (3: hydrate/auto-guest K3), site-field (8), AuthStore (6), nav-visibility (4) | |
 | Manevra | fieldManeuverApi (3) + defs (4) + FieldManeuverPanel (5) + AdminOperationsPage (4) | |
-| B1 kopya | `git diff --no-index apps/site/src/lib/api-base.ts apps/demo-field/src/lib/api-base.ts` | **bayt bayt aynı** — kopya borcu DOĞRULANDI (A2 ileri iş) |
+| B1 kopya | `git diff --no-index apps/site/src/lib/api-base.ts apps/site/src/lib/api-base.ts` | **bayt bayt aynı** — kopya borcu DOĞRULANDI (A2 ileri iş) |
 | Taze test koşusu | `nx run site:test` | **İLETİLMEDİ** — reviewer salt-okuma (G1) |
 | Mutasyon | `bun run test:mutation` | **İLETİLMEDİ** — rename+modifize dosyalar (RM) değişen sayılır; ana agent koşmalı (G2) |
 

@@ -45,7 +45,7 @@ yalnız şekli ve port şemasını belirler. Port şeması ve tüm alanlar: mode
 ```bash
 bun run apps/sim-lab/src/tools/export-ems-config.ts --site apps/sim-lab/sites/gd1.site.json
 # → deployment/simlab/gd-1/ (container-1..9, field, topology.json, compose overlay'leri, README)
-docker compose --env-file deployment/v2/dev/field/.env -f deployment/v2/dev/field/docker-compose.yml \
+docker compose --env-file deployment/v2/dev/site/.env -f deployment/v2/dev/site/docker-compose.yml \
   -f deployment/simlab/gd-1/field/docker-compose.simlab.yml up -d --build
 docker compose --env-file deployment/v2/dev/container/.env -f deployment/v2/dev/container/docker-compose.yml \
   -f deployment/simlab/gd-1/container-1/docker-compose.simlab.yml up -d --build

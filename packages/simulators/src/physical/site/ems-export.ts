@@ -9,9 +9,9 @@
 // Çıktı (deployment/simlab/<site>/):
 //   container-<n>/device-configs/*.json + service.json
 //   container-<n>/docker-compose.simlab.yml   (v2 container compose'una overlay)
-//   field/device-configs/pcs-*.json, <mv>.json + service.json
-//   field/topology.json                       (istasyon/fider/PCS eşlemesi)
-//   field/docker-compose.simlab.yml           (v2 field compose'una overlay)
+//   site/device-configs/pcs-*.json, <mv>.json + service.json
+//   site/topology.json                        (istasyon/fider/PCS eşlemesi)
+//   site/docker-compose.simlab.yml            (v2 site compose'una overlay)
 //   README.md
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -60,9 +60,9 @@ function emsConfig(d: SiteDevice): Record<string, unknown> {
 }
 
 /** Overlay compose: v2 compose'undaki device-configs mount'unu simlab dizinine çevirir. */
-function composeOverlay(tier: "container" | "field", rel: string, containerIndex?: number): string {
-  const target = tier === "container" ? "/app/config-docker" : "/app/config-field";
-  const svcs = tier === "container" ? ["container-device-service", "container-management-service", "container-web-service"] : ["field-device-service", "field-management-service", "field-web-service"];
+function composeOverlay(tier: "container" | "site", rel: string, containerIndex?: number): string {
+  const target = tier === "container" ? "/app/config-docker" : "/app/config-site";
+  const svcs = tier === "container" ? ["container-device-service", "container-management-service", "container-web-service"] : ["site-device-service", "site-management-service", "site-web-service"];
   const lines = [
     `# Sim-Lab overlay — v2 ${tier} stack'ini Sim-Lab'ın ${tier === "container" ? `konteyner ${containerIndex}` : "saha"} cihazlarına bağlar.`,
     "# Kullanım (repo kökünden):",
@@ -84,7 +84,7 @@ function composeOverlay(tier: "container" | "field", rel: string, containerIndex
     }
     lines.push("    volumes:");
     lines.push(`      - ${rel2}/device-configs:${target}:ro`);
-    if (tier === "field" && s === "field-web-service") lines.push(`      - ${rel2}/topology.json:/app/config/topology.json:ro`);
+    if (tier === "site" && s === "site-web-service") lines.push(`      - ${rel2}/topology.json:/app/config/topology.json:ro`);
   }
   return lines.join("\n") + "\n";
 }
@@ -118,10 +118,10 @@ export function exportEmsConfigs(model: SiteModel, repoRoot: string, outDirRel?:
     if (!fn) continue;
     const cfg = emsConfig(d);
     if (d.type === "wattox-pcs" && d.feeder) cfg["details"] = { gridLink: { deviceId: d.feeder.station, feeder: d.feeder.cell } };
-    write(`field/device-configs/${fn}`, JSON.stringify(cfg, null, 2) + "\n");
+    write(`site/device-configs/${fn}`, JSON.stringify(cfg, null, 2) + "\n");
   }
-  write("field/device-configs/service.json", service);
-  // topology.json — v2 field formatı (istasyon → fider → üniteler, konteynerler, PCS'ler)
+  write("site/device-configs/service.json", service);
+  // topology.json — v2 site formatı (istasyon → fider → üniteler, konteynerler, PCS'ler)
   const stations = model.spec.mv.stations.map((st, i) => {
     const feeders: Record<string, { cell: string; units: number[] }> = {};
     Object.entries(st.feeders).forEach(([cell, units], j) => (feeders[String.fromCharCode(65 + j)] = { cell, units }));
@@ -129,8 +129,8 @@ export function exportEmsConfigs(model: SiteModel, repoRoot: string, outDirRel?:
     const pcs = model.devices.filter((d) => d.type === "wattox-pcs" && d.feeder?.station === st.id).map((d) => d.key);
     return { key: `bess${i + 1}`, name: st.name ?? st.id, feeders, units, containers: units.map((u) => `container-${u}`), pcs, mvDeviceId: st.id };
   });
-  write("field/topology.json", JSON.stringify({ stations }, null, 2) + "\n");
-  write("field/docker-compose.simlab.yml", composeOverlay("field", `${outRel}/field`));
+  write("site/topology.json", JSON.stringify({ stations }, null, 2) + "\n");
+  write("site/docker-compose.simlab.yml", composeOverlay("site", `${outRel}/site`));
   write("README.md", readme(model, outRel));
   return { outDir: outRel, files };
 }
@@ -156,8 +156,8 @@ ${s.description ?? ""}
 ## Kullanım
 
 1. Sim-Lab'ı başlatın: \`bun run apps/sim-lab/src/main.ts --site apps/sim-lab/sites/<site>.site.json\`
-2. Saha (field) stack'ini overlay ile kaldırın:
-   \`docker compose --env-file deployment/v2/dev/field/.env -f deployment/v2/dev/field/docker-compose.yml -f ${outRel}/field/docker-compose.simlab.yml up -d --build\`
+2. Saha (site) stack'ini overlay ile kaldırın:
+   \`docker compose --env-file deployment/v2/dev/site/.env -f deployment/v2/dev/site/docker-compose.yml -f ${outRel}/site/docker-compose.simlab.yml up -d --build\`
 3. Bir konteyner stack'ini overlay ile kaldırın (ör. konteyner 1):
    \`docker compose --env-file deployment/v2/dev/container/.env -f deployment/v2/dev/container/docker-compose.yml -f ${outRel}/container-1/docker-compose.simlab.yml up -d --build\`
 

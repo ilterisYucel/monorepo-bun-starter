@@ -6,7 +6,7 @@ import type { IMessageQueue } from "@gd-monorepo/core";
 import type {
   TamperLogger,
   LogLevel,
-} from "@gd-monorepo/tamper-logger";
+} from "tamper-logger";
 import type {
   AutomationRule,
   RuleAction,

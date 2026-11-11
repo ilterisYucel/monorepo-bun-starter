@@ -1,5 +1,7 @@
 # Test Geliştirme Planı — NIS-2 & TEİAŞ Kapsamı
 
+> **Not (2026-11-11):** `apps/container-web`, `apps/container-desktop` ve `apps/superadmin` kaldırıldı; `demo-field` → `apps/site` oldu. Bu doküman tarihsel kayıttır.
+
 > Durum: **UYGULANIYOR** (2026-08-30) — Kullanıcı onayı: tüm fazlar + dokümantasyon.
 > Kaynak analiz: doküman seti (README, AGENTS, TESTING.md, KONTEYNER-UZAKTAN-ERISIM-
 > MIMARISI.md, owasp-asvs-level2.md, nis-2.md, teias-uyumluluk-degerlendirmesi.md) +

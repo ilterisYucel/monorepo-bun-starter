@@ -1,6 +1,6 @@
 import type { ISqlDatabase } from "@gd-monorepo/core";
 
-import { LOG_EVENTS_DDL } from "@gd-monorepo/tamper-logger";
+import { LOG_EVENTS_DDL } from "@gd-monorepo/platform-logging";
 
 import type { LogEntry, LogQueryParams } from "@gd-monorepo/shared-types";
 

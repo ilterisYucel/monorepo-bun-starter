@@ -3,14 +3,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * demo-field KORUMA ZİNCİRİ e2e (v2/dev stack) — `DENETIM-ESLEME-v2.md`.
+ * demo-site KORUMA ZİNCİRİ e2e (v2/dev stack) — `DENETIM-ESLEME-v2.md`.
  *
  * Amaç: simülatör arızası enjekte edilir → konteyner kural motoru (43 kural)
  * → komut → FİZİKSEL etki (DC şalter açılır / oda ışığı yanar) zinciri uçtan
  * uca doğrulanır. Playwright APIRequestContext kullanır (tarayıcı UI seçicisi
  * yerine kararlı uçlar).
  *
- * Ön koşul: `bun run start:demo-integration`.
+ * Ön koşul: `bun run dev:stack:up`.
  * Env: FIELD_UI_URL (5002 API / 8088 UI), CONTAINER_INJECT_URL (15590).
  */
 
@@ -22,7 +22,7 @@ const PASSWORD = process.env.E2E_ADMIN_PASSWORD || "password1234";
 function resolveFieldId(): string {
   if (process.env.FIELD_ID) return process.env.FIELD_ID;
   try {
-    const env = readFileSync(resolve(process.cwd(), "deployment/v2/dev/field/.env"), "utf-8");
+    const env = readFileSync(resolve(process.cwd(), "deployment/v2/dev/site/.env"), "utf-8");
     const line = env.split("\n").find((l) => l.startsWith("FIELD_ID="));
     return line ? line.slice("FIELD_ID=".length).trim() : "";
   } catch {

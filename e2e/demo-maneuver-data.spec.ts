@@ -1,15 +1,15 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
 
 /**
- * demo-field manevra veri kontrolü (SPEC UC-7/T-31, FR-7.5).
+ * demo-site manevra veri kontrolü (SPEC UC-7/T-31, FR-7.5).
  *
  * Amaç: yeni demo manevralarının (FL-01…FL-05) YALNIZ korunmasız "success"
  * değil, sahadaki GERÇEK telemetriye yansıdığını doğrulamak. UI seçici
  * kırılganlığından kaçınmak için API üzerinden yürütülür; etki
- * `GET /api/data/PCS-1/latest` (field web-service — demo-field nginx proxy)
+ * `GET /api/data/PCS-1/latest` (field web-service — demo-site nginx proxy)
  * ile okunur.
  *
- * Ön koşul: demo-integration stack ayakta (`bun run start:demo-integration`),
+ * Ön koşul: demo-integration stack ayakta (`bun run dev:stack:up`),
  * field-web (:8088) + field-web-service (:5002). E2E_ADMIN_PASSWORD zorunlu.
  */
 
@@ -57,7 +57,7 @@ async function latest(
   return latestByName(body.telemetries ?? []);
 }
 
-test.describe("demo-field manevra veri kontrolü (T-31)", () => {
+test.describe("demo-site manevra veri kontrolü (T-31)", () => {
   test.describe.configure({ timeout: 120_000 });
 
   test("FL-05 emergency stop önce şarjı başlatıp PCS verisini durdurur", async ({

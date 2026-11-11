@@ -13,9 +13,7 @@ export default defineConfig({
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
       "@gd-monorepo/platform-messaging": resolve(workspaceRoot, "packages/platform/messaging/src"),
       "@gd-monorepo/platform-logging": resolve(workspaceRoot, "packages/platform/logging/src"),
-      "@gd-monorepo/tamper-logger": resolve(workspaceRoot, "packages/tamper-logger/src"),
       "@gd-monorepo/platform-container-access": resolve(workspaceRoot, "packages/platform/container-access/src"),
-      "@gd-monorepo/ws-tunnel": resolve(workspaceRoot, "zero-trust-application-tunnel/ws-tunnel/src"),
     },
   },
   test: {

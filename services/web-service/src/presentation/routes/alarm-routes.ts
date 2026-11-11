@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import type { User, DeviceAlarmState, AlarmSeverity } from "@gd-monorepo/shared-types";
 

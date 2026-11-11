@@ -10,7 +10,6 @@ export default defineConfig({
     alias: {
       "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
-      "@gd-monorepo/ws-tunnel": resolve(workspaceRoot, "zero-trust-application-tunnel/ws-tunnel/src"),
     },
   },
   test: {

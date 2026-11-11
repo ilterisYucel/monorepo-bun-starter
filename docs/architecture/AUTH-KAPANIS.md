@@ -23,7 +23,7 @@ review_date: 2026-11-10
 | 4 | `presentation/middleware/rbac.ts` | (doğrulama) 40 testlik matris: segment sınırlı public, cookie/Bearer, mustChange + MFA allowlist/öncelik | K5–K11/FR-4 |
 | 5 | `tiers/container/infrastructure/session/stateless-session-authenticator.ts` | (doğrulama) yerel kayıt yok; token stateless doğrulama | K8/FR-5.1 |
 | 6 | `zero-trust-application-tunnel/ws-tunnel-agent/src/setup-server.ts` + `install.ts` | (doğrulama) bootstrap claim TEK kullanımlık (bellek-içi tek claim), PEER_SECRET `mode: 0o600` + chmod + test-teyidi | K12/FR-6 |
-| 7 | `ws-tunnel/src/proxy/session-gateway.ts#mapSessionRole` | (bulgu) rol eşlemesi `boss→boss, guest→guest` (2026-08-30 birebir kararı testli); `AGENTS-WS-TUNNEL.md` hâlâ `boss→guest, guest→oturum YOK` diyor | B1 — S1 |
+| 7 | `ws-tunnel/src/proxy/session-gateway.ts#mapSessionRole` | (bulgu) rol eşlemesi `boss→boss, guest→guest` (2026-08-30 birebir kararı testli); `AGENTS-APPLICATION-TUNNEL.md` hâlâ `boss→guest, guest→oturum YOK` diyor | B1 — S1 |
 
 ### A.2 Test Kanıtları
 
@@ -61,7 +61,7 @@ review_date: 2026-11-10
 
 | # | Sapma | Açıklama |
 |:--|:------|:---------|
-| S1 | **B1 çelişki yaşıyor ve KAPSAMI BÜYÜK** | Kod/test: `boss→boss, guest→guest` (2026-08-30 "birebir" kararı). `AGENTS-WS-TUNNEL.md`: `boss→guest, guest→oturum YOK`. İki mismatch tek satırda; ya AGENTS satırı güncellenir ya karar geri alınır (A1 — ürün kararı, developer) |
+| S1 | **B1 çelişki yaşıyor ve KAPSAMI BÜYÜK** | Kod/test: `boss→boss, guest→guest` (2026-08-30 "birebir" kararı). `AGENTS-APPLICATION-TUNNEL.md`: `boss→guest, guest→oturum YOK`. İki mismatch tek satırda; ya AGENTS satırı güncellenir ya karar geri alınır (A1 — ürün kararı, developer) |
 | S2 | `sha256Hex` application→infrastructure sızıntısı | MFA throttle anahtarı katman sınırını atlıyor; arch:check kaydı (WEB-SERVICE-KAPANIŞ S2 ile aynı bulgu) |
 | S3 | Kanıt boşlukları: recovery-tek-kullanım ve hash-only vakaları dosya envanterinde ama vaka-adı bu turda pin'lenmedi; branch-coverage (%90) ve mutasyon raporu iletilmedi | G1/G2/G3 |
 
@@ -110,4 +110,5 @@ review_date: 2026-11-10
 
 | Tarih | Neden | Dokunulan SPEC maddesi |
 |:------|:------|:-----------------------|
+| 2026-11-11 | S1 kapatıldı (kaynakta): `AGENTS-APPLICATION-TUNNEL.md` rol eşlemesi koda uyduruldu (`boss→boss`, `guest→guest`) — doküman↔kod çelişkisi kalmadı; dosya repo-dışı ürünü (npm/Docker) referanslıyor | (yok — SPEC değişmedi) |
 | 2026-11-10 | İlk kapanış: 21 dosya eşleşti; B1 çelişkisinin AGENTS tarafında boss eşlemesi de yanlış (S1); coverage/mutasyon metric'leri bekleniyor | (yok — SPEC değişmedi) |

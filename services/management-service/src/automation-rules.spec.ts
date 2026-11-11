@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { TamperLogger } from "@gd-monorepo/tamper-logger";
+import type { TamperLogger } from "tamper-logger";
 import type { IMessageQueue } from "@gd-monorepo/core";
 import type { DeviceConfigFile, DeviceJob, TelemetryData } from "@gd-monorepo/shared-types";
 import { CommandJobBuilder } from "@gd-monorepo/platform-commands";

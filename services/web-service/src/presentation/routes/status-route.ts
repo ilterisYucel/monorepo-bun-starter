@@ -1,13 +1,13 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-/** Yanıt şekli (sabit) — ws-tunnel tipine bağımlılık yok. */
+/** Yanıt şekli (sabit) — tünel tipine bağımlılık yok. */
 interface OfflineStatus {
   readonly connected: false;
   readonly state: "offline";
 }
 
 /**
- * GET /api/status — container-web "Field Bağlantısı" göstergesi.
+ * GET /api/status — site "Field Bağlantısı" göstergesi.
  *
  * SPEC BOSS-FIELD-UPLINK-ARINDIRMA K4: Web-service artık hiçbir tier'da
  * tunnel connector taşımaz (konteyner kaydı agent'tadır). Bu yüzden endpoint

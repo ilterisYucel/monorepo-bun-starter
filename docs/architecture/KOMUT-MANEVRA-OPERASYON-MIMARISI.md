@@ -9,7 +9,7 @@ review_date: 2026-11-10
 
 > **İş akışı aşaması:** 1/4 — SPEC (Plan aşaması, DeepSeek V4 Pro).
 > **Durum:** ONAY BEKLİYOR — implementasyon developer onayından sonra başlar.
-> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `PLATFORM-MIMARISI.md` (çözümleme/kayıt/yürütme), `SHARED-TYPES-MIMARISI.md` (şemalar), `AUTH-MIMARISI.md` (yetki), `WS-TUNNEL-HUB` (uzak kanal).
+> **İlişkili:** `SERVICES-MIMARISI.md` (indeks), `PLATFORM-MIMARISI.md` (çözümleme/kayıt/yürütme), `SHARED-TYPES-MIMARISI.md` (şemalar), `AUTH-MIMARISI.md` (yetki), `zero-trust-application-channel` (repo-dışı, uzak kanal).
 
 ## 1. Amaç ve Bağlam
 

@@ -10,7 +10,6 @@ export default defineConfig({
     alias: {
       "@gd-monorepo/shared-types": resolve(workspaceRoot, "packages/shared-types/src"),
       "@gd-monorepo/core": resolve(workspaceRoot, "packages/core/src"),
-      "@gd-monorepo/tamper-logger": resolve(workspaceRoot, "packages/tamper-logger/src"),
     },
   },
   test: {

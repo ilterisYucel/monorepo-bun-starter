@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import Fastify from "fastify";
 import { makeHealthRoute } from "./health-route";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
-import type { ILogSink } from "@gd-monorepo/tamper-logger";
+import type { ILogSink } from "tamper-logger";
 
-import type { LogEvent } from "@gd-monorepo/tamper-logger";
+import type { LogEvent } from "@gd-monorepo/platform-logging";
 
 
 /**

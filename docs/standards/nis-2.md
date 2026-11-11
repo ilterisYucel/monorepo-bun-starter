@@ -24,8 +24,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 | Monorepo Yönetimi | Nx | Kurulu |
 | Paket Yöneticisi | Bun | Kurulu |
 | Backend Servisler | Node.js (services/) | Geliştirme süreci devam ediyor |
-| Desktop Uygulama | Electron/Container (apps/desktop, apps/container-desktop) | Geliştirme süreci devam ediyor |
-| Web Frontend | React (apps/container-web, apps/field, apps/superadmin) | Geliştirme süreci devam ediyor |
+| Web Frontend | React (`apps/site`) | Geliştirme süreci devam ediyor |
 | Paylaşılan Paketler | core, shared-types, shared-utils, ui | Mevcut |
 | Kod Kalitesi | SonarQube | Entegre |
 | OWASP Standartları | Kod seviyesinde uygulandı | Uygulandı |
@@ -66,7 +65,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 5.  Hata mesajı şu şekilde tanımlanır: "NIS2 Madde 21(b): Tamper-evident loglama zorunludur. Lütfen '@gd-pms/core' içindeki 'TamperEvidentLogger'ı kullanın."
 6.  Bu kural **"NIS2 Compliance - TypeScript"** profiline eklenir.
 
-**Monorepo Notu:** Bu kural tüm apps ve packages altındaki projelerde geçerli olacaktır. Frontend uygulamaları (container-web, field, superadmin) ve desktop uygulamaları için tamper-evident loglama yerine audit log mekanizması değerlendirilmelidir. Bu projeler için ayrı bir profil oluşturulup kural "Major" seviyesine çekilebilir.
+**Monorepo Notu:** Bu kural tüm apps ve packages altındaki projelerde geçerli olacaktır. Frontend uygulaması (`apps/site`) için tamper-evident loglama yerine audit log mekanizması değerlendirilmelidir. Bu projeler için ayrı bir profil oluşturulup kural "Major" seviyesine çekilebilir.
 
 **Kanıt:** Kural tanımının ekran görüntüsü ve ihlal durumunda oluşan hata mesajı.
 
@@ -189,14 +188,10 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 **Yapılacaklar:**
 1.  `packages/core/src/lib/logger/` altında `useAuditLog` adında bir hook oluşturulur.
 2.  Bu hook, kritik kullanıcı işlemlerini (buton tıklama, form gönderimi, cihaz yapılandırması) ilgili backend servisine iletir.
-3.  Gönderilen veri: `action`, `userId`, `timestamp`, `applicationName` (container-web/desktop/field/superadmin), `componentName`, `metadata`.
+3.  Gönderilen veri: `action`, `userId`, `timestamp`, `applicationName` (`site`), `componentName`, `metadata`.
 4.  Backend servislerde bu endpoint'e gelen veriler `TamperEvidentLogger` ile audit seviyesinde loglanır.
 5.  Hook aşağıdaki uygulamalarda kullanıma sunulur:
-    - `apps/container-web`
-    - `apps/field`
-    - `apps/superadmin`
-    - `apps/desktop`
-    - `apps/container-desktop`
+    - `apps/site`
 
 **Monorepo Notu:** Hook, `packages/core` içerisinde tutulduğundan tüm frontend ve desktop uygulamaları tarafından ortak şekilde kullanılabilir. `packages/ui` içerisindeki bileşenler de bu hook'u kullanarak audit log üretebilir.
 
@@ -312,7 +307,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 - Yeni bir servis, uygulama veya bileşen eklenmeden önce tehdit modellemesi yapılır.
 - Tüm kod değişiklikleri SonarQube "NIS2 Compliance - TypeScript" profilinden geçer.
 - Tamper-evident loglama (Madde 21-b) zorunlu olup `@gd-pms/core` içerisindeki logger tüm backend servislerde kullanılır.
-- Tüm kullanıcı arayüzlerindeki (container-web, field, superadmin, desktop, container-desktop) kritik işlemler audit log olarak backend'e gönderilir.
+- Tüm kullanıcı arayüzlerindeki (`apps/site`) kritik işlemler audit log olarak backend'e gönderilir.
 - Cihaz simülatörleri de dahil olmak üzere tüm bileşenler NIS2 loglama standartlarına uyar.
 - Bağımlılıklar her build'de taranır ve kritik zafiyetlere izin verilmez (SBOM + Trivy).
 - Yılda en az bir kez harici bağımsız sızma testi yaptırılır (tüm servisler ve uygulamalar ayrı ayrı test edilir).
@@ -331,8 +326,7 @@ Bu belge, NIS2 Direktifi kapsamında Nx monorepo yapısındaki GD-PMS yazılım�
 1.  Yılda en az bir kez, akredite bir firma tarafından tüm sistem bileşenleri için **OWASP metodolojisine uygun** sızma testi yaptırılır.
 2.  Test kapsamına aşağıdakiler dahil edilir:
     - Backend servisler (data-service, device-service, web-service) için OWASP API Security Top 10
-    - Web uygulamaları (container-web, field, superadmin) için OWASP Top 10
-    - Desktop uygulamaları (desktop, container-desktop) için masaüstü güvenlik kontrolleri
+    - Web uygulaması (`apps/site`) için OWASP Top 10
     - Servisler arası iletişim güvenliği
 3.  Test raporu ve bulguların kapatıldığına dair kanıtlar saklanır.
 
@@ -475,7 +469,7 @@ OSCP (Offensive Security Certified Professional), pratik sızma testi becerileri
 
 #### OSCP'nin Sağladığı Avantajlar
 
-- **Sürekli İç Güvenlik Testleri:** OSCP yetkinliği ile her sprint sonunda veya aylık periyotlarla tüm servisler (data-service, device-service, web-service) ve uygulamalar (container-web, field, superadmin, desktop, container-desktop) üzerinde iç pentest gerçekleştirilebilir. Bu uygulama, NIS2'nin "sürekli iyileştirme" maddesi için güçlü bir kanıt teşkil eder.
+- **Sürekli İç Güvenlik Testleri:** OSCP yetkinliği ile her sprint sonunda veya aylık periyotlarla tüm servisler (data-service, device-service, web-service) ve uygulama (`apps/site`) üzerinde iç pentest gerçekleştirilebilir. Bu uygulama, NIS2'nin "sürekli iyileştirme" maddesi için güçlü bir kanıt teşkil eder.
 - **Güvenli Kod Yazma Refleksi:** Saldırgan bakış açısıyla kod yazılması, güvenlik açıklarının henüz commit aşamasına gelmeden yakalanmasını sağlar. Bu durum "Security by Design" prensibinin en üst seviyede uygulanması anlamına gelir.
 - **CI/CD'ye Otomatik Güvenlik Testlerinin Eklenmesi:** Kurum içi geliştirilen veya özelleştirilen güvenlik testleri pipeline'a entegre edilebilir.
 - **Harici Pentest Öncesi Sistemin Olgunlaştırılması:** Harici pentest yaptırılmadan önce sistemin kurum içi testlerle olgunlaştırılması, harici pentest raporunun çok daha temiz çıkmasını sağlar. Bu durum hem maliyeti düşürmekte hem de prestij kazandırmaktadır.
@@ -508,7 +502,7 @@ Bu strateji ile:
 
 ### Denetçiye Sunulacak Anlatı
 
-"GD-PMS geliştirme ekibimiz bünyesinde OSCP sertifikalı personel bulunmaktadır. Her ay tüm sistem bileşenlerimize (data-service, device-service, web-service, container-web, field, superadmin, desktop ve container-desktop) iç pentest uygulanmakta, tespit edilen bulgular derhal kapatılarak pipeline'ımıza yeni güvenlik testleri eklenmektedir. Ayrıca NIS2 bağımsızlık gerekliliği kapsamında yılda bir kez akredite bir firmadan harici pentest hizmeti alınmaktadır. İç pentest raporlarımız ve harici firma raporu ekte sunulmuştur. İki rapor arasındaki bulgu örtüşme oranının %90 seviyesinde olması, iç sürecimizin etkinliğini kanıtlamaktadır."
+"GD-PMS geliştirme ekibimiz bünyesinde OSCP sertifikalı personel bulunmaktadır. Her ay tüm sistem bileşenlerimize (data-service, device-service, web-service ve site UI) iç pentest uygulanmakta, tespit edilen bulgular derhal kapatılarak pipeline'ımıza yeni güvenlik testleri eklenmektedir. Ayrıca NIS2 bağımsızlık gerekliliği kapsamında yılda bir kez akredite bir firmadan harici pentest hizmeti alınmaktadır. İç pentest raporlarımız ve harici firma raporu ekte sunulmuştur. İki rapor arasındaki bulgu örtüşme oranının %90 seviyesinde olması, iç sürecimizin etkinliğini kanıtlamaktadır."
 
 Bu anlatım, denetçiye ekibin konuyu ciddiyetle ele aldığı, hem yetkin hem şeffaf olduğu mesajını vermektedir.
 

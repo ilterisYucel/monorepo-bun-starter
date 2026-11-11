@@ -3,7 +3,7 @@ import Fastify from "fastify";
 import { ZodError, z } from "zod";
 import { DomainError, ValidationError, NotFoundError, UnauthorizedError, ForbiddenError, ConflictError, TransientError, FatalError } from "@gd-monorepo/result";
 
-import type { LogEventInput } from "@gd-monorepo/tamper-logger";
+import type { LogEventInput } from "@gd-monorepo/platform-logging";
 
 import { RequestContext, createRequestIdHook } from "./request-context";
 import { createErrorHandler } from "./error-handler";

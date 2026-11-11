@@ -13,20 +13,20 @@ review_date: 2026-11-10
 
 ## 1. Amaç ve Bağlam
 
-`apps/` altındaki uygulamaların haritası. 5 doküman: CONTAINER (tier 1), SITE (tier 2 — eski `field`), BOSS (tier 3 — superadmin), EDITOR (ürün bestecisi), DEMO (ui/nova + demo-field). Ölü dizinler (`apps/web`, `apps/demo-backend`) silinir (K13).
+`apps/` altındaki uygulamaların haritası. Güncel: SITE (tek operatör UI), EDITOR (ürün bestecisi), SIM-LAB (araç). CONTAINER/BOSS UI app'leri, DEMO konsolu ve `site-v1.1` arşivi 2026-11-11'de kaldırıldı.
 
 | Katman | Kapsam |
 |:-------|:-------|
-| dahil | 5 app dokümanı haritası, SPEC linkleri, ürün/demo sınıflaması, durum takibi |
+| dahil | app haritası, SPEC linkleri, ürün/demo sınıflaması, durum takibi |
 | hariç | App içi kararlar (kendi SPEC'lerinde), ortak frontend kontratları (`UI-MIMARISI.md`) |
 
 ## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
 
 | Kod | Karar | Sonuç |
 |:----|:------|:------|
-| K1 | 5 app dokümanı: CONTAINER, SITE, BOSS, EDITOR, DEMO | Bu indeksin satırları o dosyalara bağlanır |
+| K1 | App haritası: SITE, EDITOR, SIM-LAB. CONTAINER/BOSS UI app'leri, DEMO konsolu ve `site-v1.1` arşivi 2026-11-11'de kaldırıldı | Bu indeksin satırları o dosyalara bağlanır |
 | K2 | `apps/field` → `apps/site` tam rename (klasör, package, nx, compose, env adları) | `apps/site`; eski ad yalnız tarihsel dokümanlarda |
-| K3 | `container-desktop` ayrı doküman değil — CONTAINER'ın paketleme bölümü | Tek SPEC iki app'i kapsar |
+| K3 | ⛔ `container-desktop` kaldırıldı (2026-11-11) — CONTAINER UI app'leri silindi | — |
 | K4 | Ölü dizinler (`apps/web`, `apps/demo-backend`) silinir | İndekste "silindi" notu |
 
 ## 3. Mevcut Durum / Kök Nedenler
@@ -42,23 +42,20 @@ review_date: 2026-11-10
 
 | Dizin | Ürün / Rol | Birim SPEC | Durum |
 |:------|:-----------|:-----------|:------|
-| `apps/container-web` | Tier 1 konteyner SCADA/web UI (ürün) | `CONTAINER-MIMARISI.md` | ✅ yazıldı |
-| `apps/container-desktop` | Aynı UI'ın Electron kabuğu (paketleme) | `CONTAINER-MIMARISI.md` (bölüm) | ✅ yazıldı |
-| `apps/site` | Tier 2 saha operatörü (ürün; eski `field`) | `SITE-MIMARISI.md` | ✅ yazıldı |
-| `apps/superadmin` | Tier 3 boss/patron PWA (ürün) | `BOSS-MIMARISI.md` | ✅ yazıldı |
+| `apps/site` | Saha operatör UI — TEK uygulama (eski `site`; demo konsolu bu uygulamaya birleşti) | `SITE-MIMARISI.md` | ✅ |
 | `apps/editor` | Ürün katmanı bestecisi (low-code, P1) | `EDITOR-MIMARISI.md` | ✅ yazıldı |
-| `apps/demo-field` + `packages/ui/src/nova` | Nova demo konsolu (demo) | `DEMO-MIMARISI.md` | ✅ yazıldı |
 | `apps/sim-lab` | Fiziksel saha simülatörü servisi + god-mode UI (araç) | `SIMULATORS-MIMARISI.md` (bölüm) | ✅ yazıldı |
-| `apps/web` | Ölü dizin (src yok) | — | silinecek |
-| `apps/demo-backend` | Ölü dizin (src yok) | — | silinecek |
+| ~~`apps/container-web`~~ | 2026-11-11'de silindi | — | ⛔ |
+| ~~`apps/container-desktop`~~ | 2026-11-11'de silindi | — | ⛔ |
+| ~~`apps/superadmin`~~ | 2026-11-11'de silindi | — | ⛔ |
 
 ### 4.2 Tier eşlemesi
 
 | Tier | App | Servis yüzü |
 |:-----|:----|:------------|
-| container | CONTAINER | web-service (container tier) |
+| container | (UI yok) | web-service (container tier) |
 | site | SITE | web-service (site tier) + hub tünel |
-| boss | BOSS | web-service (boss tier) + hub tünel |
+| boss | (UI yok) | web-service (boss tier) + hub tünel |
 
 ## 5. Purity Kuralları (ZORUNLU)
 

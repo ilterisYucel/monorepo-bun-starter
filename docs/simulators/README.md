@@ -297,6 +297,6 @@ Gerçek cihaz komutu tick sınırında tüketir — karar verilirse tek zaman mo
 - `AGENTS-DEVICE-SERVICE.md` — "Simülatörler komut yazımlarını **anında** uygular
   (validate read-back tick beklemez)" kuralı, sözleşme modeli seçilirse revize.
 - Bu README §5 (davranış desenleri) ve ilgili cihaz dokümanları (BSC §4 vb.).
-- `apps/demo-field/integration/*` — tick gecikmesine bağlı bekleme süreleri gözden
+- `apps/site/integration/*` — tick gecikmesine bağlı bekleme süreleri gözden
   geçirilir (çoğu zaten 6–15 sn bekliyor).
 - Birim testlerde tick'in elle sürülebilir olması (K-4/3) test altyapısı işi.

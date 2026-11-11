@@ -50,7 +50,7 @@ listesine konteyner aralıklarını ekleyin.
 2. v2 stack'lerini overlay ile kaldırın:
 
 ```bash
-docker compose --env-file deployment/v2/dev/field/.env -f deployment/v2/dev/field/docker-compose.yml \
+docker compose --env-file deployment/v2/dev/site/.env -f deployment/v2/dev/site/docker-compose.yml \
   -f deployment/simlab/gd-1/field/docker-compose.simlab.yml up -d --build
 docker compose --env-file deployment/v2/dev/container/.env -f deployment/v2/dev/container/docker-compose.yml \
   -f deployment/simlab/gd-1/container-1/docker-compose.simlab.yml up -d --build

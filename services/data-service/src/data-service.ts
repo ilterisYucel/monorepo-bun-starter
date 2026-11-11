@@ -1,7 +1,7 @@
 import type { IMessageQueue, ITimeseriesDatabase } from "@gd-monorepo/core";
 
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 
 import { TransientError } from "@gd-monorepo/result";
 

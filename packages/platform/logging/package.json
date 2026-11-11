@@ -18,7 +18,6 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@gd-monorepo/shared-types": "*",
-    "@gd-monorepo/tamper-logger": "*"
+    "@gd-monorepo/shared-types": "*"
   }
 }

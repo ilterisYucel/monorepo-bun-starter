@@ -15,7 +15,7 @@
 
 Mevcut `packages/simulators` sınıfları (README §5) **kolaylık modeli**dir: komut yazıldığı
 an etki eder, ölçümler çoğunlukla sabittir (BSC 3.5288 V / 23 °C, PCS 1500 V, HVAC sabit
-nem) ve cihazlar birbirinden bağımsızdır. Bu, `demo-field` entegrasyon testlerinin
+nem) ve cihazlar birbirinden bağımsızdır. Bu, `site` entegrasyon testlerinin
 güvendiği bir sözleşmedir (`AGENTS-DEVICE-SERVICE.md` — "anında uygula"); o yüzden
 değiştirilmedi.
 
@@ -155,7 +155,7 @@ t,target,register,value,mode
 bun run apps/sim-lab/src/main.ts --site apps/sim-lab/sites/gd1.site.json        # 226 sunucu + arayüz :8090
 bun run apps/sim-lab/src/tools/export-ems-config.ts --site apps/sim-lab/sites/gd1.site.json
 #   → deployment/simlab/gd-1/{container-1..9, field}/device-configs + topology.json + docker-compose.simlab.yml
-docker compose --env-file deployment/v2/dev/field/.env -f deployment/v2/dev/field/docker-compose.yml \
+docker compose --env-file deployment/v2/dev/site/.env -f deployment/v2/dev/site/docker-compose.yml \
                -f deployment/simlab/gd-1/field/docker-compose.simlab.yml up -d --build
 docker compose --env-file deployment/v2/dev/container/.env -f deployment/v2/dev/container/docker-compose.yml \
                -f deployment/simlab/gd-1/container-1/docker-compose.simlab.yml up -d --build

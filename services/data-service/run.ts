@@ -1,12 +1,12 @@
 import { RedisConnection, TimescaleDBAdapter, PostgresAdapter } from "@gd-monorepo/core";
-import { TamperLogger, ConsoleSink, FileSink, TimescaleSink, resolveSigningKey, LOG_EVENTS_DDL } from "@gd-monorepo/tamper-logger";
+import { TamperLogger, ConsoleSink, FileSink, TimescaleSink, resolveSigningKey } from "tamper-logger";
 
 import { PlatformMessageQueue } from "@gd-monorepo/platform-messaging";
-import { loggerConfigForTier, isLogEventCode } from "@gd-monorepo/platform-logging";
+import { loggerConfigForTier, isLogEventCode, LOG_EVENTS_DDL } from "@gd-monorepo/platform-logging";
 import { ServiceTier } from "@gd-monorepo/core";
-import type { ILogSink } from "@gd-monorepo/tamper-logger";
+import type { ILogSink } from "tamper-logger";
 
-import type { LogLevel } from "@gd-monorepo/tamper-logger";
+import type { LogLevel } from "@gd-monorepo/platform-logging";
 
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { DataService } from "./src/data-service";

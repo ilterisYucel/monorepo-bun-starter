@@ -2,29 +2,32 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import React, { Component, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 import { RouterProvider } from "react-router-dom";
-import { COLORS, TR_DICT, EN_DICT, TranslationProvider, useTranslation } from "@gd-monorepo/ui";
+import {
+  COLORS,
+  TR_DICT,
+  EN_DICT,
+  TranslationProvider,
+  useTranslation,
+} from "@gd-monorepo/ui";
 import { queryClient } from "../lib/query-client";
 import { router } from "./router";
-import { FIELD_TR_DICT } from "../i18n/tr";
-import { FIELD_EN_DICT } from "../i18n/en";
-import { useSettingsStore } from "../features/settings/stores/settingsStore";
+import { DEMO_TR_DICT } from "../i18n/tr";
+import { DEMO_EN_DICT } from "../i18n/en";
 
 const TranslationWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // 2026-08-30: dil tercihi settingsStore'dan okunur (persist: "field-settings")
-  // — değişiklik SettingsPage üzerinden yapılır.
-  const locale = useSettingsStore((s) => s.locale);
-  const dicts = useMemo(
-    () => ({ tr: TR_DICT, en: EN_DICT }),
-    [],
-  );
+  const dicts = useMemo(() => ({ tr: TR_DICT, en: EN_DICT }), []);
   const extraKeys = useMemo(
-    () => ({ tr: FIELD_TR_DICT, en: FIELD_EN_DICT }),
+    () => ({ tr: DEMO_TR_DICT, en: DEMO_EN_DICT }),
     [],
   );
   return (
-    <TranslationProvider dictionaries={dicts} defaultLocale={locale} extraKeys={extraKeys}>
+    <TranslationProvider
+      dictionaries={dicts}
+      defaultLocale="tr"
+      extraKeys={extraKeys}
+    >
       {children}
     </TranslationProvider>
   );
@@ -67,7 +70,9 @@ class ErrorBoundary extends Component<
   }
 }
 
-export const AppProviders: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+export const AppProviders: React.FC<{ children?: React.ReactNode }> = ({
+  children,
+}) => (
   <QueryClientProvider client={queryClient}>
     <TranslationWrapper>
       <ErrorBoundary>

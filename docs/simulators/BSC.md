@@ -250,6 +250,6 @@ Warning `3N+n`, Fault `4N+n`, Non-Balancing `5N+n` (toplam `6N`).
 | Heartbeat | 40000 her 1 s güncellenmeli; 10 s alarm, 20 s LOC fault (30043 b0/b2) → limitler 0, kontaktörler açılır | 5 tick sonra yalnız alarm biti |
 | Ölçümler | hücre/paket/raf ölçümleri, teşhis eşikleri (OVW 3.7 V, OVF1 3.8 V, UVW 2.4 V, OTW 49 °C, OTF1 58 °C, OCCW 210 A …) ve aksiyonları | sabit 3.5288 V / ~23 °C; teşhis yok |
 
-Bu farklar `demo-field` entegrasyon testlerinin "anında uygula" varsayımı nedeniyle bu
+Bu farklar `site` entegrasyon testlerinin "anında uygula" varsayımı nedeniyle bu
 sınıfta bilinçli olarak korunmuştur (README §10, K-2). Vendor zaman modeliyle test için
 Sim-Lab kullanılır.

@@ -1,146 +1,30 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-10-20
-> Tarandı: 321 test dosyası, 2616 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-11-11
+> Tarandı: 224 test dosyası, 1938 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
-### `apps/container-web/src/contexts/RealtimeContext.test.tsx` (4 test)
+### `apps/editor/src/features/editor/device-catalog/catalog.test.ts` (4 test)
 
-1. (RealtimeProvider token refresh (T2)) **"credentials hatası → refresh başarılı → token güncellenir + reconnect"**
-2. (RealtimeProvider token refresh (T2)) **"refresh token yoksa refresh ÇAĞRILMAZ"**
-3. (RealtimeProvider token refresh (T2)) **"refresh başarısız → reconnect çağrılmaz, token değişmez"**
-4. (RealtimeProvider token refresh (T2)) **"credentials içermeyen hata refresh'i TETİKLEMEZ"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/features/auth/session-auth.test.ts` (7 test)
-
-1. (hydrateSessionAuth (T4.4)) **"tünel değilse false — fetch yapılmaz"**
-2. (hydrateSessionAuth (T4.4)) **"tünel + geçerli oturum → kullanıcı hydrate edilir"**
-3. (hydrateSessionAuth (T4.4)) **"401 → false, hydrate yok"**
-4. (hydrateSessionAuth (T4.4)) **"tunnel:false → false (alan tarafı oturum değil)"**
-5. (hydrateSessionAuth (T4.4)) **"fetch hatası → false (çökme yok)"**
-6. (hydrateSessionAuth (T4.4) > tünel modunda persist izolasyonu (T4.4 — kırılganlık #1)) **"tünel modunda oluşturulan AuthStore auth-storage YAZMAZ"**
-7. (hydrateSessionAuth (T4.4) > tünel modunda persist izolasyonu (T4.4 — kırılganlık #1)) **"normal modda persist çalışır (geriye uyumluluk)"**
+1. (device-catalog) **"5 built-in cihaz tipi sunar"**
+2. (device-catalog) **"her DeviceType icin tanim var ve type alani kendi anahtariyla eslesiyor"**
+3. (device-catalog) **"tum tanimlar en az bir protokol ve bir ikon bildirir"**
+4. (device-catalog) **"getDeviceDefinition bilinen tip icin tanim dondurur"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/container-web/src/features/control/components/ManeuverPanel.test.tsx` (2 test)
+### `apps/sim-lab/src/plant.test.ts` (5 test)
 
-1. (ManeuverPanel (Faz D2)) **"kataloğu sunucudan yükler; gizli kayıtları GÖSTERMEZ"**
-2. (ManeuverPanel (Faz D2)) **"katalog hatası → hata durumu (çökme yok)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/features/control/services/maneuverApi.test.ts` (4 test)
-
-1. (maneuverApi (Faz D2)) **"list: GET /maneuvers + kayıt listesi döner"**
-2. (maneuverApi (Faz D2)) **"list: boş katalog → [] (kademeli)"**
-3. (maneuverApi (Faz D2)) **"execute: POST gövdesi {params:{}} varsayılan"**
-4. (maneuverApi (Faz D2)) **"execute: params + deviceIds (grup kısıtı) taşınır"**
+1. (BSC Rev AF) **"Start → Normal, Close → 8 raf online"**
+2. (BSC Rev AF) **"Akım akarken Stop reddedilir (0x0A)"**
+3. (BSC Rev AF > PCS ⇄ BSC enerji dengesi) **"Deşarjda SOC düşer, akım PCS gücüyle tutarlı"**
+4. (BSC Rev AF > PCS ⇄ BSC enerji dengesi) **"Şarj sonunda VPC limiti daraltır"**
+5. (BSC Rev AF > PCS ⇄ BSC enerji dengesi > MC90 klima) **"0 ile kapatma gerçek profilde reddedilir, 2 ile kapanır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/container-web/src/features/hvac/utils/hvacHelpers.test.ts` (3 test)
-
-1. (hvacSkeleton) **"her HVAC cihazı için standby ünite üretir (telemetrisiz)"**
-2. (hvacSkeleton) **"oda bilgisi roomByDevice'dan gelir"**
-3. (hvacSkeleton) **"id çıkarılamayan cihaz atlanır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/features/racks/utils/rackHelpers.test.ts` (3 test)
-
-1. (rackHelpers — details accessor) **"rackCountOf details.rackCount okur"**
-2. (rackHelpers — details accessor) **"rackCountOf details yoksa DEFAULT_RACK_COUNT döner"**
-3. (rackHelpers — details accessor) **"detailsNumber string sayıyı çözer, geçersizse undefined"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/features/telemetry/utils/dedupeLatest.test.ts` (3 test)
-
-1. (dedupeLatest — en yeni kazanır) **"aynı (deviceId,name,rack_id) için yalnız en yeni satırı tutar"**
-2. (dedupeLatest — en yeni kazanır) **"rack_id farklıysa ayrı anahtar (farklı rack'ler korunur)"**
-3. (dedupeLatest — en yeni kazanır) **"telemetryKey rack_id içerir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/hooks/useFieldConnection.test.tsx` (4 test)
-
-1. (useFieldConnection (T2.2)) **"bağlı durumu yansıtır"**
-2. (useFieldConnection (T2.2)) **"bağlantı yoksa kapalı bildirir"**
-3. (useFieldConnection (T2.2)) **"istek hatasında kapalı kabul edilir"**
-4. (useFieldConnection (T2.2)) **"5 sn tazeleme aralığı kullanır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/lib/api-base.test.ts` (21 test)
-
-1. (apiBaseUrl (T4.3)) **"kök dizinde /api döner"**
-2. (apiBaseUrl (T4.3)) **"tünel subpath'inde /containers/:cid/ui/api döner"**
-3. (apiBaseUrl (T4.3)) **"trailing slash normalize edilir"**
-4. (apiBaseUrl (T4.3)) **"Faz 5.1 regresyon: normal SPA route'larinda sert yenileme /api dondurur"**
-5. (apiBaseUrl (T4.3)) **"tünel icindeki alt route'lar prefix'i korur"**
-6. (apiBaseUrl (T4.3) > wsUrl (T4.3)) **"http → ws, https → wss"**
-7. (apiBaseUrl (T4.3) > wsUrl (T4.3)) **"tünel subpath'inde cookie kapsamıyla eşleşir"**
-8. (apiBaseUrl (T4.3) > wsUrl (T4.3)) **"Faz 5.1 regresyon: normal route'ta sert yenileme kök WS adresini korur"**
-9. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3)) **"kök için boş dize"**
-10. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi)) **"yalnız /containers/:cid/ui öneki tüneldir"**
-11. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi)) **"Faz 5.1 regresyon: normal SPA route'lari tünel DEGILDIR"**
-12. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3)) **"container_session varsa true"**
-13. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3)) **"yoksa false"**
-14. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3)) **"host yoksa ws://localhost:5001 fallback"**
-15. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3)) **"host yoksa api /api (eski davranış)"**
-16. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3)) **"file:// tünel sayılmaz"**
-17. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3) > hashRoute (Faz 5.1 — hash router uyumu)) **"yol hash formuna çevrilir"**
-18. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3) > hashRoute (Faz 5.1 — hash router uyumu)) **"başına / eklenir"**
-19. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3) > hashRoute (Faz 5.1 — hash router uyumu)) **"zaten hash'liyse olduğu gibi"**
-20. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3) > hashRoute (Faz 5.1 — hash router uyumu) > postLoginRoute (Faz 5.1 — giriş sonrası rota)) **"must-change kullanıcı → /change-password"**
-21. (apiBaseUrl (T4.3) > wsUrl (T4.3) > appDirPath (T4.3) > isTunnelMode (T4.3 + Faz 5.1 düzeltmesi) > hasContainerSessionCookie (T4.3) > file:// (Electron LCD — K4.3) > hashRoute (Faz 5.1 — hash router uyumu) > postLoginRoute (Faz 5.1 — giriş sonrası rota)) **"normal kullanıcı → /dashboard"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/lib/api-client.interceptor.test.ts` (7 test)
-
-1. (api-client 401-refresh interceptor (T2)) **"401 → refresh → yeni token'la retry 200 döner"**
-2. (api-client 401-refresh interceptor (T2)) **"eşzamanlı 401'ler TEK refresh üretir (kuyruk)"**
-3. (api-client 401-refresh interceptor (T2)) **"_retry'li ikinci 401 reddedilir (döngü koruması)"**
-4. (api-client 401-refresh interceptor (T2)) **"/auth/login 401'ine karışılmaz (refresh ÇAĞRILMAZ)"**
-5. (api-client 401-refresh interceptor (T2)) **"tünel modunda 401-refresh KAPALI (401 aynen reddedilir)"**
-6. (api-client 401-refresh interceptor (T2)) **"must-change 403'ü /change-password'a yönlendirir"**
-7. (api-client 401-refresh interceptor (T2)) **"refresh başarısız + guest fallback başarısız → /login'e yönlendirilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/lib/api-client.test.ts` (11 test)
-
-1. (isMustChangeError (Faz 5.1 ek)) **"403 + dogru hata mesajini tanir"**
-2. (isMustChangeError (Faz 5.1 ek)) **"403 ama farkli hata → false"**
-3. (isMustChangeError (Faz 5.1 ek)) **"401 → false; response'suz hata → false"**
-4. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek)) **"dashboard gibi sayfalarda must-change 403 → yonlendirme gerekli"**
-5. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek)) **"/change-password ve /login sayfalarinda dongu yapmaz"**
-6. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek)) **"tunel modunda yonlendirme yapilmaz"**
-7. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek)) **"must-change olmayan hatalarda yonlendirme yapilmaz"**
-8. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek) > navigateToAppRoute (Faz 5.1 ek — hash router)) **"yönlendirme pathname'e değil HASH'e yazılır"**
-9. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek) > navigateToAppRoute (Faz 5.1 ek — hash router) > writeUserToAuthStorage (Faz 5.1 ek)) **"auth-storage state'ine kullaniciyi ve rol bayraklarini yazar"**
-10. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek) > navigateToAppRoute (Faz 5.1 ek — hash router) > writeUserToAuthStorage (Faz 5.1 ek)) **"auth-storage yoksa no-op (sessiz)"**
-11. (isMustChangeError (Faz 5.1 ek) > mustChangeRedirectNeeded (Faz 5.1 ek) > navigateToAppRoute (Faz 5.1 ek — hash router) > writeUserToAuthStorage (Faz 5.1 ek)) **"bozuk auth-storage temizlenir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/container-web/src/stores/LogStore.test.ts` (6 test)
-
-1. (LogStore (T2)) **"can be imported without localStorage errors (karakterizasyon)"**
-2. (LogStore (T2)) **"addLog yeni girişi başa ekler ve backend'e gönderir"**
-3. (LogStore (T2)) **"MAX 200 sınırı: en eski giriş atılır"**
-4. (LogStore (T2)) **"backend başarılı dönüşünde sunucu kaydı local girişle DEĞİŞTİRİLİR"**
-5. (LogStore (T2)) **"localStorage yazımı debounced: 2 sn içinde ardışık addLog TEK yazım üretir"**
-6. (LogStore (T2)) **"addLog backend hatasını yutar — local giriş korunur"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/demo-field/integration/bsc-handshake.integration.test.ts` (10 test)
+### `apps/site/integration/bsc-handshake.integration.test.ts` (10 test)
 
 1. (BSC komut el sıkışması) **"C3: komut sonrası 40010 finalize ile 0'a döner"**
 2. (BSC komut el sıkışması) **"C4: heartbeat 40000 saniyelik artan sayaç olarak yazılır"**
@@ -155,7 +39,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/bsc-pcs-connector.integration.test.ts` (7 test)
+### `apps/site/integration/bsc-pcs-connector.integration.test.ts` (7 test)
 
 1. (BSC→PCS batarya verisi eşleme) **"PCS BMS SOC geçerli aralıkta ve sağlıklı BSC SOC ile tutarlı"**
 2. (BSC→PCS batarya verisi eşleme) **"M12: toplam gerilim online rack'lerden gelir (~1300 V)"**
@@ -167,7 +51,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/commands-operations-edge.integration.test.ts` (14 test)
+### `apps/site/integration/commands-operations-edge.integration.test.ts` (14 test)
 
 1. (B1 — komut katmanı edge-case'ler) **"bilinmeyen cihaz → 404"**
 2. (B1 — komut katmanı edge-case'ler) **"bilinmeyen komut → 404"**
@@ -177,7 +61,7 @@
 6. (B1 — komut katmanı edge-case'ler) **"pulse: CB-1 open sonrası coil serbest kalır (0)"**
 7. (B1 — komut katmanı edge-case'ler) **"execute-multi onFailure=stop: ilk adım hata → ikinci atlanır"**
 8. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"bilinmeyen operasyon → 404"**
-9. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"divideTotal floor: charge powerKw=25 → BSC setpoint 12"**
+9. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"divideTotal floor: charge powerKw=25 → PCS-1 S06 = -12 kW"**
 10. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"timer: charge + 3 sn → PCS gücü 0'a iner"**
 11. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"rollback: ulaşılamayan system → başarısız uzak adım + rollback"**
 12. (B1 — komut katmanı edge-case'ler > B2 — operasyon katmanı edge-case'ler) **"MV interlock: H01 toprak kalıcı kilitli (komut reddedilir)"**
@@ -186,7 +70,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/data-pipeline.integration.test.ts` (6 test)
+### `apps/site/integration/data-pipeline.integration.test.ts` (6 test)
 
 1. (C — yazma hattı (gerçek Timescale verisi)) **"C1 dedup: sabit telemetri (BSC SOH) her poll'da yazılmaz (≤2 satır/30 sn)"**
 2. (C — yazma hattı (gerçek Timescale verisi)) **"C2 TTL: sabit BSC SOH maxStaleMs sonrası yine üretilir (≥2 satır/70 sn)"**
@@ -197,22 +81,22 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/demo-maneuver.integration.test.ts` (10 test)
+### `apps/site/integration/demo-maneuver.integration.test.ts` (10 test)
 
 1. (demo manevra kataloğu (AK-10.1/10.2)) **"6 demo operasyonu yüklü; mevcut katalog korunuyor"**
-2. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1)) **"girilen güç BSC şarj setpointine yansır (powerKw/2 BSC)"**
-3. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"charge → PCS gücü negatif; standby durdurur"**
-4. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"SIM-1: charge sonrası BSC şarj modu latch'lenir (ChargeStatus=1, komut kutusu 0)"**
-5. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"discharge → PCS gücü pozitif"**
-6. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"SIM-1: discharge sonrası BSC deşarj modu latch'lenir (ChargeStatus=2)"**
-7. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"full_charge / full_discharge operasyonları tamamlanır"**
-8. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"calibration çok adımlı operasyon tamamlanır"**
-9. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3)) **"charge + timer 5 sn → PCS gücü 0'a iner"**
-10. (demo manevra kataloğu (AK-10.1/10.2) > powerKw tüm katmanlara yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3) > MV interlock (AK-10.5)) **"kesici kapalıyken toprak kapatma reddedilir"**
+2. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1)) **"girilen güç PCS S06 → connector → BSC SOC'yi şarj yönünde değiştirir"**
+3. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"charge → PCS gücü negatif; standby durdurur"**
+4. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"SIM-1: charge sonrası BSC şarj modu latch'lenir (ChargeStatus=1, komut kutusu 0)"**
+5. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"discharge → PCS gücü pozitif"**
+6. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"SIM-1: discharge sonrası BSC deşarj modu latch'lenir (ChargeStatus=2)"**
+7. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"full_charge / full_discharge operasyonları tamamlanır"**
+8. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4)) **"calibration çok adımlı operasyon tamamlanır"**
+9. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3)) **"charge + timer 5 sn → PCS gücü 0'a iner"**
+10. (demo manevra kataloğu (AK-10.1/10.2) > powerKw fiziksel zincire yayılır (Q1) > şarj/deşarj fiziksel etki (AK-10.4) > zamanlı durdurma (Q3) > MV interlock (AK-10.5)) **"kesici kapalıyken toprak kapatma reddedilir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/device-telemetry.integration.test.ts` (38 test)
+### `apps/site/integration/device-telemetry.integration.test.ts` (38 test)
 
 1. (telemetri akışı — tüm cihazlar) **"konteyner linki 20+ cihazdan telemetri taşır"**
 2. (telemetri akışı — tüm cihazlar) **"field tier PCS-1/PCS-2/MV-1 telemetrisi dolu"**
@@ -255,7 +139,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/protocol-conformance.integration.test.ts` (10 test)
+### `apps/site/integration/protocol-conformance.integration.test.ts` (10 test)
 
 1. (FC03 okuma şartı (vendor dokümanı)) **"PCS: A bloğu FC03 ile okunur (Operation Status 0x2F7D)"**
 2. (FC03 okuma şartı (vendor dokümanı)) **"B1: IMD izolasyon direnci FC03 ile okunur"**
@@ -270,14 +154,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/station-containers.integration.test.ts` (2 test)
+### `apps/site/integration/station-containers.integration.test.ts` (2 test)
 
-1. (UC-13 station-tagged konteynerler) **"2 konteyner station etiketli + connected + telemetri akıyor"**
+1. (UC-13 station-tagged konteynerler) **"topoloji 2 istasyon + konteynerleri tanımlar; ikisi de connected + telemetri akıyor"**
 2. (UC-13 station-tagged konteynerler) **"veri istasyon-bazlı ayrışır: c2 BSC-1 overheat → bess2 ~80, bess1 nominal"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/integration/station-operations.integration.test.ts` (4 test)
+### `apps/site/integration/station-operations.integration.test.ts` (4 test)
 
 1. (UC-13 istasyon bazlı operasyon yürütme (2 konteyner)) **"iki konteyner istasyon etiketli ve bağlı (bess1=container-1, bess2=container-2)"**
 2. (UC-13 istasyon bazlı operasyon yürütme (2 konteyner)) **"bess1 standby → uzak bsc_stop container-1'de yürür"**
@@ -286,7 +170,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/buildDevices.test.ts` (7 test)
+### `apps/site/src/features/demo-data/buildDevices.test.ts` (7 test)
 
 1. (buildDevices (UC-9, AK-9.1/9.3)) **"HVAC satırlarından durum/mode/sıcaklık/alarm türetir"**
 2. (buildDevices (UC-9, AK-9.1/9.3)) **"HVAC telemetrisi yoksa undefined (güvenli varsayılan)"**
@@ -298,7 +182,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/buildTrendSeries.test.ts` (8 test)
+### `apps/site/src/features/demo-data/buildTrendSeries.test.ts` (8 test)
 
 1. (buildTrendSeries (FR-6.1 / AK-6.1)) **"SOC'yi zaman kovasında ortalar"**
 2. (buildTrendSeries (FR-6.1 / AK-6.1)) **"gücü toplar (kW→MW)"**
@@ -311,9 +195,9 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demo-permissives.test.ts` (6 test)
+### `apps/site/src/features/demo-data/demo-permissives.test.ts` (6 test)
 
-1. (derivePermissives (UC-5, referans sim.permissives)) **"referans madde başlıklarını üretir (8 madde)"**
+1. (derivePermissives (UC-5, referans sim.permissives)) **"referans madde başlıklarını üretir (8 madde + FSS)"**
 2. (derivePermissives (UC-5, referans sim.permissives)) **"sağlıklı durumda tüm kontroller ok"**
 3. (derivePermissives (UC-5, referans sim.permissives)) **"toprak kapalı → hard fail (yalnız earthing hard)"**
 4. (derivePermissives (UC-5, referans sim.permissives)) **"PCS arızası → PCS ready + fault/maintenance fail (hard değil)"**
@@ -322,7 +206,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demo-portfolio.test.ts` (6 test)
+### `apps/site/src/features/demo-data/demo-portfolio.test.ts` (6 test)
 
 1. (demo-portfolio (UC-11)) **"AK-11.2: iki proje tanımlıdır"**
 2. (demo-portfolio (UC-11)) **"AK-11.3: tam olarak bir proje canlıdır"**
@@ -333,17 +217,17 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demo-stations.test.ts` (13 test)
+### `apps/site/src/features/demo-data/demo-stations.test.ts` (13 test)
 
-1. (demo-stations) **"AK-11.6 / K-22: 2 istasyon, 9+9 ünite, toplam 18"**
-2. (demo-stations) **"K-18: her istasyon kendi PCS çiftini kontrol eder"**
+1. (demo-stations) **"2 istasyon × 9 ünite: BESS#1–9 ve BESS#10–18 (gdems stationTopo)"**
+2. (demo-stations) **"K-18: her istasyon kendi PCS çiftini ve MV simülatörünü kullanır"**
 3. (demo-stations) **"AK-11.6: collector MV STATION ve hücre eşlemesi"**
 4. (demo-stations) **"stationForUnit doğru istasyonu döner"**
-5. (demo-stations) **"AK-11.5: stationTopo yalnız o istasyonun fiderini taşır"**
-6. (demo-stations) **"stateForStation üniteleri ve feeder/POI değerini süzer"**
+5. (demo-stations) **"AK-11.5: stationTopo çizimi değiştirmez — 2 fider, üniteler yeniden numaralı"**
+6. (demo-stations) **"stateForStation üniteleri ve iki fiderin gücünü süzer"**
 7. (demo-stations) **"stationTopo orijinal DEMO_TOPOLOGY'yi bozmaz"**
 8. (demo-stations > kollektör tipi + illüstratif PV (AK-11.9)) **"collectorType kuralı: >50 MW → Metal Clad, aksi MV station"**
-9. (demo-stations > kollektör tipi + illüstratif PV (AK-11.9)) **"demoPlantTotals (K-22): BESS 62.1 + PV ≈ 43.4 → Metal Clad"**
+9. (demo-stations > kollektör tipi + illüstratif PV (AK-11.9)) **"demoPlantTotals: BESS 62.1 (18 × 2 × 1.725) + PV ≈ 43.4 → Metal Clad"**
 10. (demo-stations > kollektör tipi + illüstratif PV (AK-11.9)) **"DEMO_SOURCE: 2 PV istasyonu × 7 inverter"**
 11. (demo-stations > kollektör tipi + illüstratif PV (AK-11.9) > stationsForContainers (UC-13)) **"station etiketine göre konteynerleri istasyonlara atar"**
 12. (demo-stations > kollektör tipi + illüstratif PV (AK-11.9) > stationsForContainers (UC-13)) **"eksik etiketli istasyon ilk konteynere düşer (fallback)"**
@@ -351,7 +235,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demo-teias.test.ts` (5 test)
+### `apps/site/src/features/demo-data/demo-teias.test.ts` (5 test)
 
 1. (demo-teias (UC-6, FR-6.3)) **"telemetri 20 satır + komut 8 satır"**
 2. (demo-teias (UC-6, FR-6.3)) **"SoH enerji + anlık SOC + reaktif türetir"**
@@ -361,9 +245,9 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demo-topology.test.ts` (7 test)
+### `apps/site/src/features/demo-data/demo-topology.test.ts` (7 test)
 
-1. (demo-topology (UC-1/T-1, K1)) **"18 ünite tanımlar (K-22: her istasyon 9 — fider A 1-9, B 10-18)"**
+1. (demo-topology (UC-1/T-1, K1)) **"istasyon şablonu 9 ünite (A/H04 1–5, B/H05 6–9); toplam 2×9 = 18"**
 2. (demo-topology (UC-1/T-1, K1)) **"fider yönü gdems ile aynı: A→H04, B→H05"**
 3. (demo-topology (UC-1/T-1, K1)) **"hücre motor/esMotor/auxTr bayraklarını taşır"**
 4. (demo-topology (UC-1/T-1, K1)) **"RMU toprak ayırıcısını (ES) ve motorlu H02'yi taşır"**
@@ -373,7 +257,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demoApi.test.ts` (3 test)
+### `apps/site/src/features/demo-data/demoApi.test.ts` (3 test)
 
 1. (demoApi execute — systems passthrough (UC-13)) **"executeOperation systems gönderir"**
 2. (demoApi execute — systems passthrough (UC-13)) **"executeManeuver systems gönderir"**
@@ -381,14 +265,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/demoManeuverApi.test.ts` (2 test)
+### `apps/site/src/features/demo-data/demoManeuverApi.test.ts` (2 test)
 
 1. (demoManeuverApi (UC-7, FR-7.1)) **"FL-01…FL-05 kayıtları demo kataloğunda listelenir"**
 2. (demoManeuverApi (UC-7, FR-7.1)) **"kapsam gerçek PCS cihaz setine indirgenir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/deriveKpis.test.ts` (4 test)
+### `apps/site/src/features/demo-data/deriveKpis.test.ts` (4 test)
 
 1. (deriveKpis (FR-4.1 / AK-4.1)) **"ortalama SOC/SOH ve mod türetir"**
 2. (deriveKpis (FR-4.1 / AK-4.1)) **"UC-13: BSC ChargeStatus varsa mod istasyon bazlıdır (PCS paylaşımlı olsa da)"**
@@ -397,32 +281,33 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/mapFieldToMimicState.test.ts` (20 test)
+### `apps/site/src/features/demo-data/mapFieldToMimicState.test.ts` (21 test)
 
 1. (fanOutUnits (FR-2.1)) **"verilen sayıda ünite üretir ve deterministiktir"**
-2. (fanOutUnits (FR-2.1)) **"PCS gücünü ünite sayısına böler"**
-3. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"tek konteyneri 18 üniteye fan-out eder (K-22)"**
+2. (fanOutUnits (FR-2.1)) **"PCS gücünü BÖLMEZ (her grup PCS'i aynı setpoint'i taşır); kopyalar işaretli"**
+3. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"legacy (etketsiz) tek prototipi iki istasyona fan-out eder (2×9 = 18)"**
 4. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"her fiderin son ünitesinde H03 (hat sonu) yoktur"**
 5. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"banka A→BSC-1, banka B→BSC-2 eşler (birebir — sunumsal offset yok)"**
 6. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"PCS durum kodlarını eşler (2→chg, 3→dis)"**
-7. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"saha toplam gücünü korur (POI işaretli)"**
+7. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"istasyon toplam gücünü korur (POI işaretli)"**
 8. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"hücre ΔV türetir (3.400−3.350 V → 50 mV)"**
 9. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"raf başına SOC/V/I türetir (UC-5, FR-5.2)"**
 10. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"BSC state (30036) ve çevrimiçi raf (30038) telemetrisini banka durumuna taşır"**
 11. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"demo-MV telemetrisinden station pozisyonu okur"**
-12. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"MV telemetrisi yokken varsayılan kapalı + nominal kV"**
-13. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"boş konteynerde boş ünite listesi döner"**
-14. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9)) **"AK-9.1: HVAC/AUX/FSS/IMD/DC ünite durumuna bağlanır"**
-15. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9)) **"AK-9.2: fan-out yeni cihazları 18 üniteye kopyalar; ambient outside temp"**
-16. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9)) **"AK-9.3: cihaz telemetrisi yoksa alanlar tanımsız, throw yok"**
-17. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"iki konteyner iki istasyona bölünür; SOC istasyona göre ayrışır"**
-18. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"etiket yoksa legacy tek prototip (güç korunumu) korunur"**
-19. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"K-18: istasyon PCS çifti — station1 PCS-3/4, station2 PCS-1/2"**
-20. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"UC-13: BSC ChargeStatus bankaya taşınır (istasyon modu için)"**
+12. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"MV telemetrisi yokken fail-closed: kesici AÇIK + ölçüm 0 (uydurma nominal yok)"**
+13. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"fider CT: H04 = fider A, H05 = fider B (topolojiden; eskiden ters)"**
+14. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6)) **"boş konteynerde boş ünite listesi döner"**
+15. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9)) **"AK-9.1: HVAC/AUX/FSS/IMD/DC ünite durumuna bağlanır"**
+16. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9)) **"AK-9.2: fan-out yeni cihazları tüm ünitelere kopyalar; ambient outside temp"**
+17. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9)) **"AK-9.3: cihaz telemetrisi yoksa alanlar tanımsız, throw yok"**
+18. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"iki konteyner topolojiye göre iki istasyona bölünür; SOC ayrışır"**
+19. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"etiket yoksa legacy tek prototip (güç korunumu) korunur"**
+20. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"K-18: istasyon PCS çifti — station1 PCS-1/2, station2 PCS-3/4"**
+21. (fanOutUnits (FR-2.1) > mapFieldToMimicState (FR-2.2..FR-2.6) > mapFieldToMimicState — container cihazları (UC-9) > UC-13 istasyon-bazlı fan-out) **"UC-13: BSC ChargeStatus bankaya taşınır (istasyon modu için)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/features/demo-data/useTargetSocWatcher.test.ts` (3 test)
+### `apps/site/src/features/demo-data/useTargetSocWatcher.test.ts` (3 test)
 
 1. (useTargetSocWatcher saf türevleri (UC-5)) **"socOf scope ortalamasını verir"**
 2. (useTargetSocWatcher saf türevleri (UC-5)) **"targetReached yönü doğru uygular"**
@@ -430,445 +315,42 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/lib/demo-theme.test.tsx` (2 test)
+### `apps/site/src/lib/demo-theme.test.tsx` (2 test)
 
 1. (useDemoTheme) **"localStorage dark → mount anında (senkron) data-theme dark uygular"**
 2. (useDemoTheme) **"setTheme('light') → değişkenleri ve localStorage'ı günceller"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/lib/site-field.test.ts` (2 test)
+### `apps/site/src/lib/site-field.test.ts` (2 test)
 
 1. (postLoginDestination) **"fieldId varsa portföy sayfasına yönlendirir (UC-11)"**
 2. (postLoginDestination) **"fieldId boşsa açık hata döner"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/pages/DemoFieldPage.test.tsx` (4 test)
+### `apps/site/src/pages/DemoDevicesPage.test.tsx` (3 test)
+
+1. (DemoDevicesPage — istasyon bazlı ağaç) **"istasyon 2: Battery groups BESS#10–18 listelenir"**
+2. (DemoDevicesPage — istasyon bazlı ağaç) **"istasyon 2: BESS#10 seçilince battery alt sekmeleri açılır"**
+3. (DemoDevicesPage — istasyon bazlı ağaç) **"istasyon 1: BESS#1–9 listelenir (regresyon)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps/site/src/pages/DemoFieldPage.test.tsx` (4 test)
 
 1. (DemoFieldPage — site layout (UC-4)) **"ortak üst blok + site yerleşimini render eder"**
 2. (DemoFieldPage — site layout (UC-4)) **"hata durumunda uyarı gösterir ama sayfa render olur"**
-3. (DemoFieldPage — site layout (UC-4)) **"AK-11.6/AK-11.5: istasyon seçici render eder ve geçiş yapar"**
+3. (DemoFieldPage — site layout (UC-4)) **"istasyon seçici var (2 istasyon × 9 ünite; çizim aktif istasyonu gösterir)"**
 4. (DemoFieldPage — site layout (UC-4)) **"DemoMimic mount olurken tema değişkenlerini light'a EZMEZ (dark korunur)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/demo-field/src/pages/DemoProjectsPage.test.tsx` (3 test)
+### `apps/site/src/pages/DemoProjectsPage.test.tsx` (3 test)
 
 1. (DemoProjectsPage (UC-11)) **"AK-11.1/11.2: başlık, iki proje ve haritayı render eder"**
 2. (DemoProjectsPage (UC-11)) **"AK-11.6: PTF kartı, Asset management ve Market paneli görünür"**
 3. (DemoProjectsPage (UC-11)) **"harita lejantı ve New project yer tutucusu vardır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/editor/src/features/editor/device-catalog/catalog.test.ts` (4 test)
-
-1. (device-catalog) **"5 built-in cihaz tipi sunar"**
-2. (device-catalog) **"her DeviceType icin tanim var ve type alani kendi anahtariyla eslesiyor"**
-3. (device-catalog) **"tum tanimlar en az bir protokol ve bir ikon bildirir"**
-4. (device-catalog) **"getDeviceDefinition bilinen tip icin tanim dondurur"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/app/App.test.tsx` (3 test)
-
-1. (TunnelBootstrap (AUTH-REFRESH — UC-2)) **"standalone: hydrate ÇAĞRILMAZ — auto-guest YOK (AK-2.3)"**
-2. (TunnelBootstrap (AUTH-REFRESH — UC-2)) **"tünel modu: hydrateSessionAuth ÇAĞRILIR (AK-2.3)"**
-3. (TunnelBootstrap (AUTH-REFRESH — UC-2)) **"yalnızca BİR kez koşar (tekrar render'da hydrate tekrar çağrılmaz)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/auth/stores/AuthStore.test.ts` (6 test)
-
-1. (AuthStore (AUTH-REFRESH — 2026-09-23)) **"login başarılı → oturum + rol bayrakları"**
-2. (AuthStore (AUTH-REFRESH — 2026-09-23)) **"login mfaRequired → pendingMfaToken, oturum yok"**
-3. (AuthStore (AUTH-REFRESH — 2026-09-23)) **"logout backend'i çağırır ve temizler — auto-guest YOKTUR (AK-2.1)"**
-4. (AuthStore (AUTH-REFRESH — 2026-09-23)) **"logout sunucu hatasında bile yerel state'i temizler"**
-5. (AuthStore (AUTH-REFRESH — 2026-09-23)) **"clearSession persist dahil tam temizler; backend çağrısı YAPMAZ (AK-2.2)"**
-6. (AuthStore (AUTH-REFRESH — 2026-09-23)) **"developer rolü isDeveloper bayrağını set eder"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/containers/components/PcsCard.test.tsx` (12 test)
-
-1. (PcsCard) **"pcsId ve konteyner adını gösterir"**
-2. (PcsCard) **"bağlı PCS'te online rozeti görünür"**
-3. (PcsCard) **"kopuk PCS'te offline rozeti görünür"**
-4. (PcsCard) **"negatif aktif güç → şarj rozeti"**
-5. (PcsCard) **"pozitif aktif güç → deşarj rozeti"**
-6. (PcsCard) **"sıfır aktif güç → bekleme rozeti"**
-7. (PcsCard) **"ana metrik işaretli aktif gücü gösterir"**
-8. (PcsCard) **"Detay butonu onDetailClick'i çağırır"**
-9. (PcsCard) **"Config butonu onConfigClick'i çağırır"**
-10. (PcsCard) **"callback verilmezse butonlar render edilmez"**
-11. (PcsCard > PcsCard — genişletilmiş detaylar (2026-09-02)) **"AC/Kullanılabilir/Enerji bölümleri değerleri gösterir"**
-12. (PcsCard > PcsCard — genişletilmiş detaylar (2026-09-02)) **"eksik genişletilmiş telemetri → 0.0/0 değerleri"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/containers/hooks/containerGaugeBlocks.test.ts` (11 test)
-
-1. (buildDeviceGaugeBlocks — BSC (V2 formatı)) **"cihaz başına success temalı 4 gauge üretir (canonical eşleme)"**
-2. (buildDeviceGaugeBlocks — BSC (V2 formatı)) **"eksik canonical kayıt → 0; rack seviyesi satırlar sayılmaz"**
-3. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı)) **"ünite başına temp temalı 4 gauge üretir"**
-4. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı)) **"eksik telemetri → 0 (4 gauge yine üretilir)"**
-5. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı)) **"CB tekleşik warning bloğu: CB1/CB2 Kapalı+Açık (K2 şalter)"**
-6. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı)) **"DC tekleşik info bloğu: DC1/DC2 Voltaj+Akım"**
-7. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı)) **"CB/DC telemetrisi yoksa blok üretilmez"**
-8. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı) > buildDeviceGaugeBlocks — PM5340 + EP203 (V2 formatı)) **"PM5340 info bloğu: Voltaj/Akım/Güç/Enerji"**
-9. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı) > buildDeviceGaugeBlocks — PM5340 + EP203 (V2 formatı)) **"EP203 her zaman render edilir; telemetri yoksa 0 (dummy)"**
-10. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı) > buildDeviceGaugeBlocks — PM5340 + EP203 (V2 formatı)) **"EP203 telemetrisi varsa gerçek değerler gelir"**
-11. (buildDeviceGaugeBlocks — BSC (V2 formatı) > buildDeviceGaugeBlocks — HVAC (V2 formatı) > buildDeviceGaugeBlocks — CB + DC (V2 formatı) > buildDeviceGaugeBlocks — PM5340 + EP203 (V2 formatı)) **"PCS cihazları blok üretmez (PcsCard'ın alanı)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/containers/hooks/pcsDerivation.test.ts` (14 test)
-
-1. (derivePcsSummary) **"tek PCS cihazı için özet döner (bağlantı + filtrelenmiş telemetri)"**
-2. (derivePcsSummary) **"PCS cihazı yoksa undefined döner"**
-3. (derivePcsSummary) **"birden fazla PCS varsa sıralı ilki kazanır (1 konteyner = 1 PCS)"**
-4. (derivePcsSummary) **"bağlantı durumu parametreden taşınır"**
-5. (derivePcsSummary > pcsState) **"bağlantı yok → offline"**
-6. (derivePcsSummary > pcsState) **"negatif aktif güç → charging"**
-7. (derivePcsSummary > pcsState) **"pozitif aktif güç → discharging"**
-8. (derivePcsSummary > pcsState) **"sıfır aktif güç → idle"**
-9. (derivePcsSummary > pcsState > pcsTelemetryValue) **"mevcut sayısal satırı döner"**
-10. (derivePcsSummary > pcsState > pcsTelemetryValue) **"eksik satır → 0"**
-11. (derivePcsSummary > pcsState > pcsTelemetryValue) **"sayısal olmayan değer → 0"**
-12. (derivePcsSummary > pcsState > pcsTelemetryValue) **"boş telemetri → 0"**
-13. (derivePcsSummary > pcsState > pcsTelemetryValue > pcsConfigInfo) **"envanter unique + sıralı üretir; bağlantı meta bilgilerini taşır"**
-14. (derivePcsSummary > pcsState > pcsTelemetryValue > pcsConfigInfo) **"opsiyonel alanlar undefined kalabilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/containers/hooks/useContainerData.test.ts` (6 test)
-
-1. (statusForContainer (T5.1)) **"connected → online; stale/error → warning; idle → offline"**
-2. (statusForContainer (T5.1) > summarizeContainer (T5.1)) **"kanonik metriklerden SOC/güç toplar"**
-3. (statusForContainer (T5.1) > summarizeContainer (T5.1)) **"canonical yoksa name fallback çalışır (system rack'iyle)"**
-4. (statusForContainer (T5.1) > summarizeContainer (T5.1)) **"stale → warning + connected false"**
-5. (statusForContainer (T5.1) > summarizeContainer (T5.1)) **"boş telemetri → sıfırlar"**
-6. (statusForContainer (T5.1) > summarizeContainer (T5.1)) **"tip bazlı aktif sayım: CB kapalı, DC açık"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/containers/hooks/useContainerTelemetry.test.tsx` (2 test)
-
-1. (useContainerTelemetry (T2)) **"list'ten konteyner snapshot'ını bulur; series 120 nokta ister"**
-2. (useContainerTelemetry (T2)) **"konteyner listede yoksa container undefined"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/containers/services/containersApi.test.ts` (7 test)
-
-1. (containersApi.executeCommands (WS4 D5)) **"komut proxy rotasını doğru gövdeyle çağırır"**
-2. (containersApi.executeCommands (WS4 D5)) **"varsayılan mod parallel + onFailure stop"**
-3. (containersApi.executeCommands (WS4 D5) > containersApi.listDevices (2026-09-02)) **"tünel yolundan cihaz listesini döndürür"**
-4. (containersApi.executeCommands (WS4 D5) > containersApi.listDevices (2026-09-02)) **"hata durumunda throw eder (fallback tetiklenir)"**
-5. (containersApi.executeCommands (WS4 D5) > containersApi.listDevices (2026-09-02) > containersApi.deviceConfig (2026-09-02)) **"telemetry-config yanıtını döndürür"**
-6. (containersApi.executeCommands (WS4 D5) > containersApi.listDevices (2026-09-02) > containersApi.deviceConfig (2026-09-02)) **"404 → null (config yok)"**
-7. (containersApi.executeCommands (WS4 D5) > containersApi.listDevices (2026-09-02) > containersApi.deviceConfig (2026-09-02)) **"404 dışı hata → throw"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/dashboard/deriveDashboard.test.ts` (11 test)
-
-1. (derivePcsRows (B4)) **"benzersiz PCS-* cihazları, snapshot'ta varsa bağlı"**
-2. (derivePcsRows (B4)) **"PCS yoksa boş liste"**
-3. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02)) **"canonical soc/soh + rack_id system satırlarının ortalamasını alır"**
-4. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02)) **"rack_id system olmayan (rack seviyesi) satırlar dahil edilmez"**
-5. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02)) **"canonical etiketi olmayan name eşleşmeleri sayılmaz"**
-6. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02)) **"sayısal olmayan değerler atlanır; boş giriş → null"**
-7. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02)) **"çok konteynerli saha ortalaması (konteyner sınırı yok)"**
-8. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02) > derivePowerLimits (2026-09-02)) **"canonical charge_power/discharge_power (system) toplamını üretir"**
-9. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02) > derivePowerLimits (2026-09-02)) **"eksik kayıt → 0"**
-10. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02) > derivePowerLimits (2026-09-02)) **"çok konteynerli saha toplamı"**
-11. (derivePcsRows (B4) > deriveSocSohAverages (2026-09-02) > derivePowerLimits (2026-09-02)) **"sayısal olmayan değerler atlanır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/field-control/components/FieldManeuverPanel.test.tsx` (5 test)
-
-1. (FieldManeuverPanel (Faz D2 — sunucu kataloğu)) **"kartlar sunucudan gelir; gizli manevralar YOKTUR; operasyon kartları görünür"**
-2. (FieldManeuverPanel (Faz D2 — sunucu kataloğu)) **"Çalıştır → executeManeuver (params + grup deviceIds kısıtı)"**
-3. (FieldManeuverPanel (Faz D2 — sunucu kataloğu)) **"operasyon kartı → executeOperation"**
-4. (FieldManeuverPanel (Faz D2 — sunucu kataloğu)) **"kısmi başarısızlık (rolled_back) başarı sayılır — failed değil"**
-5. (FieldManeuverPanel (Faz D2 — sunucu kataloğu)) **"API hatası → failed durumu (throw yutulur)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/field-control/services/fieldManeuverApi.defs.test.ts` (4 test)
-
-1. (fieldManeuverApi — tanım yönetimi (C4)) **"createOperation: POST /operations + tanım gövdesi"**
-2. (fieldManeuverApi — tanım yönetimi (C4)) **"updateOperation: PUT /operations/:name"**
-3. (fieldManeuverApi — tanım yönetimi (C4)) **"deleteOperation: DELETE /operations/:name (yumuşak silme)"**
-4. (fieldManeuverApi — tanım yönetimi (C4)) **"listRuns: GET /operations/runs + boş → []"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/field-control/services/fieldManeuverApi.test.ts` (3 test)
-
-1. (fieldManeuverApi (Faz D2)) **"listManeuvers/listOperations: doğru uçlar + boş katalog []"**
-2. (fieldManeuverApi (Faz D2)) **"executeManeuver: gövde {params} varsayılan; deviceIds + timer taşınır"**
-3. (fieldManeuverApi (Faz D2)) **"executeOperation: doğru uç + sonuç passthrough"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/field-devices/hooks/useContainerDevices.test.tsx` (4 test)
-
-1. (useContainerDevices (2026-09-02)) **"oturum açılır ve cihaz listesi tünelden gelir (source=tunnel)"**
-2. (useContainerDevices (2026-09-02)) **"oturum başarısızsa snapshot fallback'i (source=snapshot)"**
-3. (useContainerDevices (2026-09-02)) **"tünel listesi hata verirse snapshot fallback'i"**
-4. (useContainerDevices (2026-09-02)) **"seçili konteyner snapshot'ta yoksa boş liste"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/field-devices/hooks/useFieldDevices.test.ts` (7 test)
-
-1. (deriveDevicesFromSnapshot (B3)) **"benzersiz deviceId başına bir satır üretir (19 cihazlı konteyner)"**
-2. (deriveDevicesFromSnapshot (B3)) **"tip önekten türetilir; snapshot cihazı online'dır"**
-3. (deriveDevicesFromSnapshot (B3)) **"bilinmeyen önek → type 'unknown'"**
-4. (deriveDevicesFromSnapshot (B3)) **"aynı cihaz iki konteynerde → tek satır, en yeni last_seen"**
-5. (deriveDevicesFromSnapshot (B3)) **"boş snapshot → boş liste"**
-6. (deriveDevicesFromSnapshot (B3) > latestTelemetryForDevice (B3)) **"seçili cihazın satırlarını döndürür (isim başına en yeni değer)"**
-7. (deriveDevicesFromSnapshot (B3) > latestTelemetryForDevice (B3)) **"bilinmeyen cihaz → boş dizi"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/pcs/hooks/derivePcsSummaries.test.ts` (2 test)
-
-1. (deriveAllPcsSummaries (2026-09-02)) **"konteyner başına bir PCS özeti üretir; PCS'siz konteyner atlanır"**
-2. (deriveAllPcsSummaries (2026-09-02)) **"boş giriş → boş liste"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/pcs/hooks/usePcsTelemetryProvider.test.tsx` (2 test)
-
-1. (usePcsTelemetryProvider (2026-09-02)) **"seriyi ister ve yalnız pcsId satırlarını döndürür"**
-2. (usePcsTelemetryProvider (2026-09-02)) **"seçilen isim veriyi daha da daraltır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/settings/stores/settingsStore.test.ts` (4 test)
-
-1. (settingsStore) **"varsayılan değerler tr/dark"**
-2. (settingsStore) **"setLocale dil değiştirir"**
-3. (settingsStore) **"setTheme tema değiştirir"**
-4. (settingsStore) **"locale persist edilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/features/ui/Modal.test.tsx` (6 test)
-
-1. (Modal) **"open=false iken null render eder"**
-2. (Modal) **"open=true iken başlık ve içerik render eder"**
-3. (Modal) **"Escape tuşu onClose çağırır"**
-4. (Modal) **"overlay tıklaması onClose çağırır"**
-5. (Modal) **"içerik tıklaması onClose çağırmaz"**
-6. (Modal) **"kapatma butonu onClose çağırır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/layouts/nav-visibility.test.ts` (4 test)
-
-1. (visibleNavKeys) **"admin ve teknik tüm menüyü görür"**
-2. (visibleNavKeys) **"boss kontrol hariç tüm menüyü görür"**
-3. (visibleNavKeys) **"guest ve developer yalnız Panel görür"**
-4. (visibleNavKeys > emergencyVisible) **"admin/teknik görür; boss/guest/developer görmez"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/lib/api-base.test.ts` (7 test)
-
-1. (field api-base (Boss Faz 3)) **"kök dizinde /api döner"**
-2. (field api-base (Boss Faz 3)) **"normal saha rotalarında /api döner (tünel değil)"**
-3. (field api-base (Boss Faz 3)) **"tünel subpath'inde /fields/:fid/ui/api döner"**
-4. (field api-base (Boss Faz 3)) **"trailing slash normalize edilir"**
-5. (field api-base (Boss Faz 3)) **"tünel içindeki alt route'lar prefix'i korur"**
-6. (field api-base (Boss Faz 3)) **"isTunnelMode yalnızca /fields/:fid/ui önekinde true"**
-7. (field api-base (Boss Faz 3)) **"fieldRootPath — normal modda /field/:fid, tünelde /fields/:fid/ui"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/lib/api-client.test.ts` (8 test)
-
-1. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"standalone: request'e Bearer token eklenir"**
-2. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"tünel modunda request interceptor Bearer EKLEMEZ (boss localStorage korunur)"**
-3. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"eşzamanlı N 401 → TEK /auth/refresh + hepsi yeni token'la retry (AK-1.1)"**
-4. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"refresh apiClient üzerinden (apiBaseUrl) yapılır — ham axios.post ÇAĞRILMAZ (AK-1.2)"**
-5. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"refresh başarısız → token'lar + persist store temizlenir + /login SPA navigasyonu (AK-1.3)"**
-6. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"refresh token yoksa retry YAPILMAZ — temizlik + navigasyon (401 fırlar)"**
-7. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"retry sonrası ikinci 401 refresh ÇAĞRILMAZ — döngü koruması (_retry)"**
-8. (field api-client interceptor (AUTH-REFRESH — UC-1)) **"tünel modunda 401 → tamamen İNERT: refresh yok, localStorage'a dokunulmaz, navigasyon yok (AK-1.4)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/lib/site-field.test.ts` (8 test)
-
-1. (postLoginDestination) **"mustChangePassword → /change-password (her rol için öncelikli)"**
-2. (postLoginDestination) **"MFA zorunlu rol + kayıt yok → /mfa-enroll"**
-3. (postLoginDestination) **"MFA kayıtlıysa → saha ana sayfası"**
-4. (postLoginDestination) **"MFA roller listesi boşsa (debug) → enroll YOK, doğrudan saha"**
-5. (postLoginDestination) **"boss → /map"**
-6. (postLoginDestination) **"fieldId boşsa → açık hata"**
-7. (postLoginDestination) **"teknik + MFA zorunlu + kayıtlı → kendi sahası"**
-8. (postLoginDestination > siteFieldId) **"string döner (tanımsızsa boş)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/pages/AdminOperationsPage.test.tsx` (4 test)
-
-1. (AdminOperationsPage (C4)) **"admin değilse içerik GÖSTERİLMEZ"**
-2. (AdminOperationsPage (C4)) **"tanımlar + geçmiş listelenir"**
-3. (AdminOperationsPage (C4)) **"Kaydet → createOperation (boş manevra adımları elenir)"**
-4. (AdminOperationsPage (C4)) **"Devre Dışı Bırak → deleteOperation (yumuşak silme)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/pages/ChangePasswordPage.test.tsx` (5 test)
-
-1. (ChangePasswordPage) **"başarılı değişim + admin → fieldRootPath(siteFieldId()) — 'default-field' ASLA kullanılmaz"**
-2. (ChangePasswordPage) **"fieldIds boşken siteFieldId kullanılır — sahte kimliğe düşmez"**
-3. (ChangePasswordPage) **"siteFieldId boşsa → hata mesajı, navigasyon YOK"**
-4. (ChangePasswordPage) **"boss rolü → /map (LoginPage sözleşmesi — SPA navigasyonu)"**
-5. (ChangePasswordPage) **"API hatası → hata mesajı, navigasyon YOK"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/src/pages/SettingsPage.test.tsx` (4 test)
-
-1. (SettingsPage) **"görünüm ve dil bölümleri render edilir"**
-2. (SettingsPage) **"tema bölümü 'yakında' notunu gösterir"**
-3. (SettingsPage) **"EN seçilince locale değişir ve çeviri EN'e geçer"**
-4. (SettingsPage) **"TR seçilince locale tr'ye döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/field/vite-config.test.ts` (2 test)
-
-1. (field vite.config — tünel base) **"VITE_TUNNEL_BASE set → base tünel kökü"**
-2. (field vite.config — tünel base) **"VITE_TUNNEL_BASE boş → base '/'"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/app/app.test.ts` (3 test)
-
-1. (superadmin app (T4 smoke)) **"App + providers import edilebilir"**
-2. (superadmin app (T4 smoke)) **"routes tablosu auth + saha rotalarını tanımlar"**
-3. (superadmin app (T4 smoke)) **"AuthStore state kontratı (login/logout aksiyonları)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/features/auth/stores/AuthStore.test.ts` (3 test)
-
-1. (superadmin AuthStore (AUTH-REFRESH — UC-3)) **"login başarılı → oturum + token'lar"**
-2. (superadmin AuthStore (AUTH-REFRESH — UC-3)) **"logout backend'i çağırır ve yerel temizlik yapar (davranış değişmez)"**
-3. (superadmin AuthStore (AUTH-REFRESH — UC-3)) **"clearSession persist dahil tam temizler; backend çağrısı YAPMAZ"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/features/fields/components/FieldFormModal.test.tsx` (7 test)
-
-1. (FieldFormModal) **"Saha Kimliği + Uplink Token alanları render edilir (hint'lerle)"**
-2. (FieldFormModal) **"boş id+token → create input'unda id/uplinkToken YER ALMAZ (geriye uyumlu)"**
-3. (FieldFormModal) **"geçersiz UUID → hata, create ÇAĞRILMAZ"**
-4. (FieldFormModal) **"32 karakterden kısa token → hata, create ÇAĞRILMAZ"**
-5. (FieldFormModal) **"geçerli id+token → create + onClose; büyük harfli UUID lowercase normalize edilir"**
-6. (FieldFormModal) **"edit modu → Saha Kimliği disabled + kayıt değeri; token rotasyonu update'e gider"**
-7. (FieldFormModal) **"API hatası → hata mesajı, onClose ÇAĞRILMAZ"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/features/fields/components/FieldRemoteFrame.test.tsx` (4 test)
-
-1. (FieldRemoteFrame) **"mount'ta oturum açar ve iframe kurar"**
-2. (FieldRemoteFrame) **"oturum hatasında mesaj gösterilir — iframe yok"**
-3. (FieldRemoteFrame) **"Kapat → oturum kapatılır ve onClose çağrılır"**
-4. (FieldRemoteFrame) **"Escape → kapanır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/features/fields/hooks/useAdminFields.test.tsx` (2 test)
-
-1. (useAdminFields (Faz 1 veri katmanı)) **"useFieldList saha listesini döner"**
-2. (useAdminFields (Faz 1 veri katmanı)) **"useCreateField kayıt sonrası cache'i geçersiz kılar"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/features/fields/mappers.test.ts` (5 test)
-
-1. (toFieldMarker (sınır eşlemesi)) **"çevrimiçi sahayı online'a eşler"**
-2. (toFieldMarker (sınır eşlemesi)) **"aktif alarmı olan çevrimiçi saha warning olur"**
-3. (toFieldMarker (sınır eşlemesi)) **"çevrimdışı saha offline olur"**
-4. (toFieldMarker (sınır eşlemesi)) **"eksik ölçümler undefined taşınır (UI '—' gösterir)"**
-5. (toFieldMarker (sınır eşlemesi)) **"field_type → marker.type taşınır; null → undefined (genel glif)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/layouts/BossShell.test.tsx` (5 test)
-
-1. (BossShell (bütünleşik kabuk)) **"kimliksiz kullanıcı login'e yönlendirilir"**
-2. (BossShell (bütünleşik kabuk)) **"girişli kullanıcıda 3 nav öğesi + içerik görünür"**
-3. (BossShell (bütünleşik kabuk)) **"header'da kullanıcı adı YERİNE PTF ve GİP değerleri gösterilir"**
-4. (BossShell (bütünleşik kabuk)) **"footer ayar butonu settings modalını açar"**
-5. (BossShell (bütünleşik kabuk)) **"şifre değişimi zorunluysa change-password'a gider"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/lib/api-client.test.ts` (5 test)
-
-1. (superadmin api-client interceptor (AUTH-REFRESH — UC-3)) **"request'e Bearer token eklenir"**
-2. (superadmin api-client interceptor (AUTH-REFRESH — UC-3)) **"eşzamanlı N 401 → TEK /auth/refresh + hepsi yeni token'la retry (AK-3.1)"**
-3. (superadmin api-client interceptor (AUTH-REFRESH — UC-3)) **"refresh başarısız → token'lar + persist store temizlenir + /login SPA navigasyonu (AK-3.2)"**
-4. (superadmin api-client interceptor (AUTH-REFRESH — UC-3)) **"refresh token yoksa retry YAPILMAZ — temizlik + navigasyon"**
-5. (superadmin api-client interceptor (AUTH-REFRESH — UC-3)) **"retry sonrası ikinci 401 refresh ÇAĞRILMAZ — döngü koruması (_retry)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/pages/FieldDetailPage.test.tsx` (2 test)
-
-1. (FieldDetailPage) **"render hatası olmadan saha özetini gösterir"**
-2. (FieldDetailPage) **"bağlantı chip'i + son veri chip'i + aç butonu summary kartların ÜZERİNDE (header)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/pages/FieldsPage.test.tsx` (8 test)
-
-1. (FieldsPage) **"harita ve Saha Ekle karosu render edilir"**
-2. (FieldsPage) **"Saha Ekle karosu form modalını açar"**
-3. (FieldsPage) **"saha kartı render edilir ve tıklamada detaya gider"**
-4. (FieldsPage) **"kart üzerinde sil butonu YOKTUR (silme saha detayındadır)"**
-5. (FieldsPage) **"durum çipleri sayaçlıdır ve grid'i filtreler"**
-6. (FieldsPage) **"yüklenirken kart ve 'kayıt yok' metni gösterilmez"**
-7. (FieldsPage) **"hata durumunda Tekrar Dene refetch çağırır"**
-8. (FieldsPage) **"boş listede yalnızca Saha Ekle karosu kalır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/pages/LoginPage.test.tsx` (3 test)
-
-1. (LoginPage) **"kimliksizken giriş formu gösterilir"**
-2. (LoginPage) **"kimlikliyken /fields'e yönlendirilir"**
-3. (LoginPage) **"şifre değişimi zorunluysa /change-password'a yönlendirilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/pages/MarketPage.test.tsx` (4 test)
-
-1. (MarketPage) **"veri varken chart timestamp'leri kaynak ISO ile birebir — parse edilebilir"**
-2. (MarketPage) **"chart timestamp'lerinde görüntüleme formatı YOKTUR (dd.MM.yyyy HH:mm)"**
-3. (MarketPage) **"boş veri → boş dizi, render tamamlanır (çökme yok)"**
-4. (MarketPage) **"lastUpdatedAt null → '—' (mevcut davranış korunur)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `apps/superadmin/src/pages/NotificationsPage.test.tsx` (5 test)
-
-1. (NotificationsPage (Faz 5 — filtre barı)) **"bildirimleri saha adı + etiket + mesajla listeler"**
-2. (NotificationsPage (Faz 5 — filtre barı)) **"tip çipleri sayaçlıdır ve tıklayınca o tip gizlenir"**
-3. (NotificationsPage (Faz 5 — filtre barı)) **"arama metni saha adı ve mesaj üzerinde filtreler"**
-4. (NotificationsPage (Faz 5 — filtre barı)) **"mute (yok say) localStorage'da kalıcı — tip listeden düşer"**
-5. (NotificationsPage (Faz 5 — filtre barı)) **"unmute tekrar gösterir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1098,7 +580,7 @@
 4. (CommandJobBuilder.build) **"zorunlu olmayan param eksik → ok"**
 5. (CommandJobBuilder.build) **"{{param}} sayısal çözülür; -{{param}} negatif uygular; şablon olmayan aynen kalır"**
 6. (CommandJobBuilder.build) **"atomic belirtilmemişse true; false belirtilmişse false"**
-7. (CommandJobBuilder.build) **"gerçek config (source of truth): BSC global 30264/30265 + DC-METER voltage + stop (K1)"**
+7. (CommandJobBuilder.build) **"gerçek config (source of truth): BSC rack diff-temp 30264/30265 + DC-METER voltage + stop (K1)"**
 8. (CommandJobBuilder.build) **"validate eşlemesi: reads + timeoutMs + minWaitMs"**
 9. (CommandJobBuilder.build) **"validate yoksa job.validate undefined; timeoutMs defaultu yalnızca validate ile birlikte anlamlı"**
 10. (CommandJobBuilder.build) **"jobId formatı: deviceId-command-timestamp (enjekte now)"**
@@ -1192,7 +674,7 @@
 
 1. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"üç tier için de tanımlıdır"**
 2. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"container: console + file (timescale YOK)"**
-3. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"field: console + file + timescale"**
+3. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"site: console + file + timescale"**
 4. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"boss: console + file + timescale"**
 5. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"tüm tier'ların signingKeyPath'i doludur"**
 6. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS > loggerConfigForTier) **"override'sız tier varsayılanını döner"**
@@ -1230,12 +712,13 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugin-sdk/src/context.test.ts` (4 test)
+### `packages/plugin-sdk/src/context.test.ts` (5 test)
 
 1. (FilePluginStateStore) **"yazma/okuma/silme turu calisir"**
 2. (FilePluginStateStore) **"bozuk dosya durumunda bos obje doner"**
 3. (FilePluginStateStore > JsonFilePluginConfigSource + PluginContextFactory) **"config dosyasini yukler ve context olusturur"**
 4. (FilePluginStateStore > JsonFilePluginConfigSource + PluginContextFactory) **"config dosyasi yoksa bos obje doner"**
+5. (FilePluginStateStore > JsonFilePluginConfigSource + PluginContextFactory) **"{env:VAR} referanslarini ortam degiskeninden okur (sir repo'da tutulmaz)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1538,7 +1021,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc-pcs-connector/connector.test.ts` (25 test)
+### `packages/simulators/src/bsc-pcs-connector/connector.test.ts` (30 test)
 
 1. (parseBscPcsMapping) **"geçerli dosyayı parse eder (üç kind)"**
 2. (parseBscPcsMapping) **"bilinmeyen kind → throw"**
@@ -1565,6 +1048,19 @@
 23. (parseBscPcsMapping > BscPcsConnectorAdapter) **"kaynak yoksa yazım yapılmaz ve kaynak durumu 2 olur"**
 24. (parseBscPcsMapping > BscPcsConnectorAdapter) **"bit eşlemesi hedef kelimenin diğer bitlerini bozmaz"**
 25. (parseBscPcsMapping > BscPcsConnectorAdapter) **"yazma girişimi yok sayılır"**
+26. (parseBscPcsMapping > BscPcsConnectorAdapter > BscPcsConnectorAdapter — ters kanal (PCS→BSC)) **"toplam güç BSC girdisine yazılır; kaynak durumu 0"**
+27. (parseBscPcsMapping > BscPcsConnectorAdapter > BscPcsConnectorAdapter — ters kanal (PCS→BSC)) **"kısmi erişim → durum 1"**
+28. (parseBscPcsMapping > BscPcsConnectorAdapter > BscPcsConnectorAdapter — ters kanal (PCS→BSC)) **"hiç erişim → durum 2, güç 0"**
+29. (parseBscPcsMapping > BscPcsConnectorAdapter > BscPcsConnectorAdapter — ters kanal (PCS→BSC)) **"powerLink yoksa güç girdisi çağrılmaz (geriye uyum)"**
+30. (parseBscPcsMapping > BscPcsConnectorAdapter > BscPcsConnectorAdapter — ters kanal (PCS→BSC) > BscPcsConnectorAdapter — powerScale) **"okunan toplam güç scale ile çarpılıp BSC'ye yazılır (demo 2 PCS → 9 grup)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/bsc-pcs-connector/pcs-power-reader.test.ts` (3 test)
+
+1. (TcpPcsPowerReader) **"PCS S16 gücünü işaretli okur (negatif = şarj)"**
+2. (TcpPcsPowerReader) **"birden fazla PCS toplanır"**
+3. (TcpPcsPowerReader) **"erişilemeyen PCS katkı 0; available kısmi"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1586,28 +1082,35 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc/bsc-simulator.test.ts` (20 test)
+### `packages/simulators/src/bsc/bsc-simulator.test.ts` (27 test)
 
 1. (BSCSimulator (T4)) **"otomatik init: 6 tick sonrası NORMAL duruma geçer"**
 2. (BSCSimulator (T4)) **"START komutu → charge status bitleri (BSC_INFO 30037)"**
-3. (BSCSimulator (T4)) **"DISCHARGE komutu → discharge status bitleri (BSC_INFO 30037)"**
+3. (BSCSimulator (T4)) **"START + demo deşarj setpoint → discharge status bitleri (BSC_INFO 30037)"**
 4. (BSCSimulator (T4)) **"SIM-1: komut kutusu (40010) 0'a yazılsa da yürütme latch'lenir (şarj sürer)"**
 5. (BSCSimulator (T4)) **"C1: akım akarken STOP 'Current Flows' (0x000A) ile reddedilir; şarj sürer"**
 6. (BSCSimulator (T4)) **"C1: setpoint sıfırlanınca STOP kabul edilir (DONE)"**
 7. (BSCSimulator (T4)) **"C2: akım akarken OPEN_ALL reddedilir; EMERGENCY kabul edilir (en yüksek öncelik)"**
 8. (BSCSimulator (T4)) **"EMERGENCY komutu durumu EMERGENCY'ye geçirir"**
-9. (BSCSimulator (T4)) **"deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)"**
-10. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"şarjda SOC %97'yi aşamaz (clamp)"**
-11. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"deşarjda SOC %3,5'in altına inemez (clamp)"**
-12. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Start Normal'de → BMS Already Connected (0x06)"**
-13. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Initializing'de komut → Under Initializing (0x07)"**
-14. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Emergency'den yalnız Stop çıkar → Not Initialized"**
-15. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Event Clear 30 s cooldown → ikinci kez Within Cooldown (0x12)"**
-16. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Open All zaten açık → Contactors Already Open (0x08)"**
-17. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Close zaten online → BSC Already Online (0x09)"**
-18. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Reset akım akarken → Current Flows (0x0A)"**
-19. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md)) **"17 pack / 2 BMIC / 4 sıcaklık / 24 hücre / 210 A relay"**
-20. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20)) **"simSpeedMultiplier SOC entegrasyonunu ölçekler; tick ritmi değişmez"**
+9. (BSCSimulator (T4)) **"EMERGENCY sonrası offline rack'ler SOC 0 + STATE 0 gösterir (bayat değer yok)"**
+10. (BSCSimulator (T4)) **"deşarj SOC'yi %0'ın altına düşüremez (rack SOC uint16, scale 0.01)"**
+11. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"şarjda SOC %97'yi aşamaz (clamp)"**
+12. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5)) **"deşarjda SOC %3,5'in altına inemez (clamp)"**
+13. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Start Normal'de → BMS Already Connected (0x06)"**
+14. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Initializing'de komut → Under Initializing (0x07)"**
+15. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Emergency'den yalnız Stop çıkar → Not Initialized"**
+16. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Event Clear 30 s cooldown → ikinci kez Within Cooldown (0x12)"**
+17. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Open All zaten açık → Contactors Already Open (0x08)"**
+18. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Close zaten online → BSC Already Online (0x09)"**
+19. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis)) **"Reset akım akarken → Current Flows (0x0A)"**
+20. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md)) **"17 pack / 2 BMIC / 4 sıcaklık / 24 hücre / 210 A relay"**
+21. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20)) **"simSpeedMultiplier SOC entegrasyonunu ölçekler; tick ritmi değişmez"**
+22. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20) > BSCSimulator — Rev AF 0x000B) **"0x000B (removed) reddedilir: Ack = Invalid Request"**
+23. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20) > BSCSimulator — Rev AF 0x000B > BSCSimulator dış güç girdisi (PCS-BSC-GUC-LINKI UC-1)) **"AK-1.2: 1 saat 500 kW şarj → ΔSOC = P·h·η / kapasite (η=0.975)"**
+24. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20) > BSCSimulator — Rev AF 0x000B > BSCSimulator dış güç girdisi (PCS-BSC-GUC-LINKI UC-1)) **"deşarjda η bölen olarak uygulanır (P·h/η)"**
+25. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20) > BSCSimulator — Rev AF 0x000B > BSCSimulator dış güç girdisi (PCS-BSC-GUC-LINKI UC-1)) **"AK-1.4: sonlu olmayan girdi 0 kabul edilir (SOC değişmez)"**
+26. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20) > BSCSimulator — Rev AF 0x000B > BSCSimulator dış güç girdisi (PCS-BSC-GUC-LINKI UC-1)) **"AK-1.3: SOC %97'de şarj limiti 0 → SOC artmaz"**
+27. (BSCSimulator (T4) > BSCSimulator SOC limitleri (97 / 3,5) > BSCSimulator — request-ack tablosu (Sequence/Diagnosis) > BSCSimulator — rack nameplate değerleri (hardware.md) > BSCSimulator — demo hız çarpanı (K-20) > BSCSimulator — Rev AF 0x000B > BSCSimulator dış güç girdisi (PCS-BSC-GUC-LINKI UC-1) > BSCSimulator — soc enjeksiyonu (test determinizmi)) **"soc:<yüzde> tüm rack SOC'sini ayarlar; geçersiz değer false"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1622,6 +1125,14 @@
 7. (CbSimulator (DC Şalter — K2) > başlangıç durumu > aç/kapat (coil komutları) > kaldırılan semantik (K2)) **"holding register okumaları 0 döner (eşikler YOK)"**
 8. (CbSimulator (DC Şalter — K2) > başlangıç durumu > aç/kapat (coil komutları) > kaldırılan semantik (K2)) **"RESET coil'i yok sayılır (trip semantiği kalktı)"**
 9. (CbSimulator (DC Şalter — K2) > başlangıç durumu > aç/kapat (coil komutları) > kaldırılan semantik (K2)) **"bilinmeyen discrete input false döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/contracts.test.ts` (3 test)
+
+1. (ISimulator sözleşmesi) **"tüm simülatörler deviceId + start/stop sağlar"**
+2. (ISimulator sözleşmesi) **"inject desteklemeyen simülatörde tanımsızdır"**
+3. (ISimulator sözleşmesi) **"boş deviceId fail-fast"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1676,13 +1187,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/demo-mv-station/demo-mv-simulator.test.ts` (5 test)
+### `packages/simulators/src/demo-mv-station/demo-mv-simulator.test.ts` (6 test)
 
 1. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"başlangıç: kesiciler kapalı, topraklar açık (AK-9.1)"**
 2. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"kesici kapalıyken toprak kapanmaz (AK-9.2)"**
 3. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"kesici açıkken toprak kapanır, sonra kesici kapanmaz"**
 4. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"H01 toprak ayırıcısı her zaman kilitli"**
 5. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"toprak açma serbest"**
+6. (DemoMvStationSimulator (SPEC UC-9 / T-38) > DemoMvStationSimulator — GridLink yayını (SEBEKE-YOLU-ESLESMESI UC-1)) **"AK-1.2: şalter değişimi bus'a yayınlanır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1699,6 +1211,22 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `packages/simulators/src/grid-link/bus.test.ts` (3 test)
+
+1. (GridLinkBus) **"AK-1.1: kapalı hücrelerde fider enerjilidir"**
+2. (GridLinkBus) **"H01 veya H02 açıkken fider enerjisizdir (zincir)"**
+3. (GridLinkBus) **"fiderler birbirinden bağımsızdır"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/grid-link/pcs-deenergized.test.ts` (3 test)
+
+1. (WattoxPcsSimulator — şebeke yolu) **"AK-2.1/2.2: kesici açılınca standby + güç 0 + Vac 0"**
+2. (WattoxPcsSimulator — şebeke yolu) **"AK-2.3: yeniden enerjide güç otomatik uygulanmaz"**
+3. (WattoxPcsSimulator — şebeke yolu) **"de-enerjiliyken setpoint yazımı çıkış üretmez"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `packages/simulators/src/host-connector-target.test.ts` (3 test)
 
 1. (resolveBscPcsTarget (SPEC T-36 / AK-8.3/8.4)) **"env hedefi uygulanır (mevcut davranış)"**
@@ -1707,7 +1235,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/host.test.ts` (6 test)
+### `packages/simulators/src/host.test.ts` (8 test)
 
 1. (SimulatorHost — UC-3) **"AK-3.1 — yalnız simulator config'ler için sunucu açar; TCP okunur"**
 2. (SimulatorHost — UC-3) **"AK-3.2 — deviceId→port indeksi kurulur"**
@@ -1715,6 +1243,8 @@
 4. (SimulatorHost — UC-3) **"edge — port çakışması fail-fast (kısmen açılanlar kapanır)"**
 5. (SimulatorHost — UC-3) **"edge — stopAll idempotent"**
 6. (SimulatorHost — UC-3) **"AK-10.3 — fss builder kaydedilir, diğer builder'lar etkilenmez"**
+7. (SimulatorHost — UC-3 > SimulatorHost — şebeke yolu eşleşmesi (SEBEKE-YOLU-ESLESMESI UC-3)) **"AK-3.3: fider kesici açılınca bağlı PCS de-enerjili olur"**
+8. (SimulatorHost — UC-3 > SimulatorHost — şebeke yolu eşleşmesi (SEBEKE-YOLU-ESLESMESI UC-3) > SimulatorHost — istasyon başına 1 MV (2 fider)) **"her MV kendi bus'ına yayınlar; fider kesicisi yalnız bağlı PCS'i düşürür"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1766,6 +1296,39 @@
 5. (simülatör inject sözleşmesi) **"BSC: overheat/diff_temp/fault/nominal uygular"**
 6. (simülatör inject sözleşmesi) **"WattoxPcs: fault/door_open/nominal uygular"**
 7. (simülatör inject sözleşmesi) **"EnergyAnalyzer: aux_loss/nominal uygular"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/physical/conformance/ems-read-path.test.ts` (4 test)
+
+1. **"${t}: config'teki tüm telemetri hatasız okunur"**
+2. (EMS'in okuduğu değerler model durumuyla tutarlı) **"BSC: SOC, online raf, DC gerilim, raf 2 durumu (adım 150)"**
+3. (EMS'in okuduğu değerler model durumuyla tutarlı) **"PCS: işletme durumu, şebeke aktif güç, BMS bloğundan SOC"**
+4. (EMS'in okuduğu değerler model durumuyla tutarlı) **"üstyazım EMS tarafından görülür (hold → ModbusDevice okur)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages/simulators/src/physical/site/plant.test.ts` (19 test)
+
+1. (Saha üretimi (site spec → cihazlar)) **"GD-1 şekli: 9 konteyner → 18 BSC, 18 PCS, 72 HVAC, benzersiz portlar"**
+2. (Saha üretimi (site spec → cihazlar)) **"register listesi kök configs'ten gelir; yalnız deviceId/name/connection değişir"**
+3. (Saha üretimi (site spec → cihazlar)) **"HVAC zon eşlemesi per-bus: bara başına 4 klima, her klima 2 raf"**
+4. (Saha üretimi (site spec → cihazlar)) **"BSC→PCS eşleme dosyası her BSC için kendi deviceId'sine çevrilir"**
+5. (Saha üretimi (site spec → cihazlar)) **"geçersiz spec reddedilir"**
+6. (Saha üretimi (site spec → cihazlar) > Seçici) **"glob, type:, container:, deviceId"**
+7. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH) **"Start → In Progress → Initializing → Done; raflar hazır olunca Normal; Close → 8 raf online"**
+8. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH) **"Akım akarken Stop reddedilir (0x0A Current Flows)"**
+9. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH) **"Initializing sırasında Stop kabul edilir → Not Initialized (geçiş #2)"**
+10. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH) **"Emergency yalnız Stop/Reset ile çıkar; Start → 0x06 BMS Already Connected"**
+11. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi) **"Deşarjda SOC düşer, DC güç PCS DC gücüyle tutarlı"**
+12. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi) **"OG fider H04 açılınca PCS şebekeyi kaybeder ve fault'a düşer"**
+13. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima) **"0 ile kapatma gerçek profilde reddedilir, 2 ile kapanır"**
+14. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima > Register üstyazımı / toplu / seri) **"hold: EMS yanıtı değişir, model değişmez; release ile geri döner"**
+15. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima > Register üstyazımı / toplu / seri) **"bitfield hold yalnız kendi bitini değiştirir"**
+16. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima > Register üstyazımı / toplu / seri) **"write: EMS gibi yazılır, cihaz mantığı tepki verir (BSC Start)"**
+17. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima > Register üstyazımı / toplu / seri) **"toplu: tüm klimaların soğutma setpoint'i tek işlemde"**
+18. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima > Register üstyazımı / toplu / seri) **"süreli hold kendiliğinden kalkar"**
+19. (Saha üretimi (site spec → cihazlar) > Seçici > BSC Rev AF + SW Manual RevAH > PCS ⇄ BSC enerji dengesi > MC90 klima > Register üstyazımı / toplu / seri) **"seri: doğrusal rampa ara değer üretir ve birden çok hedefe uygulanır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -1826,180 +1389,6 @@
 17. (WattoxPcsSimulator) **"çoklu register okuma (FC 0x03 aralığı)"**
 18. (WattoxPcsSimulator) **"FC03 holding okuma sorgu bloklarını döner (doküman FC03 zorunlu)"**
 19. (WattoxPcsSimulator > WattoxPcsSimulator — PCS12 komut kaynağı (S01)) **"S01=0 (HMI) iken start/setpoint yok sayılır; S01=1 (EMS) sonrası uygulanır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/config.test.ts` (5 test)
-
-1. (LoggerConfig signing key (T0.5) > loadSigningKey) **"dosyadan anahtar materyalini okur ve trim'ler"**
-2. (LoggerConfig signing key (T0.5) > loadSigningKey) **"dosya yoksa fırlatır"**
-3. (LoggerConfig signing key (T0.5) > loadSigningKey > resolveSigningKey) **"env override kazanır — dosyaya bakılmaz"**
-4. (LoggerConfig signing key (T0.5) > loadSigningKey > resolveSigningKey) **"boş env override yok sayılır — dosya kullanılır"**
-5. (LoggerConfig signing key (T0.5) > loadSigningKey > resolveSigningKey) **"dosya yoksa dev fallback + uyarı"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/pipeline.test.ts` (22 test)
-
-1. (pipeline (T0.3) > redactValue) **"hassas anahtar değerini REDACTED yapar"**
-2. (pipeline (T0.3) > redactValue) **"büyük/küçük harf duyarsız eşleşir"**
-3. (pipeline (T0.3) > redactValue) **"iç içe nesnelerde de redakte eder"**
-4. (pipeline (T0.3) > redactValue) **"dizilerdeki nesneleri de redakte eder"**
-5. (pipeline (T0.3) > redactValue) **"anahtar adı kısmi içeriyorsa eşleşir (api_key, apiKey)"**
-6. (pipeline (T0.3) > redactValue) **"hassas olmayan değerler dokunulmaz"**
-7. (pipeline (T0.3) > redactValue) **"ilkel değerler aynen döner"**
-8. (pipeline (T0.3) > redactValue > redactEvent) **"context'i redakte eder, diğer alanları korur"**
-9. (pipeline (T0.3) > redactValue > redactEvent) **"context yoksa dokunmadan döner"**
-10. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent) **"eksik alanları doldurur"**
-11. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent) **"girdideki değerleri ezmez"**
-12. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent) **"ts girdide varsa korunur"**
-13. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"signature 64 hex karakterdir"**
-14. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"deterministik — aynı zincir + girdi = aynı imza"**
-15. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"nextState zinciri ilerletir"**
-16. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"ikinci olayın prevHash'i ilk imzadır (zincir)"**
-17. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"verifySignature geçerli event'i kabul eder"**
-18. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"verifySignature kurcalanmış message'ı reddeder"**
-19. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"verifySignature yanlış anahtarı reddeder"**
-20. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature) **"verifySignature kurcalanmış seq'i reddeder"**
-21. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature > canonicalize) **"context anahtar sırasından bağımsızdır"**
-22. (pipeline (T0.3) > redactValue > redactEvent > enrichEvent > signEvent + nextState + verifySignature > canonicalize) **"dizi içeren context'i serileştirir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/alert-notifier.test.ts` (5 test)
-
-1. (AlertNotifier (T0.4)) **"ilk olay iletilir"**
-2. (AlertNotifier (T0.4)) **"aynı eventCode cooldown içinde bastırılır"**
-3. (AlertNotifier (T0.4)) **"farklı eventCode'lar birbirini engellemez"**
-4. (AlertNotifier (T0.4)) **"cooldown dolunca aynı kod yeniden iletilir"**
-5. (AlertNotifier (T0.4)) **"sink hatası yukarı fırlatılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/console-sink.test.ts` (4 test)
-
-1. (ConsoleSink (T0.4)) **"name() 'console' döner"**
-2. (ConsoleSink (T0.4)) **"seviyeleri doğru console metoduna eşler"**
-3. (ConsoleSink (T0.4)) **"JSON satırı olarak yazar (tamper alanlarıyla)"**
-4. (ConsoleSink (T0.4)) **"close() hata fırlatmaz"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/file-sink.test.ts` (4 test)
-
-1. (FileSink (T0.4)) **"name() 'file' döner"**
-2. (FileSink (T0.4)) **"olayları satır satır append eder"**
-3. (FileSink (T0.4)) **"close() sonrası write() reddedilir"**
-4. (FileSink (T0.4)) **"boş dizi yazılmaz (dosya açılmaz)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/http-sms-notifier.test.ts` (3 test)
-
-1. (HttpSmsNotifier (T6.7)) **"her telefon için şablonlu ayrı POST atar"**
-2. (HttpSmsNotifier (T6.7)) **"hata fırlatılır"**
-3. (HttpSmsNotifier (T6.7)) **"close sonrası write fırlatır; close idempotent"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/http-webhook-sink.test.ts` (5 test)
-
-1. (HttpWebhookSink (T6.2)) **"JSON batch + HMAC imza başlığı ile POST eder"**
-2. (HttpWebhookSink (T6.2)) **"secret yoksa imza başlığı gönderilmez"**
-3. (HttpWebhookSink (T6.2)) **"5xx → retries kadar dener, tükenince fırlatır"**
-4. (HttpWebhookSink (T6.2)) **"2xx sonrası retry YOK"**
-5. (HttpWebhookSink (T6.2)) **"close sonrası write fırlatır; close idempotent"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/smtp-notifier.test.ts` (3 test)
-
-1. (SmtpNotifier (T6.7)) **"olayları tek mailde toplar (konu + JSON gövde)"**
-2. (SmtpNotifier (T6.7)) **"close idempotent; kapandıktan sonra write fırlatır"**
-3. (SmtpNotifier (T6.7)) **"SMTP hatası fırlatılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/syslog-sink.test.ts` (4 test)
-
-1. (SyslogSink — RFC 5424 frame (T6.2)) **"PRI severity eşlemesi + zorunlu alanlar"**
-2. (SyslogSink — RFC 5424 frame (T6.2)) **"warn(4) → 108, info(6) → 110"**
-3. (SyslogSink — RFC 5424 frame (T6.2) > SyslogSink — UDP transport (T6.2)) **"her olay ayrı datagram olarak gönderilir"**
-4. (SyslogSink — RFC 5424 frame (T6.2) > SyslogSink — UDP transport (T6.2)) **"close idempotent; kapandıktan sonra write fırlatır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/sinks/timescale-sink.test.ts` (6 test)
-
-1. (TimescaleSink (T0.4)) **"name() 'timescale' döner"**
-2. (TimescaleSink (T0.4)) **"çok satırlı tek INSERT üretir — kolon sayısı 12, parametre 12 dizi"**
-3. (TimescaleSink (T0.4)) **"boş batch no-op"**
-4. (TimescaleSink (T0.4)) **"opsiyonel alanlar eksikse NULL ile yazılır"**
-5. (TimescaleSink (T0.4)) **"executor hatası fırlatılır"**
-6. (TimescaleSink (T0.4)) **"close() hata fırlatmaz (bağlantı executor sahibinde)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/tamper-logger-alerts.test.ts` (5 test)
-
-1. (TamperLogger — alertRules (T6.7)) **"eşleşen eventCode cooldown'lu notifier'a iletilir"**
-2. (TamperLogger — alertRules (T6.7)) **"eşleşmeyen eventCode iletilmez"**
-3. (TamperLogger — alertRules (T6.7)) **"cooldown: aynı eventCode kısa sürede tek bildirim"**
-4. (TamperLogger — alertRules (T6.7)) **"alert hatası audit fail-closed zincirini bozmaz"**
-5. (TamperLogger — alertRules (T6.7)) **"close alert sink'lerini kapatır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/tamper-logger.test.ts` (21 test)
-
-1. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu)) **"validator reddederse log() fırlatır (fail-closed) — olay sink'e GİTMEZ"**
-2. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu)) **"validator kabul ederse normal akış işler"**
-3. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu)) **"validator verilmezse her string kabul edilir"**
-4. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış) **"app olayı batch dolar dolmaz sink'e imzalı gider"**
-5. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış) **"interval flush — batch dolmadan da yazılır"**
-6. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış) **"context redakte edilir (password görünmez)"**
-7. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış) **"correlationId yoksa üretilir"**
-8. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security)) **"audit olayı batch'i beklemeden anında yazılır"**
-9. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security)) **"security olayı sink başarısızsa log() reddeder"**
-10. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security)) **"audit olayı sink başarısızsa log() reddeder"**
-11. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası) **"error seviyesi sink başarısızsa drop + sayaç + health degraded"**
-12. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası) **"debug/info sink başarısızsa drop + sayaç, health sağlıklı kalır"**
-13. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app)) **"eşik altı app olayı sessizce düşer"**
-14. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app)) **"eşik üstü yazılır"**
-15. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app)) **"audit/security seviye filtresine takılmaz"**
-16. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app) > ring buffer) **"son işlenmiş olayları tutar"**
-17. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app) > ring buffer) **"limit parametresi ile daraltılır"**
-18. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app) > ring buffer > close()) **"kalan batch'i flush eder ve sink'leri kapatır"**
-19. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app) > ring buffer > close()) **"sonrasında log() yazmaz"**
-20. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app) > ring buffer > close() > constructor doğrulaması) **"boş sinks kabul edilmez"**
-21. (TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu) > TamperLogger (T0.3) > temel akış > fail-closed (audit/security) > app kategorisi drop politikası > seviye filtresi (yalnızca app) > ring buffer > close() > constructor doğrulaması) **"boş signingKey kabul edilmez"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/types.test.ts` (6 test)
-
-1. (tamper-logger tip sözleşmesi) **"LogLevel birliği 5 seviyeden oluşur"**
-2. (tamper-logger tip sözleşmesi) **"LogCategory birliği 3 kategoriden oluşur"**
-3. (tamper-logger tip sözleşmesi) **"isLogLevel geçerli/geçersiz değerleri ayırır"**
-4. (tamper-logger tip sözleşmesi) **"isLogCategory geçerli/geçersiz değerleri ayırır"**
-5. (tamper-logger tip sözleşmesi) **"LogEventInput zorunlu alanları taşır; zincir alanları yoktur"**
-6. (tamper-logger tip sözleşmesi) **"LogEvent çıktısı zincir alanlarını zorunlu taşır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/tamper-logger/src/verify-chain.test.ts` (11 test)
-
-1. (verifyChain (T0.9) @nis2-security) **"boş liste geçerlidir (0 olay, 0 segment)"**
-2. (verifyChain (T0.9) @nis2-security) **"tek genesis olayı geçerlidir"**
-3. (verifyChain (T0.9) @nis2-security) **"3 olaylık zincir geçerlidir"**
-4. (verifyChain (T0.9) @nis2-security) **"aradan olay silinirse missing_event tespit edilir"**
-5. (verifyChain (T0.9) @nis2-security) **"kurcalanmış içerik signature_mismatch üretir"**
-6. (verifyChain (T0.9) @nis2-security) **"yanlış anahtar signature_mismatch üretir"**
-7. (verifyChain (T0.9) @nis2-security) **"restart segmenti (yeni genesis zinciri) geçerlidir — 2 segment"**
-8. (verifyChain (T0.9) @nis2-security) **"karışık dosya sırası missing_event üretir (write zinciri sırayı garanti eder)"**
-9. (verifyChain (T0.9) @nis2-security) **"seq atlaması (silinen satır, eşleşen hash) missing_event üretir"**
-10. (verifyChain (T0.9) @nis2-security) **"yinelenen seq out_of_order ihlali üretir"**
-11. (verifyChain (T0.9) @nis2-security) **"başlangıç prevHash'i genesis değilse missing_event üretir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2163,7 +1552,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoOperationsView.test.tsx` (7 test)
+### `packages/ui/src/nova/DemoOperationsView.test.tsx` (8 test)
 
 1. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"steps.definition.steps dizisini okur ve run durumundan adım durumu türetir"**
 2. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"legacy dizi şeklini de destekler"**
@@ -2171,7 +1560,8 @@
 4. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"UC-13: 90 sn'den eski 'running' run bayat sayılır (zombie koruması)"**
 5. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"sekansı FL etiketi + DONE + adım satırıyla gösterir"**
 6. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"FL-02 formunda Control mode seg'i vardır (Active power / P-Q / PF)"**
-7. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"units mount'tan sonra gelirse varsayılan kapsam senkronlanır (Send etkin)"**
+7. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"MV Station başlığı aktif istasyon adını gösterir (station değişiminde değişir)"**
+8. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"units mount'tan sonra gelirse varsayılan kapsam senkronlanır (Send etkin)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -2281,7 +1671,7 @@
 2. (demo-bess-data (UC-4, D-1 türetim)) **"4 sıcaklık sensörü ve PCB türetir"**
 3. (demo-bess-data (UC-4, D-1 türetim)) **"rackPacks 17 pack döner ve numaralar 1..17"**
 4. (demo-bess-data (UC-4, D-1 türetim)) **"TC haritası 18 sensör + pack işaretleri"**
-5. (demo-bess-data (UC-4, D-1 türetim)) **"rack register tablosu referans listesi (30 satır) + adresler"**
+5. (demo-bess-data (UC-4, D-1 türetim)) **"rack register tablosu: v14 katalog (43 satır), yalnız canlı değer, adresler"**
 6. (demo-bess-data (UC-4, D-1 türetim)) **"packFill bant altı mavi, üstü kırmızı, ortada kademeli"**
 7. (demo-bess-data (UC-4, D-1 türetim)) **"busbarZoneHistory deterministik 4h örnek + cooling/heating fazları"**
 
@@ -2333,11 +1723,11 @@
 
 ### `packages/ui/src/nova/demo-readiness.test.tsx` (8 test)
 
-1. (demo-readiness (UC-7, FR-7.3, K7)) **"DEMO_REST_MINUTES 30 dk'dır (2026-10-07 kararı)"**
+1. (demo-readiness (UC-7, FR-7.3, K7)) **"DEMO_REST_MINUTES 120 dk'dır (LGES: 2 saat dinlenme)"**
 2. (demo-readiness (UC-7, FR-7.3, K7)) **"lastFullRunFinishedAt en yeni tam şarj/deşarj bitişini seçer"**
 3. (demo-readiness (UC-7, FR-7.3, K7)) **"deriveRestState eşik dolunca complete olur"**
 4. (demo-readiness (UC-7, FR-7.3, K7)) **"thermalReady tüm bankalar bantta ise true"**
-5. (demo-readiness (UC-7, FR-7.3, K7)) **"AK-7.3: 30 dk önce biten full_charge + bant içi raflar → dinlenme tamam + hazır"**
+5. (demo-readiness (UC-7, FR-7.3, K7)) **"AK-7.3: 120 dk önce biten full_charge + bant içi raflar → dinlenme tamam + hazır"**
 6. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"AK-2.3: kart 'REST TIME COMPLETE' + grup READY gösterir"**
 7. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"restPhasesForRuns tam şarj bitişinden rest fazı üretir"**
 8. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"AK-7.2: DemoSequence adımları durumlarıyla listeler"**
@@ -2471,507 +1861,6 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ws-tunnel-agent/src/args.test.ts` (3 test)
-
-1. (parseArgs) **"varsayılan komut run + seçenekler"**
-2. (parseArgs) **"alt komutlar ve config show"**
-3. (parseArgs) **"geçersiz girdi hata fırlatır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-agent/src/claim-client.test.ts` (3 test)
-
-1. (BootstrapClaimClient) **"AK-2.1: doğru URL/gövde ile claim eder"**
-2. (BootstrapClaimClient) **"AK-2.3: 4xx/ağ hatası fail-closed hata döner"**
-3. (BootstrapClaimClient) **"AK-2.4: yanıttaki peerId eşleşmezse reddeder"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-agent/src/config.test.ts` (8 test)
-
-1. (parseAgentConfig) **"AK-1.1: zorunlu alanlar eksikse alan adıyla reddeder"**
-2. (parseAgentConfig) **"AK-1.2: PEER_ID yoksa hostname kullanılır; kimlik alanlarından biri zorunlu"**
-3. (parseAgentConfig) **"AK-1.3: http/https dışı URL reddedilir"**
-4. (parseAgentConfig) **"AK-1.4: TLS_INSECURE yalnız https hedefte etkin; config show secret maskeler"**
-5. (parseAgentConfig) **"varsayılanlar: peerType=device, heartbeat/liveness"**
-6. (parseAgentConfig > env-file) **"KEY=VALUE parse eder; yorum/boş satır/tırnak"**
-7. (parseAgentConfig > env-file) **"serialize → readEnvFile roundtrip"**
-8. (parseAgentConfig > env-file) **"mergeConfigEnv: env dosya üzerine yazar, secret dosyada kalır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-agent/src/hmac-signer.test.ts` (4 test)
-
-1. (HMAC signer) **"sign → verify roundtrip"**
-2. (HMAC signer) **"yanlış secret / tahrif edilmiş token reddedilir"**
-3. (HMAC signer) **"süresi geçmiş token reddedilir"**
-4. (HMAC signer) **"generateSecret 32 byte hex üretir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-agent/src/install.test.ts` (4 test)
-
-1. (config-store) **"AK-2.2: config 0600 ile yazılır ve geri okunur"**
-2. (config-store) **"AK-4.4: removeInstallFiles var olan dosyaları siler, olmayanı atlar"**
-3. (config-store > uninstallAgent) **"AK-4.4: systemctl stop/disable + daemon-reload çağırır, dosyaları siler"**
-4. (config-store > uninstallAgent) **"AK-4.4: systemctl hatası olsa da dosyaları temizler"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-agent/src/setup-server.test.ts` (5 test)
-
-1. (shouldStartSetup) **"AK-3.1: config yoksa setup açılır, varsa açılmaz"**
-2. (shouldStartSetup > SetupAgent) **"AK-3.2: /test config doğrular ve hub /health çağırır"**
-3. (shouldStartSetup > SetupAgent) **"AK-3.2: bootstrap modunda claim eder ve aynı token için tekrar claim etmez"**
-4. (shouldStartSetup > SetupAgent) **"AK-3.3/3.4: geçerli form config yazar; eksik alan 400 döner"**
-5. (shouldStartSetup > SetupAgent) **"AK-3.4: hub erişilemezse test hata döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-agent/src/systemd-unit.test.ts` (2 test)
-
-1. (renderSystemdUnit) **"AK-4.1: zorunlu satırları üretir"**
-2. (renderSystemdUnit) **"user verilmezse User satırı yok"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/claim-bootstrap.test.ts` (3 test)
-
-1. (ClaimBootstrap) **"AK-2.1/AK-2.2: geçerli bootstrap → peerSecret, yalnız hash saklanır"**
-2. (ClaimBootstrap) **"AK-2.3: kullanılmış/süresi geçmiş bootstrap reddedilir"**
-3. (ClaimBootstrap) **"eksik girdi reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/create-bootstrap.test.ts` (3 test)
-
-1. (CreateBootstrap) **"AK-1.1: token üretir, yalnız hash'i saklar"**
-2. (CreateBootstrap) **"AK-1.2: TTL 24 saat (varsayılan)"**
-3. (CreateBootstrap) **"boş peerId reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/open-service-access.test.ts` (5 test)
-
-1. (OpenServiceAccess) **"AK-3.1: duyurulmamış servis → not_found"**
-2. (OpenServiceAccess) **"AK-3.1: bağlı olmayan peer → transient"**
-3. (OpenServiceAccess) **"AK-3.3: allowlist dışı → forbidden"**
-4. (OpenServiceAccess) **"AK-3.2: oturum yoksa açar, varsa yeniden kullanır"**
-5. (OpenServiceAccess) **"A2 kök-montaj: allowlist dışı path serbest, blocklist yine kapalı"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/open-session.test.ts` (3 test)
-
-1. (OpenSession) **"AK-4.1: bağlı peer için oturum açar"**
-2. (OpenSession) **"bilinmeyen peer → not_found"**
-3. (OpenSession) **"bağlı olmayan peer → transient"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/register-peer.test.ts` (5 test)
-
-1. (RegisterPeer) **"AK-1.1: geçersiz token → Forbidden, kayıt yok"**
-2. (RegisterPeer) **"AK-1.2: opak olmayan servis duyurusu reddedilir"**
-3. (RegisterPeer) **"AK-1.3: geçerli register → registry + tracker"**
-4. (RegisterPeer) **"geçersiz peerType reddedilir"**
-5. (RegisterPeer) **"AK-1.4: yeniden register servis listesini değiştirir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/relay-control.test.ts` (4 test)
-
-1. (RelayControl) **"AK-4.2: bilinmeyen peer → not_found"**
-2. (RelayControl) **"AK-4.2: bağlı olmayan peer → transient"**
-3. (RelayControl) **"AK-4.2: bağlı peer → kontrol mesajı opak iletilir"**
-4. (RelayControl) **"AK-4.3: peer'dan gelen mesaj consumer portuna opak akar"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/application/revoke-peer.test.ts` (2 test)
-
-1. (RevokePeer) **"AK-3.1/AK-3.2: kimliği iptal eder ve bağlantıyı düşürür"**
-2. (RevokePeer) **"boş peerId reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/bootstrap.integration.test.ts` (1 test)
-
-1. (bootstrap uçtan uca (sqlite)) **"AK-4.2: bootstrap → claim → register → revoke"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/config/hub-config.test.ts` (10 test)
-
-1. (loadHubConfig HUB_HOST_MAP) **"host[:port]=peer/service kayıtlarını çözer (küçük harfe indirir)"**
-2. (loadHubConfig HUB_HOST_MAP) **"geçersiz kayıt → açılış reddedilir"**
-3. (loadHubConfig HUB_HOST_MAP) **"tanımsızsa boş harita"**
-4. (loadHubConfig HUB_HOST_MAP > hostMapPorts) **"yalnızca host:port anahtarlarından port çıkarır"**
-5. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS) **"BYO cert/key → tls (selfSigned=false)"**
-6. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS) **"HUB_TLS_ENABLED=1 (cert yok) → self-signed"**
-7. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS) **"TLS env'i yoksa tls undefined (http)"**
-8. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS > loadHubConfig oturum/akış ömrü) **"varsayılanlar: 4 sa TTL, 15 dk idle, 5 dk stream idle"**
-9. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS > loadHubConfig oturum/akış ömrü) **"HUB_SESSION_TTL_MS / HUB_SESSION_IDLE_MS / HUB_STREAM_IDLE_MS override"**
-10. (loadHubConfig HUB_HOST_MAP > hostMapPorts > loadHubConfig TLS > loadHubConfig oturum/akış ömrü) **"geçersiz değer → açılış reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/domain/peer-connection-tracker.test.ts` (5 test)
-
-1. (PeerConnectionTracker) **"markConnected → connected; bilinmeyen → idle"**
-2. (PeerConnectionTracker) **"sweep eşiği aşınca stale yapar"**
-3. (PeerConnectionTracker) **"heartbeat stale'i connected'a döndürür"**
-4. (PeerConnectionTracker) **"markError durumu error yapar; markClosed kaydı düşürür"**
-5. (PeerConnectionTracker) **"snapshot tüm durumları döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/infrastructure/inbound/peer-channel-hub.test.ts` (4 test)
-
-1. (PeerChannelHub) **"AK-1.3: geçerli register → ok ack + registry/tracker"**
-2. (PeerChannelHub) **"AK-1.1: geçersiz token → rejected + kapanış"**
-3. (PeerChannelHub) **"AK-4.3: bilinmeyen kontrol mesajı consumer portuna akar"**
-4. (PeerChannelHub) **"kapanış → kayıt düşer"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/infrastructure/inbound/routes/access-routes.test.ts` (15 test)
-
-1. (access-routes peer session cookie) **"peerSessionCookie verilirse oturum token'ı cookie olarak eklenir"**
-2. (access-routes peer session cookie) **"peerSessionCookie yoksa cookie eklenmez"**
-3. (access-routes peer session cookie) **"mevcut cookie korunarak oturum cookie'si eklenir"**
-4. (access-routes peer session cookie > access-routes host-based kök-montaj (A2)) **"eşlenen host'ta tam path upstream'e gider (prefix strip yok)"**
-5. (access-routes peer session cookie > access-routes host-based kök-montaj (A2)) **"eşlenmeyen host + path parametresiz → 404"**
-6. (access-routes peer session cookie > access-routes host-based kök-montaj (A2)) **"hostMap varken path-modu geriye dönük çalışır"**
-7. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi) **"cookie yolunda authorization + özel başlıklar iletilir"**
-8. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi) **"consumer-token yolunda authorization iletilmez"**
-9. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi) **"hop-by-hop başlıklar iletilmez"**
-10. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi) **"cookie yolunda WS'e cookie+authorization taşınır, handshake-özgü düşer"**
-11. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi) **"consumer-token yolunda WS authorization sızmaz"**
-12. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"bayat tunnel_session cookie + consumer token yok → 401 'Oturum suresi doldu' + cookie temizlenir"**
-13. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"cookie yok + consumer token yok → 401 'Consumer token gerekli' (geriye dönük)"**
-14. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"bayat cookie olsa da geçerli consumer token yolu çalışır"**
-15. (access-routes peer session cookie > access-routes host-based kök-montaj (A2) > access-routes header iletimi > access-routes WS handshake header iletimi > access-routes bayat oturum semantiği) **"bayat session cookie ile WS → 1008 'oturum suresi doldu' (neden çözümü)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/infrastructure/outbound/env-consumer-credentials.test.ts` (2 test)
-
-1. (EnvConsumerCredentials) **"AK-4.1: consumer token ayrı doğrulanır"**
-2. (EnvConsumerCredentials) **"boş token ile kurulum reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/infrastructure/outbound/env-peer-token-store.test.ts` (2 test)
-
-1. (EnvPeerTokenStore) **"AK-5.1: geçerli token true, geçersiz false"**
-2. (EnvPeerTokenStore) **"boş token ile kurulum reddedilir (fail-fast)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/infrastructure/outbound/sqlite-peer-credential-store.test.ts` (6 test)
-
-1. (SqlitePeerCredentialStore) **"AK-2.2: create → claim → kalıcı secret authenticate"**
-2. (SqlitePeerCredentialStore) **"AK-2.3: token tek kullanımlık"**
-3. (SqlitePeerCredentialStore) **"süresi geçmiş bootstrap reddedilir"**
-4. (SqlitePeerCredentialStore) **"yanlış token reddedilir"**
-5. (SqlitePeerCredentialStore) **"AK-1.3: yeni bootstrap eski token'ı geçersiz kılar"**
-6. (SqlitePeerCredentialStore) **"AK-3.1: revoke secret'ı geçersiz kılar, bekleyen bootstrap silinir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel-hub/src/integration.test.ts` (1 test)
-
-1. (hub-servis uçtan uca (gerçek WS + Fastify)) **"SC-2/SC-3: register → keşif → opak erişim → relay"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/channel/ws-socket-client.test.ts` (5 test)
-
-1. (WsSocketClient (T2.1c)) **"send/ping/close raw'a delege edilir"**
-2. (WsSocketClient (T2.1c)) **"message olayı string'e çevrilir"**
-3. (WsSocketClient (T2.1c)) **"open/close/error/pong olayları birebir kablolanır"**
-4. (WsSocketClient (T2.1c)) **"unexpected-response → statusCode (yoksa 0)"**
-5. (WsSocketClient (T2.1c) > WsSocketClientFactory (T2.1c)) **"creator'ı url + headers ile çağırır ve sarar"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/client/tunnel-client.test.ts` (29 test)
-
-1. (TunnelClient (T3.2) > HTTP akışı) **"stream-open → ack (durum + başlıklar) → gövde frame'leri + FIN"**
-2. (TunnelClient (T3.2) > HTTP akışı) **"yönlendirme: /api/* → web-service, diğer → statik"**
-3. (TunnelClient (T3.2) > HTTP akışı) **"backpressure: kredi olmadan gövde gönderilmez, krediyle akar"**
-4. (TunnelClient (T3.2) > HTTP akışı) **"POST gövdesi: BINARY frame'ler + FIN → fetch body"**
-5. (TunnelClient (T3.2) > HTTP akışı) **"upstream 404 → ack 404"**
-6. (TunnelClient (T3.2) > HTTP akışı) **"akış tavanı aşılınca 503 + stream-close"**
-7. (TunnelClient (T3.2) > HTTP akışı) **"field stream-close → akış iptal edilir"**
-8. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"upgrade → 101 ack + çift yönlü WS_OP frame'leri"**
-9. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"stream-open headers upstream WS handshake'ine taşınır (handshake-özgü hariç)"**
-10. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"wsOrigin: ws→http, wss→https origin üretir (tarayıcı davranışı)"**
-11. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"subprotocol upstream ile pazarlanır (RFC 6455 relay)"**
-12. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"upstream WS reddi (403) → ack gerçek statusCode + stream-close (hızlı-fail)"**
-13. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"loopback WS kapanınca stream-close gönderilir"**
-14. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade)) **"boşta kalan akış idle timeout ile kapatılır"**
-15. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"bilinmeyen streamId'li window/close/binary yok sayılır"**
-16. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"kredi bekleyen akış stream-close ile temiz kapanır"**
-17. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"ack sonrası kredi beklerken kapanma → çökme/çıkış frame'i yok"**
-18. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gövde ortasında kapanma → akış durur (abort)"**
-19. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"upstream erişilemez → ack 502 + stream-close"**
-20. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gövdesiz yanıt (204) → yalnızca FIN frame"**
-21. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"istek gövdesi tavan aşımı → RST + stream-close"**
-22. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"GET akışında gövde frame'i yok sayılır"**
-23. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"upstream gövde ortasında koparsa stream-close fetch-error"**
-24. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"WS köprüsü: WS olmayan upstream → ack statusCode + stream-close ws-rejected (hızlı-fail)"**
-25. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"WS köprüsü: binary opcode upstream'e binary iletilir"**
-26. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"kapanmış akışa gelen WS_OP frame'i yok sayılır"**
-27. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"FIN sonrası akış temizlenir — sıradaki stream-open 503 ALMAZ (sızıntı regresyonu)"**
-28. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler)) **"gzip basliklari ack'e TASINMAZ (content-encoding/content-length strip)"**
-29. (TunnelClient (T3.2) > HTTP akışı > WS köprüsü (upgrade) > kapsama (hata yolları + limitler) > max yaş sweep) **"azami yaş dolan akış max-age ile kapatılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/codec/frame-codec.test.ts` (18 test)
-
-1. (FrameCodec (T3.1) @nis2-security > encode()) **"başlık + payload boyutu = 9 + payload.length"**
-2. (FrameCodec (T3.1) @nis2-security > encode()) **"streamId u32 BE olarak yazılır"**
-3. (FrameCodec (T3.1) @nis2-security > encode()) **"seq u32 BE olarak yazılır (wrap değerleri dahil)"**
-4. (FrameCodec (T3.1) @nis2-security > encode()) **"flags baytı: FIN|RST|WS_OP birleşimi"**
-5. (FrameCodec (T3.1) @nis2-security > encode()) **"negatif streamId reddedilir"**
-6. (FrameCodec (T3.1) @nis2-security > encode()) **"u32 üstü streamId/seq reddedilir"**
-7. (FrameCodec (T3.1) @nis2-security > encode()) **"ondalıklı streamId reddedilir"**
-8. (FrameCodec (T3.1) @nis2-security > encode()) **"WS_OP set iken opcode zorunludur"**
-9. (FrameCodec (T3.1) @nis2-security > encode()) **"WS_OP yokken opcode verilemez"**
-10. (FrameCodec (T3.1) @nis2-security > encode()) **"opcode 4 bit ile sınırlıdır"**
-11. (FrameCodec (T3.1) @nis2-security > encode() > decode()) **"9 bayttan kısa girdi → Err (throw yok)"**
-12. (FrameCodec (T3.1) @nis2-security > encode() > decode()) **"boş payload'lı frame decode edilir"**
-13. (FrameCodec (T3.1) @nis2-security > encode() > decode()) **"WS_OP + opcode geri okunur"**
-14. (FrameCodec (T3.1) @nis2-security > encode() > decode()) **"bilinmeyen opcode değeri taşınır (ileri uyumluluk)"**
-15. (FrameCodec (T3.1) @nis2-security > encode() > decode()) **"maxPayload aşımı → Err"**
-16. (FrameCodec (T3.1) @nis2-security > encode() > decode()) **"payload tam uzunlukta döner"**
-17. (FrameCodec (T3.1) @nis2-security > encode() > decode() > round-trip (fuzz)) **"rastgele 500 frame encode→decode eşitliği"**
-18. (FrameCodec (T3.1) @nis2-security > encode() > decode() > round-trip (fuzz)) **"rastgele 1000 bayt akışı decode'da asla throw etmez"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/connector/reconnect-delay.test.ts` (13 test)
-
-1. (ReconnectDelay (T2.1a) > delayFor()) **"attempt 1 → taban gecikme (1000 ms)"**
-2. (ReconnectDelay (T2.1a) > delayFor()) **"üstel büyür: 1→1000, 2→2000, 3→4000, 4→8000"**
-3. (ReconnectDelay (T2.1a) > delayFor()) **"60 sn tavanına takılır (attempt 7: 64000 → 60000)"**
-4. (ReconnectDelay (T2.1a) > delayFor()) **"tavan üstü attempt'lerde de tavanı korur (attempt 100)"**
-5. (ReconnectDelay (T2.1a) > delayFor()) **"jitter'ı ekler (deterministik jitter 0.5 → +500 ms)"**
-6. (ReconnectDelay (T2.1a) > delayFor()) **"jitter tavanı ezemez"**
-7. (ReconnectDelay (T2.1a) > delayFor()) **"jitter [0,1) dışında ise reddeder"**
-8. (ReconnectDelay (T2.1a) > delayFor()) **"attempt 0 ve negatif attempt reddedilir"**
-9. (ReconnectDelay (T2.1a) > delayFor()) **"ondalıklı attempt reddedilir"**
-10. (ReconnectDelay (T2.1a) > delayFor() > reset()) **"deneme sayacını sıfırlar — sonraki delay yeniden tabandan başlar"**
-11. (ReconnectDelay (T2.1a) > delayFor() > reset() > konfigürasyon doğrulaması) **"geçersiz taban (≤0) reddedilir"**
-12. (ReconnectDelay (T2.1a) > delayFor() > reset() > konfigürasyon doğrulaması) **"tavan tabandan küçük olamaz"**
-13. (ReconnectDelay (T2.1a) > delayFor() > reset() > konfigürasyon doğrulaması) **"negatif jitter açıklığı reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/connector/tunnel-connector.spec.ts` (7 test)
-
-1. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"K2.1: start → connected < 5 sn (gerçek WS, ölçümlü)"**
-2. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"heartbeat gerçek WS üzerinden akar (telemetri pakette DEĞİL)"**
-3. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"T2.5: register-ack.config aralığı canlı uygular"**
-4. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"T2.5: config-update frame'i heartbeat aralığını canlı değiştirir"**
-5. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"T2.5: geçersiz config-update eski aralığı korur"**
-6. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"WS kopunca backoff → yeniden bağlanır"**
-7. (TunnelConnector integration (gerçek WS — T2.5/K2.1)) **"stop() sonrası yeniden bağlanma olmaz"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/connector/tunnel-connector.test.ts` (51 test)
-
-1. (TunnelConnector (T2.1b) > start() / bağlanma) **"start() → connecting + ilk URL'e Bearer'lı bağlanır"**
-2. (TunnelConnector (T2.1b) > start() / bağlanma) **"open sonrası register mesajı gönderir (peerId + peerType + protocolVersion)"**
-3. (TunnelConnector (T2.1b) > start() / bağlanma) **"AK-1.5: services boş/undefined ise register gövdesinde alan YOK"**
-4. (TunnelConnector (T2.1b) > start() / bağlanma) **"AK-1.1: config.services doluysa register mesajına eklenir (opak duyuru)"**
-5. (TunnelConnector (T2.1b) > start() / bağlanma) **"çift start() no-op — ikinci soket açılmaz"**
-6. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"ack ok → ilk heartbeat + connected"**
-7. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"ack ok → field_connected bilgi logu"**
-8. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"eventCodes verilmezse nötr varsayılan kullanılır"**
-9. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı) **"heartbeat her 15 sn'de bir gönderilir"**
-10. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"connected iken WS kapanırsa backoff → 1 sn sonra yeniden bağlanır"**
-11. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"kopuş warn logu (ws_connection_lost) üretir"**
-12. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"üstel backoff: 1, 2, 4 sn (jitter 0)"**
-13. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"başarılı bağlantı deneme sayacını sıfırlar"**
-14. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"register timeout (10 sn) → backoff"**
-15. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"register-ack rejected → backoff + security logu"**
-16. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"401 pre-upgrade → sıradaki URL denenir; tümü reddedilirse backoff"**
-17. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma) **"reddedilen soketin geç kapanma olayı durumu bozmaz"**
-18. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"60 sn pong yoksa bağlantı kapatılır + backoff"**
-19. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"pong gelirse bağlantı canlı kalır"**
-20. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti)) **"heartbeat gönderiminde ping atılır"**
-21. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"connected iken stop → offline + soket kapanır + yeniden bağlanmaz"**
-22. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"stop sonrası start tekrar bağlanır"**
-23. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop()) **"offline durumda stop no-op"**
-24. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"register-ack.config aralıkları değiştirir (heartbeat 5 sn)"**
-25. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"config-update frame'i restart'sız aralık değiştirir"**
-26. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"geçersiz config-update reddedilir — eski aralık korunur"**
-27. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5)) **"geçersiz register-ack config'i de reddedilir ama bağlantı kurulur"**
-28. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"malform JSON yok sayılır — çökme yok"**
-29. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"bilinmeyen mesaj tipi yok sayılır"**
-30. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"soket hatası loglanır (close olayı backoff'u yönetir)"**
-31. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"error frame'i loglanır"**
-32. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"kodsuz error frame'i 'unknown' ile loglanır"**
-33. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"register-ack status alanı yoksa 'unknown' ile reddedilir"**
-34. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı) **"403 pre-upgrade de security logu üretir"**
-35. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması)) **"bayat soketin tüm olayları yok sayılır"**
-36. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması)) **"bayat register timeout'u yeni bağlantıyı bozmaz"**
-37. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası geç kapanma olayı durumu bozmaz"**
-38. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası geç open register göndermez"**
-39. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası rejected yeniden bağlanmaz (tek URL)"**
-40. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları) **"stop sonrası rejected sıradaki URL'i denemez (çok URL)"**
-41. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma) **"log çağrıları atlanır — çökme yok"**
-42. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"bilinmeyen kontrol mesajı abonelere iletilir"**
-43. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"unsubscribe sonrası iletilmez"**
-44. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"sendControl JSON text frame gönderir"**
-45. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"sendBinary ham binary frame gönderir"**
-46. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"gelen binary frame abonelere iletilir"**
-47. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3)) **"bağlı değilken sendControl/sendBinary no-op"**
-48. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş URL listesi reddedilir"**
-49. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş token reddedilir"**
-50. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"boş peerId reddedilir"**
-51. (TunnelConnector (T2.1b) > start() / bağlanma > register-ack → connected akışı > backoff / yeniden bağlanma > liveness (yarı-ölü bağlantı tespiti) > stop() > operational config (T2.5) > mesaj sağlamlığı > bayat soket olayları (generation koruması) > stop() yarışları > logger'sız çalışma > tünel kanal kancaları (Faz 3) > constructor doğrulaması) **"pozitif olmayan heartbeat aralığı reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/demo/loopback.spec.ts` (5 test)
-
-1. (loopback uçtan uca (paket içi — ContainerProxy'siz)) **"TunnelConnector field'a kaydolur (register-ack → connected)"**
-2. (loopback uçtan uca (paket içi — ContainerProxy'siz)) **"open-session → ack + kayıt + audit"**
-3. (loopback uçtan uca (paket içi — ContainerProxy'siz)) **"GET / → SPA HTML akar (FIN ile biter)"**
-4. (loopback uçtan uca (paket içi — ContainerProxy'siz)) **"GET /api/data/latest → JSON akar (K3.2)"**
-5. (loopback uçtan uca (paket içi — ContainerProxy'siz)) **"/ws köprüsü çift yönlü WS_OP mesajı taşır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/hub/registry.test.ts` (10 test)
-
-1. (HubPeerRegistry (T6)) **"AK-1.7: saf sınıf — argümansız kurulur, taşıma bağımlılığı taşımaz"**
-2. (HubPeerRegistry (T6)) **"AK-1.7: register + servicesOf kaydı döner"**
-3. (HubPeerRegistry (T6)) **"AK-1.8: yeniden register servis listesini DEĞİŞTİRİR (birleşmez)"**
-4. (HubPeerRegistry (T6)) **"servis listesi yoksa register geçerli (boş dizi)"**
-5. (HubPeerRegistry (T6)) **"boş peerId → ValidationError (fail-closed)"**
-6. (HubPeerRegistry (T6)) **"aynı id iki kez → son değer kazanır (idempotent)"**
-7. (HubPeerRegistry (T6)) **"updateServices kayıtlı peer'ı günceller"**
-8. (HubPeerRegistry (T6)) **"updateServices kayıt yoksa sessiz no-op"**
-9. (HubPeerRegistry (T6)) **"unregister kaydı düşürür (idempotent)"**
-10. (HubPeerRegistry (T6)) **"peers() kayıtlı peer'ları listeler"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/protocol/messages.test.ts` (25 test)
-
-1. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION) **"2'dir — sürümlü protokol (v2: peerId+peerType register) (tasarım §12.3)"**
-2. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"tam config'i kabul eder"**
-3. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"kısmi config'i kabul eder (yalnızca heartbeat)"**
-4. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"boş config'i kabul eder (tüm alanlar opsiyonel)"**
-5. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"bilinmeyen anahtarları strip eder — ileri uyumluluk"**
-6. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"1000 ms altını reddeder"**
-7. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"300000 ms üstünü reddeder"**
-8. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"ondalıklı değeri reddeder"**
-9. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema) **"tip uyuşmazlığını reddeder"**
-10. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG) **"heartbeat 15 sn — tasarım §4.3"**
-11. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG) **"dondurulmuştur (immutable)"**
-12. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState) **"geçerli durumları tanır"**
-13. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState) **"geçersiz durumları reddeder"**
-14. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"RegisterMessage alanlarını sabitler"**
-15. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"RegisterAckMessage opsiyonel config taşır"**
-16. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"HeartbeatMessage ms timestamp taşır"**
-17. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"ConfigUpdateMessage tam config taşır"**
-18. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"ErrorMessage kod + mesaj taşır"**
-19. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"StreamOpenMessage akış açılışını taşır (§5.2)"**
-20. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"StreamOpenMessage upgrade bayrağı WS köprüsü taşır (§5.3)"**
-21. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"OpenSessionMessage eşlenmiş konteyner rolü taşır (§5.5)"**
-22. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union)) **"OpenSessionAckMessage konteyner JWT + süre taşır"**
-23. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"TunnelConnectorState 5 durumludur"**
-24. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"TunnelOperationalConfig yalnızca heartbeat alanı taşır"**
-25. (TunnelConnector sözleşmesi (T2.0) > TUNNEL_PROTOCOL_VERSION > tunnelOperationalConfigSchema > DEFAULT_TUNNEL_OPERATIONAL_CONFIG > isPeerConnectionState > kontrol mesajı tipleri (discriminated union) > durum tipi birlikleri) **"PeerConnectionState transport ConnectionState'ından ayrıdır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/proxy/session-gateway.test.ts` (10 test)
-
-1. (mapSessionRole (§5.5 — 2026-08-30 birebir)) **"tüm roller aynen taşınır (birebir eşleme)"**
-2. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"2026-08-30: guest oturum AÇABİLİR — konteyner rolü guest (birebir)"**
-3. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"konteyner bağlı değilse 503 (TransientError)"**
-4. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"ikinci açılış eskisini 'replaced' ile kapatır ve yenisini açar (Faz 5)"**
-5. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"ack zaman aşımı → 503 (TransientError)"**
-6. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"audit hatası → fail-closed (oturum açılmaz, FatalError)"**
-7. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"closeSession → session-end frame + audit close + kayıt düşer"**
-8. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"sweep süresi dolan oturumu session-end ile kapatır"**
-9. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"sessionForPeer acik oturumu konteyner kimligiyle bulur"**
-10. (mapSessionRole (§5.5 — 2026-08-30 birebir) > SessionGateway (T3.3)) **"sessionByToken kayıtlı oturumu döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/proxy/tunnel-proxy.test.ts` (24 test)
-
-1. (sessionCookieValue) **"cookie başlığından değeri çözer"**
-2. (sessionCookieValue) **"yoksa undefined"**
-3. (sessionCookieValue) **"bozuk parçalar atlanır"**
-4. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"ack → writeHead + gövde frame'leri + FIN → end"**
-5. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"RST → destroy"**
-6. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"ack gelmezse (timeout) hiçbir şey yazılmaz"**
-7. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"tarayıcı kopması → stream-close"**
-8. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"kredi: YARI pencere eşiğinde yeni stream-window gönderilir"**
-9. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"kredi DEADLOCK KORUMASI: pencere altı tüketimde bile kredi yenilenir"**
-10. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"authenticate: geçersiz cookie → undefined"**
-11. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"requestBody → BINARY frame'ler + FIN gönderilir"**
-12. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"konteyner stream-close (http) → yanıt destroy edilir"**
-13. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"malform binary frame yok sayılır"**
-14. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"akış tavanı dolunca stream açılmaz (writeHead yok)"**
-15. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"sweep: boşta kalan http akışı kapatılır"**
-16. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3)) **"logger varken akış kapanışı security kanalına düşer"**
-17. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"101 ack → köprü açılır; WS_OP frame tarayıcıya iletilir"**
-18. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"tarayıcı mesajı WS_OP frame'i olarak konteynere gider"**
-19. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"konteyner stream-close → tarayıcı kapatılır"**
-20. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"ack 101 değilse tarayıcı 1013 ile kapatılır"**
-21. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"closeWs → stream-close kontrolü gönderilir"**
-22. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"RST frame → tarayıcı 1011 ile kapatılır"**
-23. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"binary tarayıcı mesajı Binary opcode taşır"**
-24. (sessionCookieValue > isPathAllowed (§5.6) > TunnelProxy HTTP akışı (T3.3) > TunnelProxy WS köprüsü (T3.3)) **"bilinmeyen streamId'ye WS mesajı yok sayılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/result/result.test.ts` (6 test)
-
-1. (yerel Result) **"ok/err durumları ve değer erişimi"**
-2. (yerel Result) **"okVoid değersiz başarı üretir"**
-3. (yerel Result) **"unwrapOr fallback uygular"**
-4. (yerel Result) **"map/andThen/match hata taşır"**
-5. (yerel Result) **"hata üzerinde unwrap / başarı üzerinde error fırlatır"**
-6. (yerel Result > yerel DomainError taksonomisi) **"boş code/message reddedilir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/session/client-session-server.test.ts` (3 test)
-
-1. (ClientSessionServer (T3.3)) **"open-session → open-session-ack (token + expiresInSec)"**
-2. (ClientSessionServer (T3.3)) **"session-end → kayıt düşer"**
-3. (ClientSessionServer (T3.3)) **"bilinmeyen mesaj tipleri yok sayılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `packages/ws-tunnel/src/session/client-session-store.test.ts` (10 test)
-
-1. (ClientSessionStore (T3.3) > open() / authenticate()) **"open → token doğrulanır, kullanıcı + rol döner"**
-2. (ClientSessionStore (T3.3) > open() / authenticate()) **"geçersiz token undefined döner"**
-3. (ClientSessionStore (T3.3) > open() / authenticate()) **"tahrifli token (farklı secret) undefined döner"**
-4. (ClientSessionStore (T3.3) > open() / authenticate()) **"bilinmeyen sessionId'li geçerli-imza token da reddedilir"**
-5. (ClientSessionStore (T3.3) > open() / authenticate() > end()) **"iptal sonrası authenticate undefined döner"**
-6. (ClientSessionStore (T3.3) > open() / authenticate() > end() > TTL + idle sweep) **"4 saat TTL dolunca oturum kapanır"**
-7. (ClientSessionStore (T3.3) > open() / authenticate() > end() > TTL + idle sweep) **"15 dk idle → oturum kapanır; aktivite süreyi uzatır"**
-8. (ClientSessionStore (T3.3) > open() / authenticate() > end() > TTL + idle sweep) **"sweep TTL'den önce oturumu kapatmaz"**
-9. (ClientSessionStore (T3.3) > open() / authenticate() > end() > TTL + idle sweep) **"activeCount açık oturum sayısını döner"**
-10. (ClientSessionStore (T3.3) > open() / authenticate() > end() > TTL + idle sweep > role eşlemesi passthrough) **"field'da eşlenen konteyner rolü korunur"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
 ### `services/data-service/src/data-service.test.ts` (13 test)
 
 1. (DataService > start()) **"registers WRITE_TELEMETRY worker with onFailed boundary"**
@@ -3076,7 +1965,7 @@
 9. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11)) **"başarılı yazma → audit command_executed"**
 10. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11)) **"audit fail-closed: command_rejected logu başarısızsa job düşer"**
 11. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3)) **"'positive' sağlanıyorsa → validated: true"**
-12. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3)) **"ilişki sağlanmıyorsa timeout sonuna kadar poll → validated: false"**
+12. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3)) **"ilişki sağlanmıyorsa timeout sonuna kadar poll → success: false, validated: false"**
 13. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3)) **"ilişki dışı string birebir eşitlik olarak kalır"**
 14. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3)) **"okuma her denemede hata verirse → validated:false + reason okuma hatasını içerir"**
 15. (device-service T0.11 sözleşmesi (hata yolları + log) > readDevice hata yolu (Açık 1 kapanışı) > executeCommand audit (T0.11) > validate.expect ilişki sözcükleri (PCS-WATTOX T-P3) > bilinmeyen cihaz) **"logger varsa request_rejected loglanır, publish yok"**
@@ -3328,7 +2217,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/rule-evaluator.test.ts` (18 test)
+### `services/management-service/src/rule-evaluator.test.ts` (21 test)
 
 1. (RuleEvaluator) **"yükselen kenarda bir kez döner; aktifken tekrarlamaz"**
 2. (RuleEvaluator) **"düşüş sonrası yeniden yükseliş yeni kenardır (cooldown yoksa ateşler)"**
@@ -3348,6 +2237,9 @@
 16. (RuleEvaluator) **"bağımsız kurallar aynı cycle'da birlikte döner"**
 17. (RuleEvaluator) **"gte/lt/lte/neq operatorleri"**
 18. (RuleEvaluator > RuleEvaluator — A2 abs operatörleri) **"abs_gt/abs_gte işaretli değerde büyüklük eşiğini uygular"**
+19. (RuleEvaluator > RuleEvaluator — A2 abs operatörleri > RuleEvaluator — armAfterFalse (NEW-7)) **"başlangıçta koşul zaten TRUE ise ateşlemez"**
+20. (RuleEvaluator > RuleEvaluator — A2 abs operatörleri > RuleEvaluator — armAfterFalse (NEW-7)) **"boş snapshot kuralı KURMAZ; değer gelip TRUE ise yine ateşlemez"**
+21. (RuleEvaluator > RuleEvaluator — A2 abs operatörleri > RuleEvaluator — armAfterFalse (NEW-7)) **"gerçek FALSE görüldükten sonraki yükselen kenarda ateşler"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3357,8 +2249,49 @@
 2. (v2/dev container kuralları (F2.6)) **"tms_overheat_protect: OTW 49 (5 s) / OTF1 58 (5 s)"**
 3. (v2/dev container kuralları (F2.6)) **"tms_overcold_protect: UTW 0 / UTF1 −10"**
 4. (v2/dev container kuralları (F2.6)) **"tms_humidity_alarm: 75 %RH"**
-5. (v2/dev container kuralları (F2.6)) **"bsc_over_soc / bsc_over_offline_rack: charge limit 0"**
+5. (v2/dev container kuralları (F2.6)) **"bsc_over_soc / bsc_over_offline_rack: BSC güç komutu İÇERMEZ (yalnız log)"**
 6. (v2/dev container kuralları (F2.6)) **"fire_emergency / fss_first_stage: 8 HVAC force_off + 2 BSC emergency"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/application/commands/execute-command-use-case.test.ts` (3 test)
+
+1. (ExecuteCommandUseCase) **"executor'a derlenmiş seçenekleri geçirir (systems → remoteSystem)"**
+2. (ExecuteCommandUseCase) **"executor reddederse hata yutulmadan yayılır"**
+3. (ExecuteCommandUseCase) **"15 sn içinde terminal sonuç gelmezse 'timeout' döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/application/commands/operation-definitions-use-case.test.ts` (10 test)
+
+1. (OperationDefinitionsUseCase) **"geçerli tanımı oluşturur + audit yazar"**
+2. (OperationDefinitionsUseCase) **"audit fail-closed: audit hatası → persist_failed, store'a YAZILMAZ"**
+3. (OperationDefinitionsUseCase) **"mevcut tanım → already_exists"**
+4. (OperationDefinitionsUseCase) **"şema hatası → invalid (store'a yazılmaz)"**
+5. (OperationDefinitionsUseCase) **"güncelleme + audit yazılır"**
+6. (OperationDefinitionsUseCase) **"güncellemede ad uyuşmazlığı → invalid (store'a yazılmaz)"**
+7. (OperationDefinitionsUseCase) **"güncelleme audit fail-closed: audit hatası → persist_failed, store'a YAZILMAZ"**
+8. (OperationDefinitionsUseCase) **"devre dışı bırakma → deleted + audit"**
+9. (OperationDefinitionsUseCase) **"devre dışı bırakmada bulunamayan kayıt → not_found"**
+10. (OperationDefinitionsUseCase) **"devre dışı bırakma audit fail-closed: audit hatası → persist_failed, store'a YAZILMAZ"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/application/telemetry/get-container-telemetry-use-case.test.ts` (4 test)
+
+1. (GetContainerTelemetryUseCase) **"latestSnapshot tüm konteyner kimliklerini anahtarlar"**
+2. (GetContainerTelemetryUseCase) **"downsampled portun allHistorical'ine delege eder"**
+3. (GetContainerTelemetryUseCase) **"historical yoksa boş dizi döner"**
+4. (GetContainerTelemetryUseCase) **"knownContainerIds porttan gelir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/application/telemetry/get-field-containers-use-case.test.ts` (4 test)
+
+1. (GetFieldContainersUseCase) **"taze snapshot doluysa onu kullanır; lastSeenAt ISO döner"**
+2. (GetFieldContainersUseCase) **"taze snapshot boşsa cache'teki son değere düşer"**
+3. (GetFieldContainersUseCase) **"bir konteynerin hatası diğerlerini engellemez"**
+4. (GetFieldContainersUseCase) **"executeCached dış sorgu yapmaz (özet ekranı)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3439,38 +2372,26 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/config/default.test.ts` (30 test)
+### `services/web-service/src/config/default.test.ts` (18 test)
 
 1. (seedUsers (T1.6 + 2026-08-30)) **"container tier: dev default'ları + admin/boss mustChangePassword true, guest FALSE (otomatik guest)"**
-2. (seedUsers (T1.6 + 2026-08-30)) **"field tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)"**
-3. (seedUsers (T1.6 + 2026-08-30)) **"field tier: env şifreleri kullanılır; guest bayrağı false kalır"**
-4. (seedUsers (T1.6 + 2026-08-30)) **"field tier: 8 karakterden kısa env değeri de fırlatır"**
-5. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"field tier + dev secret → fırlatır"**
-6. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"field tier + geçerli secret → ok"**
+2. (seedUsers (T1.6 + 2026-08-30)) **"site tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)"**
+3. (seedUsers (T1.6 + 2026-08-30)) **"site tier: env şifreleri kullanılır; guest bayrağı false kalır"**
+4. (seedUsers (T1.6 + 2026-08-30)) **"site tier: 8 karakterden kısa env değeri de fırlatır"**
+5. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"site tier + dev secret → fırlatır"**
+6. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"site tier + geçerli secret → ok"**
 7. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6)) **"container tier + dev secret → ok (dev ortamı)"**
-8. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"kapalıysa undefined döner"**
-9. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkinse URL listesi + token + containerId ayrıştırılır"**
-10. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkin ama URL yoksa fail-fast fırlatır"**
-11. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkin ama token yoksa fail-fast fırlatır"**
-12. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"etkin ama containerId yoksa fail-fast fırlatır"**
-13. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"ws:// veya wss:// olmayan URL reddedilir"**
-14. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"field tier'da etkin = hata"**
-15. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3)) **"tek URL de geçerli"**
-16. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + geçerli UUID → config döner"**
-17. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + FIELD_ID yoksa fail-fast fırlatır"**
-18. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + geçersiz UUID fail-fast fırlatır"**
-19. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"field tier + FIELD_NAME env'den isim alır"**
-20. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"container tier → undefined (FIELD_ID opsiyonel)"**
-21. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env)) **"boss tier → undefined (çok saha ileride)"**
-22. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"field tier varsayılan: admin,teknik"**
-23. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false → [] (debug)"**
-24. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false + AUTH_MFA_REQUIRED_ROLES dolu → yine [] (bayrak öncelikli)"**
-25. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"AUTH_MFA_REQUIRED_ROLES boş string → []"**
-26. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"container tier her zaman []"**
-27. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki)) **"env boşsa jenerik varsayılanlar + domain blocklist döner"**
-28. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki)) **"virgüllü ek önekler §5.6 varsayılanlarına EKLENİR"**
-29. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki) > resolveTelemetryIntervalMs) **"tanımsız/geçersizde ws-tunnel varsayılanına (15000) düşer"**
-30. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > hubPeerConfig (T2.3) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag) > fieldTunnelPathAllowlist (Boss Faz 3 dev eki) > resolveTelemetryIntervalMs) **"geçerli değeri kullanır; 1000–300000 aralığına kırpar"**
+8. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env)) **"site tier + geçerli UUID → config döner"**
+9. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env)) **"site tier + FIELD_ID yoksa fail-fast fırlatır"**
+10. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env)) **"site tier + geçersiz UUID fail-fast fırlatır"**
+11. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env)) **"site tier + FIELD_NAME env'den isim alır"**
+12. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env)) **"container tier → undefined (FIELD_ID opsiyonel)"**
+13. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env)) **"boss tier → undefined (çok saha ileride)"**
+14. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"site tier varsayılan: admin,teknik"**
+15. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false → [] (debug)"**
+16. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"MFA_ENABLED=false + AUTH_MFA_REQUIRED_ROLES dolu → yine [] (bayrak öncelikli)"**
+17. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"AUTH_MFA_REQUIRED_ROLES boş string → []"**
+18. (seedUsers (T1.6 + 2026-08-30) > authConfig (T1.6) > siteFieldConfig (FIELD_ID env) > mfaRequiredRoles (MFA_ENABLED flag)) **"container tier her zaman []"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3576,157 +2497,19 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/container-proxy/container-connection-telemetry-publisher.test.ts` (4 test)
-
-1. (ContainerConnectionTelemetryPublisher) **"connected → value 1 MANAGEMENT job'ı (deviceId=field)"**
-2. (ContainerConnectionTelemetryPublisher) **"durum eşlemesi: idle→0, stale→2, error→0"**
-3. (ContainerConnectionTelemetryPublisher) **"addJob reddi yutulur — throw YOK (best-effort)"**
-4. (ContainerConnectionTelemetryPublisher) **"diğer observer callback'leri no-op"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/hub-container-view.test.ts` (5 test)
-
-1. (HubContainerView) **"presence: connectionStatus + lastSeenAt hub keşfinden"**
-2. (HubContainerView) **"relay telemetry frame'i latestTelemetry'ye yazılır"**
-3. (HubContainerView) **"latestQuery telemetry-query gönderir + yanıtı queryId ile eşler"**
-4. (HubContainerView) **"historical downsampled mod ile sorgular"**
-5. (HubContainerView) **"bağlı olmayan konteyner sorgusu boş döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/hub-maneuver-channel.test.ts` (4 test)
-
-1. (HubManeuverChannel) **"AK-3.1: 200 → ok; doğru yol ve gövde"**
-2. (HubManeuverChannel) **"AK-3.2: 503/404 → system_unreachable"**
-3. (HubManeuverChannel) **"diğer hatalar → gövdedeki reason"**
-4. (HubManeuverChannel) **"ağ hatası → system_unreachable"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/container-session/session-user-map.test.ts` (3 test)
-
-1. (SessionUserMap) **"toTunnelUser yalnızca tünel alanlarını taşır"**
-2. (SessionUserMap) **"toWebUser geçici oturum kullanıcısı üretir"**
-3. (SessionUserMap) **"round-trip: role korunur"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-connector/realtime-snapshot-source.test.ts` (6 test)
-
-1. (RealtimeSnapshotSource (T2.1c)) **"her cihazın en yeni değerlerini döndürür"**
-2. (RealtimeSnapshotSource (T2.1c)) **"(deviceId, name) başına ilk görülen (en yeni) korunur"**
-3. (RealtimeSnapshotSource (T2.1c)) **"bozuk kayıtları eler"**
-4. (RealtimeSnapshotSource (T2.1c)) **"SQL hatası → boş dizi (kademeli bozulma)"**
-5. (RealtimeSnapshotSource (T2.1c)) **"tek cihazın Redis hatası diğerlerini etkilemez"**
-6. (RealtimeSnapshotSource (T2.1c)) **"cihaz yoksa boş dizi döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-connector/telemetry-query-responder.test.ts` (7 test)
-
-1. (TelemetryQueryResponder (Faz 5.1 B2)) **"geçerli sorgu → series() çağrılır ve telemetry-result döner"**
-2. (TelemetryQueryResponder (Faz 5.1 B2)) **"deviceIds/names opsiyoneldir — varsa sorguya taşınır"**
-3. (TelemetryQueryResponder (Faz 5.1 B2)) **"geçersiz sorgu → telemetry-query-error (kaynağa ulaşılmaz)"**
-4. (TelemetryQueryResponder (Faz 5.1 B2)) **"queryId'siz geçersiz mesaj → queryId 'unknown'"**
-5. (TelemetryQueryResponder (Faz 5.1 B2)) **"kaynak hatası → telemetry-query-error"**
-6. (TelemetryQueryResponder (Faz 5.1 B2)) **"farklı tipte mesajlar yok sayılır"**
-7. (TelemetryQueryResponder (Faz 5.1 B2)) **"start idempotenttir; stop aboneliği söker"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-connector/telemetry-series-source.test.ts` (4 test)
-
-1. (TelemetrySeriesSource (Faz 5.1 B2)) **"çevrimiçi cihazlarda downsampled sorgular ve birleştirir"**
-2. (TelemetrySeriesSource (Faz 5.1 B2)) **"deviceIds filtresi uygulanır"**
-3. (TelemetrySeriesSource (Faz 5.1 B2)) **"tek cihaz hatası diğer sonuçları etkilemez"**
-4. (TelemetrySeriesSource (Faz 5.1 B2)) **"tüm cihazlar hatalıysa boş dizi döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-uplink/field-event-collector.test.ts` (7 test)
-
-1. (FieldEventCollector (Faz 5)) **"event frame'i dedupe INSERT ile yazar (ON CONFLICT DO NOTHING)"**
-2. (FieldEventCollector (Faz 5)) **"whitelist dışı olay yok sayılır"**
-3. (FieldEventCollector (Faz 5)) **"list JOIN ile saha adını taşır + ISO dönüşümü"**
-4. (FieldEventCollector (Faz 5)) **"countSince sonrasını sayar"**
-5. (FieldEventCollector (Faz 5)) **"demoSeed açıkken ensureSchema 3 örnek bildirim eker (idempotent)"**
-6. (FieldEventCollector (Faz 5)) **"demoSeed kapalıyken ensureSchema seed EKMEZ"**
-7. (FieldEventCollector (Faz 5)) **"attachChannel: hub consumer kanalından event frame'i toplar (P3)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-uplink/operation-flow.spec.ts` (2 test)
-
-1. (K1 — operasyon akışı uçtan uca (gerçek WS)) **"operation-execute → yürütücü → operation-result aynı kanaldan döner"**
-2. (K1 — operasyon akışı uçtan uca (gerçek WS)) **"bilinmeyen kontrol mesajı sessiz yok sayılır — kanal AÇIK kalır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-uplink/operation-requester.test.ts` (3 test)
-
-1. (OperationRequester (C2b)) **"operation-execute frame'i gönderilir + aynı id'li sonuç çözülür"**
-2. (OperationRequester (C2b)) **"farklı operationId / peer yok sayılır"**
-3. (OperationRequester (C2b)) **"timeout → undefined + abonelik sökülür"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-uplink/operation-responder.test.ts` (5 test)
-
-1. (OperationResponder (C2b)) **"geçerli operation-execute → yürütücü + operation-result (completed)"**
-2. (OperationResponder (C2b)) **"geçersiz frame → rejected(invalid_request) — yürütücü ÇALIŞMAZ"**
-3. (OperationResponder (C2b)) **"rejected sonuç reason ile taşınır"**
-4. (OperationResponder (C2b)) **"yürütme throw → failed sonucu; abonelik KALIR (kanal kapanmaz)"**
-5. (OperationResponder (C2b)) **"audit: operation_boss_request + operation_result_sent"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/field-uplink/uplink-event-relay.test.ts` (6 test)
-
-1. (UplinkEventRelay (Faz 5)) **"ilk tur backlog (son 1 saat) gönderir — eventId correlation_id ile"**
-2. (UplinkEventRelay (Faz 5)) **"sonraki turlar yalnızca cursor sonrasını gönderir (2 sn örtüşme payı)"**
-3. (UplinkEventRelay (Faz 5)) **"whitelist dışı satırlar elenir (log gürültüsü aktarılmaz)"**
-4. (UplinkEventRelay (Faz 5)) **"correlation_id yoksa eventId seq'e düşer"**
-5. (UplinkEventRelay (Faz 5)) **"whitelist varsayılanı alarm + oturum + operasyon koşusu audit'idir"**
-6. (UplinkEventRelay (Faz 5)) **"start → 10 sn interval; stop → döngü biter"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/hub-consumer/consumer-relay.test.ts` (2 test)
-
-1. (ConsumerRelay) **"AK-1.3: { peerId, message } zarfını aboneye iletir"**
-2. (ConsumerRelay) **"AK-1.2: kopunca yeniden bağlanır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/hub-consumer/hub-consumer-channel.test.ts` (4 test)
-
-1. (HubConsumerChannel) **"sendControl → client.sendControl"**
-2. (HubConsumerChannel) **"onControlMessage relay aboneliğine delege eder"**
-3. (HubConsumerChannel) **"presence tazelenince isConnected doğru döner"**
-4. (HubConsumerChannel) **"sendBinary desteklenmiyor"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/hub-consumer/hub-consumer-client.test.ts` (8 test)
+### `services/web-service/src/infrastructure/hub-tunnel/hub-consumer-client.test.ts` (4 test)
 
 1. (HubConsumerClient) **"AK-1.1: peers() tipli liste döner + auth başlığı taşır"**
-2. (HubConsumerClient) **"servicesOf peerId'yi encode eder"**
-3. (HubConsumerClient) **"sendControl POST /control/:peerId"**
-4. (HubConsumerClient) **"openSession POST /sessions"**
-5. (HubConsumerClient) **"access programatik erişim URL'i kurar"**
-6. (HubConsumerClient) **"ok olmayan yanıt HubConsumerError fırlatır"**
-7. (HubConsumerClient) **"createPeer POST /admin/peers"**
-8. (HubConsumerClient) **"revokePeer DELETE /admin/peers/:id"**
+2. (HubConsumerClient) **"openSession POST /sessions"**
+3. (HubConsumerClient) **"access programatik erişim URL'i kurar"**
+4. (HubConsumerClient) **"ok olmayan yanıt HubConsumerError fırlatır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/hub-consumer/hub-field-registry.test.ts` (4 test)
+### `services/web-service/src/infrastructure/hub-tunnel/plugin.test.ts` (2 test)
 
-1. (HubFieldRegistry) **"AK-2.3: presence hub keşfinden tazelenir"**
-2. (HubFieldRegistry) **"upsertToken hub bootstrap üretir (düz metin token döner)"**
-3. (HubFieldRegistry) **"removeToken hub'da iptal eder + presence düşer"**
-4. (HubFieldRegistry) **"hub erişilemezse eski presence korunur (kademeli bozulma)"**
+1. (hubTunnelPlugin) **"iki config alanıyla takılır ve hubTunnel decorator'ını sunar"**
+2. (hubTunnelPlugin) **"decorator enjekte edilen fetch ile çalışır (app-agnostik)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3739,20 +2522,17 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/market/market-series.test.ts` (4 test)
-
-1. (MarketSeries (Faz 2)) **"points kronolojik noktaları ISO timestamp'e çevirir"**
-2. (MarketSeries (Faz 2)) **"latest boş sonuçta undefined döner"**
-3. (MarketSeries (Faz 2)) **"average NULL sonucu undefined'a eşler"**
-4. (MarketSeries (Faz 2)) **"average sayısal sonucu döner"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
 ### `services/web-service/src/infrastructure/persistence/device-registry.test.ts` (3 test)
 
 1. (DeviceRegistry — refresh TTL cache) **"ttl içindeki ardışık refresh tek sorgu yapar"**
 2. (DeviceRegistry — refresh TTL cache) **"force=true ttl'i atlar"**
 3. (DeviceRegistry — refresh TTL cache) **"online() önbellekten döner"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/infrastructure/persistence/log-event-feed.test.ts` (1 test)
+
+1. (LogEventFeed (adapter)) **"whitelist+after+limit ile sorgular ve satırı port tipine eşler"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3832,29 +2612,10 @@
 1. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"token'sız handshake 401 ile reddedilir"**
 2. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"geçersiz token 401 ile reddedilir"**
 3. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"geçerli access token bağlanır; subscribe → subscribed + initial data"**
-4. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"tünel oturum token'ı sessionStore üzerinden kabul edilir (Faz 3)"**
+4. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"agent imzalı oturum token'ı kabul edilir"**
 5. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"unsubscribe → unsubscribed karşılığı döner"**
 6. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"malform JSON mesajı error tipi yanıt üretir (bağlantı kopmaz)"**
 7. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"kapanışta realtime.unsubscribeAll çağrılır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/wireguard/wg-host-store.test.ts` (4 test)
-
-1. (WgHostStore (Faz 4)) **"list çıktısında psk alanı YOKTUR"**
-2. (WgHostStore (Faz 4)) **"create PSK'yı SQL'e yazar ama çıktıya düşürür"**
-3. (WgHostStore (Faz 4)) **"byIdWithPsk iç kullanım için PSK döner (yalnızca bağlantı kurarken)"**
-4. (WgHostStore (Faz 4)) **"remove DELETE çalıştırır"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/infrastructure/wireguard/wireguard-connection.test.ts` (5 test)
-
-1. (WireGuardConnection (Faz 4)) **"connect driver.up'ı PSK'lı peer config'iyle çağırır"**
-2. (WireGuardConnection (Faz 4)) **"disconnect idempotent down döner"**
-3. (WireGuardConnection (Faz 4)) **"removeHost önce down sonra siler"**
-4. (WireGuardConnection (Faz 4)) **"yoksa NotFoundError (kind not_found)"**
-5. (WireGuardConnection (Faz 4)) **"driver.up hatası üste taşınır (kademeli bozulma — state düşmez)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -3935,26 +2696,6 @@
 7. (RequestContext (T0.6) > createRequestIdHook (T0.6)) **"gelen X-Request-Id başlığını kullanır ve yankılar"**
 8. (RequestContext (T0.6) > createRequestIdHook (T0.6)) **"boş başlık üretilmiş id ile değiştirilir"**
 9. (RequestContext (T0.6) > createRequestIdHook (T0.6)) **"üretim fonksiyonu yoksa UUID formatı üretir"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/presentation/routes/admin-routes.test.ts` (15 test)
-
-1. (admin-routes (T0.6 karakterizasyon)) **"GET / → 200 liste"**
-2. (admin-routes (T0.6 karakterizasyon)) **"GET /:id — yoksa 404"**
-3. (admin-routes (T0.6 karakterizasyon)) **"POST / → 201"**
-4. (admin-routes (T0.6 karakterizasyon)) **"POST / — fieldType poller'a geçer (harita glifi)"**
-5. (admin-routes (T0.6 karakterizasyon)) **"PUT /:id — fieldType güncellemeye geçer"**
-6. (admin-routes (T0.6 karakterizasyon)) **"PUT /:id — yoksa 404"**
-7. (admin-routes (T0.6 karakterizasyon)) **"PUT /:id — updateField Field not found → 404"**
-8. (admin-routes (T0.6 karakterizasyon)) **"PUT /:id — beklenmeyen hata sınıra yayılır (rethrow)"**
-9. (admin-routes (T0.6 karakterizasyon)) **"DELETE /:id → 200 {success}"**
-10. (admin-routes (T0.6 karakterizasyon)) **"GET /:id/summary — saha API erişilemezse 502"**
-11. (admin-routes (T0.6 karakterizasyon)) **"GET / — registry bağlıysa status online + last_seen_at (S1 overlay)"**
-12. (admin-routes (T0.6 karakterizasyon)) **"GET / — bağlı sahanın boş özeti DEMO değerlerle dolar (field→cloud push öncesi)"**
-13. (admin-routes (T0.6 karakterizasyon)) **"GET / — bağlı sahanın dolu özeti DEMO ile EZİLMEZ"**
-14. (admin-routes (T0.6 karakterizasyon)) **"GET / — registry bağlı değilse DB durumu korunur"**
-15. (admin-routes (T0.6 karakterizasyon)) **"GET /:id — registry bağlıysa overlay uygulanır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -4062,6 +2803,18 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
+### `services/web-service/src/presentation/routes/event-routes.test.ts` (7 test)
+
+1. (eventRoutes (UC-4)) **"yetkisiz istek → 403"**
+2. (eventRoutes (UC-4)) **"after+limit geçirir; eventId/level/category bağlam eşlenir"**
+3. (eventRoutes (UC-4)) **"after yoksa epoch; correlation yoksa seq kullanılır"**
+4. (eventRoutes (UC-4)) **"geçersiz after → 400"**
+5. (eventRoutes (UC-4)) **"limit 1..1000 aralığına kırpılır"**
+6. (eventRoutes (UC-4)) **"iç token ile erişir (hub programatik yolu)"**
+7. (eventRoutes (UC-4)) **"feed yoksa boş liste döner (kademeli)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
 ### `services/web-service/src/presentation/routes/field-container-commands.test.ts` (10 test)
 
 1. (field-container-commands (D3 — hub)) **"yetki yok (token/user yok) → 403; hub'a istek gitmez"**
@@ -4124,35 +2877,27 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/maneuver-routes.test.ts` (18 test)
+### `services/web-service/src/presentation/routes/maneuver-routes.test.ts` (19 test)
 
 1. (maneuver/operation rotaları — yetki) **"yetki yok → 403 (tüm uçlar)"**
 2. (maneuver/operation rotaları — yetki) **"Bearer admin/teknik kabul; guest 403"**
 3. (maneuver/operation rotaları — yetki) **"geçerli iç token kabul; yanlış token 403 (fail-closed)"**
 4. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"GET /maneuvers + /operations registry listesini döner"**
 5. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"POST /maneuvers/:name/execute: executor argümanları + 200"**
-6. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"UC-13: systems → executor'a remoteSystem olarak geçer (uzak adım hedefi)"**
-7. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"HTTP eşlemesi: not_found 404 / missing_param 400 / persist 503 / failed 422"**
-8. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"rolled_back → 200 (terminal durum alanıyla)"**
-9. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"GET /operations/runs + /runs/:id (yok → 404)"**
-10. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"teknik/guest tanım YÖNETİMİNE erişemez (403) — yürütme erişebilir"**
-11. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"bozuk tanım → 400 (persist anında zod — kaydedilmez)"**
-12. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"mükerrer kayıt → 409; audit + persist zinciri"**
-13. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"audit FAIL-CLOSED: audit yazılamazsa tanım REDDEDİLİR (§11.2)"**
-14. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"PUT: isim uyuşmazlığı 400; başarılı güncelleme 200"**
-15. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"DELETE: yumuşak silme (enabled=false); yoksa 404"**
-16. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"operasyon tanımı: bozuk şema 400; geçerli 201"**
-17. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2) > yürütme rotaları — 15 sn → 202 (KURAL-MOTORU-V2 §3.2)) **"uzun yürütme → 202 {status:running}; yürütme arka planda sürer"**
-18. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2) > yürütme rotaları — 15 sn → 202 (KURAL-MOTORU-V2 §3.2)) **"hızlı yürütme → normal sonuç (202 DEĞİL)"**
-
-[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
-
-### `services/web-service/src/presentation/routes/market-routes.test.ts` (4 test)
-
-1. (market-routes (Faz 2)) **"GET /ptf → 200 seri noktaları + lastUpdatedAt"**
-2. (market-routes (Faz 2)) **"GET /gip-weighted-average → 200"**
-3. (market-routes (Faz 2)) **"GET /summary → son değerler + gün ortalaması"**
-4. (market-routes (Faz 2)) **"veri yoksa summary null döner (kademeli bozulma — UI bozulmaz)"**
+6. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"UC-4: x-gd-operation-id kökeni → trigger boss:<id> + createdBy boss"**
+7. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"UC-13: systems → executor'a remoteSystem olarak geçer (uzak adım hedefi)"**
+8. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"HTTP eşlemesi: not_found 404 / missing_param 400 / persist 503 / failed 422"**
+9. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"rolled_back → 200 (terminal durum alanıyla)"**
+10. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma) **"GET /operations/runs + /runs/:id (yok → 404)"**
+11. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"teknik/guest tanım YÖNETİMİNE erişemez (403) — yürütme erişebilir"**
+12. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"bozuk tanım → 400 (persist anında zod — kaydedilmez)"**
+13. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"mükerrer kayıt → 409; audit + persist zinciri"**
+14. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"audit FAIL-CLOSED: audit yazılamazsa tanım REDDEDİLİR (§11.2)"**
+15. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"PUT: isim uyuşmazlığı 400; başarılı güncelleme 200"**
+16. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"DELETE: yumuşak silme (enabled=false); yoksa 404"**
+17. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2)) **"operasyon tanımı: bozuk şema 400; geçerli 201"**
+18. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2) > yürütme rotaları — 15 sn → 202 (KURAL-MOTORU-V2 §3.2)) **"uzun yürütme → 202 {status:running}; yürütme arka planda sürer"**
+19. (maneuver/operation rotaları — yetki > manevra/operasyon rotaları — yürütme + okuma > tanım YÖNETİMİ rotaları (yalnız admin — §11.2) > yürütme rotaları — 15 sn → 202 (KURAL-MOTORU-V2 §3.2)) **"hızlı yürütme → normal sonuç (202 DEĞİL)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
@@ -4176,15 +2921,22 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/status-route.test.ts` (3 test)
+### `services/web-service/src/presentation/routes/status-route.test.ts` (1 test)
 
-1. (status-route (T2.2)) **"bağlı connector → connected true + state + heartbeat"**
-2. (status-route (T2.2)) **"heartbeat hiç atılmadıysa lastHeartbeatAt yoktur"**
-3. (status-route (T2.2)) **"connector yoksa kapalı durum bildirir"**
+1. (status-route) **"her zaman offline durum bildirir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/unified-routes.test.ts` (22 test)
+### `services/web-service/src/presentation/routes/topology-routes.test.ts` (4 test)
+
+1. (topology-routes) **"AK: topoloji dosyası varsa istasyon modelini döner"**
+2. (topology-routes) **"dosya yoksa 404 (frontend statik fallback)"**
+3. (topology-routes) **"yetkisiz istek 401"**
+4. (topology-routes) **"readFieldTopology: bozuk JSON → undefined"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/presentation/routes/unified-routes.test.ts` (23 test)
 
 1. (unified-routes (T0.6)) **"GET /telemetry/latest → 200 {telemetries}"**
 2. (unified-routes (T0.6)) **"GET /timeseries/external → 200 {points} (AK-9.2)"**
@@ -4208,16 +2960,96 @@
 20. (unified-routes (T0.6)) **"PUT /projects/:id → 200"**
 21. (unified-routes (T0.6)) **"DELETE /projects/:id → 200 {success}"**
 22. (unified-routes (T0.6)) **"altyapı hatası sınıra ulaşır — console.error yok, 500"**
+23. (unified-routes (T0.6) > unified-routes — latest-per-name) **"AK: getLatestPerName pencere + names filtresiyle çağrılır"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/wireguard-routes.test.ts` (5 test)
+### `services/web-service/src/tiers/boss/infrastructure/field-event-collector.test.ts` (7 test)
 
-1. (wireguard-routes (Faz 4)) **"GET / → 200 host listesi"**
-2. (wireguard-routes (Faz 4)) **"POST / → 201"**
-3. (wireguard-routes (Faz 4)) **"PUT /:id → yoksa 404"**
-4. (wireguard-routes (Faz 4)) **"POST /:id/connect → state up"**
-5. (wireguard-routes (Faz 4)) **"connect NotFoundError → 404"**
+1. (FieldEventCollector (UC-5 — HTTP pull)) **"field peer'ı keşfeder, backlog cursor'ı ile çeker ve dedupe INSERT yazar"**
+2. (FieldEventCollector (UC-5 — HTTP pull)) **"whitelist dışı olay yok sayılır"**
+3. (FieldEventCollector (UC-5 — HTTP pull)) **"ikinci tur cursor - 2 sn örtüşmesinden devam eder"**
+4. (FieldEventCollector (UC-5 — HTTP pull)) **"peer erişilemezse tur atlanır, cursor ilerlemez"**
+5. (FieldEventCollector (UC-5 — HTTP pull)) **"bağlı olmayan field peer'ı atlanır"**
+6. (FieldEventCollector (UC-5 — HTTP pull)) **"demoSeed açıkken ensureSchema 3 örnek bildirim eker (idempotent)"**
+7. (FieldEventCollector (UC-5 — HTTP pull)) **"demoSeed kapalıyken ensureSchema seed EKMEZ"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/boss/infrastructure/field-event-reader.test.ts` (2 test)
+
+1. (FieldEventReader (adapter)) **"JOIN ile saha adını taşır + ISO dönüşümü"**
+2. (FieldEventReader (adapter)) **"countSince sonrasını sayar"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/boss/infrastructure/operation-requester.test.ts` (8 test)
+
+1. (OperationRequester (UC-4 — HTTP relay)) **"hub access POST'u system kimliği + köken başlıklarıyla atar; 200 sonucu eşler"**
+2. (OperationRequester (UC-4 — HTTP relay)) **"200 + outcomes → results özetine dönüşür"**
+3. (OperationRequester (UC-4 — HTTP relay)) **"202 (uzun koşu) → failed/still_running (terminal-only)"**
+4. (OperationRequester (UC-4 — HTTP relay)) **"422 → failed + gövdedeki reason"**
+5. (OperationRequester (UC-4 — HTTP relay)) **"404/403 → rejected + gövdedeki error"**
+6. (OperationRequester (UC-4 — HTTP relay)) **"5xx → failed (remote_http_<status>)"**
+7. (OperationRequester (UC-4 — HTTP relay)) **"ağ hatası → undefined"**
+8. (OperationRequester (UC-4 — HTTP relay)) **"timeout → undefined"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/container/infrastructure/session/session-user-map.test.ts` (3 test)
+
+1. (SessionUserMap) **"toTunnelUser yalnızca tünel alanlarını taşır"**
+2. (SessionUserMap) **"toWebUser geçici oturum kullanıcısı üretir"**
+3. (SessionUserMap) **"round-trip: role korunur"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/container/infrastructure/session/stateless-session-authenticator.test.ts` (4 test)
+
+1. (StatelessSessionAuthenticator (container tier)) **"cookie'den token'ı çözer ve payload'ı User'a eşler"**
+2. (StatelessSessionAuthenticator (container tier)) **"stateful değildir — aynı token yerel kayıt olmadan tekrar doğrulanır"**
+3. (StatelessSessionAuthenticator (container tier)) **"cookie yok → undefined (verify çağrılmaz)"**
+4. (StatelessSessionAuthenticator (container tier)) **"geçersiz token → undefined (fail-closed)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/site/infrastructure/container-telemetry/container-connection-telemetry-publisher.test.ts` (4 test)
+
+1. (ContainerConnectionTelemetryPublisher) **"connected → value 1 MANAGEMENT job'ı (deviceId=field)"**
+2. (ContainerConnectionTelemetryPublisher) **"durum eşlemesi: idle→0, stale→2, error→0"**
+3. (ContainerConnectionTelemetryPublisher) **"addJob reddi yutulur — throw YOK (best-effort)"**
+4. (ContainerConnectionTelemetryPublisher) **"diğer observer callback'leri no-op"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/site/infrastructure/container-telemetry/hub-container-view.test.ts` (9 test)
+
+1. (HubContainerView — hub relay HTTP) **"presence: connectionStatus + lastSeenAt hub keşfinden"**
+2. (HubContainerView — hub relay HTTP) **"AK-1.1: latestQuery container'ın generic latest endpoint'ini çağırır"**
+3. (HubContainerView — hub relay HTTP) **"AK-1.3: TTL içinde ikinci sorgu cache'ten döner"**
+4. (HubContainerView — hub relay HTTP) **"AK-1.2: historical downsampled endpoint'ini pencereyle çağırır"**
+5. (HubContainerView — hub relay HTTP) **"allHistorical: konteyner başına downsampled toplar (Record)"**
+6. (HubContainerView — hub relay HTTP) **"allHistorical: hata alan konteyner sonuçtan düşer (kısmi başarı)"**
+7. (HubContainerView — hub relay HTTP) **"AK-1.4: erişim hatasında boş dizi; son cache değeri fallback"**
+8. (HubContainerView — hub relay HTTP) **"bağlı olmayan konteyner sorgusu boş döner"**
+9. (HubContainerView — hub relay HTTP) **"yeniden bağlanan peer'ın cache'i geçersizleşir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/site/infrastructure/container-telemetry/hub-ttl-cache.test.ts` (3 test)
+
+1. (HubTtlCache) **"TTL içinde değeri döner; süre geçince get undefined"**
+2. (HubTtlCache) **"peek TTL'e bakmaz (son değer fallback)"**
+3. (HubTtlCache) **"delete + clear"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `services/web-service/src/tiers/site/infrastructure/hub-maneuver-channel.test.ts` (4 test)
+
+1. (HubManeuverChannel) **"AK-3.1: 200 → ok; doğru yol ve gövde"**
+2. (HubManeuverChannel) **"AK-3.2: 503/404 → system_unreachable"**
+3. (HubManeuverChannel) **"diğer hatalar → gövdedeki reason"**
+4. (HubManeuverChannel) **"ağ hatası → system_unreachable"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 

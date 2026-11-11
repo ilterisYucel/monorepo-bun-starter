@@ -30,11 +30,11 @@ Kapalı döngü testleri (bulgu → test dosyası):
 
 | Test dosyası | Kapsadığı bulgular |
 | :--- | :--- |
-| `apps/demo-field/integration/device-telemetry.integration.test.ts` | BSC H1/H5/C5/H7, PCS 1/2/5/15, HVAC H12–H29, B1/A1, P1/P4, S2, G1, M1 |
-| `apps/demo-field/integration/bsc-handshake.integration.test.ts` | BSC C1/C2/C3/C4/C6/M5/M6/M9 |
-| `apps/demo-field/integration/protocol-conformance.integration.test.ts` | PCS 6/7/8/9/10/12, HVAC H1/H2/H5, B1, A1, P1/P2, S1, M1 |
-| `apps/demo-field/integration/bsc-pcs-connector.integration.test.ts` | BSC C6/C7/C8/M12, PCS 1–5/13–19 |
-| `apps/demo-field/integration/rule-protection.integration.test.ts` | BSC C1/C2, FL-02/05/07/08/11, A2, M2/M7 |
+| `apps/site/integration/device-telemetry.integration.test.ts` | BSC H1/H5/C5/H7, PCS 1/2/5/15, HVAC H12–H29, B1/A1, P1/P4, S2, G1, M1 |
+| `apps/site/integration/bsc-handshake.integration.test.ts` | BSC C1/C2/C3/C4/C6/M5/M6/M9 |
+| `apps/site/integration/protocol-conformance.integration.test.ts` | PCS 6/7/8/9/10/12, HVAC H1/H2/H5, B1, A1, P1/P2, S1, M1 |
+| `apps/site/integration/bsc-pcs-connector.integration.test.ts` | BSC C6/C7/C8/M12, PCS 1–5/13–19 |
+| `apps/site/integration/rule-protection.integration.test.ts` | BSC C1/C2, FL-02/05/07/08/11, A2, M2/M7 |
 | `e2e/demo-device-data.spec.ts` | H4/H5, M8, genel veri akışı |
 | `e2e/demo-protection.spec.ts` | M2, FL-05/07, alarm UI |
 
@@ -227,8 +227,8 @@ Kapalı döngü testleri (bulgu → test dosyası):
 | **PCS15/PCS18** | `socEnergy` mapping (B19/B20) + D01–D09 bitfield (Appendix 2). | `connector.test.ts` (+3), `protocol-conformance` PCS15, `device-telemetry` PCS18 |
 | **P1/P3/H6** | Resmi dokümanlarla doğrulandı (kod zaten uyumlu). | protocol-conformance PM5340, device-telemetry P3 |
 | **M11/L1** | calInfo bitfield + BMS SW Name 128-bit. | config schema |
-| **Faz1/F2.1–F2.5** (demo-field) | HVAC compStarts/srvRH; BSC request-ack tablosu; `accept` benign-ack; heartbeat 40000-40009; nameplate 17/2/4/24/210. | sim + device-service + integration |
-| **F2.6/F2.7** (demo-field) | DIAG eşikleri (49/58/0/−10), nem 75, IMD 225/150 kΩ, Over SOC/Offline kuralları, yangın+FSS C&E, `bsc_recovery` manevrası. | `v2-rules.test.ts`, `imd.test.ts`, `rule-protection` |
+| **Faz1/F2.1–F2.5** (site) | HVAC compStarts/srvRH; BSC request-ack tablosu; `accept` benign-ack; heartbeat 40000-40009; nameplate 17/2/4/24/210. | sim + device-service + integration |
+| **F2.6/F2.7** (site) | DIAG eşikleri (49/58/0/−10), nem 75, IMD 225/150 kΩ, Over SOC/Offline kuralları, yangın+FSS C&E, `bsc_recovery` manevrası. | `v2-rules.test.ts`, `imd.test.ts`, `rule-protection` |
 | **WEB-LATEST-1** | `/api/unified/telemetry/latest` pencere sınırı 2000→20000 (yüksek telemetrili cihazlarda yavaş sinyaller düşüyordu). | `unified-routes.ts`, suite yeşil |
 
 **Halen açık / ertelenen (Tur 2 kapsamı):** Yok — denetim bulguları kapalı.
@@ -278,7 +278,7 @@ sorun tespit edildi:
 
 | Paket | Sonuç |
 | :-- | :-- |
-| `apps/demo-field/integration/*` (5 yeni + demo-maneuver) | ✅ yeşil (beklenen-kırıklar `it.fails`) |
+| `apps/site/integration/*` (5 yeni + demo-maneuver) | ✅ yeşil (beklenen-kırıklar `it.fails`) |
 | `e2e/demo-device-data.spec.ts` + `e2e/demo-protection.spec.ts` | ✅ 6/6 geçti |
 | `packages/simulators` (injection dahil) | ✅ 168 test |
 | `services/device-service` (debug-injector dahil) | ✅ 92 test |

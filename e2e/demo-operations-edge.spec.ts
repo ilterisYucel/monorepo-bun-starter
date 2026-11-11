@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * demo-field OPERATIONS UI edge-case e2e: power input sınırları, gizli manevralar,
+ * demo-site OPERATIONS UI edge-case e2e: power input sınırları, gizli manevralar,
  * operasyon çalıştırma akışı. Ön koşul: v2/dev demo stack.
  */
 
@@ -14,7 +14,7 @@ const PASSWORD = process.env.E2E_ADMIN_PASSWORD || "password1234";
 function fieldId(): string {
   if (process.env.FIELD_ID) return process.env.FIELD_ID;
   try {
-    const env = readFileSync(resolve(process.cwd(), "deployment/v2/dev/field/.env"), "utf-8");
+    const env = readFileSync(resolve(process.cwd(), "deployment/v2/dev/site/.env"), "utf-8");
     return env.split("\n").find((l) => l.startsWith("FIELD_ID="))?.slice("FIELD_ID=".length).trim() ?? "";
   } catch {
     return "";

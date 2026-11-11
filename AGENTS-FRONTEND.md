@@ -74,7 +74,7 @@ import {
 | `LogProvider`              | Log entries + add/clear actions                           | `LogTerminal`               |
 | `EventAnnotationsProvider` | Event annotations for chart vertical lines                | `TelemetryChart` (optional) |
 
-These are **interfaces only** — no implementations exist in `packages/ui`. Implementations live in `apps/container-web` (using TanStack Query, Zustand, etc.).
+These are **interfaces only** — no implementations exist in `packages/ui`. Uygulama katmanı (şu an `apps/site`) tüketir; Taşıma stratejileri `packages/ui/src/transports/` altındadır.
 
 ## Compound component contracts (`packages/ui/src/core/`)
 
@@ -94,7 +94,7 @@ Each `DeviceTelemetryProvider`:
 - Crash in one provider's stream does NOT affect other providers (Grafana panel isolation)
 - Sub-components access data via internal React Context — no prop drilling
 
-## Transport wiring in apps (`apps/container-web/src/contexts/TransportContext.tsx`)
+## Transport wiring in apps
 
 ```tsx
 // App-level transport selection:
@@ -114,7 +114,7 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 | Package              | Allowed Imports                                    | Forbidden Imports                             |
 | -------------------- | -------------------------------------------------- | --------------------------------------------- |
 | `packages/ui`        | `react`, `@gd-monorepo/shared-types`, browser APIs | TanStack Query, Zustand, SWR, Axios, `apps/*` |
-| `apps/container-web` | `@gd-monorepo/ui`, TanStack Query, Zustand, Axios  | — (app layer can use anything)                |
+| `apps/site` | `@gd-monorepo/ui`, TanStack Query, Zustand, Axios  | — (app layer can use anything)                |
 
 **UI components never:**
 
@@ -133,11 +133,11 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 | Contract                   | Location                                  | Implementations                                                                        |
 | :------------------------- | :---------------------------------------- | :------------------------------------------------------------------------------------- |
 | `ITelemetryTransport`      | `shared-types/src/telemetry/transport.ts` | `WebSocketTransport`, `HttpPollingTransport`, `MockTransport` (all in `ui/transports`) |
-| `TelemetryProvider`        | `ui/src/interfaces/telemetry-provider.ts` | `useTelemetryProvider` (in `apps/container-web/src/hooks/`)                            |
-| `LogProvider`              | `ui/src/interfaces/log-provider.ts`       | `useLogStore` (Zustand, in `apps/container-web/src/stores/`)                           |
-| `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts`  | `useEventAnnotations` (in `apps/container-web/src/hooks/`)                             |
+| `TelemetryProvider`        | `ui/src/interfaces/telemetry-provider.ts` | uygulama katmanı (contract tüketicisi)                                                 |
+| `LogProvider`              | `ui/src/interfaces/log-provider.ts`       | uygulama katmanı (Zustand store)                                                       |
+| `EventAnnotationsProvider` | `ui/src/interfaces/event-annotations.ts`  | uygulama katmanı (contract tüketicisi)                                                 |
 | `useTelemetryStream`       | `ui/src/hooks/useTelemetryStream.ts`      | Çok-abone WS hook (multipleks; per-device buffer)                                      |
-| `useDeviceTelemetry`       | `apps/container-web/src/features/telemetry/hooks/useDeviceTelemetry.ts` | Component-kapsamlı: REST (`keepPreviousData`) + WS + `dedupeLatest` |
+| `useDeviceTelemetry`       | uygulama katmanı | Component-kapsamlı: REST (`keepPreviousData`) + WS + `dedupeLatest` |
 
 ## Adding a new data source
 
@@ -148,4 +148,4 @@ Any component can access transports via `useTransport('ws')` or `useTransport('h
 
 ## Vite resolves packages to source
 
-`apps/container-web` and `apps/container-desktop` Vite config aliases map `@gd-monorepo/*` to `packages/*/src/` (not `dist/`) for HMR. Library builds are not required for frontend dev.
+`apps/site` Vite config aliases map `@gd-monorepo/*` to `packages/*/src/` (not `dist/`) for HMR. Library builds are not required for frontend dev.

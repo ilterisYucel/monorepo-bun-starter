@@ -4,7 +4,7 @@ import { makeCommandRoutes } from "./command-routes";
 import { RequestContext, createRequestIdHook } from "../middleware/request-context";
 import { createErrorHandler } from "../middleware/error-handler";
 import type { IMessageQueue } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 import type { IDeviceConfigSource } from "@gd-monorepo/platform-commands";
 import type { DeviceConfigFile } from "@gd-monorepo/shared-types";
 

@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@gd-monorepo/ws-tunnel": "*"
+    "zero-trust-application-channel": "^1.0.0"
   },
   "peerDependencies": {
     "@gd-monorepo/core": "*",

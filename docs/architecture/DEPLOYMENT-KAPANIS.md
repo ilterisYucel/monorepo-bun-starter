@@ -18,11 +18,11 @@ review_date: 2026-11-10
 | # | Dosya | Değişiklik | Neden (SPEC ref) |
 |:--|:------|:-----------|:-----------------|
 | 1 | `deployment/v2/dev/{container,container2,field}/docker-compose.yml` | (değişiklik) ws-tunnel volume mount yolu `packages/ws-tunnel` → `zero-trust-application-tunnel/ws-tunnel` — paket taşınmasıyla senkron | UC-4 edge "taşınan paket bağlamı güncel (T-3)" |
-| 2 | `deployment/v2/dev/field/docker-compose.yml` | (değişiklik) integration-service'e `EPIAS_USERNAME/PASSWORD: ${...:-}` env hattı | K3/FR-2.1 (T-18) |
-| 3 | `deployment/v2/dev/field/.env.example` | (değişiklik) `EPIAS_USERNAME=/EPIAS_PASSWORD=` boş şablon satırları — sır yok | K3 |
+| 2 | `deployment/v2/dev/site/docker-compose.yml` | (değişiklik) integration-service'e `EPIAS_USERNAME/PASSWORD: ${...:-}` env hattı | K3/FR-2.1 (T-18) |
+| 3 | `deployment/v2/dev/site/.env.example` | (değişiklik) `EPIAS_USERNAME=/EPIAS_PASSWORD=` boş şablon satırları — sır yok | K3 |
 | 4 | Tier düzeni | (doğrulama) `v2/dev/{container,container2,field}`; her tier'da compose + `.env(.example)` + `device-configs/ maneuvers/ rules/` (+plugins, nginx, topology.json ekleri) | K1/K2/FR-1.1, FR-3.1 |
 | 5 | Env hijyeni | (doğrulama) `.gitignore`: `.env`, `.env.*`, `!.env.example`, `deployment/**/.env`; diskte `field/.env` var ama takipsiz (git status dışı) | K3/FR-2.1 |
-| 6 | Scriptler | (doğrulama) `start/stop:demo-integration` üç compose'u da `--env-file` ile çağırıyor | FR-2.2/AK-2.2 |
+| 6 | Scriptler | (doğrulama) `start/dev:stack:down` üç compose'u da `--env-file` ile çağırıyor | FR-2.2/AK-2.2 |
 | 7 | `deployment/v2/common/customer-plugins/` | (SAPMA) DİZİN YOK; compose `INTEGRATION_PLUGIN_DIR=/app/customer-plugins` setting eder ama bu yere volume mount'lanmıyor → runtime dizin yükleme fiilen boş | K6/FR-3.2 — S1 |
 | 8 | `deployment/simlab/` | (SAPMA) yok — export KODDA (ems-export) ama çıktı artifacts'ı henüz üretilmemiş | K8/UC-5 — S2 |
 
@@ -84,7 +84,7 @@ review_date: 2026-11-10
 
 | # | Boşluk | Risk | İleri iş |
 |:--|:-------|:-----|:---------|
-| G1 | Stack'li E2E/compose smoke bu turda koşulmadı | Orta — mount yolu yanlışsa container sessiz eski kodu görür | `bun run test:e2e` veya `start:demo-integration` smoke |
+| G1 | Stack'li E2E/compose smoke bu turda koşulmadı | Orta — mount yolu yanlışsa container sessiz eski kodu görür | `bun run test:e2e` veya `dev:stack:up` smoke |
 | G2 | customer-plugins wiring + örnek plugin ile uç-uca test (S1) | Orta | INTEGRATION A1 rehberiyle birlikte |
 | G3 | Secret-scan'ın komut kanıtı (gitleaks vb.) yok | Düşük-orta | İleri İş A2 (secret yönetimi) |
 

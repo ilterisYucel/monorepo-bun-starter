@@ -10,7 +10,7 @@ import type {
 import { expectHolds } from "@gd-monorepo/shared-types";
 
 import type { IMessageQueue, ISqlDatabase } from "@gd-monorepo/core";
-import { TamperLogger } from "@gd-monorepo/tamper-logger";
+import { TamperLogger } from "tamper-logger";
 import type { Logger } from "@gd-monorepo/logger";
 import { createOpsLog } from "./ops-log";
 import type { OpsLog } from "./ops-log";

@@ -16,10 +16,10 @@
 
 import http from "node:http";
 import { WebSocketServer } from "ws";
-import { TamperLogger } from "../packages/tamper-logger/src/index.ts";
-import { TunnelConnector, WsSocketClientFactory, ReconnectDelay, ClientSessionStore, ClientSessionServer, TunnelClient } from "../zero-trust-application-tunnel/ws-tunnel/src/index.ts";
+import { TamperLogger } from "tamper-logger";
+import { TunnelConnector, WsSocketClientFactory, ReconnectDelay, ClientSessionStore, ClientSessionServer, TunnelClient } from "zero-trust-application-channel";
 import { ContainerProxy } from "../services/web-service/src/infrastructure/container-proxy/container-proxy.ts";
-import { HubSessionStore, SessionGateway, TunnelProxy } from "../zero-trust-application-tunnel/ws-tunnel/src/index.ts";
+import { HubSessionStore, SessionGateway, TunnelProxy } from "zero-trust-application-channel";
 import { SessionAudit } from "../services/web-service/src/infrastructure/container-session/session-audit.ts";
 import { ContainerProxyFieldChannel } from "../services/web-service/src/infrastructure/container-proxy/container-proxy-field-channel.ts";
 import { JoseTokenSigner } from "../services/web-service/src/infrastructure/auth/jose-token-signer.ts";

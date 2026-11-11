@@ -4,6 +4,8 @@ space: analysis
 tags: [analiz, yangin-paneli, cihaz]
 review_date: 2026-08-24
 ---
+> **Not (2026-11-11):** `apps/container-web`, `apps/container-desktop` ve `apps/superadmin` kaldırıldı; `demo-field` → `apps/site` oldu. Bu doküman tarihsel kayıttır.
+
 
 # Yangın Paneli (EP203) — Entegrasyon Dokümantasyonu
 

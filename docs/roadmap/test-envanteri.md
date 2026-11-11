@@ -1,5 +1,7 @@
 # Test Envanteri — Dosya Bazında Kapsam Dökümü
 
+> **Not (2026-11-11):** `apps/container-web`, `apps/container-desktop` ve `apps/superadmin` kaldırıldı; `demo-field` → `apps/site` oldu. Bu doküman tarihsel kayıttır.
+
 > **Üretim:** 2026-08-31 · **Kaynak:** monorepo kaynak test dosyalarının tek tek okunmasıyla derlendi (otomatik parse değil).
 > **Kapsam:** packages/*, services/*, apps/* içindeki tüm `*.test.ts` / `*.test.tsx` dosyaları + `e2e/` Playwright spec'leri.
 > **Yapı:** Her test dosyası bir başlıktır (`### dosya yolu`); altında dosyanın "Hedef" özeti ve TEK TEK her `it(...)`/`test(...)` bloğunun neyi kontrol ettiği madde madde yazılıdır. Dosya sonundaki `[DOSYA NOTU]` satırı, o dosyanın testlerinin KAPSAMADIĞI dalları söyler — bu notların tümü belgenin sonundaki "Boşluk Dökümü" bölümünde birleştirilmiştir.
@@ -12,8 +14,8 @@
 | 2 | packages/ui · simulators · plugin-sdk · epias · editor | 26 | 169 |
 | 3 | web-service — presentation · application · domain · config | 22 | 257 |
 | 4 | web-service — infrastructure · device-service · data-service · integration-service | 32 | 258 |
-| 5 | apps — field · container-web · superadmin · e2e | 36 | 202 |
-| 6 | packages/tamper-logger — tamper-evident log kütüphanesi | 14 | 104 |
+| 5 | apps — site · e2e | — | — |
+| 6 | tamper-logger — tamper-evident log kütüphanesi | 14 | 104 |
 | 7 | packages/platform — messaging · container-access · logging | 3 | 35 |
 | 8 | packages/ws-tunnel — çoklanmış WS tüneli (2026-09-01 ayrıldı) | 12 | 214 |
 | 9 | management-service · platform/commands · automation-rule (2026-09-15) | 8 | 102 |
@@ -21,44 +23,6 @@
 | **Toplam** | | **181** | **~1633** |
 
 > **Sayım doğrulaması (2026-09-01):** tüm monorepo gerçek vitest çıktısıyla doğrulandı — **153 test dosyası / 1431 test, tümü yeşil** (`bun run test`). Proje bazında: result 2/33, ws-tunnel 12/214, web-service 44/423, shared-types 5/56, core 8/102, data-service 1/13, platform-container-access 0 (interface yalnızca tip), container-web 9/82. **Son değişiklik (2026-09-01):** `Result`/`DomainError` AYRI YAPRAK PAKETE taşındı (`packages/result` — core/errors + ws-tunnel kopyası + shared-types basit Result tek pakette birleşti; `okVoid` eklendi); `tunnel-proxy.test.ts` 34 ve `ws-socket-client.test.ts` 9 başlık sayısı `it.each` genişlemelerini içerir. **Faz B teknik (2026-09-01):** ws-tunnel tam bağımsız (shared-types tip bağımlılığı söküldü); paket içi loopback (`demo/loopback.spec.ts` 5 test) + `examples/loopback-demo.mjs` 6/6.
-
-## Ayrım Kaydı — ws-tunnel ✅ TAMAMLANDI (2026-09-01, KUTUPHANE-CIKARMA-PLANI.md Faz A)
-
-Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek hedefler ve sapmalar:
-
-### → `packages/ws-tunnel` taşınacak (jenerik: çoklanmış WS tüneli)
-
-| Dosya (kaynak) | Test dosyası | Madde |
-|---|---|---|
-| `packages/platform/container-access/src/tunnel/{types,frame-codec,index}.ts` | `frame-codec.test.ts` | 18 |
-| `packages/shared-types/src/field-connector.ts` (kontrol mesaj tipleri + zod şemaları) | `field-connector.test.ts` | 27 |
-| `field-connector/field-connector.ts` (durum makinesi — `ISnapshotSource`/`IMessageSubscriber` enjeksiyonuyla) | `field-connector.test.ts` + `field-connector.spec.ts` | 53 + 7 |
-| `field-connector/tunnel-client.ts` | `tunnel-client.test.ts` | 25 |
-| `field-connector/ws-socket-client.ts` + `interfaces.ts` (`ISocketClient`) | `adapters.test.ts` (WsSocketClient/Factory kısmı) | 9 |
-| `field-connector/reconnect-delay.ts` | `reconnect-delay.test.ts` | 13 |
-| `field-connector/container-session-server.ts` (`ITokenSigner` enjeksiyonuyla) | `container-session-server.test.ts` | 3 |
-| `field-connector/session-store.ts` (ContainerSessionStore) | `session-store.test.ts` | 10 |
-| `container-session/session-gateway.ts` + `field-session-store.ts` (`IAuditSink`/`IFieldChannel`/`ILogger` enjeksiyonuyla; **session-audit monorepo'da kaldı** — `SessionAudit` IAuditSink implementasyonu) | `session-gateway.test.ts` | 10 |
-| `container-session/tunnel-proxy.ts` (`IStreamSink` + kanal arayüzü; Fastify adapter'i monorepo'da) | `tunnel-proxy.test.ts` | 34 |
-| `container-session/tunnel.spec.ts` — **monorepo'da kaldı** (ürün entegrasyon kapısı) | — | 4 |
-| YENİ: `errors` (core'dan birebir kopya — paket bağımsızlığı) | `result.test.ts` + `domain-error.test.ts` | 31 |
-| **Toplam** | | **240** |
-
-### Monorepo'da kalacak (domain — GD-PMS field/container ürünü)
-
-| Dosya | Test dosyası | Madde | Not |
-|---|---|---|---|
-| `container-proxy/container-proxy.ts` | `container-proxy.test.ts` | 52 | Faz 3 kanal metotları (`sendControl`/`sendBinary`/observer) ws-tunnel **kanal kontratına adapter** olur |
-| `container-proxy/container-ws-routes.ts` | `container-ws-routes.test.ts` | 4 | |
-| `field-connector/realtime-snapshot-source.ts` | `adapters.test.ts` (RealtimeSnapshotSource kısmı) | 6 | |
-| `field-connector/telemetry-query-responder.ts` | `telemetry-query-responder.test.ts` | 7 | |
-| `field-connector/telemetry-series-source.ts` | `telemetry-series-source.test.ts` | 4 | |
-| `presentation/routes/session-routes.ts` | `session-routes.test.ts` | 6 | Fastify route katmanı |
-| `realtime/ws-routes.ts` (tünel oturum token kabulü), `rbac.ts` (sessionAuthenticator), `auth-routes.ts` (tunnel bayrağı) | ilgili dosyalar | — | |
-| `apps/container-web` `session-auth` | `session-auth.test.ts` | 7 | |
-| `e2e/tunnel.spec.ts` + `e2e/field-flow.spec.ts`, `tools/tunnel-demo.mjs` + `tools/field-connector-demo.mjs` | — | 2 + 1 | canlı kanıtlar monorepo'da kalır |
-
-**Ayrım sonrası monorepo'da YAZILAN adapter testleri (tamamı yeşil):** `container-proxy-field-channel.test.ts` (4), `fastify-stream-sink.test.ts` (3), `jose-token-signer.test.ts` (4), `session-audit.test.ts` (5), `realtime-snapshot-source.test.ts` (6). Kapılar (KUTUPHANE-CIKARMA-PLANI.md §7): tüm monorepo testleri yeşil (1463), `nx run-many -t build` yeşil, `bun tools/tunnel-demo.mjs` 9/9 + `bun tools/field-connector-demo.mjs` gözle demoları geçti; `tunnel.spec.ts` (4) monorepo'da entegrasyon kanıtı olarak yeşil.
 
 ## Nasıl okunur
 
@@ -1087,7 +1051,7 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 **Hedef:** default.ts config fabrikaları (T1.6 + T2.3 + 2026-08-28/30) — seed kullanıcıları, authConfig, fieldConnectorConfig, siteFieldConfig, mfaRequiredRoles sözleşmeleri.
 
 1. (describe: "seedUsers (T1.6 + 2026-08-30)") **"container tier: dev default'ları + admin/boss mustChangePassword true, guest FALSE (otomatik guest)"** — 3 seed üretilir; admin/boss bayrakları true, guest false ve admin şifresi `"admin123"`'tür.
-2. (describe: "seedUsers") **"field tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)"** — `SERVICE_TIER=field` iken env şifreleri eksikse `seedUsers()` throw eder.
+2. (describe: "seedUsers") **"field tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)"** — `SERVICE_TIER=site` iken env şifreleri eksikse `seedUsers()` throw eder.
 3. (describe: "seedUsers") **"field tier: env şifreleri kullanılır; guest bayrağı false kalır"** — env'den gelen şifreler seed'e yazılır; admin/boss bayrakları true, guest false kalır.
 4. (describe: "seedUsers") **"field tier: 8 karakterden kısa env değeri de fırlatır"** — kısa env şifresi throw eder.
 5. (describe: "authConfig (T1.6)") **"field tier + dev secret → fırlatır"** — field tier'da varsayılan JWT_SECRET ile `authConfig` throw eder.
@@ -1526,7 +1490,7 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-## 5. apps — field · container-web · superadmin · e2e
+## 5. apps — site · e2e
 
 ### `apps/field/src/layouts/nav-visibility.test.ts` (4 test)
 **Hedef:** `nav-visibility` — role göre menü görünürlüğü ve acil durdurma butonu görünürlüğü sözleşmesi (admin/teknik tam menü; boss kontrol hariç; guest/developer yalnız Panel; acil durdurma yalnız admin/teknik).
@@ -1947,197 +1911,6 @@ Aşağıdaki tablo ayrımın kontrol listesiydi ve **uygulandı** — gerçek he
 
 Aşağıdakiler, yukarıdaki `[DOSYA NOTU]` satırlarının proje bazında birleştirilmiş halidir. **103 dosyada kapsam tam görünüyor**; kalan notlar şunlar:
 
-## 6. packages/tamper-logger — tamper-evident log kütüphanesi
-
-### `packages/tamper-logger/src/verify-chain.test.ts` (`11 test`)
-**Hedef:** `verifyChain` — dosyadan okunan imzalı log zincirini doğrulayan fonksiyon; restart segmentleri ve üç ihlal türü (missing_event/signature_mismatch/out_of_order).
-
-1. (describe: "verifyChain (T0.9) @nis2-security") **"boş liste geçerlidir (0 olay, 0 segment)"** — `verifyChain([])` valid=true, 0 olay, 0 segment döndürüyor mu kontrol ediyor.
-2. (describe: "verifyChain (T0.9) @nis2-security") **"tek genesis olayı geçerlidir"** — tek olaylık zincirin valid=true ve 1 segment döndürdüğünü doğruluyor.
-3. (describe: "verifyChain (T0.9) @nis2-security") **"3 olaylık zincir geçerlidir"** — 3 olaylık zincirin valid=true ve 1 segment döndürdüğünü doğruluyor.
-4. (describe: "verifyChain (T0.9) @nis2-security") **"aradan olay silinirse missing_event tespit edilir"** — ortadan silinen olayın missing_event ihlali ürettiğini doğruluyor.
-5. (describe: "verifyChain (T0.9) @nis2-security") **"kurcalanmış içerik signature_mismatch üretir"** — message'ı değiştirilen olayın signature_mismatch ihlali ürettiğini doğruluyor.
-6. (describe: "verifyChain (T0.9) @nis2-security") **"yanlış anahtar signature_mismatch üretir"** — yanlış anahtarla doğrulamanın valid=false döndürdüğünü doğruluyor.
-7. (describe: "verifyChain (T0.9) @nis2-security") **"restart segmenti (yeni genesis zinciri) geçerlidir — 2 segment"** — iki genesis zincirinin birleşiminin valid=true ve 2 segment döndürdüğünü doğruluyor.
-8. (describe: "verifyChain (T0.9) @nis2-security") **"karışık dosya sırası missing_event üretir (write zinciri sırayı garanti eder)"** — karıştırılmış olay sırasının missing_event ihlali ürettiğini doğruluyor.
-9. (describe: "verifyChain (T0.9) @nis2-security") **"seq atlaması (silinen satır, eşleşen hash) missing_event üretir"** — seq atlamasının seq=3 bağlamıyla missing_event ihlali ürettiğini doğruluyor.
-10. (describe: "verifyChain (T0.9) @nis2-security") **"yinelenen seq out_of_order ihlali üretir"** — ilerlemeyen seq'li sahte olayın out_of_order ihlali ürettiğini doğruluyor.
-11. (describe: "verifyChain (T0.9) @nis2-security") **"başlangıç prevHash'i genesis değilse missing_event üretir"** — başsız zincirin missing_event ihlali ürettiğini doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/tamper-logger.test.ts` (`21 test`)
-**Hedef:** `TamperLogger` — filter → redact → enrich → sign (HMAC + prevHash zinciri) → fan-out pipeline'ı; audit/security fail-closed, app drop politikası; jenerik `eventCodeValidator` sözlük enjeksiyonu.
-
-1. (describe: "temel akış") **"app olayı batch dolar dolmaz sink'e imzalı gider"** — batchSize 2 dolunca olayların 64-hex imzalı, zincirli (prevHash=önceki imza) ve service/host alanlarıyla sink'e gittiğini doğruluyor.
-2. (describe: "temel akış") **"interval flush — batch dolmadan da yazılır"** — batch dolmadan batchIntervalMs geçince olayın flush edildiğini doğruluyor.
-3. (describe: "temel akış") **"context redakte edilir (password görünmez)"** — password değerinin [REDACTED] yapılıp ham sırrın çıktıda hiç görünmediğini doğruluyor.
-4. (describe: "temel akış") **"correlationId yoksa üretilir"** — correlationId verilmediğinde UUID formatında üretildiğini doğruluyor.
-5. (describe: "fail-closed (audit/security)") **"audit olayı batch'i beklemeden anında yazılır"** — audit olayının batchSize 100 olsa bile anında sink'e yazıldığını doğruluyor.
-6. (describe: "fail-closed (audit/security)") **"security olayı sink başarısızsa log() reddeder"** — security olayında sink hatasının log()'un throw etmesine yol açtığını doğruluyor.
-7. (describe: "fail-closed (audit/security)") **"audit olayı sink başarısızsa log() reddeder"** — audit olayında sink hatasının log()'un throw etmesine yol açtığını doğruluyor.
-8. (describe: "app kategorisi drop politikası") **"error seviyesi sink başarısızsa drop + sayaç + health degraded"** — app error seviyesinde sink hatasının drop edilip sayaç artırıldığını ve health durumunun degraded olduğunu doğruluyor.
-9. (describe: "app kategorisi drop politikası") **"debug/info sink başarısızsa drop + sayaç, health sağlıklı kalır"** — app info seviyesinde sink hatasının nonError sayacını artırıp health'i healthy bıraktığını doğruluyor.
-10. (describe: "seviye filtresi (yalnızca app)") **"eşik altı app olayı sessizce düşer"** — eşik altı debug olayının sink'e hiç yazılmadan düştüğünü doğruluyor.
-11. (describe: "seviye filtresi (yalnızca app)") **"eşik üstü yazılır"** — eşik üstü warn olayının sink'e yazıldığını doğruluyor.
-12. (describe: "seviye filtresi (yalnızca app)") **"audit/security seviye filtresine takılmaz"** — fatal eşiğine rağmen security info olayının yazıldığını doğruluyor.
-13. (describe: "ring buffer") **"son işlenmiş olayları tutar"** — ringBufferSize 2 iken son 2 olayın doğru sırayla döndürüldüğünü doğruluyor.
-14. (describe: "ring buffer") **"limit parametresi ile daraltılır"** — `recentEvents(1)`'in yalnızca son olayı döndürdüğünü doğruluyor.
-15. (describe: "close()") **"kalan batch'i flush eder ve sink'leri kapatır"** — `close()`'un birikmiş batch'i yazıp sink.closed=true yaptığını doğruluyor.
-16. (describe: "close()") **"sonrasında log() yazmaz"** — `close()` sonrası log()'un throw edip hiçbir olay yazmadığını doğruluyor.
-17. (describe: "constructor doğrulaması") **"boş sinks kabul edilmez"** — boş sink listesiyle kurulumun throw ettiğini doğruluyor.
-18. (describe: "constructor doğrulaması") **"boş signingKey kabul edilmez"** — boş signingKey ile kurulumun throw ettiğini doğruluyor.
-
-19. (describe: "TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu)") **"validator reddederse log() fırlatır (fail-closed) — olay sink'e GİTMEZ"** — enjekte edilen doğrulayıcının reddettiği eventCode için `log()`'un throw ettiğini ve sink'e hiçbir olay gitmediğini doğruluyor.
-20. (describe: "TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu)") **"validator kabul ederse normal akış işler"** — doğrulayıcıdan geçen kodun normal pipeline'dan sink'e ulaştığını doğruluyor.
-21. (describe: "TamperLogger eventCodeValidator (jenerik sözlük enjeksiyonu)") **"validator verilmezse her string kabul edilir"** — validator enjekte edilmemişken serbest string eventCode'un kabul edildiğini doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/config.test.ts` (`5 test`)
-**Hedef:** Logger config (core, JENERİK) — imza anahtarı materyalinin yüklenmesi/çözülmesi. Tier varsayılanları (`TIER_LOGGER_DEFAULTS`, `loggerConfigForTier`) `packages/platform/logging`'e taşındı.
-
-1. (describe: "LoggerConfig signing key (T0.5)") **"dosyadan anahtar materyalini okur ve trim'ler"** — `loadSigningKey` dosya içeriğini trim'leyip döndürüyor mu kontrol ediyor.
-2. (describe: "LoggerConfig signing key (T0.5)") **"dosya yoksa fırlatır"** — var olmayan dosya için `loadSigningKey`'in throw ettiğini doğruluyor.
-3. (describe: "LoggerConfig signing key (T0.5)") **"env override kazanır — dosyaya bakılmaz"** — `resolveSigningKey` env değeri varken dosyayı okumadan env değerini döndürüyor mu kontrol ediyor.
-4. (describe: "LoggerConfig signing key (T0.5)") **"boş env override yok sayılır — dosya kullanılır"** — boş/whitespace env değerinde dosya anahtarının kullanıldığını doğruluyor.
-5. (describe: "LoggerConfig signing key (T0.5)") **"dosya yoksa dev fallback + uyarı"** — dosya yokken "dev-only-signing-key" fallback'i dönüp bir kez console.warn basıldığını doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor (tier testleri platform-logging'e taşındı).
-
-### `packages/tamper-logger/src/pipeline.test.ts` (`22 test`)
-**Hedef:** Log pipeline yardımcıları — redaction, enrichment, HMAC imzalama, zincir durumu ve deterministik serileştirme (T0.3).
-
-1. (describe: "redactValue") **"hassas anahtar değerini REDACTED yapar"** — `redactValue` password anahtarını [REDACTED] yapıp diğer alanları koruyor mu kontrol ediyor.
-2. (describe: "redactValue") **"büyük/küçük harf duyarsız eşleşir"** — `redactValue` Authorization anahtarını küçük harfli listedeki authorization ile eşleştiriyor mu kontrol ediyor.
-3. (describe: "redactValue") **"iç içe nesnelerde de redakte eder"** — `redactValue` derin iç içe token/apiKey değerlerini redakte ediyor mu kontrol ediyor.
-4. (describe: "redactValue") **"dizilerdeki nesneleri de redakte eder"** — `redactValue` dizi elemanı nesnelerdeki hassas anahtarları redakte ediyor mu kontrol ediyor.
-5. (describe: "redactValue") **"anahtar adı kısmi içeriyorsa eşleşir (api_key, apiKey)"** — `redactValue` xApiKeyY gibi kısmi içeren anahtarları eşleştiriyor mu kontrol ediyor.
-6. (describe: "redactValue") **"hassas olmayan değerler dokunulmaz"** — boş anahtar listesiyle deviceId/voltage alanlarının aynen kaldığını doğruluyor.
-7. (describe: "redactValue") **"ilkel değerler aynen döner"** — sayı/string/null girdilerin değişmeden döndürüldüğünü doğruluyor.
-8. (describe: "redactEvent") **"context'i redakte eder, diğer alanları korur"** — `redactEvent` context'i redakte edip eventCode'u koruduğunu ve yeni nesne döndürdüğünü doğruluyor.
-9. (describe: "redactEvent") **"context yoksa dokunmadan döner"** — context undefined iken `redactEvent`'in message'ı aynen koruduğunu doğruluyor.
-10. (describe: "enrichEvent") **"eksik alanları doldurur"** — `enrichEvent` ts/service/host/correlationId/seq/prevHash alanlarını dolduruyor mu kontrol ediyor.
-11. (describe: "enrichEvent") **"girdideki değerleri ezmez"** — girdide var olan correlationId'yi ezmeden koruduğunu doğruluyor.
-12. (describe: "enrichEvent") **"ts girdide varsa korunur"** — girdideki ts değerinin korunduğunu doğruluyor.
-13. (describe: "signEvent + nextState + verifySignature") **"signature 64 hex karakterdir"** — `signEvent` imzasının 64 hex karakter formatında olduğunu doğruluyor.
-14. (describe: "signEvent + nextState + verifySignature") **"deterministik — aynı zincir + girdi = aynı imza"** — aynı girdi + durumun aynı imzayı ürettiğini doğruluyor.
-15. (describe: "signEvent + nextState + verifySignature") **"nextState zinciri ilerletir"** — `nextState` seq'i artırıp prevHash'i önceki imzaya bağlıyor mu kontrol ediyor.
-16. (describe: "signEvent + nextState + verifySignature") **"ikinci olayın prevHash'i ilk imzadır (zincir)"** — zincirin ikinci olayının prevHash'inin ilk imza ve seq'inin 2 olduğunu doğruluyor.
-17. (describe: "signEvent + nextState + verifySignature") **"verifySignature geçerli event'i kabul eder"** — bozulmamış event için `verifySignature` true döndürüyor mu kontrol ediyor.
-18. (describe: "signEvent + nextState + verifySignature") **"verifySignature kurcalanmış message'ı reddeder"** — message'ı değiştirilen event için false döndürüyor mu kontrol ediyor.
-19. (describe: "signEvent + nextState + verifySignature") **"verifySignature yanlış anahtarı reddeder"** — farklı anahtarla doğrulamanın false döndürdüğünü doğruluyor.
-20. (describe: "signEvent + nextState + verifySignature") **"verifySignature kurcalanmış seq'i reddeder"** — seq'i değiştirilen event için false döndürüyor mu kontrol ediyor.
-21. (describe: "canonicalize") **"context anahtar sırasından bağımsızdır"** — `canonicalize` çıktısının context anahtar sıralamasından bağımsız olduğunu doğruluyor.
-22. (describe: "canonicalize") **"dizi içeren context'i serileştirir"** — dizi içeren context'in sıralı JSON olarak serileştirildiğini doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/sinks/timescale-sink.test.ts` (`6 test`)
-**Hedef:** `TimescaleSink` — imzalı olayları `log_events` tablosuna çok satırlı tek INSERT (unnest) ile yazan sink.
-
-1. (describe: "TimescaleSink (T0.4)") **"name() 'timescale' döner"** — sink adının "timescale" olduğunu doğruluyor.
-2. (describe: "TimescaleSink (T0.4)") **"çok satırlı tek INSERT üretir — kolon sayısı 12, parametre 12 dizi"** — `write` 2 olay için tek INSERT + unnest SQL'i ve 12 parametre dizisi üretiyor mu kontrol ediyor.
-3. (describe: "TimescaleSink (T0.4)") **"boş batch no-op"** — `write([])` boş batch'te executor çağırmadığını doğruluyor.
-4. (describe: "TimescaleSink (T0.4)") **"opsiyonel alanlar eksikse NULL ile yazılır"** — eksik context/service/host/correlationId alanlarının "{}" ve NULL olarak yazıldığını doğruluyor.
-5. (describe: "TimescaleSink (T0.4)") **"executor hatası fırlatılır"** — executor hatasının `write`'tan yukarı fırlatıldığını doğruluyor.
-6. (describe: "TimescaleSink (T0.4)") **"close() hata fırlatmaz (bağlantı executor sahibinde)"** — `close()`'un başarıyla çözüldüğünü doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/sinks/http-webhook-sink.test.ts` (`5 test`)
-**Hedef:** `HttpWebhookSink` — HMAC imzalı JSON batch POST yapan SIEM webhook sink'i (T6.2).
-
-1. (describe: "HttpWebhookSink (T6.2)") **"JSON batch + HMAC imza başlığı ile POST eder"** — `write` hedef URL'e POST ile dizi gövde ve `X-Signature: sha256=<64 hex>` başlığı gönderiyor mu kontrol ediyor.
-2. (describe: "HttpWebhookSink (T6.2)") **"secret yoksa imza başlığı gönderilmez"** — secret verilmediğinde X-Signature başlığının hiç gönderilmediğini doğruluyor.
-3. (describe: "HttpWebhookSink (T6.2)") **"5xx → retries kadar dener, tükenince fırlatır"** — 503 yanıtında toplam 3 deneme (1+2 retry) yapıp tükenince throw ettiğini doğruluyor.
-4. (describe: "HttpWebhookSink (T6.2)") **"2xx sonrası retry YOK"** — 200 yanıtında tek çağrıyla yetindiğini doğruluyor.
-5. (describe: "HttpWebhookSink (T6.2)") **"close sonrası write fırlatır; close idempotent"** — `close()`'un iki kez çağrılabildiğini ve sonrasında write'ın throw ettiğini doğruluyor.
-
-[DOSYA NOTU] Ağ hatası yolu (fetch'in reject etmesi — 5xx dışı) test edilmemiş; yalnızca HTTP yanıt kodları kapsanıyor.
-
-### `packages/tamper-logger/src/sinks/file-sink.test.ts` (`4 test`)
-**Hedef:** `FileSink` — append-only JSONL dosya sink'i; zincir verileri birebir dosyaya yazılır.
-
-1. (describe: "FileSink (T0.4)") **"name() 'file' döner"** — sink adının "file" olduğunu doğruluyor.
-2. (describe: "FileSink (T0.4)") **"olayları satır satır append eder"** — iki write çağrısının dosyada 2 JSON satırı üretip ikinci satırın prevHash'inin ilk satırın imzası olduğunu doğruluyor.
-3. (describe: "FileSink (T0.4)") **"close() sonrası write() reddedilir"** — kapatıldıktan sonra write'ın throw ettiğini doğruluyor.
-4. (describe: "FileSink (T0.4)") **"boş dizi yazılmaz (dosya açılmaz)"** — boş batch'te dosyanın hiç açılmadığını doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/sinks/alert-notifier.test.ts` (`5 test`)
-**Hedef:** `AlertNotifier` — cooldown'lu alarm bildirim yönlendiricisi (T0.4 iskelet).
-
-1. (describe: "AlertNotifier (T0.4)") **"ilk olay iletilir"** — `consider` ilk olayı sink'e iletir mi kontrol ediyor.
-2. (describe: "AlertNotifier (T0.4)") **"aynı eventCode cooldown içinde bastırılır"** — aynı eventCode'un cooldown içinde ikinci kez iletilmediğini doğruluyor.
-3. (describe: "AlertNotifier (T0.4)") **"farklı eventCode'lar birbirini engellemez"** — farklı kodların ikisinin de iletildiğini doğruluyor.
-4. (describe: "AlertNotifier (T0.4)") **"cooldown dolunca aynı kod yeniden iletilir"** — enjekte edilen `now` 300001 ms ilerleyince aynı kodun tekrar iletildiğini doğruluyor.
-5. (describe: "AlertNotifier (T0.4)") **"sink hatası yukarı fırlatılır"** — sink hatasının `consider`'dan yukarı fırlatıldığını doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/sinks/smtp-notifier.test.ts` (`3 test`)
-**Hedef:** `SmtpNotifier` — AlertNotifier'dan geçen olayları tek e-postada toplayan SMTP notifier (T6.7).
-
-1. (describe: "SmtpNotifier (T6.7)") **"olayları tek mailde toplar (konu + JSON gövde)"** — `write` iki olayı tek mailde birleştirip konuya eventCode + mesaj, gövdeye iki olayın kodunu basıyor mu kontrol ediyor.
-2. (describe: "SmtpNotifier (T6.7)") **"close idempotent; kapandıktan sonra write fırlatır"** — `close()`'un iki kez çağrılabildiğini ve sonrasında write'ın throw ettiğini doğruluyor.
-3. (describe: "SmtpNotifier (T6.7)") **"SMTP hatası fırlatılır"** — transporter hatasının `write`'tan yukarı fırlatıldığını doğruluyor.
-
-[DOSYA NOTU] JSDoc'taki "yapılandırılmış `to` listesinin TÜMÜNE gönderilir" iddiası test edilmemiş — test yalnızca tek alıcılı config kullanıyor.
-
-### `packages/tamper-logger/src/sinks/syslog-sink.test.ts` (`4 test`)
-**Hedef:** `SyslogSink` — RFC 5424 frame üreten, UDP'de ayrı datagram/TCP'de `\n` frame'li syslog sink'i (T6.2).
-
-1. (describe: "SyslogSink — RFC 5424 frame (T6.2)") **"PRI severity eşlemesi + zorunlu alanlar"** — `formatFrame` error(3) için PRI 107, host/app alanları, eventCode ve "-" yapısal veri bölümünü üretiyor mu kontrol ediyor.
-2. (describe: "SyslogSink — RFC 5424 frame (T6.2)") **"warn(4) → 108, info(6) → 110"** — `formatFrame` warn ve info seviyeleri için PRI 108 ve 110 üretiyor mu kontrol ediyor.
-3. (describe: "SyslogSink — UDP transport (T6.2)") **"her olay ayrı datagram olarak gönderilir"** — UDP'de `write` iki olayı iki ayrı datagram olarak gönderiyor mu kontrol ediyor.
-4. (describe: "SyslogSink — UDP transport (T6.2)") **"close idempotent; kapandıktan sonra write fırlatır"** — `close()`'un iki kez çağrılabildiğini ve sonrasında write'ın throw ettiğini doğruluyor.
-
-[DOSYA NOTU] TCP transport yolu (kaynakta `tcpSocket` kurulumu, `\n` framing, kopan bağlantıda yeniden kurma — `syslog-sink.ts:80-110`) hiç test edilmemiş; yalnızca UDP kapsanıyor.
-
-### `packages/tamper-logger/src/sinks/http-sms-notifier.test.ts` (`3 test`)
-**Hedef:** `HttpSmsNotifier` — bodyTemplate şablonlu, telefon başına ayrı HTTP POST atan SMS notifier'ı (T6.7).
-
-1. (describe: "HttpSmsNotifier (T6.7)") **"her telefon için şablonlu ayrı POST atar"** — `write` 2 telefon için 2 POST atıp şablondan `{{phone}}`/`{{eventCode}}`/`{{message}}` alanlarını dolduruyor mu kontrol ediyor.
-2. (describe: "HttpSmsNotifier (T6.7)") **"hata fırlatılır"** — 401 yanıtında write'ın throw ettiğini doğruluyor.
-3. (describe: "HttpSmsNotifier (T6.7)") **"close sonrası write fırlatır; close idempotent"** — `close()`'un iki kez çağrılabildiğini ve sonrasında write'ın throw ettiğini doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/sinks/console-sink.test.ts` (`3 test`)
-**Hedef:** `ConsoleSink` — seviye eşlemeli console metodlarına JSON satırı yazan sink.
-
-1. (describe: "ConsoleSink (T0.4)") **"name() 'console' döner"** — sink adının "console" olduğunu doğruluyor.
-2. (describe: "ConsoleSink (T0.4)") **"seviyeleri doğru console metoduna eşler"** — debug/info/warn/error/fatal seviyelerinin sırasıyla console.debug/info/warn/error'a (error+fatal→error) eşlendiğini doğruluyor.
-3. (describe: "ConsoleSink (T0.4)") **"JSON satırı olarak yazar (tamper alanlarıyla)"** — `write` çıktısının seq/signature içeren parse edilebilir JSON satırı olduğunu doğruluyor.
-4. (describe: "ConsoleSink (T0.4)") **"close() hata fırlatmaz"** — `close()`'un no-op olarak başarıyla çözüldüğünü doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/tamper-logger-alerts.test.ts` (`5 test`)
-**Hedef:** `TamperLogger` alert kuralları — alertRules.eventCodes eşleşmesinin cooldown'lu AlertNotifier'a iletilmesi (Faz 6 T6.7).
-
-1. (describe: "TamperLogger — alertRules (T6.7)") **"eşleşen eventCode cooldown'lu notifier'a iletilir"** — alertRules ile eşleşen `login_locked` olayının alert sink'ine iletildiğini doğruluyor.
-2. (describe: "TamperLogger — alertRules (T6.7)") **"eşleşmeyen eventCode iletilmez"** — eşleşmeyen `service_started` olayının alert sink'ine hiç yazılmadığını doğruluyor.
-3. (describe: "TamperLogger — alertRules (T6.7)") **"cooldown: aynı eventCode kısa sürede tek bildirim"** — aynı eventCode'un iki kez loglanmasına rağmen tek bildirim üretildiğini doğruluyor.
-4. (describe: "TamperLogger — alertRules (T6.7)") **"alert hatası audit fail-closed zincirini bozmaz"** — alert sink'i patlarken audit olayının başarıyla işlendiğini (hatasız çözüldüğünü) doğruluyor.
-5. (describe: "TamperLogger — alertRules (T6.7)") **"close alert sink'lerini kapatır"** — `close()`'un alert sink'lerinin close'unu da çağırdığını doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/tamper-logger/src/types.test.ts` (`6 test`)
-**Hedef:** tamper-logger tip sözleşmesi — `LogLevel`/`LogCategory` birlikleri, `isLogLevel`/`isLogCategory` doğrulayıcıları, `LogEventInput` (serbest string `eventCode`, zincir alanları YOK) ve `LogEvent` çıktısı (ts/seq/prevHash/signature zorunlu).
-
-1. (describe: "tamper-logger tip sözleşmesi") **"LogLevel birliği 5 seviyeden oluşur"** — `LOG_LEVELS`'in debug/info/warn/error/fatal taşıdığını ve `LogLevel` tipinin bu birliğe eşit olduğunu doğruluyor.
-2. (describe: "tamper-logger tip sözleşmesi") **"LogCategory birliği 3 kategoriden oluşur"** — `LOG_CATEGORIES`'in app/audit/security taşıdığını ve `LogCategory` tipinin bu birliğe eşit olduğunu doğruluyor.
-3. (describe: "tamper-logger tip sözleşmesi") **"isLogLevel geçerli/geçersiz değerleri ayırır"** — `isLogLevel`'in "warn"ı kabul edip "verbose"/boş string'i reddettiğini doğruluyor.
-4. (describe: "tamper-logger tip sözleşmesi") **"isLogCategory geçerli/geçersiz değerleri ayırır"** — `isLogCategory`'nin "audit"i kabul edip "system"i reddettiğini doğruluyor.
-5. (describe: "tamper-logger tip sözleşmesi") **"LogEventInput zorunlu alanları taşır; zincir alanları yoktur"** — girdi sözleşmesinin serbest string `eventCode` taşıdığını ve seq'in girdide olmadığını doğruluyor.
-6. (describe: "tamper-logger tip sözleşmesi") **"LogEvent çıktısı zincir alanlarını zorunlu taşır"** — çıktının ts/seq/prevHash/signature alanlarını zorunlu taşıdığını doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
 ## 7. packages/platform — messaging · container-access · logging
 
 ### `packages/platform/messaging/src/platform-message-queue.test.ts` (`24 test`)
@@ -2194,292 +1967,6 @@ Aşağıdakiler, yukarıdaki `[DOSYA NOTU]` satırlarının proje bazında birle
 
 [DOSYA NOTU] Yok — kapsam tam görünüyor.
 
-
-## 8. packages/ws-tunnel — çoklanmış WS tüneli (2026-09-01 ayrıldı)
-
-NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — `@gd-monorepo/result` (bkz. bölüm 1). Yeni sözleşmeler: `channel` (ISocketClient/Factory + ITunnelChannel/IFieldChannel), `token` (ITokenSigner), `audit` (IAuditSink), `snapshot` (ISnapshotSource), `types` (jenerik `TunnelRole`/`TunnelUser`/`TunnelTelemetryPoint` — Faz B: shared-types bağımlılığı söküldü). Monorepo adapter testleri web-service'te: `jose-token-signer.test.ts` (4), `container-proxy-field-channel.test.ts` (4), `fastify-stream-sink.test.ts` (3), `session-audit.test.ts` (5), `realtime-snapshot-source.test.ts` (6), `session-user-map.test.ts` (3).
-
-### `packages/ws-tunnel/src/demo/loopback.spec.ts` (`5` test — Faz B, 2026-09-01)
-**Hedef:** Paket içi loopback uçtan uca — monorepo'ya hiç değmez (ContainerProxy/Fastify/PG YOK): `FieldHarness` (paket içi field ucu) ↔ FieldConnector + TunnelClient ↔ Gateway + TunnelProxy tek gerçek WS kanalında. Aynı akış `examples/loopback-demo.mjs` ile gözle de koşulur (6/6 PASS).
-
-1. (describe: "loopback uçtan uca (paket içi — ContainerProxy'siz)") **"FieldConnector field'a kaydolur (register-ack → connected)"** — gerçek WS register turu connected'a ulaşır.
-2. (describe: "loopback uçtan uca") **"open-session → ack + kayıt + audit"** — konteyner JWT'si üretilir, ack döner, IAuditSink.open çağrılır.
-3. (describe: "loopback uçtan uca") **"GET / → SPA HTML akar (FIN ile biter)"** — tünel HTTP akışı 200 + HTML gövdesi IStreamSink'e akar.
-4. (describe: "loopback uçtan uca") **"GET /api/data/latest → JSON akar (K3.2)"** — API yönlendirmesi JSON döner.
-5. (describe: "loopback uçtan uca") **"/ws köprüsü çift yönlü WS_OP mesajı taşır"** — echo upstream üzerinden çift yönlü WS köprüsü.
-
-[DOSYA NOTU] Yok — paket bağımsızlık kanıtı; monorepo entegrasyonu ayrıca `web-service/tunnel.spec.ts`'te.
-
-### `packages/ws-tunnel/src/protocol/messages.test.ts` (`27 test` — shared-types'tan taşındı 2026-09-01)
-**Hedef:** FieldConnector kontrol kanalı sözleşmesi — durum makineleri, operational config şeması ve kontrol mesajı tipleri (T2.0).
-
-1. (describe: "FIELD_PROTOCOL_VERSION") **"1'dir — sürümlü protokol (tasarım §12.3)"** — protokol sürüm sabitinin 1 olduğunu doğruluyor.
-2. (describe: "fieldOperationalConfigSchema") **"tam config'i kabul eder"** — iki interval alanıyla tam config'in parse edildiğini doğruluyor.
-3. (describe: "fieldOperationalConfigSchema") **"kısmi config'i kabul eder (yalnızca heartbeat)"** — yalnızca heartbeatIntervalMs verilen config'de telemetryIntervalMs undefined olduğunu doğruluyor.
-4. (describe: "fieldOperationalConfigSchema") **"boş config'i kabul eder (tüm alanlar opsiyonel)"** — boş nesnenin parse edildiğini doğruluyor.
-5. (describe: "fieldOperationalConfigSchema") **"bilinmeyen anahtarları strip eder — ileri uyumluluk"** — sessionLimit/pathAllowlist gibi bilinmeyen anahtarların strip edildiğini doğruluyor.
-6. (describe: "fieldOperationalConfigSchema") **"1000 ms altını reddeder"** — heartbeatIntervalMs=999'un throw ettiğini doğruluyor.
-7. (describe: "fieldOperationalConfigSchema") **"300000 ms üstünü reddeder"** — telemetryIntervalMs=300001'in throw ettiğini doğruluyor.
-8. (describe: "fieldOperationalConfigSchema") **"ondalıklı değeri reddeder"** — 15.5 gibi ondalıklı değerin throw ettiğini doğruluyor.
-9. (describe: "fieldOperationalConfigSchema") **"tip uyuşmazlığını reddeder"** — "fast" string değerinin throw ettiğini doğruluyor.
-10. (describe: "DEFAULT_FIELD_OPERATIONAL_CONFIG") **"heartbeat 15 sn — tasarım §4.3"** — varsayılan heartbeat aralığının 15000 ms olduğunu doğruluyor.
-11. (describe: "DEFAULT_FIELD_OPERATIONAL_CONFIG") **"telemetry 15 sn"** — varsayılan telemetri aralığının 15000 ms olduğunu doğruluyor.
-12. (describe: "DEFAULT_FIELD_OPERATIONAL_CONFIG") **"dondurulmuştur (immutable)"** — sabitin Object.isFrozen olduğunu doğruluyor.
-13. (describe: "isContainerConnectionState") **"geçerli durumları tanır"** — idle/connected/stale/error dördünün true döndürdüğünü doğruluyor.
-14. (describe: "isContainerConnectionState") **"geçersiz durumları reddeder"** — "connecting"/"nope"/"" için false döndürdüğünü doğruluyor.
-15. (describe: "kontrol mesajı tipleri (discriminated union)") **"RegisterMessage alanlarını sabitler"** — register mesajının containerId/containerUrl/protocolVersion alanlarını compile-time sabitlediğini doğruluyor.
-16. (describe: "kontrol mesajı tipleri (discriminated union)") **"RegisterAckMessage opsiyonel config taşır"** — register-ack'in opsiyonel operational config taşıyabildiğini doğruluyor.
-17. (describe: "kontrol mesajı tipleri (discriminated union)") **"HeartbeatMessage ms timestamp taşır"** — heartbeat'in pozitif ms timestamp taşıdığını doğruluyor.
-18. (describe: "kontrol mesajı tipleri (discriminated union)") **"TelemetryMessage TelemetryData dizisi taşır"** — telemetry mesajının TelemetryData[] tipinde data taşıdığını compile-time doğruluyor.
-19. (describe: "kontrol mesajı tipleri (discriminated union)") **"ConfigUpdateMessage tam config taşır"** — config-update mesajının config alanı taşıdığını doğruluyor.
-20. (describe: "kontrol mesajı tipleri (discriminated union)") **"ErrorMessage kod + mesaj taşır"** — error mesajının snake-case kod formatı taşıdığını doğruluyor.
-21. (describe: "kontrol mesajı tipleri (discriminated union)") **"StreamOpenMessage akış açılışını taşır (§5.2)"** — stream-open mesajının streamId/sessionId/method/path alanlarını compile-time sabitlediğini doğruluyor.
-22. (describe: "kontrol mesajı tipleri (discriminated union)") **"StreamOpenMessage upgrade bayrağı WS köprüsü taşır (§5.3)"** — stream-open'in upgrade:"websocket" bayrağı taşıyabildiğini doğruluyor.
-23. (describe: "kontrol mesajı tipleri (discriminated union)") **"OpenSessionMessage eşlenmiş konteyner rolü taşır (§5.5)"** — open-session mesajının eşlenmiş kullanıcı rolü taşıdığını doğruluyor.
-24. (describe: "kontrol mesajı tipleri (discriminated union)") **"OpenSessionAckMessage konteyner JWT + süre taşır"** — open-session-ack'in token + pozitif expiresInSec taşıdığını doğruluyor.
-25. (describe: "durum tipi birlikleri") **"FieldConnectorState 5 durumludur"** — konteyner durum makinesinin 5 durumu taşıdığını doğruluyor.
-26. (describe: "durum tipi birlikleri") **"FieldOperationalConfig yalnızca iki opsiyonel alan taşır"** — config tipinin yalnızca iki opsiyonel interval alanı taşıdığını compile-time doğruluyor.
-27. (describe: "durum tipi birlikleri") **"ContainerConnectionState transport ConnectionState'ından ayrıdır"** — field tarafı görünümünün "connecting" içermediğini compile-time doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/proxy/tunnel-proxy.test.ts` (`34` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `TunnelProxy` (+`containerSessionCookie`, `isPathAllowed`) — field tarafı tünel proxy: cookie çözümleme, path allowlist, HTTP akışı (ack/gövde/FIN/RST/kredi), WS köprüsü ve sweep.
-
-1. (describe: "containerSessionCookie") **"cookie başlığından değeri çözer"** — `a=1; container_session=xyz; b=2` başlığından "xyz" döner.
-2. (describe: "containerSessionCookie") **"yoksa undefined"** — cookie yoksa veya başlık undefined ise undefined döner.
-3. (describe: "containerSessionCookie") **"bozuk parçalar atlanır"** — `=` içermeyen parçalar atlanır, geçerli parça bulunur.
-4. (describe: "isPathAllowed (§5.6)") **"izinli: %s"** (it.each — 5 durum) — `/`, `/api/data/x`, `/ws/telemetry`, `/assets/app.js`, `/favicon.ico` yolları izinlidir.
-5. (describe: "isPathAllowed") **"yasaklı: %s"** (it.each — 5 durum) — `/api/auth/login`, `/api/auth/refresh`, `/api/auth/users`, `/etc/passwd` ve query'li users yolu reddedilir.
-6. (describe: "TunnelProxy HTTP akışı (T3.3)") **"ack → writeHead + gövde frame'leri + FIN → end"** — stream-open gönderilir, ack sonrası writeHead(200, headers) çağrılır, binary frame'ler "hello" olarak birleşir, başlangıç stream-window kredisi gönderilir ve FIN'de end çağrılır.
-7. (describe: "TunnelProxy HTTP akışı") **"RST → destroy"** — RST bayraklı binary frame yanıtı destroy eder.
-8. (describe: "TunnelProxy HTTP akışı") **"ack gelmezse (timeout) hiçbir şey yazılmaz"** — 10 sn'de ack gelmeyen akışta writeHead hiç çağrılmaz.
-9. (describe: "TunnelProxy HTTP akışı") **"tarayıcı kopması → stream-close"** — raw response close olayında `stream-close {reason:"client-abort"}` gönderilir.
-10. (describe: "TunnelProxy HTTP akışı") **"kredi: YARI pencere eşiğinde yeni stream-window gönderilir"** — windowSize=10'da 6+6+1 bayt tüketimi ≥3 stream-window kredisi üretir.
-11. (describe: "TunnelProxy HTTP akışı") **"kredi DEADLOCK KORUMASI: pencere altı tüketimde bile kredi yenilenir"** — 9 bayt (< pencere 10) tüketiminde yarı eşik geçilince kredi gönderilir (≥2).
-12. (describe: "TunnelProxy HTTP akışı") **"authenticate: geçersiz cookie → undefined"** — bilinmeyen/eksik cookie veya yanlış containerId undefined, geçerli eşleşme tanımlı oturum döner.
-13. (describe: "TunnelProxy HTTP akışı") **"requestBody → BINARY frame'ler + FIN gönderilir"** — POST gövdesi tek FIN'li binary frame olarak konteynere gider.
-14. (describe: "TunnelProxy HTTP akışı") **"konteyner stream-close (http) → yanıt destroy edilir"** — field'dan gelen stream-close yanıtı destroy eder.
-15. (describe: "TunnelProxy HTTP akışı") **"malform binary frame yok sayılır"** — 2 baytlık geçersiz frame throw etmeden yok sayılır.
-16. (describe: "TunnelProxy HTTP akışı") **"akış tavanı dolunca stream açılmaz (writeHead yok)"** — maxStreams=1'de ikinci akışın yanıtına writeHead yapılmaz.
-17. (describe: "TunnelProxy HTTP akışı") **"sweep: boşta kalan http akışı kapatılır"** — idleTimeout 30 sn dolunca sweep yanıtı destroy eder.
-18. (describe: "TunnelProxy HTTP akışı") **"logger varken akış kapanışı security kanalına düşer"** — stream kapanışı `category:"security"` + streamId bağlamıyla loglanır.
-19. (describe: "TunnelProxy WS köprüsü (T3.3)") **"101 ack → köprü açılır; WS_OP frame tarayıcıya iletilir"** — ack 101 ile köprü kurulur, gelen WS_OP text frame tarayıcıya text olarak iletilir.
-20. (describe: "TunnelProxy WS köprüsü") **"tarayıcı mesajı WS_OP frame'i olarak konteynere gider"** — `sendWsToContainer` text mesajı WS_OP + Text opcode'lu frame üretir.
-21. (describe: "TunnelProxy WS köprüsü") **"konteyner stream-close → tarayıcı kapatılır"** — gelen stream-close tarayıcı soketini kapatır.
-22. (describe: "TunnelProxy WS köprüsü") **"ack 101 değilse tarayıcı 1013 ile kapatılır"** — 503 ack'inde tarayıcı soketi close(1013) alır.
-23. (describe: "TunnelProxy WS köprüsü") **"closeWs → stream-close kontrolü gönderilir"** — `closeWs(streamId, reason)` karşı tarafa stream-close frame'i gönderir.
-24. (describe: "TunnelProxy WS köprüsü") **"RST frame → tarayıcı 1011 ile kapatılır"** — RST bayraklı frame tarayıcıyı close(1011) ile kapatır.
-25. (describe: "TunnelProxy WS köprüsü") **"binary tarayıcı mesajı Binary opcode taşır"** — binary `sendWsToContainer` WS_OP + Binary opcode üretir.
-26. (describe: "TunnelProxy WS köprüsü") **"bilinmeyen streamId'ye WS mesajı yok sayılır"** — 999 streamId'ye send/close throw etmez.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/proxy/session-gateway.test.ts` (`10` test — web-service'ten taşındı 2026-09-01; SessionAudit kısmı monorepo `session-audit.test.ts`'e)
-**Hedef:** `ContainerSessionGateway` (+`mapFieldRole`, `SessionAudit`) — open-session ack akışı, birebir rol eşlemesi, 1-oturum limiti ve fail-closed audit.
-
-1. (describe: "mapFieldRole (§5.5 — 2026-08-30 birebir)") **"tüm roller aynen taşınır (birebir eşleme)"** — admin/teknik/boss/guest/developer field rolünden konteyner rolüne aynen eşlenir.
-2. (describe: "ContainerSessionGateway (T3.3)") **"2026-08-30: guest oturum AÇABİLİR — konteyner rolü guest (birebir)"** — guest kullanıcı open-session→ack döngüsünü tamamlar, dönen containerRole "guest"tir.
-3. (describe: "ContainerSessionGateway") **"konteyner bağlı değilse 503 (TransientError)"** — bağlı olmayan konteynere openSession transient hata döner.
-4. (describe: "ContainerSessionGateway") **"ikinci açılış eskisini 'replaced' ile kapatır ve yenisini açar (Faz 5)"** — aynı konteynere ikinci oturum açılışı eskisine session-end(replaced) gönderir ve aktif sayı 1 kalır.
-5. (describe: "ContainerSessionGateway") **"ack zaman aşımı → 503 (TransientError)"** — 1000 ms içinde ack gelmeyen oturum transient hatayla sonuçlanır.
-6. (describe: "ContainerSessionGateway") **"audit hatası → fail-closed (oturum açılmaz, FatalError)"** — audit sink'i hata verirse oturum açılmaz, fatal hata döner, aktif sayı 0 kalır.
-7. (describe: "ContainerSessionGateway") **"closeSession → session-end frame + audit close + kayıt düşer"** — `closeSession` session-end gönderir, `UPDATE session_audit` çalışır, kayıt silinir.
-8. (describe: "ContainerSessionGateway") **"sweep süresi dolan oturumu session-end ile kapatır"** — 4 saat TTL sonrası sweep oturumu `expired` nedeniyle kapatır.
-9. (describe: "ContainerSessionGateway") **"sessionForContainer acik oturumu konteyner kimligiyle bulur"** — kayıtlı oturum döner, bilinmeyen konteyner undefined.
-10. (describe: "ContainerSessionGateway") **"sessionByToken kayıtlı oturumu döner"** — token ile oturum bulunur, bilinmeyen token undefined.
-11. (describe: "SessionAudit (T3.4)") **"ensureSchema session_audit DDL'ini kurar"** — `CREATE TABLE IF NOT EXISTS session_audit` execute edilir.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/session/session-store.test.ts` (`10` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `ContainerSessionStore` (+`ContainerSessionTokenAdapter`) — konteyner tarafı oturum JWT'si, TTL/idle sweep, iptal.
-
-1. (describe: "ContainerSessionStore (T3.3)" > "open() / authenticate()") **"open → token doğrulanır, kullanıcı + rol döner"** — `open` 4 saatlik expiresInSec döner ve `authenticate` kullanıcıyı geri verir.
-2. (describe: "open() / authenticate()") **"geçersiz token undefined döner"** — bozuk token authenticate'te undefined.
-3. (describe: "open() / authenticate()") **"tahrifli token (farklı secret) undefined döner"** — başka secret ile imzalanmış geçerli-biçim token reddedilir.
-4. (describe: "open() / authenticate()") **"bilinmeyen sessionId'li geçerli-imza token da reddedilir"** — doğru secret ama kayıtsız sessionId reddedilir.
-5. (describe: "end()") **"iptal sonrası authenticate undefined döner"** — `end` sonrası token geçersizleşir ve activeCount 0 olur.
-6. (describe: "TTL + idle sweep") **"4 saat TTL dolunca oturum kapanır"** — sweep TTL dolan oturumu kapatır.
-7. (describe: "TTL + idle sweep") **"15 dk idle → oturum kapanır; aktivite süreyi uzatır"** — authenticate aktivitesi idle sayacını tazeler, son aktiviteden 15 dk sonra sweep kapatır.
-8. (describe: "TTL + idle sweep") **"sweep TTL'den önce oturumu kapatmaz"** — 3 saatte sweep oturumu korur.
-9. (describe: "TTL + idle sweep") **"activeCount açık oturum sayısını döner"** — iki açılışta 2, end sonrası 1 döner.
-10. (describe: "role eşlemesi passthrough") **"field'da eşlenen konteyner rolü korunur"** — admin rolü authenticate'te aynen korunur.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/session/container-session-server.test.ts` (`3` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `ContainerSessionServer` — konteyner tarafı open-session/session-end kontrol frame işleyicisi.
-
-1. (describe: "ContainerSessionServer (T3.3)") **"open-session → open-session-ack (token + expiresInSec)"** — gelen open-session'a 4 saatlik token'lı ack döner ve store authenticate edebilir.
-2. (describe: "ContainerSessionServer") **"session-end → kayıt düşer"** — session-end sonrası activeCount 0'a düşer.
-3. (describe: "ContainerSessionServer") **"bilinmeyen mesaj tipleri yok sayılır"** — stream-window gibi mesajlar yanıt üretmez.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/client/tunnel-client.test.ts` (`25` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `TunnelClient` — konteyner tarafı tünel istemcisi: loopback fetch/WS köprüsü, kredi bazlı backpressure, limitler, hata yolları.
-
-1. (describe: "TunnelClient (T3.2)" > "HTTP akışı") **"stream-open → ack (durum + başlıklar) → gövde frame'leri + FIN"** — stream-open sonrası 200 ack, "hello" gövdesi frame'lerle akar ve son frame FIN taşır.
-2. (describe: "HTTP akışı") **"yönlendirme: /api/* → web-service, diğer → statik"** — `/api/x` web-service'e, `/index.html` statik upstream'e gider.
-3. (describe: "HTTP akışı") **"backpressure: kredi olmadan gövde gönderilmez, krediyle akar"** — kredisiz ack'ten sonra 0 frame; 64 bayt krediyle ilk parça (FIN'siz), kalan krediyle 100 bayt + FIN.
-4. (describe: "HTTP akışı") **"POST gövdesi: BINARY frame'ler + FIN → fetch body"** — gelen gövde frame'i fetch request body'sine dönüşür.
-5. (describe: "HTTP akışı") **"upstream 404 → ack 404"** — upstream durum kodu ack'e taşınır.
-6. (describe: "HTTP akışı") **"akış tavanı aşılınca 503 + stream-close"** — maxStreams=2'de üçüncü akış 503 ack + stream-close alır.
-7. (describe: "HTTP akışı") **"field stream-close → akış iptal edilir"** — iptal sonrası yeni frame üretilmez.
-8. (describe: "WS köprüsü (upgrade)") **"upgrade → 101 ack + çift yönlü WS_OP frame'leri"** — WS köprüsü kurulur, WS_OP text frame upstream'e text olarak gider, echo WS_OP frame olarak geri gelir.
-9. (describe: "WS köprüsü") **"loopback WS kapanınca stream-close gönderilir"** — karşı uç kapanınca field'a stream-close iletilir.
-10. (describe: "WS köprüsü") **"boşta kalan akış idle timeout ile kapatılır"** — 31 sn boşta kalan köprü stream-close üretir.
-11. (describe: "kapsama (hata yolları + limitler)") **"bilinmeyen streamId'li window/close/binary yok sayılır"** — bilinmeyen streamId ve malform frame'ler sessizce yok sayılır.
-12. (describe: "kapsama") **"kredi bekleyen akış stream-close ile temiz kapanır"** — kredisiz bekleyen akış iptal sonrası frame üretmez.
-13. (describe: "kapsama") **"ack sonrası kredi beklerken kapanma → çökme/çıkış frame'i yok"** — ack sonrası stream-close frame sızıntısı üretmez.
-14. (describe: "kapsama") **"gövde ortasında kapanma → akış durur (abort)"** — gövde akarken iptal frame üretimini durdurur.
-15. (describe: "kapsama") **"upstream erişilemez → ack 502 + stream-close"** — bağlantı hatasında 502 ack + stream-close.
-16. (describe: "kapsama") **"gövdesiz yanıt (204) → yalnızca FIN frame"** — 204 yanıtı tek boş-FIN frame üretir.
-17. (describe: "kapsama") **"istek gövdesi tavan aşımı → RST + stream-close"** — maxRequestBody aşımında RST frame + `request-body-too-large` stream-close.
-18. (describe: "kapsama") **"GET akışında gövde frame'i yok sayılır"** — GET'te gelen gövde frame'i ignore edilir, yanıt normal akar.
-19. (describe: "kapsama") **"upstream gövde ortasında koparsa stream-close fetch-error"** — gövde ortasında destroy stream-close(fetch-error) üretir.
-20. (describe: "kapsama") **"WS köprüsü: WS olmayan upstream → stream-close ws-error"** — WS upgrade'i desteklemeyen upstream ws-error ile kapatılır.
-21. (describe: "kapsama") **"WS köprüsü: binary opcode upstream'e binary iletilir"** — WS_OP Binary frame'i upstream'e isBinary olarak gider.
-22. (describe: "kapsama") **"kapanmış akışa gelen WS_OP frame'i yok sayılır"** — stream-close sonrası geç frame throw etmez.
-23. (describe: "TunnelClient (T3.2)" — üst seviye) **"FIN sonrası akış temizlenir — sıradaki stream-open 503 ALMAZ (sızıntı regresyonu)"** — tamamlanan akış tavan sayacından düşer, ikinci akış 200 ack alır.
-24. (describe: "TunnelClient" — üst seviye) **"gzip basliklari ack'e TASINMAZ (content-encoding/content-length strip)"** — ack headers'ta content-encoding ve content-length bulunmaz, content-type kalır.
-25. (describe: "max yaş sweep") **"azami yaş dolan akış max-age ile kapatılır"** — maxAgeMs=1000 dolan köprü stream-close(max-age) üretir.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/channel/ws-socket-client.test.ts` (`9` test — adapters.test bölündü)
-**Hedef:** `WsSocketClient`/`WsSocketClientFactory`/`RealtimeSnapshotSource` — ws paketi adaptörü ve anlık telemetri görüntü kaynağı.
-
-1. (describe: "WsSocketClient (T2.1c)") **"send/ping/close raw'a delege edilir"** — üç komut da raw ws'e birebir iletilir.
-2. (describe: "WsSocketClient") **"message olayı string'e çevrilir"** — Buffer payload string olarak callback'e verilir.
-3. (describe: "WsSocketClient") **"open/close/error/pong olayları birebir kablolanır"** — dört olayın her biri birer kez iletilir.
-4. (describe: "WsSocketClient") **"unexpected-response → statusCode (yoksa 0)"** — pre-upgrade ret 401 olarak, statusCode yoksa 0 olarak iletilir.
-5. (describe: "WsSocketClient") **"readyState %s → '%s'"** (it.each — 4 durum) — ws readyState 0→connecting, 1→open, 2→closing, 3→closed eşlemesi doğrudur.
-6. (describe: "WsSocketClientFactory (T2.1c)") **"creator'ı url + headers ile çağırır ve sarar"** — factory creator'u doğru argümanlarla çağırır, dönen client send'i delege eder.
-7. (describe: "RealtimeSnapshotSource (T2.1c)") **"her cihazın en yeni değerlerini döndürür"** — online cihazların buffer'ındaki (deviceId,name) başına en yeni kayıtlar döner.
-8. (describe: "RealtimeSnapshotSource") **"(deviceId, name) başına ilk görülen (en yeni) korunur"** — aynı isimdeki eski değerler elenir, yalnızca en yeni kalır.
-9. (describe: "RealtimeSnapshotSource") **"bozuk kayıtları eler"** — deviceId'siz/null/string kayıtlar atlanır, geçerli kayıtlar kalır.
-10. (describe: "RealtimeSnapshotSource") **"SQL hatası → boş dizi (kademeli bozulma)"** — devices sorgusu hatasında boş dizi döner.
-11. (describe: "RealtimeSnapshotSource") **"tek cihazın Redis hatası diğerlerini etkilemez"** — hatalı cihaz atlanır, sağlam cihaz verisi döner.
-12. (describe: "RealtimeSnapshotSource") **"cihaz yoksa boş dizi döner"** — cihaz listesi boşsa boş dizi döner.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/connector/field-connector.spec.ts` (`7` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `FieldConnector` ↔ field WS integration (gerçek ws sunucusu) — K2.1 <5 sn bağlanma, register/heartbeat/telemetry akışı, T2.5 canlı config.
-
-1. (describe: "FieldConnector integration (gerçek WS — T2.5/K2.1)") **"K2.1: start → connected < 5 sn (gerçek WS, ölçümlü)"** — start'tan connected'a geçiş 5 sn altında, register frame'i containerId + protocolVersion:1 taşır.
-2. (describe: "integration") **"heartbeat + telemetry snapshot gerçek WS üzerinden akar"** — sunucuda ≥2 heartbeat ve ≥1 telemetry frame'i (Voltage) gözlenir.
-3. (describe: "integration") **"T2.5: register-ack.config aralığı canlı uygular"** — ack'teki heartbeatIntervalMs=100000 sonrası 600 ms'de yeni heartbeat üretilmez (yalnızca ilk).
-4. (describe: "integration") **"T2.5: config-update frame'i heartbeat aralığını canlı değiştirir"** — config-update sonrası eski aralıkta heartbeat gelmez.
-5. (describe: "integration") **"T2.5: geçersiz config-update eski aralığı korur"** — negatif aralıklı config-update reddedilir, heartbeat eski aralıkta devam eder.
-6. (describe: "integration") **"WS kopunca backoff → yeniden bağlanır"** — sunucu kapatınca yeni bağlantı kurulur ve fieldConnected true olur.
-7. (describe: "integration") **"stop() sonrası yeniden bağlanma olmaz"** — stop sonrası bağlantı sayısı artmaz, state "offline".
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/connector/field-connector.test.ts` (`53` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `FieldConnector` — durum makinesi (offline→connecting→registered→connected↔backoff), üstel geri çekilme, liveness, operational config, bayat soket koruması, tünel kancaları.
-
-1. (describe: "FieldConnector (T2.1b)" > "start() / bağlanma") **"start() → connecting + ilk URL'e Bearer'lı bağlanır"** — start state'i connecting yapar, ilk wsUrls adresine Bearer token'lı soket açılır.
-2. (describe: "start() / bağlanma") **"open sonrası register mesajı gönderir (containerId + protocolVersion)"** — open olayında tek `register` frame'i containerId ve protocolVersion ile gider.
-3. (describe: "start() / bağlanma") **"çift start() no-op — ikinci soket açılmaz"** — ikinci start yeni soket üretmez.
-4. (describe: "register-ack → connected akışı") **"ack ok → ilk heartbeat + connected + snapshot push"** — ack ok ile connected olur, ilk heartbeat (ts=0) gider ve snapshot çağrılır.
-5. (describe: "register-ack → connected akışı") **"ack ok → field_connected bilgi logu"** — `field_connected` eventCode'lu log yazılır.
-6. (describe: "register-ack → connected akışı") **"heartbeat her 15 sn'de bir gönderilir"** — 15 sn sonra ts'li yeni heartbeat gider ve `lastHeartbeatAt` güncellenir.
-7. (describe: "register-ack → connected akışı") **"telemetri snapshot her 15 sn'de bir push edilir (boş veri push edilmez)"** — 15 sn'de heartbeat + telemetry (2 frame) gönderilir.
-8. (describe: "register-ack → connected akışı") **"boş snapshot telemetry frame'i üretmez"** — boş veriyle telemetry frame'i yoktur.
-9. (describe: "register-ack → connected akışı") **"snapshot hatası bağlantıyı etkilemez (kademeli bozulma)"** — snapshot reject'inde state connected kalır.
-10. (describe: "backoff / yeniden bağlanma") **"connected iken WS kapanırsa backoff → 1 sn sonra yeniden bağlanır"** — kapanma state'i backoff yapar, 1 sn sonra ikinci soket açılır.
-11. (describe: "backoff") **"kopuş warn logu (ws_connection_lost) üretir"** — kapanmada `ws_connection_lost` logu yazılır.
-12. (describe: "backoff") **"üstel backoff: 1, 2, 4 sn (jitter 0)"** — ardışık kapanmalarda 1s→2s→4s aralıklarla yeni soketler açılır.
-13. (describe: "backoff") **"başarılı bağlantı deneme sayacını sıfırlar"** — başarılı register sonrası kopuş tekrar 1 sn'den başlar.
-14. (describe: "backoff") **"register timeout (10 sn) → backoff"** — 10 sn ack'siz kalan soket kapanır ve backoff'a geçer.
-15. (describe: "backoff") **"register-ack rejected → backoff + security logu"** — rejected ack `ws_register_rejected` security loguyla backoff'a düşer.
-16. (describe: "backoff") **"401 pre-upgrade → sıradaki URL denenir; tümü reddedilirse backoff"** — 401'de ikinci URL denenir, o da reddedilirse backoff + security logu.
-17. (describe: "backoff") **"reddedilen soketin geç kapanma olayı durumu bozmaz"** — geç close olayı state'i değiştirmez.
-18. (describe: "liveness (yarı-ölü bağlantı tespiti)") **"60 sn pong yoksa bağlantı kapatılır + backoff"** — livenessTimeout dolunca soket kapanır, backoff'a geçilir.
-19. (describe: "liveness") **"pong gelirse bağlantı canlı kalır"** — 30 sn'de pong gelince connected korunur.
-20. (describe: "liveness") **"heartbeat gönderiminde ping atılır"** — her heartbeat'te sockete ping atılır.
-21. (describe: "stop()") **"connected iken stop → offline + soket kapanır + yeniden bağlanmaz"** — stop sonrası 60 sn beklenir, yeni soket açılmaz.
-22. (describe: "stop()") **"stop sonrası start tekrar bağlanır"** — yeniden start connecting yapar ve yeni soket açar.
-23. (describe: "stop()") **"offline durumda stop no-op"** — hiç başlatılmamış bağlantıda stop sessizdir.
-24. (describe: "operational config (T2.5)") **"register-ack.config aralıkları değiştirir (heartbeat 5 sn)"** — ack config'iyle heartbeat 5 sn'ye iner.
-25. (describe: "operational config") **"config-update frame'i restart'sız aralık değiştirir"** — canlı config-update heartbeat+telemetry aralıklarını anında uygular.
-26. (describe: "operational config") **"geçersiz config-update reddedilir — eski aralık korunur"** — negatif aralık `field_config_rejected` logu üretir, 15 sn döngüsü bozulmaz.
-27. (describe: "operational config") **"geçersiz register-ack config'i de reddedilir ama bağlantı kurulur"** — hatalı ack config'inde connected olur + `field_config_rejected` loglanır.
-28. (describe: "mesaj sağlamlığı") **"malform JSON yok sayılır — çökme yok"** — bozuk JSON state'i bozmaz.
-29. (describe: "mesaj sağlamlığı") **"bilinmeyen mesaj tipi yok sayılır"** — stream-open gibi mesajlar state'i değiştirmez.
-30. (describe: "mesaj sağlamlığı") **"soket hatası loglanır (close olayı backoff'u yönetir)"** — error olayı state'i connecting'de bırakır.
-31. (describe: "mesaj sağlamlığı") **"error frame'i loglanır"** — `error` tipi frame `ws_connection_lost` + code bağlamıyla loglanır.
-32. (describe: "mesaj sağlamlığı") **"kodsuz error frame'i 'unknown' ile loglanır"** — code'suz hata "unknown"/"" bağlamıyla loglanır.
-33. (describe: "mesaj sağlamlığı") **"register-ack status alanı yoksa 'unknown' ile reddedilir"** — status'suz ack backoff'a düşer, `status:"unknown"` bağlamıyla loglanır.
-34. (describe: "mesaj sağlamlığı") **"403 pre-upgrade de security logu üretir"** — 403 reddi `ws_register_rejected` security logu üretir.
-35. (describe: "bayat soket olayları (generation koruması)") **"bayat soketin tüm olayları yok sayılır"** — reddedilen soketten gelen open/message/close/error/pong/rejected hiçbir etki yaratmaz.
-36. (describe: "bayat soket olayları") **"bayat register timeout'u yeni bağlantıyı bozmaz"** — 10 sn sonra state connecting kalır, yeni soket açıktır.
-37. (describe: "stop() yarışları") **"stop sonrası geç kapanma olayı durumu bozmaz"** — stop sonrası close offline'ı korur, yeniden bağlanma yok.
-38. (describe: "stop() yarışları") **"stop sonrası geç open register göndermez"** — stop sonrası open olayı frame üretmez.
-39. (describe: "stop() yarışları") **"stop sonrası rejected yeniden bağlanmaz (tek URL)"** — tek URL'de stop sonrası 401 yeni bağlantı tetiklemez.
-40. (describe: "stop() yarışları") **"stop sonrası rejected sıradaki URL'i denemez (çok URL)"** — çok URL'de dahi stop sonrası 401 sıradaki URL'e geçmez.
-41. (describe: "snapshot yarışı ve hata biçimleri") **"snapshot beklerken bağlantı koparsa telemetri gönderilmez"** — kopuş sonrası resolve olan snapshot telemetry frame'i üretmez.
-42. (describe: "snapshot yarışı") **"Error olmayan snapshot hatası da loglanır"** — string reject `telemetry_push_failed` + error bağlamıyla loglanır.
-43. (describe: "logger'sız çalışma") **"log çağrıları atlanır — çökme yok"** — logger'sız bağlantı kopuş/backoff akışı çalışır.
-44. (describe: "tünel kanal kancaları (Faz 3)") **"bilinmeyen kontrol mesajı abonelere iletilir"** — open-session mesajı `onMessage` abonesine ulaşır.
-45. (describe: "tünel kanal kancaları") **"unsubscribe sonrası iletilmez"** — unsubscribe edilen aboneye mesaj gitmez.
-46. (describe: "tünel kanal kancaları") **"sendControl JSON text frame gönderir"** — kontrol mesajı JSON text frame olarak gider.
-47. (describe: "tünel kanal kancaları") **"sendBinary ham binary frame gönderir"** — binary kanala ham buffer yazılır.
-48. (describe: "tünel kanal kancaları") **"gelen binary frame abonelere iletilir"** — `onBinaryFrame` abonesi ham frame'i alır.
-49. (describe: "tünel kanal kancaları") **"bağlı değilken sendControl/sendBinary no-op"** — hiç bağlanmamış bağlantıda send çağrıları soket üretmez.
-50. (describe: "constructor doğrulaması") **"boş URL listesi reddedilir"** — `wsUrls: []` constructor'da throw.
-51. (describe: "constructor doğrulaması") **"boş token reddedilir"** — whitespace token throw.
-52. (describe: "constructor doğrulaması") **"boş containerId reddedilir"** — boş containerId throw.
-53. (describe: "constructor doğrulaması") **"pozitif olmayan aralıklar reddedilir"** — 0/-1 heartbeat/telemetry aralıkları throw.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/connector/reconnect-delay.test.ts` (`13` test — web-service'ten taşındı 2026-09-01)
-**Hedef:** `ReconnectDelay` — üstel geri çekilme hesabı: exp(2^n·1s)+jitter, 60 sn tavan, config doğrulaması.
-
-1. (describe: "ReconnectDelay (T2.1a)" > "delayFor()") **"attempt 1 → taban gecikme (1000 ms)"** — ilk deneme taban gecikmeyi döner.
-2. (describe: "delayFor()") **"üstel büyür: 1→1000, 2→2000, 3→4000, 4→8000"** — denemeler iki kat büyür.
-3. (describe: "delayFor()") **"60 sn tavanına takılır (attempt 7: 64000 → 60000)"** — hesaplanan değer tavana kırpılır.
-4. (describe: "delayFor()") **"tavan üstü attempt'lerde de tavanı korur (attempt 100)"** — çok yüksek denemede tavan korunur.
-5. (describe: "delayFor()") **"jitter'ı ekler (deterministik jitter 0.5 → +500 ms)"** — jitter×jitterSpanMs gecikmeye eklenir.
-6. (describe: "delayFor()") **"jitter tavanı ezemez"** — 0.999 jitter'da dahi sonuç 60000'dir.
-7. (describe: "delayFor()") **"jitter [0,1) dışında ise reddeder"** — 1.5 dönen jitter throw eder.
-8. (describe: "delayFor()") **"attempt 0 ve negatif attempt reddedilir"** — geçersiz attempt'ler throw.
-9. (describe: "delayFor()") **"ondalıklı attempt reddedilir"** — 1.5 attempt throw.
-10. (describe: "reset()") **"deneme sayacını sıfırlar — sonraki delay yeniden tabandan başlar"** — reset sonrası delayFor(1) tekrar 1000 döner.
-11. (describe: "konfigürasyon doğrulaması") **"geçersiz taban (≤0) reddedilir"** — baseMs=0 constructor'da throw.
-12. (describe: "konfigürasyon doğrulaması") **"tavan tabandan küçük olamaz"** — maxMs<baseMs throw.
-13. (describe: "konfigürasyon doğrulaması") **"negatif jitter açıklığı reddedilir"** — jitterSpanMs=-5 throw.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
-
-### `packages/ws-tunnel/src/codec/frame-codec.test.ts` (`18 test` — container-access'ten taşındı 2026-09-01)
-**Hedef:** `FrameCodec` — tünel binary frame kodlayıcı/kod çözücü; 9 bayt başlık (streamId u32 BE + seq u32 BE + flags) ile encode programcı hatasında throw eder, decode asla throw etmez (`Result`). (core'dan taşındı — bkz. platform-paket-yapisi.md Aşama 1.)
-
-1. (describe: "encode()") **"başlık + payload boyutu = 9 + payload.length"** — `FrameCodec.encode` toplam tampon boyutunun başlık sabiti + payload uzunluğuna eşit olduğunu doğruluyor.
-2. (describe: "encode()") **"streamId u32 BE olarak yazılır"** — `encode` streamId'yi ilk 4 bayta big-endian düzende yazıyor mu kontrol ediyor.
-3. (describe: "encode()") **"seq u32 BE olarak yazılır (wrap değerleri dahil)"** — `encode` seq=0xffffffff sınır değerini 4 bayt big-endian olarak yazıyor mu kontrol ediyor.
-4. (describe: "encode()") **"flags baytı: FIN|RST|WS_OP birleşimi"** — `encode` 9. bayta flags bitlerini + yüksek 4 bite opcode'u birleştirerek yazıyor mu kontrol ediyor.
-5. (describe: "encode()") **"negatif streamId reddedilir"** — `encode` streamId=-1 için ValidationError fırlatıyor mu kontrol ediyor.
-6. (describe: "encode()") **"u32 üstü streamId/seq reddedilir"** — `encode` 2^32'den büyük streamId veya seq girdilerinde throw ediyor mu kontrol ediyor.
-7. (describe: "encode()") **"ondalıklı streamId reddedilir"** — `encode` tam sayı olmayan streamId'yi reddediyor mu kontrol ediyor.
-8. (describe: "encode()") **"WS_OP set iken opcode zorunludur"** — `encode` WS_OP bayrağı varken opcode verilmemesini hata olarak fırlatıyor mu kontrol ediyor.
-9. (describe: "encode()") **"WS_OP yokken opcode verilemez"** — `encode` WS_OP bayrağı yokken opcode geçilmesini reddediyor mu kontrol ediyor.
-10. (describe: "encode()") **"opcode 4 bit ile sınırlıdır"** — `encode` 16'dan büyük opcode değerini reddediyor mu kontrol ediyor.
-11. (describe: "decode()") **"9 bayttan kısa girdi → Err (throw yok)"** — `decode` 0–8 bayt arası her girdi için throw etmeden Err dönüyor mu kontrol ediyor.
-12. (describe: "decode()") **"boş payload'lı frame decode edilir"** — `decode` FIN bayraklı boş payload'lı frame'i doğru streamId/seq/flags ve undefined opcode ile geri çözüyor mu kontrol ediyor.
-13. (describe: "decode()") **"WS_OP + opcode geri okunur"** — `decode` WS_OP bayraklı frame'de opcode'u ve bayrağı geri okuyor mu kontrol ediyor.
-14. (describe: "decode()") **"bilinmeyen opcode değeri taşınır (ileri uyumluluk)"** — `decode` 0xf gibi bilinmeyen opcode'u aynen taşıyor mu kontrol ediyor.
-15. (describe: "decode()") **"maxPayload aşımı → Err"** — `decode` MAX_FRAME_PAYLOAD üstü payload'ı Err ile reddedip opsiyonel üst sınır parametresiyle kabul ediyor mu kontrol ediyor.
-16. (describe: "decode()") **"payload tam uzunlukta döner"** — `decode` 256 baytlık payload'ı byte-birebir geri döndürüyor mu kontrol ediyor.
-17. (describe: "round-trip (fuzz)") **"rastgele 500 frame encode→decode eşitliği"** — deterministik rastgele 500 frame'in encode→decode sonrası tüm alanlarının korunduğunu doğruluyor.
-18. (describe: "round-trip (fuzz)") **"rastgele 1000 bayt akışı decode'da asla throw etmez"** — 1000 rastgele tamponda `decode`'un asla throw etmediğini doğruluyor.
-
-[DOSYA NOTU] Yok — kapsam tam görünüyor.
 
 ## packages/core
 
@@ -2574,7 +2061,7 @@ NOT: `errors` (Result + DomainError) 2026-09-01'de YAPRAK PAKETE taşındı — 
 | `proxy/tunnel-proxy` | WS kapanış kodu 1008 assert edilmiyor (app.inject WS el sıkışmasını tamamlamıyor); startWsBridge/sendWsToContainer/closeWs mock'ları çağrılmıyor |
 | `session/container-session-server` | WS hata senaryoları (abonelik reddi, geçersiz token) |
 
-## packages/tamper-logger
+## tamper-logger
 
 | Dosya | Kapsanmayan |
 |-------|-------------|

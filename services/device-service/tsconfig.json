@@ -14,7 +14,6 @@
     { "path": "../../packages/core" },
     { "path": "../../packages/platform/messaging" },
     { "path": "../../packages/platform/logging" },
-    { "path": "../../packages/tamper-logger" },
     { "path": "../../packages/simulators" }
   ]
 }

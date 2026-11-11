@@ -60,7 +60,7 @@ const FIELD_PEER: Peer = {
   peerId: "f-1",
   peerType: "field",
   status: "connected",
-  services: [{ id: "field-api" }],
+  services: [{ id: "site-api" }],
 };
 
 const EVENT: EventMessage = {
@@ -81,7 +81,7 @@ describe("FieldEventCollector (UC-5 — HTTP pull)", () => {
     );
     const collector = new FieldEventCollector(sql, undefined, {
       client,
-      serviceId: "field-api",
+      serviceId: "site-api",
       now: NOW,
     });
 
@@ -90,7 +90,7 @@ describe("FieldEventCollector (UC-5 — HTTP pull)", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]).toMatchObject({
       peerId: "f-1",
-      serviceId: "field-api",
+      serviceId: "site-api",
     });
     // İlk tur: 1 saatlik backlog (now - 3600000).
     expect(calls[0]?.path).toContain(

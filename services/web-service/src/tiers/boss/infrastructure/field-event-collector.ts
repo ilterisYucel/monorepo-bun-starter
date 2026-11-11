@@ -1,5 +1,5 @@
 import type { ISqlDatabase } from "@gd-monorepo/core";
-import type { ILogger } from "@gd-monorepo/ws-tunnel";
+import type { ILogger } from "zero-trust-application-channel";
 import type { IHubTunnelPort } from "../../../domain/ports/hub-tunnel";
 import { SYSTEM_USER_HEADERS } from "../../../infrastructure/hub-tunnel/system-headers";
 import type { FieldEventDto } from "../../../application/events/event-dto";
@@ -78,7 +78,7 @@ export class FieldEventCollector {
     private readonly config: FieldEventCollectorConfig = {},
   ) {
     this.client = config.client;
-    this.serviceId = config.serviceId ?? "field-api";
+    this.serviceId = config.serviceId ?? "site-api";
     this.intervalMs = config.intervalMs ?? DEFAULT_INTERVAL_MS;
     this.batchSize = config.batchSize ?? DEFAULT_BATCH_SIZE;
     this.now = config.now ?? (() => Date.now());
@@ -206,7 +206,7 @@ export class FieldEventCollector {
            VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8)
            ON CONFLICT (field_id, event_id) DO NOTHING`,
           [
-            "demo-field",
+            "demo-site",
             demo.eventId,
             demo.eventCode,
             demo.level,

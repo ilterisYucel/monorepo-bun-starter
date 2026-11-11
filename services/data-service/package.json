@@ -19,7 +19,8 @@
     "@gd-monorepo/shared-types": "*",
     "@gd-monorepo/shared-utils": "*",
     "@gd-monorepo/core": "*",
-    "@gd-monorepo/result": "*"
+    "@gd-monorepo/result": "*",
+    "tamper-logger": "^1.0.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

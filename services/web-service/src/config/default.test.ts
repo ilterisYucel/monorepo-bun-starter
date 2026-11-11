@@ -5,9 +5,9 @@ import { authConfig, seedUsers, siteFieldConfig, mfaRequiredRoles } from "./defa
 /**
  * default.ts T1.6 + T2.3 sözleşmesi:
  * - Seed kullanıcıları `mustChangePassword: true` ile üretilir.
- * - field/boss tier'da SEED_*_PASSWORD zorunludur — yoksa fırlatır
+ * - site/boss tier'da SEED_*_PASSWORD zorunludur — yoksa fırlatır
  *   (fail-fast); container tier dev default'larını korur.
- * - field/boss tier'da dev/default JWT_SECRET ile açılış REDDEDİLİR.
+ * - site/boss tier'da dev/default JWT_SECRET ile açılış REDDEDİLİR.
  * - Container kaydı agent üzerinden yapılır; natif peer config'i yoktur
  *   (SPEC KONTEYNER-AGENT-KAYIT K1).
  */
@@ -44,13 +44,13 @@ describe("seedUsers (T1.6 + 2026-08-30)", () => {
     expect(seeds[0].password).toBe("admin123");
   });
 
-  it("field tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)", () => {
-    process.env.SERVICE_TIER = "field";
+  it("site tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)", () => {
+    process.env.SERVICE_TIER = "site";
     expect(() => seedUsers()).toThrow();
   });
 
-  it("field tier: env şifreleri kullanılır; guest bayrağı false kalır", () => {
-    process.env.SERVICE_TIER = "field";
+  it("site tier: env şifreleri kullanılır; guest bayrağı false kalır", () => {
+    process.env.SERVICE_TIER = "site";
     process.env.SEED_ADMIN_PASSWORD = "guclu-admin-parola";
     process.env.SEED_BOSS_PASSWORD = "guclu-boss-parola";
     process.env.SEED_GUEST_PASSWORD = "guclu-guest-parola";
@@ -61,22 +61,22 @@ describe("seedUsers (T1.6 + 2026-08-30)", () => {
     expect(seeds.find((s) => s.role === "guest")?.mustChangePassword).toBe(false);
   });
 
-  it("field tier: 8 karakterden kısa env değeri de fırlatır", () => {
-    process.env.SERVICE_TIER = "field";
+  it("site tier: 8 karakterden kısa env değeri de fırlatır", () => {
+    process.env.SERVICE_TIER = "site";
     process.env.SEED_ADMIN_PASSWORD = "kisa";
     expect(() => seedUsers()).toThrow();
   });
 });
 
 describe("authConfig (T1.6)", () => {
-  it("field tier + dev secret → fırlatır", () => {
-    const loader = makeLoader({ SERVICE_TIER: "field" });
+  it("site tier + dev secret → fırlatır", () => {
+    const loader = makeLoader({ SERVICE_TIER: "site" });
     expect(() => authConfig(loader)).toThrow();
   });
 
-  it("field tier + geçerli secret → ok", () => {
+  it("site tier + geçerli secret → ok", () => {
     const loader = makeLoader({
-      SERVICE_TIER: "field",
+      SERVICE_TIER: "site",
       JWT_SECRET: "uzun-ve-guvenli-bir-jwt-secret-degeri-12345",
     });
     const cfg = authConfig(loader);
@@ -91,36 +91,36 @@ describe("authConfig (T1.6)", () => {
 
 /**
  * siteFieldConfig sözleşmesi (2026-08-28 — env'den saha kimliği):
- * - field tier: FIELD_ID zorunlu + geçerli UUID; eksik/bozuk değer fail-fast.
+ * - site tier: FIELD_ID zorunlu + geçerli UUID; eksik/bozuk değer fail-fast.
  * - container/boss tier: undefined döner (FIELD_ID opsiyonel — ileride boss).
  * - FIELD_NAME opsiyonel; yoksa varsayılan "Saha".
  */
 const VALID_FIELD_ID = "5d5e49dc-7757-4f3e-a026-0263c2966bc6";
 
 describe("siteFieldConfig (FIELD_ID env)", () => {
-  it("field tier + geçerli UUID → config döner", () => {
-    const loader = makeLoader({ SERVICE_TIER: "field", FIELD_ID: VALID_FIELD_ID });
-    const cfg = siteFieldConfig(loader, "field");
+  it("site tier + geçerli UUID → config döner", () => {
+    const loader = makeLoader({ SERVICE_TIER: "site", FIELD_ID: VALID_FIELD_ID });
+    const cfg = siteFieldConfig(loader, "site");
     expect(cfg).toEqual({ fieldId: VALID_FIELD_ID, fieldName: "Saha" });
   });
 
-  it("field tier + FIELD_ID yoksa fail-fast fırlatır", () => {
-    const loader = makeLoader({ SERVICE_TIER: "field" });
-    expect(() => siteFieldConfig(loader, "field")).toThrow(/FIELD_ID/);
+  it("site tier + FIELD_ID yoksa fail-fast fırlatır", () => {
+    const loader = makeLoader({ SERVICE_TIER: "site" });
+    expect(() => siteFieldConfig(loader, "site")).toThrow(/FIELD_ID/);
   });
 
-  it("field tier + geçersiz UUID fail-fast fırlatır", () => {
+  it("site tier + geçersiz UUID fail-fast fırlatır", () => {
     const loader = makeLoader({
-      SERVICE_TIER: "field",
+      SERVICE_TIER: "site",
       FIELD_ID: "saha-bir",
     });
-    expect(() => siteFieldConfig(loader, "field")).toThrow(/UUID/);
+    expect(() => siteFieldConfig(loader, "site")).toThrow(/UUID/);
   });
 
-  it("field tier + FIELD_NAME env'den isim alır", () => {
+  it("site tier + FIELD_NAME env'den isim alır", () => {
     process.env.FIELD_NAME = "Gunes Santrali";
-    const loader = makeLoader({ SERVICE_TIER: "field", FIELD_ID: VALID_FIELD_ID });
-    const cfg = siteFieldConfig(loader, "field");
+    const loader = makeLoader({ SERVICE_TIER: "site", FIELD_ID: VALID_FIELD_ID });
+    const cfg = siteFieldConfig(loader, "site");
     expect(cfg?.fieldName).toBe("Gunes Santrali");
   });
 
@@ -137,20 +137,20 @@ describe("siteFieldConfig (FIELD_ID env)", () => {
 
 /**
  * mfaRequiredRoles sözleşmesi (2026-08-28 — MFA_ENABLED debug flag'i):
- * - field/boss tier varsayılan: ["admin", "teknik"] (Faz 6 davranışı korunur).
+ * - site/boss tier varsayılan: ["admin", "teknik"] (Faz 6 davranışı korunur).
  * - MFA_ENABLED=false → [] (enforcement kapalı — debug/geçici kurulum).
  * - AUTH_MFA_REQUIRED_ROLES boş string → [] (açık kapatma da mümkün).
  * - container tier her zaman [].
  */
 describe("mfaRequiredRoles (MFA_ENABLED flag)", () => {
-  it("field tier varsayılan: admin,teknik", () => {
-    const loader = makeLoader({ SERVICE_TIER: "field" });
-    expect(mfaRequiredRoles(loader, "field")).toEqual(["admin", "teknik"]);
+  it("site tier varsayılan: admin,teknik", () => {
+    const loader = makeLoader({ SERVICE_TIER: "site" });
+    expect(mfaRequiredRoles(loader, "site")).toEqual(["admin", "teknik"]);
   });
 
   it("MFA_ENABLED=false → [] (debug)", () => {
-    const loader = makeLoader({ SERVICE_TIER: "field", MFA_ENABLED: "false" });
-    expect(mfaRequiredRoles(loader, "field")).toEqual([]);
+    const loader = makeLoader({ SERVICE_TIER: "site", MFA_ENABLED: "false" });
+    expect(mfaRequiredRoles(loader, "site")).toEqual([]);
   });
 
   it("MFA_ENABLED=false + AUTH_MFA_REQUIRED_ROLES dolu → yine [] (bayrak öncelikli)", () => {
@@ -164,10 +164,10 @@ describe("mfaRequiredRoles (MFA_ENABLED flag)", () => {
 
   it("AUTH_MFA_REQUIRED_ROLES boş string → []", () => {
     const loader = makeLoader({
-      SERVICE_TIER: "field",
+      SERVICE_TIER: "site",
       AUTH_MFA_REQUIRED_ROLES: "",
     });
-    expect(mfaRequiredRoles(loader, "field")).toEqual([]);
+    expect(mfaRequiredRoles(loader, "site")).toEqual([]);
   });
 
   it("container tier her zaman []", () => {

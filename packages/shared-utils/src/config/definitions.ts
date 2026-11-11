@@ -485,13 +485,13 @@ export const serviceTier: ConfigDefinition<ServiceTier> = {
   default: "container",
   validate: (v) => {
     const s = String(v).toLowerCase();
-    if (s !== "container" && s !== "field" && s !== "boss") {
-      throw new Error(`Gecersiz SERVICE_TIER: "${v}". Beklenen: container | field | boss`);
+    if (s !== "container" && s !== "site" && s !== "boss") {
+      throw new Error(`Gecersiz SERVICE_TIER: "${v}". Beklenen: container | site | boss`);
     }
     return s as ServiceTier;
   },
   restartOnChange: true,
-  description: "Servis seviyesi: container, field veya boss",
+  description: "Servis seviyesi: container, site veya boss",
 };
 
 export const deviceConfigDir: ConfigDefinition<string> = {
@@ -505,7 +505,7 @@ export const deviceConfigDir: ConfigDefinition<string> = {
 /**
  * BSC→PCS connector BMS hedef host override (PCS_BMS_TARGET_HOST).
  * Verilmezse mapping dosyasındaki sabit hedef kullanılır (dev: 127.0.0.1).
- * Deployment-bazlı: aws-edge'de `field-device-service`, standalone'da
+ * Deployment-bazlı: aws-edge'de `site-device-service`, standalone'da
  * `host.docker.internal` (BSC-PCS-CONNECTOR-MIMARISI.md §6 + WS-faz planı).
  */
 export const deviceBmsTargetHost: ConfigDefinition<string | undefined> = {
@@ -519,7 +519,7 @@ export const deviceBmsTargetHost: ConfigDefinition<string | undefined> = {
 /** BSC→PCS connector BMS hedef port override — verilmezse mapping portu. */
 /**
  * PCS→BSC ters kanal host override (PCS_EMS_TARGET_HOST).
- * Connector `pcsSources` host'larını ezer (docker: `field-device-service`).
+ * Connector `pcsSources` host'larını ezer (docker: `site-device-service`).
  */
 export const devicePcsPowerHost: ConfigDefinition<string | undefined> = {
   key: "device.pcsPowerHost",

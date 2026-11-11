@@ -13,7 +13,7 @@ review_date: 2026-11-10
 
 ## 1. Amaç ve Bağlam
 
-Nova demo konsolu: `packages/ui/src/nova` (saf çekirdek + Demo* bileşenleri) + `apps/demo-field` (ince tüketici, canlı backend'e bağlı). 3 eski SPEC (DEMO-FIELD, DEMO-FIELD-KONSOL, DEMO-KONSOL-UI-UYUM) bu dokümanda birleşir. Demo, ürün app'lerini etkilemez.
+Nova demo konsolu: `packages/ui/src/nova` (saf çekirdek + Demo* bileşenleri) + `apps/site` (ince tüketici, canlı backend'e bağlı). 3 eski SPEC (DEMO-FIELD, DEMO-FIELD-KONSOL, DEMO-KONSOL-UI-UYUM) bu dokümanda birleşir. Demo, ürün app'lerini etkilemez.
 
 | Katman | Kapsam |
 |:-------|:-------|
@@ -51,7 +51,7 @@ packages/ui/src/nova
 ├ Demo* bileşenleri (Mimic, KpiStrip, TrendChart, ContainerScada, BessScada, OperationsView, MarketView, FaultsView, AdminView, PortfolioMap, PlantOverview, PackSchematic, DevicePanels)
 └ tema (apply-nova-vars, nova-console.css, nova-mimic.css)
 
-apps/demo-field (ince tüketici)
+apps/site (ince tüketici)
 ├ mapFieldToMimicState / fanOutUnits
 ├ deriveKpis / deriveAlerts / buildTrendSeries
 └ demoApi / demoManeuverApi
@@ -64,9 +64,9 @@ apps/demo-field (ince tüketici)
 | `packages/ui/src/nova/nova-mimic.ts#createNovaMimic` | Mimik çekirdeği |
 | `packages/ui/src/nova/mimic-types.ts#NovaMimicState` | Durum tipi |
 | `packages/ui/src/nova/apply-nova-vars.ts#applyNovaVars` | Tema |
-| `apps/demo-field/src/features/demo-data/mapFieldToMimicState.ts#mapFieldToMimicState` | Veri eşlemesi |
-| `apps/demo-field/src/features/demo-data/mapFieldToMimicState.ts#fanOutUnits` | Fan-out |
-| `apps/demo-field/src/features/demo-data/deriveKpis.ts#deriveKpis` | KPI |
+| `apps/site/src/features/demo-data/mapFieldToMimicState.ts#mapFieldToMimicState` | Veri eşlemesi |
+| `apps/site/src/features/demo-data/mapFieldToMimicState.ts#fanOutUnits` | Fan-out |
+| `apps/site/src/features/demo-data/deriveKpis.ts#deriveKpis` | KPI |
 
 ## 5. Purity Kuralları (ZORUNLU)
 
@@ -169,7 +169,7 @@ apps/demo-field (ince tüketici)
 
 | Dosya | Rol / Değişiklik |
 |:------|:-----------------|
-| `apps/demo-field/src/features/demo-data/mapFieldToMimicState.ts` | Eşleme |
+| `apps/site/src/features/demo-data/mapFieldToMimicState.ts` | Eşleme |
 
 ### 6.3 UC-3 — Demo Konsol Görünümleri
 
@@ -259,7 +259,7 @@ apps/demo-field (ince tüketici)
 
 | Dosya | Rol / Değişiklik |
 |:------|:-----------------|
-| `apps/demo-field/src/features/demo-maneuver/**` | Demo manevra |
+| `apps/site/src/features/demo-maneuver/**` | Demo manevra |
 
 ## 7. Yaşam Döngüsü ve Hata Kategorileri
 

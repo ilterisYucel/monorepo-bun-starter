@@ -2,7 +2,7 @@ import { test, expect, type APIRequestContext } from "@playwright/test";
 import { resolveDemoFieldId, waitOperationTerminal } from "./demo-support";
 
 /**
- * demo-field OPERASYON veri kontrolü (SPEC UC-7/T-31 kapsam genişletmesi).
+ * demo-site OPERASYON veri kontrolü (SPEC UC-7/T-31 kapsam genişletmesi).
  *
  * Demo kataloğundaki genel operasyonların (charge/discharge/standby/calibration)
  * hem UZAK BSC adımını (tünel → konteyner) hem YEREL PCS adımını gerçekten
@@ -170,7 +170,7 @@ async function execManeuver(
   return { status: body.status, outcomes: body.outcomes ?? [] };
 }
 
-test.describe("demo-field operasyon veri kontrolü (charge/discharge/standby/calibration)", () => {
+test.describe("demo-site operasyon veri kontrolü (charge/discharge/standby/calibration)", () => {
   test.describe.configure({ timeout: 240_000 });
 
   test("charge: uzak BSC + yerel PCS yürür; güç negatif, BSC şarj, SOC artar", async ({ request }) => {

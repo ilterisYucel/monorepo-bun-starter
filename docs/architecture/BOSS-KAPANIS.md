@@ -4,6 +4,8 @@ space: architecture
 tags: [kapanis, dogrulama, test-kapsami, boss, superadmin, app]
 review_date: 2026-11-10
 ---
+> **Not (2026-11-11):** İlgili UI app'i kaldırıldı (`apps/superadmin` / `apps/container-web` / `apps/container-desktop`). Bu SPEC/KAPANIŞ tarihsel kayıttır; backend tier servisleri yaşamaya devam eder.
+
 
 # Boss — Kapanış (Doğrulama + Test Kapsamı)
 
@@ -32,7 +34,7 @@ review_date: 2026-11-10
 | Uzak erişim | `FieldRemoteFrame.test.tsx` (4: oturum+iframe, hata→iframe yok, kapat, Escape) | |
 | Pazar | `MarketPage.test.tsx` mevcut (API kaynaklı pazar görünümü) | |
 | Oturum/nav | api-client (5), AuthStore (3), BossShell (3), app.test (3), NotificationsPage, LoginPage | |
-| B1 (boss compose) | deployment grep: `SERVICE_TIER` yalnız container/field | **B1 DOĞRULANDI: boss tier yok** — DEPLOYMENT K10 ile aynı boşluk |
+| B1 (boss compose) | deployment grep: `SERVICE_TIER` yalnız container/site | **B1 DOĞRULANDI: boss tier yok** — DEPLOYMENT K10 ile aynı boşluk |
 | Taze test koşusu | `nx run superadmin:test` | **İLETİLMEDİ** — reviewer salt-okuma (G1) |
 | Mutasyon | `bun run test:mutation` | **verisi yok** — değişen dosya yok |
 

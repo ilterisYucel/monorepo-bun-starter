@@ -22,7 +22,7 @@ review_date: 2026-10-22
   docker build -f packages/ws-tunnel-agent/Dockerfile -t ws-tunnel-agent:local .
   ```
 - Env dosyaları (gitignore'lu; şablonları `.env.example`):
-  - `deployment/v2/dev/field/.env`: `HUB_PEER_TOKEN`, `HUB_CONSUMER_TOKEN`, `FIELD_TOPOLOGY_PATH` (compose sabitler).
+  - `deployment/v2/dev/site/.env`: `HUB_PEER_TOKEN`, `HUB_CONSUMER_TOKEN`, `FIELD_TOPOLOGY_PATH` (compose sabitler).
   - `deployment/v2/dev/container{,_2}/.env`: `HUB_PEER_TOKEN=<field ile AYNI>`, `CONTAINER_ID=container-1|container-2`.
     Kayıt **agent** ile yapılır (`container-agent`/`container2-agent`); `HUB_SECRET` = web-service `JWT_SECRET`.
     Web-service peer env'leri (`HUB_PEER_ENABLED`/`HUB_PEER_URL`) ve `TUNNEL_*_UPSTREAM` artık YOKTUR.
@@ -31,15 +31,15 @@ review_date: 2026-10-22
 ## 2. Stack'i kaldırma / durdurma
 
 ```bash
-bun run start:demo-integration   # 3 compose: container + container2 + field (hub + 3 agent)
-bun run stop:demo-integration
+bun run dev:stack:up   # 3 compose: container + container2 + field (hub + 3 agent)
+bun run dev:stack:down
 ```
 
 Sağlık ve bağlantı kontrolü:
 
 ```bash
 curl -s http://localhost:5009/health              # hub
-curl -s http://localhost:5009/peers | jq '.peers[] | [.peerId, .peerType]'   # container-1/2 (container, agent), demo-field-agent (device)
+curl -s http://localhost:5009/peers | jq '.peers[] | [.peerId, .peerType]'   # container-1/2 (container, agent), demo-site-agent (device)
 curl -s http://localhost:5002/health              # field web-service
 curl -s http://localhost:8088/login -o /dev/null -w '%{http_code}\n'
 ```
@@ -51,16 +51,16 @@ oturum 401'lerinde `HUB_SECRET` = web-service `JWT_SECRET` olduğunu doğrula.
 
 ## 3. İstasyon topolojisi (EMS domain)
 
-- Kaynak: `deployment/v2/dev/field/topology.json` → web-service'te `FIELD_TOPOLOGY_PATH=/app/config/topology.json`.
+- Kaynak: `deployment/v2/dev/site/topology.json` → web-service'te `FIELD_TOPOLOGY_PATH=/app/config/topology.json`.
 - Uç: `GET /api/fields/:fieldId/topology` (Bearer token).
 - İçerik: istasyonlar (`key`, `name`), iki fider (`feeders.A/B` + `cell` + `units`), `units`,
   `containers` (hub peer id'leri), `pcs` çifti, `mvDeviceId`.
 - Doğrulama:
   ```bash
-  PW=$(grep -E '^SEED_ADMIN_PASSWORD=' deployment/v2/dev/field/.env | cut -d= -f2-)
+  PW=$(grep -E '^SEED_ADMIN_PASSWORD=' deployment/v2/dev/site/.env | cut -d= -f2-)
   FT=$(curl -s -X POST http://localhost:5002/api/auth/login -H 'Content-Type: application/json' \
        -d "{\"username\":\"admin\",\"password\":\"$PW\"}" | jq -r .accessToken)
-  FID=$(grep -E '^FIELD_ID=' deployment/v2/dev/field/.env | cut -d= -f2-)
+  FID=$(grep -E '^FIELD_ID=' deployment/v2/dev/site/.env | cut -d= -f2-)
   curl -s -H "Authorization: Bearer $FT" "http://localhost:5002/api/fields/$FID/topology" | jq .
   ```
 - Beklenen: `bess1` (BESS#1–9, container-1, PCS-1/2, DEMO-MV-1) ve `bess2` (BESS#10–18, container-2, PCS-3/4, DEMO-MV-2).
@@ -69,7 +69,7 @@ oturum 401'lerinde `HUB_SECRET` = web-service `JWT_SECRET` olduğunu doğrula.
 
 ```bash
 bun run test                     # tüm unit/component/integration (Vitest workspace)
-bun run test:demo-integration    # gerçek stack entegrasyonu (API üzerinden)
+bun run test:integration    # gerçek stack entegrasyonu (API üzerinden)
 # Playwright demo veri spec'leri (chromium; firefox/webkit imajları kurulu değil):
 E2E_ADMIN_PASSWORD=password1234 bunx playwright test --project=chromium \
   e2e/demo-operations-data.spec.ts e2e/demo-maneuver-data.spec.ts \
@@ -78,14 +78,14 @@ E2E_ADMIN_PASSWORD=password1234 bunx playwright test --project=chromium \
 ```
 
 Beklenen (2026-10-22): `bun run test` → 317 dosya / **2602 test**;
-`test:demo-integration` → **108/108**; demo SPA'da istasyon geçişi + topology render.
+`test:integration` → **108/108**; demo SPA'da istasyon geçişi + topology render.
 
 ## 5. Arıza giderme (dün karşılaşılanlar)
 
 | Belirti | Neden | Çözüm |
 |:--|:--|:--|
-| device-service OOM / job'lar işlenmiyor | Demo Redis `maxmemory 256mb` + `noeviction` doldu | `for c in demo-field-redis demo-container-redis demo-container2-redis; do docker exec $c redis-cli FLUSHALL; done` + servisleri restart |
-| `8088 /api` → `connect() failed (111) upstream 172.21.0.x` | nginx statik `proxy_pass` eski IP'yi önbelleğe aldı (backend recreate) | Düzeltme Dockerfile'da: `resolver 127.0.0.11 valid=10s ipv6=off;` + `set $backend ...; proxy_pass $backend;`. Acil: `docker restart demo-field-web` |
+| device-service OOM / job'lar işlenmiyor | Demo Redis `maxmemory 256mb` + `noeviction` doldu | `for c in demo-site-redis demo-container-redis demo-container2-redis; do docker exec $c redis-cli FLUSHALL; done` + servisleri restart |
+| `8088 /api` → `connect() failed (111) upstream 172.21.0.x` | nginx statik `proxy_pass` eski IP'yi önbelleğe aldı (backend recreate) | Düzeltme Dockerfile'da: `resolver 127.0.0.11 valid=10s ipv6=off;` + `set $backend ...; proxy_pass $backend;`. Acil: `docker restart demo-site-web` |
 | BSC `charge` çalışmıyor, SOC sabit | BSC NORMAL değil (EMERGENCY) veya prep yok | `standby` operasyonu (pcs_standby + bsc_stop) → gerekirse `bsc_recovery`; demo operasyonları `bsc_prepare` içerir |
 | `bsc_stop` 422 (CURRENT_FLOWS) | PCS gücü 0 olduktan sonra connector tick'i beklenmedi | PCS `standby/stop` komutlarında `minWaitMs: 1200` (config) |
 | PCS durumu `fault`/`off`, telemetri 0 | MV fideri açık (GridLink de-enerjili) | İlgili istasyonun MV'sinde feeder hücresini kapat (`H04_close`/`H05_close`) |

@@ -73,7 +73,7 @@ review_date: 2026-12-01
 
 ### A.5 Gözle Kontrol Maddeleri
 
-- [x] **SC-2 / K2** — `@gd-monorepo/tamper-logger` import/referans YOK (`grep` 0 eşleşme).
+- [x] **SC-2 / K2** — `tamper-logger` import/referans YOK (`grep` 0 eşleşme).
 - [x] **K6** — GD-PMS kavramı (eventCode, tier, servis adları) pakete girmedi; `service`/`component` serbest string.
 - [x] **K5 fail-open** — sink hataları `dispatch`/`emit` catch bloklarıyla yutulur; loglama asla throw etmez.
 - [x] **Purity 4** — dış bağımlılık yalnız `pino`; file/stream `node:fs`/`node:stream`/`node:path` (Bun stdlib uyumlu) ile.

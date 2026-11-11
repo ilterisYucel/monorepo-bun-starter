@@ -4,6 +4,8 @@ space: analysis
 tags: [analiz, bsc, batarya]
 review_date: 2026-08-24
 ---
+> **Not (2026-11-11):** `apps/container-web`, `apps/container-desktop` ve `apps/superadmin` kaldırıldı; `demo-field` → `apps/site` oldu. Bu doküman tarihsel kayıttır.
+
 
 # BSC & PCS (EMU) Veri Analizi
 

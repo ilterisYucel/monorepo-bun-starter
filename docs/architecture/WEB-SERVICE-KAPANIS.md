@@ -19,7 +19,7 @@ review_date: 2026-11-10
 |:--|:------|:-----------|:-----------------|
 | 1 | `services/web-service/src/infrastructure/persistence/{command-write-store,log-repository,operation-def-store}.ts` | (değişiklik) `energy/require-parameterized-query` gerekçeli disable yorumları (identifier interpolasyonu yok; `$n` parametreli) — davranış YOK | lint turu |
 | 2 | `services/web-service/src/presentation/routes/field-container-commands.ts` | (değişiklik) `energy/no-math-random` disable — trace-id üretimi (güvenlik değeri değil, gerekçe satırda) | K7 yüzeyi; davranış YOK |
-| 3 | `services/web-service/src/tiers/field/infrastructure/hub-maneuver-channel.ts` | (değişiklik) `console.warn` → `[HubManeuverChannel]` prefix — AGENTS logging konvansiyonu | K2-lint; davranış yok |
+| 3 | `services/web-service/src/tiers/site/infrastructure/hub-maneuver-channel.ts` | (değişiklik) `console.warn` → `[HubManeuverChannel]` prefix — AGENTS logging konvansiyonu | K2-lint; davranış yok |
 | 4 | `application/use-cases/mfa-login-use-case.ts` + `mfa-enroll-use-case.ts` | (bulgu) `sha256Hex` DEĞER importu application → `infrastructure/auth/service-token` — hexagonal yön ihlali (arch:check) | K1/§4 — S2 |
 | 5 | `presentation/routes/{unified,log}-routes.ts` | (bulgu) `DeviceRegistry`/`LogRepository`/`loadDeviceConfig` değer importları = B2 borcünün araçlaşmış hali | B2/A3 — S2 |
 | 6 | `tiers/boss/infrastructure/field-event-collector.ts#COLLECTED_EVENT_CODES` | (BUG) 5 kod ↔ `UPLINK_EVENT_WHITELIST` 9 kod; yorum "birebir" der, DEĞİLDİR — `operation_*` boss'a HİÇ yazılmaz | B1/AK-4.2 — S1 |
@@ -67,7 +67,7 @@ review_date: 2026-11-10
 | S2 | arch:check 6 ihlal | (a) 2× application→infrastructure değer importu (`sha256Hex`) — yeni; port/domain-util'a taşınmalı. (b) 3× presentation→infrastructure değer importu = B2/A3 bilinen borcün otomatik kanıtı. (c) 1× domain→`config/default` type import (`SeedUser`) — şekil sızıntısı, shared-types'a alınmalı. K1'in "framework" hükmü ihlal edilmiyor (fastify/pg yok) ama §4 diyagramının yön kuralı ihlal ediliyor |
 | S3 | B3 canlı | `hub-session-routes.ts` + `field-container-commands.ts` somut `HubConsumerClient` tipi (yalnız type-import; runtime porttan) — A2 İleri İş'i geçerli |
 | S4 | B4 canlı | `SYSTEM_USER` + `tokenMatches` iki dosyada kopya (`internal-authorize.ts`, `field-container-commands.ts`) — A1 İleri İş'i; fail-closed testi yalnız kopyalardan birini sabitliyor |
-| S5 | Yol adı uyuşmazlığı | SPEC §6.2 `tiers/site/...` diyor; kod `tiers/field/...` (SITE-MIMARISI K5 bilinçli domain-adı koruması) — SPEC yolları gerçeğe güncellenmeli |
+| S5 | Yol adı uyuşmazlığı | ✅ KAPANDI — tam rename ile kod `tiers/site/...` oldu; SPEC §6.2 yoluyla birebir |
 | S6 | Otomatik envanter bayat | `test-envanteri.otomatik.md` taşınmadan önceki yolları listeli (`container-session/`, `field-uplink/`…) — `bun run test:inventory` yeniden koşulmalı (AGENTS kuralı: test değişince envanter tekrar) |
 | S7 | Taze test + mutasyon iletilmedi | 63 dosya/494 test iddiası dosya sayısıyla doğrulandı, test toplamı taze koşuyla pinlenmedi |
 
@@ -86,7 +86,7 @@ review_date: 2026-11-10
 ### SPEC Revizyon Önerisi
 
 - **B1/İleri İş #1 →** düzeltilene kadar `AK-4.2` kanıt hücresine "❌ bug açık" durumu işlendi; düzeltme tek ortak whitelist sabiti + eşitlik testi olarak tariflenebilir (davranış kararı developer).
-- **§6.2 involved path →** `tiers/site/` yerine `tiers/field/` (K5 domain-adı korumasıyla tutarlı).
+- **§6.2 involved path →** `tiers/site/` (tam rename sonrası kodla birebir).
 
 ## B. TEST KAPSAMI
 

@@ -1,1 +1,0 @@
-export { usePixiTickerEffect } from "./usePixiTickerEffect";

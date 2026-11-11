@@ -28,8 +28,8 @@ import {
   SessionGateway,
   TunnelProxy,
   HubPeerRegistry,
-} from "../zero-trust-application-tunnel/ws-tunnel/src/index.ts";
-import { JoseSignerForTests } from "../zero-trust-application-tunnel/ws-tunnel/src/session/__test-helpers__/jose-signer.ts";
+} from "zero-trust-application-channel";
+import { JoseSignerForTests } from "zero-trust-application-channel/test-helpers";
 
 const PEER_ID = "revpi-001";
 const SERVICE_ID = "local-admin";

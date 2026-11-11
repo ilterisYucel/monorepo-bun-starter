@@ -78,7 +78,7 @@ AGENTS-WS-TUNNEL.md               # YENİ — TunnelConnector + tünel protokol/
 AGENTS-DEVICE-SERVICE.md          # YENİ — device transport strategy (Strategy/Adapter)
 AGENTS-KOMUT-MANEVRA.md           # YENİ (DOMAIN yerine) — komut config + manevra/operasyon özeti
 AGENTS-FRONTEND.md                # transport/provider kontratları, veri akışı
-AGENTS-UI.md                      # icon / renk token / sprite
+AGENTS-UI.md                      # icon / renk token
 ```
 
 ### 4.2 Bilgi sahipliği (tek kaynak)
@@ -91,7 +91,7 @@ AGENTS-UI.md                      # icon / renk token / sprite
 | Komut / manevra / operasyon | `AGENTS-KOMUT-MANEVRA.md` | `KOMUT-MANEVRA-OPERASYON-MIMARISI.md` |
 | Cihaz alarm özeti | `AGENTS.md` (kısa) | `DEVICE-SERVICE-MIMARISI.md` §4.2 |
 | Frontend veri akışı | `AGENTS-FRONTEND.md` | — |
-| Icon / renk / sprite | `AGENTS-UI.md` | `SPRITE-URETIMI.md`, `SPRITE-STYLE-KIT.md` |
+| Icon / renk | `AGENTS-UI.md` | — |
 
 ### 4.3 Yönlendirme tablosu (AGENTS.md'de görünecek hedef — REV.02)
 
@@ -106,7 +106,7 @@ eşleştirilir; eşleşen tüm satırlar ve **Birlikte oku** sütunundaki dosyal
 | `AGENTS-DEVICE-SERVICE.md` | Device transport strategy | `packages/core/src/modbus/**`; `packages/simulators/**`; `services/device-service/**`; `ModbusDevice`; `IModbusTransport`; `SimulatorRegistry` | `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-KOMUT-MANEVRA.md` | Komut config / manevra / operasyon | `packages/platform/commands/**`; `maneuver-routes.ts`; `operation-boss-routes.ts`; `maneuvers.json`; `operations.json` | `AGENTS-WS-TUNNEL.md`, `AGENTS-DEVICE-CONFIG.md` |
 | `AGENTS-FRONTEND.md` | Frontend transport & provider kontratları | `packages/ui/src/transports/**`; `packages/ui/src/interfaces/**`; `TransportContext.tsx`; `ITelemetryTransport`; provider/hook veri akışı | `AGENTS-UI.md` |
-| `AGENTS-UI.md` | Icon / renk token / sprite pipeline | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS`; `sprite:*`; `sprites-spec.mjs` | `AGENTS-FRONTEND.md` |
+| `AGENTS-UI.md` | Icon / renk token | `packages/ui/src/icons/**`; `packages/ui/src/colors/**`; `packages/ui/src/assets/**`; `packages/ui/src/graphics/**`; `SCADA_ICONS`; `COLORS` | `AGENTS-FRONTEND.md` |
 
 ## 5. Purity Kuralları (ZORUNLU)
 

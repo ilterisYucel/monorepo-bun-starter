@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../features/auth/stores/AuthStore";
 import { postLoginDestination, siteFieldId } from "../lib/site-field";
-import { COLORS, useTranslation } from "@gd-monorepo/ui";
+import { COLORS_LIGHT, useTranslation } from "@gd-monorepo/ui";
 
+/** Login ekranı — ışık tema (nova). */
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -14,8 +15,6 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // 2026-08-28: giriş sonrası hedef doğrudan üretilir — saha listesi çözümü
-  // YOKTUR (tek saha modeli; VITE_FIELD_ID compose env'inden gelir).
   if (isAuthenticated && user) {
     const destination = postLoginDestination(user, mfaRequiredRoles, siteFieldId());
     if ("error" in destination) {
@@ -26,10 +25,10 @@ export const LoginPage: React.FC = () => {
             alignItems: "center",
             justifyContent: "center",
             minHeight: "100vh",
-            background: COLORS.bgApp,
+            background: COLORS_LIGHT.bg,
           }}
         >
-          <div style={{ color: COLORS.error, fontSize: "14px" }}>
+          <div style={{ color: "var(--nm-alarm)", fontSize: "14px" }}>
             {destination.error}
           </div>
         </div>
@@ -43,7 +42,6 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setError("");
     try {
-      // Faz 6 T6.1: mfaRequired dönerse ikinci adım (kod) görünür.
       await login(username, password);
     } catch {
       setError(t("auth.loginError"));
@@ -67,14 +65,14 @@ export const LoginPage: React.FC = () => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        background: COLORS.bgApp,
+        background: COLORS_LIGHT.bg,
       }}
     >
       <form
         onSubmit={pendingMfaToken ? handleMfaSubmit : handleSubmit}
         style={{
-          background: COLORS.bgCard,
-          border: `1px solid ${COLORS.borderDefault}`,
+          background: "var(--nm-panel)",
+          border: `1px solid ${"var(--nm-line)"}`,
           borderRadius: "14px",
           padding: "40px",
           width: "360px",
@@ -83,12 +81,12 @@ export const LoginPage: React.FC = () => {
           gap: "16px",
         }}
       >
-        <h2 style={{ color: COLORS.textWhite, textAlign: "center", marginBottom: "8px" }}>
+        <h2 style={{ color: "var(--nm-fg)", textAlign: "center", marginBottom: "8px" }}>
           {pendingMfaToken ? t("auth.mfaTitle") : t("auth.loginTitle.field")}
         </h2>
 
         {error && (
-          <div style={{ color: COLORS.error, fontSize: "13px", textAlign: "center" }}>
+          <div style={{ color: "var(--nm-alarm)", fontSize: "13px", textAlign: "center" }}>
             {error}
           </div>
         )}
@@ -103,10 +101,10 @@ export const LoginPage: React.FC = () => {
             onChange={(e) => setMfaCode(e.target.value)}
             style={{
               padding: "10px 12px",
-              background: COLORS.bgInput,
-              border: `1px solid ${COLORS.borderDefault}`,
+              background: "var(--nm-panel2)",
+              border: `1px solid ${"var(--nm-line)"}`,
               borderRadius: "8px",
-              color: COLORS.textPrimary,
+              color: "var(--nm-fg)",
               fontSize: "14px",
               outline: "none",
               textAlign: "center",
@@ -117,15 +115,16 @@ export const LoginPage: React.FC = () => {
           <>
             <input
               type="text"
+              data-testid="login-username"
               placeholder={t("auth.usernamePlaceholder")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               style={{
                 padding: "10px 12px",
-                background: COLORS.bgInput,
-                border: `1px solid ${COLORS.borderDefault}`,
+                background: "var(--nm-panel2)",
+                border: `1px solid ${"var(--nm-line)"}`,
                 borderRadius: "8px",
-                color: COLORS.textPrimary,
+                color: "var(--nm-fg)",
                 fontSize: "14px",
                 outline: "none",
               }}
@@ -133,15 +132,16 @@ export const LoginPage: React.FC = () => {
 
             <input
               type="password"
+              data-testid="login-password"
               placeholder={t("auth.passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{
                 padding: "10px 12px",
-                background: COLORS.bgInput,
-                border: `1px solid ${COLORS.borderDefault}`,
+                background: "var(--nm-panel2)",
+                border: `1px solid ${"var(--nm-line)"}`,
                 borderRadius: "8px",
-                color: COLORS.textPrimary,
+                color: "var(--nm-fg)",
                 fontSize: "14px",
                 outline: "none",
               }}
@@ -151,12 +151,13 @@ export const LoginPage: React.FC = () => {
 
         <button
           type="submit"
+          data-testid="login-submit"
           style={{
             padding: "10px",
-            background: COLORS.info,
+            background: "var(--nm-sel)",
             border: "none",
             borderRadius: "8px",
-            color: COLORS.textWhite,
+            color: "var(--nm-panel)",
             fontWeight: 600,
             fontSize: "14px",
             cursor: "pointer",

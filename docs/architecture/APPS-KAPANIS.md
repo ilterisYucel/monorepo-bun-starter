@@ -17,7 +17,7 @@ review_date: 2026-11-10
 
 | # | Dosya | Değişiklik | Neden (SPEC ref) |
 |:--|:------|:-----------|:-----------------|
-| 1 | `docs/architecture/APPS-MIMARISI.md#4.1` | (doğrulama) `apps/` disk listesi: `container-desktop, container-web, demo-field, editor, sim-lab, site, superadmin` = 7; indeks 7 app satrıyla birebir | K1/FR-1.1 |
+| 1 | `docs/architecture/APPS-MIMARISI.md#4.1` | (2026-11-11 güncel) `apps/` disk listesi: `editor, sim-lab, site` = 3; container-web/container-desktop/superadmin + site-v1.1 silindi, demo-field → site | K1/FR-1.1 |
 | 2 | `apps/` rename | (doğrulama) `apps/field` yok → `apps/site` var (K2 ✓); kök script `dev:site` (diff'li) ✓; kaynak kalıntısı: yalnız `superadmin/vite.config.ts` içinde TARİHSEL YORUM satırı — import yok (SC-3 ✓) | K2 |
 | 3 | `docs/architecture/APPS-MIMARISI.md#4.1` | (SAPMA) `apps/web`, `apps/demo-backend` diskte YOK (silinmiş) ama satır durumu "silinecek"; §7 "silindi (tarih)" bekliyor | K4/FR-1.2 — S1 |
 

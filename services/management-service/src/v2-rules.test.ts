@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { RuleConfigLoader } from "./rule-config-loader";
 
 /**
- * F2.6 — v2/dev container kural seti (demo-field) sözleşmesi.
+ * F2.6 — v2/dev container kural seti (demo-site) sözleşmesi.
  *
  * LGES Diagnosis v1.1.0 + registers.md eşikleri ve yeni EMS-yanıt/C&E kuralları:
  * - OTW 49 °C (5 s) / OTF1 58 °C (5 s); UTW 0 / UTF1 −10.

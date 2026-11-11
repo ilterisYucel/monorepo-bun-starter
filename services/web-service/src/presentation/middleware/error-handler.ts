@@ -8,7 +8,7 @@ import { DomainError } from "@gd-monorepo/result";
 
 import type { ErrorKind } from "@gd-monorepo/result";
 
-import type { LogEventInput } from "@gd-monorepo/tamper-logger";
+import type { LogEventInput } from "@gd-monorepo/platform-logging";
 
 import type { RequestContext } from "./request-context";
 

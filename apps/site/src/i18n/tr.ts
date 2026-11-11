@@ -2,7 +2,7 @@
  * Field uygulamasına özel Türkçe çeviri anahtarları.
  */
 
-export const FIELD_TR_DICT = {
+export const DEMO_TR_DICT = {
   "common.role.admin": "Admin",
   "common.role.teknik": "Teknik",
   "common.role.guest": "Misafir",

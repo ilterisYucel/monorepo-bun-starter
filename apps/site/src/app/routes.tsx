@@ -1,129 +1,48 @@
 import type { RouteObject } from "react-router-dom";
-import { FieldShell } from "../layouts/FieldShell";
+import { Navigate } from "react-router-dom";
+import { DemoShell } from "../layouts/DemoShell";
+import { DemoProjectLayout } from "../layouts/DemoProjectLayout";
 import { LoginPage } from "../pages/LoginPage";
-import { ChangePasswordPage } from "../pages/ChangePasswordPage";
-import { MfaEnrollPage } from "../pages/MfaEnrollPage";
-import { FieldDashboardPage } from "../pages/FieldDashboardPage";
-import { ContainersPage } from "../pages/ContainersPage";
-import { ContainerDetailPage } from "../pages/ContainerDetailPage";
-import { FieldPcsPage } from "../pages/FieldPcsPage";
-import { FieldControlPage } from "../pages/FieldControlPage";
-import { FieldEventsPage } from "../pages/FieldEventsPage";
-import { FieldReportsPage } from "../pages/FieldReportsPage";
-import { FieldDevicesPage } from "../pages/FieldDevicesPage";
-import { AdminOperationsPage } from "../pages/AdminOperationsPage";
-import { SettingsPage } from "../pages/SettingsPage";
+import { DemoFieldPage } from "../pages/DemoFieldPage";
+import { DemoDevicesPage } from "../pages/DemoDevicesPage";
+import { DemoFaultsPage } from "../pages/DemoFaultsPage";
+import { DemoMarketPage } from "../pages/DemoMarketPage";
+import { DemoManeuverPage } from "../pages/DemoManeuverPage";
+import { DemoAdminPage } from "../pages/DemoAdminPage";
+import { DemoProjectsPage } from "../pages/DemoProjectsPage";
+
+/**
+ * Demo-field rotaları — proje sekmeleri ortak `DemoProjectLayout` (pinfo → KPI
+ * → ready → trendler → görünüm → log) altında; iki eş: standalone
+ * `/field/:fieldId/*` ve boss tüneli `/fields/:fieldId/ui/*` (SPEC K-4/K-5).
+ * UC-11: login sonrası portföy sayfası `/projects` (tünelde
+ * `/fields/:fieldId/ui/projects`); `/` → `/projects`.
+ * Eski yollar (`cihazlar`, `manevra`) yeni rota adlarına yönlendirilir.
+ */
+
+const projectChildren: RouteObject[] = [
+  { index: true, element: <DemoFieldPage /> },
+  { path: "devices", element: <DemoDevicesPage /> },
+  { path: "operations", element: <DemoManeuverPage /> },
+  { path: "market", element: <DemoMarketPage /> },
+  { path: "faults", element: <DemoFaultsPage /> },
+  { path: "admin", element: <DemoAdminPage /> },
+  { path: "cihazlar", element: <Navigate to="../devices" replace /> },
+  { path: "manevra", element: <Navigate to="../operations" replace /> },
+];
 
 export const routes: RouteObject[] = [
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    // Boss Faz 3 tünel modu eşi: iframe'de SPA /fields/<fid>/ui altında
-    // yaşar — giriş rotası da bu önekle erişilebilir olmalı (yerel dev
-    // e2e'leri dahil; boss'ta oturum yoksa kullanıcı buradan girer).
-    path: "fields/:fieldId/ui/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/change-password",
-    element: <ChangePasswordPage />,
-  },
-  {
-    // Faz 6 T6.1 — TOTP kayıt akışı (zorunlu MFA)
-    path: "/mfa-enroll",
-    element: <MfaEnrollPage />,
-  },
+  { path: "/login", element: <LoginPage /> },
+  { path: "fields/:fieldId/ui/login", element: <LoginPage /> },
   {
     path: "/",
-    element: <FieldShell />,
+    element: <DemoShell />,
     children: [
-      {
-        path: "field/:fieldId",
-        element: <FieldDashboardPage />,
-      },
-      {
-        path: "field/:fieldId/containers",
-        element: <ContainersPage />,
-      },
-      {
-        path: "field/:fieldId/containers/:containerId",
-        element: <ContainerDetailPage />,
-      },
-      {
-        path: "field/:fieldId/pcs",
-        element: <FieldPcsPage />,
-      },
-      {
-        path: "field/:fieldId/control",
-        element: <FieldControlPage />,
-      },
-      {
-        path: "field/:fieldId/events",
-        element: <FieldEventsPage />,
-      },
-      {
-        path: "field/:fieldId/reports",
-        element: <FieldReportsPage />,
-      },
-      {
-        path: "field/:fieldId/devices",
-        element: <FieldDevicesPage />,
-      },
-      {
-        path: "field/:fieldId/settings",
-        element: <SettingsPage />,
-      },
-      {
-        // C4 — admin operasyon tanım yönetimi (§11.3; yalnız admin)
-        path: "field/:fieldId/admin/operations",
-        element: <AdminOperationsPage />,
-      },
-
-      // Boss Faz 3 — tünel rotaları: boss iframe'i /fields/<fid>/ui altında
-      // uygulamayı açar; alan parametre adı `fieldId` korunur (useParams
-      // uyumluluğu). Saha-içi navigasyonlar fieldRootPath ile bu önekte kalır.
-      {
-        path: "fields/:fieldId/ui",
-        element: <FieldDashboardPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/containers",
-        element: <ContainersPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/containers/:containerId",
-        element: <ContainerDetailPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/pcs",
-        element: <FieldPcsPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/control",
-        element: <FieldControlPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/events",
-        element: <FieldEventsPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/reports",
-        element: <FieldReportsPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/devices",
-        element: <FieldDevicesPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/settings",
-        element: <SettingsPage />,
-      },
-      {
-        path: "fields/:fieldId/ui/admin/operations",
-        element: <AdminOperationsPage />,
-      },
+      { index: true, element: <Navigate to="/projects" replace /> },
+      { path: "projects", element: <DemoProjectsPage /> },
+      { path: "field/:fieldId", element: <DemoProjectLayout />, children: projectChildren },
+      { path: "fields/:fieldId/ui", element: <DemoProjectLayout />, children: projectChildren },
+      { path: "fields/:fieldId/ui/projects", element: <DemoProjectsPage /> },
     ],
   },
 ];

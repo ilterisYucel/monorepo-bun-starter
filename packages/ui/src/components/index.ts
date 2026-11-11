@@ -30,8 +30,4 @@ export * from "./HvacCard";
 export * from "./DeviceDetailModal";
 export * from "./EnergyAnalyzerCard";
 export * from "./FirePanelCard";
-export * from "../graphics/deprecated/BSCGraphic";
-export * from "../graphics/deprecated/TMSGraphic";
-export * from "../graphics/deprecated/PowerFlowAnimation";
 
-export { BSC, TMS, DashboardSCADA, BESSDiagram } from "../graphics/system";
