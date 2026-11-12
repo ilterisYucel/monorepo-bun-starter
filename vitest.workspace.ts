@@ -16,6 +16,7 @@ export default defineWorkspace([
   "packages/simulators",
   "tools/eslint-plugin-energy",
   "packages/ui",
+  "packages/ui-v2",
   "services/web-service",
   "services/data-service",
   "services/device-service",
@@ -23,4 +24,5 @@ export default defineWorkspace([
   "services/management-service",
   "apps/editor",
   "apps/site",
+  "apps/container-web-v2",
 ]);

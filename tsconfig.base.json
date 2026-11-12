@@ -35,6 +35,8 @@
       "@gd-monorepo/editor": ["./apps/editor/src"],
       "@gd-monorepo/simulators": ["./packages/simulators/src"],
       "@gd-monorepo/ui": ["./packages/ui/src"],
+      "@gd-monorepo/ui-v2": ["./packages/ui-v2/src"],
+      "@gd-monorepo/container-web-v2": ["./apps/container-web-v2/src"],
       "@gd-monorepo/site": ["./apps/site/src"],
       "@gd-monorepo/plugin-sdk": ["./packages/plugin-sdk/src"],
       "@gd-monorepo/epias-market-prices": ["./packages/plugins/epias-market-prices/src"],

@@ -1,0 +1,19 @@
+import type { IconProps } from "../types";
+
+/** Figma 3315:12566 · icon_3315_12566.svg */
+export const InfoIcon = ({ size = 20, ...props }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" {...props}>
+    <g clipPath="url(#clip0_3315_12566)">
+    <path d="M15.2 8C15.2 11.9765 11.9765 15.2 8 15.2C4.02355 15.2 0.8 11.9765 0.8 8C0.8 4.02355 4.02355 0.8 8 0.8C11.9765 0.8 15.2 4.02355 15.2 8Z" strokeWidth="1.6" stroke="currentColor"/>
+    <rect x="7" y="4" width="2" height="2" rx="1" fill="currentColor"/>
+    <rect x="7" y="7.5" width="2" height="5" rx="1" fill="currentColor"/>
+    </g>
+    <defs>
+    <clipPath id="clip0_3315_12566">
+    <rect width="16" height="16" fill="currentColor"/>
+    </clipPath>
+    </defs>
+    </svg>
+);
+
+InfoIcon.displayName = "InfoIcon";
