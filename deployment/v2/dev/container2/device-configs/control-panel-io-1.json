@@ -6,14 +6,14 @@
   "protocol": "MODBUS",
   "type": "control-panel-io",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15535,
+    "host": "sim-lab",
+    "port": 20154,
     "slaveId": 1
   },
   "telemetry": [
     {
       "name": "Battery Door Open",
-      "description": "Batarya kapısı açık",
+      "description": "Batarya kap\u0131s\u0131 a\u00e7\u0131k",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -26,7 +26,7 @@
     },
     {
       "name": "Panel Door Open",
-      "description": "Panel kapısı açık",
+      "description": "Panel kap\u0131s\u0131 a\u00e7\u0131k",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -39,7 +39,7 @@
     },
     {
       "name": "Battery Room Light",
-      "description": "Batarya odası ışığı",
+      "description": "Batarya odas\u0131 \u0131\u015f\u0131\u011f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -52,7 +52,7 @@
     },
     {
       "name": "Panel Room Light",
-      "description": "Panel odası ışığı",
+      "description": "Panel odas\u0131 \u0131\u015f\u0131\u011f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -65,7 +65,7 @@
     },
     {
       "name": "System OK",
-      "description": "FSS sağlıklı (EP203 kuru kontak — K5)",
+      "description": "FSS sa\u011fl\u0131kl\u0131 (EP203 kuru kontak \u2014 K5)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 2,
@@ -78,7 +78,7 @@
     },
     {
       "name": "Fault",
-      "description": "FSS arıza (EP203 kuru kontak — K5)",
+      "description": "FSS ar\u0131za (EP203 kuru kontak \u2014 K5)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 3,
@@ -91,7 +91,7 @@
     },
     {
       "name": "Discharged",
-      "description": "Söndürme aktive edildi (EP203 kuru kontak — K5)",
+      "description": "S\u00f6nd\u00fcrme aktive edildi (EP203 kuru kontak \u2014 K5)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 4,
@@ -104,7 +104,7 @@
     },
     {
       "name": "2nd Stage",
-      "description": "2. aşama aktive (EP203 kuru kontak — K5)",
+      "description": "2. a\u015fama aktive (EP203 kuru kontak \u2014 K5)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 5,
@@ -144,7 +144,7 @@
   ],
   "commands": {
     "battery_light_on": {
-      "label": "Batarya Işığı AÇ",
+      "label": "Batarya I\u015f\u0131\u011f\u0131 A\u00c7",
       "telemetries": [
         {
           "name": "Battery Room Light",
@@ -162,7 +162,7 @@
       }
     },
     "battery_light_off": {
-      "label": "Batarya Işığı KAPAT",
+      "label": "Batarya I\u015f\u0131\u011f\u0131 KAPAT",
       "telemetries": [
         {
           "name": "Battery Room Light",
@@ -180,7 +180,7 @@
       }
     },
     "panel_light_on": {
-      "label": "Panel Işığı AÇ",
+      "label": "Panel I\u015f\u0131\u011f\u0131 A\u00c7",
       "telemetries": [
         {
           "name": "Panel Room Light",
@@ -198,7 +198,7 @@
       }
     },
     "panel_light_off": {
-      "label": "Panel Işığı KAPAT",
+      "label": "Panel I\u015f\u0131\u011f\u0131 KAPAT",
       "telemetries": [
         {
           "name": "Panel Room Light",
@@ -220,38 +220,34 @@
     {
       "telemetry": "Battery Door Open",
       "severity": "warning",
-      "description": "Batarya kapısı açık"
+      "description": "Batarya kap\u0131s\u0131 a\u00e7\u0131k"
     },
     {
       "telemetry": "Panel Door Open",
       "severity": "warning",
-      "description": "Panel kapısı açık"
+      "description": "Panel kap\u0131s\u0131 a\u00e7\u0131k"
     },
     {
       "telemetry": "System OK",
       "severity": "warning",
-      "description": "FSS sağlıklı sinyali kayıp (K5)",
+      "description": "FSS sa\u011fl\u0131kl\u0131 sinyali kay\u0131p (K5)",
       "activeLow": true
     },
     {
       "telemetry": "Fault",
       "severity": "error",
-      "description": "FSS arıza (K5)"
+      "description": "FSS ar\u0131za (K5)"
     },
     {
       "telemetry": "Discharged",
       "severity": "error",
-      "description": "Söndürme aktive edildi (K5)"
+      "description": "S\u00f6nd\u00fcrme aktive edildi (K5)"
     },
     {
       "telemetry": "2nd Stage",
       "severity": "error",
-      "description": "FSS 2. aşama aktive (K5)"
+      "description": "FSS 2. a\u015fama aktive (K5)"
     }
   ],
-  "transport": {
-    "kind": "simulator",
-    "type": "control-panel-io"
-  },
   "pollIntervalMs": 1000
 }

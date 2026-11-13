@@ -6,19 +6,15 @@
   "protocol": "MODBUS",
   "type": "dc-meter",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 5030,
+    "host": "sim-lab",
+    "port": 20141,
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "dc-meter"
-  },
   "telemetry": [
     {
       "name": "Alarm Word",
-      "description": "DC metre alarm word (bit semantiği manual ile netleşir)",
+      "description": "DC metre alarm word (bit semanti\u011fi manual ile netle\u015fir)",
       "unit": "",
       "protocol": "MODBUS",
       "registerAddress": 19,
@@ -50,7 +46,7 @@
     },
     {
       "name": "DC Current",
-      "description": "DC bara akımı",
+      "description": "DC bara ak\u0131m\u0131",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 52,
@@ -66,7 +62,7 @@
     },
     {
       "name": "DC Power",
-      "description": "DC bara gücü",
+      "description": "DC bara g\u00fcc\u00fc",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 54,

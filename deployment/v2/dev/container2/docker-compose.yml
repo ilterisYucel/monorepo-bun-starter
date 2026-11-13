@@ -75,13 +75,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-site-device-service}
-      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-site-device-service}
-      # Station 2 (BESS#6-9) → PCS-1'in BMS yüzü
-      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15502}
-      DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
-      DEBUG_INJECT_PORT: 15592
-      SIMULATOR_BIND_HOST: 0.0.0.0
+      # Modbus TCP hedefi: Sim-Lab ayrı servis (gd-simnet); simülatör kodu bu serviste YOK.
     volumes:
       - ../../../../services/device-service/src:/app/services/device-service/src
       - ../../../../services/device-service/run.ts:/app/services/device-service/run.ts
@@ -89,11 +83,6 @@ services:
       - ../../../../packages/core/src:/app/packages/core/src
       - ../../../../packages/shared-types/src:/app/packages/shared-types/src
       - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src
-      - ../../../../packages/simulators/src:/app/packages/simulators/src
-    # Yalnızca DebugInjector yayınlanır (veri ayrımı doğrulaması). Modbus
-    # simülatör portları birinci konteyner ile çakışmasın diye yayınlanmaz.
-    ports:
-      - "127.0.0.1:15592:15592"   # DebugInjector (dev-only)
     depends_on:
       container2-redis:
         condition: service_healthy
@@ -102,6 +91,7 @@ services:
     networks:
       - container2-network
       - demo-bridge
+      - gd-simnet
     logging: *logging
 
   container2-data-service:
@@ -246,4 +236,7 @@ networks:
     driver: bridge
   demo-bridge:
     name: v2-dev-demo-bridge
+    external: true
+  gd-simnet:
+    name: gd-simnet
     external: true

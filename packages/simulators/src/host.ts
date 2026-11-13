@@ -9,10 +9,33 @@
 
 import { readFileSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
-import type { ConnectorSimSubset, DeviceConfigFile } from "@gd-monorepo/shared-types";
+import type { DeviceConfigFile } from "@gd-monorepo/shared-types";
 import type { SimulatorNetworkConfig } from "./server";
 import type { ISimulator } from "./contracts";
-import { BSCSimulator, parseBSCMap } from "./bsc";
+
+/**
+ * Simülatör-host config tipi — `transport.kind: "simulator"` ve `connector.sim`
+ * artık device-service şemasında YOK (DEVICE-SERVICE-SADELESTIRME K1/K2).
+ * Standalone simülatör kullanımı bu yerel tip üzerinden devam eder (K6).
+ */
+interface SimulatorTransport {
+  readonly kind: string;
+  readonly type?: string;
+  readonly registerMap?: string;
+  readonly pcsCount?: number;
+  readonly bmsPort?: number;
+}
+
+interface ConnectorSim {
+  readonly registerMap: string;
+  readonly target?: { host?: string; port?: number };
+  readonly intervalMs?: number;
+  readonly pcsSources?: Array<{ deviceId: string; host: string; port: number; unitId?: number }>;
+  readonly powerScale?: number;
+}
+import { BscLegacyAdaptor } from "./bsc/bsc-legacy-adaptor";
+import { PcsLegacyAdaptor } from "./wattox-pcs/pcs-legacy-adaptor";
+import { HvacLegacyAdaptor } from "./hvac/hvac-legacy-adaptor";
 import { HvacSimulator } from "./hvac";
 import { CbSimulator } from "./cb";
 import { DcOutputSimulator } from "./dc-output";
@@ -31,7 +54,7 @@ import type { IBatteryPowerInput } from "./bsc/power-input";
 
 /** PCS güç kaynağı host override'ı uygular (env PCS_EMS_TARGET_HOST). */
 function resolvePcsSources(
-  sources: NonNullable<ConnectorSimSubset["pcsSources"]>,
+  sources: NonNullable<ConnectorSim["pcsSources"]>,
   host: string | undefined,
 ): Array<{ deviceId: string; host: string; port: number; unitId?: number }> {
   if (host === undefined || host.length === 0) return [...sources];
@@ -61,7 +84,7 @@ function detailGridDeviceId(config: DeviceConfigFile): string | undefined {
 function createGridLinks(configs: readonly DeviceConfigFile[]): Map<string, GridLinkBus> {
   const buses = new Map<string, GridLinkBus>();
   for (const config of configs) {
-    if ((config.type ?? config.transport?.type) === "demo-mv-station") {
+    if ((config.type ?? (config.transport as SimulatorTransport | undefined)?.type) === "demo-mv-station") {
       buses.set(config.deviceId, new GridLinkBus());
     }
   }
@@ -146,24 +169,26 @@ export class SimulatorHost {
   }
 
   private registerDefaults(): void {
-    this.builders.set("bsc", (ctx) => {
-      const registers = ctx.registerMap
-        ? parseBSCMap(
-            JSON.parse(readFileSync(ctx.registerMap, "utf-8")) as Record<string, unknown>[],
-          ).registers
-        : [];
-      return new BSCSimulator({
-        deviceId: ctx.deviceId,
-        rackCount: ctx.rackCount,
-        ...(ctx.initialSocPercent !== undefined ? { initialSocPercent: ctx.initialSocPercent } : {}),
-        ...(ctx.simSpeedMultiplier !== undefined
-          ? { simSpeedMultiplier: ctx.simSpeedMultiplier }
-          : {}),
-        registers,
-        network: ctx.network,
-      });
-    });
-    this.builders.set("hvac", (ctx) => new HvacSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
+    // BSC artık fiziksel model adaptörü (birleştirme SPEC UC-2/UC-5):
+    // davranış `physical/models/bsc.ts`, yüz `bscFace`, sunucu adaptörde.
+    this.builders.set(
+      "bsc",
+      (ctx) =>
+        new BscLegacyAdaptor({
+          deviceId: ctx.deviceId,
+          rackCount: ctx.rackCount,
+          ...(ctx.initialSocPercent !== undefined ? { initialSocPercent: ctx.initialSocPercent } : {}),
+          ...(ctx.network !== undefined ? { network: ctx.network } : {}),
+        }),
+    );
+    this.builders.set(
+      "hvac",
+      (ctx) =>
+        new HvacLegacyAdaptor({
+          deviceId: ctx.deviceId,
+          ...(ctx.network !== undefined ? { network: ctx.network } : {}),
+        }),
+    );
     this.builders.set("cb", (ctx) => new CbSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
     this.builders.set("dc-output", (ctx) => new DcOutputSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
     this.builders.set("dc-meter", (ctx) => new DcMeterSimulator({ deviceId: ctx.deviceId, network: ctx.network }));
@@ -189,13 +214,15 @@ export class SimulatorHost {
     this.builders.set(
       "wattox-pcs",
       (ctx) =>
-        new WattoxPcsSimulator({
+        new PcsLegacyAdaptor({
           deviceId: ctx.deviceId,
-          ...(ctx.bmsPort !== undefined ? { bmsPort: ctx.bmsPort } : {}),
+          ...(ctx.network !== undefined ? { network: ctx.network } : {}),
+          ...(ctx.bmsPort !== undefined
+            ? { bmsNetwork: { host: ctx.network?.host ?? "0.0.0.0", port: ctx.bmsPort } }
+            : {}),
           ...(ctx.gridLink !== undefined && ctx.gridFeeder !== undefined
             ? { gridLink: ctx.gridLink, gridFeeder: ctx.gridFeeder }
             : {}),
-          network: ctx.network,
         }),
     );
   }
@@ -262,7 +289,7 @@ export class SimulatorHost {
     };
 
     for (const config of this.configs) {
-      const transport = config.transport;
+      const transport = config.transport as SimulatorTransport | undefined;
       if (transport?.kind !== "simulator") continue;
 
       const simType = transport.type ?? config.type;
@@ -300,8 +327,10 @@ export class SimulatorHost {
     }
 
     for (const config of this.configs) {
-      const connector = config.connector;
-      if (connector?.sim === undefined || config.transport?.kind !== "simulator") continue;
+      const connector = config.connector as
+        | (NonNullable<DeviceConfigFile["connector"]> & { sim?: ConnectorSim })
+        | undefined;
+      if (connector?.sim === undefined || (config.transport as SimulatorTransport | undefined)?.kind !== "simulator") continue;
 
       const monitoring = readNetworkLike(
         connector.device.connection,

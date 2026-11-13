@@ -5,11 +5,11 @@ import { resolve } from "node:path";
 /**
  * demo-site FAULTS (UC-6/7) e2e — gerçek arıza üretimi → UI listesi → notlu çözme.
  * Ön koşul: v2/dev demo stack (dev:stack:up). PCS-1 fault enjeksiyonu
- * field DebugInjector (15591) ile yapılır; alarmlar field /api/unified/alarms'ta görünür.
+ * field Sim-Lab uyumluluk ucu (`/compat/field/inject`) ile yapılır; alarmlar field /api/unified/alarms'ta görünür.
  */
 
 const FIELD_UI = process.env.FIELD_UI_URL || "http://localhost:8088";
-const INJECT = process.env.DEMO_FIELD_INJECT_URL || "http://localhost:15591";
+const INJECT = process.env.DEMO_FIELD_INJECT_URL || "http://localhost:8090/compat/field";
 const ADMIN = process.env.E2E_ADMIN_USER || "admin";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD || "password1234";
 

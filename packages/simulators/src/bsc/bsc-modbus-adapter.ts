@@ -1,8 +1,22 @@
 import type { IModbusSimulatorAdapter } from "@gd-monorepo/shared-types";
-import { BSCSimulator } from "./bsc-simulator";
+
+/**
+ * Modbus TCP köprüsünün ihtiyaç duyduğu BSC yüzü.
+ *
+ * Hem legacy `BSCSimulator` hem `BscLegacyAdaptor` bu yüzü karşılar — köprü
+ * davranış bilmez, yalnız okuma/yazma iletir (birleştirme SPEC §5.1).
+ */
+export interface IBscSimulatorSurface {
+  readHoldingRegister(address: number): number;
+  writeHoldingRegister(address: number, value: number): void;
+  readInputRegister(address: number): number;
+  readCoil(address: number): boolean;
+  writeCoil(address: number, value: boolean): void;
+  readDiscreteInput(address: number): boolean;
+}
 
 export class BSCSimulatorAdapter implements IModbusSimulatorAdapter {
-  constructor(private simulator: BSCSimulator) {}
+  constructor(private simulator: IBscSimulatorSurface) {}
 
   async readHoldingRegister(address: number): Promise<number> {
     return this.simulator.readHoldingRegister(address);

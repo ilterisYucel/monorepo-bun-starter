@@ -5,8 +5,8 @@
   "model": "MC90HDNC1R-L",
   "protocol": "MODBUS",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15517,
+    "host": "sim-lab",
+    "port": 20117,
     "slaveId": 1
   },
   "telemetry": [
@@ -61,7 +61,7 @@
     {
       "name": "Supply Temp",
       "description": "Supply Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 4099,
       "registerTableType": "HOLDING_REGISTER",
@@ -133,7 +133,7 @@
     {
       "name": "Current Temp",
       "description": "Current Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 4104,
       "registerTableType": "HOLDING_REGISTER",
@@ -153,7 +153,7 @@
     {
       "name": "Outside Temp",
       "description": "Outside Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 4108,
       "registerTableType": "HOLDING_REGISTER",
@@ -171,7 +171,7 @@
     {
       "name": "Condenser Temp",
       "description": "Condenser Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 4110,
       "registerTableType": "HOLDING_REGISTER",
@@ -189,7 +189,7 @@
     {
       "name": "Evaporator Temp",
       "description": "Evaporator Temp",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 4112,
       "registerTableType": "HOLDING_REGISTER",
@@ -238,7 +238,7 @@
     },
     {
       "name": "AC Input Voltage",
-      "description": "AC giriş gerilimi (MC A3 §7.1: 2-byte unsigned, ×10)",
+      "description": "AC giri\u015f gerilimi (MC A3 \u00a77.1: 2-byte unsigned, \u00d710)",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 4118,
@@ -308,7 +308,7 @@
     },
     {
       "name": "High Temperature Alarm",
-      "description": "Yüksek sıcaklık alarmı",
+      "description": "Y\u00fcksek s\u0131cakl\u0131k alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 768,
@@ -326,7 +326,7 @@
     },
     {
       "name": "Internal Fan Failure Alarm",
-      "description": "İç fan arıza alarmı",
+      "description": "\u0130\u00e7 fan ar\u0131za alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 769,
@@ -342,7 +342,7 @@
     },
     {
       "name": "External Fan Failure Alarm",
-      "description": "Dış fan arıza alarmı",
+      "description": "D\u0131\u015f fan ar\u0131za alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 770,
@@ -358,7 +358,7 @@
     },
     {
       "name": "Compressor Fault Alarm",
-      "description": "Kompresör arıza alarmı",
+      "description": "Kompres\u00f6r ar\u0131za alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 771,
@@ -374,7 +374,7 @@
     },
     {
       "name": "Cabinet Return Air Temp Probe Failure",
-      "description": "Kabin dönüş havası sıcaklık probu arızası",
+      "description": "Kabin d\u00f6n\u00fc\u015f havas\u0131 s\u0131cakl\u0131k probu ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 772,
@@ -392,7 +392,7 @@
     },
     {
       "name": "System High Pressure Alarm",
-      "description": "Sistem yüksek basınç alarmı",
+      "description": "Sistem y\u00fcksek bas\u0131n\u00e7 alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 773,
@@ -408,7 +408,7 @@
     },
     {
       "name": "Low Temperature Alarm",
-      "description": "Düşük sıcaklık alarmı",
+      "description": "D\u00fc\u015f\u00fck s\u0131cakl\u0131k alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 774,
@@ -426,7 +426,7 @@
     },
     {
       "name": "AC Overvoltage Alarm",
-      "description": "AC aşırı gerilim alarmı",
+      "description": "AC a\u015f\u0131r\u0131 gerilim alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 777,
@@ -442,7 +442,7 @@
     },
     {
       "name": "AC Undervoltage Alarm",
-      "description": "AC düşük gerilim alarmı",
+      "description": "AC d\u00fc\u015f\u00fck gerilim alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 778,
@@ -458,7 +458,7 @@
     },
     {
       "name": "AC Power Failure Alarm",
-      "description": "AC güç kaybı alarmı",
+      "description": "AC g\u00fc\u00e7 kayb\u0131 alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 779,
@@ -474,7 +474,7 @@
     },
     {
       "name": "Evaporator Temp Sensor Failure",
-      "description": "Evaporatör sıcaklık sensörü arızası",
+      "description": "Evaporat\u00f6r s\u0131cakl\u0131k sens\u00f6r\u00fc ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 780,
@@ -492,7 +492,7 @@
     },
     {
       "name": "Condenser Temp Sensor Failure",
-      "description": "Kondenser sıcaklık sensörü arızası",
+      "description": "Kondenser s\u0131cakl\u0131k sens\u00f6r\u00fc ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 781,
@@ -510,7 +510,7 @@
     },
     {
       "name": "Ambient Temp Sensor Failure",
-      "description": "Ortam sıcaklık sensörü arızası",
+      "description": "Ortam s\u0131cakl\u0131k sens\u00f6r\u00fc ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 782,
@@ -528,7 +528,7 @@
     },
     {
       "name": "Evaporator Freeze Alarm",
-      "description": "Evaporatör donma alarmı",
+      "description": "Evaporat\u00f6r donma alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 783,
@@ -544,7 +544,7 @@
     },
     {
       "name": "Frequent High Pressure Alarm",
-      "description": "Sık yüksek basınç alarmı",
+      "description": "S\u0131k y\u00fcksek bas\u0131n\u00e7 alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 784,
@@ -560,7 +560,7 @@
     },
     {
       "name": "System Low Pressure Alarm",
-      "description": "Sistem düşük basınç alarmı",
+      "description": "Sistem d\u00fc\u015f\u00fck bas\u0131n\u00e7 alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 786,
@@ -576,7 +576,7 @@
     },
     {
       "name": "Frequent Low Pressure Alarm",
-      "description": "Sık düşük basınç alarmı",
+      "description": "S\u0131k d\u00fc\u015f\u00fck bas\u0131n\u00e7 alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 787,
@@ -592,7 +592,7 @@
     },
     {
       "name": "External Expansion 1 T/H Failure",
-      "description": "1# harici genleşme T/H arızası",
+      "description": "1# harici genle\u015fme T/H ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 790,
@@ -608,7 +608,7 @@
     },
     {
       "name": "External Expansion 2 T/H Failure",
-      "description": "2# harici genleşme T/H arızası",
+      "description": "2# harici genle\u015fme T/H ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 791,
@@ -675,7 +675,7 @@
     {
       "name": "Cooling Setpoint",
       "description": "Target cooling temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 10,
       "registerTableType": "HOLDING_REGISTER",
@@ -711,7 +711,7 @@
     {
       "name": "Cooling Sensitivity",
       "description": "Cooling Sensitivity",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12,
       "registerTableType": "HOLDING_REGISTER",
@@ -747,7 +747,7 @@
     {
       "name": "High Temp Alarm Set",
       "description": "High temperature alarm threshold",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 14,
       "registerTableType": "HOLDING_REGISTER",
@@ -783,7 +783,7 @@
     {
       "name": "Low Temp Alarm Set",
       "description": "Low temperature alarm threshold",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 16,
       "registerTableType": "HOLDING_REGISTER",
@@ -819,7 +819,7 @@
     {
       "name": "Heating Setpoint",
       "description": "Target heating temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 28,
       "registerTableType": "HOLDING_REGISTER",
@@ -837,7 +837,7 @@
     {
       "name": "Heating Sensitivity",
       "description": "Heating Sensitivity",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 30,
       "registerTableType": "HOLDING_REGISTER",
@@ -870,7 +870,7 @@
     },
     {
       "name": "Restore Factory Parameters",
-      "description": "FABRIKA ayarlarina donus (alarm reset DEGIL) — KULLANILMAMALI",
+      "description": "FABRIKA ayarlarina donus (alarm reset DEGIL) \u2014 KULLANILMAMALI",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 512,
@@ -887,7 +887,7 @@
     {
       "name": "Server Temp Max",
       "description": "Maximum server temperature setting",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 8192,
       "registerTableType": "HOLDING_REGISTER",
@@ -905,7 +905,7 @@
     {
       "name": "Server Temp Min",
       "description": "Minimum server temperature setting",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 8193,
       "registerTableType": "HOLDING_REGISTER",
@@ -923,7 +923,7 @@
     {
       "name": "Server Temp Avg",
       "description": "Average server temperature setting",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 8194,
       "registerTableType": "HOLDING_REGISTER",
@@ -940,7 +940,7 @@
     },
     {
       "name": "High Humidity Alarm",
-      "description": "Yüksek nem alarmı",
+      "description": "Y\u00fcksek nem alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 796,
@@ -956,7 +956,7 @@
     },
     {
       "name": "Humidity Sensor Failure Alarm",
-      "description": "Nem sensörü arıza alarmı",
+      "description": "Nem sens\u00f6r\u00fc ar\u0131za alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 798,
@@ -972,7 +972,7 @@
     },
     {
       "name": "Exhaust Over-temperature Alarm",
-      "description": "Egzoz aşırı sıcaklık alarmı",
+      "description": "Egzoz a\u015f\u0131r\u0131 s\u0131cakl\u0131k alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 805,
@@ -988,7 +988,7 @@
     },
     {
       "name": "Exhaust Temp Sensor Fault",
-      "description": "Egzoz sıcaklık sensörü arızası",
+      "description": "Egzoz s\u0131cakl\u0131k sens\u00f6r\u00fc ar\u0131zas\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 806,
@@ -1004,7 +1004,7 @@
     },
     {
       "name": "Exhaust Over-temperature Lockout Alarm",
-      "description": "Egzoz aşırı sıcaklık kilidi alarmı",
+      "description": "Egzoz a\u015f\u0131r\u0131 s\u0131cakl\u0131k kilidi alarm\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 807,
@@ -1020,7 +1020,7 @@
     },
     {
       "name": "Forced Enable Switch",
-      "description": "Zorlama modu etkinleştirme (1=etkin)",
+      "description": "Zorlama modu etkinle\u015ftirme (1=etkin)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8448,
@@ -1034,7 +1034,7 @@
     },
     {
       "name": "Forced Cooling",
-      "description": "Zorunlu soğutma (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
+      "description": "Zorunlu so\u011futma (1=a\u00e7) \u2014 D\u0130KKAT: MC A3 \u00a77.3 bu fonksiyonu MC90HDNC1R-L i\u00e7in \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8449,
@@ -1048,7 +1048,7 @@
     },
     {
       "name": "Forced Air Supply",
-      "description": "Zorunlu üfleme (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
+      "description": "Zorunlu \u00fcfleme (1=a\u00e7) \u2014 D\u0130KKAT: MC A3 \u00a77.3 bu fonksiyonu MC90HDNC1R-L i\u00e7in \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8450,
@@ -1062,7 +1062,7 @@
     },
     {
       "name": "Forced Standby",
-      "description": "Zorunlu standby (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
+      "description": "Zorunlu standby (1=a\u00e7) \u2014 D\u0130KKAT: MC A3 \u00a77.3 bu fonksiyonu MC90HDNC1R-L i\u00e7in \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8451,
@@ -1076,7 +1076,7 @@
     },
     {
       "name": "Forced Heating",
-      "description": "Zorunlu ısıtma (1=aç) — DİKKAT: MC A3 §7.3 bu fonksiyonu MC90HDNC1R-L için \"not involving\" (desteklenmiyor) olarak listeler",
+      "description": "Zorunlu \u0131s\u0131tma (1=a\u00e7) \u2014 D\u0130KKAT: MC A3 \u00a77.3 bu fonksiyonu MC90HDNC1R-L i\u00e7in \"not involving\" (desteklenmiyor) olarak listeler",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8452,
@@ -1090,7 +1090,7 @@
     },
     {
       "name": "Compressor Action Count",
-      "description": "Kompresör devreye girme sayısı (MC A3 §7.1 #23; cihaz yalnız FC03 destekler)",
+      "description": "Kompres\u00f6r devreye girme say\u0131s\u0131 (MC A3 \u00a77.1 #23; cihaz yaln\u0131z FC03 destekler)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 4136,
@@ -1121,7 +1121,7 @@
   ],
   "commands": {
     "on": {
-      "label": "Aç",
+      "label": "A\u00e7",
       "telemetries": [
         {
           "name": "Remote On/Off",
@@ -1145,7 +1145,7 @@
       "timeoutMs": 3000
     },
     "force_cool": {
-      "label": "Zorunlu Soğutma",
+      "label": "Zorunlu So\u011futma",
       "telemetries": [
         {
           "name": "Forced Enable Switch",
@@ -1171,7 +1171,7 @@
       "timeoutMs": 3000
     },
     "force_heat": {
-      "label": "Zorunlu Isıtma",
+      "label": "Zorunlu Is\u0131tma",
       "telemetries": [
         {
           "name": "Forced Enable Switch",
@@ -1197,7 +1197,7 @@
       "timeoutMs": 3000
     },
     "force_off": {
-      "label": "Zorlamayı Kapat (normal kontrol)",
+      "label": "Zorlamay\u0131 Kapat (normal kontrol)",
       "telemetries": [
         {
           "name": "Forced Enable Switch",
@@ -1208,9 +1208,5 @@
     }
   },
   "pollIntervalMs": 1000,
-  "type": "hvac",
-  "transport": {
-    "kind": "simulator",
-    "type": "hvac"
-  }
+  "type": "hvac"
 }

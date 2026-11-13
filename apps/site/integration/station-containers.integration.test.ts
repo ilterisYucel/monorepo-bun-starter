@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import {
   CONTAINER2_INJECT_URL,
+  CONTAINER_URL,
   FIELD_URL,
   api,
   assertHealthy,
   inject,
   login,
+  normalizeStack,
   resolveFieldId,
   sleep,
 } from "./helpers";
@@ -36,8 +38,12 @@ async function topology(): Promise<TopologyStation[]> {
   return (body as { stations: TopologyStation[] }).stations;
 }
 
-const maxPack = (rows: ContainerRow["latestTelemetry"], deviceId: string): number[] =>
-  rows.filter((r) => r.deviceId === deviceId && r.name === "Max Pack Temp").map((r) => Number(r.value));
+const maxPack = (
+  rows: ContainerRow["latestTelemetry"],
+  deviceId: string,
+  name = "Max Pack Temp",
+): number[] =>
+  rows.filter((r) => r.deviceId === deviceId && r.name === name).map((r) => Number(r.value));
 
 let token = "";
 let fieldId = "";
@@ -46,6 +52,8 @@ beforeAll(async () => {
   await assertHealthy(FIELD_URL);
   fieldId = resolveFieldId();
   token = await login(FIELD_URL);
+  const containerToken = await login(CONTAINER_URL);
+  await normalizeStack(token, containerToken);
 });
 
 describe("UC-13 station-tagged konteynerler", () => {
@@ -65,15 +73,16 @@ describe("UC-13 station-tagged konteynerler", () => {
     }
   });
 
-  it("veri istasyon-bazlı ayrışır: c2 BSC-1 overheat → bess2 ~80, bess1 nominal", async () => {
-    expect(await inject(CONTAINER2_INJECT_URL, "BSC-1", "overheat")).toBe(true);
+  it("veri istasyon-bazlı ayrışır: c2 BSC-1 sensör arızası → bess2 Raf1 127 °C, bess1 nominal", async () => {
+    expect(await inject(CONTAINER2_INJECT_URL, "BSC-1", "diff_temp")).toBe(true);
     await sleep(16_000);
     const { body } = await api(FIELD_URL, token, `/api/fields/${fieldId}/containers`);
     const byId = Object.fromEntries((body as ContainerRow[]).map((c) => [c.containerId, c]));
-    const b1 = maxPack(byId["container-1"]!.latestTelemetry, "BSC-1");
-    const b2 = maxPack(byId["container-2"]!.latestTelemetry, "BSC-1");
-    expect(b2[0]).toBeGreaterThan(50); // enjekte edilen ~80 °C
-    expect(b1[0]).toBeLessThan(30); // nominal
+    // Sensör arızası raf düzeyinde görünür (BSC toplu Max Pack Temp sensör değerini taşımaz).
+    const b1 = maxPack(byId["container-1"]!.latestTelemetry, "BSC-1", "Rack Max Pack Temp R1");
+    const b2 = maxPack(byId["container-2"]!.latestTelemetry, "BSC-1", "Rack Max Pack Temp R1");
+    expect(b2[0]).toBeGreaterThan(100); // sensör açık devre → 127 °C
+    expect(b1[0]).toBeLessThan(60); // nominal (ortam sıcaklığı dalgalanır; 127'nin çok altında)
     await inject(CONTAINER2_INJECT_URL, "BSC-1", "nominal");
     await sleep(2_000);
   });

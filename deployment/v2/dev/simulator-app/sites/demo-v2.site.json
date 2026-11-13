@@ -1,0 +1,43 @@
+{
+  "name": "demo-v2",
+  "templatesDir": "../../../../../configs",
+  "network": {
+    "bindHost": "0.0.0.0",
+    "emsHost": "sim-lab",
+    "containerPortBase": 20000,
+    "containerPortStride": 100,
+    "fieldPortBase": 30000
+  },
+  "containers": {
+    "count": 2,
+    "bscPerContainer": 2,
+    "racksPerBsc": 8,
+    "hvacPerContainer": 8,
+    "hvacZoneMap": "per-bus",
+    "aux": {
+      "cb": true,
+      "dcMeter": true,
+      "dcOutput": 2,
+      "pm5340": true,
+      "imd": true,
+      "fss": true,
+      "controlPanelIo": true
+    }
+  },
+  "pcs": { "perContainer": 2 },
+  "mv": {
+    "stations": [
+      { "id": "DEMO-MV-1", "incomer": ["H01"], "feeders": { "H04": [1] } },
+      { "id": "DEMO-MV-2", "incomer": ["H01"], "feeders": { "H05": [2] } }
+    ]
+  },
+  "initial": { "soc": 55, "tempC": 24 },
+  "sim": {
+    "profile": "uyumlu",
+    "speed": 1,
+    "startHour": 10,
+    "http": { "host": "0.0.0.0", "port": 8090 },
+    "hvac": { "coolingKw": 9, "heaterKw": 2 },
+    "physicsStepS": 0.5
+  }
+}

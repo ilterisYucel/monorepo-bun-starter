@@ -33,6 +33,7 @@ const isSource = (f) =>
   /\.(ts|tsx)$/.test(f) &&
   !/\.(test|spec)\.(ts|tsx)$/.test(f) &&
   !f.endsWith(".d.ts") &&
+  !/\.config\.(ts|mjs|js)$/.test(f) &&
   !f.startsWith("tools/");
 
 const changed = [

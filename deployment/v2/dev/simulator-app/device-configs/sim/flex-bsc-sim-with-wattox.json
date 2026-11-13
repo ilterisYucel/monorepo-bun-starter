@@ -27128,14 +27128,19 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2,
+              5
+            ]
           }
         ]
       },
       "finalize": {
         "telemetry": "Command Request",
         "value": 0
-      }
+      },
+      "description": "Rev AF ack 0x0005 (BMS Not Connected) zaten durmuş BSC de döner; idempotent stop için accept [2,5]. Kaynak: 20250730_Flex_BSC_Modbusmap_JF1_Rev_AF.xlsx (Request Ack tablosu). KAPANIŞ S14/T-21."
     },
     "open_contactors": {
       "label": "Kontaktörleri Aç",
@@ -27173,7 +27178,7 @@
         }
       ],
       "atomic": true,
-      "timeoutMs": 8200,
+      "timeoutMs": 15000,
       "validate": {
         "reads": [
           {
@@ -27189,7 +27194,8 @@
       "finalize": {
         "telemetry": "Command Request",
         "value": 0
-      }
+      },
+      "description": "Üretici (Rev AF) kapanma süresi vermez; operasyonel doğrulama penceresi = raf kapanma süresi (N×400 ms + 5 s emniyet) + poll payı → 15000 ms. M5 testi alt sınırı (≥8200) korunur. KAPANIŞ S14/T-21."
     },
     "enter_manual": {
       "label": "Manuel Moda Geç",
@@ -27292,21 +27298,24 @@
     }
   },
   "type": "bsc",
-  "heartbeat": {
-    "telemetry": "Controller Heartbeat",
-    "intervalMs": 1000,
-    "extraTelemetries": [
-      "Controller Heartbeat 2",
-      "Controller Heartbeat 3",
-      "Controller Heartbeat 4",
-      "Controller Heartbeat 5",
-      "Controller Heartbeat 6",
-      "Controller Heartbeat 7",
-      "Controller Heartbeat 8",
-      "Controller Heartbeat 9",
-      "Controller Heartbeat 10"
-    ]
-  },
+  "periodicWrites": [
+    {
+      "point": "Controller Heartbeat",
+      "intervalMs": 1000,
+      "mode": "counter",
+      "extraPoints": [
+        "Controller Heartbeat 2",
+        "Controller Heartbeat 3",
+        "Controller Heartbeat 4",
+        "Controller Heartbeat 5",
+        "Controller Heartbeat 6",
+        "Controller Heartbeat 7",
+        "Controller Heartbeat 8",
+        "Controller Heartbeat 9",
+        "Controller Heartbeat 10"
+      ]
+    }
+  ],
   "alarms": [
     {
       "telemetry": "BSC Fault",

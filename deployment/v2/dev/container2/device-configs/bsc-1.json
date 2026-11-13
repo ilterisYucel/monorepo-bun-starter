@@ -5,8 +5,8 @@
   "model": "BSC-2000",
   "protocol": "MODBUS",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15501,
+    "host": "sim-lab",
+    "port": 20101,
     "slaveId": 1
   },
   "telemetry": [
@@ -27128,14 +27128,19 @@
         "reads": [
           {
             "name": "Request Acknowledge",
-            "expect": 2
+            "expect": 2,
+            "accept": [
+              2,
+              5
+            ]
           }
         ]
       },
       "finalize": {
         "telemetry": "Command Request",
         "value": 0
-      }
+      },
+      "description": "Rev AF ack 0x0005 (BMS Not Connected) zaten durmu\u015f BSC de d\u00f6ner; idempotent stop i\u00e7in accept [2,5]. Kaynak: 20250730_Flex_BSC_Modbusmap_JF1_Rev_AF.xlsx (Request Ack tablosu). KAPANI\u015e S14/T-21."
     },
     "open_contactors": {
       "label": "Kontakt\u00f6rleri A\u00e7",
@@ -27173,7 +27178,7 @@
         }
       ],
       "atomic": true,
-      "timeoutMs": 8200,
+      "timeoutMs": 15000,
       "validate": {
         "reads": [
           {
@@ -27189,7 +27194,8 @@
       "finalize": {
         "telemetry": "Command Request",
         "value": 0
-      }
+      },
+      "description": "\u00dcretici (Rev AF) kapanma s\u00fcresi vermez; operasyonel do\u011frulama penceresi = raf kapanma s\u00fcresi (N\u00d7400 ms + 5 s emniyet) + poll pay\u0131 \u2192 15000 ms. M5 testi alt s\u0131n\u0131r\u0131 (\u22658200) korunur. KAPANI\u015e S14/T-21."
     },
     "enter_manual": {
       "label": "Manuel Moda Ge\u00e7",
@@ -27292,21 +27298,24 @@
     }
   },
   "type": "bsc",
-  "heartbeat": {
-    "telemetry": "Controller Heartbeat",
-    "intervalMs": 1000,
-    "extraTelemetries": [
-      "Controller Heartbeat 2",
-      "Controller Heartbeat 3",
-      "Controller Heartbeat 4",
-      "Controller Heartbeat 5",
-      "Controller Heartbeat 6",
-      "Controller Heartbeat 7",
-      "Controller Heartbeat 8",
-      "Controller Heartbeat 9",
-      "Controller Heartbeat 10"
-    ]
-  },
+  "periodicWrites": [
+    {
+      "point": "Controller Heartbeat",
+      "intervalMs": 1000,
+      "mode": "counter",
+      "extraPoints": [
+        "Controller Heartbeat 2",
+        "Controller Heartbeat 3",
+        "Controller Heartbeat 4",
+        "Controller Heartbeat 5",
+        "Controller Heartbeat 6",
+        "Controller Heartbeat 7",
+        "Controller Heartbeat 8",
+        "Controller Heartbeat 9",
+        "Controller Heartbeat 10"
+      ]
+    }
+  ],
   "alarms": [
     {
       "telemetry": "BSC Fault",
@@ -27324,10 +27333,6 @@
       "description": "BSC uyar\u0131 (30037 b1)"
     }
   ],
-  "transport": {
-    "kind": "simulator",
-    "type": "bsc"
-  },
   "details": {
     "rackCount": 8,
     "initialSocPercent": 72,
@@ -27340,8 +27345,8 @@
       "type": "bsc-pcs-connector",
       "pollIntervalMs": 5000,
       "connection": {
-        "host": "127.0.0.1",
-        "port": 15505
+        "host": "sim-lab",
+        "port": 20106
       },
       "telemetry": [
         {
@@ -27463,21 +27468,6 @@
           "byteOrder": "BIG_ENDIAN"
         }
       ]
-    },
-    "sim": {
-      "registerMap": "mappings/bsc-pcs-mapping.json",
-      "target": {
-        "host": "site-device-service",
-        "port": 15504
-      },
-      "pcsSources": [
-        {
-          "deviceId": "PCS-3",
-          "host": "127.0.0.1",
-          "port": 504
-        }
-      ],
-      "powerScale": 9
     }
   }
 }

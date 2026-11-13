@@ -195,7 +195,7 @@
     {
       "name": "pcs_charge",
       "label": "PCS Şarj",
-      "description": "S06 ← −powerKw (şarj NEGATİF) — güç online+müsait PCS sayısına bölünür (divideTotal)",
+      "description": "S06 ← −powerKw (şarj NEGATİF) — güç online+müsait PCS sayısına bölünür (divideTotal) | Başlangıçta fault_reset: PCS latched fault (ör. W1.b2 battery voltage low) temizlenir; adım bsc_prepare (kontaktör kapanışı) sonrasında çalışır. Gerekçe: Rev AF Close Contactors + In Progress; KAPANIŞ S14/T-21. | Start (0x0E14) setpoint öncesi zorunlu: Rev Wattox S06 yalnız çalışırken uygulanır; eski simülatör setpoint ile otomatik başlıyordu (KAPANIŞ S14/T-21).",
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [
@@ -203,7 +203,19 @@
           "deviceTypes": [
             "pcs"
           ],
+          "command": "fault_reset"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
           "command": "set_command_source"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "start"
         },
         {
           "deviceTypes": [
@@ -242,7 +254,7 @@
     {
       "name": "pcs_discharge",
       "label": "PCS Deşarj",
-      "description": "S06 ← +powerKw — güç online+müsait PCS sayısına bölünür (divideTotal)",
+      "description": "S06 ← +powerKw — güç online+müsait PCS sayısına bölünür (divideTotal) | Başlangıçta fault_reset: PCS latched fault (ör. W1.b2 battery voltage low) temizlenir; adım bsc_prepare (kontaktör kapanışı) sonrasında çalışır. Gerekçe: Rev AF Close Contactors + In Progress; KAPANIŞ S14/T-21. | Start (0x0E14) setpoint öncesi zorunlu: Rev Wattox S06 yalnız çalışırken uygulanır; eski simülatör setpoint ile otomatik başlıyordu (KAPANIŞ S14/T-21).",
       "mode": "sequential",
       "onFailure": "stop",
       "steps": [
@@ -250,7 +262,19 @@
           "deviceTypes": [
             "pcs"
           ],
+          "command": "fault_reset"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
           "command": "set_command_source"
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "start"
         },
         {
           "deviceTypes": [
@@ -313,10 +337,16 @@
     {
       "name": "pcs_standby",
       "label": "PCS: Standby",
-      "description": "Setpoint sıfırlama (S06 ← 0) + Standby (S19 ← 1) — PCS enerjili kalır",
+      "description": "Setpoint sıfırlama (S06 ← 0) + Standby (S19 ← 1) — PCS enerjili kalır | Başlangıçta fault_reset: PCS latched fault (ör. battery voltage low / BMS hattı) temizlenir — fault'tan çıkmadan standby komutu yok sayılır. Gerekçe: manevra koşulsuz çalışsın (idempotent); KAPANIŞ S14/T-21.",
       "mode": "sequential",
       "onFailure": "continue",
       "steps": [
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "fault_reset"
+        },
         {
           "deviceTypes": [
             "pcs"

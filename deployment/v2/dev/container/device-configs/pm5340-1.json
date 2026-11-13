@@ -5,15 +5,15 @@
   "model": "PM5340",
   "protocol": "MODBUS",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15504,
+    "host": "sim-lab",
+    "port": 20051,
     "slaveId": 1,
     "timeout": 5000
   },
   "telemetry": [
     {
       "name": "Current A",
-      "description": "Akım Faz A",
+      "description": "Ak\u0131m Faz A",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 2999,
@@ -30,7 +30,7 @@
     },
     {
       "name": "Current B",
-      "description": "Akım Faz B",
+      "description": "Ak\u0131m Faz B",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 3001,
@@ -47,7 +47,7 @@
     },
     {
       "name": "Current C",
-      "description": "Akım Faz C",
+      "description": "Ak\u0131m Faz C",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 3003,
@@ -64,7 +64,7 @@
     },
     {
       "name": "Current N",
-      "description": "Nötr Akımı",
+      "description": "N\u00f6tr Ak\u0131m\u0131",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 3005,
@@ -81,7 +81,7 @@
     },
     {
       "name": "Current Avg",
-      "description": "Ortalama Akım",
+      "description": "Ortalama Ak\u0131m",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 3009,
@@ -98,7 +98,7 @@
     },
     {
       "name": "Current Unbalance A",
-      "description": "Akım Dengesizliği Faz A",
+      "description": "Ak\u0131m Dengesizli\u011fi Faz A",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 3011,
@@ -115,7 +115,7 @@
     },
     {
       "name": "Current Unbalance B",
-      "description": "Akım Dengesizliği Faz B",
+      "description": "Ak\u0131m Dengesizli\u011fi Faz B",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 3013,
@@ -132,7 +132,7 @@
     },
     {
       "name": "Current Unbalance C",
-      "description": "Akım Dengesizliği Faz C",
+      "description": "Ak\u0131m Dengesizli\u011fi Faz C",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 3015,
@@ -149,7 +149,7 @@
     },
     {
       "name": "Current Unbalance Worst",
-      "description": "Akım Dengesizliği En Kötü",
+      "description": "Ak\u0131m Dengesizli\u011fi En K\u00f6t\u00fc",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 3017,
@@ -166,7 +166,7 @@
     },
     {
       "name": "Voltage L-L AB",
-      "description": "Faz Arası Gerilim A-B",
+      "description": "Faz Aras\u0131 Gerilim A-B",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3019,
@@ -183,7 +183,7 @@
     },
     {
       "name": "Voltage L-L BC",
-      "description": "Faz Arası Gerilim B-C",
+      "description": "Faz Aras\u0131 Gerilim B-C",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3021,
@@ -200,7 +200,7 @@
     },
     {
       "name": "Voltage L-L CA",
-      "description": "Faz Arası Gerilim C-A",
+      "description": "Faz Aras\u0131 Gerilim C-A",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3023,
@@ -217,7 +217,7 @@
     },
     {
       "name": "Voltage L-L Avg",
-      "description": "Faz Arası Gerilim Ortalama",
+      "description": "Faz Aras\u0131 Gerilim Ortalama",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3025,
@@ -234,7 +234,7 @@
     },
     {
       "name": "Voltage L-N A",
-      "description": "Faz-Nötr Gerilimi A",
+      "description": "Faz-N\u00f6tr Gerilimi A",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3027,
@@ -251,7 +251,7 @@
     },
     {
       "name": "Voltage L-N B",
-      "description": "Faz-Nötr Gerilimi B",
+      "description": "Faz-N\u00f6tr Gerilimi B",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3029,
@@ -268,7 +268,7 @@
     },
     {
       "name": "Voltage L-N C",
-      "description": "Faz-Nötr Gerilimi C",
+      "description": "Faz-N\u00f6tr Gerilimi C",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3031,
@@ -285,7 +285,7 @@
     },
     {
       "name": "Voltage L-N Avg",
-      "description": "Faz-Nötr Gerilimi Ortalama",
+      "description": "Faz-N\u00f6tr Gerilimi Ortalama",
       "unit": "V",
       "protocol": "MODBUS",
       "registerAddress": 3035,
@@ -302,7 +302,7 @@
     },
     {
       "name": "Active Power Total",
-      "description": "Aktif Güç Toplam",
+      "description": "Aktif G\u00fc\u00e7 Toplam",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 3059,
@@ -319,7 +319,7 @@
     },
     {
       "name": "Active Power A",
-      "description": "Aktif Güç Faz A",
+      "description": "Aktif G\u00fc\u00e7 Faz A",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 3053,
@@ -336,7 +336,7 @@
     },
     {
       "name": "Active Power B",
-      "description": "Aktif Güç Faz B",
+      "description": "Aktif G\u00fc\u00e7 Faz B",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 3055,
@@ -353,7 +353,7 @@
     },
     {
       "name": "Active Power C",
-      "description": "Aktif Güç Faz C",
+      "description": "Aktif G\u00fc\u00e7 Faz C",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 3057,
@@ -370,7 +370,7 @@
     },
     {
       "name": "Reactive Power Total",
-      "description": "Reaktif Güç Toplam",
+      "description": "Reaktif G\u00fc\u00e7 Toplam",
       "unit": "kVAR",
       "protocol": "MODBUS",
       "registerAddress": 3067,
@@ -387,7 +387,7 @@
     },
     {
       "name": "Reactive Power A",
-      "description": "Reaktif Güç Faz A",
+      "description": "Reaktif G\u00fc\u00e7 Faz A",
       "unit": "kVAR",
       "protocol": "MODBUS",
       "registerAddress": 3061,
@@ -404,7 +404,7 @@
     },
     {
       "name": "Reactive Power B",
-      "description": "Reaktif Güç Faz B",
+      "description": "Reaktif G\u00fc\u00e7 Faz B",
       "unit": "kVAR",
       "protocol": "MODBUS",
       "registerAddress": 3063,
@@ -421,7 +421,7 @@
     },
     {
       "name": "Reactive Power C",
-      "description": "Reaktif Güç Faz C",
+      "description": "Reaktif G\u00fc\u00e7 Faz C",
       "unit": "kVAR",
       "protocol": "MODBUS",
       "registerAddress": 3065,
@@ -438,7 +438,7 @@
     },
     {
       "name": "Apparent Power Total",
-      "description": "Görünür Güç Toplam",
+      "description": "G\u00f6r\u00fcn\u00fcr G\u00fc\u00e7 Toplam",
       "unit": "kVA",
       "protocol": "MODBUS",
       "registerAddress": 3075,
@@ -455,7 +455,7 @@
     },
     {
       "name": "Apparent Power A",
-      "description": "Görünür Güç Faz A",
+      "description": "G\u00f6r\u00fcn\u00fcr G\u00fc\u00e7 Faz A",
       "unit": "kVA",
       "protocol": "MODBUS",
       "registerAddress": 3069,
@@ -472,7 +472,7 @@
     },
     {
       "name": "Apparent Power B",
-      "description": "Görünür Güç Faz B",
+      "description": "G\u00f6r\u00fcn\u00fcr G\u00fc\u00e7 Faz B",
       "unit": "kVA",
       "protocol": "MODBUS",
       "registerAddress": 3071,
@@ -489,7 +489,7 @@
     },
     {
       "name": "Apparent Power C",
-      "description": "Görünür Güç Faz C",
+      "description": "G\u00f6r\u00fcn\u00fcr G\u00fc\u00e7 Faz C",
       "unit": "kVA",
       "protocol": "MODBUS",
       "registerAddress": 3073,
@@ -506,7 +506,7 @@
     },
     {
       "name": "Power Factor Total",
-      "description": "Güç Faktörü Toplam",
+      "description": "G\u00fc\u00e7 Fakt\u00f6r\u00fc Toplam",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 3083,
@@ -523,7 +523,7 @@
     },
     {
       "name": "Power Factor A",
-      "description": "Güç Faktörü Faz A",
+      "description": "G\u00fc\u00e7 Fakt\u00f6r\u00fc Faz A",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 3077,
@@ -540,7 +540,7 @@
     },
     {
       "name": "Power Factor B",
-      "description": "Güç Faktörü Faz B",
+      "description": "G\u00fc\u00e7 Fakt\u00f6r\u00fc Faz B",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 3079,
@@ -557,7 +557,7 @@
     },
     {
       "name": "Power Factor C",
-      "description": "Güç Faktörü Faz C",
+      "description": "G\u00fc\u00e7 Fakt\u00f6r\u00fc Faz C",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 3081,
@@ -590,7 +590,7 @@
     },
     {
       "name": "Active Energy Delivered",
-      "description": "Aktif Enerji (Tüketilen)",
+      "description": "Aktif Enerji (T\u00fcketilen)",
       "unit": "kWh",
       "protocol": "MODBUS",
       "registerAddress": 2699,
@@ -607,7 +607,7 @@
     },
     {
       "name": "Active Energy Received",
-      "description": "Aktif Enerji (Üretilen)",
+      "description": "Aktif Enerji (\u00dcretilen)",
       "unit": "kWh",
       "protocol": "MODBUS",
       "registerAddress": 2701,
@@ -624,7 +624,7 @@
     },
     {
       "name": "Reactive Energy Delivered",
-      "description": "Reaktif Enerji (Endüktif)",
+      "description": "Reaktif Enerji (End\u00fcktif)",
       "unit": "kVARh",
       "protocol": "MODBUS",
       "registerAddress": 2707,
@@ -658,7 +658,7 @@
     },
     {
       "name": "Apparent Energy",
-      "description": "Görünür Enerji",
+      "description": "G\u00f6r\u00fcn\u00fcr Enerji",
       "unit": "kVAh",
       "protocol": "MODBUS",
       "registerAddress": 2715,
@@ -674,7 +674,7 @@
     },
     {
       "name": "THD Current A",
-      "description": "Toplam Harmonik Bozulma Akım A",
+      "description": "Toplam Harmonik Bozulma Ak\u0131m A",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 21299,
@@ -691,7 +691,7 @@
     },
     {
       "name": "THD Current B",
-      "description": "Toplam Harmonik Bozulma Akım B",
+      "description": "Toplam Harmonik Bozulma Ak\u0131m B",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 21301,
@@ -708,7 +708,7 @@
     },
     {
       "name": "THD Current C",
-      "description": "Toplam Harmonik Bozulma Akım C",
+      "description": "Toplam Harmonik Bozulma Ak\u0131m C",
       "unit": "%",
       "protocol": "MODBUS",
       "registerAddress": 21303,
@@ -827,7 +827,7 @@
     },
     {
       "name": "Present Demand Power",
-      "description": "Anlık Aktif Güç Talebi",
+      "description": "Anl\u0131k Aktif G\u00fc\u00e7 Talebi",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 3765,
@@ -844,7 +844,7 @@
     },
     {
       "name": "Peak Demand Power",
-      "description": "Pik Aktif Güç Talebi",
+      "description": "Pik Aktif G\u00fc\u00e7 Talebi",
       "unit": "kW",
       "protocol": "MODBUS",
       "registerAddress": 3769,
@@ -861,7 +861,7 @@
     },
     {
       "name": "Present Demand Current",
-      "description": "Anlık Akım Talebi",
+      "description": "Anl\u0131k Ak\u0131m Talebi",
       "unit": "A",
       "protocol": "MODBUS",
       "registerAddress": 3877,
@@ -879,9 +879,5 @@
   ],
   "pollIntervalMs": 1000,
   "commands": {},
-  "type": "energy-analyzer",
-  "transport": {
-    "kind": "simulator",
-    "type": "energy-analyzer"
-  }
+  "type": "energy-analyzer"
 }

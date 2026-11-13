@@ -17,10 +17,7 @@ import type { LogLevel } from "@gd-monorepo/platform-logging";
 import { ConfigLoader, EnvSource, ALL_CONFIG_DEFINITIONS } from "@gd-monorepo/shared-utils";
 import { Logger } from "@gd-monorepo/logger";
 import type { LogLevel as OpsLevel } from "@gd-monorepo/logger";
-import { SimulatorHost } from "@gd-monorepo/simulators";
-import { DeviceService } from "./src/device-service";
-import { DeviceConfigLoader } from "./src/config-loader";
-import { DebugInjector } from "./src/debug-injector";
+import { buildDeviceRuntime } from "./src/runtime";
 
 /** TamperLogger seviyesini operasyonel logger seviyesine eşler (fatal → error). */
 function toOpsLevel(level: string): OpsLevel {
@@ -113,43 +110,9 @@ async function main() {
     fieldId: config.get<string | undefined>("site.fieldId"),
   };
 
-  // BSC→PCS connector BMS hedef override (deployment-bazlı — aws-edge:
-  // site-device-service, standalone: host.docker.internal). Verilmezse
-  // mapping dosyasındaki sabit hedef kullanılır.
-  const bmsTargetHost = config.get<string | undefined>("device.bmsTargetHost");
-  const bmsTargetPort = config.get<number | undefined>("device.bmsTargetPort");
-  const bmsTarget =
-    bmsTargetHost !== undefined || bmsTargetPort !== undefined
-      ? { host: bmsTargetHost, port: bmsTargetPort }
-      : undefined;
-
-  // Self-host simülatörler (BSC/… + BSC→PCS connector) — device-service TCP okur.
-  const { devices: deviceConfigs } = new DeviceConfigLoader(configDir, opsLogger).load();
-  const pcsPowerHost = config.get<string | undefined>("device.pcsPowerHost");
-  const host = new SimulatorHost(deviceConfigs, {
-    configDir,
-    ...(bmsTarget ? { bmsTarget } : {}),
-    ...(pcsPowerHost !== undefined ? { pcsPowerHost } : {}),
-  });
-  await host.start();
-
-  // Dev/debug enjeksiyon ucu — YALNIZCA development + açık bayrakta başlar.
-  // Prod'da asla açılmaz (NODE_ENV guard).
-  const debugEnabled =
-    process.env.NODE_ENV !== "production" && process.env.DEBUG_INJECT_ENABLED === "true";
-  const debugInjector = debugEnabled
-    ? new DebugInjector(
-        { inject: (deviceId, scenario) => host.inject(deviceId, scenario) },
-        {
-          port: Number(process.env.DEBUG_INJECT_PORT ?? 15590),
-          host: "0.0.0.0",
-        },
-        { info: (m) => opsLogger.info(m), warn: (m) => opsLogger.warn(m) },
-      )
-    : undefined;
-  await debugInjector?.start();
-
-  const service = await DeviceService.fromConfigDir(configDir, mq, identity, logger, opsLogger);
+  const runtime = await buildDeviceRuntime(configDir, mq, identity, logger, opsLogger);
+  opsLogger.info(`${runtime.deviceCount} cihaz config'i yuklendi`);
+  const service = runtime.service;
 
   let stopping = false;
   const shutdown = async (signal: string) => {
@@ -157,8 +120,6 @@ async function main() {
     stopping = true;
     opsLogger.info(`${signal} alindi, kapatiliyor...`);
     await service.stop();
-    await debugInjector?.stop();
-    await host.stopAll();
     await logger.close();
     await opsLogger.close();
     process.exit(0);

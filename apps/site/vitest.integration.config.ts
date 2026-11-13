@@ -20,8 +20,8 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["integration/**/*.integration.test.ts"],
-    testTimeout: 90_000,
-    hookTimeout: 60_000,
+    testTimeout: 180_000,
+    hookTimeout: 600_000,
     fileParallelism: false,
   },
 });

@@ -86,13 +86,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      PCS_BMS_TARGET_HOST: ${PCS_BMS_TARGET_HOST:-site-device-service}
-      PCS_EMS_TARGET_HOST: ${PCS_EMS_TARGET_HOST:-site-device-service}
-      # Station 1 (BESS#1-5) → PCS-3'ün BMS yüzü (PCS-1:15502, PCS-2:15503, PCS-3:15504, PCS-4:15505)
-      PCS_BMS_TARGET_PORT: ${PCS_BMS_TARGET_PORT:-15504}
-      DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
-      DEBUG_INJECT_PORT: 15590
-      SIMULATOR_BIND_HOST: 0.0.0.0
+      # Modbus TCP hedefi: Sim-Lab ayrı servis (gd-simnet); simülatör kodu bu serviste YOK.
     volumes:
       - ../../../../services/device-service/src:/app/services/device-service/src
       - ../../../../services/device-service/run.ts:/app/services/device-service/run.ts
@@ -100,31 +94,6 @@ services:
       - ../../../../packages/core/src:/app/packages/core/src
       - ../../../../packages/shared-types/src:/app/packages/shared-types/src
       - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src
-      - ../../../../packages/simulators/src:/app/packages/simulators/src
-    # Entegrasyon/protokol test erişimi — SADECE dev. Simülatör Modbus portları ve
-    # debug enjeksiyon ucu host loopback'ine yayınlanır (127.0.0.1). Prod/aws
-    # compose'ları bu portları YAYINLAMAZ.
-    ports:
-      - "127.0.0.1:15501:15501"   # BSC-1
-      - "127.0.0.1:15510:15510"   # BSC-2
-      - "127.0.0.1:15511:15511"   # HVAC-1
-      - "127.0.0.1:15512:15512"   # HVAC-2
-      - "127.0.0.1:15513:15513"   # HVAC-3
-      - "127.0.0.1:15514:15514"   # HVAC-4
-      - "127.0.0.1:15515:15515"   # HVAC-5
-      - "127.0.0.1:15516:15516"   # HVAC-6
-      - "127.0.0.1:15517:15517"   # HVAC-7
-      - "127.0.0.1:15518:15518"   # HVAC-8
-      - "127.0.0.1:15521:15521"   # CB-1
-      - "127.0.0.1:15522:15522"   # CB-2
-      - "127.0.0.1:15531:15531"   # DC-OUTPUT-1
-      - "127.0.0.1:15532:15532"   # DC-OUTPUT-2
-      - "127.0.0.1:15535:15535"   # CONTROL-PANEL-IO-1
-      - "127.0.0.1:15536:15536"   # IMD-1
-      - "127.0.0.1:15537:15537"   # FSS-1
-      - "127.0.0.1:15504:15504"   # PM5340-1
-      - "127.0.0.1:5030:5030"     # DC-METER-1
-      - "127.0.0.1:15590:15590"   # DebugInjector (dev-only)
     depends_on:
       container-redis:
         condition: service_healthy
@@ -133,6 +102,7 @@ services:
     networks:
       - container-network
       - demo-bridge
+      - gd-simnet
     logging: *logging
 
   container-data-service:
@@ -294,3 +264,6 @@ networks:
   demo-bridge:
     name: v2-dev-demo-bridge
     driver: bridge
+  gd-simnet:
+    name: gd-simnet
+    external: true

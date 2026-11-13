@@ -3,14 +3,21 @@
 // Amaç: simülatörün yayınladığı yüz ile EMS config'i arasında adres/FC/tip uyumsuzluğu
 // kalmadığını ve okunan mühendislik değerlerinin model durumuyla tutarlı olduğunu kanıtlamak.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { join, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { ModbusDevice } from "@gd-monorepo/core";
 import type { ModbusTelemetryData, TelemetryData } from "@gd-monorepo/shared-types";
 import { expandSite, normalizeSiteSpec } from "../site/site-config";
 import { Plant } from "../site/plant";
 import type { DeviceConfig } from "../config/device-configs";
 
-const repoRoot = resolve(__dirname, "../../../../..");
+/** Repo kökü — Stryker sandbox'ında da çalışır: `configs/` bulunana kadar yukarı yürünür. */
+const findRepoRoot = (start: string): string => {
+  let dir = start;
+  while (!existsSync(join(dir, "configs")) && dir !== dirname(dir)) dir = dirname(dir);
+  return dir;
+};
+const repoRoot = findRepoRoot(__dirname);
 const spec = normalizeSiteSpec({
   name: "ems-read",
   templatesDir: join(repoRoot, "configs"),

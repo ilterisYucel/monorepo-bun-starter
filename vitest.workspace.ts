@@ -24,5 +24,6 @@ export default defineWorkspace([
   "services/management-service",
   "apps/editor",
   "apps/site",
+  "apps/sim-lab",
   "apps/container-web-v2",
 ]);

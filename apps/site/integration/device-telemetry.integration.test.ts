@@ -193,11 +193,24 @@ describe("IMD (Bender isoPV1685RTU)", () => {
 });
 
 describe("Acrel DJSF1352-RN (DC sayaç)", () => {
-  it("A1: DC V/I/P FC03 ile ölçülür (750 V / 100 A / 75 kW)", () => {
-    expect(valueOf(container, "DC Voltage")).toBeCloseTo(750, 0);
-    expect(valueOf(container, "DC Current")).toBeCloseTo(100, 0);
-    expect(valueOf(container, "DC Power")).toBeCloseTo(75, 0);
-  });
+  it("A1: DC V/I/P FC03 ile ölçülür (bara gerilimi + P = V·I)", async () => {
+    // DC metre plant'a bağlıdır (dizinin DC barasını ölçer): sabit 750/100/75
+    // yerine ölçüm tutarlılığı ve kW ölçeği doğrulanır (3P24S → 1101–1469 V).
+    let v = 0;
+    let i = 0;
+    let p = 0;
+    for (let n = 0; n < 10; n++) {
+      const rows = await containerRows(fieldToken);
+      v = valueOf(rows, "DC Voltage");
+      i = valueOf(rows, "DC Current");
+      p = valueOf(rows, "DC Power");
+      if (v > 1000) break;
+      await sleep(2000);
+    }
+    expect(v).toBeGreaterThan(1000);
+    expect(v).toBeLessThan(1500);
+    expect(p).toBeCloseTo((v * i) / 1000, 1);
+  }, 40_000);
 });
 
 describe("Schneider PM5340", () => {
@@ -327,8 +340,10 @@ describe("PCS18 — arıza sözcükleri (D01–D09) bit-çözümü", () => {
 });
 
 describe("Faz 1 / F2.5 — nameplate & HVAC ekleri", () => {
-  it("F2.5: BSC rack nameplate değerleri (17 pack / 4 sensör / 24 hücre / 210 A)", async () => {
+  it("F2.5: BSC rack nameplate değerleri (17 pack / 2 BMIC / 4 sıcaklık / 24 hücre / 210 A)", async () => {
     // Sabit nameplate — birim-pencere dışına düşebilir; ham Modbus ile oku.
+    // 24 hücre + 210 A: raf donanım sözleşmesi (3P24S, BPU 210 A) — Rev AF
+    // sheet9'daki 0x000E/0x00C8 yalnız "e.g." örneğidir, donanım değeri değildir.
     const rd = (addr: number) => modbusRead(15501, 4, addr, 1);
     expect((await rd(30193)).values[0]).toBe(17); // Pack Count R1
     expect((await rd(30194)).values[0]).toBe(2); // BMIC Count R1

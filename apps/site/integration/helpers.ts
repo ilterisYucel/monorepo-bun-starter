@@ -17,11 +17,11 @@ import { connect } from "node:net";
 export const FIELD_URL = process.env.DEMO_FIELD_URL ?? "http://localhost:5002";
 export const CONTAINER_URL = process.env.DEMO_CONTAINER_URL ?? "http://localhost:5001";
 export const CONTAINER_INJECT_URL =
-  process.env.DEMO_CONTAINER_INJECT_URL ?? "http://localhost:15590";
-export const FIELD_INJECT_URL = process.env.DEMO_FIELD_INJECT_URL ?? "http://localhost:15591";
-/** Konteyner-2 (UC-13 istasyon bess2) DebugInjector. */
+  process.env.DEMO_CONTAINER_INJECT_URL ?? "http://localhost:8090/compat/c1";
+export const FIELD_INJECT_URL = process.env.DEMO_FIELD_INJECT_URL ?? "http://localhost:8090/compat/field";
+/** Konteyner-2 (UC-13 istasyon bess2) — Sim-Lab uyumluluk ucu. */
 export const CONTAINER2_INJECT_URL =
-  process.env.DEMO_CONTAINER2_INJECT_URL ?? "http://localhost:15592";
+  process.env.DEMO_CONTAINER2_INJECT_URL ?? "http://localhost:8090/compat/c2";
 
 const USER = process.env.DEMO_USER ?? "admin";
 const SEED_PASSWORD = process.env.DEMO_PASSWORD ?? "password123";
@@ -142,11 +142,21 @@ export async function deviceRows(
   return (body as { telemetries?: Row[] }).telemetries ?? [];
 }
 
-/** Field konteyner linkinden tüm konteyner cihazlarının telemetrileri. */
-export async function containerRows(token: string): Promise<Row[]> {
+/**
+ * Field konteyner linkinden tüm konteyner cihazlarının telemetrileri.
+ *
+ * Field `[container-1, container-2]` **sırasız** döner ve iki konteynerde aynı
+ * `deviceId`'ler (BSC-1, CB-1, CONTROL-PANEL-IO-1…) bulunur; düzleştirme
+ * yapılırsa `valueOf` yanlış konteynerin satırını okur. Bu yüzden varsayılan
+ * olarak **container-1** seçilir (suite'lerin hedefi); başka konteyner gerekirse
+ * `containerId` verilir.
+ */
+export async function containerRows(token: string, containerId = "container-1"): Promise<Row[]> {
   const { body } = await api(FIELD_URL, token, `/api/fields/${resolveFieldId()}/containers`);
   const containers = (Array.isArray(body) ? body : (body as { containers?: unknown[] }).containers) ?? [];
-  return (containers as Array<{ latestTelemetry?: Row[] }>).flatMap((c) => c.latestTelemetry ?? []);
+  const all = containers as Array<{ containerId?: string; latestTelemetry?: Row[] }>;
+  const selected = all.filter((c) => c.containerId === containerId);
+  return (selected.length > 0 ? selected : all).flatMap((c) => c.latestTelemetry ?? []);
 }
 
 export function valueOf(rows: Row[], name: string): number {
@@ -170,10 +180,29 @@ export async function inject(base: string, deviceId: string, scenario: string): 
   return Boolean((body as { applied?: boolean }).applied);
 }
 
+/** Tier API'sinde bir cihaz telemetrisi hedef değere ulaşana kadar bekler (deterministik kurulum). */
+export async function waitForDeviceValue(
+  base: string,
+  token: string,
+  deviceId: string,
+  name: string,
+  expected: number,
+  timeoutMs = 45_000,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const rows = await deviceRows(base, token, deviceId).catch(() => [] as Row[]);
+    const row = rows.find((r) => r.name === name);
+    if (row !== undefined && Number(row.value) === expected) return true;
+    await sleep(1000);
+  }
+  return false;
+}
+
 /**
  * Konteyner durumunu bilinen Normal hâle getirir (suite'ler arası paylaşımlı stack):
- * enjeksiyonları temizler, BSC güç setpointlerini 0'a çeker, Stop→Start ile Normal'e
- * alır, DC şalterleri kapatır. Hatalar yutulur (best-effort normalizasyon).
+ * enjeksiyonları temizler, BSC'yi Stop→Start ile Normal'e alır, kontaktörleri kapatır,
+ * DC şalterleri kapatır. Hatalar yutulur (best-effort normalizasyon).
  */
 export async function normalizeContainer(token: string): Promise<void> {
   const scenarios: Array<[string, string]> = [
@@ -184,6 +213,8 @@ export async function normalizeContainer(token: string): Promise<void> {
     ["HVAC-1", "nominal"],
     ["BSC-1", "nominal"],
     ["BSC-2", "nominal"],
+    ["PCS-1", "nominal"],
+    ["PCS-2", "nominal"],
   ];
   await Promise.all(scenarios.map(([d, s]) => inject(CONTAINER_INJECT_URL, d, s).catch(() => false)));
 
@@ -193,21 +224,48 @@ export async function normalizeContainer(token: string): Promise<void> {
       body: JSON.stringify({ deviceId, command, ...(params ? { params } : {}) }),
     }).catch(() => undefined);
 
+  // Sim-Lab katı ack tablosu: EMERGENCY/başka state'ten çıkmak için önce RESET.
+  for (const d of ["BSC-1", "BSC-2"]) await cmd(d, "reset");
+  for (const p of ["PCS-1", "PCS-2"]) {
+    await cmd(p, "fault_reset");
+    await cmd(p, "standby");
+  }
+  await sleep(2000);
   for (const d of ["BSC-1", "BSC-2"]) {
-    await cmd(d, "stop");
     await cmd(d, "start");
   }
+  // Sim-Lab: Start → Initializing (~N×1.5 s + 6 s) → Normal; ardından kontaktörler.
+  await Promise.all([
+    waitForDeviceValue(CONTAINER_URL, token, "BSC-1", "BSC State", 3),
+    waitForDeviceValue(CONTAINER_URL, token, "BSC-2", "BSC State", 3),
+  ]);
+  for (const d of ["BSC-1", "BSC-2"]) await cmd(d, "close_contactors");
   await Promise.all([cmd("CB-1", "close"), cmd("CB-2", "close")]);
-  await sleep(3000);
+  await sleep(8000); // kontaktör kapanma süresi (N×400 ms + emniyet payı)
 }
 
 /** Field durumunu standby'a alır (best-effort). */
 export async function normalizeField(token: string): Promise<void> {
-  await api(FIELD_URL, token, "/api/operations/standby/execute", {
+  const since = Date.now();
+  // Yalnız 202 (yürütücü bekleme penceresini aştı) durumunda koşu arka planda
+  // sürer: beklenmezse `bsc_stop` adımı sonradan çalışıp az önce online yapılan
+  // BSC'yi durdurur (PCS standby sonra "DC gerilim 0 V" ile fault'lar).
+  // 200/422 → koşu bitmiştir; 404/403 → hiç koşu yoktur (bekleme YOK).
+  const r = await api(FIELD_URL, token, "/api/operations/standby/execute", {
     method: "POST",
     body: "{}",
   }).catch(() => undefined);
-  await sleep(2000);
+  if (r?.status === 202) {
+    for (let i = 0; i < 180; i++) {
+      const { body } = await api(FIELD_URL, token, "/api/operations/runs");
+      const done = listOf<{ name: string; status: string; startedAt: string }>(body, "runs").find(
+        (x) => x.name === "standby" && x.status !== "running" && Date.parse(x.startedAt) >= since - 5_000,
+      );
+      if (done !== undefined) break;
+      await sleep(1_000);
+    }
+  }
+  await sleep(6000); // PCS güç rampası sıfıra insin (aksi halde BSC reset/stop Current Flows 0x0A ile reddedilir)
 }
 
 /**
@@ -231,11 +289,35 @@ export async function waitForContainerSession(token: string): Promise<void> {
         }),
       },
     ).catch(() => ({ status: 0, body: undefined }));
-    const results = (body as { results?: Array<{ success?: boolean }> } | undefined)?.results ?? [];
-    if (status === 200 && results.some((r) => r.success)) return;
+    // Oturum erişilebilirliği yeterli: komut reddedilse bile results döner
+    // (Sim-Lab katı modeli state'e göre reddedebilir → 422 + results; bu oturum hatası değil).
+    const results = (body as { results?: unknown[] } | undefined)?.results;
+    if ((status === 200 || status === 422) && Array.isArray(results) && results.length > 0) return;
     await sleep(2000);
   }
   throw new Error("field→container komut oturumu kurulamadı (stack hazır değil)");
+}
+
+/** Field hub üzerinden uzak konteyneri (ör. container-2) Normal'e alır. */
+export async function normalizeRemoteContainer(fieldToken: string, containerId: string): Promise<void> {
+  const fieldId = resolveFieldId();
+  const cmd = (deviceId: string, command: string) =>
+    api(FIELD_URL, fieldToken, `/api/fields/${fieldId}/containers/${containerId}/commands`, {
+      method: "POST",
+      body: JSON.stringify({
+        commands: [{ deviceId, command }],
+        mode: "parallel",
+        onFailure: "continue",
+      }),
+    }).catch(() => undefined);
+
+  await Promise.all([cmd("BSC-1", "reset"), cmd("BSC-2", "reset")]);
+  await sleep(2000);
+  await Promise.all([cmd("BSC-1", "start"), cmd("BSC-2", "start")]);
+  await sleep(25_000); // Sim-Lab Initializing (~N×1.5 s + 6 s)
+  await Promise.all([cmd("BSC-1", "close_contactors"), cmd("BSC-2", "close_contactors")]);
+  await Promise.all([cmd("CB-1", "close"), cmd("CB-2", "close")]);
+  await sleep(8000);
 }
 
 /** Her iki tier'ı da normalize eder (çoğu suite `beforeAll`'ında çağırır). */
@@ -243,6 +325,7 @@ export async function normalizeStack(fieldToken: string, containerToken: string)
   await normalizeField(fieldToken);
   await waitForContainerSession(fieldToken);
   await normalizeContainer(containerToken);
+  await normalizeRemoteContainer(fieldToken, "container-2");
   // Deterministik SOC: testler şarj/deşarj yönünü sabit başlangıçtan ölçer.
   await Promise.all([
     inject(CONTAINER_INJECT_URL, "BSC-1", "soc:50").catch(() => false),

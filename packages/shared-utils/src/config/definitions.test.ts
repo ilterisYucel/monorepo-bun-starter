@@ -51,21 +51,9 @@ describe("log config definitions (T0.5/T0.6)", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("bmsTarget tanımları: varsayılan undefined; env ile okunur; port sayıya dönüşür", () => {
-    process.env.PCS_BMS_TARGET_HOST = "site-device-service";
-    process.env.PCS_BMS_TARGET_PORT = "15502";
-    try {
-      const loader = new ConfigLoader(ALL_CONFIG_DEFINITIONS, [
-        new EnvSource(),
-      ]);
-      loader.load();
-      expect(loader.get<string | undefined>("device.bmsTargetHost")).toBe(
-        "site-device-service",
-      );
-      expect(loader.get<number | undefined>("device.bmsTargetPort")).toBe(15502);
-    } finally {
-      delete process.env.PCS_BMS_TARGET_HOST;
-      delete process.env.PCS_BMS_TARGET_PORT;
+  it("bmsTarget tanımları kaldırıldı (simülatör-only config — SPEC K1/K2)", () => {
+    for (const key of ["device.bmsTargetHost", "device.bmsTargetPort", "device.pcsPowerHost"]) {
+      expect(ALL_CONFIG_DEFINITIONS.some((d) => d.key === key)).toBe(false);
     }
   });
 });

@@ -6,19 +6,15 @@
   "protocol": "MODBUS",
   "type": "cb",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15522,
+    "host": "sim-lab",
+    "port": 20032,
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "cb"
-  },
   "telemetry": [
     {
       "name": "Is Closed",
-      "description": "Şalter kapalı (aux NO kontak — kapalıyken kapalı)",
+      "description": "\u015ealter kapal\u0131 (aux NO kontak \u2014 kapal\u0131yken kapal\u0131)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -34,7 +30,7 @@
     },
     {
       "name": "Is Open",
-      "description": "Şalter açık (aux NC kontak — açıkken kapalı)",
+      "description": "\u015ealter a\u00e7\u0131k (aux NC kontak \u2014 a\u00e7\u0131kken kapal\u0131)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -50,7 +46,7 @@
     },
     {
       "name": "Open",
-      "description": "Shunt trip bobini — uzaktan açma",
+      "description": "Shunt trip bobini \u2014 uzaktan a\u00e7ma",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -83,7 +79,7 @@
   ],
   "commands": {
     "open": {
-      "label": "Aç (Open)",
+      "label": "A\u00e7 (Open)",
       "telemetries": [
         {
           "name": "Open",

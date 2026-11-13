@@ -9,6 +9,7 @@ import {
   deviceRows,
   valueOf,
   normalizeStack,
+  normalizeContainer,
   sleep,
   modbusRead,
 } from "./helpers";
@@ -171,6 +172,9 @@ describe("B2 — operasyon katmanı edge-case'ler", () => {
 
 describe("B3 — manevra katmanı edge-case'ler", () => {
   it("bsc_recovery: Emergency → Normal (Stop→Start→EventClear→Close)", async () => {
+    // EMERGENCY yalnız Normal/NPS/Manual'den kabul edilir: paylaşımlı stack'te
+    // önceki suite BSC'yi Stop/Emergency'de bırakabilir → ön koşulu kur.
+    await normalizeContainer(containerToken);
     await cExecute({ deviceId: "BSC-1", command: "emergency" });
     const emergency = await waitFor(
       async () => valueOf(await deviceRows(CONTAINER_URL, containerToken, "BSC-1"), "BSC State") === 6,
@@ -196,5 +200,5 @@ describe("B3 — manevra katmanı edge-case'ler", () => {
     expect([200, 202]).toContain(r1.status);
     expect([200, 202]).toContain(r2.status);
     await normalizeStack(fieldToken, containerToken);
-  }, 60_000);
+  }, 240_000);
 });

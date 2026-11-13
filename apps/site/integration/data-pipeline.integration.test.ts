@@ -93,11 +93,14 @@ describe("C — yazma hattı (gerçek Timescale verisi)", () => {
 
   it("C5 fire-and-forget: komut yanıtı hızlı (P95 < 500 ms)", async () => {
     const latencies: number[] = [];
+    // `charge` durmuş PCS'te doğrulanamaz (S06 yalnız çalışırken uygulanır →
+    // 5 s validation timeout). Latency ölçümü için durumdan bağımsız,
+    // idempotent bir komut kullanılır.
     for (let i = 0; i < 10; i++) {
       const t0 = Date.now();
       const { status } = await api(FIELD_URL, fieldToken, "/api/commands/execute", {
         method: "POST",
-        body: JSON.stringify({ deviceId: "PCS-1", command: "charge", params: { powerKw: 10 + i } }),
+        body: JSON.stringify({ deviceId: "PCS-1", command: "set_command_source" }),
       });
       expect(status).toBe(200);
       latencies.push(Date.now() - t0);

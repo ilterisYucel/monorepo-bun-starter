@@ -19,7 +19,6 @@
     "@gd-monorepo/shared-types": "*",
     "@gd-monorepo/shared-utils": "*",
     "@gd-monorepo/core": "*",
-    "@gd-monorepo/simulators": "*",
     "@gd-monorepo/logger": "*",
     "tamper-logger": "^1.0.0",
     "smol-toml": "^1.1.0",

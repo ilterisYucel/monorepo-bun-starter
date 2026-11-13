@@ -349,6 +349,12 @@ export const FAULTS: FaultDef[] = [
     apply: (p, t) => legacy<ImdSimulator>(p, t).setFault(true), clear: (p, t) => legacy<ImdSimulator>(p, t).setFault(false),
   },
   {
+    id: "imd.prewarning", group: "Şebeke / Ortam", target: "imd", label: "IMD izolasyon ön uyarısı (200 kΩ)",
+    expect: "Yalnız Prewarning = 4; Alarm = 0 (FL-11 tetiklenmez).",
+    apply: (p, t) => { legacy<ImdSimulator>(p, t).inject("warning"); },
+    clear: (p, t) => { legacy<ImdSimulator>(p, t).inject("healthy"); },
+  },
+  {
     id: "io.fss", group: "Şebeke / Ortam", target: "io", label: "Yangın söndürme (FSS) durumu",
     expect: "Kontrol paneli DI: FSS fault / discharged / 2nd stage. EMS manevra kurallarını tetiklemeli.",
     params: [{ key: "state", label: "Durum", type: "select", default: "discharged", options: [{ value: "fault", label: "FSS Fault" }, { value: "secondStage", label: "2. kademe" }, { value: "discharged", label: "Gaz boşaldı" }] }],
@@ -383,11 +389,23 @@ export const FAULTS: FaultDef[] = [
     clear: (p, t) => { legacy<FssSimulator>(p, t).setPanelFault(false); p.legacySim<ControlPanelIoSimulator>(t.replace(/FSS-\d+$/, "CONTROL-PANEL-IO-1"))?.setFssState({ fault: false }); },
   },
   {
+    id: "io.fire", group: "Şebeke / Ortam", target: "io", label: "Yangın (Fire DI)",
+    expect: "Kontrol paneli Fire DI = 1 → fire_emergency kuralı (BSC emergency + HVAC force_off).",
+    apply: (p, t) => { legacy<ControlPanelIoSimulator>(p, t).inject("fire"); },
+    clear: (p, t) => { legacy<ControlPanelIoSimulator>(p, t).inject("nominal"); },
+  },
+  {
     id: "io.door", group: "Şebeke / Ortam", target: "io", label: "Konteyner kapısı açık",
     expect: "Batarya/panel kapı kontağı DI açık (FL-07).",
     params: [{ key: "which", label: "Kapı", type: "select", default: "battery", options: [{ value: "battery", label: "Batarya odası" }, { value: "panel", label: "Panel" }] }],
     apply: (p, t, a) => legacy<ControlPanelIoSimulator>(p, t).setDoorState({ batteryOpen: a.which !== "panel", panelOpen: a.which === "panel" }),
     clear: (p, t) => legacy<ControlPanelIoSimulator>(p, t).setDoorState({ batteryOpen: false, panelOpen: false }),
+  },
+  {
+    id: "dcmeter.overcurrent", group: "Şebeke / Ortam", target: "dcmeter", label: "DC metre aşırı akım (1800 A)",
+    expect: "FL-08 tetikleyicisi: DC Current > 1680 A (V=800 V, P=1440 kW). Plant yazımı arıza aktifken atlanır.",
+    apply: (p, t) => { legacy<DcMeterSimulator>(p, t).setMeasurements({ voltage: 800, current: 1800, power: 1440 }); },
+    clear: (p, t) => { legacy<DcMeterSimulator>(p, t).setMeasurements({ voltage: 0, current: 0, power: 0 }); },
   },
   {
     id: "dcmeter.alarm", group: "Şebeke / Ortam", target: "dcmeter", label: "DC metre alarm word",
@@ -404,6 +422,7 @@ export class FaultManager {
   readonly active: ActiveFault[] = [];
   constructor(private readonly plant: Plant) {
     plant.activeFaultTag = (tag) => this.active.some((a) => `${a.defId}:${a.target}` === tag);
+    plant.activeFaultTarget = (target) => this.active.some((a) => a.target === target);
   }
   def(id: string): FaultDef {
     const d = FAULTS.find((f) => f.id === id);

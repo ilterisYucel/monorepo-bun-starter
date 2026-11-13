@@ -66,6 +66,63 @@ device-service (docker)
 
 Konnektörün çalışma mantığı doğrudur, ancak kullandığı mapping dosyasında anlam hataları var (bkz. §3). CB, DC çıkış, DC metre, enerji analizörü, kontrol paneli I/O, IMD ve OG demo istasyonu simülatörleri EMS testleri için yeterlidir. Sim-Lab bunları olduğu gibi kullanır ve yalnız fiziksel değerlerini (akım, gerilim, izolasyon, kesici durumu) tesisle bağlar.
 
+### 1.5 Birleştirme fark envanteri — `uyumlu` profilde ölçülen
+
+> Kaynak: `packages/simulators/src/physical/conformance/equivalence.ts#runEquivalence`
+> (SPEC: `SIMULATOR-MODEL-BIRLESTIRME-MIMARISI.md` UC-1 / T-1). Harness legacy sınıf ile
+> fiziksel yüzü **aynı sekansla** koşturur; aşağıdaki tablo koşunun çıktısıdır.
+> Etiket: **kasıtlı** = profil/model farkı, kapatılmayacak · **kapatılacak** = adaptörle
+> (UC-2/3/4) giderilecek.
+
+**BSC sekansı** (`BSC_SEQUENCE`: State → START → CLOSE → Online rack → SOC → STOP)
+
+| Adım | Kayıt | Legacy | Fiziksel | Sınıf |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 30036 BSC State (başlangıç) | 1 | 1 | = |
+| 4 | 30030 Request Ack (START sonrası) | 2 (Done) | 2 | = |
+| 5 | 30036 BSC State (Normal) | 3 | 3 | = |
+| 8 | 30038 Online rack | 8 | 8 | = |
+| 9 | 30055 BSC SOC (×100) | 5000 | 4998 | **kasıtlı** — fiziksel modelde raf başına SOC yayılımı ve yuvarlama |
+| 12 | 30036 BSC State (STOP sonrası) | 3 | 3 | = |
+
+**Sonuç:** 12 adımın 1'inde fark var; ack/durum/raf sayısı davranışı bugün eşdeğer.
+
+**UC-2 adaptörü (2026-11-13):** `packages/simulators/src/bsc/bsc-legacy-adaptor.ts#BscLegacyAdaptor`
+fiziksel `Bsc` + `bscFace` üzerine ince adaptör olarak eklendi; aynı sekans adaptör ↔
+fiziksel yüz arasında **fark 0** (`bsc-legacy-adaptor.test.ts#AK-2.1`). Bağımsız ünite
+kendi Modbus TCP sunucusunu açıyor ve `30036/30030/30038` aynı değerleri veriyor
+(`#AK-2.2`). Legacy `BSCSimulator` sınıfı host/sim-lab tarafından hâlâ kullanılıyor —
+devreden çıkarma T-11 (host registry) ile.
+Sekansın kapsamadığı alanlar (teşhis seti, heartbeat→LOC, raf hücre modeli) UC-2
+testleriyle genişletilecek — bu satırlar **kapatılacak** kabul edilir ve adaptör
+eşdeğerlik testi (AK-2.1) yeşile dönene kadar açık kalır.
+
+**PCS sekansı** (`PCS_SEQUENCE`: S01=EMS → Status → START → setpoint −50 kW → STANDBY)
+
+| Adım | Kayıt | Legacy | Fiziksel | Sınıf |
+| :--- | :--- | :--- | :--- | :--- |
+| 2 | 0x2f7d Operation Status (başlangıç) | 0 | 0 | = |
+| 7 | 0x2f7d Operation Status (şarj) | 2 | 2 | = |
+| 8 | 0x2f7e Grid Active Power | 65486 (−50 kW) | 65486 | = |
+| 11 | 0x2f7d Operation Status (standby) | 1 | 1 | = |
+
+**Sonuç:** 11 adımda **fark 0** — EMS yüzü, komut kaynağı kapısı ve işaret
+konvansiyonu (şarj negatif) bugün eşdeğer. Fiziksel yüzün bağımsız koşması için
+BMS linkinin tazelenmesi gerekir (connector rolü: `BMS_BASE+0x08/0x09` izinli güç).
+
+**HVAC sekansı** (`HVAC_SEQUENCE`: Remote On/Off → sunucu sıcaklığı → kapat)
+
+| Adım | Kayıt | Legacy | Fiziksel | Sınıf |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 0x202 Remote On/Off (başlangıç) | 0 | 2 (kapalı) | **kapatılacak** — legacy'de register write-only (okuma 0) |
+| 6 | 0x202 (açık) | 0 | 1 | **kapatılacak** — aynı |
+| 10 | 0x202 (kapalı) | 0 | 2 | **kapatılacak** — aynı |
+| 7 | 0x300 High Temp alarm (input) | 0 | 0 | = |
+
+**Sonuç:** 10 adımın 3'ünde fark var; hepsi **legacy'nin `Remote On/Off` register'ını
+okuyamaması** (yazma var, okuma switch'te yok) — adaptör fiziksel modeli kullandığı
+için bu fark adaptörle kapanır (`hvac-legacy-adaptor.test.ts#AK-4.1`).
+
 ---
 
 ## 2. Sim-Lab: ne değişti?
@@ -150,3 +207,17 @@ Sim-Lab'da "BSC → PCS BMS bağlantısı" ayarı varsayılan olarak **doğru e�
 | Termal kalibrasyon | Paket ısı kapasitesi, zon UA = 28 W/K, PCS IGBT +1 K/kW | `cell.ts`, `environment.ts`, `pcs-wattox.ts` |
 
 Sahadan ölçüm geldikçe bu değerler güncellenmelidir.
+
+**Aux sinyalleri (T-10):** Plant'teki imperatif yamalar pipe sinyaline dönüştü —
+`imd.<konteyner>.alarm` (IMD → PCS izolasyonu) ve `dc.string.<dizi>.voltage|current|power`
+(DC metre). Tüketiciler: `physical/site/aux-ports.ts#InsulationPort` / `#DcMeterPort`.
+Sinyal yoksa porta dokunulmaz → bağımsız ünitede cihaz kendi mock varsayılanıyla çalışır.
+
+**Host geçişi (T-11):** `SimulatorHost` üç cihazı da adaptörle kuruyor
+(`BscLegacyAdaptor`, `PcsLegacyAdaptor` — EMS+BMS sunucusu ve gridLink ile,
+`HvacLegacyAdaptor`). Connector TCP master davranışı korunur (K: bağımsız ünite çifti).
+
+**Bekçi zincir (T-12):** `apps/sim-lab` vitest projesi workspace'te (`vitest.workspace.ts`)
+→ CI'da `bun run test` ile koşar. Paket modeli değiştiğinde `apps/sim-lab` kopya zinciri
+(`plant.test.ts`) değişmeden yeşil kalmak zorundadır (SPEC K2) — bu turda adaptör
+geçişinden sonra 21/21 yeşil kaldı.

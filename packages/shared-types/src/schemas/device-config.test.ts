@@ -187,13 +187,13 @@ describe("deviceConfigFileSchema", () => {
     expect(r.success).toBe(false);
   });
 
-  it("accepts simulator transport (tip açık string — kayıt defteri çalışma zamanında doğrular)", () => {
+  it("rejects simulator transport (device-service yalnız istemci — K2)", () => {
     for (const t of ["bsc", "hvac", "xrack", "cb", "dc-output", "dc-meter", "pcs", "gelecekteki-tip"]) {
       const r = deviceConfigFileSchema.safeParse({
         ...validDevice,
         transport: { kind: "simulator", type: t },
       });
-      expect(r.success).toBe(true);
+      expect(r.success).toBe(false);
     }
   });
 
@@ -347,5 +347,57 @@ describe("deviceConfigFileSchema — yazma politikası (deadband/maxStaleMs)", (
       ]),
     );
     expect(r.success).toBe(false);
+  });
+});
+
+describe("deviceConfigFileSchema — periodicWrites (SADELESTIRME UC-2)", () => {
+  const base = {
+    deviceId: "bsc-1",
+    name: "BSC",
+    manufacturer: "X",
+    model: "Y",
+    protocol: "MODBUS" as const,
+    connection: { host: "127.0.0.1", port: 15501 },
+    telemetry: [{ name: "Voltage", protocol: "MODBUS" as const }],
+  };
+
+  it("counter + extraPoints kabul edilir", () => {
+    const r = deviceConfigFileSchema.safeParse({
+      ...base,
+      periodicWrites: [
+        { point: "Controller Heartbeat", intervalMs: 1000, mode: "counter", extraPoints: ["HB-2"] },
+      ],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("fixed + value kabul, value'suz fixed reddedilir", () => {
+    expect(
+      deviceConfigFileSchema.safeParse({
+        ...base,
+        periodicWrites: [{ point: "Keepalive", intervalMs: 500, mode: "fixed", value: 7 }],
+      }).success,
+    ).toBe(true);
+    expect(
+      deviceConfigFileSchema.safeParse({
+        ...base,
+        periodicWrites: [{ point: "Keepalive", intervalMs: 500, mode: "fixed" }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("bilinmeyen mode ve geçersiz interval reddedilir", () => {
+    expect(
+      deviceConfigFileSchema.safeParse({
+        ...base,
+        periodicWrites: [{ point: "X", intervalMs: 1000, mode: "pulse" }],
+      }).success,
+    ).toBe(false);
+    expect(
+      deviceConfigFileSchema.safeParse({
+        ...base,
+        periodicWrites: [{ point: "X", intervalMs: 0, mode: "counter" }],
+      }).success,
+    ).toBe(false);
   });
 });

@@ -175,13 +175,13 @@ export function bscFace(bsc: Bsc, realism: () => Realism, stride: () => number, 
         case 18: return 0x0001;
         case 19: return 0x0002;
         case 20: return 1;
-        case 22: return 200;
+        case 22: return 210; // Relay Close Current Spec (raf donanımı: BPU 210 A)
         case 23: return PACKS_PER_RACK;
         case 24: return 2;
         case 25: return 4;
         case 27: return 2;
         case 28: return 2;
-        case 29: return 14;
+        case 29: return 24; // Voltage Sensor Count per Pack (2 BMIC × 12 hücre)
         case 32: return 0x0503;
         default: return 0;
       }

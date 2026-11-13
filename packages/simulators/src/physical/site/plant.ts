@@ -35,6 +35,9 @@ import { wattoxBmsFace, wattoxEmsFace } from "../faces/wattox-face";
 import { connectorFace, hvacFace, legacyFace } from "../faces/misc-faces";
 import { internalRead } from "../faces/face-base";
 import { BmsLink, auditMapping, type MappingFile } from "../link/bms-link";
+import { AUX_SIGNAL, DcMeterPort, InsulationPort } from "./aux-ports";
+import { PipeSet } from "../link/pipe";
+import { createDefaultSolverRegistry, type ISolver, type SolverRegistry } from "../link/solver-ports";
 import { RegisterCatalog, decodePoint, type RegisterPoint } from "../registers/register-catalog";
 import { RegisterOverlay, writeThroughFace } from "../registers/register-overlay";
 import { SeriesPlayer, type SeriesMode } from "../registers/register-series";
@@ -98,6 +101,16 @@ export class Plant {
   readonly zoneRacks = new Map<string, { bsc: string; rack: number }[]>();
   readonly strings: StringLink[] = [];
   readonly links = new Map<string, BmsLink>();
+  /** Saha sinyal kanalları — dal/konteyner `energized` yayınları (SPEC SIMULATOR-PIPE UC-3). */
+  readonly pipes: PipeSet;
+  /** Aux sinyal portları (T-10) — Plant içi imperatif yama yerine pipe sinyali. */
+  private readonly insulationPort: InsulationPort;
+  private readonly dcMeterPort: DcMeterPort;
+  /** Dal (fider hücresi) → konteyner numaraları; site JSON `mv.stations[].feeders`'tan. */
+  readonly branchMembers = new Map<string, number[]>();
+  /** Solver registry — site JSON `sim.solvers` seçimini çözer (UC-4). */
+  readonly solverRegistry: SolverRegistry;
+  private readonly gridSolvers: ISolver[] = [];
   readonly weather = new Weather();
   readonly grid = new Grid();
   readonly traffic: TrafficEntry[] = [];
@@ -136,6 +149,30 @@ export class Plant {
       apply: (key, point, value, mode, source) => void this.applyPoint(key, point, value, mode, source),
       log: (level, msg) => this.events.push(level === "warn" ? "warn" : "info", "SERİ", msg),
     });
+    this.pipes = new PipeSet({
+      warn: (name) => this.events.push("warn", "SİM", `tanımsız pipe kanalı: ${name}`),
+    });
+    this.insulationPort = new InsulationPort(this.pipes);
+    this.dcMeterPort = new DcMeterPort(this.pipes);
+    for (const station of this.spec.mv.stations) {
+      for (const [cell, containers] of Object.entries(station.feeders)) {
+        this.branchMembers.set(cell, [...containers]);
+      }
+    }
+    this.solverRegistry = createDefaultSolverRegistry();
+    for (const station of this.spec.mv.stations) {
+      this.gridSolvers.push(
+        this.solverRegistry.create(this.spec.sim.solvers.grid, {
+          pipes: this.pipes,
+          stationId: station.id,
+          branches: () =>
+            Object.keys(station.feeders).map((cell) => ({
+              cell,
+              energized: this.branchEnergized(station.id, cell),
+            })),
+        }),
+      );
+    }
     this.build();
   }
 
@@ -446,6 +483,8 @@ export class Plant {
   }
 
   private loopBusy = false;
+  /** Fider tanımı eksik dal uyarısı — dal başına bir kez. */
+  private readonly unwiredBranches = new Set<string>();
   private lastLoopError = "";
   private async loop(): Promise<void> {
     if (this.loopBusy) return;
@@ -500,8 +539,13 @@ export class Plant {
   /** PCS'yi besleyen OG kesicileri kapalı mı (gelen + fider). */
   pcsGridPresent(s: StringLink): boolean {
     if (!s.feeder) return true;
-    const st = this.spec.mv.stations.find((x) => x.id === s.feeder!.station);
-    const sim = this.legacySim<DemoMvStationSimulator>(s.feeder.station);
+    return this.branchEnergized(s.feeder.station, s.feeder.cell);
+  }
+
+  /** Dal enerjizasyonu — gelen hücreler VE fider hücresi kapalı olmalı (grid-chain solver). */
+  branchEnergized(stationId: string, cell: string): boolean {
+    const st = this.spec.mv.stations.find((x) => x.id === stationId);
+    const sim = this.legacySim<DemoMvStationSimulator>(stationId);
     if (!st || !sim) return true;
     const pos = (h: string): boolean => {
       try {
@@ -510,7 +554,7 @@ export class Plant {
         return true;
       }
     };
-    return st.incomer.every(pos) && pos(s.feeder.cell);
+    return st.incomer.every(pos) && pos(cell);
   }
 
   private physics(dt: number): void {
@@ -521,37 +565,72 @@ export class Plant {
     const solar = this.weather.solar(tod);
     this.grid.step(dt, this.rng);
 
+    // Dal enerjizasyonu — solver uçlarından yayınlanır (UC-4); cihazlar sonraki tick'te okur (K3).
+    for (const solver of this.gridSolvers) solver.step(dt, this.simT);
+
     // Diziler: PCS ↔ CB ↔ BSC
     for (const s of this.strings) {
       const cb = this.legacySim<CbSimulator>(s.cbKey);
       const cbClosed = cb ? cb.readDiscreteInput(0) : true;
       const bsc = s.bsc;
       const pcs = s.pcs;
+      this.pipes.publish({
+        name: `container.C${s.container}.dc.energized`,
+        value: pcs ? cbClosed && pcs.dcBreakerClosed : cbClosed,
+        tick: this.simT,
+        source: s.key,
+      });
+      if (s.feeder && !this.branchMembers.has(s.feeder.cell) && !this.unwiredBranches.has(s.feeder.cell)) {
+        this.unwiredBranches.add(s.feeder.cell);
+        this.events.push("warn", s.key, `fider tanımı yok (${s.feeder.cell}) — varsayılan energized:true`);
+      }
       if (pcs) {
         pcs.ambientC = tOut;
-        const present = this.pcsGridPresent(s);
+        const branchSignal = s.feeder ? this.pipes.read(`branch.${s.feeder.cell}.energized`, this.simT) : undefined;
+        const present = branchSignal === undefined ? true : branchSignal.value === true;
         pcs.grid = { present, vLL: present ? this.grid.vLL : 0, hz: present ? this.grid.hz : 0 };
         const vDc = cbClosed && bsc.online.length > 0 ? bsc.busVoltage || bsc.dcVoltage() : 0;
+        this.pipes.publish({
+          name: `dc.bus.${s.pcsKey ?? s.key}.voltage`,
+          value: vDc,
+          tick: this.simT,
+          source: s.pcsKey ?? s.key,
+        });
         pcs.step(dt, vDc, this.day());
         const iReq = cbClosed && pcs.dcBreakerClosed ? -pcs.dcCurrent : 0; // + = bataryayı şarj
         bsc.step(dt, this.simT, iReq);
         s.link?.step(dt);
-        // izolasyon: konteyner IMD'si ↔ aynı DC baradaki PCS
+        // izolasyon: konteyner IMD'si ↔ aynı DC baradaki PCS (pipe sinyali, T-10)
         const imd = this.legacySim<ImdSimulator>(`C${s.container}.IMD-1`) as unknown as { state?: { alarm: boolean } } | undefined;
         if (imd) {
-          const imdAlarm = imd.state?.alarm === true;
-          if (imdAlarm && pcs.insulationKohm > 100) pcs.insulationKohm = 60;
-          if (!imdAlarm && !this.activeFaultTag(`pcs.insulation:${s.pcsKey}`) && pcs.insulationKohm < 3200) pcs.insulationKohm = 3200;
+          this.pipes.publish({
+            name: AUX_SIGNAL.imdAlarm(`C${s.container}`),
+            value: imd.state?.alarm === true,
+            tick: this.simT,
+            source: `C${s.container}.IMD-1`,
+          });
+          this.insulationPort.apply(
+            pcs,
+            `C${s.container}`,
+            this.simT,
+            this.activeFaultTag(`pcs.insulation:${s.pcsKey}`),
+          );
         }
       } else {
         bsc.step(dt, this.simT, 0);
       }
-      // DC metre (DJSF1352) — dizinin DC tarafı
+      // DC metre (DJSF1352) — dizinin DC tarafı. Enjeksiyon (overcurrent vb.)
+      // aktifken plant yazımı ATLANIR; aksi halde simülasyon her tick'te
+      // enjekte edilen değeri ezip kuralı hiç tetiklemez (FL-08).
       const meter = this.legacySim<DcMeterSimulator>(s.dcMeterKey);
       if (meter) {
         const v = bsc.online.length ? bsc.busVoltage : 0;
         const i = bsc.sectionCurrent;
-        meter.setMeasurements({ voltage: v, current: -i, power: (-i * v) / 1000 });
+        this.pipes.publish({ name: AUX_SIGNAL.dcVoltage(s.key), value: v, tick: this.simT, source: s.key });
+        this.pipes.publish({ name: AUX_SIGNAL.dcCurrent(s.key), value: -i, tick: this.simT, source: s.key });
+        this.pipes.publish({ name: AUX_SIGNAL.dcPower(s.key), value: (-i * v) / 1000, tick: this.simT, source: s.key });
+        // Enjeksiyon (overcurrent vb.) aktifken uygulanmaz (FL-08) — sinyal yayınlanır, port atlar.
+        if (!this.activeFaultTarget(s.dcMeterKey ?? "")) this.dcMeterPort.apply(meter, s.key, this.simT);
       }
     }
 
@@ -568,6 +647,7 @@ export class Plant {
         if (dev && h.inj.powerLoss && dev.server.fault.mode !== "offline") dev.server.setFault({ mode: "offline" });
       }
       zone.step(dt, heat, tOut, solar);
+      this.pipes.publish({ name: `zone.${zid}.airTemp`, value: zone.airT, tick: this.simT, source: zid });
     }
 
     // Legacy tick
@@ -579,6 +659,9 @@ export class Plant {
     // Üstyazım süreleri + seri oynatıcı
     for (const d of this.devices.values()) if (d.overlay.size() > 0) for (const p of d.overlay.expire(this.simT)) this.events.push("info", d.key, `Üstyazım süresi doldu: ${p}`);
     this.series.tick(this.simT);
+
+    // Tick sınırı — pipe yayınları görünür olur (K3).
+    this.pipes.commit();
 
     this.onStep?.(dt);
   }
@@ -602,6 +685,9 @@ export class Plant {
 
   /** Aktif arıza etiketi sorgusu (faults modülü doldurur). */
   activeFaultTag: (tag: string) => boolean = () => false;
+
+  /** Hedef cihazda aktif arıza var mı — plant türetilmiş değerleri eziyor mu? */
+  activeFaultTarget: (target: string) => boolean = () => false;
 
   trafficSince(seq: number): { seq: number; items: TrafficEntry[] } {
     const start = Math.max(0, this.traffic.length - (this.trafficSeq - seq));

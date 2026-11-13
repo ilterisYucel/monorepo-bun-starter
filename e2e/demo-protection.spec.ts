@@ -11,11 +11,11 @@ import { resolve } from "node:path";
  * yerine kararlı uçlar).
  *
  * Ön koşul: `bun run dev:stack:up`.
- * Env: FIELD_UI_URL (5002 API / 8088 UI), CONTAINER_INJECT_URL (15590).
+ * Env: FIELD_UI_URL (5002 API / 8088 UI), CONTAINER_INJECT_URL (Sim-Lab /compat/c1).
  */
 
 const FIELD_API = process.env.FIELD_API_URL || "http://localhost:5002";
-const INJECT_URL = process.env.DEMO_CONTAINER_INJECT_URL || "http://localhost:15590";
+const INJECT_URL = process.env.DEMO_CONTAINER_INJECT_URL || "http://localhost:8090/compat/c1";
 const ADMIN = process.env.E2E_ADMIN_USER || "admin";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD || "password1234";
 

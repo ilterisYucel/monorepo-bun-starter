@@ -11,7 +11,7 @@
 // Sim:      POST /api/sim {speed, paused, profile, realism, assist, weather, advance, hour}
 //           POST /api/autostart {powerKw, pcs?} · POST /api/export · POST /api/events-clear
 
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -30,6 +30,7 @@ import {
   type SeriesRow,
 } from "@gd-monorepo/simulators/physical";
 import { deviceDetail, siteSnapshot } from "./snapshot";
+import { COMPAT_SCOPES, compatInject } from "./compat-inject";
 
 export interface HttpOptions {
   publicDir: string;
@@ -37,7 +38,7 @@ export interface HttpOptions {
   siteFile: string;
 }
 
-export function startHttp(p: Plant, fm: FaultManager, se: ScenarioEngine, o: HttpOptions): void {
+export function startHttp(p: Plant, fm: FaultManager, se: ScenarioEngine, o: HttpOptions): Server {
   const clients = new Set<ServerResponse>();
   let lastEventId = 0;
   let lastTrafficSeq = 0;
@@ -116,6 +117,13 @@ export function startHttp(p: Plant, fm: FaultManager, se: ScenarioEngine, o: Htt
           res.write(`event: events\ndata: ${JSON.stringify(p.events.recent(400))}\n\n`);
           res.write(`event: state\ndata: ${JSON.stringify(siteSnapshot(p, fm, se))}\n\n`);
           return;
+        }
+        // Uyumluluk sağlık ucu — sunucular dinlemeye geçmeden 503 (eski /health semantiği).
+        const compatHealth = path.match(/^\/compat\/([^/]+)\/health$/);
+        if (compatHealth !== null) {
+          if (COMPAT_SCOPES[compatHealth[1]!] === undefined) return json(res, 404, { error: "kapsam yok" });
+          const listening = [...p.devices.values()].every((d) => d.server.stats.listening);
+          return json(res, listening ? 200 : 503, { ok: listening });
         }
         return json(res, 404, { error: "yok" });
       }
@@ -210,6 +218,25 @@ export function startHttp(p: Plant, fm: FaultManager, se: ScenarioEngine, o: Htt
         p.events.clear();
         return json(res, 200, { ok: true });
       }
+      // Uyumluluk ucu — eski DebugInjector sözleşmesi (yalnız mevcut testler için).
+      const compatInjectMatch = path.match(/^\/compat\/([^/]+)\/inject$/);
+      if (compatInjectMatch !== null && req.method === "POST") {
+        if (COMPAT_SCOPES[compatInjectMatch[1]!] === undefined) return json(res, 404, { error: "kapsam yok" });
+        if (typeof body.deviceId !== "string" || typeof body.scenario !== "string") {
+          return json(res, 400, { error: "deviceId ve scenario zorunlu" });
+        }
+        const result = await compatInject(
+          p,
+          fm,
+          compatInjectMatch[1]!,
+          body.deviceId,
+          body.scenario,
+        );
+        return json(res, result.applied ? 200 : 404, {
+          applied: result.applied,
+          ...(result.error !== undefined ? { error: result.error } : {}),
+        });
+      }
       return json(res, 404, { error: "yok" });
     } catch (e) {
       return json(res, 400, { error: String((e as Error).message ?? e) });
@@ -217,7 +244,7 @@ export function startHttp(p: Plant, fm: FaultManager, se: ScenarioEngine, o: Htt
   }
 
   // SSE yayını (1 Hz)
-  setInterval(() => {
+  const sseTimer = setInterval(() => {
     if (clients.size === 0) {
       lastEventId = p.events.recent(1)[0]?.id ?? lastEventId;
       lastTrafficSeq = p.trafficSince(lastTrafficSeq).seq;
@@ -235,9 +262,12 @@ export function startHttp(p: Plant, fm: FaultManager, se: ScenarioEngine, o: Htt
       if (trItems.length) c.write(`event: traffic\ndata: ${JSON.stringify(trItems)}\n\n`);
     }
   }, 1000);
+  // Test/CLI kapanışında olay döngüsünü açık tutmasın (sunucunun kendisi zaten tutuyor).
+  sseTimer.unref?.();
 
   const { host, port } = p.spec.sim.http;
   server.listen(port, host, () => {
     console.log(`[sim-lab] Arayüz: http://localhost:${port}`);
   });
+  return server;
 }

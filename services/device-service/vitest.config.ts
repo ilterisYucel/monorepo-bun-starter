@@ -1,9 +1,17 @@
 import { defineConfig } from "vitest/config";
+import { existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = resolve(__dirname, "../..");
+
+/** Workspace kökü — `bun.lock` bulunana kadar yukarı yürünür (Stryker sandbox uyumu). */
+const findWorkspaceRoot = (start: string): string => {
+  let dir = start;
+  while (!existsSync(resolve(dir, "bun.lock")) && dir !== dirname(dir)) dir = dirname(dir);
+  return dir;
+};
+const workspaceRoot = findWorkspaceRoot(__dirname);
 
 export default defineConfig({
   resolve: {
@@ -13,7 +21,6 @@ export default defineConfig({
       "@gd-monorepo/platform-messaging": resolve(workspaceRoot, "packages/platform/messaging/src"),
       "@gd-monorepo/platform-logging": resolve(workspaceRoot, "packages/platform/logging/src"),
       "@gd-monorepo/platform-commands": resolve(workspaceRoot, "packages/platform/commands/src"),
-      "@gd-monorepo/simulators": resolve(workspaceRoot, "packages/simulators/src"),
     },
   },
   test: {

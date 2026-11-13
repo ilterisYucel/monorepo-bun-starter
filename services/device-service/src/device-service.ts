@@ -22,8 +22,8 @@ import { DeviceFactory } from "./device-factory";
 import { DeviceScheduler } from "./device-scheduler";
 import { TelemetryTagger } from "./telemetry-tagger";
 import { TelemetryWriteFilter } from "./telemetry-write-filter";
-import { HeartbeatWriter } from "./heartbeat-writer";
-import type { HeartbeatConfig } from "./heartbeat-writer";
+import { PeriodicWriteScheduler } from "./periodic-write-scheduler";
+import type { PeriodicWriteConfig } from "@gd-monorepo/shared-types";
 import { resolveWritePolicies } from "./write-policy";
 import type { WritePolicy } from "./write-policy";
 import {
@@ -54,8 +54,8 @@ interface DeviceEntry {
   alarms?: DeviceAlarmRule[];
   /** Yazma politikası (opt-in) — `name → {deadband, maxStaleMs}`; yoksa always-write. */
   writePolicy?: Map<string, WritePolicy>;
-  /** Periyodik heartbeat yazımı (LGES BSC 40000) — yoksa yazım yapılmaz. */
-  heartbeat?: HeartbeatConfig;
+  /** Periyodik yazımlar (BSC heartbeat, PCS keepalive) — yoksa yazım yapılmaz. */
+  periodicWrites?: PeriodicWriteConfig[];
 }
 
 const CREATE_DEVICES_TABLE = `
@@ -118,7 +118,7 @@ export class DeviceService {
   private readonly alarmRepository: AlarmStateRepository | undefined;
   private readonly ops: OpsLog;
   private readonly writeFilter: TelemetryWriteFilter;
-  private readonly heartbeats: Map<string, HeartbeatWriter>;
+  private readonly periodicWriters: PeriodicWriteScheduler[];
 
   constructor(
     devices: DeviceEntry[],
@@ -144,7 +144,7 @@ export class DeviceService {
     this.alarmDetector = new AlarmTransitionDetector();
     this.alarmRepository = sql ? new AlarmStateRepository(sql) : undefined;
     this.writeFilter = new TelemetryWriteFilter();
-    this.heartbeats = new Map();
+    this.periodicWriters = [];
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
@@ -203,7 +203,7 @@ export class DeviceService {
           configConnection: c.connection,
           alarms: c.alarms,
           writePolicy: resolveWritePolicies(c.telemetry),
-          heartbeat: c.heartbeat,
+          periodicWrites: c.periodicWrites,
         },
       ];
 
@@ -354,22 +354,24 @@ export class DeviceService {
       { concurrency: 10, stalledInterval: WORKER_STALLED_INTERVAL_MS },
     );
 
-    // Heartbeat yazıcıları (config-driven — örn. LGES BSC 40000): cihaz bağlandıktan
+    // Periyodik yazımlar (config-driven — örn. LGES BSC 40000): cihaz bağlandıktan
     // sonra başlar; durdurma `stop()`'ta. Yazılmazsa BSC ~20 sn'de rack'leri açar.
     for (const entry of entries) {
-      if (!entry.heartbeat) continue;
-      const writer = new HeartbeatWriter(
-        entry.device,
-        entry.device.id,
-        entry.heartbeat,
-        (error) =>
-          this.ops.warn("Heartbeat yazim hatasi", {
-            deviceId: entry.device.id,
-            error: String(error),
-          }),
-      );
-      writer.start();
-      this.heartbeats.set(entry.device.id, writer);
+      for (const config of entry.periodicWrites ?? []) {
+        const writer = new PeriodicWriteScheduler(
+          entry.device,
+          entry.device.id,
+          config,
+          (error) =>
+            this.ops.warn("Periyodik yazim hatasi", {
+              deviceId: entry.device.id,
+              point: config.point,
+              error: String(error),
+            }),
+        );
+        writer.start();
+        this.periodicWriters.push(writer);
+      }
     }
 
     this.ops.info(`${this.devices.size} cihaz baslatildi`);
@@ -378,8 +380,8 @@ export class DeviceService {
   async stop(): Promise<void> {
     this.running = false;
 
-    for (const writer of this.heartbeats.values()) writer.stop();
-    this.heartbeats.clear();
+    for (const writer of this.periodicWriters) writer.stop();
+    this.periodicWriters.length = 0;
 
     const disconnectPromises = Array.from(this.devices.values()).map(
       async (entry) => {

@@ -40,6 +40,7 @@ function makeTimescale(overrides: Partial<ITimeseriesDatabase> = {}): ITimeserie
     getDownsampledData: vi.fn().mockResolvedValue([]),
     getLatest: vi.fn(),
     getLatestN: vi.fn().mockResolvedValue([{ deviceId: "bsc-1", name: "Voltage" }]),
+    getLatestPerName: vi.fn().mockResolvedValue([]),
     listDevices: vi.fn(),
     runRetention: vi.fn(),
     executeRaw: vi.fn().mockResolvedValue({ rows: [{ name: "Voltage" }] }),
@@ -169,6 +170,25 @@ describe("unified-routes (T0.6)", () => {
     } finally {
       warn.mockRestore();
     }
+  });
+
+  it("GET /telemetry/latest — sessiz sinyal (N satır penceresi dışında) isimle eklenir", async () => {
+    const timescale = makeTimescale({
+      getLatestN: vi.fn().mockResolvedValue([
+        { deviceId: "bsc-1", name: "Voltage", value: 1300, timestamp: "2026-11-13T10:00:00Z" },
+      ]),
+      getLatestPerName: vi.fn().mockResolvedValue([
+        { deviceId: "bsc-1", name: "BSC SOH", value: 98, timestamp: "2026-11-13T09:59:00Z" },
+      ]),
+    });
+    const app = await buildApp({ timescale });
+    const res = await app.inject({ method: "GET", url: "/api/unified/telemetry/latest" });
+    expect(res.statusCode).toBe(200);
+    const names = (res.json() as { telemetries: Array<{ name: string }> }).telemetries.map(
+      (t) => t.name,
+    );
+    expect(names).toContain("Voltage");
+    expect(names).toContain("BSC SOH");
   });
 
   it("GET /telemetry/downsampled — from/to yoksa 400", async () => {

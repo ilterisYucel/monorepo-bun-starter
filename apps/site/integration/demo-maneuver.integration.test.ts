@@ -57,8 +57,11 @@ async function api(path: string, init: RequestInit = {}) {
 type Row = { deviceId: string; name: string; value: unknown; tags?: Record<string, string> };
 async function containerRows(): Promise<Row[]> {
   const { body } = await api(`/api/fields/${fieldId}/containers`);
-  const containers = body as Array<{ latestTelemetry?: Row[] }>;
-  return containers?.[0]?.latestTelemetry ?? [];
+  // Dizi sırası GARANTİ DEĞİL (field birden fazla konteyner döndürür);
+  // index 0'a güvenmek yanlış konteynerin BSC'sini okur → containerId ile seç.
+  const containers = body as Array<{ containerId?: string; latestTelemetry?: Row[] }>;
+  const target = containers.find((c) => c.containerId === "container-1") ?? containers[0];
+  return target?.latestTelemetry ?? [];
 }
 async function bscSoc(): Promise<number> {
   const r = (await containerRows()).find((x) => x.deviceId === "BSC-1" && x.name === "BSC SOC");
@@ -78,6 +81,19 @@ async function pcsPowerKw(): Promise<number> {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Koşul sağlanana kadar bekler (202 = operasyon arka planda sürer; `charge`
+ * artık `bsc_prepare` (~20 s) içerdiği için sabit bekleme yarışıyor).
+ */
+async function waitUntil(check: () => Promise<boolean>, timeoutMs: number): Promise<boolean> {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    if (await check()) return true;
+    await sleep(2000);
+  }
+  return false;
+}
 
 async function exec(op: string, body: Record<string, unknown> = {}) {
   return api(`/api/operations/${op}/execute`, {
@@ -149,7 +165,13 @@ beforeAll(async () => {
       bscCommand("BSC-1", "start"),
       bscCommand("BSC-2", "start"),
     ]);
-    await sleep(4000);
+    // Sim-Lab: Initializing (~N×1.5 s + 6 s) → Normal; sonra kontaktör kapatma.
+    await sleep(25_000);
+    await Promise.all([
+      bscCommand("BSC-1", "close_contactors"),
+      bscCommand("BSC-2", "close_contactors"),
+    ]);
+    await sleep(8_000);
   }
 });
 
@@ -172,14 +194,16 @@ describe("powerKw fiziksel zincire yayılır (Q1)", () => {
     const exec1 = await exec("charge", { params: { powerKw: 300 }, deviceIds: ["PCS-1", "PCS-2"] });
     expect([200, 202]).toContain(exec1.status);
     let after = before;
-    for (let i = 0; i < 15; i++) {
-      await sleep(1500);
+    // 300 kW → ~0.17 %SOC/dakika; operasyon (bsc_prepare ~20 s) + telemetri
+    // gecikmesi sabit beklemeyle yarışıyor → koşul polling'i.
+    for (let i = 0; i < 45; i++) {
+      await sleep(2000);
       after = await bscSoc();
-      if (after > before + 0.2) break;
+      if (after > before) break;
     }
     expect(after).toBeGreaterThan(before);
     await standby();
-  }, 90_000);
+  }, 180_000);
 });
 
 describe("şarj/deşarj fiziksel etki (AK-10.4)", () => {
@@ -195,11 +219,11 @@ describe("şarj/deşarj fiziksel etki (AK-10.4)", () => {
 
   it("SIM-1: charge sonrası BSC şarj modu latch'lenir (ChargeStatus=1, komut kutusu 0)", async () => {
     await exec("charge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
-    await sleep(15000);
-    // Komut kutusu (40010) finalize ile 0'a döner ama sim yürütmeye devam etmeli.
-    expect(await bscChargeStatus()).toBe(1);
+    // ChargeStatus BSC akımının yönünden türetilir → PCS rampası beklenir.
+    const charging = await waitUntil(async () => (await bscChargeStatus()) === 1, 60_000);
+    expect(charging).toBe(true);
     await standby();
-  }, 90_000);
+  }, 150_000);
 
   it("discharge → PCS gücü pozitif", async () => {
     const exec1 = await exec("discharge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
@@ -211,10 +235,10 @@ describe("şarj/deşarj fiziksel etki (AK-10.4)", () => {
 
   it("SIM-1: discharge sonrası BSC deşarj modu latch'lenir (ChargeStatus=2)", async () => {
     await exec("discharge", { params: { powerKw: 200 }, deviceIds: ["PCS-1", "PCS-2"] });
-    await sleep(15000);
-    expect(await bscChargeStatus()).toBe(2);
+    const discharging = await waitUntil(async () => (await bscChargeStatus()) === 2, 60_000);
+    expect(discharging).toBe(true);
     await standby();
-  }, 90_000);
+  }, 150_000);
 
   it("full_charge / full_discharge operasyonları tamamlanır", async () => {
     expect([200, 202]).toContain(

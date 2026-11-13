@@ -34,6 +34,7 @@ beforeAll(async () => {
   resetRuleEngine();
   fieldToken = await login(FIELD_URL);
   containerToken = await login(CONTAINER_URL);
+  await normalizeContainer(containerToken);
   await sleep(6000);
 });
 
@@ -197,11 +198,12 @@ describe("F2.6 — yangın C&E ve IMD eşiği", () => {
   it(
     "Yangın (Fire DI) → BSC Emergency + HVAC force_off",
     async () => {
-      // Kenar sıfırlama
-      await inject(CONTAINER_INJECT_URL, "CONTROL-PANEL-IO-1", "nominal");
-      await command("BSC-1", "stop");
-      await command("BSC-2", "stop");
-      await sleep(6000);
+      // Kenar sıfırlama + ön koşul: BSC Normal olmalı — EMERGENCY yalnız
+      // Normal/NPS/Manual'den kabul edilir (Rev AF ack tablosu); durmuş/emergency
+      // BSC'de kural aksiyonu reddedilir. `normalizeContainer` yangın bitini de
+      // nominal'e çeker (kenar 1→0→1).
+      await normalizeContainer(containerToken);
+      await sleep(3000);
       expect(await inject(CONTAINER_INJECT_URL, "CONTROL-PANEL-IO-1", "fire")).toBe(true);
       const ok = await waitFor(async () => (await deviceValue("BSC-1", "BSC State")) === 6, 25000); // EMERGENCY
       expect(ok).toBe(true);
@@ -209,7 +211,7 @@ describe("F2.6 — yangın C&E ve IMD eşiği", () => {
       await command("BSC-1", "stop");
       await command("BSC-2", "stop");
     },
-    60_000,
+    120_000,
   );
 
   it(

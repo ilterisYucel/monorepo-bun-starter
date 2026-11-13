@@ -6,20 +6,16 @@
   "protocol": "MODBUS",
   "type": "imd",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15536,
+    "host": "sim-lab",
+    "port": 20052,
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "imd"
-  },
   "telemetry": [
     {
       "name": "Insulation Resistance",
-      "description": "İzolasyon direnci (Ω)",
-      "unit": "Ω",
+      "description": "\u0130zolasyon direnci (\u03a9)",
+      "unit": "\u03a9",
       "protocol": "MODBUS",
       "registerAddress": 8192,
       "registerTableType": "HOLDING_REGISTER",
@@ -31,7 +27,7 @@
     },
     {
       "name": "Insulation Prewarning",
-      "description": "Ön uyarı (0 OK / 4 Warning)",
+      "description": "\u00d6n uyar\u0131 (0 OK / 4 Warning)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8196,
@@ -44,7 +40,7 @@
     },
     {
       "name": "Insulation Alarm",
-      "description": "İzolasyon alarmı (0 OK / 4 Warning)",
+      "description": "\u0130zolasyon alarm\u0131 (0 OK / 4 Warning)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8197,
@@ -57,7 +53,7 @@
     },
     {
       "name": "Device Error",
-      "description": "Cihaz hatası (0 yok / >0 kod)",
+      "description": "Cihaz hatas\u0131 (0 yok / >0 kod)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8206,
@@ -73,12 +69,12 @@
     {
       "telemetry": "Insulation Alarm",
       "severity": "error",
-      "description": "İzolasyon değeri ideal değil (FL-11)"
+      "description": "\u0130zolasyon de\u011feri ideal de\u011fil (FL-11)"
     },
     {
       "telemetry": "Device Error",
       "severity": "error",
-      "description": "IMD cihaz hatası"
+      "description": "IMD cihaz hatas\u0131"
     }
   ]
 }

@@ -1,0 +1,185 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`eşdeğerlik harness'i — sözleşme > sekans verisi sabittir (eşdeğerlik sözleşmesi — snapshot) 1`] = `
+[
+  {
+    "address": 30036,
+    "note": "BSC State (başlangıç)",
+    "op": "read",
+  },
+  {
+    "address": 40010,
+    "note": "START",
+    "op": "write",
+    "value": 2,
+  },
+  {
+    "op": "advance",
+    "seconds": 10,
+  },
+  {
+    "address": 30030,
+    "note": "Request Acknowledge",
+    "op": "read",
+  },
+  {
+    "address": 30036,
+    "note": "BSC State (Normal)",
+    "op": "read",
+  },
+  {
+    "address": 40010,
+    "note": "CLOSE CONTACTORS",
+    "op": "write",
+    "value": 5,
+  },
+  {
+    "op": "advance",
+    "seconds": 8,
+  },
+  {
+    "address": 30038,
+    "note": "Online rack sayısı",
+    "op": "read",
+  },
+  {
+    "address": 30055,
+    "note": "BSC SOC (×100)",
+    "op": "read",
+  },
+  {
+    "address": 40010,
+    "note": "STOP",
+    "op": "write",
+    "value": 3,
+  },
+  {
+    "op": "advance",
+    "seconds": 2,
+  },
+  {
+    "address": 30036,
+    "note": "BSC State (durdurulmuş)",
+    "op": "read",
+  },
+]
+`;
+
+exports[`eşdeğerlik harness'i — sözleşme > sekans verisi sabittir (eşdeğerlik sözleşmesi — snapshot) 2`] = `
+[
+  {
+    "address": 3584,
+    "note": "Command Source = EMS (S01)",
+    "op": "write",
+    "value": 1,
+  },
+  {
+    "address": 12157,
+    "note": "Operation Status (başlangıç)",
+    "op": "read",
+  },
+  {
+    "address": 3604,
+    "note": "START",
+    "op": "write",
+    "value": 1,
+  },
+  {
+    "op": "advance",
+    "seconds": 6,
+  },
+  {
+    "address": 3609,
+    "note": "Active Power Setpoint −50 kW (şarj)",
+    "op": "write",
+    "value": -50,
+  },
+  {
+    "op": "advance",
+    "seconds": 4,
+  },
+  {
+    "address": 12157,
+    "note": "Operation Status (çalışıyor)",
+    "op": "read",
+  },
+  {
+    "address": 12158,
+    "note": "Grid Active Power",
+    "op": "read",
+  },
+  {
+    "address": 3607,
+    "note": "STANDBY",
+    "op": "write",
+    "value": 1,
+  },
+  {
+    "op": "advance",
+    "seconds": 4,
+  },
+  {
+    "address": 12157,
+    "note": "Operation Status (standby)",
+    "op": "read",
+  },
+]
+`;
+
+exports[`eşdeğerlik harness'i — sözleşme > sekans verisi sabittir (eşdeğerlik sözleşmesi — snapshot) 3`] = `
+[
+  {
+    "address": 514,
+    "note": "Remote On/Off (başlangıç)",
+    "op": "read",
+  },
+  {
+    "address": 514,
+    "note": "AÇ",
+    "op": "write",
+    "value": 1,
+  },
+  {
+    "address": 8192,
+    "note": "Server Temp Max 32.0 °C",
+    "op": "write",
+    "value": 320,
+  },
+  {
+    "address": 8193,
+    "note": "Server Temp Min 25.0 °C",
+    "op": "write",
+    "value": 250,
+  },
+  {
+    "op": "advance",
+    "seconds": 20,
+  },
+  {
+    "address": 514,
+    "note": "Remote On/Off (açık)",
+    "op": "read",
+  },
+  {
+    "address": 768,
+    "note": "High Temp alarm",
+    "op": "read",
+    "table": "input",
+  },
+  {
+    "address": 514,
+    "note": "KAPAT",
+    "op": "write",
+    "value": 2,
+  },
+  {
+    "op": "advance",
+    "seconds": 4,
+  },
+  {
+    "address": 514,
+    "note": "Remote On/Off (kapalı)",
+    "op": "read",
+  },
+]
+`;

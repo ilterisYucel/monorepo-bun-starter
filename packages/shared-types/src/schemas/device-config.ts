@@ -70,20 +70,8 @@ const telemetryListSchema = z
     }
   });
 
-const simulatorConfigSchema = z.object({
-  type: z.enum(["bsc", "hvac", "xrack", "cb", "dc-output", "dc-meter", "energy-analyzer", "wattox-pcs"]),
-  rackCount: z.number().int().positive().optional(),
-  registerMap: z.string().optional(),
-  pcsCount: z.number().int().positive().optional(),
-});
-
 const deviceTransportConfigSchema = z.object({
-  kind: z.enum(["tcp", "rtu", "simulator"]),
-  type: z.string().min(1).optional(),
-  registerMap: z.string().optional(),
-  pcsCount: z.number().int().positive().optional(),
-  // Wattox PCS simülatörü BMS port sunucu portu (BSC-PCS-CONNECTOR-MIMARISI.md T-C2)
-  bmsPort: z.number().int().positive().optional(),
+  kind: z.enum(["tcp", "rtu"]),
 });
 
 const connectorDeviceSubsetSchema = z.object({
@@ -95,39 +83,28 @@ const connectorDeviceSubsetSchema = z.object({
   telemetry: telemetryListSchema,
 });
 
-const connectorSimSubsetSchema = z.object({
-  registerMap: z.string().min(1),
-  target: z
-    .object({
-      host: z.string().optional(),
-      port: z.number().int().positive().optional(),
-    })
-    .optional(),
-  intervalMs: z.number().int().positive().optional(),
-  pcsSources: z
-    .array(
-      z.object({
-        deviceId: z.string().min(1),
-        host: z.string().min(1),
-        port: z.number().int().positive(),
-        unitId: z.number().int().positive().optional(),
-      }),
-    )
-    .optional(),
-  powerScale: z.number().positive().optional(),
-});
-
 const connectorConfigSchema = z.object({
   device: connectorDeviceSubsetSchema,
-  sim: connectorSimSubsetSchema.optional(),
 });
 
-/** Periyodik heartbeat yazımı (LGES BSC 40000) — holding telemetri adı + aralık. */
-const deviceHeartbeatSchema = z.object({
-  telemetry: z.string().min(1),
-  intervalMs: z.number().int().positive(),
-  extraTelemetries: z.array(z.string()).optional(),
-});
+/** Periyodik yazım — genel amaçlı (BSC heartbeat, PCS keepalive vb.). */
+const periodicWriteSchema = z
+  .object({
+    point: z.string().min(1),
+    intervalMs: z.number().int().positive(),
+    mode: z.enum(["counter", "fixed"]),
+    value: z.number().int().min(0).max(65535).optional(),
+    extraPoints: z.array(z.string()).optional(),
+  })
+  .superRefine((cfg, ctx) => {
+    if (cfg.mode === "fixed" && cfg.value === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'mode: "fixed" için value zorunlu',
+        path: ["value"],
+      });
+    }
+  });
 
 export const bitfieldFieldSchema = z.object({
   bitStart: z.number().int().min(0).max(15),
@@ -176,7 +153,7 @@ export const deviceConfigFileSchema = z
     pollIntervalMs: z.number().int().positive().optional(),
     transport: deviceTransportConfigSchema.optional(),
     connector: connectorConfigSchema.optional(),
-    heartbeat: deviceHeartbeatSchema.optional(),
+    periodicWrites: z.array(periodicWriteSchema).optional(),
   })
   .superRefine((cfg, ctx) => {
     // Kimlik çakışması (K4, jenerik): ayrım tag'i OLMAYAN bitfield alanı register telemetri

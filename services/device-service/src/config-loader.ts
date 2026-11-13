@@ -47,6 +47,7 @@ export class DeviceConfigLoader {
         service = validateOrThrow<ServiceConfigFile>(serviceConfigFileSchema, parsed, `Dosya: ${entry}`);
         this.ops.info(`Global servis konfigurasyonu: ${entry}`);
       } else {
+        this.assertNoSimulatorSurface(parsed, entry);
         const deviceConfig = validateOrThrow<DeviceConfigFile>(deviceConfigFileSchema, parsed, `Dosya: ${entry}`);
         devices.push(deviceConfig);
         this.ops.info(`Cihaz konfigurasyonu: ${entry} -> ${deviceConfig.deviceId}`);
@@ -59,6 +60,35 @@ export class DeviceConfigLoader {
 
     this.ops.info(`${devices.length} cihaz, 1 servis konfigurasyonu yuklendi`);
     return { service, devices };
+  }
+
+  /**
+   * Simülatör-only alanlar kalmış config'i fail-fast reddeder (K2).
+   * Bayat config sessizce yok sayılmaz: dosya + deviceId ile hata verilir.
+   */
+  private assertNoSimulatorSurface(parsed: object, file: string): void {
+    const raw = parsed as {
+      deviceId?: unknown;
+      transport?: { kind?: unknown };
+      connector?: { sim?: unknown };
+      heartbeat?: unknown;
+    };
+    const deviceId = typeof raw.deviceId === "string" ? raw.deviceId : "?";
+    if (raw.transport?.kind === "simulator") {
+      throw new Error(
+        `[DeviceConfigLoader] transport.kind "simulator" artık desteklenmiyor (Dosya: ${file}, deviceId: ${deviceId}) — Sim-Lab ayrı servistir`,
+      );
+    }
+    if (raw.connector?.sim !== undefined) {
+      throw new Error(
+        `[DeviceConfigLoader] connector.sim artık desteklenmiyor (Dosya: ${file}, deviceId: ${deviceId}) — BSC→PCS aktarımını Sim-Lab yapar`,
+      );
+    }
+    if (raw.heartbeat !== undefined) {
+      throw new Error(
+        `[DeviceConfigLoader] heartbeat alanı kaldırıldı (Dosya: ${file}, deviceId: ${deviceId}) — periodicWrites kullanın`,
+      );
+    }
   }
 
   private parseFile(content: string, ext: string): object {

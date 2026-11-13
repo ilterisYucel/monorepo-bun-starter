@@ -1,13 +1,13 @@
 {
   "deviceId": "DEMO-MV-1",
-  "name": "Demo OG Köşk #1",
+  "name": "Demo OG K\u00f6\u015fk #1",
   "manufacturer": "Generic",
   "model": "MV-Station-Demo",
   "protocol": "MODBUS",
   "type": "demo-mv-station",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15540,
+    "host": "sim-lab",
+    "port": 30201,
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
@@ -27,7 +27,7 @@
     },
     {
       "name": "H02 Breaker",
-      "description": "H02 ayırıcı pozisyonu",
+      "description": "H02 ay\u0131r\u0131c\u0131 pozisyonu",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -66,7 +66,7 @@
     },
     {
       "name": "H01 Earth",
-      "description": "H01 toprak ayırıcısı",
+      "description": "H01 toprak ay\u0131r\u0131c\u0131s\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 4,
@@ -79,7 +79,7 @@
     },
     {
       "name": "H04 Earth",
-      "description": "H04 toprak ayırıcısı",
+      "description": "H04 toprak ay\u0131r\u0131c\u0131s\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 5,
@@ -92,7 +92,7 @@
     },
     {
       "name": "H05 Earth",
-      "description": "H05 toprak ayırıcısı",
+      "description": "H05 toprak ay\u0131r\u0131c\u0131s\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 6,
@@ -131,7 +131,7 @@
     },
     {
       "name": "H01 Open",
-      "description": "H01 aç coil",
+      "description": "H01 a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -157,7 +157,7 @@
     },
     {
       "name": "H02 Open",
-      "description": "H02 aç coil",
+      "description": "H02 a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 2,
@@ -183,7 +183,7 @@
     },
     {
       "name": "H04 Open",
-      "description": "H04 aç coil",
+      "description": "H04 a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 4,
@@ -209,7 +209,7 @@
     },
     {
       "name": "H05 Open",
-      "description": "H05 aç coil",
+      "description": "H05 a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 6,
@@ -248,7 +248,7 @@
     },
     {
       "name": "H01 Earth Open",
-      "description": "H01 toprak aç coil",
+      "description": "H01 toprak a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8,
@@ -274,7 +274,7 @@
     },
     {
       "name": "H04 Earth Open",
-      "description": "H04 toprak aç coil",
+      "description": "H04 toprak a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 10,
@@ -300,7 +300,7 @@
     },
     {
       "name": "H05 Earth Open",
-      "description": "H05 toprak aç coil",
+      "description": "H05 toprak a\u00e7 coil",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 12,
@@ -314,7 +314,7 @@
   ],
   "commands": {
     "H01_open": {
-      "label": "H01 kesici aç",
+      "label": "H01 kesici a\u00e7",
       "telemetries": [
         {
           "name": "H01 Open",
@@ -350,7 +350,7 @@
       }
     },
     "H02_open": {
-      "label": "H02 ayırıcı aç",
+      "label": "H02 ay\u0131r\u0131c\u0131 a\u00e7",
       "telemetries": [
         {
           "name": "H02 Open",
@@ -368,7 +368,7 @@
       }
     },
     "H02_close": {
-      "label": "H02 ayırıcı kapat",
+      "label": "H02 ay\u0131r\u0131c\u0131 kapat",
       "telemetries": [
         {
           "name": "H02 Close",
@@ -386,7 +386,7 @@
       }
     },
     "H04_open": {
-      "label": "H04 kesici aç",
+      "label": "H04 kesici a\u00e7",
       "telemetries": [
         {
           "name": "H04 Open",
@@ -422,7 +422,7 @@
       }
     },
     "H04_earth_close": {
-      "label": "H04 toprağı kapat",
+      "label": "H04 topra\u011f\u0131 kapat",
       "telemetries": [
         {
           "name": "H04 Earth Close",
@@ -440,7 +440,7 @@
       }
     },
     "H04_earth_open": {
-      "label": "H04 toprağı aç",
+      "label": "H04 topra\u011f\u0131 a\u00e7",
       "telemetries": [
         {
           "name": "H04 Earth Open",
@@ -458,7 +458,7 @@
       }
     },
     "H05_open": {
-      "label": "H05 kesici aç",
+      "label": "H05 kesici a\u00e7",
       "telemetries": [
         {
           "name": "H05 Open",
@@ -494,7 +494,7 @@
       }
     },
     "H05_earth_close": {
-      "label": "H05 toprağı kapat",
+      "label": "H05 topra\u011f\u0131 kapat",
       "telemetries": [
         {
           "name": "H05 Earth Close",
@@ -512,7 +512,7 @@
       }
     },
     "H05_earth_open": {
-      "label": "H05 toprağı aç",
+      "label": "H05 topra\u011f\u0131 a\u00e7",
       "telemetries": [
         {
           "name": "H05 Earth Open",
@@ -530,7 +530,7 @@
       }
     },
     "H01_earth_open": {
-      "label": "H01 toprağı aç",
+      "label": "H01 topra\u011f\u0131 a\u00e7",
       "telemetries": [
         {
           "name": "H01 Earth Open",
@@ -548,7 +548,7 @@
       }
     },
     "H01_earth_close": {
-      "label": "H01 toprağı kapat (kilitli)",
+      "label": "H01 topra\u011f\u0131 kapat (kilitli)",
       "telemetries": [
         {
           "name": "H01 Earth Close",
@@ -565,9 +565,5 @@
         ]
       }
     }
-  },
-  "transport": {
-    "kind": "simulator",
-    "type": "demo-mv-station"
   }
 }

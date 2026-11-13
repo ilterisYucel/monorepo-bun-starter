@@ -1,9 +1,16 @@
 import { defineConfig } from "vitest/config";
+import { existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = resolve(__dirname, "../..");
+/** Workspace kökü — Stryker sandbox'ında da çalışır: `bun.lock` bulunana kadar yukarı yürünür. */
+const findWorkspaceRoot = (start: string): string => {
+  let dir = start;
+  while (!existsSync(resolve(dir, "bun.lock")) && dir !== dirname(dir)) dir = dirname(dir);
+  return dir;
+};
+const workspaceRoot = findWorkspaceRoot(__dirname);
 
 export default defineConfig({
   resolve: {

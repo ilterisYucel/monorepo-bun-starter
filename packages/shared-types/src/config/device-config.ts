@@ -44,26 +44,11 @@ export type TelemetryConfigEntry = (
 /**
  * Cihaz taşıma katmanı seçimi (cihaz konfig dosyası içinde).
  * - kind: "tcp" | "rtu" → gerçek Modbus bağlantısı (connection alanından beslenir)
- * - kind: "simulator" → simülatör transport'u (type: simülatör tipi)
- * Yoksa varsayılan "tcp" kabul edilir.
+ * Yoksa varsayılan "tcp" kabul edilir. Simülatör dalı YOKTUR (device-service
+ * yalnız istemcidir — SPEC DEVICE-SERVICE-SADELESTIRME K1).
  */
 export interface DeviceTransportConfig {
-  kind: "tcp" | "rtu" | "simulator";
-  /** Simülatör tipi (kind === "simulator" iken zorunlu) */
-  type?: string;
-  registerMap?: string;
-  pcsCount?: number;
-  /** Wattox PCS simülatörü BMS port sunucu portu (yalnızca wattox-pcs + simulator) */
-  bmsPort?: number;
-}
-
-/** Simülatör konfigürasyonu (cihaz konfig dosyası içinde) */
-export interface SimulatorConfig {
-  type: "bsc" | "hvac" | "xrack" | "cb" | "dc-output" | "dc-meter" | "energy-analyzer" | "wattox-pcs";
-  rackCount?: number;
-  registerMap?: string;
-  pcsCount?: number;
-  bmsPort?: number;
+  kind: "tcp" | "rtu";
 }
 
 /** Connector device-subset — device-service'in gördüğü türetilmiş MODBUS cihazı. */
@@ -76,29 +61,9 @@ export interface ConnectorDeviceSubset {
   telemetry: TelemetryConfigEntry[];
 }
 
-/** PCS güç kaynağı endpoint'i — connector ters kanalı (S16 okuma). */
-export interface PcsPowerSource {
-  deviceId: string;
-  host: string;
-  port: number;
-  unitId?: number;
-}
-
-/** Connector sim-subset — yalnız SimulatorHost'un okuduğu sim tarafı. */
-export interface ConnectorSimSubset {
-  registerMap: string;
-  target?: { host?: string; port?: number };
-  intervalMs?: number;
-  /** Ters kanal: PCS EMS S16 → BSC güç girdisi (opsiyonel). */
-  pcsSources?: PcsPowerSource[];
-  /** Ters kanal güç ölçeği (okunan toplam × scale). Demo: 9 (istasyon ölçeği). */
-  powerScale?: number;
-}
-
-/** BSC config'i içindeki `connector` bölümü (BSC→PCS link simülasyonu). */
+/** BSC config'i içindeki `connector` bölümü (connector izleme cihazı). */
 export interface ConnectorConfig {
   device: ConnectorDeviceSubset;
-  sim?: ConnectorSimSubset;
 }
 
 /**
@@ -127,19 +92,23 @@ export interface DeviceConfigFile {
   connector?: ConnectorConfig;
   commands?: Record<string, CommandConfig>;
   /**
-   * Periyodik heartbeat yazımı (örn. LGES BSC 40000 Controller Heartbeat — 1 sn).
-   * Değer her `intervalMs`'de artan sayaçtır (0-255 döngü); yazılmazsa BSC
-   * 20 sn sonra S-C LOC ile tüm rack kontaktörlerini açar.
+   * Periyodik yazımlar — genel amaçlı (örn. LGES BSC 40000 Controller Heartbeat).
+   * `counter` her yazımda 0–255 döner; `fixed` sabit değer yazar.
+   * Yazılmazsa BSC 20 sn sonra S-C LOC ile tüm rack kontaktörlerini açar.
    */
-  heartbeat?: DeviceHeartbeatConfig;
+  periodicWrites?: PeriodicWriteConfig[];
 }
 
-/** Heartbeat yazım yapılandırması — holding telemetri adı + aralık. */
-export interface DeviceHeartbeatConfig {
+/** Periyodik yazım yapılandırması — nokta adı + aralık + mod. */
+export interface PeriodicWriteConfig {
   /** Holding telemetri adı (config telemetry[]'de HOLDING_REGISTER olmalı). */
-  telemetry: string;
-  /** Yazım aralığı (ms) — doküman: 1 sn. */
+  point: string;
+  /** Yazım aralığı (ms) — heartbeat için doküman: 1 sn. */
   intervalMs: number;
-  /** Ek heartbeat telemetrileri (40001–40009 — C2B 1 s güncelleme şartı). */
-  extraTelemetries?: string[];
+  /** "counter": 0–255 artan sayaç · "fixed": `value` sabit yazılır. */
+  mode: "counter" | "fixed";
+  /** `mode: "fixed"` için yazılacak değer (0–65535). */
+  value?: number;
+  /** Aynı değerle yazılacak ek telemetriler (40001–40009 — C2B 1 s güncelleme şartı). */
+  extraPoints?: string[];
 }

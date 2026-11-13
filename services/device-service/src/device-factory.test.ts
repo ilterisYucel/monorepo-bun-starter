@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
+import { createServer } from "node:net";
+import type { Server, Socket } from "node:net";
 import { DeviceFactory } from "./device-factory";
-import { DcMeterSimulator } from "@gd-monorepo/simulators";
 import type { DeviceConfigFile, ModbusTelemetryData } from "@gd-monorepo/shared-types";
 
 /** Config girdisi (runtime value/timestamp/deviceId hariç) — literal'ların
@@ -35,7 +36,54 @@ function makeConfig(overrides: Partial<DeviceConfigFile>): DeviceConfigFile {
   };
 }
 
-let sim: DcMeterSimulator | undefined;
+/**
+ * Minimal Modbus TCP sunucusu (yalnız FC03/FC04) — device-service testlerinin
+ * simülatör paketine bağımlı olmaması için (SPEC DEVICE-SERVICE-SADELESTIRME K1).
+ */
+class FakeModbusServer {
+  private server: Server | undefined;
+  private readonly registers: number[];
+
+  constructor(registers: number[]) {
+    this.registers = registers;
+  }
+
+  async start(): Promise<number> {
+    this.server = createServer((socket: Socket) => {
+      socket.on("data", (buf: Buffer) => {
+        const fc = buf[7] ?? 0;
+        if (fc !== 3 && fc !== 4) return;
+        const unitId = buf[6] ?? 0;
+        const start = buf.readUInt16BE(8);
+        const qty = buf.readUInt16BE(10);
+        const values = Array.from({ length: qty }, (_, i) => this.registers[start + i] ?? 0);
+        const response = Buffer.alloc(9 + values.length * 2);
+        buf.copy(response, 0, 0, 2); // transaction id
+        response.writeUInt16BE(0, 2); // protocol id
+        response.writeUInt16BE(3 + values.length * 2, 4); // length
+        response[6] = unitId;
+        response[7] = fc;
+        response[8] = values.length * 2;
+        values.forEach((value, i) => response.writeUInt16BE(value, 9 + i * 2));
+        socket.write(response);
+      });
+    });
+    await new Promise<void>((resolve, reject) => {
+      this.server!.once("error", reject);
+      this.server!.listen(0, "127.0.0.1", () => resolve());
+    });
+    return (this.server!.address() as { port: number }).port;
+  }
+
+  async stop(): Promise<void> {
+    const server = this.server;
+    this.server = undefined;
+    if (server === undefined) return;
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+}
+
+let sim: FakeModbusServer | undefined;
 
 afterEach(async () => {
   await sim?.stop();
@@ -59,20 +107,13 @@ describe("DeviceFactory — transport seçimi (yalnız TCP/RTU)", () => {
     expect(device.id).toBe("PM-1");
   });
 
-  it("kind:'simulator' config yine TCP cihaz üretir (simulator dalı YOK)", () => {
-    const device = new DeviceFactory().create(
-      makeConfig({ deviceId: "PCS-1", transport: { kind: "simulator", type: "imd" } }),
-    );
-    expect(device.id).toBe("PCS-1");
-  });
-
   it("canonical alanı tags.canonical olarak taşınır (AGENTS MANDATORY sözleşmesi)", async () => {
-    sim = new DcMeterSimulator({ deviceId: "DCM-1", network: { host: "127.0.0.1", port: 0 } });
-    await sim.start();
+    sim = new FakeModbusServer([42]);
+    const port = await sim.start();
 
     const config = makeConfig({
       deviceId: "METER-CANON",
-      connection: { host: "127.0.0.1", port: sim.port(), slaveId: 1 },
+      connection: { host: "127.0.0.1", port, slaveId: 1 },
       telemetry: [
         {
           protocol: "MODBUS",
@@ -95,18 +136,19 @@ describe("DeviceFactory — transport seçimi (yalnız TCP/RTU)", () => {
       const results = await device.read();
       const canonicalRow = results.find((t) => t.name === "SocVoltaj");
       expect(canonicalRow?.tags?.canonical).toBe("voltage");
+      expect(Number(canonicalRow?.value)).toBe(42);
     } finally {
       await device.disconnect();
     }
   });
 
   it("canonical verilmeyen telemetride tags.canonical YOKTUR", async () => {
-    sim = new DcMeterSimulator({ deviceId: "DCM-1", network: { host: "127.0.0.1", port: 0 } });
-    await sim.start();
+    sim = new FakeModbusServer([1]);
+    const port = await sim.start();
 
     const config = makeConfig({
       deviceId: "METER-NOCANON",
-      connection: { host: "127.0.0.1", port: sim.port(), slaveId: 1 },
+      connection: { host: "127.0.0.1", port, slaveId: 1 },
     });
 
     const device = new DeviceFactory().create(config);

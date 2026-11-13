@@ -13,11 +13,11 @@ review_date: 2026-11-10
 
 ## 1. Amaç ve Bağlam
 
-`services/device-service` sözleşmesi: cihaz config yükleme + fabrika, polling/zamanlama, telemetri yayını, komut yürütme (read-back/pulse/finalize), telemetri yazma indirgeme (deadband), heartbeat, alarm üretimi, debug injector.
+`services/device-service` sözleşmesi: cihaz config yükleme + fabrika, polling/zamanlama, telemetri yayını, komut yürütme (read-back/pulse/finalize), telemetri yazma indirgeme (deadband), periyodik yazım (`periodicWrites`), alarm üretimi.
 
 | Katman | Kapsam |
 |:-------|:-------|
-| dahil | Cihaz üretimi, poll grid, 3 downstream job, komut hattı, indirgeme, heartbeat, debug ucu |
+| dahil | Cihaz üretimi, poll grid, 3 downstream job, komut hattı, indirgeme, periyodik yazım |
 | hariç | Cihaz protokolü (MODBUS), alarm çözme (WEB-SERVICE), kalıcılık (DATA-SERVICE) |
 
 ## 2. Kararlar (ZORUNLU — kullanıcı onaylı, tarihli)
@@ -31,7 +31,7 @@ review_date: 2026-11-10
 | K5 | Okuma hatası: 1× error + 60 sn'de 1 debug + `status='offline'`; online geçişte 1× info | Log seli yok |
 | K6 | Komut: `writeAtomic` → read-back (50 ms poll; timeout = BAŞARISIZ), `pulse` sıfırlama, `finalize` el sıkışma; `command_executed`/`command_rejected` audit **fail-closed** | Fiziksel komut güvenliği |
 | K7 | Telemetri indirgeme opt-in: `deadband` (+`"auto"`=scale) ve `maxStaleMs` zorunlu; CQS `select` saf, `markWritten` yalnız başarılı enqueue sonrası | State tutarlılığı |
-| K8 | Heartbeat config-driven (`telemetry`, `intervalMs`, `extraTelemetries`); hata `onError`'a (servis düşmez) | Donanım canlılığı |
+| K8 | Periyodik yazım config-driven (`point`, `intervalMs`, `mode`, `extraPoints`); hata `onError`'a (servis düşmez) | Donanım canlılığı |
 | K9 | Alarm üretimi geçiş-odaklı dedup + 3 katman; restart'ta bayat satırlar kapatılır (ayrıntı: TELEMETRI-ZINCIRI) | Log gürültüsü yok |
 | K10 | Debug injector yalnız `NODE_ENV!=="production"` + `DEBUG_INJECT_ENABLED==="true"` | Test ucu kapalı |
 | K11 | `devices` UPSERT + `details` opak JSONB (rack_count kolonu düşürüldü) | Şema esnekliği |
@@ -52,7 +52,7 @@ ConfigLoader ──► DeviceFactory ──► IDevice (ModbusDevice)
 DeviceScheduler ──► read ──► 3 job (WRITE_TELEMETRY / MANAGEMENT / WS_BROADCAST)
                     │
                     └─ COMMAND_DEVICE worker ──► writeAtomic + read-back + audit
-HeartbeatWriter ──► periyodik telemetri
+PeriodicWriteScheduler ──► periyodik telemetri
 AlarmTransitionDetector ──► device_alarms + TamperLogger
 ```
 
@@ -64,7 +64,7 @@ AlarmTransitionDetector ──► device_alarms + TamperLogger
 | `services/device-service/src/device-scheduler.ts#DeviceScheduler` | Zamanlama |
 | `services/device-service/src/device-factory.ts#DeviceFactory` | Cihaz üretimi |
 | `services/device-service/src/telemetry-write-filter.ts#TelemetryWriteFilter` | İndirgeme |
-| `services/device-service/src/heartbeat-writer.ts#HeartbeatWriter` | Heartbeat |
+| `services/device-service/src/periodic-write-scheduler.ts#PeriodicWriteScheduler` | Periyodik yazım |
 | `services/device-service/src/alarm-transition-detector.ts#AlarmTransitionDetector` | Alarm |
 | `services/device-service/src/debug-injector.ts#InjectionTarget` | Test ucu |
 
@@ -264,48 +264,58 @@ AlarmTransitionDetector ──► device_alarms + TamperLogger
 |:------|:-----------------|
 | `services/device-service/src/{telemetry-write-filter,write-policy,telemetry-tagger}.ts` | İndirgeme |
 
-### 6.5 UC-5 — Heartbeat
+### 6.5 UC-5 — Periyodik Yazım (periodicWrites)
 
-**Status:** ✏️ Specified (onay bekliyor)
+**Status:** ✅ Approved (2026-11-12 — revizyon: `DEVICE-SERVICE-SADELESTIRME-MIMARISI` UC-2 ile heartbeat genellemesi)
 
 **Kapsam:**
-- dahil: config-driven beat, sayaç dönüşü, hata kanalı
-- hariç: alarm (UC-6)
+- dahil: config-driven periyodik yazım (`periodicWrites[]`), `counter` (0–255 döngü) ve `fixed` modları, `point` + `extraPoints`, hata kanalı
+- hariç: alarm (UC-6), pulse/koşullu modlar (SADELESTIRME A2 — İleri İş)
 
 **Akış:**
-1. Config'teki telemetriye periyodik değer yazılır.
-2. Hata `onError`'a iletilir.
+1. Config'teki her `periodicWrites` girdisi için süreç içi bir zamanlayıcı kurulur.
+2. Her `intervalMs`'de `point` (+`extraPoints`) değeri yazılır; `counter` artar, `fixed` sabit değer yazar.
+3. Hata `onError`'a iletilir; sonraki periyot doğal retry'dır.
 
 **Gereksinimler (FR-x):**
 
 | Kod | Gereksinim | Eşleşme |
 |:----|:-----------|:--------|
 | FR-5.1 | Beat yazılamazsa servis düşmez, sonraki tick yeniden dener | AK-5.1 |
+| FR-5.2 | `counter` modu her yazımda artar ve 0–255 arasında döner | AK-5.2 |
+| FR-5.3 | `point` + `extraPoints` aynı değerle yazılır (40000–40009 kuralı) | AK-5.3 |
 
 **Kabul Senaryoları (GWT):**
 
 1. **AK-5.1 — GIVEN** yazma hatası **WHEN** tick çalışır **THEN** hata raporlanır, servis ayakta kalır
+2. **AK-5.2 — GIVEN** `mode: "counter"` **WHEN** 256 yazım yapılır **THEN** değerler 1'den 255'e artar ve 0'a döner
+3. **AK-5.3 — GIVEN** `extraPoints` dolu **WHEN** tick çalışır **THEN** tüm noktalar aynı değerle yazılır
 
 **Kabul Kriterleri:**
 
 | Kod | Kriter | Kanıt | Durum |
 |:----|:-------|:------|:------|
-| AK-5.1 | Dayanıklılık | unit (`heartbeat-writer.test.ts`) | ⬜ |
+| AK-5.1 | Dayanıklılık | unit (`periodic-write-scheduler.test.ts`) | ⬜ |
+| AK-5.2 | Sayaç döngüsü | unit (`periodic-write-scheduler.test.ts`) | ⬜ |
+| AK-5.3 | Ek noktalar | unit (`periodic-write-scheduler.test.ts`) | ⬜ |
 
 **T Görev Listesi:**
-- [ ] T-5: UC-5 kanıt testini eşleştir
+- [x] T-5: UC-5 kanıt testini eşleştir
 
 **Edge Cases:**
 
 | Durum | Davranış |
 |:------|:---------|
 | Sayaç 255 | 0'a döner |
+| `mode: "fixed"` ve `value` yok | Açılışta fail-fast (config hatası) |
+| `intervalMs` geçersiz | Açılışta fail-fast (config hatası) |
 
 **Involved Files:**
 
 | Dosya | Rol / Değişiklik |
 |:------|:-----------------|
-| `services/device-service/src/heartbeat-writer.ts` | Heartbeat |
+| `services/device-service/src/periodic-write-scheduler.ts` | Periyodik yazım (heartbeat genellemesi) |
+| `services/device-service/src/periodic-write-scheduler.test.ts` | UC-5 kanıtları |
 
 ### 6.6 UC-6 — Alarm Üretimi (referans)
 
@@ -399,7 +409,7 @@ AlarmTransitionDetector ──► device_alarms + TamperLogger
 |:------|:---------|
 | Okuma hatası | Offline + seyrek log |
 | Audit yazılamadı | Komut reddi |
-| Heartbeat hatası | Servis ayakta |
+| Periyodik yazım hatası | Servis ayakta |
 | Prod'da debug ucu | Kapalı |
 
 ## 8. Başarı Kriterleri (SC-x)
@@ -438,6 +448,6 @@ AlarmTransitionDetector ──► device_alarms + TamperLogger
 | T-2 | UC-2 (poll/zamanlama) kanıt testlerinin eşleştirilmesi |
 | T-3 | UC-3 (komut) kanıt testlerinin eşleştirilmesi |
 | T-4 | UC-4 (indirgeme) kanıt testlerinin eşleştirilmesi |
-| T-5 | UC-5 (heartbeat) kanıt testinin eşleştirilmesi |
+| T-5 | UC-5 (periodicWrites) kanıt testinin eşleştirilmesi |
 | T-6 | UC-6 (alarm) kanıt testinin eşleştirilmesi |
 | T-7 | UC-7 (debug) kanıt testinin eşleştirilmesi |

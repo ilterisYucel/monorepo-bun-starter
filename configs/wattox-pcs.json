@@ -3954,7 +3954,7 @@
           "value": 1
         }
       ],
-      "timeoutMs": 6000,
+      "timeoutMs": 30000,
       "validate": {
         "reads": [
           {
@@ -3963,7 +3963,8 @@
           }
         ],
         "minWaitMs": 1200
-      }
+      },
+      "description": "Standby 0→1 geçişi PCS soft-start içerir (self-check + ön şarj); üretici süre vermez, operasyonel pencere 30 s. Zaten standby (op=1) ise doğrulama hemen geçer. KAPANIŞ S14/T-21."
     },
     "fault_reset": {
       "label": "Fault Reset",

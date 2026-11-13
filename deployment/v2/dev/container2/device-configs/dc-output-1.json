@@ -5,8 +5,8 @@
   "model": "DC-48-100A",
   "protocol": "MODBUS",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15531,
+    "host": "sim-lab",
+    "port": 20142,
     "slaveId": 1
   },
   "telemetry": [
@@ -93,7 +93,7 @@
     {
       "name": "Temperature",
       "description": "DC output temperature",
-      "unit": "°C",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 3,
       "registerTableType": "INPUT_REGISTER",
@@ -210,7 +210,7 @@
     },
     {
       "name": "Energy Counter",
-      "description": "Kümülatif enerji",
+      "description": "K\u00fcm\u00fclatif enerji",
       "unit": "kWh",
       "protocol": "MODBUS",
       "registerAddress": 4,
@@ -230,7 +230,7 @@
   "pollIntervalMs": 1000,
   "commands": {
     "on": {
-      "label": "Aç (On)",
+      "label": "A\u00e7 (On)",
       "telemetries": [
         {
           "name": "On",
@@ -266,9 +266,5 @@
       }
     }
   },
-  "type": "dc-output",
-  "transport": {
-    "kind": "simulator",
-    "type": "dc-output"
-  }
+  "type": "dc-output"
 }

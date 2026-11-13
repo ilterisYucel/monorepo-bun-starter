@@ -6,8 +6,8 @@
   "protocol": "MODBUS",
   "type": "demo-mv-station",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15541,
+    "host": "sim-lab",
+    "port": 30202,
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
@@ -565,9 +565,5 @@
         ]
       }
     }
-  },
-  "transport": {
-    "kind": "simulator",
-    "type": "demo-mv-station"
   }
 }

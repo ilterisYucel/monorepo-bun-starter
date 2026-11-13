@@ -93,6 +93,8 @@ export interface SiteSpec {
     bscCloseDeviationV: number;
     /** Hücre fiziği yoğunluğu: büyük sahalarda CPU için raf başına hücre çözümü seyrekleştirilir. */
     physicsStepS: number;
+    /** Solver tip seçimi — bilinmeyen tip açılışta fail-fast eder (SPEC SIMULATOR-PIPE UC-4). */
+    solvers: { grid: string };
   };
 }
 
@@ -156,6 +158,7 @@ const DEFAULTS: Omit<SiteSpec, "name" | "templatesDir"> = {
     weather: { mode: "gunluk", fixedC: 25, minC: 14, maxC: 31, solarW: 1500 },
     bscCloseDeviationV: 10,
     physicsStepS: 0.5,
+    solvers: { grid: "grid-chain" },
   },
 };
 
@@ -179,6 +182,7 @@ export function normalizeSiteSpec(raw: Partial<SiteSpec> & { name: string }): Si
       hvac: { ...DEFAULTS.sim.hvac, ...(raw.sim?.hvac ?? {}) },
       pcs: { ...DEFAULTS.sim.pcs, ...(raw.sim?.pcs ?? {}) },
       weather: { ...DEFAULTS.sim.weather, ...(raw.sim?.weather ?? {}) },
+      solvers: { ...DEFAULTS.sim.solvers, ...(raw.sim?.solvers ?? {}) },
     },
   };
   const err = (m: string): never => {

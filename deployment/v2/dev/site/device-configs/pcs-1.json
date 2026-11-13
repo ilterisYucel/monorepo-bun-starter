@@ -6,16 +6,11 @@
   "protocol": "MODBUS",
   "type": "pcs",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 502,
+    "host": "sim-lab",
+    "port": 30001,
     "unitId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "wattox-pcs",
-    "bmsPort": 15502
-  },
   "telemetry": [
     {
       "name": "Rated Power",
@@ -3959,7 +3954,7 @@
           "value": 1
         }
       ],
-      "timeoutMs": 6000,
+      "timeoutMs": 30000,
       "validate": {
         "reads": [
           {
@@ -3968,7 +3963,8 @@
           }
         ],
         "minWaitMs": 1200
-      }
+      },
+      "description": "Standby 0\u21921 ge\u00e7i\u015fi PCS soft-start i\u00e7erir (self-check + \u00f6n \u015farj); \u00fcretici s\u00fcre vermez, operasyonel pencere 30 s. Zaten standby (op=1) ise do\u011frulama hemen ge\u00e7er. KAPANI\u015e S14/T-21."
     },
     "fault_reset": {
       "label": "Fault Reset",

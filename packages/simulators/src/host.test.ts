@@ -73,6 +73,19 @@ describe("SimulatorHost — UC-3", () => {
     }
   });
 
+  it("UC-2/T-11 — BSC host üzerinde adaptörle servis edilir (Rev AF register + inject)", async () => {
+    host = new SimulatorHost([cfg("bsc-1", "bsc", 0)]);
+    const running = await host.start();
+    expect(running).toHaveLength(1);
+
+    const client = await connectClient(running[0]!.port);
+    const state = (await client.readInputRegisters(30036, 1)).response.body.valuesAsArray;
+    expect(state[0]).toBe(1); // Not Initialized
+
+    expect(host.inject("bsc-1", "soc:50")).toBe(true);
+    expect(host.inject("bsc-1", "bilinmeyen")).toBe(false);
+  }, 20_000);
+
   it("edge — bilinmeyen simülatör tipi fail-fast", async () => {
     host = new SimulatorHost([cfg("x-1", "unknown-type", 0)]);
     await expect(host.start()).rejects.toThrow(/Bilinmeyen simulator tipi/);
@@ -129,13 +142,17 @@ describe("SimulatorHost — şebeke yolu eşleşmesi (SEBEKE-YOLU-ESLESMESI UC-3
         .valuesAsArray as number[])[0]!;
 
     try {
-      expect(await readVac()).toBe(4000);
+      // Fiziksel model gerçek anma gerilimini yayınlar (690 V → 6900);
+      // legacy stub'ı sabit 400.0 V döndürüyordu.
+      expect(await readVac()).toBe(6900);
       await mvClient.writeSingleCoil(COILS.H04_OPEN, true);
       await sleep(1300);
       expect(await readVac()).toBe(0);
       await mvClient.writeSingleCoil(COILS.H04_CLOSE, true);
       await sleep(1300);
-      expect(await readVac()).toBe(4000);
+      // Fiziksel model gerçek anma gerilimini yayınlar (690 V → 6900);
+      // legacy stub'ı sabit 400.0 V döndürüyordu.
+      expect(await readVac()).toBe(6900);
     } finally {
       mvSocket.destroy();
     }
@@ -180,12 +197,13 @@ describe("SimulatorHost — istasyon başına 1 MV (2 fider)", () => {
       ((await client.readInputRegisters(REG_GRID_V_AB, 1)).response.body.valuesAsArray as number[])[0]!;
 
     try {
-      expect(await vac(pcs1)).toBe(4000);
-      expect(await vac(pcs3)).toBe(4000);
+      // Fiziksel model anma gerilimi (690 V) — legacy stub 400.0 V döndürüyordu.
+      expect(await vac(pcs1)).toBe(6900);
+      expect(await vac(pcs3)).toBe(6900);
       // Yalnız istasyon 2'nin MV panosunda H04 açılır.
       await mv2.writeSingleCoil(COILS.H04_OPEN, true);
       await sleep(1300);
-      expect(await vac(pcs1)).toBe(4000);
+      expect(await vac(pcs1)).toBe(6900);
       expect(await vac(pcs3)).toBe(0);
     } finally {
       p1.sock.destroy();

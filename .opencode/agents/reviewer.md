@@ -22,19 +22,7 @@ permissions:
     resource: "~/.opencode/plan/*"
     effect: allow
   - action: shell
-    resource: "git diff *"
-    effect: allow
-  - action: shell
-    resource: "git status *"
-    effect: allow
-  - action: shell
-    resource: "bun run spec:check *"
-    effect: allow
-  - action: shell
-    resource: "mv docs/architecture/*"
-    effect: allow
-  - action: shell
-    resource: "rm docs/architecture/*.draft"
+    resource: "*"
     effect: allow
   - action: edit
     resource: "docs/architecture/*-KAPANIS.md*"
@@ -49,8 +37,13 @@ Ana agent'tan yalnızca diff metni ve test sonuçları gelir; gerisini kendin bu
 
 1. **Diff**: Ana agent `{{input}}` ile iletir. Eksikse `git diff` (gerekirse `git status`) ile kendin üret.
 2. **SPEC**: `glob` + `read` ile bul — sıra: `.opencode/plans/*-MIMARISI.md`, `~/.opencode/plan/*-MIMARISI.md` (onay öncesi konum), `docs/architecture/*-MIMARISI.md`. Modül adını diff'teki dosya yollarından çıkar.
-3. **Test sonuçları**: Ana agent iletir. Gelmediyse KAPANIŞ'a "test sonucu iletilmedi" notu düş ve ilgili §B satırlarını "KAPSANMAYAN" işaretle.
-4. **Mutasyon sonucu**: Ana agent iletir (değişen dosyalarda öldürme oranı). Gelmediyse §B'ye "mutasyon verisi yok" notu düş.
+3. **Test sonuçları**: Ana agent iletir. İletmediyse ya da kanıt bayatsa **kendin koş**:
+   `nx run simulators:test` (junit tazelenir) + `nx run simulators:typecheck`.
+   Koşamıyorsan KAPANIŞ'a "test sonucu iletilmedi" notu düş ve ilgili §B satırlarını
+   "KAPSANMAYAN" işaretle.
+4. **Mutasyon sonucu**: Ana agent iletir. İletmediyse ya da bayatsa **kendin koş**:
+   `bun run test:mutation` (~26 dk; değişen dosyalarda StrykerJS). Koşamıyorsan §B'ye
+   "mutasyon verisi yok" notu düş.
 
 Hiçbir kaynağı varsayma; kritik bir kaynak eksikse dur ve eksiği raporla.
 
@@ -77,8 +70,9 @@ KAPANIŞ sonunda `## Revizyon Geçmişi` bölümü tut: tarih + neden + dokunula
 
 ## Kurallar
 
-- **Yazma kısıtı**: yalnızca `docs/architecture/<MODUL>-KAPANIS.md` (ve geçici `.draft` hali) yazılır. SPEC'i, kaynak kodu ve testleri DEĞİŞTİRME; sapma gördüğünde düzeltme yapma, yalnızca raporla.
+- **Yazma kısıtı**: yalnızca `docs/architecture/<MODUL>-KAPANIS.md` (ve geçici `.draft` hali) yazılır. SPEC'i, kaynak kodu ve testleri DEĞİŞTİRME; sapma gördüğünde düzeltme yapma, yalnızca raporla. **Shell erişimi geniştir** — test/typecheck/mutasyon/spec-check/git okuma serbest; kaynak dosya değiştiren komutlar (`sed -i`, `rm`, `git checkout/restore`, `mv` kaynak dosya, yazma yönlendirmesi) YASAK. Shell bu kuralı teknik olarak engellemez; kural agent disiplinidir, ihlal KAPANIŞ'ta raporlanır.
 - **Atomik yazım**: içeriği önce `docs/architecture/<MODUL>-KAPANIS.md.draft` olarak yaz → `bun run spec:check <draft>` → temizse `mv` ile final ada geçir; temiz değilse draftı sil, hata raporunu döndür ve final dosyayı OLUŞTURMA.
+- **Taze kanıt**: A.2'deki test/mutasyon satırları reviewer'ın taze koşusuna dayanır; build turu çıktısı kullanılıyorsa "build turu çıktısı (tarih)" olarak etiketlenir — sessiz varsayım yok.
 - **SPEC değişmez (sözleşme)**: davranış değişikliği gerekiyorsa SPEC'i değiştirme; KAPANIŞ'ta "SPEC Revizyon Önerisi" başlığı altında öner, kararı developer verir.
 - **NIS-2**: güvenlikle ilgili değişikliklerde SPEC'te tehdit modeli / güvenlik kabul kriteri var mı kontrol et; yoksa §A.6'da "uyumluluk boşluğu" olarak işaretle.
 - Kod referansı `#sembol` çapasıyla: `path/file.ts#fonksiyonAdı`; **satır numarası YASAK** (`file.ts:123`).

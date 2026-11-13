@@ -6,19 +6,15 @@
   "protocol": "MODBUS",
   "type": "fss",
   "connection": {
-    "host": "127.0.0.1",
-    "port": 15537,
+    "host": "sim-lab",
+    "port": 20053,
     "slaveId": 1
   },
   "pollIntervalMs": 1000,
-  "transport": {
-    "kind": "simulator",
-    "type": "fss"
-  },
   "telemetry": [
     {
       "name": "Panel Status",
-      "description": "0 normal · 1 fire · 2 fault · 3 disabled · 4 test",
+      "description": "0 normal \u00b7 1 fire \u00b7 2 fault \u00b7 3 disabled \u00b7 4 test",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 0,
@@ -31,7 +27,7 @@
     },
     {
       "name": "First Stage",
-      "description": "1. aşama aktive",
+      "description": "1. a\u015fama aktive",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 1,
@@ -44,7 +40,7 @@
     },
     {
       "name": "Second Stage",
-      "description": "2. aşama aktive",
+      "description": "2. a\u015fama aktive",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 2,
@@ -57,7 +53,7 @@
     },
     {
       "name": "Released",
-      "description": "Söndürme aktive (EEE)",
+      "description": "S\u00f6nd\u00fcrme aktive (EEE)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 3,
@@ -70,7 +66,7 @@
     },
     {
       "name": "Countdown",
-      "description": "Release geri sayım (s)",
+      "description": "Release geri say\u0131m (s)",
       "unit": "s",
       "protocol": "MODBUS",
       "registerAddress": 4,
@@ -85,7 +81,7 @@
     },
     {
       "name": "Mode",
-      "description": "0 auto · 1 manual only",
+      "description": "0 auto \u00b7 1 manual only",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 5,
@@ -98,7 +94,7 @@
     },
     {
       "name": "Zone 1 State",
-      "description": "Smoke detection (0 normal · 1 fire · 2 fault)",
+      "description": "Smoke detection (0 normal \u00b7 1 fire \u00b7 2 fault)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 6,
@@ -124,7 +120,7 @@
     },
     {
       "name": "Zone 3 State",
-      "description": "Gas detection (H₂)",
+      "description": "Gas detection (H\u2082)",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 8,
@@ -137,7 +133,7 @@
     },
     {
       "name": "Detector 1 H2",
-      "description": "VIGI-DT1 #1 H₂ (%LEL)",
+      "description": "VIGI-DT1 #1 H\u2082 (%LEL)",
       "unit": "%LEL",
       "protocol": "MODBUS",
       "registerAddress": 9,
@@ -176,8 +172,8 @@
     },
     {
       "name": "Detector 1 Temp",
-      "description": "VIGI-DT1 #1 sıcaklık",
-      "unit": "°C",
+      "description": "VIGI-DT1 #1 s\u0131cakl\u0131k",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 12,
       "registerTableType": "INPUT_REGISTER",
@@ -191,7 +187,7 @@
     },
     {
       "name": "Detector 2 H2",
-      "description": "VIGI-DT1 #2 H₂ (%LEL)",
+      "description": "VIGI-DT1 #2 H\u2082 (%LEL)",
       "unit": "%LEL",
       "protocol": "MODBUS",
       "registerAddress": 13,
@@ -230,8 +226,8 @@
     },
     {
       "name": "Detector 2 Temp",
-      "description": "VIGI-DT1 #2 sıcaklık",
-      "unit": "°C",
+      "description": "VIGI-DT1 #2 s\u0131cakl\u0131k",
+      "unit": "\u00b0C",
       "protocol": "MODBUS",
       "registerAddress": 16,
       "registerTableType": "INPUT_REGISTER",
@@ -245,7 +241,7 @@
     },
     {
       "name": "Extract Fan",
-      "description": "Tahliye fanı",
+      "description": "Tahliye fan\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 17,
@@ -258,7 +254,7 @@
     },
     {
       "name": "Ventilation",
-      "description": "Havalandırma",
+      "description": "Havaland\u0131rma",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 18,
@@ -284,7 +280,7 @@
     },
     {
       "name": "Vents Open",
-      "description": "Patlama ventleri açık",
+      "description": "Patlama ventleri a\u00e7\u0131k",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 20,
@@ -297,7 +293,7 @@
     },
     {
       "name": "Disable dE",
-      "description": "Söndürme kontrolü devre dışı",
+      "description": "S\u00f6nd\u00fcrme kontrol\u00fc devre d\u0131\u015f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 21,
@@ -310,7 +306,7 @@
     },
     {
       "name": "Disable dt",
-      "description": "Manuel release devre dışı",
+      "description": "Manuel release devre d\u0131\u015f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 22,
@@ -323,7 +319,7 @@
     },
     {
       "name": "Disable dc",
-      "description": "Tahliye fanı devre dışı",
+      "description": "Tahliye fan\u0131 devre d\u0131\u015f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 23,
@@ -336,7 +332,7 @@
     },
     {
       "name": "Disable dP",
-      "description": "1. aşama röle çıkışı devre dışı",
+      "description": "1. a\u015fama r\u00f6le \u00e7\u0131k\u0131\u015f\u0131 devre d\u0131\u015f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 24,
@@ -349,7 +345,7 @@
     },
     {
       "name": "Disable dA",
-      "description": "2. aşama röle çıkışı devre dışı",
+      "description": "2. a\u015fama r\u00f6le \u00e7\u0131k\u0131\u015f\u0131 devre d\u0131\u015f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 25,
@@ -362,7 +358,7 @@
     },
     {
       "name": "Disable db",
-      "description": "1. aşama sirenleri devre dışı",
+      "description": "1. a\u015fama sirenleri devre d\u0131\u015f\u0131",
       "unit": "-",
       "protocol": "MODBUS",
       "registerAddress": 26,

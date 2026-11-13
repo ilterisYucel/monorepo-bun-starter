@@ -130,9 +130,21 @@ export async function unifiedRoutes(
         ? Math.min(20000, Math.floor(parsedLimit))
         : 20000;
     const results = await Promise.allSettled(
-      targetDevices.map((d) =>
-        timescale.getLatestN(d.id, LATEST_TELEMETRY_LIMIT, nameFilter),
-      ),
+      targetDevices.map(async (d) => {
+        // Yeni N satır hızlı sinyalleri taşır; yavaş/sessiz sinyaller (kendini
+        // tekrar etmeyen ölçümler, ör. `BSC SOH`) N satırın dışında kalabilir.
+        // `latest-per-name` ile isim başına en yeni satırı ekle (isim başına en
+        // yeni timestamp kazanır) — sessiz sinyal de latest'ta döner.
+        const [recent, perName] = await Promise.all([
+          timescale.getLatestN(d.id, LATEST_TELEMETRY_LIMIT, nameFilter),
+          timescale.getLatestPerName(d.id, { names: nameFilter, windowMs: 5 * 60_000 }),
+        ]);
+        // Davranış korunur: yeni N satır aynen döner; yalnız bu pencerede HİÇ
+        // görünmeyen (sessiz) sinyaller isim başına en yeni satırla eklenir.
+        const present = new Set(recent.map((row) => row.name));
+        const missing = perName.filter((row) => !present.has(row.name));
+        return [...recent, ...missing];
+      }),
     );
     const allTelemetries = results.flatMap((r) =>
       r.status === "fulfilled" ? r.value : [],

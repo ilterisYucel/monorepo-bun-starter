@@ -132,9 +132,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DATABASE: battery
-      DEBUG_INJECT_ENABLED: ${DEBUG_INJECT_ENABLED:-true}
-      DEBUG_INJECT_PORT: 15591
-      SIMULATOR_BIND_HOST: 0.0.0.0
+      # Modbus TCP hedefi: Sim-Lab ayrı servis (gd-simnet); simülatör kodu bu serviste YOK.
     volumes:
       - ../../../../services/device-service/src:/app/services/device-service/src
       - ../../../../services/device-service/run.ts:/app/services/device-service/run.ts
@@ -142,18 +140,6 @@ services:
       - ../../../../packages/core/src:/app/packages/core/src
       - ../../../../packages/shared-types/src:/app/packages/shared-types/src
       - ../../../../packages/shared-utils/src:/app/packages/shared-utils/src
-      - ../../../../packages/simulators/src:/app/packages/simulators/src
-    # Entegrasyon/protokol test erişimi — SADECE dev. PCS EMS/BMS yüzleri, MV
-    # istasyonu ve debug enjeksiyon ucu host loopback'ine yayınlanır. EMS portları
-    # (502/503) host'ta privileged çakışmayı önlemek için 1502/1503'e eşlenir.
-    ports:
-      - "127.0.0.1:1502:502"      # PCS-1 EMS yüzü
-      - "127.0.0.1:1503:503"      # PCS-2 EMS yüzü
-      - "127.0.0.1:15502:15502"   # PCS-1 BMS yüzü
-      - "127.0.0.1:15503:15503"   # PCS-2 BMS yüzü
-      - "127.0.0.1:15540:15540"   # DEMO-MV-1
-      - "127.0.0.1:15541:15541"   # DEMO-MV-2
-      - "127.0.0.1:15591:15591"   # DebugInjector (dev-only)
     depends_on:
       site-redis:
         condition: service_healthy
@@ -162,6 +148,7 @@ services:
     networks:
       - site-network
       - demo-bridge
+      - gd-simnet
     logging: *logging
 
   # Site-tier telemetri tüketicisi — queue_write_telemetry → site timescale
@@ -373,4 +360,7 @@ networks:
     driver: bridge
   demo-bridge:
     name: v2-dev-demo-bridge
+    external: true
+  gd-simnet:
+    name: gd-simnet
     external: true

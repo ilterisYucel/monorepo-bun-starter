@@ -1,11 +1,18 @@
 // Fiziksel saha simülatörü — Modbus'suz (süreç içi) fizik, protokol ve register testleri.
 import { describe, expect, it } from "vitest";
-import { join, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { expandSite, normalizeSiteSpec, type SiteSpec } from "./site-config";
 import { Plant } from "./plant";
 import { BSC_STATE } from "../models/bsc";
 
-const repoRoot = resolve(__dirname, "../../../../..");
+/** Repo kökü — Stryker sandbox'ında da çalışır: `configs/` bulunana kadar yukarı yürünür. */
+const findRepoRoot = (start: string): string => {
+  let dir = start;
+  while (!existsSync(join(dir, "configs")) && dir !== dirname(dir)) dir = dirname(dir);
+  return dir;
+};
+const repoRoot = findRepoRoot(__dirname);
 const templatesDir = join(repoRoot, "configs");
 
 const siteOf = (over: Partial<SiteSpec> = {}): SiteSpec =>
@@ -247,5 +254,76 @@ describe("Register üstyazımı / toplu / seri", () => {
     p.advance(60);
     expect((await p.readPoint("C1.HVAC-1", "Outside Temp")).value).toBeCloseTo(40, 5);
     expect(p.series.status()).toBeNull();
+  });
+});
+
+describe("Dal / konteyner sinyalleri (pipe — SPEC SIMULATOR-PIPE UC-3)", () => {
+  it("AK-3.1: dal üyelikleri site JSON'dan kurulur (H04 → 1–5, H05 → 6–9)", () => {
+    const p = new Plant(
+      expandSite(
+        siteOf({
+          containers: { ...siteOf().containers, count: 9 },
+          mv: { stations: [{ id: "DEMO-MV-1", incomer: ["H01"], feeders: { H04: [1, 2, 3, 4, 5], H05: [6, 7, 8, 9] } }] },
+        }),
+        repoRoot,
+      ),
+    );
+    expect(p.branchMembers.get("H04")).toEqual([1, 2, 3, 4, 5]);
+    expect(p.branchMembers.get("H05")).toEqual([6, 7, 8, 9]);
+  });
+
+  it("AK-3.2: H04 açılınca Dal A false, Dal B true; Dal A PCS de-enerjili", () => {
+    const p = mk({
+      containers: { ...siteOf().containers, count: 2 },
+      mv: { stations: [{ id: "DEMO-MV-1", incomer: ["H01"], feeders: { H04: [1], H05: [2] } }] },
+    });
+    startString(p, 600);
+    const mv = p.legacySim<{ writeCoil(a: number, v: boolean): void }>("DEMO-MV-1")!;
+    mv.writeCoil(4, true); // H04 aç
+    run(p, 10);
+    expect(p.pipes.read("branch.H04.energized")?.value).toBe(false);
+    expect(p.pipes.read("branch.H05.energized")?.value).toBe(true);
+    expect(p.pcss.get("PCS-1")!.opStatus).toBe(6); // Dal A de-enerjili → fault
+    expect(p.pcss.get("PCS-3")!.grid.present).toBe(true); // Dal B etkilenmez
+  });
+
+  it("AK-3.3: konteyner DC şalteri açıkken şarj komutu SOC'yi değiştirmez", () => {
+    const p = mk();
+    startString(p, -1000); // şarj
+    const b = p.bscs.get("C1.BSC-1")!;
+    const cb = p.legacySim<{ writeCoil(a: number, v: boolean): void }>("C1.CB-1")!;
+    cb.writeCoil(0, true); // DC şalter aç
+    run(p, 10); // sinyal commit + şalter uygulanır
+    expect(p.pipes.read("container.C1.dc.energized")?.value).toBe(false);
+    const soc0 = b.soc();
+    run(p, 60);
+    // Şarj akımı akmıyor: SOC farkı yalnız hücre dengeleme/kendi kendine deşarj mertebesinde kalır.
+    expect(Math.abs(b.soc() - soc0)).toBeLessThan(0.001);
+  });
+});
+
+describe("Solver seçimi (pipe — SPEC SIMULATOR-PIPE UC-4)", () => {
+  it("AK-4.1: bilinmeyen solver tipi açılışta fail-fast eder", () => {
+    expect(() =>
+      mk({ sim: { solvers: { grid: "yok-boyle-birsey" } } } as never),
+    ).toThrow(/bilinmeyen solver tipi/);
+  });
+
+  it("AK-4.1: varsayılan grid-chain kayıtlı; dal sinyalini istasyon kimliğiyle yayınlar", () => {
+    const p = mk();
+    run(p, 10);
+    expect(p.solverRegistry.has("grid-chain")).toBe(true);
+    expect(p.pipes.read("branch.H04.energized")?.source).toBe("DEMO-MV-1");
+  });
+
+  it("AK-4.2: solver uçları — dc bara gerilimi ve zon sıcaklığı pipe'a yayınlanır", () => {
+    const p = mk();
+    startString(p, 600);
+    run(p, 10);
+    const zone = p.zones.get("C1.HVAC-1")!;
+    expect(p.pipes.read("zone.C1.HVAC-1.airTemp")?.value).toBeCloseTo(zone.airT, 5);
+    const v = p.pipes.read("dc.bus.PCS-1.voltage")?.value;
+    expect(typeof v).toBe("number");
+    expect(v as number).toBeGreaterThan(0);
   });
 });
