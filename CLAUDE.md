@@ -8,6 +8,28 @@
 
 ## Claude Code'a özgü notlar
 
+## Ön yüz kuralları
+- PMS arayüz geliştirmeleri @apps/site içersinde yapılır
+- EMS arayüz geliştirmeleri @apps/container içerisinde yapılır.
+
+## Klasör kuralları
+- Kod değişikliği yalnızca şu klasörlerde yapılır: @packages/simulators, @apps/container, @apps/site, @apps/sim-lab.
+- **Doküman istisnası:** İş akışının SPEC / KAPANIŞ dokümanları için `docs/` klasörüne yazılabilir.
+- **Yasak alanlar:** `services/**` ve `packages/simulators` dışındaki tüm `packages/**`. Bu alanlarda değişiklik
+  gerekirse dokunma, işi durdur ve GitHub Issue aç.
+- **Issue açma:** Issue dışa dönük bir işlemdir — önce taslak (başlık + gerekçe + önerilen değişiklik) hazırlanır,
+  developer onayı alındıktan sonra `gh issue create` ile açılır.
+
+## İş akışının Claude Code uyarlaması
+- AGENTS.md'deki DeepSeek/GLM model adları ve `~/.opencode/plan/` konumu OpenCode içindir; Claude Code'da aynı
+  aşamalar (SPEC → onay → SÖZLEŞME+TEST → onay → IMPL+MUTASYON → REVIEW) bu oturumda yürütülür.
+- **SPEC konumu:** SPEC doğrudan `docs/architecture/<MODUL>-MIMARISI.md` olarak açılır (Status `✏️ Specified`);
+  plan konumu ve taşıma adımı Claude Code için uygulanmaz. Onay kapıları aynen geçerlidir.
+
+## Elegant Object — React istisnası
+- React component'lerinin render etmeyeceği durumda `null` döndürmesi serbesttir; satıra
+  `// ELEGANT-EXCEPTION: React component render etmiyor` yorumu eklenir.
+
 ### Nx (plugin'den gelir)
 - `.claude/settings.json` içindeki `nx@nx-claude-plugins` marketplace'i etkindir:
   nx-mcp MCP sunucusu + nx skill'leri + `ci-monitor-subagent` plugin'den gelir.
