@@ -12,5 +12,8 @@
   },
   "servicePollIntervalMs": 5000,
   "workerConcurrency": 5,
-  "managementIntervalMs": 10000
+  "managementIntervalMs": 10000,
+  "tags": {
+    "container_id": "container-1"
+  }
 }

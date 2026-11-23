@@ -69,7 +69,6 @@ services:
       REDIS_HOST: container2-redis
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-docker
-      CONTAINER_ID: container-2
       POSTGRES_HOST: container2-timescaledb
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres

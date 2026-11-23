@@ -1,4 +1,3 @@
-import { isAbsolute, resolve } from "node:path";
 import type {
   IDevice,
   ReadDeviceJob,
@@ -6,6 +5,7 @@ import type {
   TelemetryData,
   ServiceConfigFile,
   DeviceAlarmRule,
+  PeriodicWriteConfig,
 } from "@gd-monorepo/shared-types";
 import { expectHolds } from "@gd-monorepo/shared-types";
 
@@ -20,10 +20,9 @@ import { PostgresAdapter } from "@gd-monorepo/core";
 import { DeviceConfigLoader } from "./config-loader";
 import { DeviceFactory } from "./device-factory";
 import { DeviceScheduler } from "./device-scheduler";
-import { TelemetryTagger } from "./telemetry-tagger";
+import { stampTags } from "./telemetry-tagger";
 import { TelemetryWriteFilter } from "./telemetry-write-filter";
 import { PeriodicWriteScheduler } from "./periodic-write-scheduler";
-import type { PeriodicWriteConfig } from "@gd-monorepo/shared-types";
 import { resolveWritePolicies } from "./write-policy";
 import type { WritePolicy } from "./write-policy";
 import {
@@ -110,7 +109,8 @@ export class DeviceService {
   private readonly scheduler: DeviceScheduler;
 
   private readonly sql: ISqlDatabase | undefined;
-  private readonly taggers: Map<string, TelemetryTagger>;
+  /** `service.json#tags` — her telemetriye basılan global tag'ler. */
+  private readonly tags: Record<string, string>;
   private readonly logger: TamperLogger | undefined;
   private readonly offlineSince: Map<string, number>;
   private readonly lastReminderAt: Map<string, number>;
@@ -126,12 +126,12 @@ export class DeviceService {
     scheduler: DeviceScheduler,
 
     sql?: ISqlDatabase,
-    identity?: { containerId?: string; fieldId?: string },
+    tags?: Record<string, string>,
     logger?: TamperLogger,
     opsLogger?: Logger,
   ) {
     this.devices = new Map();
-    this.taggers = new Map();
+    this.tags = tags ?? {};
     this.running = false;
     this.mq = mq;
     this.scheduler = scheduler;
@@ -148,42 +148,25 @@ export class DeviceService {
 
     for (const d of devices) {
       this.devices.set(d.device.id, d);
-      this.taggers.set(
-        d.device.id,
-        new TelemetryTagger({ deviceId: d.device.id, ...identity }),
-      );
     }
   }
 
   static async fromConfigDir(
     configDir: string,
     mq: IMessageQueue,
-    identity?: { containerId?: string; fieldId?: string },
     logger?: TamperLogger,
     opsLogger?: Logger,
   ): Promise<DeviceService> {
     const loader = new DeviceConfigLoader(configDir, opsLogger);
     const { service, devices: configs } = loader.load();
 
-    // Config dizini bağıl registerMap yollarını mutlak yap — simülatör
-    // fabrikaları CWD'den bağımsız dosya okur (BSC register map, connector
-    // mapping vb. config dizininin altında yaşar).
-    for (const config of configs) {
-      if (
-        config.transport?.registerMap &&
-        !isAbsolute(config.transport.registerMap)
-      ) {
-        config.transport.registerMap = resolve(
-          configDir,
-          config.transport.registerMap,
-        );
-      }
-    }
-
     const factory = new DeviceFactory();
     const scheduler = new DeviceScheduler(mq, service, opsLogger);
 
-    const sql = await this.buildSqlAdapter(service, createOpsLog(opsLogger, "DeviceService"));
+    const sql = await this.buildSqlAdapter(
+      service,
+      createOpsLog(opsLogger, "DeviceService"),
+    );
 
     const defaultInterval = service.servicePollIntervalMs ?? 5000;
 
@@ -206,26 +189,18 @@ export class DeviceService {
           periodicWrites: c.periodicWrites,
         },
       ];
-
-      // Connector bölümü varsa türetilmiş 2. MODBUS cihazı eklenir (K2).
-      const connectorDevice = factory.createConnector(c);
-      if (connectorDevice !== undefined && c.connector !== undefined) {
-        entries.push({
-          device: connectorDevice,
-          pollIntervalMs: c.connector.device.pollIntervalMs ?? defaultInterval,
-          name: c.connector.device.name,
-          manufacturer: c.manufacturer,
-          model: c.model,
-          protocol: "MODBUS",
-          type: c.connector.device.type,
-          configConnection: c.connector.device.connection,
-          writePolicy: resolveWritePolicies(c.connector.device.telemetry),
-        });
-      }
       return entries;
     });
 
-    return new DeviceService(deviceEntries, mq, scheduler, sql, identity, logger, opsLogger);
+    return new DeviceService(
+      deviceEntries,
+      mq,
+      scheduler,
+      sql,
+      service.tags,
+      logger,
+      opsLogger,
+    );
   }
 
   private static async buildSqlAdapter(
@@ -310,7 +285,9 @@ export class DeviceService {
         (r) => r.status === "rejected",
       ).length;
       if (upsertFailed > 0) {
-        this.ops.warn(`${upsertFailed}/${entries.length} cihaz kaydi yapilamadi`);
+        this.ops.warn(
+          `${upsertFailed}/${entries.length} cihaz kaydi yapilamadi`,
+        );
       }
     }
 
@@ -389,7 +366,9 @@ export class DeviceService {
           try {
             await this.sql.execute(SET_DEVICE_OFFLINE, [entry.device.id]);
           } catch {
-            this.ops.warn("Status update failed", { deviceId: entry.device.id });
+            this.ops.warn("Status update failed", {
+              deviceId: entry.device.id,
+            });
           }
         }
         try {
@@ -468,7 +447,9 @@ export class DeviceService {
     // (seq/prevHash) çağrı anında senkron güncellendiğinden map çağrı sırası
     // zincir sırasını korur.
     await Promise.allSettled(
-      transitions.map((transition) => this.applyTransition(deviceId, transition)),
+      transitions.map((transition) =>
+        this.applyTransition(deviceId, transition),
+      ),
     );
   }
 
@@ -505,7 +486,9 @@ export class DeviceService {
         set
           ? {
               level:
-                transition.severity === "warning" ? "warn" : transition.severity,
+                transition.severity === "warning"
+                  ? "warn"
+                  : transition.severity,
               category: "app",
               eventCode: "device_alarm",
               message: `Cihaz alarmi aktif: ${transition.name}`,
@@ -625,8 +608,7 @@ export class DeviceService {
     deviceId: string,
     data: TelemetryData[],
   ): Promise<void> {
-    const tagger = this.taggers.get(deviceId);
-    const enriched = tagger ? tagger.enrich(data) : data;
+    const enriched = stampTags(data, deviceId, this.tags);
 
     // Yazma politikası yalnız WRITE_TELEMETRY alt kümesini etkiler; MANAGEMENT/WS
     // tam veriyi alır. State yalnız başarılı enqueue sonrası ilerletilir (K2/K5).
@@ -663,7 +645,9 @@ export class DeviceService {
       return { success: false, reason: msg };
     }
 
-    this.ops.info(`Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`);
+    this.ops.info(
+      `Komut: ${job.deviceId} (${job.telemetries.length} telemetry)`,
+    );
 
     try {
       if (job.atomic && entry.device.writeAtomic) {
@@ -726,7 +710,11 @@ export class DeviceService {
 
     // Audit sonucu doğrulamadan SONRA yazılır: cihaz komutu reddederse
     // (ör. LGES "Current Flows") kayıt başarılı görünmemeli (NEW-3).
-    await this.logCommand(job, result.success, result.success ? undefined : result.reason);
+    await this.logCommand(
+      job,
+      result.success,
+      result.success ? undefined : result.reason,
+    );
 
     // El sıkışma finalize (C3): doğrulama sonrası komut kutusunu boşalt
     // (LGES BSC 40010 → 0x0000). Aksi halde tekrar eden aynı komut yeni istek sayılmaz.
@@ -774,7 +762,10 @@ export class DeviceService {
         const readBack = await entry.device.read();
         const allMatch = validate.reads.every((expected) => {
           const actual = readBack.find((r) => r.name === expected.name);
-          return actual !== undefined && expectHolds(actual.value, expected.expect, expected.accept);
+          return (
+            actual !== undefined &&
+            expectHolds(actual.value, expected.expect, expected.accept)
+          );
         });
         if (allMatch) return { success: true, validated: true };
       } catch (err) {
@@ -783,10 +774,13 @@ export class DeviceService {
         lastError = String(err);
         if (!warned) {
           warned = true;
-          this.ops.warn("Read-back sirasinda okuma hatasi — pencere sonuna kadar denenecek", {
-            deviceId: entry.device.id,
-            error: lastError,
-          });
+          this.ops.warn(
+            "Read-back sirasinda okuma hatasi — pencere sonuna kadar denenecek",
+            {
+              deviceId: entry.device.id,
+              error: lastError,
+            },
+          );
         }
       }
       if (Date.now() - start + 50 >= validate.timeoutMs) break;
@@ -797,7 +791,9 @@ export class DeviceService {
     return {
       success: false,
       validated: false,
-      reason: lastError ? `Validation timeout (last read failed: ${lastError})` : "Validation timeout",
+      reason: lastError
+        ? `Validation timeout (last read failed: ${lastError})`
+        : "Validation timeout",
     };
   }
 

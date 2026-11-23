@@ -185,9 +185,9 @@ export class PcsLegacyAdaptor implements IPcsLegacyAdaptor {
     return this.server?.port() ?? this.network?.port ?? 0;
   }
 
-  /** Sorgu — BMS yüzü portu (connector hedefi). */
+  /** Sorgu — BMS yüzü portu (connector hedefi; ephemeral portta gerçek port). */
   bmsPort(): number {
-    return this.bmsNetwork?.port ?? 0;
+    return this.bmsServer?.port() ?? this.bmsNetwork?.port ?? 0;
   }
 
   tick(elapsedSeconds: number): void {

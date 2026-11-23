@@ -114,6 +114,32 @@
       "offset": 0,
       "priority": 0,
       "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "Fire",
+      "description": "Yangın algılama (EP203 kuru kontak — K1)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 6,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
+    },
+    {
+      "name": "First Stage",
+      "description": "1. aşama yangın (EP203 kuru kontak — K2)",
+      "unit": "-",
+      "protocol": "MODBUS",
+      "registerAddress": 7,
+      "registerTableType": "DISCRETE_INPUT",
+      "registerDataType": "BOOLEAN",
+      "scale": 1,
+      "offset": 0,
+      "priority": 0,
+      "byteOrder": "BIG_ENDIAN"
     }
   ],
   "commands": {

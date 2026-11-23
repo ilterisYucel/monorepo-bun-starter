@@ -12,5 +12,8 @@
   },
   "servicePollIntervalMs": 5000,
   "workerConcurrency": 5,
-  "managementIntervalMs": 10000
+  "managementIntervalMs": 10000,
+  "tags": {
+    "field_id": "3275b197-3095-4def-92e1-40d0741cd36e"
+  }
 }

@@ -1,33 +1,28 @@
 import type { TelemetryData } from "@gd-monorepo/shared-types";
 
-export interface TelemetryTaggerConfig {
-  deviceId: string;
-  containerId?: string;
-  fieldId?: string;
-}
-
 /**
- * Telemetriye çalışma zamanı tag'leri ekler.
+ * Telemetriye çalışma zamanı tag'lerini basar.
  *
- * - Config'de elle girilen tag'ler (rack_id, aggregation, variant, ...) KORUNUR.
- * - device_id her zaman eklenir (config.deviceId).
- * - container_id yalnızca container-level app'te (CONTAINER_ID env) eklenir.
- * - field_id yalnızca field-level app'te (FIELD_ID env) eklenir.
+ * Kaynak: `service.json` → `tags` (Telegraf tarzı global tag'ler; anahtar kümesi
+ * serbesttir). Sıra:
+ * 1. servis tag'leri (taban),
+ * 2. config'ten gelen cihaz tag'leri (rack_id, aggregation, canonical, ...) — üzerine yazar,
+ * 3. `device_id` (her zaman, son söz).
+ *
+ * Önceki `TelemetryTagger` sınıfı cihaz başına örnekleniyordu; tek farkı `deviceId`
+ * olduğundan fonksiyona indirildi (cihaz başına nesne gereksiz).
  */
-export class TelemetryTagger {
-  constructor(private readonly config: TelemetryTaggerConfig) {}
-
-  enrich(telemetries: TelemetryData[]): TelemetryData[] {
-    const { deviceId, containerId, fieldId } = this.config;
-
-    return telemetries.map((t) => ({
-      ...t,
-      tags: {
-        ...t.tags,
-        device_id: deviceId,
-        ...(containerId ? { container_id: containerId } : {}),
-        ...(fieldId ? { field_id: fieldId } : {}),
-      },
-    }));
-  }
+export function stampTags(
+  telemetries: TelemetryData[],
+  deviceId: string,
+  tags?: Record<string, string>,
+): TelemetryData[] {
+  return telemetries.map((t) => ({
+    ...t,
+    tags: {
+      ...tags,
+      ...t.tags,
+      device_id: deviceId,
+    },
+  }));
 }

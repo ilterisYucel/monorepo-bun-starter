@@ -1,0 +1,37 @@
+# Test stack — Sim-Lab (1 saha + 4 konteyner cihaz seti).
+# Saha tanımı `./site.json` (containers.count=4); cihaz portları 2000x/2010x/2020x/2030x.
+#
+#   docker compose --env-file deployment/test-stack/.env.sim \
+#     -f deployment/test-stack/sim/docker-compose.yml up -d --build
+#   arayüz: http://localhost:8090
+
+name: test-sim-lab
+
+services:
+  sim-lab:
+    build:
+      context: ../../..
+      dockerfile: apps/sim-lab/deployment/Dockerfile
+    image: gd-sim-lab:dev
+    container_name: test-sim-lab
+    restart: unless-stopped
+    environment:
+      SIM_SITE: /sim/sites/site.json
+      SIM_PROFILE: ${SIM_PROFILE:-uyumlu}
+      SIM_SPEED: ${SIM_SPEED:-1}
+      SIM_EMS_HOST: ${SIM_EMS_HOST:-sim-lab}
+      TZ: ${TZ:-Europe/Istanbul}
+    volumes:
+      - ./site.json:/sim/sites/site.json:ro
+      - ./device-configs:/sim/device-configs:ro
+      - ../../../configs:/configs:ro
+      - ./scenarios:/app/apps/sim-lab/scenarios
+    ports:
+      - "${SIM_HTTP_PORT:-8090}:8090"
+    networks:
+      - gd-simnet
+
+networks:
+  gd-simnet:
+    name: gd-simnet
+    driver: bridge

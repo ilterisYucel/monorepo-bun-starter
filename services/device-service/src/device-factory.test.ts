@@ -163,39 +163,3 @@ describe("DeviceFactory — transport seçimi (yalnız TCP/RTU)", () => {
   });
 });
 
-describe("DeviceFactory — connector device-subset türetimi", () => {
-  it("connector bölümü varsa 2. MODBUS cihazı üretir", () => {
-    const config = makeConfig({
-      deviceId: "BSC-1",
-      connector: {
-        device: {
-          deviceId: "BSC-PCS-CONNECTOR-1",
-          name: "Connector",
-          type: "bsc-pcs-connector",
-          connection: { host: "127.0.0.1", port: 15505, slaveId: 1 },
-          telemetry: [
-            {
-              protocol: "MODBUS",
-              name: "Connector Link Status",
-              registerAddress: 0,
-              registerTableType: "INPUT_REGISTER",
-              registerDataType: "UINT16",
-              scale: 1,
-              offset: 0,
-              byteOrder: "BIG_ENDIAN",
-              priority: 0,
-            },
-          ] as ModbusConfigEntry[],
-        },
-      },
-    });
-
-    const device = new DeviceFactory().createConnector(config);
-
-    expect(device?.id).toBe("BSC-PCS-CONNECTOR-1");
-  });
-
-  it("connector bölümü yoksa undefined döner", () => {
-    expect(new DeviceFactory().createConnector(makeConfig({}))).toBeUndefined();
-  });
-});

@@ -8,8 +8,19 @@ import type { Logger } from "@gd-monorepo/logger";
 import { createOpsLog } from "./ops-log";
 import type { OpsLog } from "./ops-log";
 
+/**
+ * device-service'in gördüğü service.json — shared tip **yerelde** genişletilir.
+ *
+ * `tags`: her telemetriye basılan global tag'ler (anahtar kümesi serbest;
+ * örn. `container_id`, `field_id`, `customer`). Paylaşılan `ServiceConfigFile`
+ * generic kalır; alan yalnız bu servisin ihtiyacıdır.
+ */
+export interface DeviceServiceConfigFile extends ServiceConfigFile {
+  tags?: Record<string, string>;
+}
+
 interface LoadedConfig {
-  service: ServiceConfigFile;
+  service: DeviceServiceConfigFile;
   devices: DeviceConfigFile[];
 }
 
@@ -44,8 +55,16 @@ export class DeviceConfigLoader {
       const parsed = this.parseFile(content, ext);
 
       if (entry.startsWith("service.")) {
-        service = validateOrThrow<ServiceConfigFile>(serviceConfigFileSchema, parsed, `Dosya: ${entry}`);
-        this.ops.info(`Global servis konfigurasyonu: ${entry}`);
+        const tags = this.readTags(parsed, entry);
+        service = {
+          ...validateOrThrow<ServiceConfigFile>(serviceConfigFileSchema, parsed, `Dosya: ${entry}`),
+          ...(tags !== undefined ? { tags } : {}),
+        };
+        const tagKeys = Object.keys(service.tags ?? {});
+        this.ops.info(
+          `Global servis konfigurasyonu: ${entry}` +
+            (tagKeys.length > 0 ? ` (tags: ${tagKeys.join(",")})` : ""),
+        );
       } else {
         this.assertNoSimulatorSurface(parsed, entry);
         const deviceConfig = validateOrThrow<DeviceConfigFile>(deviceConfigFileSchema, parsed, `Dosya: ${entry}`);
@@ -89,6 +108,26 @@ export class DeviceConfigLoader {
         `[DeviceConfigLoader] heartbeat alanı kaldırıldı (Dosya: ${file}, deviceId: ${deviceId}) — periodicWrites kullanın`,
       );
     }
+  }
+
+  /**
+   * `service.json#tags` — paylaşılan şema bu alanı bilmez (strip eder), bu yüzden
+   * device-service yerelde okur ve doğrular: nesne + string değerler.
+   */
+  private readTags(parsed: object, file: string): Record<string, string> | undefined {
+    const raw = (parsed as { tags?: unknown }).tags;
+    if (raw === undefined) return undefined;
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+      throw new Error(`[DeviceConfigLoader] tags nesne olmalidir (Dosya: ${file})`);
+    }
+    const tags: Record<string, string> = {};
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof value !== "string") {
+        throw new Error(`[DeviceConfigLoader] tags.${key} string olmalidir (Dosya: ${file})`);
+      }
+      tags[key] = value;
+    }
+    return tags;
   }
 
   private parseFile(content: string, ext: string): object {

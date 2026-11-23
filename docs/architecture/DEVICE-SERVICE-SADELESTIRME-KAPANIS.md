@@ -37,6 +37,13 @@ review_date: 2026-11-12
 | 16 | `deployment/v2/dev/simulator-app/docker-compose.host-ports.yml` | (yeni) host port yayını yalnız hata ayıklama override'ı | FR-3.3 |
 | 17 | `deployment/v2/dev/{container,container2,site}/docker-compose.yml` | (değişiklik) `gd-simnet` external ağı; device-service'ın simülatör port yayınları, `packages/simulators` mount'u ve `PCS_BMS_TARGET_*`/`DEBUG_INJECT_*`/`SIMULATOR_BIND_HOST` env'leri kaldırıldı | K1/K6/FR-1.1 |
 | 18 | `package.json#scripts` | (değişiklik) `start:/stop:demo-integration` eklendi; `dev:stack:up/down` Sim-Lab'ı ilk kaldırır / son indirir | K8/FR-4.4 |
+| 19c | `services/device-service/src/telemetry-tagger.ts#stampTags` | (sadeleşme) sınıf → saf fonksiyon; cihaz başına örnek kaldırıldı, kaynak `service.json#tags` | SPEC Revizyon (2026-11-17) |
+| 19d | `services/device-service/src/config-loader.ts#DeviceServiceConfigFile` | (yerel genişletme) `ServiceConfigFile` + `tags?: Record<string,string>`; paylaşılan şema strip ettiği için tag'ler burada doğrulanır (zod bağımlılığı eklenmedi) | SPEC Revizyon (2026-11-17) |
+| 19e | `services/device-service/src/device-service.ts#DeviceService` (ctor), `runtime.ts#buildDeviceRuntime`, `run.ts#main` | (silme) `identity` parametresi + `taggers` Map; yerine `tags` alanı; env okuma (`site.containerId`/`site.fieldId`) kalktı | SPEC Revizyon (2026-11-17) |
+| 19f | `packages/shared-utils/src/config/definitions.ts#siteContainerId` / `#siteFieldId` | `siteContainerId` **SİLİNDİ** (tüketicisi kalmadı); `siteFieldId` **korundu** — web-service (`config/default.ts`, `tiers/site/registrations.ts`) seed/UUID doğrulaması için okuyor, açıklaması "telemetri tag'i artık service.json#tags" olarak güncellendi | SPEC Revizyon (2026-11-17) |
+| 19g | `deployment/v2/dev/{container,container2,site}/device-configs/service.json` + `packages/simulators/src/physical/site/ems-export.ts` + `tools/test-stack.mjs#stampSiteTags` | (veri) `tags: {container_id}` / `tags: {field_id}`; exporter container-N tag'ini üretir, test-stack saha `field_id`'sini `.env.site`'tan basar | SPEC Revizyon (2026-11-17) |
+| 19a | `services/device-service/src/device-service.ts#DeviceService.build` | (silme) `connector.device` → türetilmiş `BSC-PCS-CONNECTOR-1` cihazı kaldırıldı; köprüyü Sim-Lab yapar, EMS tarafında tüketicisi yoktu (2026-11-17) | SPEC §Edge Cases (revize) |
+| 19b | `services/device-service/src/device-factory.ts#createConnector` + testleri, `src/v2-configs.test.ts` | **SİLİNDİ** — `createConnector` yolu ve `v2-configs.test.ts` (services→deployment dosya okuması: yön ihlali) | FR-1.2 / AK-3.2 (kanıt taşındı) |
 | 19 | `apps/sim-lab/src/http/compat-inject.ts#compatInject` | (yeni) eski `{deviceId, scenario}` sözleşmesi → god mode eylemleri (kapsam öneki `c1|c2|field`; `nominal`/`healthy`/`*_close`, `soc:n`, tip arızaları, kapı/yangın, HVAC hold, `aux_loss`) | K7/FR-4.1..4.3 |
 | 20 | `apps/sim-lab/src/http/api.ts#startHttp` | (yeni uçlar) `POST /compat/<kapsam>/inject` (200/400/404) · `GET /compat/<kapsam>/health` (hazır değilse 503) | FR-4.1 |
 | 21 | `apps/site/integration/helpers.ts`, `e2e/demo-faults.spec.ts`, `e2e/demo-protection.spec.ts` | (değişiklik) inject base URL'leri `http://localhost:8090/compat/<kapsam>` — test mantığı aynı | FR-4.1/SC-2 |
@@ -75,7 +82,7 @@ review_date: 2026-11-12
 | Şema redleri | `device-config.test.ts` | "rejects simulator transport" + `periodicWrites` (counter/fixed/mode) testleri yeşil |
 | Fail-fast (AK-1.2) | `npx vitest run src/config-loader.test.ts` | 3 red testi (kind / connector.sim / heartbeat, dosya+deviceId mesajı) — build turu |
 | Runtime bekçi (AK-1.1) | `npx vitest run src/runtime.test.ts` | `net.Server.listen` **0 çağrı** — build turu |
-| v2 config şeması (AK-3.2) | `npx vitest run src/v2-configs.test.ts` | 46 config şemadan geçti; sim-only alan 0; hedef `sim-lab`; `.env.example` temiz — build turu |
+| v2 config şeması (AK-3.2) | **kanıt taşındı (2026-11-17):** exporter + `bun tools/device-config-drift.mjs` + `config-loader` fail-fast + stack entegrasyonu (20/20) | `v2-configs.test.ts` silindi (services→deployment okuması yön ihlali); config üretimi şema uyumlu, drift bekçisi ve runtime fail-fast kapsıyor |
 | HTTP sözleşmesi (AK-4.1) | `npx vitest run src/http/compat-http.test.ts` | 5 test: health 503→200, inject 200/400/404, kapsam 404 — build turu |
 | EMS okuma yolu (AK-4.2) | `npx vitest run src/http/compat-ems-path.test.ts` | 2 test: `soc:42` → BSC SOC ≈42, `diff_temp` → Max Pack Temp >100 °C (gerçek Modbus TCP) — build turu |
 | Drift tabanı (AK-3.4) | `bun tools/device-config-drift.mjs` | **10 hata** — taban korundu, yeni hata yok — reviewer koşusu |
@@ -102,7 +109,7 @@ review_date: 2026-11-12
 | AK-2.2 | Dayanıklılık (hata → `onError`, servis ayakta) | `periodic-write-scheduler.test.ts#AK-2.2` | 🟢 |
 | AK-2.3 | Eski `heartbeat` davranışı birebir | `periodic-write-scheduler.test.ts#AK-2.3` (`extraPoints` + 1000 ms) + config dönüşümü; BSC LOC zinciri gerçek modelde test edilmedi (G7) | 🟡 |
 | AK-3.1 | demo-v2 site = v2 kümesi | `demo-v2.test.ts#AK-3.1` (anahtarlar + portlar + eşleşme) | 🟢 |
-| AK-3.2 | Config saflığı + port eşlemesi | `v2-configs.test.ts` (46 config şemadan geçti, sim-only alan 0, hedef `sim-lab`, `.env.example` temiz) + `demo-v2.test.ts` | 🟢 |
+| AK-3.2 | Config saflığı + port eşlemesi | Taşındı (2026-11-17): sim-lab exporter (şema uyumlu üretim) + `device-config-drift.mjs` + `config-loader` fail-fast (`connector.sim`/`transport.kind:simulator`) + stack entegrasyonu 20/20 (`demo-v2.test.ts` korunuyor) | 🟢 |
 | AK-3.3 | `gd-simnet` + host yayın izolasyonu | Varsayılan compose: host'tan 20001/20101/30001/30201 **kapalı**; dev override alias'larıyla test erişimi açık | 🟢 |
 | AK-3.4 | Drift tabanı korunur | `bun tools/device-config-drift.mjs` → 10 hata | 🟢 |
 | AK-4.1 | Uyumluluk ucu sözleşmesi (gövde/yanıt + kapsam) | `compat-http.test.ts` (5 test: 200/400/404 + health 503→200) + `compat-inject.test.ts` (14) | 🟢 |
@@ -110,18 +117,18 @@ review_date: 2026-11-12
 | AK-4.3 | `nominal` tüm etkileri geri alır | `compat-inject.test.ts` (`clear` + aktif arıza temizliği) | 🟢 |
 | AK-4.4 | Başlatma/durdurma sırası | `start:demo-integration` çalıştırıldı: sim-lab imajı build edilip başladı, sonra v2 stack'leri; `stop` script'i ters sıra (kod inceleme) | 🟢 |
 
-**SC durumu:** SC-1 🟢 (runtime bekçi: hiçbir port açılmaz + simülatör kodu yok) · SC-2 🟡 (stack uçtan uca çalışıyor; entegrasyon/e2e beklentileri T-20) · SC-3 🟢 (`v2-configs.test.ts` + drift tabanı) · SC-4 🟢 (EMS servislerinde god mode/inject ucu 0).
+**SC durumu:** SC-1 🟢 (runtime bekçi: hiçbir port açılmaz + simülatör kodu yok) · SC-2 🟡 (stack uçtan uca çalışıyor; entegrasyon/e2e beklentileri T-20) · SC-3 🟢 (exporter + drift bekçisi + config-loader fail-fast; `v2-configs.test.ts` 2026-11-17'de kaldırıldı) · SC-4 🟢 (EMS servislerinde god mode/inject ucu 0).
 
 ### A.4 Sapmalar
 
 | # | Sapma | Açıklama | Etki |
 |:--|:------|:---------|:-----|
 | S1 | AK-1.1 kanıtı statik | Bootstrap'ın `listen` yapmadığı kaynak taramasıyla kanıtlanıyordu. | **R-1 (T-18) uygulandı:** `runtime.test.ts` `net.Server.listen` 0 çağrı doğruluyor. |
-| S2 | AK-3.2 kanıtı grep + kısmi test | "40 config şemadan geçer" bütünlük testi yoktu. | **R-3 (T-19) uygulandı:** `v2-configs.test.ts` 46 config'i şema + sim-only alan + hedef host açısından doğruluyor. |
+| S2 | AK-3.2 kanıtı grep + kısmi test | "40 config şemadan geçer" bütünlük testi yoktu. | **R-3 (T-19) uygulandı:** `v2-configs.test.ts` 46 config'i şema + sim-only alan + hedef host açısından doğruluyordu; **2026-11-17:** dosya silindi (services→deployment okuması yön ihlali) — kanıt exporter + drift bekçisi + runtime fail-fast + stack entegrasyonuna taşındı. |
 | S3 | T-14 eksik: HTTP seviyesi uç testi | `/compat/*/inject` durum kodları ve `/compat/*/health` 503→200 geçişi test edilmemişti. | **R-2 (T-14) uygulandı:** `compat-http.test.ts` 5 testle kapatıyor. |
 | S4 | T-15 eksik: senaryo→EMS okuma yolu | FR-4.2 fake Plant ile kanıtlıydı. | **T-15 uygulandı:** `compat-ems-path.test.ts` gerçek `ModbusDevice` ile SOC ve sensör senaryolarını doğruluyor. |
 | S5 | T-10 kısmi: `--assist`/`--autostart` bayrakları yok | `plant.assist` default kapalı; SPEC'in istediği CLI bayrağı ve `SIM_ASSIST`/`SIM_AUTOSTART` env'leri eklenmedi. | Düşük — davranış doğru, açık kontrol eksik (G4). |
-| S6 | T-12 kısmi: `.env.example` temizliği | `deployment/v2/dev/{container,container2}/.env.example` içinde `PCS_BMS_TARGET_*`/`PCS_EMS_TARGET_HOST` satırları duruyordu. | **T-19 kapsamında temizlendi** + `v2-configs.test.ts` bekçisi eklendi. |
+| S6 | T-12 kısmi: `.env.example` temizliği | `deployment/v2/dev/{container,container2}/.env.example` içinde `PCS_BMS_TARGET_*`/`PCS_EMS_TARGET_HOST` satırları duruyordu. | **T-19 kapsamında temizlendi** + `v2-configs.test.ts` bekçisi eklendi (2026-11-17: bekçi kaldırıldı, kanıt taşındı). |
 | S7 | `run.ts` mutasyon %0 | Bootstrap dosyası hiç test edilmiyor (yapısal). | Düşük (bilinen) — S1 ile ortak kök. |
 | S8 | Tam mutasyon kapısı kırmızı | Değişen mevcut dosyalar (`config-loader.ts`, `device-service.ts`, `host.ts`, `schemas/device-config.ts`) önceden var olan kapsam borcunu taşıyor; turun yeni dosyaları eşiği geçti. | AGENTS kapısı teknik olarak kırmızı (G5). |
 | S9 | Bayat yorum/artıklar | `apps/site/integration/helpers.ts` başlığında "DebugInjector :15590" ifadeleri; `apps/site/.stryker-tmp/` eski sandbox kopyaları. | Kozmetik (G8). |
@@ -197,7 +204,8 @@ review_date: 2026-11-12
 | `periodicWrites` şeması | counter / fixed / bilinmeyen mod / 0 interval | kabul / `value` refine / red | `device-config.test.ts` |
 | demo-v2 sitesi | `expandSite` | 20+20 konteyner cihazı, 4 PCS, 2 MV; portlar 200xx/201xx/300xx/302xx | `demo-v2.test.ts` (AK-3.1) |
 | PCS↔BSC ve fider | site şeması | `PCS-1↔C1.BSC-1`, `PCS-4 → DEMO-MV-2/H05` | `demo-v2.test.ts` (AK-3.1) |
-| Config saflığı | repo taraması | `transport`/`connector.sim`/`heartbeat` 0 eşleşme; hedef `sim-lab`; şema geçişi | `v2-configs.test.ts` (AK-3.2) |
+| Telemetri global tag'leri | `service.json#tags` | keyfi anahtarlar telemetriye basılır; cihaz tag'leri + `device_id` son söz | `stampTags` + `device-service.test.ts` (yayın yolu) + `config-loader.test.ts` (tags korunur) |
+| Config saflığı | exporter + drift + loader | şema uyumlu üretim; `connector.sim`/`transport.kind:simulator` fail-fast; root↔deployment sapması yok | `device-config-drift.mjs` + `config-loader.test.ts` + stack entegrasyonu (AK-3.2, kanıt taşındı) |
 | Drift | araç koşusu | taban 10 hata, yeni hata yok | komut kanıtı (A.2) |
 | Compat kapsam öneki | `c1`/`c2`/`field` | yalnız o kapsamın cihazı etkilenir | `compat-inject.test.ts` (AK-4.1) |
 | Compat temizleme | `nominal`/`healthy`/`*_close` | üstyazımlar `clear` + aktif arızalar silinir | `compat-inject.test.ts` (AK-4.3) |
@@ -244,6 +252,9 @@ review_date: 2026-11-12
 |:------|:------|:-----------------------|
 | 2026-11-12 | İlk kapanış: UC-1..UC-4 taze kanıtla doğrulandı (97+291+130+14 test, drift tabanı, config saflığı grep'leri); 15 AK = 7 🟢 / 5 🟡 / 3 ⬜; S1–S10 sapmaları, G1–G9 boşlukları, R-1–R-4 önerileri; docker demo turu ve HTTP/senaryo sözleşme testleri açık | (SPEC değişmedi — öneriler bekliyor; DEVICE-SERVICE-MIMARISI UC-5/K8 revizyonu T-8 kapsamında build'de yapıldı) |
 | 2026-11-12 | Developer onayı: SPEC `docs/architecture/`'a taşındı; R-1..R-4 kabul edildi ve **build'de uygulandı** (T-18/T-19 eklendi, T-12/T-14/T-15 yeniden açık, A3 SECURITY kararı + İleri İş maddesi) | UC-1 (AK-1.1 kanıt, T-18) · UC-2 (AK-2.3 kanıt notu) · UC-3 (T-12 yeniden açık, AK-3.2, T-19) · UC-4 (T-14/T-15 yeniden açık, AK-4.1) · §10 A3 · §11 İleri İş · §12 |
+| 2026-11-17 | Telemetri tag kaynağı `service.json#tags`'e taşındı: `identity` parametresi + cihaz başına `TelemetryTagger` kaldırıldı, `stampTags` fonksiyonu geldi; `site.containerId` tanımı silindi (`site.fieldId` web-service için korundu); compose'lardan device-service `CONTAINER_ID`/`FIELD_ID` satırları çıktı; dev+test-stack `service.json`'larına tag'ler eklendi (exporter/senaryo üretimi dahil). device-service 102/102 | SPEC Revizyon (2026-11-17) · UC-1/UC-3 |
+| 2026-11-17 | Purity taraması (2. tur): ölü `registerMap` mutlaklaştırma bloğu (`device-service.ts` — `DeviceTransportConfig` yalnız `kind` taşıyor, koşul asla sağlanmıyordu) ve öksüz `deployment/v2/dev/{container,container2}/device-configs/mappings/` (4 dosya; tek tüketici sim tarafı, o da kök `configs/mappings/`'ten okuyor) silindi; `ConnectorDeviceSubset`/`ConnectorConfig` docstring'leri "yalnız Sim-Lab tüketir" olarak düzeltildi | SPEC §Edge Cases (revize) · UC-3 AK-3.2 |
+| 2026-11-17 | `connector.device` türetimi kaldırıldı (tüketicisiz `BSC-PCS-CONNECTOR-1` poll'ü; köprüyü Sim-Lab yapar) + `v2-configs.test.ts` silindi (services→deployment okuma yön ihlali). device-service 105→99 test, 99/99 yeşil; `dependency-direction` 0 ihlal | SPEC §Edge Cases (revize) · UC-3 AK-3.2 (kanıt taşındı) |
 | 2026-11-12 | T-18/T-19/T-14/T-15 uygulandı: `runtime.test.ts` (listen 0), `config-loader` fail-fast 3 dal, `v2-configs.test.ts` (46 config), `compat-http.test.ts` (5) ve `compat-ems-path.test.ts` (2, gerçek Modbus) eklendi; `startHttp` `Server` döndürür + SSE timer `unref`; `.env.example` temizlendi. Sonuç: **12 🟢 / 1 🟡 / 2 ⬜**; device-service 105/105, sim-lab 21/21 | AK-1.1 · AK-1.2 · AK-3.2 · AK-4.1 · AK-4.2 · T-12 · T-14 · T-15 · T-18 · T-19 |
 | 2026-11-12 | **G6 docker turu**: `start:demo-integration` exit 0 (sim-lab ilk), compat health 200 (c1/c2/field), host Modbus portları varsayılan kapalı, alarm/telemetri akışı canlı doğrulandı. Compat `wattox-pcs` eşleme düzeltildi; dev host alias'ları eklendi; README güncellendi. Entegrasyon 33/24/51, e2e demo-faults geçti/FL-07 manuel geçiyor (soğuk başlangıç). Sonuç: **14 🟢 / 1 🟡 / 0 ⬜**; yeni **T-20** (test beklentileri) | AK-3.3 · AK-4.4 · S11 · S12 · S13 · G6 · T-20 |
 | 2026-11-13 | **T-21/A uygulandı**: `stop` `accept:[2,5]` (standby idempotent — manuel `standby container-2` artık `completed`), `close_contactors` timeout 15 s, `pcs_charge/discharge/standby` → `fault_reset` ön adımı, `overheat` → `diff_temp`. Hedefli 4 suite **20 pass / 5 fail / 1 skip**, `bsc-handshake` **9/10**. Kalan: charge rollback (fault_reset ↔ kontaktör kapanışı yarışı), PCS15 BMS bloğu, c2 telemetri yarışı | S14 · T-21 · AK-3.3 · AK-4.4 |

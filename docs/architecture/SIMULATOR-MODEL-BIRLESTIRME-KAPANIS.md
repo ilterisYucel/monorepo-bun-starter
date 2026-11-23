@@ -8,7 +8,7 @@ review_date: 2026-11-13
 # Simülatör Model Birleştirme — Kapanış (Doğrulama + Test Kapsamı)
 
 > **İş akışı aşaması:** 4/4 — KAPANIŞ (reviewer, mode: all).
-> **SPEC:** `~/.opencode/plan/SIMULATOR-MODEL-BIRLESTIRME-MIMARISI.md` — ✅ Approved (2026-11-12), AK/FR kaynağı. Review onayıyla SPEC'in `docs/architecture/`'a taşınması gerekiyor (bu KAPANIŞ yazılırken SPEC hâlâ plan konumunda).
+> **SPEC:** [SIMULATOR-MODEL-BIRLESTIRME-MIMARISI.md](./SIMULATOR-MODEL-BIRLESTIRME-MIMARISI.md) — ✅ Approved (2026-11-12), kapanış revizyonu onaylı (2026-11-16; K8–K10, SC-1 a/b, R-1..R-6 işlendi) ve SPEC `~/.opencode/plan/`'dan bu dizine **taşındı** (plan konumunda kopya yok).
 > **Kapsam:** UC-1 fark envanteri + eşdeğerlik iskelesi · UC-2 BSC adaptörü · UC-3 PCS adaptörü · UC-4 HVAC adaptörü · UC-5 connector/aux/host/bekçi.
 > **Tur sınırı:** çalışma ağacında SIMULATOR-PIPE ve DEVICE-SERVICE-SADELESTIRME turlarının değişen dosyaları da duruyor (`physical/link/*`, `site-config.ts`, `site/plant.test.ts`, `ems-read-path.test.ts`, `bsc-face.ts` nameplate düzeltmesi). Bu KAPANIŞ yalnız birleştirme yüzeyini doğrular; pipe kanıtları [SIMULATOR-PIPE-KAPANIS.md](./SIMULATOR-PIPE-KAPANIS.md), device-service kanıtları [DEVICE-SERVICE-SADELESTIRME-KAPANIS.md](./DEVICE-SERVICE-SADELESTIRME-KAPANIS.md).
 
@@ -52,16 +52,17 @@ review_date: 2026-11-13
 
 | Kapsam | Komut | Sonuç |
 |:-------|:------|:------|
-| simulators (tam) | `bunx nx run simulators:test --skip-nx-cache` | **329/329 yeşil**, 35 dosya |
+| simulators (tam) | `bunx nx run simulators:test --skip-nx-cache` → 2026-11-16 tekrarı | **342/342 yeşil**, 35 dosya (S10/S8 turunda +13 test) |
 | sim-lab bekçi zinciri | `npx vitest run` (apps/sim-lab) | **21/21 yeşil**, 3 dosya — paket değişiminden sonra da yeşil (AK-5.4) |
-| Eşdeğerlik + adaptörler + köprü + host | `npx vitest run` (7 dosya: `equivalence`, 3 adaptör, `aux-ports`, `bsc-modbus-adapter`, `host`) | **46/46 yeşil** |
+| Eşdeğerlik + adaptörler + köprü + host | `npx vitest run` (7 dosya: `equivalence`, 3 adaptör, `aux-ports`, `bsc-modbus-adapter`, `host`) | **61/61 yeşil** (2026-11-16) |
 | device-service saflık bekçisi | `bunx nx run device-service:test --skip-nx-cache` | **105/105 yeşil** (13 dosya) — `no-simulator-surface.test.ts` dâhil (A.5 Purity 4) |
-| Site entegrasyonu (regresyon, tam set) | `npx vitest run --config vitest.integration.config.ts` (10 dosya, tek oturum; sim-lab imajı `--build` ile yenilenmiş) | **102 pass / 5 fail / 1 skip** (108) — S10 |
-| Site entegrasyonu (yineleme) | aynı config, 4 dosya (station-operations + bsc-handshake + commands-operations-edge + demo-maneuver) | **37 pass / 1 fail** — tam set'teki 5 hatadan 4'ü **yinelemedi** (sıra/başka suite kirliliği); kalan: `bsc_recovery` |
-| Site entegrasyonu (yalıtılmış) | `integration/commands-operations-edge.integration.test.ts` tek başına | **13 pass / 1 fail** — aynı test (`bsc_recovery`) deterministik; **manuel repro geçiyor**: `reset→start→close` sonrası `emergency` → `200 success/validated`, `BSC State = 6` (≈1 sn) |
+| Site entegrasyonu (regresyon, tam set — önce) | `npx vitest run --config vitest.integration.config.ts` (10 dosya; sim-lab imajı `--build`) | 102 pass / 5 fail / 1 skip (S10 bulgusu) |
+| Site entegrasyonu (regresyon, tam set — **S10 fix sonrası**) | aynı komut (2026-11-16) | **107 pass / 1 skip / 0 fail** (10/10 dosya) — S10 kapandı |
+| Site entegrasyonu (yalıtılmış, fix öncesi) | `integration/commands-operations-edge.integration.test.ts` | 13/14 — `bsc_recovery` (ön koşul); **manuel zincir geçiyordu** (`emergency` → `200 validated`, `State=6`) |
+| Site entegrasyonu (yalıtılmış, fix sonrası) | aynı dosya | **14/14** — ön koşul iki adıma ayrıldı (S10) |
 | Typecheck — simulators | `npx tsc --noEmit` (packages/simulators) | ❌ 12 hata — **yalnız** `fss/fss-simulator.ts` (11) + `physical/conformance/ems-read-path.test.ts` (1); bu turun dosyalarında hata YOK (S9) |
 | Typecheck — sim-lab | `npx tsc --noEmit` (apps/sim-lab) | ❌ 10 hata — **yalnız** `apps/sim-lab/src/plant.ts` (kopya zincir, bu turda değişmedi; S9) |
-| Mutasyon | `bun run test:mutation` | ⚠️ **koşulmadı** — developer kararı ("mutasyonu atla şimdilik"); build turunda ölçülenler: BSC %74,3 · PCS %69,0 · HVAC %61,1 · `bsc-modbus-adapter` %77,2 (eşik %80) |
+| Mutasyon (hedefli, 2026-11-16) | `bunx stryker run ../../stryker.conf.mjs --mutate <adaptörler, köprü, harness>` | `bsc-legacy-adaptor` **%81,8** ✅ · köprü %77,2 · PCS %53,6 · HVAC %48,7 · `equivalence` %34,9 · `catalog` %0 — **S8 muafiyet paketiyle kapandı** |
 | Canlı stack | `docker compose up -d --build sim-lab` + `bun tools/stack-ready.mjs` | exit 0 — 6 uç 200 (adaptör/aux kodu imaja girdi) |
 
 ### A.3 Kabul Kriteri Kanıtları
@@ -80,7 +81,7 @@ review_date: 2026-11-13
 | AK-5.3 | Host bağımsız/çoklu ünite kullanımı korunur | `host.test.ts` 9/9 (3 builder adaptörde) | 🟢 |
 | AK-5.4 | Bekçi zincir CI'da koşar / rol belgeli | `vitest.workspace.ts` (`apps/sim-lab`) + `.github/workflows/test.yml` (job "Vitest Workspace", `bun run test`) + §1.5 notu | 🟢 |
 
-**SC durumu:** SC-2 🟢 (üç cihazda `uyumlu` eşdeğerlik farkı 0 — harness koşusu). **SC-3 🟡** — birim tarafı tam yeşil (simulators 329/329, bekçi sim-lab 21/21), **site entegrasyonu tam set 102/5/1** ve 5 hatadan yalnız 1'i ayrıştırılabilir durumda (S10). SC-4 🟢 (`host.test.ts` 9/9). **SC-1 🟡** — davranış tek kaynağı üretim yollarında (host + Plant) sağlandı; legacy sınıflar hâlâ durum makinesi taşıyor ve eşdeğerlik testlerinin **tabanı** olarak yaşıyor (S1).
+**SC durumu:** SC-2 🟢 (üç cihazda `uyumlu` eşdeğerlik farkı 0 — harness koşusu). **SC-3 🟢** — birim tarafı tam yeşil (simulators **342/342**, bekçi sim-lab 21/21) ve site entegrasyonu tam set **107 pass / 1 skip / 0 fail** (S10 fix sonrası, 2026-11-16). SC-4 🟢 (`host.test.ts` 9/9). **SC-1 🟡** — davranış tek kaynağı üretim yollarında (host + Plant) sağlandı; legacy sınıflar hâlâ durum makinesi taşıyor ve eşdeğerlik testlerinin **tabanı** olarak yaşıyor (S1).
 
 ### A.4 Sapmalar
 
@@ -93,9 +94,9 @@ review_date: 2026-11-13
 | S5 | `simSpeedMultiplier` adaptörde yok; host artık bu config alanını **yoksayıyor** | Demo hız çarpanı yalnız Plant (`spec.sim.speed`) üzerinden çalışıyor; host tabanlı demo kurulumlarında SOC entegrasyonu yavaşlar | Düşük — host'u kimse üretimde kullanmıyor; yine de config→sessiz düşüş (R-4) |
 | S6 | T-9'un "connector'un link katmanına oturtulması" host yolu için uygulanmadı (`bsc-pcs-connector/connector.ts` değişmedi); Plant zaten `BmsLink` kullanıyordu | AK-5.1 🟡; bağımsız ünite çifti hâlâ TCP connector ile (ki bu SPEC'in "TCP master korunur" şartıyla uyumlu) | Hayır — SPEC metni iki yolu ayırmıyor; netleştirme önerisi (R-5) |
 | S7 | `plant.ts#physics` içinde DC metre guard'ı (`activeFaultTarget`) kaldı — sinyal yayını porttan önce geliyor | FR-5.2 kısmen: yama kalktı, guard kaldı | Hayır — enjeksiyon korunumu bilinçli (FL-08) |
-| S8 | Mutasyon kapısı koşulmadı (developer kararı) | Geçit kanıtsız; build turunda ölçülen %61–77, eşiğin altında | Evet — kapanış öncesi ya test turu ya eşik kararı (B.2) |
+| S8 | Mutasyon kapısı: 2026-11-13'te koşulmadı; 2026-11-16'da ölçüldü — `bsc-legacy-adaptor.ts` **%81,8** ✅, `bsc-modbus-adapter.ts` %77,2, `pcs-legacy-adaptor.ts` %53,6, `hvac-legacy-adaptor.ts` %48,7, `equivalence.ts` %34,9, `physical/faults/catalog.ts` %0 (statik tablo) | **KAPANDI (2026-11-16, developer kararı — muafiyet paketi):** (a) `physical/faults/catalog.ts` statik veri tablosu, (b) `physical/conformance/*-sides.ts` test iskelesi, (c) `equivalence.ts` sequence **veri** mutantları, (d) PCS/HVAC ince adaptörlerinin %80'e zorlanması — kapsam dışı. Davranış kanıtı harness (fark 0) + model testleri; BSC adaptörü ve köprü zaten sınırda/üstünde | Hayır — kapandı |
 | S9 | `simulators:typecheck` ve `sim-lab:typecheck` hedefleri kırmızı — hatalar **bu turun dosyalarında değil** (`fss-simulator.ts`, `ems-read-path.test.ts`, `apps/sim-lab/src/plant.ts`) | Kapı güvenilirliği (DEVICE-SERVICE-SADELESTIRME KAPANIŞ'ındaki G9 ile aynı kök) | Evet — tip hijyeni turu |
-| S10 | **Site entegrasyonunda 5 hata (tam set)** — `bsc_recovery` (deterministik, yalıtılmış koşuda da), `full_charge/full_discharge` zaman aşımı, `bsc-handshake` "akım akarken stop", `station_stop` ×2 (422). Yinelemede 4'ü kayboldu; `bsc_recovery` manuel repro'da geçiyor | Bu turun **birleştirme koduna bağlanmış kanıt yok** (manuel zincir çalışıyor; hatanın olduğu adım testin `normalizeContainer` ön koşulu). Kalıcı görüntü: paylaşımlı stack'te suite sırası + eski SOC/teşhis durumu. Not: aynı suite G11 turunda yalıtılmış koşuda 14/14 geçmişti — kesin ayrım için imajın SPEC öncesi duruma döndürülmesi gerekir | Evet — B.2'de "entegrasyon kirliliği" boşluğu; developer kararına bağlı ayrıştırma turu |
+| S10 | **Site entegrasyonunda 5 hata (tam set)** — kök neden: test ön koşulu. Önceki testler PCS'i akım akıtırken bırakıyor; BSC `reset`/`close` "Current Flows" ile reddediliyor ve `normalizeContainer` hataları yutuyordu. Diğer 4 hata yinelemede kayboldu (sıra/kirlilik) | **KAPANDI (2026-11-16):** `bsc_recovery` ön koşulu `normalizeField` (PCS güç 0 + rampa) + `normalizeContainer` + açık "BSC Normal" assertion'ına çevrildi. Edge suite **14/14**, tam set **107 pass / 1 skip / 0 fail**. Birleştirme koduna bağlı regresyon YOK | Hayır — kapandı |
 
 ### A.5 Gözle Kontrol Maddeleri
 
@@ -112,8 +113,8 @@ review_date: 2026-11-13
 ### A.6 Genel Durum Özeti
 
 - **Kapanır:** UC-1, UC-2, UC-3, UC-4 tam; UC-5 dört görevin ikisi tam (T-11, T-12), ikisi kısmi (T-9, T-10).
-- **Açık:** SC-1 (legacy sınıfların silinmesi — S1), AK-5.1 host connector yolu (S6), mutasyon geçidi (S8), tip hijyeni (S9), entegrasyon kirliliği/`bsc_recovery` (S10), S3 için şebeke gerilimi kararı, S4 için enjeksiyon sözleşmesi kararı.
-- **Kapanış önerisi:** birleştirme yüzeyi (harness + 3 adaptör + host + aux portları) **birim düzeyinde kanıtlı ve yeşil**; site entegrasyonundaki 5 hata bu turun koduna bağlanamadı (manuel zincir çalışıyor) — ancak **koşullu kapanış**: S10 ayrıştırma turu + mutasyon kararı netleşmeden merge önerilmez.
+- **Açık (kapanışı bloke etmeyen, ayrı iş kalemleri):** SC-1b legacy emekliliği (İleri İş 5), AK-5.1 host connector yolu netleştirmesi (S6 → R-5 ile SPEC'e işlendi), tip hijyeni (S9). **S1/S3/S4/S10 ve S8 kapandı** — S1/S3/S4 SPEC revizyonuna (K8–K10), S8 muafiyet kararına, S10 test ön koşulu düzeltmesine bağlandı.
+- **Kapanış kararı: KOŞULSUZ KAPANIŞ (2026-11-16).** Birleştirme yüzeyi birim + entegrasyon düzeyinde yeşil (simulators **342/342**, bekçi **21/21**, site entegrasyonu **107/1/0**); eşdeğerlik farkı 0 (BSC/PCS/HVAC adaptörleri); mutasyon kapsamı muafiyet paketiyle onaylı; SPEC kapanış revizyonu onaylanıp `docs/architecture/`'a taşındı. Kalan maddeler (SC-1b emeklilik, A3 bekçi ömrü, S9 tip hijyeni) **bilinçli olarak ayrı iş** — birleştirme kapanışını bloke etmez.
 - **Kabul kriteri sayımı:** 11 AK → **9 🟢 / 2 🟡** (`AK-5.1`, `AK-5.2` 🟡). SC: **3 🟢 / 1 🟡** (SC-1).
 - **NIS-2 uyumluluk boşlukları:**
   1. `PcsLegacyAdaptor` BMS yüzünü **`0.0.0.0`** üzerinde dinliyor (varsayılan) — legacy `createWattoxBmsBridge` davranışının birebir kopyası; SPEC'te bu yüz için **tehdit modeli / güvenlik kabul kriteri yok**. Yayın politikası DEVICE-SERVICE-SADELESTIRME SPEC'inin R-4/§11 A3 (god mode auth) kararıyla birlikte ele alınmalı; bağımsız ünite çifti dış ağa açılıyorsa BMS yazımı kimlik doğrulamasız kalır.
@@ -154,30 +155,30 @@ review_date: 2026-11-13
 | Aux DC metre | üç sinyal var / yok | Ölçüm yazılır / yazılmaz (mock default) | `aux-ports.test.ts` |
 | Host | 3 cihaz adaptörle start | Port açılır, register okunur, `inject` çalışır | `host.test.ts` (9/9) |
 | Bekçi | paket modeli değişti, kopya zincir aynı | sim-lab 21/21 yeşil | `apps/sim-lab` vitest koşusu |
-| Regresyon (tam set) | sim-lab imajı `--build` ile yenilenmiş stack, 10 dosya tek oturum | 102 pass / 5 fail / 1 skip (S10) | `kapanis-integration.log` |
-| Regresyon (yineleme) | 4 dosya | 37 pass / 1 fail — 4 hata yinelemedi | `kapanis-int-repeat.log` |
-| Regresyon (yalıtılmış) | edge suite tek başına | 13 pass / 1 fail (`bsc_recovery`) | `kapanis-edge-only.log` |
-| Manuel zincir | `reset→start→close→emergency` API çağrıları | `200 validated`, State 6 | reviewer oturumu (canlı) |
+| Regresyon (tam set, fix sonrası) | 10 dosya tek oturum, `--build` edilmiş imaj | **107 pass / 1 skip / 0 fail** | 2026-11-16 koşusu |
+| Ön koşul (S10) | edge suite; PCS şarjı sonrası `normalizeField` + `normalizeContainer` | BSC Normal → `emergency` kabul, State 6 | `commands-operations-edge.integration.test.ts` |
 
 ### B.2 KAPSANMAYAN Boşluklar
 
 | Boşluk | Risk | İleri iş |
 |:-------|:-----|:---------|
-| **Mutasyon geçidi koşulmadı** (S8) | Davranış mutantları canlı kalabilir; adaptörlerde ölçülen %61–77 | Test derinleştirme turu **veya** conformance/adaptör dosyaları için eşik kararı (DEVICE-SERVICE-SADELESTIRME G5 ile ortak karar) |
+| **Mutasyon kapsamı** (S8 — muafiyet onaylı): statik katalog, conformance iskeleleri, harness sequence verisi ve ince PCS/HVAC adaptörleri eşik dışı | Bu dosyalarda davranış mutantı testle yakalanmaz | Veri/iskele dosyaları değiştiğinde harness + model testleri yeniden koşulur; adaptörlerdeki davranış zaten modeldedir |
 | `gercek` profil eşdeğerliği | SPEC A2 gereği baz `uyumlu`; `gercek` profil farkları envantere işlenmedi | İstenirse ikinci sekans koşusu (`profile: "gercek"`) — kasıtlı fark listesi çıkar |
 | Harness'in kapsamadığı BSC davranışları: teşhis seti, heartbeat→LOC, ack durum makinesi ayrıntısı, raf hücre modeli | "Tek kaynak" iddiası yalnız ölçülen 12 adıma dayanır | Sırayla sekans genişletme (teşhis + LOC öncelikli — AK-2.3/DEVICE-SERVICE G7 ile kesişiyor) |
 | `BscLegacyAdaptor.inject` eşlemesinin legacy ile sayısal farkı (S4) | Dev/debug senaryoları host üzerinden farklı değer üretir | Enjeksiyon sözleşmesi kararı (R-3) + test |
 | `simSpeedMultiplier` yoksayımı (S5) | Host tabanlı demo kurulumunda SOC entegrasyonu yavaş | R-4 kararı |
 | Host connector yolunun link katmanına taşınması (S6) | Bağımsız ünite çifti iki farklı bağlantı yolu taşır | R-5 kararı; taşınırsa retry testi yeniden koşulur |
 | `apps/sim-lab` kopya zincirinin tiplerinin kırmızı olması (S9) | Kapı güvenilirliği; bekçi yalnız runtime | Tip hijyeni turu (ayrı iş) |
-| **Entegrasyon kirliliği (S10):** paylaşımlı stack'te suite sırası/önceki durum, `bsc_recovery` ön koşulunu kırıyor; 4/5 hata yinelemedi | Yanlış pozitif/negatif regresyon okuması | Suite başına tam durum sıfırlama (reset + SOC/teşhis temizliği) ya dosya-bazlı izole oturumlar; ayrıştırma turu |
+| **Paylaşımlı stack ön koşulları (S10 artığı):** BSC komutları akım akarken reddedilir — testler `normalizeField` ile PCS rampasını beklemeli | Yanlış kırmızı | Yeni operasyon testlerinde aynı iki adımlı ön koşul deseni (S10 fix'i örnek) |
 | BMS/EMS sunucu yüzlerinin ağ yayını (NIS-2 boşluğu) | Yanlışlıkla dışa açık BMS yazımı | SECURITY SPEC / R-4 (DEVICE-SERVICE-SADELESTIRME) ile birleşik karar |
 
-**Mutasyon öldürme oranı:** **veri yok** — bu kapanış turunda `bun run test:mutation` developer kararıyla koşulmadı. Build turunda ölçülenler (referans, taze değil): `bsc-legacy-adaptor.ts` %74,29 (51+1 killed / 17 survived), `bsc-modbus-adapter.ts` %77,19, `pcs-legacy-adaptor.ts` %68,97, `hvac-legacy-adaptor.ts` %61,11. Eşik %80 → geçit **kırmızı**.
+**Mutasyon öldürme oranı (2026-11-16, taze):** `bsc-legacy-adaptor.ts` **%81,82** (kapsanan %87,38) ✅ · `bsc-modbus-adapter.ts` %77,19 · `pcs-legacy-adaptor.ts` %53,59 · `hvac-legacy-adaptor.ts` %48,68 · `equivalence.ts` %34,87 · `physical/faults/catalog.ts` %0. **Muafiyet (developer onayı, 2026-11-16):** statik veri tablosu, conformance iskeleleri, harness sequence verisi ve ince PCS/HVAC adaptörleri eşik dışı — geçit bu kapsamda **yeşil kabul edildi**; adaptör davranışı harness (fark 0) + model testleriyle kanıtlı.
 
 ## Revizyon Geçmişi
 
 | Tarih | Neden | Dokunulan SPEC maddesi |
 |:------|:------|:-----------------------|
+| 2026-11-16 | **Kapanış onayı ve mühür:** developer K8–K10 + SC-1 a/b + İleri İş 5–6 revizyonlarını onayladı; SPEC `docs/architecture/`'a taşındı. **S8 muafiyet paketi onaylandı** (statik katalog + conformance iskeleleri + harness sequence verisi + ince PCS/HVAC adaptörleri eşik dışı; BSC adaptörü %81,8 ile eşiği geçti). Karar: **koşulsuz kapanış** | S1 · S3 · S4 · S8 · SC-1a/SC-1b · K8–K10 |
+| 2026-11-16 | **S10 kapandı:** `bsc_recovery` kök nedeni test ön koşulu (PCS rampası inişi) — `normalizeField` + açık Normal assertion. Edge **14/14**, tam entegrasyon seti **107 pass / 1 skip / 0 fail**. S8 için mutasyon ölçüldü: `bsc-legacy-adaptor` **%81,8** · köprü %77,2 · PCS %53,6 · HVAC %48,7 · `equivalence` %34,9 · `catalog` %0 (statik tablo). SC-3 🟢'ya yükseldi; kalan kararlar S8 (kapsam/eşik) ve S1/R-1 | S10 · S8 · SC-3 |
 | 2026-11-13 | Koşullu kapanış: site entegrasyonu tam set 102/5/1, yineleme 37/1, yalıtılmış 13/14 — `bsc_recovery` deterministik ama manuel repro geçiyor → **S10** eklendi (entegrasyon kirliliği / ayrıştırma turu gerekir) | (SPEC değişmedi) |
 | 2026-11-13 | İlk kapanış: UC-1..UC-4 tamam, UC-5 kısmi (T-11/T-12 tamam; T-9/T-10 kısmi). 11 AK = 9 🟢 / 2 🟡, SC = 3 🟢 / 1 🟡 (SC-1); S1–S9 sapmaları, R-1–R-6 önerileri, B.2 boşlukları; mutasyon geçidi atlandı (S8); NIS-2 uyumluluk boşluğu (BMS `0.0.0.0` yayın) kayda geçirildi | (SPEC değişmedi — öneriler bekliyor; SPEC hâlâ `~/.opencode/plan/`'da, review onayıyla `docs/architecture/`'a taşınacak) |

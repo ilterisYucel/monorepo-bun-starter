@@ -117,7 +117,12 @@ function commandJob(overrides: Partial<CommandDeviceJob> = {}): CommandDeviceJob
 
 function buildService(
   device: IDevice,
-  deps: { sql?: ISqlDatabase; logger?: TamperLogger; alarms?: DeviceAlarmRule[] } = {},
+  deps: {
+    sql?: ISqlDatabase;
+    logger?: TamperLogger;
+    alarms?: DeviceAlarmRule[];
+    tags?: Record<string, string>;
+  } = {},
 ) {
   const capture: { processor?: (job: never) => Promise<unknown> } = {};
   const mq = mockMq(capture);
@@ -137,11 +142,43 @@ function buildService(
     mq,
     scheduler,
     deps.sql,
-    undefined,
+    deps.tags,
     deps.logger,
   );
   return { service, mq, scheduler, capture };
 }
+
+describe("device-service — telemetri tag'leri (service.json#tags)", () => {
+  it("yayınlanan telemetriye servis tag'leri + device_id basılır", async () => {
+    const { service, capture, scheduler } = buildService(fakeDevice(), {
+      tags: { container_id: "container-1", customer: "polatli" },
+    });
+    await service.start();
+
+    await capture.processor!(readJob() as never);
+
+    const published = (scheduler.publishTelemetry as unknown as {
+      mock: { calls: Array<[string, Array<{ tags?: Record<string, string> }>]> };
+    }).mock.calls[0]![1];
+    expect(published[0]!.tags).toEqual({
+      container_id: "container-1",
+      customer: "polatli",
+      device_id: "bsc-1",
+    });
+  });
+
+  it("tag verilmezse yalnız device_id basılır", async () => {
+    const { service, capture, scheduler } = buildService(fakeDevice());
+    await service.start();
+
+    await capture.processor!(readJob() as never);
+
+    const published = (scheduler.publishTelemetry as unknown as {
+      mock: { calls: Array<[string, Array<{ tags?: Record<string, string> }>]> };
+    }).mock.calls[0]![1];
+    expect(published[0]!.tags).toEqual({ device_id: "bsc-1" });
+  });
+});
 
 describe("device-service T0.11 sözleşmesi (hata yolları + log)", () => {
   let warn: ReturnType<typeof vi.spyOn>;

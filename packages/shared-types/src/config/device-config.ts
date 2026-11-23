@@ -51,7 +51,7 @@ export interface DeviceTransportConfig {
   kind: "tcp" | "rtu";
 }
 
-/** Connector device-subset — device-service'in gördüğü türetilmiş MODBUS cihazı. */
+/** Connector device-subset — **yalnız Sim-Lab** tüketir (BSC→PCS köprüsü); device-service türetmez. */
 export interface ConnectorDeviceSubset {
   deviceId: string;
   name: string;
@@ -61,7 +61,7 @@ export interface ConnectorDeviceSubset {
   telemetry: TelemetryConfigEntry[];
 }
 
-/** BSC config'i içindeki `connector` bölümü (connector izleme cihazı). */
+/** BSC config'i içindeki `connector` bölümü — Sim-Lab connector Modbus sunucusunu bundan kurar. */
 export interface ConnectorConfig {
   device: ConnectorDeviceSubset;
 }

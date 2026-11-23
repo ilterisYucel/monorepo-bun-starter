@@ -20,7 +20,7 @@ import type { AutomationRule, TelemetryData } from "@gd-monorepo/shared-types";
  */
 
 const RULES_PATH = fileURLToPath(
-  new URL("../../../deployment/v2/dev/container/rules/rules.json", import.meta.url),
+  new URL("./__fixtures__/container-rules.json", import.meta.url),
 );
 const DEVICE_CONFIG_DIR = fileURLToPath(
   new URL("../../../configs", import.meta.url),

@@ -37,6 +37,9 @@ jobs:
       - name: Build shared libraries
         run: bun nx run-many --target=build --projects=shared-types,shared-utils,core,ui,plugin-sdk,simulators
 
+      - name: Dependency direction ratchet (SPEC BAGIMLILIK-YONU)
+        run: bun tools/dependency-direction.mjs --self-test && bun tools/dependency-direction.mjs
+
       - name: Run unit & component tests
         run: bun run test
 

@@ -13,7 +13,7 @@ import {
   PluginContextFactory,
   PluginRegistry,
 } from "@gd-monorepo/plugin-sdk";
-import type { FetchWindow, IIntegrationPlugin, MarketDataPoint } from "@gd-monorepo/shared-types";
+import type { FetchWindow, IIntegrationPlugin, MarketDataPoint } from "@gd-monorepo/plugin-sdk";
 import { IntegrationService } from "./integration-service";
 import { ExternalSeriesWriter } from "./external-series-writer";
 

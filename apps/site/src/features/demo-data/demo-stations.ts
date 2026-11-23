@@ -19,6 +19,8 @@ export interface DemoStation {
   readonly name: string;
   /** İstasyonun iki fideri ve üniteleri (A: 5, B: 4) — gdems şablonu. */
   readonly feeders: { readonly A: readonly number[]; readonly B: readonly number[] };
+  /** Fider MV hücre adları (canlı topolojiden; yoksa H04/H05). */
+  readonly feederCells?: { readonly A?: string; readonly B?: string };
   readonly units: readonly number[];
   /** İstasyonu kontrol eden field PCS çifti (2 gerçek PCS/istasyon, K-18). */
   readonly pcs: readonly [string, string];
@@ -64,7 +66,19 @@ export function stationsFromTopology(topology: FieldTopology | undefined): DemoS
     index,
     key: station.key,
     name: station.name,
-    feeders: { A: [...station.feeders.A.units], B: [...station.feeders.B.units] },
+    // Tek fiderli istasyon geçerlidir (test stack 4 istasyon × 1 fider); eksik fider boş sayılır.
+    feeders: {
+      A: [...(station.feeders.A?.units ?? [])],
+      B: [...(station.feeders.B?.units ?? [])],
+    },
+    ...(station.feeders.A?.cell !== undefined || station.feeders.B?.cell !== undefined
+      ? {
+          feederCells: {
+            ...(station.feeders.A?.cell !== undefined ? { A: station.feeders.A.cell } : {}),
+            ...(station.feeders.B?.cell !== undefined ? { B: station.feeders.B.cell } : {}),
+          },
+        }
+      : {}),
     units: [...station.units],
     pcs: [station.pcs[0] ?? "PCS-1", station.pcs[1] ?? "PCS-2"] as [string, string],
     mvDeviceId: station.mvDeviceId,
@@ -100,8 +114,16 @@ export function stationTopo(station: DemoStation): NovaTopology {
       poiLabel: `TO ${DEMO_COLLECTOR.name} ${DEMO_COLLECTOR.cellOf(station.index)}`,
     },
     feeders: {
-      A: { ...DEMO_TOPOLOGY.feeders.A!, units: [...station.feeders.A] },
-      B: { ...DEMO_TOPOLOGY.feeders.B!, units: [...station.feeders.B] },
+      A: {
+        ...DEMO_TOPOLOGY.feeders.A!,
+        ...(station.feederCells?.A !== undefined ? { cell: station.feederCells.A } : {}),
+        units: [...station.feeders.A],
+      },
+      B: {
+        ...DEMO_TOPOLOGY.feeders.B!,
+        ...(station.feederCells?.B !== undefined ? { cell: station.feederCells.B } : {}),
+        units: [...station.feeders.B],
+      },
     },
   };
 }

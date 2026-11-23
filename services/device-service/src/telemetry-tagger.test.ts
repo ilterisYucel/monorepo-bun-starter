@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { TelemetryData } from "@gd-monorepo/shared-types";
-import { TelemetryTagger } from "./telemetry-tagger";
+import { stampTags } from "./telemetry-tagger";
 
 function sample(overrides?: Partial<TelemetryData>): TelemetryData {
   return {
@@ -15,49 +15,51 @@ function sample(overrides?: Partial<TelemetryData>): TelemetryData {
   };
 }
 
-describe("TelemetryTagger", () => {
-  it("korur elle girilen tag'leri ve device_id ekler", () => {
-    const tagger = new TelemetryTagger({ deviceId: "BSC-1" });
-    const out = tagger.enrich([sample()])[0]!;
-
-    expect(out.tags).toEqual({ rack_id: "system", device_id: "BSC-1" });
-  });
-
-  it("container-level app'te container_id ekler", () => {
-    const tagger = new TelemetryTagger({ deviceId: "BSC-1", containerId: "container-1" });
-    const out = tagger.enrich([sample()])[0]!;
+describe("stampTags — service.json global tag'leri", () => {
+  it("servis tag'lerini basar ve cihaz tag'lerini korur", () => {
+    const out = stampTags([sample()], "BSC-1", { container_id: "container-1" })[0]!;
 
     expect(out.tags).toEqual({
+      container_id: "container-1",
       rack_id: "system",
       device_id: "BSC-1",
-      container_id: "container-1",
     });
   });
 
-  it("field-level app'te field_id ekler, container_id eklemez", () => {
-    const tagger = new TelemetryTagger({ deviceId: "PCS-1", fieldId: "field-1" });
-    const out = tagger.enrich([sample({ deviceId: "PCS-1" })])[0]!;
-
-    expect(out.tags).toEqual({
-      rack_id: "system",
-      device_id: "PCS-1",
+  it("keyfi anahtar kümesini destekler (Telegraf tarzı)", () => {
+    const out = stampTags([sample()], "PCS-1", {
       field_id: "field-1",
+      customer: "polatli",
+      environment: "test",
+    })[0]!;
+
+    expect(out.tags).toMatchObject({
+      field_id: "field-1",
+      customer: "polatli",
+      environment: "test",
+      device_id: "PCS-1",
     });
   });
 
-  it("kimlik yoksa sadece device_id ekler", () => {
-    const tagger = new TelemetryTagger({ deviceId: "BSC-1" });
-    const out = tagger.enrich([sample()])[0]!;
+  it("device_id ve cihaz tag'i servis tag'ini ezer", () => {
+    const out = stampTags(
+      [sample({ tags: { device_id: "yanlis", rack_id: "r1" } })],
+      "BSC-1",
+      { device_id: "servis", rack_id: "servis" },
+    )[0]!;
 
-    expect(out.tags?.container_id).toBeUndefined();
-    expect(out.tags?.field_id).toBeUndefined();
+    expect(out.tags).toEqual({ device_id: "BSC-1", rack_id: "r1" });
   });
 
-  it("tags olmayan telemetriye de tag ekler", () => {
-    const tagger = new TelemetryTagger({ deviceId: "BSC-1" });
-    const out = tagger.enrich([sample({ tags: undefined })])[0]!;
+  it("tag yoksa yalnız device_id basar", () => {
+    const out = stampTags([sample({ tags: undefined })], "BSC-1")[0]!;
 
     expect(out.tags).toEqual({ device_id: "BSC-1" });
   });
 
+  it("telemetri dizisini boş/tanımsız tag'lerle de işler", () => {
+    expect(stampTags([], "BSC-1", { a: "b" })).toEqual([]);
+    const out = stampTags([sample()], "BSC-1", {})[0]!;
+    expect(out.tags).toEqual({ rack_id: "system", device_id: "BSC-1" });
+  });
 });

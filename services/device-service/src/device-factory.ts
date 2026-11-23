@@ -15,7 +15,8 @@ import type {
 
 /**
  * DeviceFactory — config'ten `IDevice` üretir (yalnız TCP/RTU; simülatör dalı YOK).
- * Connector bölümü varsa `createConnector` ile türetilmiş 2. MODBUS cihazı üretilir.
+ * `connector.device` bloğunu **Sim-Lab** tüketir (BSC→PCS köprüsü); device-service
+ * ondan ayrı bir cihaz türetmez.
  */
 export class DeviceFactory {
   create(config: DeviceConfigFile): IDevice {
@@ -28,22 +29,6 @@ export class DeviceFactory {
       return new CANBusDevice(config.deviceId);
     }
     return new MQTTDevice(config.deviceId);
-  }
-
-  /** `config.connector.device` varsa türetilmiş connector cihazını üretir. */
-  createConnector(config: DeviceConfigFile): IDevice | undefined {
-    const subset = config.connector?.device;
-    if (subset === undefined) return undefined;
-    return new ModbusDevice({
-      id: subset.deviceId,
-      name: subset.name,
-      manufacturer: config.manufacturer,
-      model: config.model,
-      connection: subset.connection,
-      telemetryList: subset.telemetry.map((entry) =>
-        this.toModbusTelemetry(subset.deviceId, entry),
-      ),
-    });
   }
 
   /**

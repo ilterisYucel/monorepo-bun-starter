@@ -173,11 +173,11 @@
 .rest-big.none em { font-weight: 400; letter-spacing: 0; color: var(--nm-muted); font-size: 12px; }
 .ready-groups { padding: 10px 14px; display: grid; gap: 8px; }
 .rg-h { display: flex; gap: 6px 14px; flex-wrap: wrap; align-items: baseline; }
-.rg { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.rg { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 6px; }
 .rgc { display: grid; gap: 1px; text-align: left; border: 1px solid var(--nm-line); border-left-width: 4px; border-radius: 5px; background: var(--nm-panel); padding: 6px 9px; cursor: pointer; min-width: 0; }
 .rgc b { font-size: 13px; }
 .rgc span { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; }
-.rgc small { font-size: 11px; color: var(--nm-muted); overflow: hidden; text-overflow: ellipsis; }
+.rgc small { font-size: 11px; color: var(--nm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rgc em { font-style: normal; font-size: 11px; color: var(--nm-muted); }
 .rgc.ok { border-left-color: var(--nm-ok); }
 .rgc.ok span { color: var(--nm-ok); }
@@ -185,6 +185,7 @@
 .rgc.alarm span { color: var(--nm-alarm); }
 .rgc.muted { border-left-color: var(--nm-dead); }
 .rgc.muted span { color: var(--nm-muted); }
+.rgc:hover { background: var(--nm-panel2); }
 .prog { display: block; height: 5px; background: var(--nm-line2); border-radius: 3px; overflow: hidden; margin-top: 6px; }
 .prog i { display: block; height: 100%; background: var(--nm-live); }
 
@@ -889,3 +890,153 @@ body.regmode svg text[data-rsk]:not([data-rsk=""]) {
 .pk .pk-t.mn, .pk .pk-v.mn { fill: var(--nm-cold); }
 .pk .pk-v { font-size: 11px; font-weight: 700; writing-mode: vertical-rl; }
 @media (max-width: 860px) { .pkrow { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Operations: referans konsol portu (app.css §Operations) ─────────────── */
+/* Fider (dal) seçimi — istasyon başlığı → fider grid'i → grup chip'leri */
+.br-st { display: flex; align-items: baseline; gap: 10px; margin: 8px 0 4px; flex-wrap: wrap; }
+.br-st small { color: var(--nm-muted); font-size: 11.5px; }
+.br-st .br-tog { display: inline-grid; font-weight: 600; font-size: 13px; }
+.br-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; }
+.br { display: grid; gap: 6px; border: 1px solid var(--nm-line); background: var(--nm-panel); border-radius: 6px; padding: 7px 9px; min-width: 0; }
+.br.on { border-color: var(--nm-sel); box-shadow: inset 0 0 0 1px var(--nm-sel); }
+.br-tog { display: grid; gap: 2px; text-align: left; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; min-width: 0; }
+.br-tog b { font-size: 12.5px; }
+.br-tog small { font-size: 11px; color: var(--nm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-tog[aria-pressed="mixed"] small { color: var(--nm-warn); }
+.br-tog[aria-pressed="false"] { opacity: .72; }
+
+/* Beklenen sonuç — bilgi bandı + kart grid'i */
+.expect:empty { display: none; }
+.expect { border: 1px solid var(--nm-line); border-left: 3px solid var(--nm-info); border-radius: 6px; padding: 8px 10px; display: grid; gap: 6px; background: color-mix(in srgb, var(--nm-info) 4%, var(--nm-panel)); }
+.expect .ex-h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.expect .ex-h small { color: var(--nm-muted); font-size: 11.5px; }
+.expect .ex-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.expect .ex-g small { display: block; font-size: 11px; color: var(--nm-muted); text-transform: uppercase; letter-spacing: .04em; }
+.expect .ex-g b { font-size: 15px; }
+.expect .ex-g em { display: block; font-style: normal; font-size: 11.5px; color: var(--nm-muted); }
+
+/* BSC limit özeti (seçili · Σ şarj / Σ deşarj) */
+.brlim { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; border: 1px solid var(--nm-line2); border-radius: 6px; padding: 8px 10px; background: var(--nm-panel2); }
+.brlim small { display: block; font-size: 11px; color: var(--nm-muted); text-transform: uppercase; letter-spacing: .04em; }
+.brlim b { font-size: 16px; }
+.brlim em { display: block; font-style: normal; font-size: 11.5px; color: var(--nm-muted); }
+.brlim:empty { display: none; }
+
+/* Form alanları — referans `.params` (operasyon varyantı) */
+.params.ops { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px 18px; }
+.params .fld { min-width: 0; }
+.params .fld > .seg { display: flex; flex-wrap: wrap; max-width: 100%; width: fit-content; }
+.fld .inl { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fld .inl input[type="number"] { width: 96px; }
+.fld em.u { font-style: normal; color: var(--nm-muted); font-size: 12px; }
+
+/* Reaktif güç kutusu (P–Q hesabı) */
+.rqbox { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 10px; align-items: start; margin-top: 8px; border: 1px solid var(--nm-line2); border-radius: 6px; padding: 8px; }
+.rqbox .dt td { font-size: 12px; }
+.rqbox small { display: block; color: var(--nm-muted); font-size: 11px; margin-top: 4px; }
+
+/* Tablo varyantları */
+.brsplit .sum td { border-top: 2px solid var(--nm-line2); font-weight: 700; }
+.dt.cal td, .dt.cal th { white-space: nowrap; }
+.dt.cal tr.selrow td { background: color-mix(in srgb, var(--nm-sel) 8%, transparent); }
+
+/* Çalışan program uyarısı + manuel onay kutusu */
+.prog-warn { border: 1px solid var(--nm-warn); border-radius: 6px; padding: 7px 9px; font-size: 12px; margin: 6px 0; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.manual { display: flex; gap: 8px; align-items: center; border: 1px dashed var(--nm-warn); border-radius: 6px; padding: 7px 9px; font-size: 12px; margin-top: 6px; }
+
+/* ── Readiness: saha kartı + 7 eksenli grup kartları (referans portu) ────── */
+.ready-left { display: grid; align-content: start; border-right: 1px solid var(--nm-line2); }
+.ready-left .rest-big { border-right: 0; border-top: 1px solid var(--nm-line2); }
+.plant-ready { padding: 10px 14px; display: grid; gap: 4px; border-left: 4px solid var(--nm-dead); }
+.plant-ready b { font-size: 14px; letter-spacing: .03em; }
+.plant-ready em { font-style: normal; font-size: 12px; color: var(--nm-muted); }
+.plant-ready.ok { border-left-color: var(--nm-ok); }
+.plant-ready.ok b { color: var(--nm-ok); }
+.plant-ready.part { border-left-color: var(--nm-warn); }
+.plant-ready.part b { color: var(--nm-warn); }
+.plant-ready.bad { border-left-color: var(--nm-alarm); }
+.plant-ready.bad b { color: var(--nm-alarm); }
+.site-chk { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; font-size: 12px; }
+.site-chk li { display: grid; grid-template-columns: 16px auto 1fr; gap: 6px; align-items: center; }
+.site-chk i { font-style: normal; color: var(--nm-muted); text-align: right; font-size: 11.5px; }
+.site-chk li.ok svg, .site-chk li.ok span:first-child { color: var(--nm-ok); }
+.site-chk li.bad { color: var(--nm-alarm); }
+.rgc .rdots { display: flex; gap: 3px; flex-wrap: nowrap; font-style: normal; margin: 2px 0; }
+.rgc .rdots i { font-style: normal; font-size: 9.5px; font-weight: 600; padding: 1px 3px; border-radius: 3px; border: 1px solid currentColor; }
+.rgc .rdots i.y { color: var(--nm-ok); }
+.rgc .rdots i.w { color: var(--nm-warn); }
+.rgc .rdots i.n { color: var(--nm-alarm); background: color-mix(in srgb, var(--nm-alarm) 10%, transparent); }
+.rgc.part { border-left-color: var(--nm-warn); }
+.rgc.part span { color: var(--nm-warn); }
+.rest-big.run .prog i { background: var(--nm-alarm); }
+.rest-big.done .prog i { background: var(--nm-ok); }
+@media (max-width: 860px) {
+  .ready-wrap { grid-template-columns: minmax(0, 1fr); }
+  .ready-left { border-right: 0; border-bottom: 1px solid var(--nm-line2); }
+}
+
+/* ── FL-05 · Emergency stop butonu + modal (referans `esDlg` portu) ───────── */
+.es-wrap { padding: 10px 12px 4px; }
+.btn.es-btn { background: var(--nm-alarm); border-color: var(--nm-alarm); color: #fff; font-weight: 700; letter-spacing: .02em; }
+.btn.es-btn:hover { filter: brightness(1.08); }
+.es-wrap .btn.es-btn { width: 100%; justify-content: center; }
+.esdlg-overlay { position: fixed; inset: 0; z-index: 80; background: rgba(0, 0, 0, .45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
+.esdlg { width: min(1000px, calc(100vw - 32px)); background: var(--nm-panel); border: 1px solid var(--nm-line2); border-radius: 8px; }
+.esdlg > header { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--nm-line2); }
+.esdlg > header h2 { font-size: 17px; display: flex; gap: 8px; align-items: baseline; }
+.esdlg > header h2 small { font-size: 11.5px; color: var(--nm-muted); font-weight: 600; letter-spacing: .06em; }
+.esdlg-body { padding: 12px 16px 16px; display: grid; gap: 8px; }
+.esdlg-body h4 { margin: 10px 0 4px; }
+.es-send { margin-top: 10px; display: grid; gap: 6px; }
+.btn.btn-danger.big { padding: 9px 16px; font-size: 14px; }
+
+.pad-s { padding: 8px 14px; }
+
+/* ── FL-11 · Maintenance tablosu (referans `maintTable`) ─────────────────── */
+.mt-sum { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.mtbl tr.r-maint td:first-child b { color: var(--nm-maint); }
+.mtbl tr.r-fault td:first-child b { color: var(--nm-alarm); }
+.mtbl tr.selrow td { background: color-mix(in srgb, var(--nm-sel) 8%, transparent); }
+.mtbl td.sev-maint { color: var(--nm-maint); font-weight: 600; }
+
+/* FL-11 aktif arıza sayacı — üzerine gelince liste (native tooltip) */
+.fault-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nm-alarm) 14%, transparent);
+  color: var(--nm-alarm);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: help;
+  border: 1px solid color-mix(in srgb, var(--nm-alarm) 40%, transparent);
+}
+.fault-badge:focus-visible { outline: 2px solid var(--nm-sel); outline-offset: 1px; }
+
+/* FL-11 tablosu: konteynerin tam genişliği (fs padding'ini aşar) */
+.maintwrap { padding: 0; margin: 0 -14px; overflow: visible; justify-self: stretch; width: auto; }
+.maintwrap .dt { width: 100%; }
+.maintwrap .dt th:first-child, .maintwrap .dt td:first-child { padding-left: 14px; }
+.maintwrap .dt th:last-child, .maintwrap .dt td:last-child { padding-right: 14px; }
+
+/* Aktif arıza popup'ı (fixed — tablo overflow kırpması yok) */
+.fault-pop-fixed {
+  position: fixed;
+  z-index: 140;
+  min-width: 240px;
+  max-width: 380px;
+  background: var(--nm-panel);
+  border: 1px solid var(--nm-line2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+  pointer-events: none;
+}
+.fault-pop-fixed b { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--nm-muted); }
+.fault-pop-fixed ul { display: grid; gap: 4px; margin-top: 5px; }
+.fault-pop-fixed li { font-size: 12px; color: var(--nm-fg); white-space: normal; }
+
+/* Referans `.tl` sınıfı: sol hizalı tablo hücre/başlığı (bizde tanımsızdı → başlık sağa kaçıyordu) */
+.dt th.tl, .dt td.tl { text-align: left; }

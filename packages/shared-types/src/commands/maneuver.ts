@@ -57,13 +57,21 @@ export interface ManeuverRecord {
 
 /** Operasyon adımı (§6) — discriminant union. */
 export type OperationStep =
-  | { system: string; maneuver: string; params?: Record<string, unknown> }
-  | { maneuver: string; params?: Record<string, unknown> }
+  | {
+      system: string;
+      maneuver: string;
+      params?: Record<string, unknown>;
+      label?: string;
+      description?: string;
+    }
+  | { maneuver: string; params?: Record<string, unknown>; label?: string; description?: string }
   | {
       commands: CommandStep[];
       mode?: "parallel" | "sequential";
       onFailure?: "stop" | "continue";
       params?: Record<string, unknown>;
+      label?: string;
+      description?: string;
     };
 
 /** Operasyon kaydı (§6) — 1+ sistem; uzak adım + yerel adım karışımı. */
@@ -108,6 +116,9 @@ const commandTimerSchema = z
  */
 export const commandStepSchema = z
   .object({
+    /** Yalnız UI gösterimi — executor bu alanları OKUMAZ. */
+    label: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
     deviceId: z.string().min(1).optional(),
     deviceIds: z.array(z.string().min(1)).min(1).optional(),
     deviceTypes: z.array(z.string().min(1)).min(1).optional(),
@@ -169,6 +180,9 @@ export const maneuverRecordSchema = z
 
 const operationStepBase = {
   params: z.record(z.unknown()).optional(),
+  /** Yalnız UI gösterimi (manevra/operasyon adımı etiketi + açıklaması). */
+  label: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
 };
 
 const remoteOperationStepSchema = z

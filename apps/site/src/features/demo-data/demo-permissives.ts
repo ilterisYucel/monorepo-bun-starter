@@ -88,7 +88,16 @@ export function derivePermissives(state: NovaMimicState, topo: NovaTopology, opt
   const ready = state.station.H01 === "closed" && criticialFaults === 0;
   out.push({ ok: ready, hard: false, label: "Site status Ready (FL-01)", detail: ready ? "Ready" : "Not Ready" });
 
-  // 2 · Earthing switches (HARD — referans)
+  // 2 · Plant controller modu (referans: chgdis için 2. madde)
+  // Bizde otomatik plant modu yok → her zaman Manual kabul edilir.
+  out.push({
+    ok: true,
+    hard: false,
+    label: "Plant controller in Manual (no automatic plant mode)",
+    detail: "Manual",
+  });
+
+  // 3 · Earthing switches (HARD — referans)
   const earthed = [
     ...topo.station.cells.filter((c) => c.es && state.station.es[c.id]).map((c) => c.id),
     ...units.filter((u) => u.rmu.es).map((u) => `BESS#${u.n}`),

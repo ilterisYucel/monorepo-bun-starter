@@ -8,6 +8,8 @@ bun run dev                     # All apps in parallel (max 5)
 bun run dev:site                # Site UI (Vite)
 bun run dev:stack:up           # v2 dev stack (container + container2 + site)
 bun run dev:stack:down
+bun run test-stack:up          # test stack (1 site + 4 konteyner + sim-lab; boss yok)
+bun run test-stack:down
 nx run web-service:dev          # Web Service (Fastify, port 5001)
 nx run device-service:dev       # Device Service (Modbus poller)
 nx run data-service:dev         # Data Service (BullMQ consumer)

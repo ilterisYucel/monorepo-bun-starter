@@ -38,6 +38,8 @@ export interface CompatFaults {
 export const COMPAT_SCOPES: Readonly<Record<string, string>> = {
   c1: "C1.",
   c2: "C2.",
+  c3: "C3.",
+  c4: "C4.",
   field: "",
 };
 

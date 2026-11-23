@@ -694,20 +694,12 @@ export const logSmsTemplate: ConfigDefinition<string> = {
     "SMS istek govdesi sablonu ({{phone}}/{{eventCode}}/{{message}}/{{ts}}) (Faz 6 T6.7).",
 };
 
-export const siteContainerId: ConfigDefinition<string | undefined> = {
-  key: "site.containerId",
-  env: "CONTAINER_ID",
-  filePath: "site.containerId",
-  default: undefined,
-  description: "Container-level app kimligi — telemetry tag'lerine container_id olarak eklenir",
-};
-
 export const siteFieldId: ConfigDefinition<string | undefined> = {
   key: "site.fieldId",
   env: "FIELD_ID",
   filePath: "site.fieldId",
   default: undefined,
-  description: "Field-level app kimligi — telemetry tag'lerine field_id olarak eklenir",
+  description: "Field-level app kimligi — web-service saha seed'i ve UUID dogrulamasi (telemetri tag'i ARTIK service.json#tags)",
 };
 
 export const hubContainerServiceId: ConfigDefinition<string> = {
@@ -950,14 +942,13 @@ export const ALL_CONFIG_DEFINITIONS: ConfigDefinition<any>[] = [
   logSmsPhones,
   logSmsTemplate,
 
+  // Site kimligi (web-service seed/UUID; telemetri tag'leri service.json#tags'te)
+  siteFieldId,
+
   // Integration Service
   integrationPluginDir,
   integrationConfigDir,
   integrationStateDir,
-
-  // Site kimligi (telemetry tag'leri: container_id / field_id)
-  siteContainerId,
-  siteFieldId,
 
   // Hub peer connector (container tier)
 

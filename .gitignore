@@ -136,3 +136,7 @@ deployment/**/plugins/epias-market-prices.json
 
 # Sim-Lab EMS config export çıktısı (apps/sim-lab export-ems-config ile yeniden üretilir)
 deployment/simlab/
+
+# test-stack: config'ler sim-lab exporter'ından üretilir (gitignore), env şablonları commit'li
+deployment/test-stack/stack/
+!deployment/test-stack/.env.*.example

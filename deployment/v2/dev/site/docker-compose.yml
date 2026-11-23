@@ -126,7 +126,6 @@ services:
       REDIS_HOST: site-redis
       REDIS_PORT: 6379
       DEVICE_CONFIG_DIR: /app/config-site
-      FIELD_ID: ${FIELD_ID:?FIELD_ID zorunlu (UUID)}
       POSTGRES_HOST: site-timescaledb
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres

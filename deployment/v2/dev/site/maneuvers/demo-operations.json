@@ -9,10 +9,14 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
-          "maneuver": "pcs_charge"
+          "maneuver": "pcs_charge",
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
         }
       ],
       "rollback": [
@@ -44,10 +48,14 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
-          "maneuver": "pcs_discharge"
+          "maneuver": "pcs_discharge",
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
         }
       ],
       "rollback": [
@@ -79,10 +87,14 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
-          "maneuver": "pcs_charge"
+          "maneuver": "pcs_charge",
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
         }
       ],
       "rollback": [
@@ -114,10 +126,14 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
-          "maneuver": "pcs_discharge"
+          "maneuver": "pcs_discharge",
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
         }
       ],
       "rollback": [
@@ -149,31 +165,45 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
-          "maneuver": "pcs_charge"
+          "maneuver": "pcs_charge",
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
         },
         {
-          "maneuver": "pcs_stop"
-        },
-        {
-          "system": "container-1",
-          "maneuver": "bsc_stop"
-        },
-        {
-          "system": "container-1",
-          "maneuver": "bsc_prepare"
-        },
-        {
-          "maneuver": "pcs_discharge"
-        },
-        {
-          "maneuver": "pcs_stop"
+          "maneuver": "pcs_stop",
+          "label": "PCS durdur",
+          "description": "PCS acil/planlı durdurma."
         },
         {
           "system": "container-1",
-          "maneuver": "bsc_stop"
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_discharge",
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
+        },
+        {
+          "maneuver": "pcs_stop",
+          "label": "PCS durdur",
+          "description": "PCS acil/planlı durdurma."
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
         }
       ],
       "ui": {
@@ -198,11 +228,13 @@
       "onFailure": "continue",
       "steps": [
         {
-          "maneuver": "pcs_standby"
+          "maneuver": "pcs_standby",
+          "label": "Pcs standby"
         },
         {
           "system": "container-1",
-          "maneuver": "bsc_stop"
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
         }
       ],
       "ui": {
@@ -218,7 +250,8 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_stop"
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
         }
       ],
       "ui": {

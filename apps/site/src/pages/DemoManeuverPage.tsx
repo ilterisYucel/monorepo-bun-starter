@@ -1,11 +1,23 @@
 import React, { useMemo, useState } from "react";
-import { DemoOperationsView, isStaleRun, type DemoActiveRun, type DemoOpDef, type DemoOpUnit } from "@gd-monorepo/ui";
+import {
+  DemoOperationsView,
+  isStaleRun,
+  type DemoActiveRun,
+  type DemoOpDef,
+  type DemoOpGroup,
+  type DemoOpUnit,
+} from "@gd-monorepo/ui";
 import { useDemoProjectContext } from "../layouts/DemoProjectLayout";
 import { DemoReadySection } from "../components/DemoReadySection";
 import { DemoTrendsSection } from "../components/DemoTrendsSection";
 import { demoManeuverApi } from "../features/demo-data/demoManeuverApi";
-import { pcsIdsForStation } from "../features/demo-data/demo-stations";
+import {
+  pcsIdsForStation,
+  stateForStation,
+  stationTopo,
+} from "../features/demo-data/demo-stations";
 import { derivePermissives, deriveStartupChecks } from "../features/demo-data/demo-permissives";
+import { deriveAlerts } from "../features/demo-data/deriveAlerts";
 import { socOf } from "../features/demo-data/useTargetSocWatcher";
 import { useTargetSocStore } from "../features/demo-data/stores/TargetSocStore";
 import type { OperationRunRecord } from "@gd-monorepo/shared-types";
@@ -28,42 +40,29 @@ const RULES = [
 
 const DEFS: DemoOpDef[] = [
   def("startup", "FL-01", "Start-Up / Shut-Down", "Site-wide availability check → Ready.", "power", {
-    sequence: [
-      { dev: "BSC", addr: "40010", text: "Start (0x0002)" },
-      { dev: "BSC", addr: "40010", text: "Close Contactors (0x0005)" },
-      { dev: "PCS", addr: "0x0E00", text: "S01 Command source = EMS" },
-      { dev: "PCS", addr: "0x0E02", text: "S03 On-grid control = P-Q" },
-      { dev: "PCS", addr: "0x0E17", text: "S19 Standby" },
-    ],
+    // Referans REV.01: FL-01'de adım listesi (Sequence) gösterilmez — yalnız hazırlık
+    // kontrolleri ve Start-up / Shut-down butonları.
     monitor: [
       "All devices online (BSC 30035 heartbeat, PCS comm.)",
+      "PCS A26 0x2F7D = 1 Standby, A28 0x2F43 fault = 0, S01 read-back = 1 EMS",
       "AUX transformer energy analyzer within thresholds",
       "MV metering cell (H03) voltage / frequency / phase within thresholds",
     ],
   }),
   def("chgdis", "FL-02", "Charge / Discharge", "Active power split over the online PCS.", "bolt", {
-    sequence: [
-      { dev: "PCS", addr: "0x0E19", text: "S06 Active power (+dis / −chg)" },
-      { dev: "PCS", addr: "0x0E14", text: "S16 Start" },
-    ],
+    // Referans REV.01: FL-02'de adım listesi (Sequence) gösterilmez.
     monitor: [
       "MV metering cell P vs request",
       "BSC 30063 / 30065 power limits",
-      "PCS 0x2F7D status",
+      "PCS allowable power A22 / A23 (0x2F2E / 0x2F2F) – each PCS share ≤ min(BSC limit, PCS allowable)",
+      "PCS A26 0x2F7D ∈ {2 charging, 3 discharging, 4 zero-power} after S16 – still 1 = start not accepted",
       "MV breaker positions",
       "Earthing switches (never closed)",
     ],
     rules: RULES,
   }),
-  def("standby", "FL-03", "Idle / Standby", "Power to zero, PCS stay energised.", "stby", {
-    sequence: [
-      { dev: "PCS", addr: "0x0E19", text: "S06 Active power = 0" },
-      { dev: "PCS", addr: "0x0E17", text: "S19 Standby" },
-    ],
-    monitor: ["MV metering P < threshold", "Group availability"],
-  }),
   def("calib", "FL-04", "Calibration", "Trigger → schedule → monitor → complete.", "calib", {
-    sequence: [{ dev: "DC block", text: "Calibration start request (register TBD by GD DC-block map)" }],
+    // Referans REV.01: FL-04'te Sequence gösterilmez (DC blok sırası içeride yürür).
     monitor: [
       "BSC 30107 No. of recalibration racks",
       "Rack 30271 calibration information",
@@ -85,8 +84,66 @@ const DEFS: DemoOpDef[] = [
       "RMU H02 / ES position",
     ],
   }),
-  def("blackstart", "FL-08", "Black Start", "Procedure pending in REV.01.", "grid", { pending: true }),
-  def("microgrid", "FL-09", "Microgrid", "Procedure pending in REV.01.", "units", { pending: true }),
+  def(
+    "blackstart",
+    "FL-08",
+    "Black Start",
+    "Grid-forming start of a de-energised MV network from the BESS. Precondition: grid incomer H01 open, all PCS fault-free.",
+    "grid",
+    {
+      // Referans REV.01: kontroller pasif (off-grid yük modeli yok); iki başlangıç modu
+      // adım listeleriyle gösterilir.
+      procOnly: true,
+      actions: {
+        "Synchronous start (large transformer inrush)": [
+          { dev: "PCS", addr: "0x0E00", text: "S01 Command source = EMS (all PCS)" },
+          { dev: "PCS", addr: "0x0E01", text: "S02 Operation mode = off-grid" },
+          { dev: "PCS", addr: "0x1200", text: "S32 Grid-forming enable" },
+          { dev: "PCS", addr: "0x0E23", text: "S14 Off-grid line voltage RMS" },
+          { dev: "PCS", addr: "0x0E20", text: "S13 Off-grid acceleration rate" },
+          { dev: "PCS", addr: "0x0E17", text: "S19 Standby – wait until every PCS reports A26 = 1" },
+          { dev: "PCS", addr: "0x0E14", text: "S16 Start to all PCS together (≤ 100 ms apart)" },
+        ],
+        "Asynchronous start (small load)": [
+          { dev: "PCS", addr: "0x0E14", text: "S16 Start PCS one by one – next only after the previous is running (A26 = 5 off-grid)" },
+        ],
+      },
+      monitor: [
+        "PCS A26 = 5 Off-grid operation",
+        "MV busbar voltage / frequency (H03)",
+        "H01 grid incomer open during black start",
+      ],
+    },
+  ),
+  def(
+    "microgrid",
+    "FL-09",
+    "Microgrid",
+    "Islanded operation with load sharing: grid-forming PCS with frequency / voltage droop or virtual synchronous generator (VSG) behaviour.",
+    "units",
+    {
+      // Referans REV.01: FL-08 gibi salt-okunur prosedür (kontrol yok).
+      procOnly: true,
+      actions: {
+        "Set-up (per PCS)": [
+          { dev: "PCS", addr: "0x0E01", text: "S02 Operation mode = off-grid" },
+          { dev: "PCS", addr: "0x1200", text: "S32 Grid-forming enable" },
+          { dev: "PCS", addr: "0x1208", text: "S33 Primary frequency control enable" },
+          { dev: "PCS", addr: "0x120A", text: "S34 Frequency dead band (Hz)" },
+          { dev: "PCS", addr: "0x1209", text: "S35 Frequency droop coefficient (k)" },
+          { dev: "PCS", addr: "0x120C", text: "S36 Primary voltage control enable" },
+          { dev: "PCS", addr: "0x120E", text: "S37 Voltage dead band (pu)" },
+          { dev: "PCS", addr: "0x120D", text: "S38 Voltage droop coefficient (k)" },
+          { dev: "PCS", addr: "0x1203", text: "S39–S41 VSG inertia / damping / excitation (J)" },
+        ],
+      },
+      monitor: [
+        "PCS A26 = 5 Off-grid operation",
+        "Load sharing across PCS (A40 P, A41 Q)",
+        "MV frequency / voltage within limits",
+      ],
+    },
+  ),
   def("maint", "FL-11", "Maintenance Mode", "Isolate a group (DC block to maintenance).", "earth", {
     sequence: [
       { dev: "PCS", addr: "0x0E19", text: "S06 Active power = 0" },
@@ -114,8 +171,16 @@ function activeFromRun(run: OperationRunRecord | undefined): DemoActiveRun | und
 export const DemoManeuverPage: React.FC = () => {
   // UC-13: operasyonlar seçili istasyona göre — units/scope/permissives/startup
   // `stationState` + `stationTopology`'den (stBar seçimiyle senkron).
-  const { stationState: state, stationTopology, stationSystems, activeStation, runs, readyUnits, stations } =
-    useDemoProjectContext();
+  const {
+    state,
+    stationState,
+    stationTopology,
+    stationSystems,
+    activeStation,
+    runs,
+    readyUnits,
+    stations,
+  } = useDemoProjectContext();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -135,6 +200,58 @@ export const DemoManeuverPage: React.FC = () => {
         note: readyUnits.find((r) => r.n === u.n)?.note ?? "",
       })),
     [state.units, readyUnits],
+  );
+
+  // N istasyonlu Operations: istasyon başına fider/grup listesi (referans branchModel).
+  const stationGroups: DemoOpGroup[] = useMemo(
+    () =>
+      stations.map((st) => {
+        const stState = stateForStation(state, st);
+        const stTopo = stationTopo(st);
+        const alerts = deriveAlerts(stState, stTopo);
+        const stUnits: DemoOpUnit[] = stState.units.map((u) => {
+          const hasChgKey = u.banks.some((b) => b.raw?.["Charge Power Limit"] !== undefined);
+          const hasDisKey = u.banks.some((b) => b.raw?.["Discharge Power Limit"] !== undefined);
+          const chg = u.banks.reduce((a, b) => a + (b.raw?.["Charge Power Limit"] ?? 0), 0);
+          const dis = u.banks.reduce((a, b) => a + (b.raw?.["Discharge Power Limit"] ?? 0), 0);
+          const banksOnline = u.banks.filter((b) => (b.online ?? 0) > 0).length;
+          // PCS üzerinden kısıtlı toplam: min(PCS max 1.725 MW, BSC limit) — hazır PCS'ler için.
+          const pcsMaxKw = 1725;
+          const viaChg = u.banks.reduce((a, b, i) => {
+            const p = u.pcs[i];
+            const ready = (b.online ?? 0) > 0 && p !== undefined && p.state !== "fault" && p.state !== "off";
+            return a + (ready ? Math.min(pcsMaxKw, b.raw?.["Charge Power Limit"] ?? 0) : 0);
+          }, 0);
+          const viaDis = u.banks.reduce((a, b, i) => {
+            const p = u.pcs[i];
+            const ready = (b.online ?? 0) > 0 && p !== undefined && p.state !== "fault" && p.state !== "off";
+            return a + (ready ? Math.min(pcsMaxKw, b.raw?.["Discharge Power Limit"] ?? 0) : 0);
+          }, 0);
+          return {
+            n: u.n,
+            soc: u.banks.length ? (u.banks[0]!.soc + (u.banks[1]?.soc ?? u.banks[0]!.soc)) / 2 : 0,
+            available: u.rmu.H02 === "closed",
+            note: readyUnits.find((r) => r.n === u.n)?.note ?? "",
+            // Limit anahtarı varsa 0 değeri de gösterilir (raflar offline → limit 0).
+            ...(hasChgKey ? { chgLimitKw: chg, pcsChgLimitKw: viaChg } : {}),
+            ...(hasDisKey ? { disLimitKw: dis, pcsDisLimitKw: viaDis } : {}),
+            banksOnline,
+            banksTotal: u.banks.length,
+            rmuH02: u.rmu.H02,
+            earthing: u.rmu.es,
+            statusSev: u.status?.sev ?? null,
+            ...(u.status?.text !== undefined ? { statusText: u.status.text } : {}),
+            faults: alerts.filter((a) => a.unitNo === u.n).map((a) => a.title),
+          };
+        });
+        return {
+          key: st.key,
+          name: st.name,
+          feeders: stTopo.feeders,
+          units: stUnits,
+        };
+      }),
+    [stations, state, readyUnits],
   );
 
   // Aktif istasyon (gdems `A.k`): komutlar o istasyonun konteyneri + PCS çifti
@@ -174,6 +291,22 @@ export const DemoManeuverPage: React.FC = () => {
   }, [runs]);
 
   const auxKw = state.units[0]?.aux?.kW ?? 0;
+
+  /** İstasyon bazlı permissives (N istasyonlu görünüm için). */
+  const permissivesForStation = useMemo(
+    () =>
+      (stationKey: string, o: { dir: "chg" | "dis"; powerKw: number; scope: number[] }) => {
+        const st = stations.find((x) => x.key === stationKey);
+        if (st === undefined) return [];
+        return derivePermissives(stateForStation(state, st), stationTopo(st), {
+          ...o,
+          lastCalibrationAt,
+          auxKw,
+        });
+      },
+    [stations, state, lastCalibrationAt, auxKw],
+  );
+
 
   /**
    * Komutu kapsamdaki HER fidere ayrı gönderir: o fiderin konteyneri (systems) +
@@ -275,7 +408,15 @@ export const DemoManeuverPage: React.FC = () => {
         return;
       }
       void execute("calibration", "operation", { powerKw: 200 }, units);
-    } else if (key === "estop") void execute("fl05_emergency_stop", "maneuver", { unit: params.unit }, [Number(params.unit)]);
+    } else if (key === "estop") {
+      // Stop modalı: seçilen grup kapsamı (tek grup ya da çoklu) aynı manevrayı yürütür.
+      const scope = Array.isArray(params.scope)
+        ? (params.scope as number[]).map(Number)
+        : params.unit !== undefined
+          ? [Number(params.unit)]
+          : state.units.map((u) => u.n);
+      void execute("fl05_emergency_stop", "maneuver", { scope }, scope);
+    }
     else if (key === "maint") void execute("field_maintenance", "operation", { unit: params.unit }, [Number(params.unit)]);
   };
 
@@ -302,11 +443,13 @@ export const DemoManeuverPage: React.FC = () => {
         key={activeStation}
         defs={DEFS}
         units={units}
+        stations={stationGroups.filter((g) => g.key === activeKey)}
         activeRun={activeRun}
         runs={stationRuns}
         station={state.station}
         topology={stationTopology}
-        permissivesFor={(o) => derivePermissives(state, stationTopology, { ...o, lastCalibrationAt, auxKw })}
+        permissivesFor={(o) => derivePermissives(stationState, stationTopology, { ...o, lastCalibrationAt, auxKw })}
+        permissivesForStation={permissivesForStation}
         startupChecks={startupChecks}
         targetStatus={targetStatus}
         busy={busy}

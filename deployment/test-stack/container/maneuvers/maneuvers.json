@@ -1,0 +1,331 @@
+{
+  "maneuvers": [
+    {
+      "name": "fl01_start",
+      "label": "FL-01: Sistem Ba\u015flatma",
+      "description": "FL-01 ba\u015flatma: DC \u015falterleri KAPAT \u2192 DC \u00e7\u0131k\u0131\u015f ON \u2192 BSC Start \u2192 Close Contactors (referans konsol FL-01; NEW-8: eskiden \u015falterleri A\u00c7IYORDU).",
+      "mode": "sequential",
+      "steps": [
+        {
+          "deviceIds": [
+            "CB-1",
+            "CB-2"
+          ],
+          "command": "close"
+        },
+        {
+          "deviceIds": [
+            "DC-1",
+            "DC-2"
+          ],
+          "command": "on"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "start"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "close_contactors"
+        }
+      ]
+    },
+    {
+      "name": "fl03_emergency_stop",
+      "label": "FL-03: Acil Durdurma",
+      "description": "BSC emergency (0x0001) + DC \u015falter A\u00c7 \u2014 kuru kontakla mekanik a\u00e7\u0131l\u0131r",
+      "mode": "sequential",
+      "steps": [
+        {
+          "deviceId": "BSC-1",
+          "command": "emergency"
+        },
+        {
+          "deviceId": "BSC-2",
+          "command": "emergency"
+        },
+        {
+          "deviceId": "CB-1",
+          "command": "open"
+        },
+        {
+          "deviceId": "CB-2",
+          "command": "open"
+        }
+      ]
+    },
+    {
+      "name": "fl05_tms_cooling_force",
+      "label": "FL-05: TMS So\u011futmay\u0131 Zorla",
+      "description": "8 HVAC force_cool (Remote On/Off \u2190 1 + Cooling Setpoint \u2190 10)",
+      "mode": "parallel",
+      "steps": [
+        {
+          "deviceId": "HVAC-1",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-2",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-3",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-4",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-5",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-6",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-7",
+          "command": "force_cool"
+        },
+        {
+          "deviceId": "HVAC-8",
+          "command": "force_cool"
+        }
+      ]
+    },
+    {
+      "name": "fl05_tms_heating_force",
+      "label": "FL-05: TMS Is\u0131tmay\u0131 Zorla",
+      "description": "8 HVAC force_heat (Remote On/Off \u2190 1 + Heating Setpoint \u2190 500)",
+      "mode": "parallel",
+      "steps": [
+        {
+          "deviceId": "HVAC-1",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-2",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-3",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-4",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-5",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-6",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-7",
+          "command": "force_heat"
+        },
+        {
+          "deviceId": "HVAC-8",
+          "command": "force_heat"
+        }
+      ]
+    },
+    {
+      "name": "fl09_comm_loss",
+      "label": "FL-09: \u0130leti\u015fim Kayb\u0131 \u2014 Durdur",
+      "description": "Kural DEFER (K7) \u2014 synthetic sinyal gelene kadar gizli kart",
+      "mode": "parallel",
+      "steps": [
+        {
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "deviceId": "BSC-2",
+          "command": "stop"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "fl10_maintenance_shutdown",
+      "label": "FL-10: Bak\u0131m Modu \u2014 G\u00fcvenli Kapatma",
+      "description": "BSC open_contactors (0x0004) + DC \u015falter A\u00c7",
+      "mode": "sequential",
+      "steps": [
+        {
+          "deviceId": "BSC-1",
+          "command": "open_contactors"
+        },
+        {
+          "deviceId": "BSC-2",
+          "command": "open_contactors"
+        },
+        {
+          "deviceId": "CB-1",
+          "command": "open"
+        },
+        {
+          "deviceId": "CB-2",
+          "command": "open"
+        }
+      ]
+    },
+    {
+      "name": "fl_dc_breaker_close",
+      "label": "DC \u015ealter Kapat",
+      "description": "DC \u015falter kapatma bobini (COIL 1 \u2190 1)",
+      "mode": "parallel",
+      "steps": [
+        {
+          "deviceId": "CB-1",
+          "command": "close"
+        },
+        {
+          "deviceId": "CB-2",
+          "command": "close"
+        }
+      ]
+    },
+    {
+      "name": "fl_contactor_close",
+      "label": "Kontakt\u00f6r Kapat",
+      "description": "BSC kontakt\u00f6rleri kapat (HR 40010 \u2190 0x0005)",
+      "mode": "parallel",
+      "steps": [
+        {
+          "deviceId": "BSC-1",
+          "command": "close_contactors"
+        },
+        {
+          "deviceId": "BSC-2",
+          "command": "close_contactors"
+        }
+      ]
+    },
+    {
+      "name": "fl_idle",
+      "label": "Durdur",
+      "description": "T\u00fcm BSC'lerde \u015farj/de\u015farj i\u015flemini durdurur",
+      "mode": "parallel",
+      "steps": [
+        {
+          "deviceId": "BSC-1",
+          "command": "stop"
+        },
+        {
+          "deviceId": "BSC-2",
+          "command": "stop"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "bsc_stop",
+      "label": "BSC Durdur",
+      "description": "Uzak operasyon kompanzasyon ad\u0131m\u0131 (field rollback). C1: ak\u0131m akarken Stop reddedildi\u011finden \u00f6nce g\u00fc\u00e7 setpoint'i s\u0131f\u0131rlan\u0131r, sonra durdurulur.",
+      "mode": "sequential",
+      "steps": [
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "stop"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "bsc_prepare",
+      "label": "BSC Haz\u0131rl\u0131k",
+      "description": "Start (\u226430 s Initializing \u2192 Normal) SONRA Close Contactors \u2014 LGES Request Ack s\u0131ras\u0131; ayn\u0131 40010'a paralel yaz\u0131m yok (NEW-5). G\u00fc\u00e7 PCS S06'da.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "start"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "close_contactors"
+        }
+      ],
+      "rollbackSteps": [
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "stop"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "bsc_recovery",
+      "label": "BSC Kurtarma (Emergency sonras\u0131)",
+      "description": "Emergency'den \u00e7\u0131k\u0131\u015f: Stop \u2192 Start (Normal) \u2192 Event Clear \u2192 Close Contactors (SW Manual p.18 #16; registers.md conflict 1).",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "stop"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "start"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "event_clear"
+        },
+        {
+          "deviceIds": [
+            "BSC-1",
+            "BSC-2"
+          ],
+          "command": "close_contactors"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    }
+  ]
+}

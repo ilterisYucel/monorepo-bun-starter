@@ -79,6 +79,7 @@ export { isStaleRun, STALE_RUN_MS } from "./DemoOperationsView";
 export type {
   DemoOperationsViewProps,
   DemoOpDef,
+  DemoOpGroup,
   DemoOpUnit,
   DemoOpSequenceStep,
   DemoPermission,
@@ -90,10 +91,22 @@ export {
   lastFullRunFinishedAt,
   restPhasesForRuns,
   thermalReady,
+  GROUP_AXES,
+  deriveGroupChecks,
+  derivePlantChecks,
 } from "./demo-readiness";
-export type { RestState, RestPhase } from "./demo-readiness";
-export { DemoReadyCard } from "./DemoReadyCard";
-export type { DemoReadyCardProps, DemoReadyUnit } from "./DemoReadyCard";
+export type {
+  RestState,
+  RestPhase,
+  GroupAxis,
+  GroupAxisKey,
+  GroupChecks,
+  GroupCheckInput,
+  PlantCheck,
+  PlantCheckInput,
+} from "./demo-readiness";
+export { DemoReadyCard, DemoPlantReady } from "./DemoReadyCard";
+export type { DemoReadyCardProps, DemoReadyUnit, DemoPlantReadyProps } from "./DemoReadyCard";
 export { DemoSequence } from "./DemoSequence";
 export type { DemoSequenceProps, DemoSequenceStep } from "./DemoSequence";
 export { DemoEventLog } from "./DemoEventLog";

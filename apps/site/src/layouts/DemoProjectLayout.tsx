@@ -42,6 +42,8 @@ export interface DemoProjectContextValue extends DemoProjectData {
   /** Aktif BESS MV istasyonu (0-tabanlı). */
   activeStation: number;
   setActiveStation: (index: number) => void;
+  /** Tüm saha state'i (N istasyon). */
+  state: NovaMimicState;
   /** Seçili istasyonun süzülmüş state'i + topo'su. */
   stationState: NovaMimicState;
   stationTopology: NovaTopology;
@@ -258,6 +260,7 @@ export const DemoProjectLayout: React.FC = () => {
     openDevices,
     activeStation,
     setActiveStation,
+    state,
     stationState,
     stationTopology,
     stationAlerts,

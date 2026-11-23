@@ -1,0 +1,262 @@
+{
+  "operations": [
+    {
+      "name": "charge",
+      "label": "Şarj",
+      "description": "PCS şarj/deşarj setpointi (S06); BSC gücü fiziksel olarak izler — BSC güç komutu YOK (Rev AF).",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_charge",
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "discharge",
+      "label": "Deşarj",
+      "description": "PCS şarj/deşarj setpointi (S06); BSC gücü fiziksel olarak izler — BSC güç komutu YOK (Rev AF).",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_discharge",
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "full_charge",
+      "label": "Tam Şarj",
+      "description": "%97'ye şarj; SOC eşiği kuralı dinlenmeye (standby) geçirir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_charge",
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "full_discharge",
+      "label": "Tam Deşarj",
+      "description": "%3,5'e deşarj; SOC eşiği kuralı dinlenmeye (standby) geçirir.",
+      "mode": "sequential",
+      "onFailure": "rollback",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_discharge",
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
+        }
+      ],
+      "rollback": [
+        {
+          "maneuver": "pcs_stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "timer": true,
+        "hidden": false
+      }
+    },
+    {
+      "name": "calibration",
+      "label": "SOC Kalibrasyonu",
+      "description": "tam şarj → dinlenme → tam deşarj → dinlenme (kapasite/SOH ölçümü) → hedef SOC.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_charge",
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
+        },
+        {
+          "maneuver": "pcs_stop",
+          "label": "PCS durdur",
+          "description": "PCS acil/planlı durdurma."
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
+        },
+        {
+          "maneuver": "pcs_discharge",
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
+        },
+        {
+          "maneuver": "pcs_stop",
+          "label": "PCS durdur",
+          "description": "PCS acil/planlı durdurma."
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
+        }
+      ],
+      "ui": {
+        "inputs": [
+          {
+            "name": "powerKw",
+            "type": "number",
+            "min": 0,
+            "max": 3568,
+            "default": 200,
+            "label": "Güç (kW)"
+          }
+        ],
+        "hidden": false
+      }
+    },
+    {
+      "name": "standby",
+      "label": "Bekleme",
+      "description": "Aktif manevrayı durdurur: PCS setpoint 0 + Standby (S19, enerjili) + BSC stop. Ön koşul (manevra tasarım notu): PCS standby, durmuş PCS'te soft-start (DC ön şarj) yapar ve dcV < 1000 V ise W1.b2 'Storage battery voltage too low' latch'ler — yani BSC/raflar online olmalı. BSC stop sonrası gerilim 0 V olacağı için aynı istasyonda ikinci standby öncesi istasyon online'a alınmalı. KAPANIŞ S14/T-21.",
+      "mode": "sequential",
+      "onFailure": "continue",
+      "steps": [
+        {
+          "maneuver": "pcs_standby",
+          "label": "Pcs standby"
+        },
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
+        }
+      ],
+      "ui": {
+        "hidden": false
+      }
+    },
+    {
+      "name": "station_stop",
+      "label": "İstasyon Durdur",
+      "description": "Yalnız BSC durdurur (PCS'e dokunmaz) — `systems` ile hedef konteyner seçilir. Tasarım notu: BSC stop idempotenttir (Rev AF: ack 0x0005 'BMS Not Connected' zaten durmuş BSC'de döner, config `accept:[2,5]`). `standby` operasyonundaki uzak adımın PCS soft-start fiziğine bağlı olması test/otomasyonu kırılgan yapıyordu; istasyon kapsamlı durdurma ayrı operasyon olarak ayrıldı. KAPANIŞ S14/T-21.",
+      "mode": "sequential",
+      "onFailure": "continue",
+      "steps": [
+        {
+          "system": "container-1",
+          "maneuver": "bsc_stop",
+          "label": "Bsc stop"
+        }
+      ],
+      "ui": {
+        "hidden": true
+      }
+    }
+  ]
+}

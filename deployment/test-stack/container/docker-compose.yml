@@ -1,0 +1,245 @@
+
+# TEST STACK — konteyner tier'i (container-1..4).
+#
+# Kendi kendine yeten dosya: başka deployment klasörüne referans YOK
+# (AGENTS-DEPLOYMENT kapsülleme). Tier farkı ortam değişkenleriyle:
+#   TIER=container-3 WEB_PORT=5503; proje adı `-p test-container-3`.
+# Cihaz config'leri ../stack/<TIER>/device-configs (sim-lab exporter üretir).
+#
+# Field yarısı ayrı compose projesidir (deployment/v2/dev/site/docker-compose.yml)
+# ama aynı makinede çalışır ve ORTAK `demo-bridge` ağını paylaşır. Bu compose
+# hem `container-network` hem `demo-bridge` ağını TANIMLAR; field yarısı
+# `demo-bridge`'e external olarak katılır.
+#
+# ÇALIŞTIRMA SIRASI: ÖNCE bu compose, SONRA field compose.
+#
+#   UI'suz konteyner: container-web YOK (timescaledb/redis/device/data/management/web-service)
+#
+# Network düzeni: device-service mount edilen `service.json`'dan `timescaledb`/
+# `redis` host'larını okur → her tier KENDİ network'ünde bu alias'ları taşır.
+# Çapraz katman trafiği (BSC→PCS connector, konteyner→field uplink) `demo-bridge`'te.
+#
+# Config'ler artık bu app klasörünün kendisindedir (encapsulation; çapraz ref YOK).
+# .env: deployment/v2/dev/container/.env  (şablon: .env.example)
+
+services:
+  # ─────────────────────────── KONTEYNER (UI'suz) ───────────────────────────
+  container-timescaledb:
+    image: timescale/timescaledb:latest-pg14@sha256:0f5553d37abbe0f20bfe0a04dab5d1238955b5cda2711aba403090f95b6e51ff
+    container_name: ${TIER}-timescaledb
+    command:
+      - -cshared_buffers=256MB
+      - -cwork_mem=32MB
+      - -ceffective_cache_size=384MB
+      - -cmaintenance_work_mem=64MB
+      - -cmax_connections=50
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: battery
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+    networks:
+      container-network:
+        aliases: [timescaledb]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d battery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  container-redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: ${TIER}-redis
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    volumes:
+      - redis-data:/data
+    networks:
+      container-network:
+        aliases: [redis]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *logging
+
+  container-device-service:
+    build:
+      context: ../../..
+      dockerfile: services/device-service/deployment/Dockerfile.dev
+    container_name: ${TIER}-device-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      POSTGRES_HOST: container-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      # Modbus TCP hedefi: Sim-Lab ayrı servis (gd-simnet); simülatör kodu bu serviste YOK.
+    volumes:
+      - ../stack/${TIER}/device-configs:/app/config-docker:ro
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+      - demo-bridge
+      - gd-simnet
+    logging: *logging
+
+  container-data-service:
+    build:
+      context: ../../..
+      dockerfile: services/data-service/deployment/Dockerfile.dev
+    container_name: ${TIER}-data-service
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      TIMESCALE_HOST: container-timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: postgres
+      TIMESCALE_PASSWORD: password
+      TIMESCALE_DATABASE: battery
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    networks:
+      - container-network
+    logging: *logging
+
+  # Konteyner tier management-service — DEMO'da kural ÇALIŞTIRMAZ (boş rules.json);
+  # yalnızca MANAGEMENT kuyruğunu tüketip loglar (queue_management sınırsız
+  # birikimini önler). Gerçek kural seti test edilmeden aktive edilmez.
+  container-management-service:
+    build:
+      context: ../../..
+      dockerfile: services/management-service/deployment/Dockerfile.dev
+    container_name: ${TIER}-management-service
+    environment:
+      NODE_ENV: development
+      SERVICE_TIER: container
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANAGEMENT_RULES_PATH: /app/config/rules.json
+      MANAGEMENT_EVALUATION_INTERVAL_MS: ${MANAGEMENT_EVALUATION_INTERVAL_MS:-10000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./rules:/app/config:ro
+      - ../stack/${TIER}/device-configs:/app/config-docker:ro
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-device-service:
+        condition: service_started
+    networks:
+      - container-network
+    logging: *logging
+
+  container-web-service:
+    build:
+      context: ../../..
+      dockerfile: services/web-service/deployment/Dockerfile.dev
+    container_name: ${TIER}-web-service
+    environment:
+      NODE_ENV: development
+      PORT: 5001
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu (>=32 karakter — openssl rand -hex 32)}
+      ACCESS_TOKEN_EXPIRY_SECONDS: ${ACCESS_TOKEN_EXPIRY_SECONDS:-900}
+      MFA_ENABLED: ${MFA_ENABLED:-false}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD zorunlu (>=8 karakter)}
+      SEED_BOSS_PASSWORD: ${SEED_BOSS_PASSWORD:?SEED_BOSS_PASSWORD zorunlu (>=8 karakter)}
+      SEED_GUEST_PASSWORD: ${SEED_GUEST_PASSWORD:?SEED_GUEST_PASSWORD zorunlu (>=8 karakter)}
+      REDIS_HOST: container-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: container-timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DATABASE: battery
+      DEVICE_CONFIG_DIR: /app/config-docker
+      MANEUVER_CONFIG_DIR: /app/maneuver-config
+      TIMESCALE_CHUNK_INTERVAL: "6 hours"
+      TIMESCALE_COMPRESS_AFTER: "6 hours"
+      TIMESCALE_RETENTION_AFTER: "24 hours"
+    ports:
+      - "${WEB_PORT}:5001"
+    volumes:
+      - ../stack/${TIER}/device-configs:/app/config-docker:ro
+      - ./maneuvers:/app/maneuver-config:ro
+    depends_on:
+      container-redis:
+        condition: service_healthy
+      container-timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - container-network
+      - demo-bridge
+    logging: *logging
+
+  # Peer agent — konteyner kaydı YALNIZ agent üzerinden (SPEC KONTEYNER-AGENT-KAYIT).
+  # Web-service saf HTTP API'dir; peer/session/stream işi agent'tadır.
+  # Hub erişiminde `container_session` cookie'si agent'ın HUB_SECRET'ı ile imzalanır;
+  # web-service aynı secret (=JWT_SECRET) ile stateless doğrular.
+  container-agent:
+    image: ${AGENT_IMAGE:-ilterisyucel/zero-trust-application-channel-agent:1.0.0}
+    container_name: ${TIER}-agent
+    environment:
+      HUB_URL: http://hub-servis:5003
+      PEER_ID: ${CONTAINER_ID:-container-1}
+      PEER_TYPE: container
+      SERVICE_ID: ${TUNNEL_SERVICE_ID:-container-api}
+      LOCAL_TARGET: http://container-web-service:5001
+      PEER_TOKEN: ${HUB_PEER_TOKEN:-dev-hub-peer-token}
+      HUB_SECRET: ${JWT_SECRET:?JWT_SECRET zorunlu}
+    networks:
+      - container-network
+      - demo-bridge
+    depends_on:
+      - container-web-service
+    restart: unless-stopped
+    mem_limit: 64m
+    logging: *logging
+
+volumes:
+  timescale-data:
+  redis-data:
+
+networks:
+  container-network:
+    name: ${TIER}-network
+    driver: bridge
+  demo-bridge:
+    name: test-bridge
+    external: true
+  gd-simnet:
+    name: gd-simnet
+    external: true

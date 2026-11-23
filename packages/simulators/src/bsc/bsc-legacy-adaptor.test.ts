@@ -130,6 +130,52 @@ describe("BscLegacyAdaptor — UC-2", () => {
     await adaptor.stop();
   });
 
+  it("inject: soc/overheat/diff_temp/fault/nominal eşlemeleri", () => {
+    const adaptor = createBscLegacyAdaptor(config);
+    adaptor.writeHoldingRegister(40010, 2);
+    adaptor.tick(10);
+    adaptor.writeHoldingRegister(40010, 5);
+    adaptor.tick(8);
+    expect(adaptor.inject("soc:50")).toBe(true);
+    adaptor.tick(2);
+    expect(adaptor.readInputRegister(30055)).toBeGreaterThan(4800);
+    expect(adaptor.inject("overheat")).toBe(true);
+    adaptor.tick(2);
+    expect(adaptor.readInputRegister(30259)).toBe(800); // Rack Max Pack Temp R1 (×10)
+    expect(adaptor.inject("diff_temp")).toBe(true);
+    adaptor.tick(2);
+    expect(adaptor.readInputRegister(30259)).toBe(1270); // 127,0 °C (×10)
+    expect(adaptor.inject("fault")).toBe(true);
+    adaptor.tick(2);
+    expect(adaptor.readInputRegister(30037) & 0b100).toBe(0b100); // BSC Fault biti
+    expect(adaptor.inject("nominal")).toBe(true);
+    expect(adaptor.inject("bilinmeyen")).toBe(false);
+    expect(adaptor.inject("soc:x")).toBe(false);
+  });
+
+  it("start/stop: port yaşam döngüsü ve sunucu kapanışı", async () => {
+    const adaptor = createBscLegacyAdaptor({ ...config, network: { host: "127.0.0.1", port: 0 } });
+    await adaptor.start();
+    const port = adaptor.port();
+    expect(port).toBeGreaterThan(0);
+    await adaptor.stop();
+    expect(adaptor.port()).toBe(0); // ağ yok, sunucu kapandı
+  }, 20_000);
+
+  it("applyPowerKw: geçersiz değer 0 sayılır, şarj yönü SOC'yi artırır", () => {
+    const adaptor = createBscLegacyAdaptor(config);
+    adaptor.writeHoldingRegister(40010, 2);
+    adaptor.tick(10);
+    adaptor.writeHoldingRegister(40010, 5);
+    adaptor.tick(8);
+    const before = adaptor.readInputRegister(30055);
+    adaptor.applyPowerKw(-500); // negatif = şarj
+    adaptor.tick(30);
+    expect(adaptor.readInputRegister(30055)).toBeGreaterThan(before);
+    adaptor.applyPowerKw(Number.NaN);
+    adaptor.tick(1);
+  });
+
   it("purity (SC-1): adaptör durum makinesi alanları taşımaz", () => {
     const adaptor = createBscLegacyAdaptor(config) as unknown as Record<string, unknown>;
     expect("state" in adaptor).toBe(false);

@@ -9,17 +9,23 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
           "system": "container-2",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
           "maneuver": "pcs_charge",
           "params": {
             "powerKw": 200
-          }
+          },
+          "label": "Şarj komutu",
+          "description": "PCS'e şarj güç setpoint'i (negatif) yazılır."
         }
       ],
       "rollback": [
@@ -59,17 +65,23 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
           "system": "container-2",
-          "maneuver": "bsc_prepare"
+          "maneuver": "bsc_prepare",
+          "label": "BSC hazırlığı",
+          "description": "BSC reset → start → kontaktör kapatma; raflar online olana kadar beklenir."
         },
         {
           "maneuver": "pcs_discharge",
           "params": {
             "powerKw": 200
-          }
+          },
+          "label": "Deşarj komutu",
+          "description": "PCS'e deşarj güç setpoint'i (pozitif) yazılır."
         }
       ],
       "rollback": [
@@ -109,10 +121,14 @@
       "steps": [
         {
           "system": "container-1",
-          "maneuver": "fl10_maintenance_shutdown"
+          "maneuver": "fl10_maintenance_shutdown",
+          "label": "Bakım modu kapatma",
+          "description": "FL-10: güç sıfır, PCS stop, DC şalterler açık."
         },
         {
-          "maneuver": "pcs_stop"
+          "maneuver": "pcs_stop",
+          "label": "PCS durdur",
+          "description": "PCS acil/planlı durdurma."
         }
       ]
     }

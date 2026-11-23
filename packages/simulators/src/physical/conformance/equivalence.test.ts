@@ -86,6 +86,30 @@ describe("eşdeğerlik harness'i — sözleşme", () => {
     expect(formatReport(rows, false).split("\n")).toHaveLength(4); // başlık + ayraç + 2 satır
   });
 
+  it("okuma adımı tablo bilgisini taraflara iletir (varsayılan holding)", () => {
+    const seen: Array<string | undefined> = [];
+    const probe: EquivalenceSide = {
+      read: (_address, table) => {
+        seen.push(table);
+        return 1;
+      },
+      write: () => undefined,
+      advance: () => undefined,
+    };
+    runEquivalence(probe, probe, [
+      { op: "read", address: 1 },
+      { op: "read", address: 2, table: "input" },
+    ]);
+    expect(seen).toEqual(["holding", "holding", "input", "input"]);
+  });
+
+  it("boş sekans: satır yok, fark 0, rapor yalnız başlık", () => {
+    const empty = { read: () => 0, write: () => undefined, advance: () => undefined };
+    expect(runEquivalence(empty, empty, [])).toEqual([]);
+    expect(diffCount([])).toBe(0);
+    expect(formatReport([]).split("\n")).toHaveLength(2);
+  });
+
   it("sekans verisi sabittir (eşdeğerlik sözleşmesi — snapshot)", () => {
     expect(BSC_SEQUENCE).toMatchSnapshot();
     expect(PCS_SEQUENCE).toMatchSnapshot();

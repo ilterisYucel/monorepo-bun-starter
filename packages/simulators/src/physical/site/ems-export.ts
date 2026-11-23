@@ -101,7 +101,10 @@ export function exportEmsConfigs(model: SiteModel, repoRoot: string, outDirRel?:
     files.push(join(outRel, rel));
   };
   const servicePath = join(model.templatesDir, "service.json");
-  const service = existsSync(servicePath) ? readFileSync(servicePath, "utf-8") : "{}\n";
+  const service = JSON.parse(
+    existsSync(servicePath) ? readFileSync(servicePath, "utf-8") : "{}",
+  ) as Record<string, unknown>;
+  const baseTags = (service["tags"] as Record<string, string> | undefined) ?? {};
 
   for (let c = 1; c <= model.spec.containers.count; c++) {
     const dir = `container-${c}`;
@@ -110,7 +113,11 @@ export function exportEmsConfigs(model: SiteModel, repoRoot: string, outDirRel?:
       if (!fn) continue;
       write(`${dir}/device-configs/${fn}`, JSON.stringify(emsConfig(d), null, 2) + "\n");
     }
-    write(`${dir}/device-configs/service.json`, service);
+    // service.json — tier kimliği telemetri tag'i olarak basılır (device-service `tags`).
+    write(
+      `${dir}/device-configs/service.json`,
+      JSON.stringify({ ...service, tags: { ...baseTags, container_id: `container-${c}` } }, null, 2) + "\n",
+    );
     write(`${dir}/docker-compose.simlab.yml`, composeOverlay("container", `${outRel}/${dir}`, c));
   }
   for (const d of model.devices.filter((x) => x.scope === "field")) {
@@ -120,7 +127,11 @@ export function exportEmsConfigs(model: SiteModel, repoRoot: string, outDirRel?:
     if (d.type === "wattox-pcs" && d.feeder) cfg["details"] = { gridLink: { deviceId: d.feeder.station, feeder: d.feeder.cell } };
     write(`site/device-configs/${fn}`, JSON.stringify(cfg, null, 2) + "\n");
   }
-  write("site/device-configs/service.json", service);
+  // Saha tag'leri (field_id) çağıran tarafından eklenir — exporter saha kimliğini bilmez.
+  write(
+    "site/device-configs/service.json",
+    JSON.stringify({ ...service, tags: { ...baseTags } }, null, 2) + "\n",
+  );
   // topology.json — v2 site formatı (istasyon → fider → üniteler, konteynerler, PCS'ler)
   const stations = model.spec.mv.stations.map((st, i) => {
     const feeders: Record<string, { cell: string; units: number[] }> = {};

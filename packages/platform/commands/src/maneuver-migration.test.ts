@@ -22,19 +22,19 @@ import { ManeuverRegistry } from "./maneuver-registry";
 
 const CONTAINER_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/v2/dev/container/maneuvers/maneuvers.json",
+    "__fixtures__/container-maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_MANEUVERS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/v2/dev/site/maneuvers/maneuvers.json",
+    "__fixtures__/site-maneuvers.json",
     import.meta.url,
   ),
 );
 const FIELD_OPERATIONS_PATH = fileURLToPath(
   new URL(
-    "../../../../deployment/v2/dev/site/maneuvers/operations.json",
+    "__fixtures__/site-operations.json",
     import.meta.url,
   ),
 );

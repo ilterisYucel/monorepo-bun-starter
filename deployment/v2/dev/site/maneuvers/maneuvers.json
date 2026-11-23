@@ -11,13 +11,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "start"
+          "command": "start",
+          "label": "PCS'i başlat",
+          "description": "PCS start komutu (S16); soft-start rampası beklenir."
         }
       ]
     },
@@ -32,13 +36,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "stop"
+          "command": "stop",
+          "label": "PCS'i durdur",
+          "description": "PCS stop (S17); güç rampası sıfıra iner."
         }
       ]
     },
@@ -53,13 +61,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_power_zero"
+          "command": "set_power_zero",
+          "label": "Gücü sıfıra al",
+          "description": "S06 = 0 kW — aktif güç setpoint'i sıfırlanır."
         }
       ]
     },
@@ -74,13 +86,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "standby"
+          "command": "standby",
+          "label": "Standby'a al",
+          "description": "PCS standby (S19); kontaktörler kapalı kalır."
         }
       ],
       "ui": {
@@ -98,19 +114,25 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "stop"
+          "command": "stop",
+          "label": "PCS'i durdur",
+          "description": "PCS stop (S17); güç rampası sıfıra iner."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_power_zero"
+          "command": "set_power_zero",
+          "label": "Gücü sıfıra al",
+          "description": "S06 = 0 kW — aktif güç setpoint'i sıfırlanır."
         }
       ]
     },
@@ -125,19 +147,25 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "fault_reset"
+          "command": "fault_reset",
+          "label": "Arıza sıfırla",
+          "description": "PCS fault reset; arıza kilidi açılır."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "standby"
+          "command": "standby",
+          "label": "Standby'a al",
+          "description": "PCS standby (S19); kontaktörler kapalı kalır."
         }
       ],
       "ui": {
@@ -155,13 +183,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "stop"
+          "command": "stop",
+          "label": "PCS'i durdur",
+          "description": "PCS stop (S17); güç rampası sıfıra iner."
         }
       ],
       "ui": {
@@ -179,13 +211,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "stop"
+          "command": "stop",
+          "label": "PCS'i durdur",
+          "description": "PCS stop (S17); güç rampası sıfıra iner."
         }
       ],
       "ui": {
@@ -203,19 +239,25 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "fault_reset"
+          "command": "fault_reset",
+          "label": "Arıza sıfırla",
+          "description": "PCS fault reset; arıza kilidi açılır."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "start"
+          "command": "start",
+          "label": "PCS'i başlat",
+          "description": "PCS start komutu (S16); soft-start rampası beklenir."
         },
         {
           "deviceTypes": [
@@ -224,7 +266,9 @@
           "command": "charge",
           "params": {
             "powerKw": "{{divideTotal}}"
-          }
+          },
+          "label": "Şarj et",
+          "description": "PCS güç setpoint'i negatif (şarj yönü) yazılır."
         }
       ],
       "rollbackSteps": [
@@ -262,19 +306,25 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "fault_reset"
+          "command": "fault_reset",
+          "label": "Arıza sıfırla",
+          "description": "PCS fault reset; arıza kilidi açılır."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "start"
+          "command": "start",
+          "label": "PCS'i başlat",
+          "description": "PCS start komutu (S16); soft-start rampası beklenir."
         },
         {
           "deviceTypes": [
@@ -283,7 +333,9 @@
           "command": "discharge",
           "params": {
             "powerKw": "{{divideTotal}}"
-          }
+          },
+          "label": "Deşarj et",
+          "description": "PCS güç setpoint'i pozitif (deşarj yönü) yazılır."
         }
       ],
       "rollbackSteps": [
@@ -321,13 +373,17 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "stop"
+          "command": "stop",
+          "label": "PCS'i durdur",
+          "description": "PCS stop (S17); güç rampası sıfıra iner."
         }
       ],
       "ui": {
@@ -345,25 +401,83 @@
           "deviceTypes": [
             "pcs"
           ],
-          "command": "fault_reset"
+          "command": "fault_reset",
+          "label": "Arıza sıfırla",
+          "description": "PCS fault reset; arıza kilidi açılır."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_command_source"
+          "command": "set_command_source",
+          "label": "Komut kaynağını ayarla",
+          "description": "PCS'e uzaktan (EMS) komut kaynağını seç — S01/S02."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "set_power_zero"
+          "command": "set_power_zero",
+          "label": "Gücü sıfıra al",
+          "description": "S06 = 0 kW — aktif güç setpoint'i sıfırlanır."
         },
         {
           "deviceTypes": [
             "pcs"
           ],
-          "command": "standby"
+          "command": "standby",
+          "label": "Standby'a al",
+          "description": "PCS standby (S19); kontaktörler kapalı kalır."
+        }
+      ]
+    },
+    {
+      "name": "fl08_black_start",
+      "label": "FL-08: Black Start",
+      "description": "Off-grid grid-forming start. Register eşlemesi (S01/S02/S32/S13/S14) device-config'e eklenene kadar yürütme devrede değil (Tur 2); UI'da kontrol pasif.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "set_command_source",
+          "label": "S01 Command source = EMS",
+          "description": "Tüm PCS'lerde komut kaynağı EMS olarak seçilir (off-grid başlangıç ön koşulu)."
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "start",
+          "label": "S16 Start → A26 = 5 (off-grid)",
+          "description": "Synchronous: tüm PCS birlikte (≤100 ms); asynchronous: teker teker, önceki A26 = 5 olunca."
+        }
+      ]
+    },
+    {
+      "name": "fl09_microgrid",
+      "label": "FL-09: Microgrid",
+      "description": "Ada modunda yük paylaşımı. Droop/VSG register eşlemesi (S32–S41) device-config'e eklenene kadar yürütme devrede değil (Tur 2); UI'da kontrol pasif.",
+      "mode": "sequential",
+      "onFailure": "stop",
+      "steps": [
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "set_command_source",
+          "label": "S01 Command source = EMS",
+          "description": "Ada modu öncesi komut kaynağı EMS (tüm PCS)."
+        },
+        {
+          "deviceTypes": [
+            "pcs"
+          ],
+          "command": "standby",
+          "label": "S19 Standby (off-grid set-up sonrası)",
+          "description": "S02/S32–S41 ada ayarları yazıldıktan sonra PCS standby'da bekletilir."
         }
       ]
     }

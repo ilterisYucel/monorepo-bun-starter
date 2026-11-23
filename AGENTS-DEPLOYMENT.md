@@ -30,6 +30,12 @@ deployment/
 
 Bugünkü tek stack: `deployment/v2/dev/{container,container2,site}/` (v1/AWS/office kaldırıldı).
 
+**Test stack:** `deployment/test-stack/{sim,site,container}/` — 1 site + **4 konteyner** + sim-lab
+(boss yok). Topoloji: **2 istasyon × 2 konteyner**; her konteyner istasyon içinde **ayrı fider**
+hücresindedir (bess1: H04/H05 → container-1/2, bess2: H06/H07 → container-3/4). Üç klasör de kendi kendine yeter; cihaz config'leri `stack/` altına sim-lab
+exporter'ından üretilir (gitignore). Tier farkı ortam değişkeniyle verilir
+(`TIER=container-3`, `WEB_PORT=5503`). Yönetim: `bun run test-stack:up|down` (`tools/test-stack.mjs`).
+
 - Ortam (tier) **proje klasörünün içinde** ayrılır: `deployment/<proje>/<tier>/<app>/`.
 - Her `<app>` klasörü kendi `docker-compose.yml`, `device-configs/`, `maneuvers/`, `rules/`,
   `plugins/` (varsa) ve `.env`'ini barındırır.

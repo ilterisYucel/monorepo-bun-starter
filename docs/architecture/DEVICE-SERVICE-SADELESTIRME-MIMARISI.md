@@ -9,6 +9,8 @@ review_date: 2026-11-12
 
 > **İş akışı aşaması:** 1/5 — SPEC (AGENTS.md "Geliştirme İş Akışı").
 > **Durum:** ✅ Approved (2026-11-12 — developer onayı). Test/implementasyon build modunda başlar.
+> **Revizyon:** 2026-11-17 (tag kaynağı) — telemetri global tag'leri artık **`service.json#tags`**'ten gelir (Telegraf tarzı, anahtar kümesi serbest). `identity` (`CONTAINER_ID`/`FIELD_ID` env) parametresi ve cihaz başına `TelemetryTagger` örneği kaldırıldı; `site.containerId` config tanımı silindi (tüketicisi kalmadı); `site.fieldId` **korundu** (web-service seed + UUID fail-fast okuyor). `service.json` tipi **device-service'te yerelde** genişletilir (shared `ServiceConfigFile` generic kalır). `CONTAINER_ID`/`FIELD_ID` env'leri yalnız diğer tüketiciler (agent `PEER_ID`, web-service seed/UUID, management-service, site UI bake) için yaşar.
+> **Revizyon:** 2026-11-17 — `connector.device` türetimi (device-service `createConnector` yolu) kaldırıldı: BSC→PCS köprüsünü Sim-Lab yapar, türetilen `BSC-PCS-CONNECTOR-1` cihazının tüketicisi yoktu. `AK-3.2` kanıtı `v2-configs.test.ts`'ten taşındı (exporter + `device-config-drift` + config-loader fail-fast + stack entegrasyonu).
 > **Revizyon:** 2026-11-12 (KAPANIŞ sonrası) — R-1..R-4 uygulandı: T-18 (bootstrap runtime bekçi) ve T-19 (config-şema + `.env.example` kanıtı) eklendi; T-12/T-14/T-15 yeniden açıldı; §10 A3 güvenlik kararı ve §11'e SECURITY işi eklendi.
 > **İlişkili:** [DEVICE-SERVICE-MIMARISI.md](./DEVICE-SERVICE-MIMARISI.md) (mevcut sözleşme — UC-5 heartbeat bu SPEC ile revize edilir),
 > [SIMULATORS-MIMARISI.md](./SIMULATORS-MIMARISI.md) (simülatör paketi sözleşmesi),
@@ -149,7 +151,7 @@ DeviceService ── PeriodicWriteScheduler (timer; hata → onError; servis dü
 | Durum | Davranış |
 | :--- | :--- |
 | `transport` bloğu var ama `kind:"tcp"` | Kabul edilir (gerçek saha biçimi) |
-| `connector.device` var, `connector.sim` yok | Konnektör izleme cihazı normal Modbus cihazı olarak poll edilir (mevcut `device-factory.ts#createConnector` yolu) |
+| `connector.device` var, `connector.sim` yok | Alan **yalnız Sim-Lab** tarafından tüketilir (`plant.ts` connector Modbus sunucusunu bundan kurar); device-service ayrı cihaz **türetmez** (2026-11-17 revizyonu — tüketicisi olmayan `BSC-PCS-CONNECTOR-1` poll'ü kaldırıldı) |
 | `connector.sim` kalmış | Fail-fast (K2/A1) |
 
 **Involved Files:**

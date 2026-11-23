@@ -1,11 +1,13 @@
 import React from "react";
-import type { RestState } from "./demo-readiness";
+import { GROUP_AXES, type GroupChecks, type RestState } from "./demo-readiness";
 
 /**
- * Ready / Rest kartı — referans konsol düzeni (SPEC UC-2, FR-2.3):
- * solda büyük rest bloğu (dinlenme süresi/ilerleme), sağda grup bazlı termal
- * hazırlık çipleri (READY / NOT READY + sıcaklık aralığı). Tüm türevler saf
- * (`demo-readiness.ts` + `deriveKpis`); veri props'tan gelir.
+ * Ready / Rest kartları — referans konsol düzeni (SPEC UC-2, FR-2.3).
+ *
+ * Sol sütun: `DemoPlantReady` (saha kontrol listesi) + büyük rest bloğu.
+ * Sağ: grup bazlı **7 eksenli** hazırlık kartları (MV · BSC · PCS · Temp · Rest ·
+ * Safety · Cal.) — referans `renderReady` portu. Tüm türevler saf
+ * (`demo-readiness.ts`); veri props'tan gelir.
  */
 
 export interface DemoReadyUnit {
@@ -14,6 +16,8 @@ export interface DemoReadyUnit {
   tmax: number;
   ready: boolean;
   note: string;
+  /** 7 eksenli hazırlık detayı (varsa kart zengin gösterilir). */
+  checks?: GroupChecks;
 }
 
 export interface DemoReadyCardProps {
@@ -26,6 +30,15 @@ export interface DemoReadyCardProps {
   onOpenUnit?: (n: number) => void;
   /** false → dinlenme bloğu hiç gösterilmez (2026-10-15: dinlenme kaldırıldı). */
   showRest?: boolean;
+  /** Sol sütun: saha kontrol listesi (referans `plant-ready`). */
+  plant?: DemoPlantReadyProps;
+}
+
+export interface DemoPlantReadyProps {
+  title: string;
+  detail: string;
+  level: "ok" | "part" | "bad";
+  checks: Array<{ ok: boolean; label: string; detail: string }>;
 }
 
 const hms = (minutes: number): string => {
@@ -36,6 +49,25 @@ const hms = (minutes: number): string => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 
+const PermIcon: React.FC<{ ok: boolean }> = ({ ok }) => (ok ? <span aria-hidden>✓</span> : <span aria-hidden>×</span>);
+
+/** Saha seviyesi hazırlık kartı (referans `plant-ready` + `site-chk`). */
+export const DemoPlantReady: React.FC<DemoPlantReadyProps> = ({ title, detail, level, checks }) => (
+  <div className={`plant-ready ${level}`} data-testid="plant-ready">
+    <b>{title}</b>
+    <em>{detail}</em>
+    <ul className="site-chk">
+      {checks.map((c) => (
+        <li key={c.label} className={c.ok ? "ok" : "bad"}>
+          <PermIcon ok={c.ok} />
+          <span>{c.label}</span>
+          <i>{c.detail}</i>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
 export const DemoReadyCard: React.FC<DemoReadyCardProps> = ({
   units,
   rest,
@@ -45,63 +77,101 @@ export const DemoReadyCard: React.FC<DemoReadyCardProps> = ({
   tempMax,
   onOpenUnit,
   showRest = true,
+  plant,
 }) => {
   const hasRest = rest.finishedAt !== undefined;
   const el = rest.elapsedMinutes ?? 0;
   const need = rest.requiredMinutes;
-  const readyCount = units.filter((u) => u.ready).length;
+  const readyCount = units.filter((u) => u.checks?.ok ?? u.ready).length;
   const restClass = !hasRest ? "none" : rest.complete ? "done" : "run";
+  const hasChecks = units.some((u) => u.checks !== undefined);
+
+  const restCard = (
+    <div className={`rest-big ${restClass}`}>
+      <small>Rest time after full charge / discharge</small>
+      <b className="num">
+        {hasRest ? hms(el) : "—"} {hasRest ? <span>/ {hms(need)}</span> : null}
+      </b>
+      <em>
+        {!hasRest
+          ? `No full charge / discharge waiting · rest setting ${restHours ?? need / 60} h`
+          : rest.complete
+            ? "REST TIME COMPLETE"
+            : "REST TIME NOT COMPLETE"}
+      </em>
+      {hasRest ? (
+        <span className="prog">
+          <i style={{ width: `${Math.min(100, (el / need) * 100).toFixed(1)}%` }} />
+        </span>
+      ) : null}
+    </div>
+  );
 
   return (
-    <div className="ready-wrap" data-testid="ready-card" style={showRest ? undefined : { gridTemplateColumns: "1fr" }}>
-      {showRest ? (
-      <div className={`rest-big ${restClass}`}>
-        <small>Rest time after full charge / discharge</small>
-        <b className="num">
-          {hasRest ? hms(el) : "—"}{" "}
-          {hasRest ? <span>/ {hms(need)}</span> : null}
-        </b>
-        <em>
-          {!hasRest
-            ? `No full charge / discharge waiting · rest setting ${restHours ?? need / 60} h`
-            : rest.complete
-              ? "REST TIME COMPLETE"
-              : "REST TIME NOT COMPLETE"}
-        </em>
-        {hasRest ? (
-          <span className="prog">
-            <i style={{ width: `${Math.min(100, (el / need) * 100).toFixed(1)}%` }} />
-          </span>
-        ) : null}
-      </div>
+    <div className="ready-wrap" data-testid="ready-card">
+      {plant !== undefined || showRest ? (
+        <div className="ready-left">
+          {plant !== undefined ? <DemoPlantReady {...plant} /> : null}
+          {showRest ? restCard : null}
+        </div>
       ) : null}
       <div className="ready-groups">
         <div className="rg-h">
           <b>
-            Thermal readiness · {readyCount} / {units.length} groups
+            {hasChecks ? "Group readiness" : "Thermal readiness"} · {readyCount} / {units.length} groups
           </b>
           <span className="dsub">
-            Groups may run inside {tempMin}–{tempMax} °C{showRest ? " – also before the rest time is over" : ""}
+            {hasChecks
+              ? `${GROUP_AXES.map(([, label]) => label).join(" · ")} — hover a dot for the detail · thermal band ${tempMin}–${tempMax} °C`
+              : `Groups may run inside ${tempMin}–${tempMax} °C${showRest ? " – also before the rest time is over" : ""}`}
             {ambient !== undefined ? ` · ambient ${ambient.toFixed(1)} °C` : ""}
           </span>
         </div>
         <div className="rg">
-          {units.map((u) => (
-            <button
-              key={u.n}
-              type="button"
-              className={`rgc ${u.ready ? "ok" : "alarm"}`}
-              data-testid={`ready-unit-${u.n}`}
-              onClick={() => onOpenUnit?.(u.n)}
-            >
-              <b>BESS#{u.n}</b>
-              <span>{u.ready ? "READY" : "NOT READY"}</span>
-              <small>{u.note}</small>
-              <em className="num">
-                {u.tmin.toFixed(1)}–{u.tmax.toFixed(1)} °C
-              </em>
-            </button>
-          ))}
+          {units.map((u) => {
+            const c = u.checks;
+            const state = c === undefined ? (u.ready ? "ok" : "alarm") : c.muted ? "muted" : c.ok ? (c.reduced ? "part" : "ok") : "alarm";
+            const label =
+              c === undefined
+                ? u.ready
+                  ? "READY"
+                  : "NOT READY"
+                : c.ok
+                  ? c.reduced
+                    ? "READY · REDUCED"
+                    : "READY"
+                  : "NOT READY";
+            return (
+              <button
+                key={u.n}
+                type="button"
+                className={`rgc ${state}`}
+                data-testid={`ready-unit-${u.n}`}
+                onClick={() => onOpenUnit?.(u.n)}
+              >
+                <b>BESS#{u.n}</b>
+                <span>{label}</span>
+                {c !== undefined ? (
+                  <i className="rdots">
+                    {GROUP_AXES.map(([key, axisLabel]) => {
+                      const axis = c.axes[key];
+                      return (
+                        <i key={key} className={axis.pending === true ? "w" : axis.ok ? (axis.warn === true ? "w" : "y") : "n"} title={`${axisLabel}: ${axis.text}`}>
+                          {axisLabel}
+                        </i>
+                      );
+                    })}
+                  </i>
+                ) : null}
+                <small title={c?.first ?? u.note}>{c?.first !== undefined && c.first !== "" ? c.first : u.note}</small>
+                {c === undefined ? (
+                  <em className="num">
+                    {u.tmin.toFixed(1)}–{u.tmax.toFixed(1)} °C
+                  </em>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

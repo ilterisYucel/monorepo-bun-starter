@@ -1,5 +1,6 @@
 export * from "./manifest";
 export * from "./plugin";
+export * from "./integration-plugin";
 export * from "./context";
 export * from "./registry";
 export * from "./sources";

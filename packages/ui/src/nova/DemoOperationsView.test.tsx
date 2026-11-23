@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { OperationRunRecord } from "@gd-monorepo/shared-types";
 import { DemoOperationsView, isStaleRun, parseRunSteps, runLabel, type DemoOpDef } from "./DemoOperationsView";
 import type { NovaStationState, NovaTopology } from "./mimic-types";
@@ -83,12 +83,15 @@ describe("DemoOperationsView render (UC-5)", () => {
     expect(screen.getByText("standby · pcs")).toBeTruthy();
   });
 
-  it("FL-02 formunda Control mode seg'i vardır (Active power / P-Q / PF)", () => {
+  it("FL-02 formunda Direction + reactive güç kontrolleri vardır", () => {
     render(<DemoOperationsView {...base} />);
-    expect(screen.getByText("Control mode")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Active power" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "P/Q" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "PF" })).toBeTruthy();
+    expect(screen.getByText("Direction")).toBeTruthy();
+    expect(screen.getByText(/Reactive power/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Q = 0" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Constant Q" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Constant PF" })).toBeTruthy();
+    expect(screen.getByText(/Stop when/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Target SOC" })).toBeTruthy();
   });
 
   it("MV Station başlığı aktif istasyon adını gösterir (station değişiminde değişir)", () => {
@@ -124,5 +127,180 @@ describe("DemoOperationsView render (UC-5)", () => {
     );
     expect((screen.getByTestId("ops-send") as HTMLButtonElement).disabled).toBe(false);
     expect(screen.getAllByText(/BESS#1/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz)", () => {
+  const topoWithFeeders = {
+    ...topo,
+    unit: { containerMWh: 3.5 },
+    feeders: {
+      A: { cell: "H04", side: "L", units: [1, 2] },
+      B: { cell: "H05", side: "R", units: [3] },
+    },
+  } as unknown as NovaTopology;
+
+  const base = {
+    defs,
+    units: [
+      { n: 1, soc: 50, available: true, note: "" },
+      { n: 2, soc: 50, available: true, note: "" },
+      { n: 3, soc: 40, available: true, note: "" },
+    ],
+    runs: [],
+    station,
+    topology: topoWithFeeders,
+    permissivesFor: () => [],
+  };
+
+  it("fider satırlarını hücre adıyla gösterir ve tüm fideri tek tıkla seçer", () => {
+    render(<DemoOperationsView {...base} />);
+    const feeder = screen.getByTestId("ops-feeder-site-H04");
+    expect(feeder.textContent).toContain("H04");
+    // Başlangıçta tümü seçili → fider butonu "true"; tıklayınca fider temizlenir.
+    const toggleBtn = feeder.querySelector("button.br-tog") as HTMLButtonElement;
+    expect(toggleBtn.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(toggleBtn);
+    const after = screen.getByTestId("ops-feeder-site-H04").querySelector("button.br-tog") as HTMLButtonElement;
+    expect(after.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("beklenen sonuç paneli ve dal tablosu çizilir", () => {
+    render(<DemoOperationsView {...base} />);
+    expect(screen.getByTestId("ops-expect")).toBeTruthy();
+    expect(screen.getByTestId("ops-branch-table")).toBeTruthy();
+    expect(screen.getByText(/Expected result/)).toBeTruthy();
+    // 2 fider + toplam satırı
+    expect(screen.getAllByText(/Feeder A|Feeder B/).length).toBeGreaterThan(0);
+  });
+
+  it("çalışan program varsa 'replace' uyarısı gösterir", () => {
+    render(
+      <DemoOperationsView
+        {...base}
+        runs={[
+          run({
+            id: "run-live",
+            name: "charge",
+            status: "running",
+            startedAt: new Date().toISOString(),
+            finishedAt: null,
+            steps: { params: { scope: [1, 9] }, definition: { steps: [{ command: "charge" }] } },
+          } as Partial<OperationRunRecord>),
+        ]}
+      />,
+    );
+    expect(screen.getByTestId("ops-running-warn")).toBeTruthy();
+    expect(screen.getByTestId("ops-running-warn").textContent).toContain("BESS#9");
+  });
+});
+
+describe("parseRunSteps — adım açıklaması", () => {
+  it("config'teki description alanını adıma taşır", () => {
+    const steps = parseRunSteps(
+      run({
+        steps: {
+          definition: {
+            steps: [{ command: "start", label: "PCS'i başlat", description: "PCS start komutu (S16)." }],
+          },
+        },
+      }),
+    );
+    expect(steps[0]?.label).toBe("PCS'i başlat");
+    expect(steps[0]?.detail).toBe("PCS start komutu (S16).");
+  });
+});
+
+describe("FL-02 — N istasyonlu görünüm", () => {
+  const twoStations = [
+    {
+      key: "bess1",
+      name: "BESS MV STATION #1",
+      feeders: { A: { cell: "H04", units: [1] }, B: { cell: "H05", units: [2] } },
+      units: [
+        { n: 1, soc: 50, available: true, note: "" },
+        { n: 2, soc: 45, available: true, note: "" },
+      ],
+      permissives: [{ ok: true, hard: false, label: "Station 1 ready", detail: "ok" }],
+    },
+    {
+      key: "bess2",
+      name: "BESS MV STATION #2",
+      feeders: { A: { cell: "H06", units: [3] }, B: { cell: "H07", units: [4] } },
+      units: [
+        { n: 3, soc: 40, available: true, note: "" },
+        { n: 4, soc: 35, available: true, note: "" },
+      ],
+      permissives: [{ ok: true, hard: false, label: "Station 2 ready", detail: "ok" }],
+    },
+  ];
+
+  it("istasyon başlıkları ve fider satırları istasyon başına çizilir", () => {
+    render(
+      <DemoOperationsView
+        defs={defs}
+        units={twoStations[0]!.units}
+        stations={twoStations}
+        runs={[]}
+        station={station}
+        topology={topo}
+        permissivesFor={() => []}
+      />,
+    );
+    expect(screen.getByTestId("ops-station-bess1")).toBeTruthy();
+    expect(screen.getByTestId("ops-station-bess2")).toBeTruthy();
+    expect(screen.getByTestId("ops-feeder-bess1-H04")).toBeTruthy();
+    expect(screen.getByTestId("ops-feeder-bess2-H06")).toBeTruthy();
+    // İstasyon bazlı permissives
+    expect(screen.getByText("Station 1 ready")).toBeTruthy();
+    expect(screen.getByText("Station 2 ready")).toBeTruthy();
+  });
+});
+
+describe("FL-02 — kapsam seçimi kullanıcıya ait", () => {
+  const topoWithFeeders = {
+    ...topo,
+    unit: { containerMWh: 3.5 },
+    feeders: {
+      A: { cell: "H04", side: "L", units: [1] },
+      B: { cell: "H05", side: "R", units: [2] },
+    },
+  } as unknown as NovaTopology;
+
+  const unit = (n: number) => ({ n, soc: 50, available: true, note: "" });
+  const chips = () =>
+    screen.getAllByRole("button").filter((b) => (b.className ?? "").includes("chipb"));
+
+  it("Clear sonrası telemetri (units) güncellense de seçim geri dolmaz", () => {
+    const { rerender } = render(
+      <DemoOperationsView
+        defs={defs}
+        units={[unit(1), unit(2)]}
+        runs={[]}
+        station={station}
+        topology={topoWithFeeders}
+        permissivesFor={() => []}
+      />,
+    );
+    // Başlangıçta otomatik dolu
+    expect(chips().some((c) => c.getAttribute("aria-pressed") === "true")).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+    expect(chips().every((c) => c.getAttribute("aria-pressed") === "false")).toBe(true);
+    expect((screen.getByTestId("ops-send") as HTMLButtonElement).disabled).toBe(true);
+
+    // Yeni units referansı (telemetri güncellemesi taklidi) → scope boş KALMALI
+    rerender(
+      <DemoOperationsView
+        defs={defs}
+        units={[unit(1), unit(2)]}
+        runs={[]}
+        station={station}
+        topology={topoWithFeeders}
+        permissivesFor={() => []}
+      />,
+    );
+    expect(chips().every((c) => c.getAttribute("aria-pressed") === "false")).toBe(true);
+    expect((screen.getByTestId("ops-send") as HTMLButtonElement).disabled).toBe(true);
   });
 });

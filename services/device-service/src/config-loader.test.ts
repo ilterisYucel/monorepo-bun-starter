@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -50,6 +50,27 @@ describe("DeviceConfigLoader", () => {
       const { service } = new DeviceConfigLoader(CONFIG_DIR).load();
       expect(service.redis.host).toBeTruthy();
       expect(service.redis.port).toBeGreaterThan(0);
+    });
+
+    it("service.json#tags yerelde genişletilir ve doğrulamada korunur", () => {
+      const dir = mkdtempSync(join(tmpdir(), "dev-loader-tags-"));
+      try {
+        writeFileSync(
+          join(dir, "service.json"),
+          JSON.stringify({
+            redis: { host: "redis", port: 6379 },
+            tags: { container_id: "container-1", customer: "polatli" },
+          }),
+        );
+        writeFileSync(
+          join(dir, "bsc-1.json"),
+          readFileSync(join(CONFIG_DIR, "flex-bsc.json"), "utf-8"),
+        );
+        const { service } = new DeviceConfigLoader(dir).load();
+        expect(service.tags).toEqual({ container_id: "container-1", customer: "polatli" });
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
     });
   });
 });

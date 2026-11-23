@@ -2,7 +2,6 @@
 // Dış paketler yalnızca buradan (veya kök @gd-monorepo/shared-types) import etmelidir.
 
 export * from "./telemetry";
-export * from "./integration-plugin";
 export * from "./modbus";
 export * from "./service";
 export * from "./config";

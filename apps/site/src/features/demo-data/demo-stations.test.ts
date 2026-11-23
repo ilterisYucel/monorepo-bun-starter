@@ -8,6 +8,7 @@ import {
   collectorType,
   demoPlantTotals,
   stateForStation,
+  stationsFromTopology,
   stationCoverage,
   stationForUnit,
   stationsForContainers,
@@ -159,5 +160,25 @@ describe("stationsForContainers (UC-13)", () => {
     expect(groups).toHaveLength(2);
     expect(groups[0].containerIds).toEqual(["container-1"]);
     expect(groups[0].fallback).toBe(true);
+  });
+});
+
+describe("stationsFromTopology — tek fiderli istasyon", () => {
+  it("B fideri olmayan istasyonu boş fiderle eşler (çökmez)", () => {
+    const stations = stationsFromTopology({
+      stations: [
+        {
+          key: "bess1",
+          name: "DEMO-MV-1",
+          feeders: { A: { cell: "H04", units: [1] } },
+          units: [1],
+          containers: ["container-1"],
+          pcs: ["PCS-1", "PCS-2"],
+          mvDeviceId: "DEMO-MV-1",
+        },
+      ],
+    } as unknown as FieldTopology);
+    expect(stations).toHaveLength(1);
+    expect(stations[0]?.feeders).toEqual({ A: [1], B: [] });
   });
 });

@@ -103,14 +103,8 @@ async function main() {
 
   const logger = await buildLogger(config, postgres);
 
-  // Site kimligi: container-level app CONTAINER_ID, field-level app FIELD_ID
-  // env'i ile telemetriye otomatik tag olarak eklenir (bkz. TelemetryTagger).
-  const identity = {
-    containerId: config.get<string | undefined>("site.containerId"),
-    fieldId: config.get<string | undefined>("site.fieldId"),
-  };
-
-  const runtime = await buildDeviceRuntime(configDir, mq, identity, logger, opsLogger);
+  // Telemetri tag'leri `service.json#tags`'ten gelir (env'den DEĞİL).
+  const runtime = await buildDeviceRuntime(configDir, mq, logger, opsLogger);
   opsLogger.info(`${runtime.deviceCount} cihaz config'i yuklendi`);
   const service = runtime.service;
 

@@ -1,3 +1,4 @@
+import { connect as netConnect } from "node:net";
 import { describe, expect, it } from "vitest";
 import { HVAC_SEQUENCE, runEquivalence } from "../physical/conformance/equivalence";
 import { hvacPhysicalSide } from "../physical/conformance/hvac-sides";
@@ -13,6 +14,38 @@ import { createHvacLegacyAdaptor } from "./hvac-legacy-adaptor";
  */
 
 const config = { deviceId: "HVAC-1" };
+
+/** Ham Modbus TCP FC03 okuması (self-host sunucu doğrulaması). */
+function readHolding(port: number, address: number): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const socket = netConnect({ host: "127.0.0.1", port }, () => {
+      const pdu = Buffer.alloc(5);
+      pdu[0] = 3;
+      pdu.writeUInt16BE(address, 1);
+      pdu.writeUInt16BE(1, 3);
+      const frame = Buffer.alloc(7 + pdu.length);
+      frame.writeUInt16BE(1, 0);
+      frame.writeUInt16BE(0, 2);
+      frame.writeUInt16BE(pdu.length + 1, 4);
+      frame[6] = 1;
+      pdu.copy(frame, 7);
+      socket.write(frame);
+    });
+    const timer = setTimeout(() => {
+      socket.destroy();
+      reject(new Error(`FC03 timeout (${address})`));
+    }, 3000);
+    socket.on("data", (d) => {
+      clearTimeout(timer);
+      socket.destroy();
+      resolve(d.readUInt16BE(9));
+    });
+    socket.on("error", (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+  });
+}
 
 describe("HvacLegacyAdaptor — UC-4", () => {
   it("config'ten kurulur, geçersiz deviceId reddedilir", () => {
@@ -71,6 +104,29 @@ describe("HvacLegacyAdaptor — UC-4", () => {
     adaptor.tick(120);
     expect(adaptor.readHoldingRegister(0x202)).toBe(1);
   });
+
+  it("start/stop: self-host sunucu yaşam döngüsü", async () => {
+    const adaptor = createHvacLegacyAdaptor({ ...config, network: { host: "127.0.0.1", port: 0 } });
+    await adaptor.start();
+    expect(adaptor.port()).toBeGreaterThan(0);
+    await adaptor.stop();
+    expect(adaptor.port()).toBe(0);
+  }, 20_000);
+
+  it("alarm bloğu (0x300) hem holding hem input tablosunda okunur", () => {
+    const adaptor = createHvacLegacyAdaptor(config);
+    expect(adaptor.readHoldingRegister(0x300)).toBe(adaptor.readInputRegister(0x300));
+  });
+
+  it("sunucu yüzü TCP üzerinden okunur (FC03)", async () => {
+    const adaptor = createHvacLegacyAdaptor({ ...config, network: { host: "127.0.0.1", port: 0 } });
+    await adaptor.start();
+    try {
+      expect(await readHolding(adaptor.port(), 0x202)).toBe(2); // Remote On/Off kapalı
+    } finally {
+      await adaptor.stop();
+    }
+  }, 20_000);
 
   it("purity (SC-1): adaptör kompresör durum makinesi taşımaz", () => {
     const adaptor = createHvacLegacyAdaptor(config) as unknown as Record<string, unknown>;

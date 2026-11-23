@@ -21,11 +21,10 @@ export interface DeviceRuntime {
 export async function buildDeviceRuntime(
   configDir: string,
   mq: IMessageQueue,
-  identity: { containerId?: string; fieldId?: string },
   logger?: TamperLogger,
   opsLogger?: Logger,
 ): Promise<DeviceRuntime> {
   const { devices } = new DeviceConfigLoader(configDir, opsLogger).load();
-  const service = await DeviceService.fromConfigDir(configDir, mq, identity, logger, opsLogger);
+  const service = await DeviceService.fromConfigDir(configDir, mq, logger, opsLogger);
   return { service, deviceCount: devices.length };
 }

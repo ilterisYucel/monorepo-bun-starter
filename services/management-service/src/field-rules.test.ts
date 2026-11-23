@@ -19,7 +19,7 @@ import type { RuleAction } from "@gd-monorepo/shared-types";
 
 function loadFieldRules() {
   const loader = new RuleConfigLoader({
-    rulesPath: join(__dirname, "../../../deployment/v2/dev/site/rules/rules.json"),
+    rulesPath: join(__dirname, "__fixtures__/site-rules.json"),
     deviceConfigDir: join(__dirname, "../../../configs"),
   });
   return loader.loadRules();
