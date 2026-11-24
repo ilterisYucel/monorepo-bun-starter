@@ -12,6 +12,14 @@ import logoDark from "../assets/logo-dark.png";
  * DemoShell — auth guard + referans konsol kabuğu (SPEC UC-1): logo, breadcrumb,
  * 6 sekme (İngilizce), "Demo data" rozeti, tema toggle, saat, çıkış; altta
  * footer. Tema light/dark (localStorage + prefers-color-scheme).
+ *
+ * Guard sırası:
+ * 1. Oturum yok → `/login`.
+ * 2. Zorunlu şifre değişimi (SITE-MIMARISI UC-4, FR-4.1/FR-4.7):
+ *    `user.mustChangePassword === true`, rol `guest` değil ve tünel modu değilse
+ *    → `/change-password` (`replace`); kabuk ve alt sayfa render EDİLMEZ.
+ *    Guest otomatik oturumdur; tünelde cookie oturumu enforcement taşımaz (AUTH K9).
+ * 3. Diğer → kabuk + `<Outlet />`.
  */
 
 interface ShellTabDef {
@@ -23,6 +31,7 @@ interface ShellTabDef {
 export const DemoShell: React.FC = () => {
   const fieldId = siteFieldId();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,6 +46,11 @@ export const DemoShell: React.FC = () => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // UC-4: zorunlu şifre değişimi (guest otomatik oturumdur; tünelde enforcement yok — AUTH K9).
+  if (user?.mustChangePassword === true && user.role !== "guest" && !isTunnelMode()) {
+    return <Navigate to="/change-password" replace />;
   }
 
   const base = isTunnelMode() ? `/fields/${fieldId}/ui` : `/field/${fieldId}`;

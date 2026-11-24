@@ -1,11 +1,11 @@
 # Test Envanteri (otomatik)
 
-> Üretim: `bun run test:inventory` — 2026-11-17
-> Tarandı: 239 test dosyası, 2028 test bloğu.
+> Üretim: `bun run test:inventory` — 2026-11-24
+> Tarandı: 243 test dosyası, 2099 test bloğu.
 
 <!-- OTOMATIK — bun run test:inventory ile üretilir; elle DÜZENLENMEZ -->
 
-### `apps/container-web-v2/src/app/app.test.tsx` (6 test)
+### `apps\container-web-v2\src\app\app.test.tsx` (6 test)
 
 1. (tema modu) **"varsayılan light, toggle dark'a geçer ve kalıcı olur"**
 2. (tema modu) **"localStorage'daki dark modunu okur"**
@@ -16,7 +16,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/editor/src/features/editor/device-catalog/catalog.test.ts` (4 test)
+### `apps\editor\src\features\editor\device-catalog\catalog.test.ts` (4 test)
 
 1. (device-catalog) **"5 built-in cihaz tipi sunar"**
 2. (device-catalog) **"her DeviceType icin tanim var ve type alani kendi anahtariyla eslesiyor"**
@@ -25,14 +25,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/sim-lab/src/http/compat-ems-path.test.ts` (2 test)
+### `apps\sim-lab\src\http\compat-ems-path.test.ts` (2 test)
 
 1. (compat senaryosu → EMS okuma yolu (AK-4.2)) **"soc:42 raf SOC'sini gerçek Modbus okumasında değiştirir"**
 2. (compat senaryosu → EMS okuma yolu (AK-4.2)) **"diff_temp sensör arızası EMS'in okuduğu maks. paket sıcaklığını yükseltir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/sim-lab/src/http/compat-http.test.ts` (5 test)
+### `apps\sim-lab\src\http\compat-http.test.ts` (5 test)
 
 1. (Sim-Lab HTTP uçları) **"health: sunucular dinlemeden 503, sonra 200; /api/meta 200"**
 2. (Sim-Lab HTTP uçları) **"inject: geçerli gövde 200 {applied:true}"**
@@ -42,7 +42,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/sim-lab/src/http/compat-inject.test.ts` (14 test)
+### `apps\sim-lab\src\http\compat-inject.test.ts` (14 test)
 
 1. (compatInject) **"AK-4.1: bilinmeyen kapsam/cihaz reddedilir (uygulanmadı)"**
 2. (compatInject) **"AK-4.1: kapsam öneki cihaz anahtarına çevrilir (c2 → C2., field → ön ek yok)"**
@@ -61,7 +61,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/sim-lab/src/plant.test.ts` (5 test)
+### `apps\sim-lab\src\plant.test.ts` (5 test)
 
 1. (BSC Rev AF) **"Start → Normal, Close → 8 raf online"**
 2. (BSC Rev AF) **"Akım akarken Stop reddedilir (0x0A)"**
@@ -71,7 +71,16 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/buildDevices.test.ts` (7 test)
+### `apps\site\src\app\routes.test.tsx` (4 test)
+
+1. (routes) **"üst seviye rotalar: iki login, change-password ve kabuk"**
+2. (routes) **"AK-4 (UC-4): /change-password ChangePasswordPage'i kabuk DIŞINDA render eder"**
+3. (routes) **"kabuk altı: index → /projects, portföy ve iki proje düzeni (standalone + tünel)"**
+4. (routes) **"proje sekmeleri iki düzen altında aynıdır; eski yollar yeni adlara yönlenir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps\site\src\features\demo-data\buildDevices.test.ts` (7 test)
 
 1. (buildDevices (UC-9, AK-9.1/9.3)) **"HVAC satırlarından durum/mode/sıcaklık/alarm türetir"**
 2. (buildDevices (UC-9, AK-9.1/9.3)) **"HVAC telemetrisi yoksa undefined (güvenli varsayılan)"**
@@ -83,7 +92,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/buildTrendSeries.test.ts` (8 test)
+### `apps\site\src\features\demo-data\buildTrendSeries.test.ts` (8 test)
 
 1. (buildTrendSeries (FR-6.1 / AK-6.1)) **"SOC'yi zaman kovasında ortalar"**
 2. (buildTrendSeries (FR-6.1 / AK-6.1)) **"gücü toplar (kW→MW)"**
@@ -96,9 +105,9 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demo-permissives.test.ts` (6 test)
+### `apps\site\src\features\demo-data\demo-permissives.test.ts` (6 test)
 
-1. (derivePermissives (UC-5, referans sim.permissives)) **"referans madde başlıklarını üretir (8 madde + FSS)"**
+1. (derivePermissives (UC-5, referans sim.permissives)) **"referans madde başlıklarını üretir (9 madde + FSS)"**
 2. (derivePermissives (UC-5, referans sim.permissives)) **"sağlıklı durumda tüm kontroller ok"**
 3. (derivePermissives (UC-5, referans sim.permissives)) **"toprak kapalı → hard fail (yalnız earthing hard)"**
 4. (derivePermissives (UC-5, referans sim.permissives)) **"PCS arızası → PCS ready + fault/maintenance fail (hard değil)"**
@@ -107,7 +116,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demo-portfolio.test.ts` (6 test)
+### `apps\site\src\features\demo-data\demo-portfolio.test.ts` (6 test)
 
 1. (demo-portfolio (UC-11)) **"AK-11.2: iki proje tanımlıdır"**
 2. (demo-portfolio (UC-11)) **"AK-11.3: tam olarak bir proje canlıdır"**
@@ -118,7 +127,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demo-stations.test.ts` (14 test)
+### `apps\site\src\features\demo-data\demo-stations.test.ts` (14 test)
 
 1. (demo-stations) **"2 istasyon × 9 ünite: BESS#1–9 ve BESS#10–18 (gdems stationTopo)"**
 2. (demo-stations) **"K-18: her istasyon kendi PCS çiftini ve MV simülatörünü kullanır"**
@@ -137,7 +146,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demo-teias.test.ts` (5 test)
+### `apps\site\src\features\demo-data\demo-teias.test.ts` (5 test)
 
 1. (demo-teias (UC-6, FR-6.3)) **"telemetri 20 satır + komut 8 satır"**
 2. (demo-teias (UC-6, FR-6.3)) **"SoH enerji + anlık SOC + reaktif türetir"**
@@ -147,7 +156,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demo-topology.test.ts` (7 test)
+### `apps\site\src\features\demo-data\demo-topology.test.ts` (7 test)
 
 1. (demo-topology (UC-1/T-1, K1)) **"istasyon şablonu 9 ünite (A/H04 1–5, B/H05 6–9); toplam 2×9 = 18"**
 2. (demo-topology (UC-1/T-1, K1)) **"fider yönü gdems ile aynı: A→H04, B→H05"**
@@ -159,7 +168,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demoApi.test.ts` (3 test)
+### `apps\site\src\features\demo-data\demoApi.test.ts` (3 test)
 
 1. (demoApi execute — systems passthrough (UC-13)) **"executeOperation systems gönderir"**
 2. (demoApi execute — systems passthrough (UC-13)) **"executeManeuver systems gönderir"**
@@ -167,14 +176,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/demoManeuverApi.test.ts` (2 test)
+### `apps\site\src\features\demo-data\demoManeuverApi.test.ts` (2 test)
 
 1. (demoManeuverApi (UC-7, FR-7.1)) **"FL-01…FL-05 kayıtları demo kataloğunda listelenir"**
 2. (demoManeuverApi (UC-7, FR-7.1)) **"kapsam gerçek PCS cihaz setine indirgenir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/deriveKpis.test.ts` (4 test)
+### `apps\site\src\features\demo-data\deriveKpis.test.ts` (4 test)
 
 1. (deriveKpis (FR-4.1 / AK-4.1)) **"ortalama SOC/SOH ve mod türetir"**
 2. (deriveKpis (FR-4.1 / AK-4.1)) **"UC-13: BSC ChargeStatus varsa mod istasyon bazlıdır (PCS paylaşımlı olsa da)"**
@@ -183,7 +192,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/mapFieldToMimicState.test.ts` (21 test)
+### `apps\site\src\features\demo-data\mapFieldToMimicState.test.ts` (21 test)
 
 1. (fanOutUnits (FR-2.1)) **"verilen sayıda ünite üretir ve deterministiktir"**
 2. (fanOutUnits (FR-2.1)) **"PCS gücünü BÖLMEZ (her grup PCS'i aynı setpoint'i taşır); kopyalar işaretli"**
@@ -209,7 +218,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/features/demo-data/useTargetSocWatcher.test.ts` (3 test)
+### `apps\site\src\features\demo-data\useTargetSocWatcher.test.ts` (3 test)
 
 1. (useTargetSocWatcher saf türevleri (UC-5)) **"socOf scope ortalamasını verir"**
 2. (useTargetSocWatcher saf türevleri (UC-5)) **"targetReached yönü doğru uygular"**
@@ -217,21 +226,65 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/lib/demo-theme.test.tsx` (2 test)
+### `apps\site\src\layouts\DemoShell.test.tsx` (17 test)
+
+1. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4)) **"AK-4.1: admin mustChangePassword=true → /change-password, alt sayfa render edilmez"**
+2. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4)) **"AK-4.7: guest mustChangePassword=true → yönlendirme yok"**
+3. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4)) **"AK-4.7: tünel modunda mustChangePassword=true → yönlendirme yok"**
+4. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4)) **"mustChangePassword=false → alt sayfa render edilir"**
+5. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4)) **"oturum yok → /login"**
+6. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4)) **"oturum işaretli ama kullanıcı nesnesi yok → guard çökmez, sayfa render edilir"**
+7. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"Projects sayfasında breadcrumb kalın 'Projects', sekme çubuğu yok"**
+8. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"proje sayfasında 6 sekme ve 'Projects / GD-1' breadcrumb'ı görünür"**
+9. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"sekme tıklaması standalone tabana göre yönlendirir"**
+10. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"tünel modunda sekmeler /fields/:fid/ui tabanını kullanır"**
+11. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"breadcrumb 'Projects' butonu standalone'da /projects'e gider"**
+12. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"breadcrumb 'Projects' butonu tünelde önekli projeler yoluna gider"**
+13. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"Logout logout'u çağırır ve /login'e gider"**
+14. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"tema düğmeleri seçili temayı ve logoyu değiştirir"**
+15. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon)) **"logo yüklenemezse 'GD-PMS' metnine düşer"**
+16. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon) > saat) **"HH:MM:SS biçiminde sıfır dolgulu gösterir ve her saniye ilerler"**
+17. (DemoShell — zorunlu şifre değişimi guard'ı (UC-4) > DemoShell — kabuk davranışı (karakterizasyon) > saat) **"unmount'ta zamanlayıcıyı temizler (sızıntı yok)"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps\site\src\lib\demo-theme.test.tsx` (2 test)
 
 1. (useDemoTheme) **"localStorage dark → mount anında (senkron) data-theme dark uygular"**
 2. (useDemoTheme) **"setTheme('light') → değişkenleri ve localStorage'ı günceller"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/lib/site-field.test.ts` (2 test)
+### `apps\site\src\lib\site-field.test.ts` (6 test)
 
 1. (postLoginDestination) **"fieldId varsa portföy sayfasına yönlendirir (UC-11)"**
 2. (postLoginDestination) **"fieldId boşsa açık hata döner"**
+3. (postLoginDestination > UC-4 zorunlu şifre değişimi önceliği) **"AK-4.2: mustChangePassword → /change-password (fieldId varken)"**
+4. (postLoginDestination > UC-4 zorunlu şifre değişimi önceliği) **"AK-4.2: mustChangePassword saha kimliği hatasından önce gelir (fieldId boş)"**
+5. (postLoginDestination > UC-4 zorunlu şifre değişimi önceliği) **"AK-4.7: guest mustChangePassword taşısa da /projects'e gider"**
+6. (postLoginDestination > UC-4 zorunlu şifre değişimi önceliği) **"mustChangePassword=false → /projects"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/pages/DemoDevicesPage.test.tsx` (3 test)
+### `apps\site\src\pages\ChangePasswordPage.test.tsx` (13 test)
+
+1. (ChangePasswordPage (UC-4)) **"başlangıçta alanlar boştur ve hata gösterilmez"**
+2. (ChangePasswordPage (UC-4)) **"form gönderimi tarayıcı varsayılanını engeller (sayfa yenilenmez)"**
+3. (ChangePasswordPage (UC-4)) **"AK-4.3 sınırı: tam 8 karakterli yeni şifre kabul edilir"**
+4. (ChangePasswordPage (UC-4)) **"yeni gönderimde önceki hata temizlenir"**
+5. (ChangePasswordPage (UC-4)) **"değişim sonrası saha kimliği boşsa açık hata gösterir, navigasyon yapmaz"**
+6. (ChangePasswordPage (UC-4)) **"AK-4.6: oturum işaretli ama kullanıcı yoksa /login'e yönlendirir"**
+7. (ChangePasswordPage (UC-4)) **"AK-4.6: kullanıcı var ama oturum düşmüşse /login'e yönlendirir"**
+8. (ChangePasswordPage (UC-4)) **"form başlığı ve üç şifre alanı görünür"**
+9. (ChangePasswordPage (UC-4)) **"AK-4.3: yeni şifre 8 karakterden kısaysa hata verir, istek atmaz"**
+10. (ChangePasswordPage (UC-4)) **"AK-4.3: tekrar eşleşmezse hata verir, istek atmaz"**
+11. (ChangePasswordPage (UC-4)) **"AK-4.4: başarılı değişimde changePassword bir kez çağrılır, /projects'e replace ile gidilir"**
+12. (ChangePasswordPage (UC-4)) **"AK-4.5: sunucu hatasında mesaj gösterir, navigasyon yapmaz"**
+13. (ChangePasswordPage (UC-4)) **"AK-4.6: oturum yokken /login'e yönlendirir"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `apps\site\src\pages\DemoDevicesPage.test.tsx` (3 test)
 
 1. (DemoDevicesPage — istasyon bazlı ağaç) **"istasyon 2: Battery groups BESS#10–18 listelenir"**
 2. (DemoDevicesPage — istasyon bazlı ağaç) **"istasyon 2: BESS#10 seçilince battery alt sekmeleri açılır"**
@@ -239,7 +292,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/pages/DemoFieldPage.test.tsx` (4 test)
+### `apps\site\src\pages\DemoFieldPage.test.tsx` (4 test)
 
 1. (DemoFieldPage — site layout (UC-4)) **"ortak üst blok + site yerleşimini render eder"**
 2. (DemoFieldPage — site layout (UC-4)) **"hata durumunda uyarı gösterir ama sayfa render olur"**
@@ -248,7 +301,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `apps/site/src/pages/DemoProjectsPage.test.tsx` (3 test)
+### `apps\site\src\pages\DemoProjectsPage.test.tsx` (3 test)
 
 1. (DemoProjectsPage (UC-11)) **"AK-11.1/11.2: başlık, iki proje ve haritayı render eder"**
 2. (DemoProjectsPage (UC-11)) **"AK-11.6: PTF kartı, Asset management ve Market paneli görünür"**
@@ -256,7 +309,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/messaging/bullmq-adapter.test.ts` (18 test)
+### `packages\core\src\messaging\bullmq-adapter.test.ts` (18 test)
 
 1. (BullMQAdapter openQueue (jenerik)) **"kuyruk + QueueEvents kurulur; retryOptions işlenir"**
 2. (BullMQAdapter openQueue (jenerik)) **"aynı ad iki kez açılırsa tek Queue örneği döner (önbellek)"**
@@ -279,7 +332,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/messaging/redis.test.ts` (8 test)
+### `packages\core\src\messaging\redis.test.ts` (8 test)
 
 1. (RedisConnection (T3)) **"şifresiz config: URL redis://host:port + database opsiyonu"**
 2. (RedisConnection (T3)) **"şifreli config: URL şifre taşır"**
@@ -292,7 +345,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/client-rtu.test.ts` (7 test)
+### `packages\core\src\modbus\client-rtu.test.ts` (7 test)
 
 1. (ModbusRtuClient (T3)) **"config varsayılanlarıyla port kurulur (connect anında)"**
 2. (ModbusRtuClient (T3)) **"connect open eventi ile bağlanır"**
@@ -304,7 +357,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/client.test.ts` (8 test)
+### `packages\core\src\modbus\client.test.ts` (8 test)
 
 1. (ModbusTcpClient (T3)) **"connect başarılı: bağlı durum + reconnect sayacı sıfırlanır"**
 2. (ModbusTcpClient (T3)) **"connect error eventi → 'Modbus connection failed' hatası"**
@@ -317,7 +370,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/decoder.test.ts` (20 test)
+### `packages\core\src\modbus\decoder.test.ts` (20 test)
 
 1. (BinaryPayloadDecoder > constructor + byte order) **"stores registers in BIG_ENDIAN order (no transform)"**
 2. (BinaryPayloadDecoder > constructor + byte order) **"reverses bytes for LITTLE_ENDIAN"**
@@ -342,7 +395,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/device.test.ts` (31 test)
+### `packages\core\src\modbus\device.test.ts` (31 test)
 
 1. (ModbusDevice.read() ISP sözleşmesi) **"register + bitfield çıktılarını birleşik döner"**
 2. (ModbusDevice.read() ISP sözleşmesi) **"bitfield bit değeri mask ile çıkarılır"**
@@ -378,7 +431,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/serial-socket-adapter.test.ts` (5 test)
+### `packages\core\src\modbus\serial-socket-adapter.test.ts` (5 test)
 
 1. (SerialSocketAdapter) **"isOpen port durumunu yansıtır"**
 2. (SerialSocketAdapter) **"'open' / 'error' / 'close' olayları aktarılır"**
@@ -388,13 +441,13 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/modbus/utils.test.ts` (1 test)
+### `packages\core\src\modbus\utils.test.ts` (1 test)
 
 1. (randomFloat) **"[0,1) aralığında döner — 100 örneklem"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/core/src/timeseries/implementations/timescaledb/timescaledb-adapter.test.ts` (17 test)
+### `packages\core\src\timeseries\implementations\timescaledb\timescaledb-adapter.test.ts` (17 test)
 
 1. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)) **"multi-row INSERT + BEGIN/COMMIT üretir; tablo adı device_ önekli"**
 2. (TimescaleDBAdapter — write/INSERT akışı (2026-08-30 T3)) **"K-21: getLatestPerName DISTINCT ON (name) + pencere parametresi (latest modu)"**
@@ -416,7 +469,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/epias-client/src/client.test.ts` (6 test)
+### `packages\epias-client\src\client.test.ts` (6 test)
 
 1. (EpiasClient) **"fetchJson — once CAS'ten TGT alir, istege TGT header'i ekler"**
 2. (EpiasClient) **"ptf — tarihler +03:00 formatina cevrilir"**
@@ -427,7 +480,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/epias-client/src/ticket-store.test.ts` (9 test)
+### `packages\epias-client\src\ticket-store.test.ts` (9 test)
 
 1. (EpiasTicketStore) **"ilk istekte CAS'ten bilet alir ve dosyaya yazar"**
 2. (EpiasTicketStore) **"CAS HTML yanitindan TGT'yi ayiklar (canli form cevabi)"**
@@ -441,7 +494,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/logger/src/logger.test.ts` (15 test)
+### `packages\logger\src\logger.test.ts` (15 test)
 
 1. (Logger — UC-1 temel loglama ve format) **"AK-1.1 — info kaydı ts/level/service/message/context taşır"**
 2. (Logger — UC-1 temel loglama ve format) **"AK-1.1 — context'siz kayıt da üretilir"**
@@ -461,7 +514,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/logger/src/sinks.test.ts` (8 test)
+### `packages\logger\src\sinks.test.ts` (8 test)
 
 1. (Logger — UC-2 sink yönetimi) **"AK-2.1 — removeSink sonrası kayıt yalnız kalan sink'e gider"**
 2. (Logger — UC-2 sink yönetimi) **"edge — aynı sink iki kez eklenirse tek sayılır"**
@@ -474,7 +527,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/commands/src/command-job-builder.test.ts` (16 test)
+### `packages\platform\commands\src\command-job-builder.test.ts` (16 test)
 
 1. (CommandJobBuilder.build) **"config yok → err device_not_found"**
 2. (CommandJobBuilder.build) **"komut tanımsız → err command_not_found"**
@@ -495,7 +548,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/commands/src/maneuver-migration.test.ts` (12 test)
+### `packages\platform\commands\src\maneuver-migration.test.ts` (12 test)
 
 1. (konteyner maneuvers.json (A3 migrasyon)) **"fail-fast yüklenir — 12 kayıt"**
 2. (konteyner maneuvers.json (A3 migrasyon)) **"registry isimle çözer (bsc_prepare, fl03, fl05 force)"**
@@ -512,7 +565,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/commands/src/maneuver-registry.test.ts` (11 test)
+### `packages\platform\commands\src\maneuver-registry.test.ts` (11 test)
 
 1. (ManeuverRegistry) **"bilinen manevra ismini çözer — ok(kayıt)"**
 2. (ManeuverRegistry) **"bilinen operasyon ismini çözer — ok(kayıt)"**
@@ -528,7 +581,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/commands/src/operation-executor.test.ts` (31 test)
+### `packages\platform\commands\src\operation-executor.test.ts` (31 test)
 
 1. (OperationExecutor — preconditions hook (K10)) **"hook yokken davranış birebir (yürütür)"**
 2. (OperationExecutor — preconditions hook (K10)) **"hook izin verirse yürütür"**
@@ -564,7 +617,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/logging/src/event-codes.test.ts` (3 test)
+### `packages\platform\logging\src\event-codes.test.ts` (3 test)
 
 1. (GD-PMS olay sözlüğü) **"kayıtlı kodlar doğrulanır"**
 2. (GD-PMS olay sözlüğü) **"bilinmeyen kodlar reddedilir"**
@@ -572,7 +625,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/logging/src/logger-config.test.ts` (8 test)
+### `packages\platform\logging\src\logger-config.test.ts` (8 test)
 
 1. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"üç tier için de tanımlıdır"**
 2. (LoggerConfig tier varsayılanları (T0.5) > TIER_LOGGER_DEFAULTS) **"container: console + file (timescale YOK)"**
@@ -585,7 +638,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/platform/messaging/src/platform-message-queue.test.ts` (24 test)
+### `packages\platform\messaging\src\platform-message-queue.test.ts` (24 test)
 
 1. (PlatformMessageQueue retry haritası (T0.12)) **"harita politika değerlerini taşır"**
 2. (PlatformMessageQueue retry haritası (T0.12)) **"READ_DEVICE kuyruğu attempts:1 ile açılır (poll = doğal retry)"**
@@ -614,7 +667,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugin-sdk/src/context.test.ts` (5 test)
+### `packages\plugin-sdk\src\context.test.ts` (5 test)
 
 1. (FilePluginStateStore) **"yazma/okuma/silme turu calisir"**
 2. (FilePluginStateStore) **"bozuk dosya durumunda bos obje doner"**
@@ -624,7 +677,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugin-sdk/src/http/http-client.test.ts` (7 test)
+### `packages\plugin-sdk\src\http\http-client.test.ts` (7 test)
 
 1. (HttpClient) **"getJson — baseUrl ile birlesik URL ve header'lar ile istek atar"**
 2. (HttpClient) **"postJson — JSON govde ve Content-Type header'i ekler"**
@@ -636,7 +689,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugin-sdk/src/loader.test.ts` (5 test)
+### `packages\plugin-sdk\src\loader.test.ts` (5 test)
 
 1. (PluginLoader) **"statik kaynaktaki pluginleri kaydeder"**
 2. (PluginLoader) **"dizin kaynagindan plugin yukler (runtime plugin)"**
@@ -646,7 +699,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugin-sdk/src/registry.test.ts` (5 test)
+### `packages\plugin-sdk\src\registry.test.ts` (5 test)
 
 1. (PluginRegistry) **"plugin kaydeder ve sorgular"**
 2. (PluginRegistry) **"ayni isimdeki ikinci kaydi reddeder"**
@@ -656,7 +709,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugin-sdk/src/sdk-version.test.ts` (4 test)
+### `packages\plugin-sdk\src\sdk-version.test.ts` (4 test)
 
 1. (SemVerRange) **"aralik icindeki versiyonlari kabul eder"**
 2. (SemVerRange) **"aralik disindaki versiyonlari reddeder"**
@@ -665,7 +718,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/plugins/epias-market-prices/src/plugin.test.ts` (9 test)
+### `packages\plugins\epias-market-prices\src\plugin.test.ts` (9 test)
 
 1. (EpiasMarketPricesPlugin) **"manifest ve schedule dondurur"**
 2. (EpiasMarketPricesPlugin) **"fetch — satirlari MarketDataPoint'e cevirir, TGT header ekler ve cursor yazar"**
@@ -679,7 +732,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/result/src/domain-error.test.ts` (8 test)
+### `packages\result\src\domain-error.test.ts` (8 test)
 
 1. (DomainError hiyerarşisi (T0.2) > DomainError tabanı) **"tüm alanları korur"**
 2. (DomainError hiyerarşisi (T0.2) > DomainError tabanı) **"boş message kabul etmez — constructor doğrular"**
@@ -692,7 +745,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/result/src/result.test.ts` (19 test)
+### `packages\result\src\result.test.ts` (19 test)
 
 1. (Result<T,E> (T0.2) > ok()) **"başarı durumu taşır"**
 2. (Result<T,E> (T0.2) > ok()) **"null kabul etmez — constructor doğrular"**
@@ -716,7 +769,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/automation-rule.test.ts` (26 test)
+### `packages\shared-types\src\automation-rule.test.ts` (26 test)
 
 1. (automationRulesSchema) **"geçerli kural dosyasını kabul eder (command + log + notify)"**
 2. (automationRulesSchema) **"when.all ile çoklu koşul kabul eder"**
@@ -747,7 +800,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/commands/maneuver-record.test.ts` (23 test)
+### `packages\shared-types\src\commands\maneuver-record.test.ts` (23 test)
 
 1. (commandStepSchema (REV.02 §5.1)) **"deviceId'li adım kabul edilir"**
 2. (commandStepSchema (REV.02 §5.1)) **"deviceIds / deviceTypes seçicileri kabul edilir"**
@@ -775,7 +828,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/commands/validate-expect.test.ts` (9 test)
+### `packages\shared-types\src\commands\validate-expect.test.ts` (9 test)
 
 1. (isRelationExpect) **"ilişki sözcüklerini tanır"**
 2. (isRelationExpect) **"diğer string/sayı/boolean değerleri tanımaz"**
@@ -789,7 +842,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/schemas/alarm.test.ts` (8 test)
+### `packages\shared-types\src\schemas\alarm.test.ts` (8 test)
 
 1. (device alarm kuralı şeması) **"alarms bölümünü kabul eder"**
 2. (device alarm kuralı şeması) **"geçersiz severity reddedilir"**
@@ -802,7 +855,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/schemas/device-config.test.ts` (34 test)
+### `packages\shared-types\src\schemas\device-config.test.ts` (34 test)
 
 1. (bitfieldFieldSchema) **"accepts valid input"**
 2. (bitfieldFieldSchema) **"rejects bitStart > bitEnd"**
@@ -841,7 +894,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/schemas/server-config.test.ts` (11 test)
+### `packages\shared-types\src\schemas\server-config.test.ts` (11 test)
 
 1. (authConfigSchema) **"accepts valid config"**
 2. (authConfigSchema) **"rejects short jwtSecret (< 16 chars)"**
@@ -857,7 +910,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/schemas/service-config.test.ts` (15 test)
+### `packages\shared-types\src\schemas\service-config.test.ts` (15 test)
 
 1. (redisConfigSchema) **"accepts minimal config"**
 2. (redisConfigSchema) **"accepts full config"**
@@ -877,7 +930,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-types/src/schemas/validate.test.ts` (4 test)
+### `packages\shared-types\src\schemas\validate.test.ts` (4 test)
 
 1. (validateOrThrow) **"returns parsed data on valid input"**
 2. (validateOrThrow) **"throws with label in error message on invalid input"**
@@ -886,7 +939,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-utils/src/config/definitions.test.ts` (8 test)
+### `packages\shared-utils\src\config\definitions.test.ts` (8 test)
 
 1. (log config definitions (T0.5/T0.6)) **"logLevel varsayılanı info'dur"**
 2. (log config definitions (T0.5/T0.6)) **"logLevel env ile okunur"**
@@ -899,7 +952,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-utils/src/config/device-config-drift.test.ts` (7 test)
+### `packages\shared-utils\src\config\device-config-drift.test.ts` (7 test)
 
 1. (compareDeviceConfig) **"özdeş config → issue yok"**
 2. (compareDeviceConfig) **"kopyada eksik telemetri → error (missing)"**
@@ -911,7 +964,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/shared-utils/src/config/loader.test.ts` (10 test)
+### `packages\shared-utils\src\config\loader.test.ts` (10 test)
 
 1. (ConfigLoader (T3)) **"kaynak önceliği: ObjectSource EnvSource'u ezer"**
 2. (ConfigLoader (T3)) **"kaynak yoksa default değer kullanılır"**
@@ -926,7 +979,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc-pcs-connector/connector.test.ts` (30 test)
+### `packages\simulators\src\bsc-pcs-connector\connector.test.ts` (30 test)
 
 1. (parseBscPcsMapping) **"geçerli dosyayı parse eder (üç kind)"**
 2. (parseBscPcsMapping) **"bilinmeyen kind → throw"**
@@ -961,7 +1014,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc-pcs-connector/pcs-power-reader.test.ts` (3 test)
+### `packages\simulators\src\bsc-pcs-connector\pcs-power-reader.test.ts` (3 test)
 
 1. (TcpPcsPowerReader) **"PCS S16 gücünü işaretli okur (negatif = şarj)"**
 2. (TcpPcsPowerReader) **"birden fazla PCS toplanır"**
@@ -969,7 +1022,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc-pcs-connector/source-reader.test.ts` (4 test)
+### `packages\simulators\src\bsc-pcs-connector\source-reader.test.ts` (4 test)
 
 1. (TcpSourceReader) **"tek register'ı TCP'den okur"**
 2. (TcpSourceReader) **"size>1 kelimeleri big-endian birleştirir"**
@@ -978,7 +1031,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc-pcs-connector/tcp-target.test.ts` (4 test)
+### `packages\simulators\src\bsc-pcs-connector\tcp-target.test.ts` (4 test)
 
 1. (TcpBmsTarget) **"BMS-yüzü bridge'e FC 0x10 yazar; simülatör deposu güncellenir"**
 2. (TcpBmsTarget) **"sunucu kapalıyken connect throw eder"**
@@ -987,7 +1040,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc/bsc-legacy-adaptor.test.ts` (12 test)
+### `packages\simulators\src\bsc\bsc-legacy-adaptor.test.ts` (12 test)
 
 1. (BscLegacyAdaptor — UC-2) **"config'ten kurulur ve legacy okuma yüzünü sunar"**
 2. (BscLegacyAdaptor — UC-2) **"başlangıç durumu: BSC State = 1 (Not Initialized), ack = 0"**
@@ -1004,7 +1057,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc/bsc-modbus-adapter.test.ts` (3 test)
+### `packages\simulators\src\bsc\bsc-modbus-adapter.test.ts` (3 test)
 
 1. (BSCSimulatorAdapter — köprü sözleşmesi) **"tekli okumalar yüzden aynen geçer"**
 2. (BSCSimulatorAdapter — köprü sözleşmesi) **"batch okumalar adres artan sırayla döner (boşluklar 0/false)"**
@@ -1012,7 +1065,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/bsc/bsc-simulator.test.ts` (27 test)
+### `packages\simulators\src\bsc\bsc-simulator.test.ts` (27 test)
 
 1. (BSCSimulator (T4)) **"otomatik init: 6 tick sonrası NORMAL duruma geçer"**
 2. (BSCSimulator (T4)) **"START komutu → charge status bitleri (BSC_INFO 30037)"**
@@ -1044,7 +1097,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/cb/cb.test.ts` (9 test)
+### `packages\simulators\src\cb\cb.test.ts` (9 test)
 
 1. (CbSimulator (DC Şalter — K2) > başlangıç durumu) **"kapalı başlar: Is Closed = true, Is Open = false"**
 2. (CbSimulator (DC Şalter — K2) > başlangıç durumu > aç/kapat (coil komutları)) **"OPEN coil → şalter açılır (Is Open = true)"**
@@ -1058,7 +1111,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/contracts.test.ts` (3 test)
+### `packages\simulators\src\contracts.test.ts` (3 test)
 
 1. (ISimulator sözleşmesi) **"tüm simülatörler deviceId + start/stop sağlar"**
 2. (ISimulator sözleşmesi) **"inject desteklemeyen simülatörde tanımsızdır"**
@@ -1066,7 +1119,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/control-panel-io/control-panel-io.test.ts` (13 test)
+### `packages\simulators\src\control-panel-io\control-panel-io.test.ts` (13 test)
 
 1. (ControlPanelIoSimulator (FL-07 kapı + ışık + FSS DI — K5) > initial state) **"kapılar kapalı, ışıklar sönük başlar"**
 2. (ControlPanelIoSimulator (FL-07 kapı + ışık + FSS DI — K5) > initial state) **"FSS sağlıklı başlar: System OK=true, Fault/Discharged/2nd=false"**
@@ -1084,7 +1137,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/dc-meter/dc-meter.test.ts` (13 test)
+### `packages\simulators\src\dc-meter\dc-meter.test.ts` (13 test)
 
 1. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal)) **"DC Voltage 750.0 V — FLOAT32 BE kelime çifti"**
 2. (DcMeterSimulator (FL-08 DC kısa devre koruması) > başlangıç durumu (nominal)) **"DC Current 100.0 A — FLOAT32 BE kelime çifti"**
@@ -1102,7 +1155,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/dc-output/dc-output.test.ts` (10 test)
+### `packages\simulators\src\dc-output\dc-output.test.ts` (10 test)
 
 1. (DcOutputSimulator > initial state) **"has default voltage and discrete inputs"**
 2. (DcOutputSimulator > initial state > on/off via coils) **"handles coil toggling"**
@@ -1117,7 +1170,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/demo-mv-station/demo-mv-simulator.test.ts` (6 test)
+### `packages\simulators\src\demo-mv-station\demo-mv-simulator.test.ts` (6 test)
 
 1. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"başlangıç: kesiciler kapalı, topraklar açık (AK-9.1)"**
 2. (DemoMvStationSimulator (SPEC UC-9 / T-38)) **"kesici kapalıyken toprak kapanmaz (AK-9.2)"**
@@ -1128,7 +1181,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/fss/fss-simulator.test.ts` (8 test)
+### `packages\simulators\src\fss\fss-simulator.test.ts` (8 test)
 
 1. (FssSimulator (UC-10)) **"AK-10.1: başlangıç sağlıklı panel"**
 2. (FssSimulator (UC-10)) **"AK-10.1: 1 zone → first stage + countdown; 2 zone → second stage"**
@@ -1141,7 +1194,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/grid-link/bus.test.ts` (3 test)
+### `packages\simulators\src\grid-link\bus.test.ts` (3 test)
 
 1. (GridLinkBus) **"AK-1.1: kapalı hücrelerde fider enerjilidir"**
 2. (GridLinkBus) **"H01 veya H02 açıkken fider enerjisizdir (zincir)"**
@@ -1149,7 +1202,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/grid-link/pcs-deenergized.test.ts` (3 test)
+### `packages\simulators\src\grid-link\pcs-deenergized.test.ts` (3 test)
 
 1. (WattoxPcsSimulator — şebeke yolu) **"AK-2.1/2.2: kesici açılınca standby + güç 0 + Vac 0"**
 2. (WattoxPcsSimulator — şebeke yolu) **"AK-2.3: yeniden enerjide güç otomatik uygulanmaz"**
@@ -1157,7 +1210,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/host-connector-target.test.ts` (3 test)
+### `packages\simulators\src\host-connector-target.test.ts` (3 test)
 
 1. (resolveBscPcsTarget (SPEC T-36 / AK-8.3/8.4)) **"env hedefi uygulanır (mevcut davranış)"**
 2. (resolveBscPcsTarget (SPEC T-36 / AK-8.3/8.4)) **"connector.sim.target env'i EZER (per-connector port)"**
@@ -1165,7 +1218,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/host.test.ts` (9 test)
+### `packages\simulators\src\host.test.ts` (9 test)
 
 1. (SimulatorHost — UC-3) **"AK-3.1 — yalnız simulator config'ler için sunucu açar; TCP okunur"**
 2. (SimulatorHost — UC-3) **"AK-3.2 — deviceId→port indeksi kurulur"**
@@ -1179,7 +1232,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/hvac/hvac-legacy-adaptor.test.ts` (10 test)
+### `packages\simulators\src\hvac\hvac-legacy-adaptor.test.ts` (10 test)
 
 1. (HvacLegacyAdaptor — UC-4) **"config'ten kurulur, geçersiz deviceId reddedilir"**
 2. (HvacLegacyAdaptor — UC-4) **"Remote On/Off: 2 = kapalı (varsayılan), 1 yazınca açık okunur"**
@@ -1194,7 +1247,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/hvac/hvac.test.ts` (15 test)
+### `packages\simulators\src\hvac\hvac.test.ts` (15 test)
 
 1. (HvacSimulator > initial state) **"starts in standby"**
 2. (HvacSimulator > initial state) **"has default temperature"**
@@ -1214,7 +1267,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/imd/imd.test.ts` (14 test)
+### `packages\simulators\src\imd\imd.test.ts` (14 test)
 
 1. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı)) **"izolasyon direnci ~1 MΩ (Ω cinsinden UInt32 BE)"**
 2. (ImdSimulator (FL-11 toprak direnci — gerçek map, K4) > başlangıç durumu (sağlıklı)) **"Insulation Alarm 0 (OK)"**
@@ -1233,7 +1286,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/injection.test.ts` (7 test)
+### `packages\simulators\src\injection.test.ts` (7 test)
 
 1. (simülatör inject sözleşmesi) **"IMD: fault/healthy/device_error uygular, bilinmeyeni reddeder"**
 2. (simülatör inject sözleşmesi) **"ControlPanelIo: kapı senaryolarını uygular"**
@@ -1245,7 +1298,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/conformance/ems-read-path.test.ts` (4 test)
+### `packages\simulators\src\physical\conformance\ems-read-path.test.ts` (4 test)
 
 1. **"${t}: config'teki tüm telemetri hatasız okunur"**
 2. (EMS'in okuduğu değerler model durumuyla tutarlı) **"BSC: SOC, online raf, DC gerilim, raf 2 durumu (adım 150)"**
@@ -1254,7 +1307,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/conformance/equivalence.test.ts` (8 test)
+### `packages\simulators\src\physical\conformance\equivalence.test.ts` (8 test)
 
 1. (eşdeğerlik harness'i — sözleşme) **"aynı iki yüz → fark 0; her sekans adımı için tek satır"**
 2. (eşdeğerlik harness'i — sözleşme) **"farklı değer → fark satırı; yazma/ilerletme çağrıları iki tarafa da gider"**
@@ -1267,7 +1320,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/link/pipe.test.ts` (6 test)
+### `packages\simulators\src\physical\link\pipe.test.ts` (6 test)
 
 1. (PipeSet — UC-1) **"AK-1.1: son değer commit sonrası okunur; aynı tick'te önceki değer görünür"**
 2. (PipeSet — UC-1) **"AK-1.2: yayıncısız kanal mock default döner; default yoksa uyarı bir kez basılır"**
@@ -1278,7 +1331,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/link/port.test.ts` (6 test)
+### `packages\simulators\src\physical\link\port.test.ts` (6 test)
 
 1. (InputPort / OutputPort — UC-2) **"AK-2.1: pipe'sız ünite yalnız port fallback'ıyla çalışır"**
 2. (InputPort / OutputPort — UC-2) **"AK-2.2: yayın aynı tick görünmez; commit sonrası görünür"**
@@ -1289,7 +1342,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/link/solver-ports.test.ts` (3 test)
+### `packages\simulators\src\physical\link\solver-ports.test.ts` (3 test)
 
 1. (SolverRegistry — UC-4) **"AK-4.1: aynı tip iki kez kaydedilemez — yazım hatası sessiz geçmez"**
 2. (SolverRegistry — UC-4) **"AK-4.1: bilinmeyen tip fail-fast; mesaj kayıtlı tipleri listeler"**
@@ -1297,7 +1350,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/site/aux-ports.test.ts` (5 test)
+### `packages\simulators\src\physical\site\aux-ports.test.ts` (5 test)
 
 1. (DcMeterPort) **"yayınlanan DC sinyallerini ölçüm olarak yazar"**
 2. (DcMeterPort) **"sinyal yoksa metreye dokunmaz (mock varsayılanı korunur)"**
@@ -1307,7 +1360,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/site/demo-v2.test.ts` (3 test)
+### `packages\simulators\src\physical\site\demo-v2.test.ts` (3 test)
 
 1. (demo-v2.site.json — v2 cihaz kümesi ve port şeması) **"AK-3.1: iki konteyner × 20 cihaz + 4 PCS + 2 OG istasyonu üretir"**
 2. (demo-v2.site.json — v2 cihaz kümesi ve port şeması) **"AK-3.1: portlar Sim-Lab şemasıyla birebir (2000x/2010x/3000x/3020x)"**
@@ -1315,7 +1368,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/physical/site/plant.test.ts` (25 test)
+### `packages\simulators\src\physical\site\plant.test.ts` (25 test)
 
 1. (Saha üretimi (site spec → cihazlar)) **"GD-1 şekli: 9 konteyner → 18 BSC, 18 PCS, 72 HVAC, benzersiz portlar"**
 2. (Saha üretimi (site spec → cihazlar)) **"register listesi kök configs'ten gelir; yalnız deviceId/name/connection değişir"**
@@ -1345,7 +1398,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/server/modbus-server-bridge.test.ts` (13 test)
+### `packages\simulators\src\server\modbus-server-bridge.test.ts` (13 test)
 
 1. (ModbusServerBridge — UC-1) **"AK-1.1 — FC 03/04/01/02 adapter'dan anlık değer döner"**
 2. (ModbusServerBridge — UC-1) **"AK-1.1 — çoklu holding okuma sıralı değer döner"**
@@ -1363,7 +1416,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/server/simulator-server.test.ts` (3 test)
+### `packages\simulators\src\server\simulator-server.test.ts` (3 test)
 
 1. (SimulatorServer — UC-2 self-host) **"AK-2.1 — network config ile start() sonrası TCP'den okuma"**
 2. (SimulatorServer — UC-2 self-host) **"AK-2.2 — stop idempotent; start sonrası yeniden açılır"**
@@ -1371,7 +1424,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/wattox-pcs/bms-face.test.ts` (5 test)
+### `packages\simulators\src\wattox-pcs\bms-face.test.ts` (5 test)
 
 1. (Wattox BMS yüzü (ModbusServerBridge)) **"BMS bloğu FC 03 okuması anlık değeri döner"**
 2. (Wattox BMS yüzü (ModbusServerBridge)) **"BMS bloğu FC 06 yazımı simülatör deposuna uygulanır"**
@@ -1381,7 +1434,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/wattox-pcs/pcs-legacy-adaptor.test.ts` (12 test)
+### `packages\simulators\src\wattox-pcs\pcs-legacy-adaptor.test.ts` (12 test)
 
 1. (PcsLegacyAdaptor — UC-3) **"config'ten kurulur, geçersiz deviceId reddedilir"**
 2. (PcsLegacyAdaptor — UC-3) **"başlangıç: Operation Status = 0 (Stop), fault word 0"**
@@ -1398,7 +1451,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/simulators/src/wattox-pcs/wattox-pcs.test.ts` (19 test)
+### `packages\simulators\src\wattox-pcs\wattox-pcs.test.ts` (19 test)
 
 1. (WattoxPcsSimulator) **"ilk değerler: nominal (Stop, 50 Hz, anma güç, şebeke voltajı)"**
 2. (WattoxPcsSimulator) **"start komutu: Stop → Standby; komut register'ı yazılanı tutar"**
@@ -1422,7 +1475,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/colors/tokens.test.ts` (4 test)
+### `packages\ui-v2\src\colors\tokens.test.ts` (4 test)
 
 1. (renk token'ları) **"açık tema değerleri design guide ile birebir"**
 2. (renk token'ları) **"status üçlüleri doğru"**
@@ -1431,7 +1484,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/components/core/core.test.tsx` (9 test)
+### `packages\ui-v2\src\components\core\core.test.tsx` (9 test)
 
 1. (BessContainerCard) **"V1 satır varyantı iki bankı ve durum etiketini gösterir"**
 2. (BessContainerCard) **"V2 ikiz bank varyantı SoC değerlerini biçimlendirir"**
@@ -1445,7 +1498,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/components/dashboard/dashboard.test.tsx` (23 test)
+### `packages\ui-v2\src\components\dashboard\dashboard.test.tsx` (23 test)
 
 1. (Sidebar) **"nav öğelerini çizer ve aktif olanı işaretler"**
 2. (Sidebar) **"seçim callback'i tetikler"**
@@ -1473,7 +1526,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/components/drawer/drawer.test.tsx` (4 test)
+### `packages\ui-v2\src\components\drawer\drawer.test.tsx` (4 test)
 
 1. (ContainerDrawer) **"başlık, rozetler, feeder ve aksiyonları gösterir"**
 2. (ContainerDrawer) **"seçili rack, pack, RMU, PCS ve bank bölümlerini render eder"**
@@ -1482,7 +1535,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/components/primitives/primitives.test.tsx` (14 test)
+### `packages\ui-v2\src\components\primitives\primitives.test.tsx` (14 test)
 
 1. (StatusPill) **"metni ve 7 px durum noktasını render eder"**
 2. (StatusPill) **"dot=false ile nokta çizmez"**
@@ -1501,7 +1554,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/design-parity.test.tsx` (8 test)
+### `packages\ui-v2\src\design-parity.test.tsx` (8 test)
 
 1. (tasarım parity — token değerleri) **"radius/spacing/elevation ölçekleri design guide ile aynı"**
 2. (tasarım parity — token değerleri) **"tipografi COMPACT ekran değerleri 1.2× line-height"**
@@ -1514,7 +1567,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/icons/icons.test.tsx` (5 test)
+### `packages\ui-v2\src\icons\icons.test.tsx` (5 test)
 
 1. (EMS_ICONS) **"EMS ekranlarının ihtiyaç duyduğu 12 ikonu içerir"**
 2. (EMS_ICONS) **"size prop'u svg boyutuna yansır"**
@@ -1524,7 +1577,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/system/system.test.ts` (3 test)
+### `packages\ui-v2\src\system\system.test.ts` (3 test)
 
 1. (sistem token'ları) **"radius beş değer: 6/8/12/16/pill"**
 2. (sistem token'ları) **"spacing 2/4/8/12/16/24/32"**
@@ -1532,7 +1585,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/theme/ThemeProvider.test.tsx` (4 test)
+### `packages\ui-v2\src\theme\ThemeProvider.test.tsx` (4 test)
 
 1. (ThemeProvider) **"varsayılan light temayı ve açık token'ları sunar"**
 2. (ThemeProvider) **"dark modunda koyu token'ları sunar"**
@@ -1541,7 +1594,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui-v2/src/typography/scale.test.ts` (4 test)
+### `packages\ui-v2\src\typography\scale.test.ts` (4 test)
 
 1. (tipografi ölçeği) **"IBM Plex Sans tek font ailesi"**
 2. (tipografi ölçeği) **"display/kpi/title değerleri guide ile birebir"**
@@ -1550,7 +1603,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/colors/tokens.test.ts` (8 test)
+### `packages\ui\src\colors\tokens.test.ts` (8 test)
 
 1. (hexToNumber) **"converts hex string to number"**
 2. (hexToNumber) **"handles alpha hex colors"**
@@ -1563,7 +1616,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/colors/tokensDark.test.ts` (3 test)
+### `packages\ui\src\colors\tokensDark.test.ts` (3 test)
 
 1. (dark tokens (referans paleti, K-2)) **"dark alarm + yüzey değerlerini taşır"**
 2. (dark tokens (referans paleti, K-2)) **"light ile aynı anahtar kümesine sahiptir"**
@@ -1571,7 +1624,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/colors/tokensLight.test.ts` (4 test)
+### `packages\ui\src\colors\tokensLight.test.ts` (4 test)
 
 1. (light tokens (nova paleti)) **"alarm token'ı nova light değerini taşır"**
 2. (light tokens (nova paleti)) **"tüm token'lar için sayısal karşılık üretilir"**
@@ -1580,7 +1633,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/components/FieldCard/FieldCard.test.tsx` (3 test)
+### `packages\ui\src\components\FieldCard\FieldCard.test.tsx` (3 test)
 
 1. (FieldCard @ui) **"saha adını ve metrikleri gösterir"**
 2. (FieldCard @ui) **"durum etiketini çevirir (online → Çevrimiçi)"**
@@ -1588,7 +1641,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/components/FieldMap/FieldMap.test.tsx` (7 test)
+### `packages\ui\src\components\FieldMap\FieldMap.test.tsx` (7 test)
 
 1. (FieldMap @ui) **"her saha için marker render eder"**
 2. (FieldMap @ui) **"popup saha kartını gösterir (FieldCard deseni — ad/durum/değerler)"**
@@ -1600,7 +1653,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/components/LogTerminal/LogTerminal.test.tsx` (5 test)
+### `packages\ui\src\components\LogTerminal\LogTerminal.test.tsx` (5 test)
 
 1. (LogTerminal alarm kutucuğu (Faz 0 eki)) **"alarm satırında kutucuk render edilir"**
 2. (LogTerminal alarm kutucuğu (Faz 0 eki)) **"resolved=false kutucuk boş ve tıklanınca resolveAlarm çağrılır"**
@@ -1610,7 +1663,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/components/RackCard/RackCard.test.tsx` (5 test)
+### `packages\ui\src\components\RackCard\RackCard.test.tsx` (5 test)
 
 1. (RackCard (T4)) **"temel metrikleri gösterir (SoC/SoH/Güç/Voltaj)"**
 2. (RackCard (T4)) **"SoC % değeri 0-100 arasına kırpılır"**
@@ -1620,7 +1673,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/components/Sparkline/Sparkline.test.tsx` (7 test)
+### `packages\ui\src\components\Sparkline\Sparkline.test.tsx` (7 test)
 
 1. (Sparkline @ui-chart) **"boş data'da uPlot kurulmaz"**
 2. (Sparkline @ui-chart) **"veriyle uPlot kurulur ve sparkline opts'ları taşır"**
@@ -1632,7 +1685,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/core/TelemetryGauge/TelemetryGauge.test.tsx` (5 test)
+### `packages\ui\src\core\TelemetryGauge\TelemetryGauge.test.tsx` (5 test)
 
 1. (TelemetryGauge tema) **"circular: success temasında arc, success paletinin mid tonudur"**
 2. (TelemetryGauge tema) **"circular: varsayılan tema info'dur (mevcut davranış)"**
@@ -1642,7 +1695,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/core/TranslationProvider/TranslationProvider.test.tsx` (5 test)
+### `packages\ui\src\core\TranslationProvider\TranslationProvider.test.tsx` (5 test)
 
 1. (TranslationProvider (T4)) **"varsayılan dilde çeviri + interpolasyon"**
 2. (TranslationProvider (T4)) **"eksik anahtar anahtarın kendisini döner (fallback)"**
@@ -1652,7 +1705,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/hooks/useTelemetryStream.test.ts` (4 test)
+### `packages\ui\src\hooks\useTelemetryStream.test.ts` (4 test)
 
 1. (useTelemetryStream — çok-abone) **"mount'ta addDevices + connect; unmount'ta removeDevices (disconnect DEĞİL)"**
 2. (useTelemetryStream — çok-abone) **"observer verisi hook çıktısına yansır"**
@@ -1661,7 +1714,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/icons/demo-icons.test.tsx` (3 test)
+### `packages\ui\src\icons\demo-icons.test.tsx` (3 test)
 
 1. (NOVA demo ikonları (T-32 / AK-7.2)) **"SCADA_ICONS'a nova* anahtarlarıyla kaydedilir"**
 2. (NOVA demo ikonları (T-32 / AK-7.2)) **"tam 29 nova ikonu içerir"**
@@ -1669,7 +1722,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/logging/client-logger.test.ts` (10 test)
+### `packages\ui\src\logging\client-logger.test.ts` (10 test)
 
 1. (ClientLogger (T0.8)) **"batchSize dolunca tek send ile flush eder"**
 2. (ClientLogger (T0.8)) **"interval geçince flush eder"**
@@ -1684,7 +1737,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoAdminView.test.tsx` (5 test)
+### `packages\ui\src\nova\DemoAdminView.test.tsx` (5 test)
 
 1. (DemoAdminView (UC-8)) **"5 sekme + mapping tablosu + canlı değer gösterir"**
 2. (DemoAdminView (UC-8)) **"Containers sekmesi hub durum tablosunu gösterir (register formu YOK)"**
@@ -1694,7 +1747,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoAssetTable.test.tsx` (3 test)
+### `packages\ui\src\nova\DemoAssetTable.test.tsx` (3 test)
 
 1. (DemoAssetTable (UC-11)) **"AK-11.6: proje satırlarını ve Portfolio toplamını gösterir"**
 2. (DemoAssetTable (UC-11)) **"pozitif POI dışa aktarım (c-dis) sınıfı alır"**
@@ -1702,7 +1755,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoManeuverWizard.test.tsx` (3 test)
+### `packages\ui\src\nova\DemoManeuverWizard.test.tsx` (3 test)
 
 1. (DemoManeuverWizard (FR-5.1/5.3/5.4)) **"hidden kaydı göstermez (AK-5.1)"**
 2. (DemoManeuverWizard (FR-5.1/5.3/5.4)) **"onay akışıyla scope + params gönderir (AK-5.3/5.4)"**
@@ -1710,20 +1763,26 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoOperationsView.test.tsx` (8 test)
+### `packages\ui\src\nova\DemoOperationsView.test.tsx` (14 test)
 
 1. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"steps.definition.steps dizisini okur ve run durumundan adım durumu türetir"**
 2. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"legacy dizi şeklini de destekler"**
 3. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"run adını FL etiketine çevirir"**
 4. (parseRunSteps / runLabel (UC-5 — sequences veri modeli)) **"UC-13: 90 sn'den eski 'running' run bayat sayılır (zombie koruması)"**
 5. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"sekansı FL etiketi + DONE + adım satırıyla gösterir"**
-6. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"FL-02 formunda Control mode seg'i vardır (Active power / P-Q / PF)"**
+6. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"FL-02 formunda Direction + reactive güç kontrolleri vardır"**
 7. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"MV Station başlığı aktif istasyon adını gösterir (station değişiminde değişir)"**
 8. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5)) **"units mount'tan sonra gelirse varsayılan kapsam senkronlanır (Send etkin)"**
+9. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5) > FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz)) **"fider satırlarını hücre adıyla gösterir ve tüm fideri tek tıkla seçer"**
+10. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5) > FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz)) **"beklenen sonuç paneli ve dal tablosu çizilir"**
+11. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5) > FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz)) **"çalışan program varsa 'replace' uyarısı gösterir"**
+12. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5) > FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz) > parseRunSteps — adım açıklaması) **"config'teki description alanını adıma taşır"**
+13. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5) > FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz) > parseRunSteps — adım açıklaması > FL-02 — N istasyonlu görünüm) **"istasyon başlıkları ve fider satırları istasyon başına çizilir"**
+14. (parseRunSteps / runLabel (UC-5 — sequences veri modeli) > DemoOperationsView render (UC-5) > FL-02 — fider seçimi + beklenen sonuç (Tur-1 ön yüz) > parseRunSteps — adım açıklaması > FL-02 — N istasyonlu görünüm > FL-02 — kapsam seçimi kullanıcıya ait) **"Clear sonrası telemetri (units) güncellense de seçim geri dolmaz"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoPackSchematic.test.tsx` (3 test)
+### `packages\ui\src\nova\DemoPackSchematic.test.tsx` (3 test)
 
 1. (DemoPackSchematic) **"4 × CMA 3P6S şeması + 72 hücre + FRONT bloğu render eder"**
 2. (DemoPackSchematic) **"spec tablosu + not-in-map listesi + live kayıt bölümü"**
@@ -1731,7 +1790,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoPlantOverview.test.tsx` (9 test)
+### `packages\ui\src\nova\DemoPlantOverview.test.tsx` (9 test)
 
 1. (DemoPlantOverview) **"AK-11.1: collector tek hat Q01/Q02 ve istasyon kutuları"**
 2. (DemoPlantOverview) **"AK-11.2: istasyon kartı isim + BESS aralığı + ünite kutucukları"**
@@ -1745,7 +1804,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoPortfolioMap.test.tsx` (5 test)
+### `packages\ui\src\nova\DemoPortfolioMap.test.tsx` (5 test)
 
 1. (DemoPortfolioMap (UC-11)) **"AK-11.2: iki proje marker'ı render eder"**
 2. (DemoPortfolioMap (UC-11)) **"AK-11.3: statik proje 'demo' işaretlidir"**
@@ -1755,7 +1814,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoProjectCard.test.tsx` (5 test)
+### `packages\ui\src\nova\DemoProjectCard.test.tsx` (5 test)
 
 1. (DemoProjectCard (UC-11)) **"AK-11.2: ad, alt başlık ve 3 KPI gösterir"**
 2. (DemoProjectCard (UC-11)) **"AK-11.5: canlı kart buton, tıklama onOpen çağırır"**
@@ -1765,7 +1824,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoRegMode.test.tsx` (4 test)
+### `packages\ui\src\nova\DemoRegMode.test.tsx` (4 test)
 
 1. (DemoRegMode) **"AK-12.2: val modunda düz metin (sarma yok)"**
 2. (DemoRegMode) **"AK-12.2: tip modunda .rv + data-rsk ve inline çip üretir"**
@@ -1774,13 +1833,13 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoSourceStationView.test.tsx` (1 test)
+### `packages\ui\src\nova\DemoSourceStationView.test.tsx` (1 test)
 
 1. (DemoSourceStationView) **"AK-11.10: başlık + srcKpi + 7 inverter çizimi"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoStationBar.test.tsx` (3 test)
+### `packages\ui\src\nova\DemoStationBar.test.tsx` (3 test)
 
 1. (DemoStationBar) **"tek istasyonda render etmez"**
 2. (DemoStationBar) **"istasyon adı + grup aralığı + seg + arıza gösterir"**
@@ -1788,7 +1847,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/DemoTrendChart.test.tsx` (7 test)
+### `packages\ui\src\nova\DemoTrendChart.test.tsx` (7 test)
 
 1. (DemoTrendChart (UC-3)) **"AK-3.1: faz gölgelemesi + etiketi çizer"**
 2. (DemoTrendChart (UC-3)) **"AK-3.2: band + area + limit çizilir"**
@@ -1800,7 +1859,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/apply-nova-vars.test.ts` (3 test)
+### `packages\ui\src\nova\apply-nova-vars.test.ts` (3 test)
 
 1. (apply-nova-vars (K-2)) **"light haritası light token değerlerini taşır"**
 2. (apply-nova-vars (K-2)) **"dark haritası referans dark değerlerini taşır (AK-1.2)"**
@@ -1808,7 +1867,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/demo-admin-live.test.ts` (10 test)
+### `packages\ui\src\nova\demo-admin-live.test.ts` (10 test)
 
 1. (demo-registers (UC-8 veri bütünlüğü)) **"her mapping register'ı katalogda var"**
 2. (demo-registers (UC-8 veri bütünlüğü)) **"mapping 49 · cihaz 54 · poll planları dolu"**
@@ -1823,7 +1882,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/demo-bess-data.test.ts` (7 test)
+### `packages\ui\src\nova\demo-bess-data.test.ts` (7 test)
 
 1. (demo-bess-data (UC-4, D-1 türetim)) **"pack hücreleri 24 adet ve deterministik"**
 2. (demo-bess-data (UC-4, D-1 türetim)) **"4 sıcaklık sensörü ve PCB türetir"**
@@ -1835,7 +1894,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/demo-market.test.tsx` (9 test)
+### `packages\ui\src\nova\demo-market.test.tsx` (9 test)
 
 1. (demo-market (UC-9, FR-9.4 — TEİAŞ)) **"PFK P–f: ölü bantta 0, ±200 mHz'de tam rezerv"**
 2. (demo-market (UC-9, FR-9.4 — TEİAŞ)) **"AK-9.4: R=10 MW → Δf/ΔP eğimi 50 MW/Hz + 1,25 h enerji kontrolü"**
@@ -1849,7 +1908,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/demo-plant.test.ts` (12 test)
+### `packages\ui\src\nova\demo-plant.test.ts` (12 test)
 
 1. (derivePlantOverview) **"AK-11.3: POI/kV/akım ve feeder değerlerini türetir"**
 2. (derivePlantOverview) **"AK-11.2: ünite MW işareti (şarj negatif), SOC ort, Tmax maks"**
@@ -1866,7 +1925,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/demo-portfolio-map.test.ts` (8 test)
+### `packages\ui\src\nova\demo-portfolio-map.test.ts` (8 test)
 
 1. (geo-europe (UC-11, K16)) **"projeksiyon lon artışında x'i büyütür, lat artışında y'yi küçültür"**
 2. (geo-europe (UC-11, K16)) **"GEO ülke listesi + tuval boyutu taşır"**
@@ -1879,7 +1938,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/demo-readiness.test.tsx` (8 test)
+### `packages\ui\src\nova\demo-readiness.test.tsx` (19 test)
 
 1. (demo-readiness (UC-7, FR-7.3, K7)) **"DEMO_REST_MINUTES 120 dk'dır (LGES: 2 saat dinlenme)"**
 2. (demo-readiness (UC-7, FR-7.3, K7)) **"lastFullRunFinishedAt en yeni tam şarj/deşarj bitişini seçer"**
@@ -1889,10 +1948,21 @@
 6. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"AK-2.3: kart 'REST TIME COMPLETE' + grup READY gösterir"**
 7. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"restPhasesForRuns tam şarj bitişinden rest fazı üretir"**
 8. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7)) **"AK-7.2: DemoSequence adımları durumlarıyla listeler"**
+9. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"tüm eksenler uygun → READY, cal pending"**
+10. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"topraklama kapalı → MV ekseni düşer ve ilk engel MV olur"**
+11. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"BSC Normal değilse BSC ekseni düşer"**
+12. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"bazı PCS arızalı → READY · REDUCED (ok + reduced)"**
+13. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"sıcaklık bandı dışında → Temp ekseni düşer"**
+14. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"dinlenme bitmemiş → Rest ekseni düşer, sıcaklık uygunsa ok=false"**
+15. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı) **"bakım durumu → muted"**
+16. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı > DemoReadyCard — plant kartı + 7 eksen noktaları) **"PLANT READY kartı + site kontrolleri + eksen noktaları çizilir"**
+17. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı > DemoReadyCard — plant kartı + 7 eksen noktaları > derivePlantChecks — saha kartı (referans plant-ready)) **"beş satırı canlı ölçümlerle döner"**
+18. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı > DemoReadyCard — plant kartı + 7 eksen noktaları > derivePlantChecks — saha kartı (referans plant-ready)) **"grid ve AUX dışındaysa satırlar işaretlenir"**
+19. (demo-readiness (UC-7, FR-7.3, K7) > DemoReadyCard / DemoSequence (UC-7) > deriveGroupChecks — 7 eksenli grup hazırlığı > DemoReadyCard — plant kartı + 7 eksen noktaları > derivePlantChecks — saha kartı (referans plant-ready)) **"kritik arıza varsa site status Not Ready"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/mimic-source-map.test.ts` (9 test)
+### `packages\ui\src\nova\mimic-source-map.test.ts` (9 test)
 
 1. (mimic-source-map) **"bank t1 → SOC·SOH calc, doğru fiziksel cihaz + grup"**
 2. (mimic-source-map) **"bank t2 → DC voltage · max pack temperature"**
@@ -1906,7 +1976,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/nova-components.test.tsx` (21 test)
+### `packages\ui\src\nova\nova-components.test.tsx` (21 test)
 
 1. (DemoCellDialog (FR-4.4 / AK-4.4)) **"ölçü hücresinde V/Hz/I gösterir"**
 2. (DemoCellDialog (FR-4.4 / AK-4.4)) **"toprak kapalıyken kesici kapatmayı kilitler (AK-4.5)"**
@@ -1932,7 +2002,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/nova-mimic.test.ts` (14 test)
+### `packages\ui\src\nova\nova-mimic.test.ts` (14 test)
 
 1. (nova-mimic saf yardımcılar (T-14)) **"computeEnergization fiderleri anahtarlardan hesaplar"**
 2. (nova-mimic saf yardımcılar (T-14)) **"bankSeverity eşiklerini uygular"**
@@ -1951,7 +2021,28 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/nova/register-sources.test.ts` (9 test)
+### `packages\ui\src\nova\ops-estimate.test.ts` (16 test)
+
+1. (estimateProgram — beklenen sonuç (FL-02)) **"hedef SOC'ye kadar süre/enerji/SOC tahmini verir"**
+2. (estimateProgram — beklenen sonuç (FL-02)) **"hedef boşsa tam şarj/deşarj limitini kullanır"**
+3. (estimateProgram — beklenen sonuç (FL-02)) **"müsait olmayan üniteleri bölüşüme katmaz"**
+4. (estimateProgram — beklenen sonuç (FL-02)) **"güç 0 ise süre 0 (bölme yok)"**
+5. (estimateProgram — beklenen sonuç (FL-02)) **"SOC limitine dayanan ünite varsa limitHit işaretlenir"**
+6. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları) **"topoloji fiderlerini hücre + ünitelerle döner"**
+7. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText) **"saat/dakika biçimler"**
+8. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q) **"Q = 0 ise yalnız aktif güç"**
+9. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q) **"sabit Q toplamı PCS'lere eşit böler (kapasitif +)"**
+10. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q) **"indüktif Q negatif işaretlidir"**
+11. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q) **"sabit PF: her PCS'te aynı PF, S limitte kısıtlanır"**
+12. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q) **"S limiti aşılırsa kısıtlar ve alan içinde kalır"**
+13. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q) **"TEİAŞ alanı dışı: küçük bağlantı gücünde Q pu > 0.4"**
+14. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q > planTimes — FL-02 zaman planı) **"now + SOC: başlangıç şimdi, bitiş başlangıç"**
+15. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q > planTimes — FL-02 zaman planı) **"scheduled start geçmişteyse startOk=false"**
+16. (estimateProgram — beklenen sonuç (FL-02) > feederGroups — fider satırları > durationText > reactivePlan — Q/PF + TEİAŞ P–Q > planTimes — FL-02 zaman planı) **"bitiş başlangıçtan önceyse endOk=false"**
+
+[DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
+
+### `packages\ui\src\nova\register-sources.test.ts` (9 test)
 
 1. (register-sources) **"mapping anahtarı ile register id'yi çözer (bank.soc → bsc.soc)"**
 2. (register-sources) **"AK-12.2: BSC kaynağı device/adres/FC/screen mapping taşır"**
@@ -1965,7 +2056,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/transports/HttpPollingTransport.test.ts` (6 test)
+### `packages\ui\src\transports\HttpPollingTransport.test.ts` (6 test)
 
 1. (HttpPollingTransport (T2)) **"connect: ilk fetch + interval kurulur; state connected yayınlanır"**
 2. (HttpPollingTransport (T2)) **"başarılı fetch onData'yı besler (telemetries fallback data)"**
@@ -1976,7 +2067,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/transports/MockTransport.test.ts` (8 test)
+### `packages\ui\src\transports\MockTransport.test.ts` (8 test)
 
 1. (MockTransport) **"starts in idle state"**
 2. (MockTransport) **"transitions to connected on connect()"**
@@ -1989,7 +2080,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/transports/WebSocketTransport.test.ts` (13 test)
+### `packages\ui\src\transports\WebSocketTransport.test.ts` (13 test)
 
 1. (WebSocketTransport (T2)) **"connect → open: connected + deviceId başına subscribe mesajı"**
 2. (WebSocketTransport (T2)) **"token varsa query'ye eklenir"**
@@ -2007,7 +2098,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `packages/ui/src/transports/transport-contract.test.ts` (7 test)
+### `packages\ui\src\transports\transport-contract.test.ts` (7 test)
 
 1. (ITelemetryTransport contract) **"starts idle and transitions to connected"**
 2. (ITelemetryTransport contract) **"transitions back to idle on disconnect"**
@@ -2019,7 +2110,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/data-service/src/data-service.test.ts` (13 test)
+### `services\data-service\src\data-service.test.ts` (13 test)
 
 1. (DataService > start()) **"registers WRITE_TELEMETRY worker with onFailed boundary"**
 2. (DataService > start() > worker processing) **"writes telemetry to timescale on WRITE_TELEMETRY job"**
@@ -2037,7 +2128,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/alarm-state-repository.test.ts` (7 test)
+### `services\device-service\src\alarm-state-repository.test.ts` (7 test)
 
 1. (AlarmStateRepository (Faz 0 eki)) **"initialize DDL'i oluşturur"**
 2. (AlarmStateRepository (Faz 0 eki)) **"activate UPSERT üretir — yeni oluşumda resolved sıfırlanır"**
@@ -2049,7 +2140,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/alarm-transition-detector.test.ts` (16 test)
+### `services\device-service\src\alarm-transition-detector.test.ts` (16 test)
 
 1. (alarmSamples (kural → örnek)) **"kural telemetri adıyla eşleşir"**
 2. (alarmSamples (kural → örnek)) **"value !== 0 → aktif (varsayılan)"**
@@ -2070,7 +2161,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/config-loader.test.ts` (8 test)
+### `services\device-service\src\config-loader.test.ts` (8 test)
 
 1. (DeviceConfigLoader > constructor) **"throws when configDir is empty"**
 2. (DeviceConfigLoader > constructor > parseFile (via public API)) **"throws when directory does not exist"**
@@ -2083,7 +2174,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/device-factory.test.ts` (4 test)
+### `services\device-service\src\device-factory.test.ts` (4 test)
 
 1. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"transport olmayan config varsayılan TCP ile çalışır"**
 2. (DeviceFactory — transport seçimi (yalnız TCP/RTU)) **"rtu transport'lu config cihaz üretir (bağlantı kurmaz)"**
@@ -2092,7 +2183,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/device-scheduler.test.ts` (8 test)
+### `services\device-service\src\device-scheduler.test.ts` (8 test)
 
 1. (DeviceScheduler > scheduleRead()) **"creates repeatable job with correct name and interval"**
 2. (DeviceScheduler > scheduleRead()) **"uses deviceId in job name"**
@@ -2105,7 +2196,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/device-service.test.ts` (28 test)
+### `services\device-service\src\device-service.test.ts` (28 test)
 
 1. (device-service — telemetri tag'leri (service.json#tags)) **"yayınlanan telemetriye servis tag'leri + device_id basılır"**
 2. (device-service — telemetri tag'leri (service.json#tags)) **"tag verilmezse yalnız device_id basılır"**
@@ -2138,14 +2229,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/no-simulator-surface.test.ts` (2 test)
+### `services\device-service\src\no-simulator-surface.test.ts` (2 test)
 
 1. (device-service — simülatör yüzeyi yok) **"AK-1.1: run.ts sunucu/inject ucu açmaz"**
 2. (device-service — simülatör yüzeyi yok) **"AK-1.3: simülatör paketi bağımlılığı ve import'u yok"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/periodic-write-scheduler.test.ts` (6 test)
+### `services\device-service\src\periodic-write-scheduler.test.ts` (6 test)
 
 1. (PeriodicWriteScheduler) **"AK-2.1: counter her yazımda artar, 255'ten sonra 0'a döner"**
 2. (PeriodicWriteScheduler) **"AK-2.2: yazım hatası servisi düşürmez; onError'a gider, sonraki yazım denenir"**
@@ -2156,13 +2247,13 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/runtime.test.ts` (1 test)
+### `services\device-service\src\runtime.test.ts` (1 test)
 
 1. (buildDeviceRuntime — AK-1.1 (port açmaz)) **"kurulum hiçbir TCP/HTTP sunucusu dinletmez"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/telemetry-tagger.test.ts` (5 test)
+### `services\device-service\src\telemetry-tagger.test.ts` (5 test)
 
 1. (stampTags — service.json global tag'leri) **"servis tag'lerini basar ve cihaz tag'lerini korur"**
 2. (stampTags — service.json global tag'leri) **"keyfi anahtar kümesini destekler (Telegraf tarzı)"**
@@ -2172,7 +2263,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/telemetry-write-filter.test.ts` (11 test)
+### `services\device-service\src\telemetry-write-filter.test.ts` (11 test)
 
 1. (TelemetryWriteFilter) **"politikasız isim her zaman dahil (always-write)"**
 2. (TelemetryWriteFilter) **"ilk görüş (state yok) dahil edilir"**
@@ -2188,7 +2279,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/device-service/src/write-policy.test.ts` (6 test)
+### `services\device-service\src\write-policy.test.ts` (6 test)
 
 1. (resolveWritePolicies) **"sayısal deadband + maxStaleMs çözülür"**
 2. (resolveWritePolicies) **""auto" → scale değerine çözülür"**
@@ -2199,7 +2290,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/integration-service/src/external-series-writer.test.ts` (5 test)
+### `services\integration-service\src\external-series-writer.test.ts` (5 test)
 
 1. (ExternalSeriesWriter) **"init tablo, hypertable ve index olusturur"**
 2. (ExternalSeriesWriter) **"write upsert SQL uretir ve parametreleri sirali gecer"**
@@ -2209,7 +2300,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/integration-service/src/integration-service.test.ts` (12 test)
+### `services\integration-service\src\integration-service.test.ts` (12 test)
 
 1. (IntegrationService) **"start — integration pluginlerini aktive eder ve interval job planlar"**
 2. (IntegrationService) **"start — integration olmayan pluginleri atlar"**
@@ -2226,7 +2317,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/action-executor.test.ts` (22 test)
+### `services\management-service\src\action-executor.test.ts` (22 test)
 
 1. (ActionExecutor) **"kural ateşleme logu: auto_rule_fired (info, context.rule)"**
 2. (ActionExecutor) **"command aksiyonu başarı → executeAndWait + auto_rule_action_ok"**
@@ -2253,7 +2344,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/automation-rules.test.ts` (8 test)
+### `services\management-service\src\automation-rules.test.ts` (8 test)
 
 1. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1)) **"V>1500 + debounce 1 sn → CB open + BSC emergency (tüm aktif cihazlar) + audit"**
 2. (otomasyon kural zinciri (K9 — gerçek config'lerle) > FL-08 — DC kısa devre (DC-METER-1) > FL-02 — AUX kaybı (PM5340-1)) **"Voltage L-N Avg < 180 + debounce 5 sn → şalter AÇ + kontaktör AÇ (tüm aktif cihazlar)"**
@@ -2266,7 +2357,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/container-command-channel.test.ts` (6 test)
+### `services\management-service\src\container-command-channel.test.ts` (6 test)
 
 1. (HttpContainerCommandChannel) **"URL + gövde + trace başlığı doğru"**
 2. (HttpContainerCommandChannel) **"internalToken verilirse x-internal-token başlığı gider"**
@@ -2277,7 +2368,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/container-rules.test.ts` (20 test)
+### `services\management-service\src\container-rules.test.ts` (20 test)
 
 1. (konteyner rules.json — kural envanteri) **"zod-valid + fail-fast yüklenir; 47 kural"**
 2. (konteyner rules.json — kural envanteri) **"K-A4: FL-06/09/12 kural adı YOKTUR (fail-safe)"**
@@ -2302,7 +2393,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/cycle-snapshot-store.test.ts` (10 test)
+### `services\management-service\src\cycle-snapshot-store.test.ts` (10 test)
 
 1. (CycleSnapshotStore) **"record + snapshot: değer adıyla okunur, unit ve recordedAt taşınır"**
 2. (CycleSnapshotStore) **"yeni kayıt eskisini ezer (aynı anahtar)"**
@@ -2317,7 +2408,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/device-catalog.test.ts` (7 test)
+### `services\management-service\src\device-catalog.test.ts` (7 test)
 
 1. (DeviceCatalog) **"seçici yoksa tüm cihazlar"**
 2. (DeviceCatalog) **"ids seçicisi birebir döner"**
@@ -2329,7 +2420,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/field-rules.test.ts` (6 test)
+### `services\management-service\src\field-rules.test.ts` (6 test)
 
 1. (field rules.json (R-06 + SOC örneği)) **"geçerli: r06_recovery + soc_discharge_example + demo dinlenme kuralları"**
 2. (field rules.json (R-06 + SOC örneği)) **"tetikleyici: E-stop 0 + fault 0 (all)"**
@@ -2340,7 +2431,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/management-service.test.ts` (6 test)
+### `services\management-service\src\management-service.test.ts` (6 test)
 
 1. (ManagementService) **"start: MANAGEMENT worker kaydedilir; job telemetrisi snapshot'a yazılır"**
 2. (ManagementService) **"runCycle: koşul sağlanınca kural ateşlenir ve executor çağrılır"**
@@ -2351,7 +2442,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/maneuver-operation-channel.test.ts` (7 test)
+### `services\management-service\src\maneuver-operation-channel.test.ts` (7 test)
 
 1. (HttpManeuverOperationChannel) **"POST yolu + gövde + başlıklar birebir"**
 2. (HttpManeuverOperationChannel) **"maneuver türü doğru önek üretir"**
@@ -2363,7 +2454,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/ppc-rule.test.ts` (4 test)
+### `services\management-service\src\ppc-rule.test.ts` (4 test)
 
 1. (PPC sinyal zinciri (WS3 + D4)) **"bağlantı koptu (0) → kural ateşler + kanala auto:<rule> trace ile gider"**
 2. (PPC sinyal zinciri (WS3 + D4)) **"stale eşlemesi (2) de tetikler; bağlı (1) ATEŞLEMEZ"**
@@ -2372,7 +2463,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/rule-config-loader.test.ts` (9 test)
+### `services\management-service\src\rule-config-loader.test.ts` (9 test)
 
 1. (RuleConfigLoader.loadRules) **"geçerli dosyayı yükler (tipli)"**
 2. (RuleConfigLoader.loadRules) **"dosya yok → throw"**
@@ -2386,7 +2477,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/rule-evaluator.test.ts` (21 test)
+### `services\management-service\src\rule-evaluator.test.ts` (21 test)
 
 1. (RuleEvaluator) **"yükselen kenarda bir kez döner; aktifken tekrarlamaz"**
 2. (RuleEvaluator) **"düşüş sonrası yeniden yükseliş yeni kenardır (cooldown yoksa ateşler)"**
@@ -2412,7 +2503,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/management-service/src/v2-rules.test.ts` (6 test)
+### `services\management-service\src\v2-rules.test.ts` (6 test)
 
 1. (v2/dev container kuralları (F2.6)) **"fail-fast yüklenir (47 kural)"**
 2. (v2/dev container kuralları (F2.6)) **"tms_overheat_protect: OTW 49 (5 s) / OTF1 58 (5 s)"**
@@ -2423,7 +2514,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/commands/execute-command-use-case.test.ts` (3 test)
+### `services\web-service\src\application\commands\execute-command-use-case.test.ts` (3 test)
 
 1. (ExecuteCommandUseCase) **"executor'a derlenmiş seçenekleri geçirir (systems → remoteSystem)"**
 2. (ExecuteCommandUseCase) **"executor reddederse hata yutulmadan yayılır"**
@@ -2431,7 +2522,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/commands/operation-definitions-use-case.test.ts` (10 test)
+### `services\web-service\src\application\commands\operation-definitions-use-case.test.ts` (10 test)
 
 1. (OperationDefinitionsUseCase) **"geçerli tanımı oluşturur + audit yazar"**
 2. (OperationDefinitionsUseCase) **"audit fail-closed: audit hatası → persist_failed, store'a YAZILMAZ"**
@@ -2446,7 +2537,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/telemetry/get-container-telemetry-use-case.test.ts` (4 test)
+### `services\web-service\src\application\telemetry\get-container-telemetry-use-case.test.ts` (4 test)
 
 1. (GetContainerTelemetryUseCase) **"latestSnapshot tüm konteyner kimliklerini anahtarlar"**
 2. (GetContainerTelemetryUseCase) **"downsampled portun allHistorical'ine delege eder"**
@@ -2455,7 +2546,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/telemetry/get-field-containers-use-case.test.ts` (4 test)
+### `services\web-service\src\application\telemetry\get-field-containers-use-case.test.ts` (4 test)
 
 1. (GetFieldContainersUseCase) **"taze snapshot doluysa onu kullanır; lastSeenAt ISO döner"**
 2. (GetFieldContainersUseCase) **"taze snapshot boşsa cache'teki son değere düşer"**
@@ -2464,7 +2555,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/use-cases/change-password-use-case.test.ts` (4 test)
+### `services\web-service\src\application\use-cases\change-password-use-case.test.ts` (4 test)
 
 1. (ChangePasswordUseCase (T1.6)) **"kullanıcı yoksa fail"**
 2. (ChangePasswordUseCase (T1.6)) **"eski şifre yanlışsa fail — hash değişmez"**
@@ -2473,7 +2564,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/use-cases/login-use-case.test.ts` (16 test)
+### `services\web-service\src\application\use-cases\login-use-case.test.ts` (16 test)
 
 1. (LoginUseCase) **"returns tokens and user on successful login"**
 2. (LoginUseCase) **"fails when user is not found"**
@@ -2494,7 +2585,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/use-cases/mfa-enroll-use-case.test.ts` (9 test)
+### `services\web-service\src\application\use-cases\mfa-enroll-use-case.test.ts` (9 test)
 
 1. (MfaEnrollUseCase.enroll (T6.1)) **"sır üretir, saklar ve otpauth URI döner"**
 2. (MfaEnrollUseCase.enroll (T6.1) > MfaEnrollUseCase.confirm (T6.1)) **"doğru kod: MFA aktifleşir, 10 kurtarma kodu döner, hash'ler saklanır"**
@@ -2508,7 +2599,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/use-cases/mfa-login-use-case.test.ts` (9 test)
+### `services\web-service\src\application\use-cases\mfa-login-use-case.test.ts` (9 test)
 
 1. (MfaLoginUseCase (T6.1)) **"geçerli TOTP kodu ile token üretir"**
 2. (MfaLoginUseCase (T6.1)) **"mfa token geçersizse fail — TOTP denenmez"**
@@ -2522,7 +2613,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/use-cases/refresh-token-use-case.test.ts` (5 test)
+### `services\web-service\src\application\use-cases\refresh-token-use-case.test.ts` (5 test)
 
 1. (RefreshTokenUseCase (K4 + K5 — 2026-09-23)) **"verifyRefresh BAŞARISIZ → err; reuse tespiti YAPILMAZ (repo'ya hiç dokunulmaz)"**
 2. (RefreshTokenUseCase (K4 + K5 — 2026-09-23)) **"imza geçerli + hash DB'de YOK → K5 reuse: clearRefreshToken(sub) + err"**
@@ -2532,7 +2623,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/application/use-cases/user-use-cases.test.ts` (4 test)
+### `services\web-service\src\application\use-cases\user-use-cases.test.ts` (4 test)
 
 1. (DeleteUserUseCase) **"deletes user when id is different from current user"**
 2. (DeleteUserUseCase) **"fails when trying to delete self"**
@@ -2541,7 +2632,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/config/default.test.ts` (18 test)
+### `services\web-service\src\config\default.test.ts` (18 test)
 
 1. (seedUsers (T1.6 + 2026-08-30)) **"container tier: dev default'ları + admin/boss mustChangePassword true, guest FALSE (otomatik guest)"**
 2. (seedUsers (T1.6 + 2026-08-30)) **"site tier: SEED_*_PASSWORD yoksa fırlatır (fail-fast)"**
@@ -2564,7 +2655,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/bun-password-hasher.test.ts` (4 test)
+### `services\web-service\src\infrastructure\auth\bun-password-hasher.test.ts` (4 test)
 
 1. (BunPasswordHasher @nis2-security) **"hash Bun.password.hash'e delege eder"**
 2. (BunPasswordHasher @nis2-security) **"verify Bun.password.verify'e delege eder — true sonucu aynen döner"**
@@ -2573,7 +2664,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/jose-token-signer.test.ts` (4 test)
+### `services\web-service\src\infrastructure\auth\jose-token-signer.test.ts` (4 test)
 
 1. (JoseTokenSigner) **"sign → verify round-trip: payload korunur"**
 2. (JoseTokenSigner) **"farklı secret ile doğrulanan token reddedilir"**
@@ -2582,7 +2673,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/otplib-totp-service.test.ts` (7 test)
+### `services\web-service\src\infrastructure\auth\otplib-totp-service.test.ts` (7 test)
 
 1. (OtpLibTotpService.generateSecret (T6.1)) **"her çağrıda yeni bir sır döner (base32)"**
 2. (OtpLibTotpService.generateSecret (T6.1) > OtpLibTotpService.otpauthUri (T6.1)) **"otpauth://totp URI'si issuer ve kullanıcıyı taşır"**
@@ -2594,7 +2685,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/redis-login-throttle.test.ts` (5 test)
+### `services\web-service\src\infrastructure\auth\redis-login-throttle.test.ts` (5 test)
 
 1. (RedisLoginThrottle (T6.6) @nis2-security) **"ilk başarısız giriş: sayaç penceresi kurulur, kilit YOK"**
 2. (RedisLoginThrottle (T6.6) @nis2-security) **"eşik aşılınca kilit kurulur (SET + EX — EXPIRE var olmayan anahtarı yaratmaz)"**
@@ -2604,7 +2695,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/redis-totp-throttle.test.ts` (5 test)
+### `services\web-service\src\infrastructure\auth\redis-totp-throttle.test.ts` (5 test)
 
 1. (RedisTotpThrottle (T1.6) @nis2-security) **"ilk başarısız deneme: sayaç penceresi kurulur, kilit YOK"**
 2. (RedisTotpThrottle (T1.6) @nis2-security) **"eşik aşılınca kilit kurulur (SET + EX)"**
@@ -2614,7 +2705,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/service-token.test.ts` (3 test)
+### `services\web-service\src\infrastructure\auth\service-token.test.ts` (3 test)
 
 1. (sha256Hex (Faz 1)) **"bilinen vektörü üretir (RFC 6234: abc)"**
 2. (sha256Hex (Faz 1)) **"deterministik ve 64 hex karakterdir"**
@@ -2622,7 +2713,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/auth/token-adapter.test.ts` (16 test)
+### `services\web-service\src\infrastructure\auth\token-adapter.test.ts` (16 test)
 
 1. (token-adapter karakterizasyon (mevcut davranış) @nis2-security) **"signAccess → verifyAccess round-trip kimliği korur"**
 2. (token-adapter karakterizasyon (mevcut davranış) @nis2-security) **"verifyAccess başarısız token'da fırlatır"**
@@ -2643,7 +2734,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/commands/command-channel.test.ts` (9 test)
+### `services\web-service\src\infrastructure\commands\command-channel.test.ts` (9 test)
 
 1. (CommandChannel) **"execute: isimli komut job üretir + executeAndWait; sonuç ok"**
 2. (CommandChannel) **"execute: çözümleme hatası (bilinmeyen komut) → fail — throw YOK"**
@@ -2657,7 +2748,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/commands/load-maneuver-records.test.ts` (4 test)
+### `services\web-service\src\infrastructure\commands\load-maneuver-records.test.ts` (4 test)
 
 1. (loadTierManeuverRecords (SPEC T-41 / FR-10.1)) **"demo dosyaları yokken yalnız mevcut katalog yüklenir (AK-10.7)"**
 2. (loadTierManeuverRecords (SPEC T-41 / FR-10.1)) **"demo dosyaları mevcutsa eklemeli birleştirir (AK-10.1)"**
@@ -2666,7 +2757,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/hub-tunnel/hub-consumer-client.test.ts` (4 test)
+### `services\web-service\src\infrastructure\hub-tunnel\hub-consumer-client.test.ts` (4 test)
 
 1. (HubConsumerClient) **"AK-1.1: peers() tipli liste döner + auth başlığı taşır"**
 2. (HubConsumerClient) **"openSession POST /sessions"**
@@ -2675,14 +2766,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/hub-tunnel/plugin.test.ts` (2 test)
+### `services\web-service\src\infrastructure\hub-tunnel\plugin.test.ts` (2 test)
 
 1. (hubTunnelPlugin) **"iki config alanıyla takılır ve hubTunnel decorator'ını sunar"**
 2. (hubTunnelPlugin) **"decorator enjekte edilen fetch ile çalışır (app-agnostik)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/interlock/demo-earthing-interlock.test.ts` (4 test)
+### `services\web-service\src\infrastructure\interlock\demo-earthing-interlock.test.ts` (4 test)
 
 1. (DemoEarthingInterlock + OperationExecutor (UC-10)) **"AK-10.2: H05 toprak kapalı → charge reddedilir (interlock_earthed)"**
 2. (DemoEarthingInterlock + OperationExecutor (UC-10)) **"AK-10.3: toprak açık → charge completed"**
@@ -2691,7 +2782,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/device-registry.test.ts` (3 test)
+### `services\web-service\src\infrastructure\persistence\device-registry.test.ts` (3 test)
 
 1. (DeviceRegistry — refresh TTL cache) **"ttl içindeki ardışık refresh tek sorgu yapar"**
 2. (DeviceRegistry — refresh TTL cache) **"force=true ttl'i atlar"**
@@ -2699,13 +2790,13 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/log-event-feed.test.ts` (1 test)
+### `services\web-service\src\infrastructure\persistence\log-event-feed.test.ts` (1 test)
 
 1. (LogEventFeed (adapter)) **"whitelist+after+limit ile sorgular ve satırı port tipine eşler"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/log-repository.test.ts` (4 test)
+### `services\web-service\src\infrastructure\persistence\log-repository.test.ts` (4 test)
 
 1. (LogRepository (A1)) **"initialize hem system_logs hem log_events DDL'ini oluşturur"**
 2. (LogRepository (A1)) **"query UNION üretir — iki kaynağı birleştirir"**
@@ -2714,7 +2805,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/operation-def-store.test.ts` (6 test)
+### `services\web-service\src\infrastructure\persistence\operation-def-store.test.ts` (6 test)
 
 1. (OperationDefStore) **"initialize DDL oluşturur (operation_defs)"**
 2. (OperationDefStore) **"create: (kind, name) varsa THROW — rota 409 üretir"**
@@ -2725,7 +2816,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/operation-run-store.test.ts` (6 test)
+### `services\web-service\src\infrastructure\persistence\operation-run-store.test.ts` (6 test)
 
 1. (OperationRunStore) **"initialize DDL oluşturur (operation_runs + indeksler)"**
 2. (OperationRunStore) **"begin: running INSERT — parametreler birebir"**
@@ -2736,14 +2827,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/site-field-seed.test.ts` (2 test)
+### `services\web-service\src\infrastructure\persistence\site-field-seed.test.ts` (2 test)
 
 1. (ensureSiteField) **"FIELD_ID + isim ile UPSERT çalıştırır (ON CONFLICT DO NOTHING)"**
 2. (ensureSiteField) **"boş isim yerine varsayılan kullanılmaz — config'in sorumluluğu"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/persistence/user-repository.test.ts` (12 test)
+### `services\web-service\src\infrastructure\persistence\user-repository.test.ts` (12 test)
 
 1. (UserRepository (developer rolü migration — 2026-08-30)) **"initialize users DDL'ini oluşturur (developer CHECK dahil)"**
 2. (UserRepository (developer rolü migration — 2026-08-30)) **"initialize eski kurulumlar için role CHECK constraint'ini yeniler (idempotent)"**
@@ -2760,7 +2851,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/realtime/realtime-manager.test.ts` (11 test)
+### `services\web-service\src\infrastructure\realtime\realtime-manager.test.ts` (11 test)
 
 1. (RealtimeManager (Faz 5.1 B1)) **"büyük parti (isim sayısı > RING_BUFFER_MAX) tamamen korunur — B1 regresyonu"**
 2. (RealtimeManager (Faz 5.1 B1)) **"küçük partiler RING_BUFFER_MAX'ta kesilir (geçmiş korunur)"**
@@ -2776,7 +2867,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/infrastructure/realtime/ws-routes.test.ts` (7 test)
+### `services\web-service\src\infrastructure\realtime\ws-routes.test.ts` (7 test)
 
 1. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"token'sız handshake 401 ile reddedilir"**
 2. (ws-routes /ws/telemetry (T1.5) @nis2-security) **"geçersiz token 401 ile reddedilir"**
@@ -2788,7 +2879,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/middleware/error-handler.test.ts` (7 test)
+### `services\web-service\src\presentation\middleware\error-handler.test.ts` (7 test)
 
 1. (error-handler (T0.6) > DomainError eşlemesi) **"${c.name} → ${c.status}"**
 2. (error-handler (T0.6) > DomainError eşlemesi) **"ZodError → 400 (mevcut davranış korunur)"**
@@ -2800,7 +2891,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/middleware/log-rate-limiter.test.ts` (4 test)
+### `services\web-service\src\presentation\middleware\log-rate-limiter.test.ts` (4 test)
 
 1. (LogRateLimiter (T0.8)) **"limit altında izin verir"**
 2. (LogRateLimiter (T0.8)) **"limit aşılınca reddeder"**
@@ -2809,7 +2900,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/middleware/rbac.test.ts` (40 test)
+### `services\web-service\src\presentation\middleware\rbac.test.ts` (40 test)
 
 1. (rbac karakterizasyon (mevcut davranış) @nis2-security) **"PUBLIC_PREFIXES JWT'siz geçer"**
 2. (rbac karakterizasyon (mevcut davranış) @nis2-security) **"Bearer yoksa 401"**
@@ -2854,7 +2945,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/middleware/request-context.test.ts` (9 test)
+### `services\web-service\src\presentation\middleware\request-context.test.ts` (9 test)
 
 1. (RequestContext (T0.6)) **"run içinde current() id'yi döner"**
 2. (RequestContext (T0.6)) **"run dışında current() undefined döner"**
@@ -2868,7 +2959,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/alarm-routes.test.ts` (8 test)
+### `services\web-service\src\presentation\routes\alarm-routes.test.ts` (8 test)
 
 1. (alarm-routes (Faz 0 eki)) **"GET /alarms — aktif + kapananlar birleşik döner"**
 2. (alarm-routes (Faz 0 eki)) **"POST /alarms/resolve — teknik: audit log + DB güncellemesi"**
@@ -2881,7 +2972,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/auth-routes.test.ts` (31 test)
+### `services\web-service\src\presentation\routes\auth-routes.test.ts` (31 test)
 
 1. (Auth Routes (Fastify integration) > POST /login) **"returns 200 with tokens on valid credentials"**
 2. (Auth Routes (Fastify integration) > POST /login) **"returns 400 when username is empty"**
@@ -2917,7 +3008,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/command-routes.test.ts` (18 test)
+### `services\web-service\src\presentation\routes\command-routes.test.ts` (18 test)
 
 1. (command-routes (T0.6)) **"POST /execute — geçersiz gövde → 400 (zod)"**
 2. (command-routes (T0.6)) **"POST /execute — bilinmeyen cihaz → 404"**
@@ -2940,7 +3031,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/data-routes.test.ts` (13 test)
+### `services\web-service\src\presentation\routes\data-routes.test.ts` (13 test)
 
 1. (data-routes karakterizasyon (mevcut davranış)) **"GET /devices → 200 {devices}"**
 2. (data-routes karakterizasyon (mevcut davranış)) **"GET /devices — hata → 500 genel mesaj"**
@@ -2958,21 +3049,21 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/demo-maneuver-integration.test.ts` (2 test)
+### `services\web-service\src\presentation\routes\demo-maneuver-integration.test.ts` (2 test)
 
 1. (demo-maneuver-integration.spec — FL-01…FL-05 zinciri (Z)) **"config FL-01…FL-05 kayıtlarını taşır"**
 2. (demo-maneuver-integration.spec — FL-01…FL-05 zinciri (Z)) **"${c.name}: beklenen komutları çözer ve completed olur"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/device-routes.test.ts` (2 test)
+### `services\web-service\src\presentation\routes\device-routes.test.ts` (2 test)
 
 1. (device-routes (T0.6 + Faz 5.1 B3)) **"GET /devices → 200 {devices}"**
 2. (device-routes (T0.6 + Faz 5.1 B3)) **"DB hatası → 200 {devices: []} (Faz 5.1 B3 — kademeli bozulma)"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/event-routes.test.ts` (7 test)
+### `services\web-service\src\presentation\routes\event-routes.test.ts` (7 test)
 
 1. (eventRoutes (UC-4)) **"yetkisiz istek → 403"**
 2. (eventRoutes (UC-4)) **"after+limit geçirir; eventId/level/category bağlam eşlenir"**
@@ -2984,7 +3075,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/field-container-commands.test.ts` (10 test)
+### `services\web-service\src\presentation\routes\field-container-commands.test.ts` (10 test)
 
 1. (field-container-commands (D3 — hub)) **"yetki yok (token/user yok) → 403; hub'a istek gitmez"**
 2. (field-container-commands (D3 — hub)) **"yanlış internal token → 403 (fail-closed)"**
@@ -2999,7 +3090,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/field-routes.test.ts` (13 test)
+### `services\web-service\src\presentation\routes\field-routes.test.ts` (13 test)
 
 1. (field-routes karakterizasyon (mevcut davranış)) **"T1.3: boş fieldIds'li teknik /:fieldId/containers erişEMEZ (403)"**
 2. (field-routes karakterizasyon (mevcut davranış)) **"GET /:fieldId/summary → 200 yapı"**
@@ -3017,21 +3108,21 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/health-route.test.ts` (2 test)
+### `services\web-service\src\presentation\routes\health-route.test.ts` (2 test)
 
 1. (health-route (T0.10)) **"sağlıklı logger → status ok + log yansıması"**
 2. (health-route (T0.10)) **"error drop sonrası → status degraded + sayaç"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/hub-session-routes.test.ts` (2 test)
+### `services\web-service\src\presentation\routes\hub-session-routes.test.ts` (2 test)
 
 1. (hub-session-routes) **"AK-4.1/T-11: oturum açar, cookie set eder, redirect döner"**
 2. (hub-session-routes) **"kimlik yoksa 401"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/log-routes.test.ts` (10 test)
+### `services\web-service\src\presentation\routes\log-routes.test.ts` (10 test)
 
 1. (log-routes (T0.6)) **"GET / → 200 {logs}"**
 2. (log-routes (T0.6)) **"GET / — sorgu parametreleri repo'ya iletilir"**
@@ -3046,7 +3137,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/maneuver-routes.test.ts` (19 test)
+### `services\web-service\src\presentation\routes\maneuver-routes.test.ts` (19 test)
 
 1. (maneuver/operation rotaları — yetki) **"yetki yok → 403 (tüm uçlar)"**
 2. (maneuver/operation rotaları — yetki) **"Bearer admin/teknik kabul; guest 403"**
@@ -3070,7 +3161,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/notification-routes.test.ts` (5 test)
+### `services\web-service\src\presentation\routes\notification-routes.test.ts` (5 test)
 
 1. (notification-routes (Faz 5)) **"GET / → 200 liste"**
 2. (notification-routes (Faz 5)) **"limit 500 üstü sınıra çekilir"**
@@ -3080,7 +3171,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/operation-boss-routes.test.ts` (5 test)
+### `services\web-service\src\presentation\routes\operation-boss-routes.test.ts` (5 test)
 
 1. (operationBossRoutes (C2b)) **"admin → requester.send (uuid operationId + params + trace) → 200 {result}"**
 2. (operationBossRoutes (C2b)) **"teknik kabul; guest/anonim 403; iç token kabul"**
@@ -3090,13 +3181,13 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/status-route.test.ts` (1 test)
+### `services\web-service\src\presentation\routes\status-route.test.ts` (1 test)
 
 1. (status-route) **"her zaman offline durum bildirir"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/topology-routes.test.ts` (4 test)
+### `services\web-service\src\presentation\routes\topology-routes.test.ts` (4 test)
 
 1. (topology-routes) **"AK: topoloji dosyası varsa istasyon modelini döner"**
 2. (topology-routes) **"dosya yoksa 404 (frontend statik fallback)"**
@@ -3105,7 +3196,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/presentation/routes/unified-routes.test.ts` (24 test)
+### `services\web-service\src\presentation\routes\unified-routes.test.ts` (24 test)
 
 1. (unified-routes (T0.6)) **"GET /telemetry/latest → 200 {telemetries}"**
 2. (unified-routes (T0.6)) **"GET /timeseries/external → 200 {points} (AK-9.2)"**
@@ -3134,7 +3225,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/boss/infrastructure/field-event-collector.test.ts` (7 test)
+### `services\web-service\src\tiers\boss\infrastructure\field-event-collector.test.ts` (7 test)
 
 1. (FieldEventCollector (UC-5 — HTTP pull)) **"field peer'ı keşfeder, backlog cursor'ı ile çeker ve dedupe INSERT yazar"**
 2. (FieldEventCollector (UC-5 — HTTP pull)) **"whitelist dışı olay yok sayılır"**
@@ -3146,14 +3237,14 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/boss/infrastructure/field-event-reader.test.ts` (2 test)
+### `services\web-service\src\tiers\boss\infrastructure\field-event-reader.test.ts` (2 test)
 
 1. (FieldEventReader (adapter)) **"JOIN ile saha adını taşır + ISO dönüşümü"**
 2. (FieldEventReader (adapter)) **"countSince sonrasını sayar"**
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/boss/infrastructure/operation-requester.test.ts` (8 test)
+### `services\web-service\src\tiers\boss\infrastructure\operation-requester.test.ts` (8 test)
 
 1. (OperationRequester (UC-4 — HTTP relay)) **"hub access POST'u system kimliği + köken başlıklarıyla atar; 200 sonucu eşler"**
 2. (OperationRequester (UC-4 — HTTP relay)) **"200 + outcomes → results özetine dönüşür"**
@@ -3166,7 +3257,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/container/infrastructure/session/session-user-map.test.ts` (3 test)
+### `services\web-service\src\tiers\container\infrastructure\session\session-user-map.test.ts` (3 test)
 
 1. (SessionUserMap) **"toTunnelUser yalnızca tünel alanlarını taşır"**
 2. (SessionUserMap) **"toWebUser geçici oturum kullanıcısı üretir"**
@@ -3174,7 +3265,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/container/infrastructure/session/stateless-session-authenticator.test.ts` (4 test)
+### `services\web-service\src\tiers\container\infrastructure\session\stateless-session-authenticator.test.ts` (4 test)
 
 1. (StatelessSessionAuthenticator (container tier)) **"cookie'den token'ı çözer ve payload'ı User'a eşler"**
 2. (StatelessSessionAuthenticator (container tier)) **"stateful değildir — aynı token yerel kayıt olmadan tekrar doğrulanır"**
@@ -3183,7 +3274,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/site/infrastructure/container-telemetry/container-connection-telemetry-publisher.test.ts` (4 test)
+### `services\web-service\src\tiers\site\infrastructure\container-telemetry\container-connection-telemetry-publisher.test.ts` (4 test)
 
 1. (ContainerConnectionTelemetryPublisher) **"connected → value 1 MANAGEMENT job'ı (deviceId=field)"**
 2. (ContainerConnectionTelemetryPublisher) **"durum eşlemesi: idle→0, stale→2, error→0"**
@@ -3192,7 +3283,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/site/infrastructure/container-telemetry/hub-container-view.test.ts` (9 test)
+### `services\web-service\src\tiers\site\infrastructure\container-telemetry\hub-container-view.test.ts` (9 test)
 
 1. (HubContainerView — hub relay HTTP) **"presence: connectionStatus + lastSeenAt hub keşfinden"**
 2. (HubContainerView — hub relay HTTP) **"AK-1.1: latestQuery container'ın generic latest endpoint'ini çağırır"**
@@ -3206,7 +3297,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/site/infrastructure/container-telemetry/hub-ttl-cache.test.ts` (3 test)
+### `services\web-service\src\tiers\site\infrastructure\container-telemetry\hub-ttl-cache.test.ts` (3 test)
 
 1. (HubTtlCache) **"TTL içinde değeri döner; süre geçince get undefined"**
 2. (HubTtlCache) **"peek TTL'e bakmaz (son değer fallback)"**
@@ -3214,7 +3305,7 @@
 
 [DOSYA NOTU] <kapsanmayan dallar — KAPANIŞ §B.2'ye taşınır; boşsa satır silinir>
 
-### `services/web-service/src/tiers/site/infrastructure/hub-maneuver-channel.test.ts` (4 test)
+### `services\web-service\src\tiers\site\infrastructure\hub-maneuver-channel.test.ts` (4 test)
 
 1. (HubManeuverChannel) **"AK-3.1: 200 → ok; doğru yol ve gövde"**
 2. (HubManeuverChannel) **"AK-3.2: 503/404 → system_unreachable"**

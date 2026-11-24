@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { DemoShell } from "../layouts/DemoShell";
 import { DemoProjectLayout } from "../layouts/DemoProjectLayout";
 import { LoginPage } from "../pages/LoginPage";
+import { ChangePasswordPage } from "../pages/ChangePasswordPage";
 import { DemoFieldPage } from "../pages/DemoFieldPage";
 import { DemoDevicesPage } from "../pages/DemoDevicesPage";
 import { DemoFaultsPage } from "../pages/DemoFaultsPage";
@@ -34,6 +35,8 @@ const projectChildren: RouteObject[] = [
 export const routes: RouteObject[] = [
   { path: "/login", element: <LoginPage /> },
   { path: "fields/:fieldId/ui/login", element: <LoginPage /> },
+  // SITE UC-4: zorunlu şifre değişimi — kabuk (DemoShell) dışında; guard buraya yönlendirir.
+  { path: "/change-password", element: <ChangePasswordPage /> },
   {
     path: "/",
     element: <DemoShell />,
