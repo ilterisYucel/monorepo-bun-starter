@@ -15,6 +15,7 @@
 ## Klasör kuralları
 - Kod değişikliği yalnızca şu klasörlerde yapılır: @packages/simulators, @apps/container, @apps/site, @apps/sim-lab.
 - **Doküman istisnası:** İş akışının SPEC / KAPANIŞ dokümanları için `docs/` klasörüne yazılabilir.
+- **Claude yapılandırması:** `.claude/` (ajanlar, komutlar, ayarlar) düzenlenebilir.
 - **Yasak alanlar:** `services/**` ve `packages/simulators` dışındaki tüm `packages/**`. Bu alanlarda değişiklik
   gerekirse dokunma, işi durdur ve GitHub Issue aç.
 - **Issue açma:** Issue dışa dönük bir işlemdir — önce taslak (başlık + gerekçe + önerilen değişiklik) hazırlanır,
@@ -25,6 +26,26 @@
   aşamalar (SPEC → onay → SÖZLEŞME+TEST → onay → IMPL+MUTASYON → REVIEW) bu oturumda yürütülür.
 - **SPEC konumu:** SPEC doğrudan `docs/architecture/<MODUL>-MIMARISI.md` olarak açılır (Status `✏️ Specified`);
   plan konumu ve taşıma adımı Claude Code için uygulanmaz. Onay kapıları aynen geçerlidir.
+
+### Aşama → model eşlemesi (maliyet)
+
+OpenCode'daki "planı güçlü, kodu ucuz, review'u bir tık aşağı" düzeninin karşılığı:
+
+| Aşama | OpenCode | Claude Code |
+| :--- | :--- | :--- |
+| 1. SPEC | DeepSeek V4 Pro | Ana oturum — **Opus** |
+| 2. SÖZLEŞME + TEST | DeepSeek V4.1 Flash | `builder` alt ajanı — **Sonnet** (`.claude/agents/builder.md`) |
+| 3. IMPL + MUTASYON | DeepSeek V4.1 Flash | `builder` alt ajanı — **Sonnet** |
+| 4. REVIEW | Qwen 3.8 | `reviewer` alt ajanı — **Sonnet** (`.claude/agents/reviewer.md`) |
+
+- Ana oturum SPEC'i yazar ve onay kapılarını yönetir. SPEC onaylanınca Aşama 2'yi, Aşama 2 onaylanınca
+  Aşama 3'ü `builder`'a devreder (girdi: SPEC yolu + UC + aşama numarası). `builder` her aşama sonunda
+  rapor verip durur; developer onayı ana oturumda alınır.
+- Review, developer isteyince `reviewer` ile (veya `/kapanis`) koşar; otomatik başlatılmaz.
+- Ana oturumda Opus yalnız planlama/teşhis için gerekir. Build/review devredildiğinde ana oturum
+  model seçiciden Sonnet'e alınabilir (ek tasarruf).
+- `builder` takılırsa (teşhis gerektiren ortam/mimari sorun) iş ana oturuma döner; ucuz modelle
+  tekrar tekrar denenmez.
 
 ## Elegant Object — React istisnası
 - React component'lerinin render etmeyeceği durumda `null` döndürmesi serbesttir; satıra
